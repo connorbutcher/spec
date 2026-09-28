@@ -21,6 +21,8 @@ public sealed class PuSpecSheetDbContext(DbContextOptions<PuSpecSheetDbContext> 
 
     public DbSet<TemplateSection> TemplateSections => Set<TemplateSection>();
 
+    public DbSet<TemplateRow> TemplateRows => Set<TemplateRow>();
+
     public DbSet<TemplateCell> TemplateCells => Set<TemplateCell>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

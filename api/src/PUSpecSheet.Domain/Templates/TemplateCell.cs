@@ -1,19 +1,16 @@
 namespace PUSpecSheet.Domain.Templates;
 
 /// <summary>
-/// One cell in a leaf <see cref="TemplateSection"/>. Positions are 1-based within the section and
-/// map directly onto CSS grid-row / grid-column start and span.
+/// One cell in a <see cref="TemplateRow"/>. The cell starts on its row; <see cref="Column"/> is
+/// 1-based, and the spans map directly onto CSS grid-row / grid-column span.
 /// </summary>
 public class TemplateCell
 {
     public int Id { get; set; }
 
-    public int TemplateSectionId { get; set; }
+    public int TemplateRowId { get; set; }
 
-    public TemplateSection TemplateSection { get; set; } = null!;
-
-    /// <summary>The 1-based row the cell starts on.</summary>
-    public int Row { get; set; }
+    public TemplateRow TemplateRow { get; set; } = null!;
 
     /// <summary>The 1-based column the cell starts on.</summary>
     public int Column { get; set; }

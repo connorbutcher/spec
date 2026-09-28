@@ -10,7 +10,6 @@ public sealed class TemplateCellConfiguration : IEntityTypeConfiguration<Templat
     {
         builder.ToTable("TemplateCells", table =>
         {
-            table.HasCheckConstraint("CK_TemplateCells_Row", "[Row] >= 1");
             table.HasCheckConstraint("CK_TemplateCells_Column", "[Column] >= 1");
             table.HasCheckConstraint("CK_TemplateCells_RowSpan", "[RowSpan] >= 1");
             table.HasCheckConstraint("CK_TemplateCells_ColumnSpan", "[ColumnSpan] >= 1");
@@ -24,13 +23,13 @@ public sealed class TemplateCellConfiguration : IEntityTypeConfiguration<Templat
         builder.Property(cell => cell.ColumnSpan)
             .HasDefaultValue(1);
 
-        // Only one cell can start at a given position in a section.
-        builder.HasIndex(cell => new { cell.TemplateSectionId, cell.Row, cell.Column })
+        // Only one cell can start at a given column in a row.
+        builder.HasIndex(cell => new { cell.TemplateRowId, cell.Column })
             .IsUnique();
 
-        builder.HasOne(cell => cell.TemplateSection)
-            .WithMany(section => section.Cells)
-            .HasForeignKey(cell => cell.TemplateSectionId)
+        builder.HasOne(cell => cell.TemplateRow)
+            .WithMany(row => row.Cells)
+            .HasForeignKey(cell => cell.TemplateRowId)
             .OnDelete(DeleteBehavior.Cascade);
     }
 }
