@@ -24,6 +24,12 @@ public class Sheet
 
     public DateTime CreatedAtUtc { get; set; }
 
+    /// <summary>
+    /// Concurrency token. Every publish updates the sheet, so two people publishing at the same moment
+    /// can't both claim the same version number; the second is rejected and retried.
+    /// </summary>
+    public byte[] RowVersion { get; set; } = [];
+
     public ICollection<SheetTable> Tables { get; set; } = [];
 
     /// <summary>The numbered publishes of this sheet, oldest first.</summary>

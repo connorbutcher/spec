@@ -14,21 +14,34 @@ public sealed class SheetRowRevisionConfiguration : IEntityTypeConfiguration<She
             table.HasCheckConstraint(
                 "CK_SheetRowRevisions_PublishedAt",
                 "([Status] = 0 AND [PublishedAtUtc] IS NULL) OR ([Status] = 1 AND [PublishedAtUtc] IS NOT NULL)");
+
+            // Only a published revision can be superseded, and never before it was published.
+            table.HasCheckConstraint(
+                "CK_SheetRowRevisions_SupersededAt",
+                "[SupersededAtUtc] IS NULL OR ([Status] = 1 AND [SupersededAtUtc] >= [PublishedAtUtc])");
         });
 
         builder.HasKey(revision => revision.Id);
+
+        builder.Property(revision => revision.RowVersion)
+            .IsRowVersion();
+
+        // The current state: at most one published, not-yet-superseded revision per row.
+        builder.HasIndex(revision => revision.SheetRowId, "UX_SheetRowRevisions_OneCurrentPerRow")
+            .IsUnique()
+            .HasFilter("[Status] = 1 AND [SupersededAtUtc] IS NULL");
 
         builder.HasIndex(revision => new { revision.SheetRowId, revision.RevisionNumber })
             .IsUnique();
 
         // The row lock: at most one draft per row, enforced by the database.
-        builder.HasIndex(revision => revision.SheetRowId)
+        builder.HasIndex(revision => revision.SheetRowId, "UX_SheetRowRevisions_OneDraftPerRow")
             .IsUnique()
-            .HasFilter("[Status] = 0")
-            .HasDatabaseName("UX_SheetRowRevisions_OneDraftPerRow");
+            .HasFilter("[Status] = 0");
 
-        // "As of a date": each row's latest revision published at or before a moment.
+        // "As of" a moment: the revision whose [PublishedAtUtc, SupersededAtUtc) range covers it.
         builder.HasIndex(revision => new { revision.SheetRowId, revision.PublishedAtUtc })
+            .IncludeProperties(revision => revision.SupersededAtUtc)
             .HasFilter("[Status] = 1")
             .HasDatabaseName("IX_SheetRowRevisions_Published");
 

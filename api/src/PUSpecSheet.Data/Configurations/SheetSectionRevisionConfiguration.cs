@@ -14,21 +14,34 @@ public sealed class SheetSectionRevisionConfiguration : IEntityTypeConfiguration
             table.HasCheckConstraint(
                 "CK_SheetSectionRevisions_PublishedAt",
                 "([Status] = 0 AND [PublishedAtUtc] IS NULL) OR ([Status] = 1 AND [PublishedAtUtc] IS NOT NULL)");
+
+            // Only a published revision can be superseded, and never before it was published.
+            table.HasCheckConstraint(
+                "CK_SheetSectionRevisions_SupersededAt",
+                "[SupersededAtUtc] IS NULL OR ([Status] = 1 AND [SupersededAtUtc] >= [PublishedAtUtc])");
         });
 
         builder.HasKey(revision => revision.Id);
+
+        builder.Property(revision => revision.RowVersion)
+            .IsRowVersion();
+
+        // The current state: at most one published, not-yet-superseded revision per section.
+        builder.HasIndex(revision => revision.SheetSectionId, "UX_SheetSectionRevisions_OneCurrentPerSection")
+            .IsUnique()
+            .HasFilter("[Status] = 1 AND [SupersededAtUtc] IS NULL");
 
         builder.HasIndex(revision => new { revision.SheetSectionId, revision.RevisionNumber })
             .IsUnique();
 
         // The section lock: at most one draft per section, enforced by the database.
-        builder.HasIndex(revision => revision.SheetSectionId)
+        builder.HasIndex(revision => revision.SheetSectionId, "UX_SheetSectionRevisions_OneDraftPerSection")
             .IsUnique()
-            .HasFilter("[Status] = 0")
-            .HasDatabaseName("UX_SheetSectionRevisions_OneDraftPerSection");
+            .HasFilter("[Status] = 0");
 
-        // "As of a date": each section's latest revision published at or before a moment.
+        // "As of" a moment: the revision whose [PublishedAtUtc, SupersededAtUtc) range covers it.
         builder.HasIndex(revision => new { revision.SheetSectionId, revision.PublishedAtUtc })
+            .IncludeProperties(revision => revision.SupersededAtUtc)
             .HasFilter("[Status] = 1")
             .HasDatabaseName("IX_SheetSectionRevisions_Published");
 

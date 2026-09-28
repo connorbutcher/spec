@@ -37,6 +37,16 @@ public class SheetSectionRevision
 
     public DateTime? PublishedAtUtc { get; set; }
 
+    /// <summary>
+    /// When the next revision was published and replaced this one. Null on the current published
+    /// revision and on drafts. Published revisions form an unbroken [PublishedAtUtc, SupersededAtUtc)
+    /// timeline, so "as of" a moment is a single range check.
+    /// </summary>
+    public DateTime? SupersededAtUtc { get; set; }
+
+    /// <summary>Concurrency token: a save based on a stale copy (e.g. a second browser tab) is rejected.</summary>
+    public byte[] RowVersion { get; set; } = [];
+
     public int? SheetVersionId { get; set; }
 
     public SheetVersion? SheetVersion { get; set; }

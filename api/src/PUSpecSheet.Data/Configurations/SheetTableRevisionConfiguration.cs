@@ -14,21 +14,34 @@ public sealed class SheetTableRevisionConfiguration : IEntityTypeConfiguration<S
             table.HasCheckConstraint(
                 "CK_SheetTableRevisions_PublishedAt",
                 "([Status] = 0 AND [PublishedAtUtc] IS NULL) OR ([Status] = 1 AND [PublishedAtUtc] IS NOT NULL)");
+
+            // Only a published revision can be superseded, and never before it was published.
+            table.HasCheckConstraint(
+                "CK_SheetTableRevisions_SupersededAt",
+                "[SupersededAtUtc] IS NULL OR ([Status] = 1 AND [SupersededAtUtc] >= [PublishedAtUtc])");
         });
 
         builder.HasKey(revision => revision.Id);
+
+        builder.Property(revision => revision.RowVersion)
+            .IsRowVersion();
+
+        // The current state: at most one published, not-yet-superseded revision per table.
+        builder.HasIndex(revision => revision.SheetTableId, "UX_SheetTableRevisions_OneCurrentPerTable")
+            .IsUnique()
+            .HasFilter("[Status] = 1 AND [SupersededAtUtc] IS NULL");
 
         builder.HasIndex(revision => new { revision.SheetTableId, revision.RevisionNumber })
             .IsUnique();
 
         // The table lock: at most one draft per table, enforced by the database.
-        builder.HasIndex(revision => revision.SheetTableId)
+        builder.HasIndex(revision => revision.SheetTableId, "UX_SheetTableRevisions_OneDraftPerTable")
             .IsUnique()
-            .HasFilter("[Status] = 0")
-            .HasDatabaseName("UX_SheetTableRevisions_OneDraftPerTable");
+            .HasFilter("[Status] = 0");
 
-        // "As of a date": each table's latest revision published at or before a moment.
+        // "As of" a moment: the revision whose [PublishedAtUtc, SupersededAtUtc) range covers it.
         builder.HasIndex(revision => new { revision.SheetTableId, revision.PublishedAtUtc })
+            .IncludeProperties(revision => revision.SupersededAtUtc)
             .HasFilter("[Status] = 1")
             .HasDatabaseName("IX_SheetTableRevisions_Published");
 

@@ -14,6 +14,9 @@ public sealed class SheetConfiguration : IEntityTypeConfiguration<Sheet>
 
         builder.HasPublicId(sheet => sheet.PublicId);
 
+        builder.Property(sheet => sheet.RowVersion)
+            .IsRowVersion();
+
         // One sheet per phase and sheet type.
         builder.HasIndex(sheet => new { sheet.PhaseId, sheet.SheetTypeId })
             .IsUnique();
