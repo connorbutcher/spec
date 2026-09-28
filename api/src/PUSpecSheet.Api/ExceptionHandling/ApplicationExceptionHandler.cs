@@ -39,6 +39,8 @@ public sealed class ApplicationExceptionHandler(IProblemDetailsService problemDe
         return exception switch
         {
             NotFoundException => StatusCodes.Status404NotFound,
+            ConflictException => StatusCodes.Status409Conflict,
+            InvalidRequestException => StatusCodes.Status400BadRequest,
             _ => null,
         };
     }

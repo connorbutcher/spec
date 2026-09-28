@@ -1,6 +1,8 @@
 using Microsoft.Extensions.DependencyInjection;
+using PUSpecSheet.Application.CellTypes;
 using PUSpecSheet.Application.Phases;
 using PUSpecSheet.Application.SheetTypes;
+using PUSpecSheet.Application.Templates;
 
 namespace PUSpecSheet.Application.DependencyInjection;
 
@@ -11,6 +13,14 @@ public static class ApplicationServiceCollectionExtensions
     {
         services.AddScoped<ISheetTypeService, SheetTypeService>();
         services.AddScoped<IPhaseService, PhaseService>();
+
+        services.AddScoped<ICellTypeService, CellTypeService>();
+
+        services.AddScoped<TableTemplateReader>();
+        services.AddScoped<ITableTemplateService, TableTemplateService>();
+        services.AddScoped<ITemplateSectionService, TemplateSectionService>();
+        services.AddScoped<ITemplateRowService, TemplateRowService>();
+        services.AddScoped<ITemplateCellService, TemplateCellService>();
 
         return services;
     }
