@@ -1,0 +1,15 @@
+@if (sheetTypes().length > 0) {
+  <ol class="sheet-type-list">
+    @for (sheetType of sheetTypes(); track sheetType.id; let position = $index) {
+      <li>
+        <app-sheet-type-section
+          [sheetType]="sheetType"
+          [position]="position + 1"
+          [phaseCode]="phaseCode()"
+        />
+      </li>
+    }
+  </ol>
+} @else {
+  <p class="none">No PU Spec Sheet types have been made available to {{ phaseCode() }} yet.</p>
+}

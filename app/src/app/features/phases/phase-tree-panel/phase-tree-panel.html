@@ -1,0 +1,49 @@
+<aside class="app-card tree-panel" aria-labelledby="phase-tree-heading">
+  <header class="panel-head">
+    <h2 id="phase-tree-heading">Phases</h2>
+  </header>
+
+  <div class="panel-body">
+    @if (hasError()) {
+      <app-empty-state
+        icon="pi-exclamation-circle"
+        title="Couldn't load phases"
+        message="Check the API is running, then try again."
+      >
+        <button type="button" class="retry" (click)="retry()">Try again</button>
+      </app-empty-state>
+    } @else if (isLoading() && !hasPhases()) {
+      <app-phase-tree-skeleton />
+    } @else if (!hasPhases()) {
+      <app-empty-state
+        icon="pi-sitemap"
+        title="No phases yet"
+        message="Phases will be added in the admin section."
+      />
+    } @else {
+      <p-tree
+        class="phase-tree"
+        [value]="nodes()"
+        selectionMode="single"
+        [selection]="selectedNode()"
+        (onNodeSelect)="onNodeSelect($event)"
+        [filter]="true"
+        filterBy="label"
+        filterMode="lenient"
+        filterPlaceholder="Filter phases"
+        scrollHeight="flex"
+        ariaLabelledBy="phase-tree-heading"
+        emptyMessage="No phases match your filter."
+      >
+        <ng-template #node let-node>
+          <span class="tree-node">
+            <span class="code">{{ node.label }}</span>
+            <span class="count" [attr.aria-label]="sheetTypeCount(node) + ' sheet types'">
+              {{ sheetTypeCount(node) }}
+            </span>
+          </span>
+        </ng-template>
+      </p-tree>
+    }
+  </div>
+</aside>

@@ -45,6 +45,12 @@ body {
   border: 0;
 }
 
+/* PrimeNG overrides: let custom tree node templates fill the row so trailing badges sit on the right. */
+.p-tree .p-tree-node-label {
+  flex: 1;
+  min-width: 0;
+}
+
 /* Cards are the base surface for every panel in the app. */
 .app-card {
   background: #fff;

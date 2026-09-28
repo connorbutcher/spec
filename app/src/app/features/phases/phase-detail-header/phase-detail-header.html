@@ -1,0 +1,15 @@
+<header class="detail-header">
+  <div class="title-row">
+    <h1>{{ phase().code }}</h1>
+    <span class="placement">
+      @if (parent(); as parent) {
+        Under {{ parent.code }}
+      } @else {
+        Top-level phase
+      }
+    </span>
+  </div>
+  @if (phase().description) {
+    <p class="description">{{ phase().description }}</p>
+  }
+</header>

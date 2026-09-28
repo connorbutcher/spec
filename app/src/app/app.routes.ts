@@ -1,9 +1,7 @@
 import { Routes } from '@angular/router';
 
 const comingSoon = () =>
-  import('./features/coming-soon/coming-soon-page.component').then(
-    (m) => m.ComingSoonPageComponent,
-  );
+  import('./features/coming-soon/coming-soon-page/coming-soon-page').then((m) => m.ComingSoonPage);
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'phases' },

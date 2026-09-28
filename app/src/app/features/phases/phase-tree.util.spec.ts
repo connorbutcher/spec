@@ -1,5 +1,5 @@
 import { Phase } from '../../core/models/phase.model';
-import { buildPhaseTree, filterPhaseTree, phaseAncestors } from './phase-tree.util';
+import { buildPhaseTree, indexTreeNodes, phaseAncestors } from './phase-tree.util';
 
 function phase(id: number, code: string, parentPhaseId: number | null, displayOrder = 1): Phase {
   return { id, code, description: null, displayOrder, parentPhaseId, sheetTypeIds: [] };
@@ -16,25 +16,28 @@ const phases: Phase[] = [
 describe('buildPhaseTree', () => {
   it('nests children under their parent in display order', () => {
     const tree = buildPhaseTree(phases);
-    expect(tree.map((node) => node.phase.code)).toEqual(['V6', 'SC', 'Orphan']);
-    expect(tree[0].children.map((node) => node.phase.code)).toEqual(['01-A2', 'A3']);
+    expect(tree.map((node) => node.label)).toEqual(['V6', 'SC', 'Orphan']);
+    expect(tree[0].children?.map((node) => node.label)).toEqual(['01-A2', 'A3']);
+  });
+
+  it('marks nodes without children as leaves and expands everything', () => {
+    const tree = buildPhaseTree(phases);
+    expect(tree[0].leaf).toBe(false);
+    expect(tree[1].leaf).toBe(true);
+    expect(tree.every((node) => node.expanded)).toBe(true);
   });
 
   it('keeps a phase with a missing parent at the top level', () => {
     const tree = buildPhaseTree(phases);
-    expect(tree.some((node) => node.phase.code === 'Orphan')).toBe(true);
+    expect(tree.some((node) => node.label === 'Orphan')).toBe(true);
   });
 });
 
-describe('filterPhaseTree', () => {
-  it('keeps matching phases and the ancestors that lead to them', () => {
-    const tree = filterPhaseTree(buildPhaseTree(phases), 'a3');
-    expect(tree.map((node) => node.phase.code)).toEqual(['V6']);
-    expect(tree[0].children.map((node) => node.phase.code)).toEqual(['A3']);
-  });
-
-  it('returns everything for an empty query', () => {
-    expect(filterPhaseTree(buildPhaseTree(phases), '  ').length).toBe(3);
+describe('indexTreeNodes', () => {
+  it('finds nested nodes by phase id', () => {
+    const index = indexTreeNodes(buildPhaseTree(phases));
+    expect(index.get(3)?.label).toBe('01-A2');
+    expect(index.size).toBe(5);
   });
 });
 

@@ -1,11 +1,11 @@
 import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { AppHeaderComponent } from './core/layout/app-header/app-header.component';
-import { SideNavComponent } from './core/layout/side-nav/side-nav.component';
+import { AppHeader } from './core/layout/app-header/app-header';
+import { SideNav } from './core/layout/side-nav/side-nav';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, AppHeaderComponent, SideNavComponent],
+  imports: [RouterOutlet, AppHeader, SideNav],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })

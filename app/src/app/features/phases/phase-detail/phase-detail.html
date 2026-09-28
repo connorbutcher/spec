@@ -1,0 +1,24 @@
+@if (phase(); as phase) {
+  <article class="app-card phase-detail">
+    <header class="detail-head">
+      <app-phase-breadcrumb [ancestors]="ancestors()" [current]="phase" />
+      <app-phase-detail-header [phase]="phase" [parent]="ancestors().at(-1)" />
+    </header>
+
+    <section class="detail-body" aria-labelledby="sheet-types-heading">
+      <div class="section-title">
+        <h2 id="sheet-types-heading">PU Spec Sheets</h2>
+        <span class="section-count">{{ sheetTypes().length }}</span>
+      </div>
+      <app-sheet-type-list [sheetTypes]="sheetTypes()" [phaseCode]="phase.code" />
+    </section>
+  </article>
+} @else if (!isLoading()) {
+  <div class="app-card not-found">
+    <app-empty-state
+      icon="pi-search"
+      title="Phase not found"
+      message="It may have been removed. Pick another phase from the tree."
+    />
+  </div>
+}

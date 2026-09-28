@@ -1,0 +1,10 @@
+<a
+  class="side-nav-link"
+  [routerLink]="item().path"
+  routerLinkActive="active"
+  ariaCurrentWhenActive="page"
+  [attr.title]="collapsed() ? item().label : null"
+>
+  <i class="pi" [class]="item().icon" aria-hidden="true"></i>
+  <span class="label" [class.visually-hidden]="collapsed()">{{ item().label }}</span>
+</a>

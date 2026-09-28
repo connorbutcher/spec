@@ -1,5 +1,5 @@
+import { TreeNode } from 'primeng/api';
 import { Phase } from '../../core/models/phase.model';
-import { PhaseTreeNode } from '../../core/models/phase-tree-node.model';
 
 /** Sibling order: display order, then code. */
 export function comparePhases(a: Phase, b: Phase): number {
@@ -10,10 +10,10 @@ export function comparePhases(a: Phase, b: Phase): number {
 }
 
 /**
- * Builds the phase tree from the flat list. A phase whose parent isn't in the list is treated as a
- * top-level phase so it never disappears from view.
+ * Builds the PrimeNG tree nodes from the flat phase list, expanded by default. A phase whose parent
+ * isn't in the list is treated as a top-level phase so it never disappears from view.
  */
-export function buildPhaseTree(phases: readonly Phase[]): PhaseTreeNode[] {
+export function buildPhaseTree(phases: readonly Phase[]): TreeNode<Phase>[] {
   const ids = new Set(phases.map((phase) => phase.id));
   const childrenByParent = new Map<number | null, Phase[]>();
 
@@ -25,37 +25,33 @@ export function buildPhaseTree(phases: readonly Phase[]): PhaseTreeNode[] {
     childrenByParent.set(parentId, siblings);
   }
 
-  const toNodes = (parentId: number | null): PhaseTreeNode[] =>
-    [...(childrenByParent.get(parentId) ?? [])]
-      .sort(comparePhases)
-      .map((phase) => ({ phase, children: toNodes(phase.id) }));
+  const toNodes = (parentId: number | null): TreeNode<Phase>[] =>
+    [...(childrenByParent.get(parentId) ?? [])].sort(comparePhases).map((phase) => {
+      const children = toNodes(phase.id);
+      return {
+        key: String(phase.id),
+        label: phase.code,
+        data: phase,
+        children,
+        leaf: children.length === 0,
+        expanded: true,
+      };
+    });
 
   return toNodes(null);
 }
 
-/**
- * Keeps the nodes whose code or description matches `query`, plus the ancestors needed to reach
- * them. A matching node keeps all of its children.
- */
-export function filterPhaseTree(nodes: readonly PhaseTreeNode[], query: string): PhaseTreeNode[] {
-  const term = query.trim().toLowerCase();
-  if (!term) {
-    return [...nodes];
-  }
-
-  const result: PhaseTreeNode[] = [];
-  for (const node of nodes) {
-    if (phaseMatches(node.phase, term)) {
-      result.push(node);
-      continue;
+/** Every node in the tree, keyed by phase id. */
+export function indexTreeNodes(nodes: readonly TreeNode<Phase>[]): Map<number, TreeNode<Phase>> {
+  const index = new Map<number, TreeNode<Phase>>();
+  const visit = (node: TreeNode<Phase>): void => {
+    if (node.data) {
+      index.set(node.data.id, node);
     }
-
-    const children = filterPhaseTree(node.children, term);
-    if (children.length > 0) {
-      result.push({ phase: node.phase, children });
-    }
-  }
-  return result;
+    node.children?.forEach(visit);
+  };
+  nodes.forEach(visit);
+  return index;
 }
 
 /** The chain of ancestors from the top level down to (but not including) `phaseId`. */
@@ -74,11 +70,4 @@ export function phaseAncestors(phaseId: number, phasesById: ReadonlyMap<number, 
     parentId = parent.parentPhaseId;
   }
   return ancestors;
-}
-
-function phaseMatches(phase: Phase, term: string): boolean {
-  return (
-    phase.code.toLowerCase().includes(term) ||
-    (phase.description?.toLowerCase().includes(term) ?? false)
-  );
 }
