@@ -70,6 +70,7 @@ public sealed class TemplateCellService(PuSpecSheetDbContext db, TableTemplateRe
     public async Task<TableTemplateDto> DeleteAsync(int id, CancellationToken cancellationToken)
     {
         var cell = await FindAsync(id, cancellationToken);
+        await SheetDataGuard.EnsureCellsUnusedAsync(db, [id], "this cell", cancellationToken);
 
         db.TemplateCells.Remove(cell);
         await db.SaveChangesAsync(cancellationToken);

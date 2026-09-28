@@ -77,6 +77,13 @@ public sealed class TemplateSectionService(PuSpecSheetDbContext db, TableTemplat
             .ToListAsync(cancellationToken);
 
         var subtree = CollectSubtree(section, templateSections);
+        var subtreeIds = subtree.Select(candidate => candidate.Id).ToList();
+        var rowIds = await db.TemplateRows
+            .Where(row => subtreeIds.Contains(row.TemplateSectionId))
+            .Select(row => row.Id)
+            .ToListAsync(cancellationToken);
+
+        await SheetDataGuard.EnsureSectionsUnusedAsync(db, subtreeIds, rowIds, $"\"{section.Name}\"", cancellationToken);
         db.TemplateSections.RemoveRange(subtree);
 
         var siblings = templateSections

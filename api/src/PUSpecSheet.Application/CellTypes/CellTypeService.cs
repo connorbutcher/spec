@@ -45,6 +45,7 @@ public sealed class CellTypeService(PuSpecSheetDbContext db) : ICellTypeService
     {
         var cellType = await FindAsync(id, cancellationToken);
         await EnsureNameIsFreeAsync(request.Name, id, cancellationToken);
+        await EnsureSheetValuesKeepMeaningAsync(cellType, request, cancellationToken);
 
         CellTypeSettings.Apply(request, cellType);
         await db.SaveChangesAsync(cancellationToken);
@@ -92,6 +93,47 @@ public sealed class CellTypeService(PuSpecSheetDbContext db) : ICellTypeService
         {
             throw new ConflictException($"A cell type called \"{trimmed}\" already exists.");
         }
+    }
+
+    /// <summary>
+    /// Sheet values are stored by kind, and dropdown values point at an option, so a type whose cells
+    /// already hold sheet values can't change kind, and an option chosen on a sheet can't be removed.
+    /// </summary>
+    private async Task EnsureSheetValuesKeepMeaningAsync(
+        CellType cellType,
+        SaveCellTypeRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (request.Kind != cellType.Kind && await HasSheetValuesAsync(cellType.Id, cancellationToken))
+        {
+            throw new ConflictException(
+                $"Sheets already have values for \"{cellType.Name}\" cells, so its kind can't change.");
+        }
+
+        var keptValues = request.Kind == CellKind.Dropdown
+            ? (request.Options ?? []).Select(option => option.Trim()).ToHashSet(StringComparer.OrdinalIgnoreCase)
+            : [];
+
+        var removedIds = cellType.Options
+            .Where(option => !keptValues.Contains(option.Value))
+            .Select(option => option.Id)
+            .ToList();
+
+        if (removedIds.Count > 0
+            && await db.OptionValues.AnyAsync(value => removedIds.Contains(value.CellTypeOptionId), cancellationToken))
+        {
+            throw new ConflictException("An option you removed has been chosen on a sheet, so it has to stay.");
+        }
+    }
+
+    private async Task<bool> HasSheetValuesAsync(int cellTypeId, CancellationToken cancellationToken)
+    {
+        var cellIds = db.TemplateCells
+            .Where(cell => cell.CellTypeId == cellTypeId)
+            .Select(cell => cell.Id);
+
+        // Values now hang off sheet cells, and a sheet cell exists for every template cell a sheet uses.
+        return await db.SheetCells.AnyAsync(cell => cellIds.Contains(cell.TemplateCellId), cancellationToken);
     }
 
     private Task<int> CountUsageAsync(int id, CancellationToken cancellationToken)

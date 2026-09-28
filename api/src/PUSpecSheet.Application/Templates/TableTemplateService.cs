@@ -84,6 +84,7 @@ public sealed class TableTemplateService(PuSpecSheetDbContext db, TableTemplateR
     public async Task DeleteAsync(int id, CancellationToken cancellationToken)
     {
         var template = await FindAsync(id, cancellationToken);
+        await SheetDataGuard.EnsureTemplateUnusedAsync(db, id, cancellationToken);
 
         // Sections, rows and cells go with it through the database's cascading deletes.
         db.TableTemplates.Remove(template);

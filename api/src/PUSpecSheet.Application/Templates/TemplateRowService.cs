@@ -69,6 +69,7 @@ public sealed class TemplateRowService(PuSpecSheetDbContext db, TableTemplateRea
     public async Task<TableTemplateDto> DeleteAsync(int id, CancellationToken cancellationToken)
     {
         var row = await FindAsync(id, cancellationToken);
+        await SheetDataGuard.EnsureRowsUnusedAsync(db, [id], "this row", cancellationToken);
         var siblings = await LoadSiblingsAsync(row, cancellationToken);
 
         db.TemplateRows.Remove(row);
