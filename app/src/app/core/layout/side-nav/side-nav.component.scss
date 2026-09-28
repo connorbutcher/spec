@@ -1,0 +1,33 @@
+:host {
+  display: block;
+  flex: 0 0 auto;
+  width: 220px;
+  background: var(--app-navy-dark);
+  transition: width 0.15s ease;
+
+  &.collapsed {
+    width: 64px;
+  }
+}
+
+.side-nav {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+  padding: 12px;
+}
+
+.nav-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  &.footer {
+    padding-top: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+}

@@ -1,0 +1,16 @@
+<nav class="side-nav" aria-label="Main">
+  <ul class="nav-list">
+    @for (item of mainItems; track item.path) {
+      <li>
+        <app-side-nav-link [item]="item" [collapsed]="collapsed()" />
+      </li>
+    }
+  </ul>
+  <ul class="nav-list footer">
+    @for (item of footerItems; track item.path) {
+      <li>
+        <app-side-nav-link [item]="item" [collapsed]="collapsed()" />
+      </li>
+    }
+  </ul>
+</nav>

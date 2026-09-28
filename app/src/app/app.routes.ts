@@ -1,11 +1,34 @@
 import { Routes } from '@angular/router';
 
+const comingSoon = () =>
+  import('./features/coming-soon/coming-soon-page.component').then(
+    (m) => m.ComingSoonPageComponent,
+  );
+
 export const routes: Routes = [
+  { path: '', pathMatch: 'full', redirectTo: 'phases' },
   {
-    path: '',
-    pathMatch: 'full',
-    loadComponent: () =>
-      import('./features/home/home-page.component').then((m) => m.HomePageComponent),
+    path: 'phases',
+    title: 'Phases · PU Spec Sheet',
+    loadChildren: () => import('./features/phases/phases.routes').then((m) => m.PHASES_ROUTES),
   },
-  { path: '**', redirectTo: '' },
+  {
+    path: 'templates',
+    title: 'Templates · PU Spec Sheet',
+    loadComponent: comingSoon,
+    data: { title: 'Templates', icon: 'pi-table' },
+  },
+  {
+    path: 'admin',
+    title: 'Admin · PU Spec Sheet',
+    loadComponent: comingSoon,
+    data: { title: 'Admin', icon: 'pi-cog' },
+  },
+  {
+    path: 'help',
+    title: 'Help · PU Spec Sheet',
+    loadComponent: comingSoon,
+    data: { title: 'Help', icon: 'pi-question-circle' },
+  },
+  { path: '**', redirectTo: 'phases' },
 ];

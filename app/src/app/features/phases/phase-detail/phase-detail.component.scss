@@ -1,0 +1,32 @@
+.phase-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  .block {
+    padding: 16px 20px 20px;
+  }
+
+  .block-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 14px;
+
+    h2 {
+      margin: 0;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #1f2937;
+    }
+  }
+
+  .block-count {
+    padding: 1px 8px;
+    border-radius: 999px;
+    background: #f1f5f9;
+    color: #475569;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+}

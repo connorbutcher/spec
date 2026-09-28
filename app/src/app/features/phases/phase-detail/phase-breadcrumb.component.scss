@@ -1,0 +1,39 @@
+.breadcrumb {
+  ol {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: 0.8rem;
+    color: #64748b;
+  }
+
+  li {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+
+    & + li::before {
+      content: '›';
+      color: #94a3b8;
+    }
+  }
+
+  a {
+    color: #475569;
+    text-decoration: none;
+
+    &:hover {
+      color: var(--app-navy);
+      text-decoration: underline;
+    }
+  }
+
+  [aria-current='page'] {
+    color: #1f2937;
+    font-weight: 600;
+  }
+}

@@ -1,0 +1,30 @@
+.detail-header {
+  .title-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 12px;
+  }
+
+  h1 {
+    margin: 0;
+    font-family: var(--app-font-mono);
+    font-size: 1.6rem;
+    color: var(--app-navy);
+  }
+
+  .placement {
+    padding: 2px 10px;
+    border-radius: 999px;
+    background: #eef3fa;
+    color: #1c376e;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  .description {
+    margin: 6px 0 0;
+    color: #475569;
+    font-size: 0.9rem;
+  }
+}
