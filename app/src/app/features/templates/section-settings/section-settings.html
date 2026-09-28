@@ -1,0 +1,68 @@
+@if (entry(); as entry) {
+  <div class="fields">
+    <div class="field">
+      <label for="section-name">Name</label>
+      <input
+        #nameInput
+        id="section-name"
+        type="text"
+        maxlength="100"
+        [value]="entry.section.name"
+        (change)="rename(nameInput)"
+      />
+    </div>
+
+    <div class="field">
+      <span class="label">Position</span>
+      <app-move-buttons
+        noun="section"
+        [position]="position()"
+        [count]="entry.siblings.length"
+        [disabled]="isSaving()"
+        (moved)="move($event)"
+      />
+    </div>
+
+    @if (hasChildSections()) {
+      <h3 class="group-title">Sections inside</h3>
+      <app-panel-link-list [items]="childSections()" />
+      <div class="actions">
+        <button type="button" class="button" [disabled]="isSaving()" (click)="addSection()">
+          <i class="pi pi-plus" aria-hidden="true"></i> Add section inside
+        </button>
+      </div>
+    } @else if (hasRows()) {
+      <h3 class="group-title">Rows</h3>
+      <app-panel-link-list [items]="rows()" />
+      <div class="actions">
+        <button type="button" class="button" [disabled]="isSaving()" (click)="addRow()">
+          <i class="pi pi-plus" aria-hidden="true"></i> Add row
+        </button>
+      </div>
+      <p class="note">New rows copy the columns of the last row.</p>
+    } @else {
+      <h3 class="group-title">Contents</h3>
+      <p class="note">
+        A section holds either rows of cells or more sections. Add rows here, or split it into
+        sections.
+      </p>
+      <div class="actions">
+        <button type="button" class="button" [disabled]="isSaving()" (click)="addRow()">
+          <i class="pi pi-plus" aria-hidden="true"></i> Add row
+        </button>
+        <button type="button" class="button" [disabled]="isSaving()" (click)="addSection()">
+          <i class="pi pi-plus" aria-hidden="true"></i> Add section inside
+        </button>
+      </div>
+    }
+
+    <div class="danger-zone">
+      <app-confirm-delete-button
+        label="Delete section"
+        [warning]="deleteWarning()"
+        [disabled]="isSaving()"
+        (confirmed)="delete()"
+      />
+    </div>
+  </div>
+}

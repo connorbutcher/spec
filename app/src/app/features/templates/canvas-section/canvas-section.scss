@@ -1,0 +1,72 @@
+// Subgrid in both directions, so rows and columns are shared with the whole table.
+:host {
+  display: grid;
+  grid-template-columns: subgrid;
+  grid-template-rows: subgrid;
+  gap: 1px;
+  background: #cbd5e1;
+}
+
+:host(.selected) {
+  outline: 2px solid var(--app-navy);
+  outline-offset: -1px;
+  z-index: 1;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  padding: 4px 8px;
+  border: 0;
+  background: #e2e8f0;
+  color: #1e293b;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+
+  &:hover {
+    background: #d5dde8;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--app-navy);
+    outline-offset: -2px;
+  }
+}
+
+.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 30px;
+  padding: 4px;
+  background: repeating-linear-gradient(45deg, #f8fafc, #f8fafc 6px, #f1f5f9 6px, #f1f5f9 12px);
+
+  button {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border: 1px dashed #94a3b8;
+    border-radius: 3px;
+    background: #fff;
+    color: #475569;
+    font: inherit;
+    font-size: 0.72rem;
+    cursor: pointer;
+
+    .pi {
+      font-size: 0.6rem;
+    }
+
+    &:hover:not(:disabled) {
+      border-color: var(--app-navy);
+      color: var(--app-navy);
+    }
+  }
+}

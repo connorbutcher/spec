@@ -1,0 +1,112 @@
+@if (entry(); as entry) {
+  <div class="fields">
+    <p class="note">
+      Column {{ entry.cell.column }} of
+      <button type="button" class="link" (click)="openRow()">row {{ entry.row.number }}</button>
+      in {{ entry.row.section.name }}
+    </p>
+
+    <div class="field">
+      <label for="cell-type">Cell type</label>
+      <div class="type-row">
+        <select
+          #typeSelect
+          id="cell-type"
+          [disabled]="isSaving()"
+          (change)="setType(typeSelect.value)"
+        >
+          @for (cellType of cellTypes(); track cellType.id) {
+            <option [value]="cellType.id" [selected]="cellType.id === entry.cell.cellTypeId">
+              {{ cellType.name }} ({{ cellType.kind }})
+            </option>
+          }
+        </select>
+        <button
+          type="button"
+          class="button"
+          title="Configure this cell type"
+          (click)="openCellType()"
+        >
+          <i class="pi pi-cog" aria-hidden="true"></i> Configure
+        </button>
+      </div>
+      <span class="hint">
+        <i class="pi" [class]="kind().icon" aria-hidden="true"></i> {{ kind().description }}
+      </span>
+    </div>
+
+    <div class="field">
+      <label for="cell-caption">{{ isLabel() ? 'Text' : 'Caption' }}</label>
+      <input
+        #captionInput
+        id="cell-caption"
+        type="text"
+        maxlength="200"
+        [placeholder]="isLabel() ? 'e.g. Torque' : 'Optional prompt'"
+        [value]="entry.cell.caption ?? ''"
+        (change)="setCaption(captionInput)"
+      />
+    </div>
+
+    @if (!isLabel()) {
+      <label class="check">
+        <input
+          #requiredInput
+          type="checkbox"
+          [checked]="entry.cell.isRequired"
+          [disabled]="isSaving()"
+          (change)="setRequired(requiredInput.checked)"
+        />
+        Must be filled in
+      </label>
+    }
+
+    <h3 class="group-title">Placement</h3>
+    <div class="inline">
+      <div class="field">
+        <label for="cell-column">Column</label>
+        <input
+          #columnInput
+          id="cell-column"
+          type="number"
+          min="1"
+          max="100"
+          [value]="entry.cell.column"
+          (change)="setPlacement('column', columnInput)"
+        />
+      </div>
+      <div class="field">
+        <label for="cell-column-span">Col span</label>
+        <input
+          #columnSpanInput
+          id="cell-column-span"
+          type="number"
+          min="1"
+          max="100"
+          [value]="entry.cell.columnSpan"
+          (change)="setPlacement('columnSpan', columnSpanInput)"
+        />
+      </div>
+      <div class="field">
+        <label for="cell-row-span">Row span</label>
+        <input
+          #rowSpanInput
+          id="cell-row-span"
+          type="number"
+          min="1"
+          max="100"
+          [value]="entry.cell.rowSpan"
+          (change)="setPlacement('rowSpan', rowSpanInput)"
+        />
+      </div>
+    </div>
+
+    <div class="danger-zone">
+      <app-confirm-delete-button
+        label="Delete cell"
+        [disabled]="isSaving()"
+        (confirmed)="delete()"
+      />
+    </div>
+  </div>
+}

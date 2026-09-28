@@ -1,0 +1,19 @@
+<button type="button" class="header" [style]="layout().headerStyle" (click)="open()">
+  {{ layout().section.name }}
+</button>
+
+@for (child of layout().children; track child.section.id) {
+  <app-canvas-section [layout]="child" />
+}
+
+@for (cell of layout().cells; track cell.cell.id) {
+  <app-canvas-cell [layout]="cell" />
+}
+
+@if (layout().emptyStyle; as emptyStyle) {
+  <div class="empty" [style]="emptyStyle">
+    <button type="button" [disabled]="isSaving()" (click)="addRow()">
+      <i class="pi pi-plus" aria-hidden="true"></i> Add row
+    </button>
+  </div>
+}

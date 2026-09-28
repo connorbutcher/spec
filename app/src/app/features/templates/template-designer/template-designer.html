@@ -1,0 +1,33 @@
+<div class="app-card designer">
+  @if (hasError()) {
+    <app-empty-state
+      icon="pi-exclamation-circle"
+      title="Couldn't load this table"
+      message="It may have been deleted, or the API isn't running."
+    >
+      <button type="button" class="action" (click)="retry()">Try again</button>
+    </app-empty-state>
+  } @else if (isLoading()) {
+    <p class="loading">Loading table…</p>
+  } @else {
+    @if (template(); as template) {
+      <app-designer-toolbar [template]="template" />
+
+      <div class="canvas-scroll">
+        @if (layout(); as layout) {
+          <app-template-canvas [layout]="layout" />
+        } @else {
+          <app-empty-state
+            icon="pi-objects-column"
+            title="This table has no sections yet"
+            message="Sections group the table's cells. Add one, then give it rows and cells."
+          >
+            <button type="button" class="action" (click)="addFirstSection()">
+              <i class="pi pi-plus" aria-hidden="true"></i> Add section
+            </button>
+          </app-empty-state>
+        }
+      </div>
+    }
+  }
+</div>

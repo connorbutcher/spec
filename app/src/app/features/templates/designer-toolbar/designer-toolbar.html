@@ -1,0 +1,42 @@
+<div class="toolbar">
+  <button
+    type="button"
+    class="name"
+    [class.active]="isTemplateOpen()"
+    title="Table settings"
+    (click)="openSettings()"
+  >
+    <i class="pi pi-table" aria-hidden="true"></i>
+    <span>{{ template().name }}</span>
+  </button>
+
+  <div class="orientation" role="group" aria-label="Orientation">
+    @for (orientation of orientations; track orientation) {
+      <button
+        type="button"
+        [class.on]="template().orientation === orientation"
+        [attr.aria-pressed]="template().orientation === orientation"
+        [disabled]="isSaving()"
+        (click)="setOrientation(orientation)"
+      >
+        <i
+          class="pi"
+          [class.pi-arrows-h]="orientation === 'Horizontal'"
+          [class.pi-arrows-v]="orientation === 'Vertical'"
+          aria-hidden="true"
+        ></i>
+        {{ orientation }}
+      </button>
+    }
+  </div>
+
+  <button type="button" class="add" [disabled]="isSaving()" (click)="addSection()">
+    <i class="pi pi-plus" aria-hidden="true"></i> Section
+  </button>
+
+  <span class="status" aria-live="polite">
+    @if (isSaving()) {
+      <i class="pi pi-spin pi-spinner" aria-hidden="true"></i> Saving
+    }
+  </span>
+</div>

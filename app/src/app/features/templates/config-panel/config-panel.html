@@ -1,0 +1,71 @@
+<aside class="app-card config-panel" aria-labelledby="config-panel-title">
+  <header class="panel-head">
+    <div class="nav">
+      <button
+        type="button"
+        [disabled]="!canGoBack()"
+        aria-label="Back"
+        title="Back"
+        (click)="back()"
+      >
+        <i class="pi pi-arrow-left" aria-hidden="true"></i>
+      </button>
+      <button
+        type="button"
+        [disabled]="!canGoForward()"
+        aria-label="Forward"
+        title="Forward"
+        (click)="forward()"
+      >
+        <i class="pi pi-arrow-right" aria-hidden="true"></i>
+      </button>
+      <h2 id="config-panel-title">{{ title() }}</h2>
+    </div>
+    @if (exists()) {
+      <app-panel-breadcrumb [crumbs]="crumbs()" />
+    }
+  </header>
+
+  @if (error(); as error) {
+    <div class="error" role="alert">
+      <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+      <span>{{ error }}</span>
+      <button type="button" aria-label="Dismiss" (click)="dismissError()">
+        <i class="pi pi-times" aria-hidden="true"></i>
+      </button>
+    </div>
+  }
+
+  <div class="panel-body">
+    @if (!exists()) {
+      <p class="missing">
+        @if (current().kind === 'template') {
+          Pick a table from the list to configure it.
+        } @else {
+          This item isn't here any more. Go back, or pick something in the table.
+        }
+      </p>
+    } @else {
+      @switch (current().kind) {
+        @case ('template') {
+          <app-template-settings />
+        }
+        @case ('section') {
+          <app-section-settings [sectionId]="id()" />
+        }
+        @case ('row') {
+          <app-row-settings [rowId]="id()" />
+        }
+        @case ('cell') {
+          <app-cell-settings [cellId]="id()" />
+        }
+        @case ('cellTypes') {
+          <app-cell-type-list />
+        }
+        @case ('cellType') {
+          <app-cell-type-settings [cellTypeId]="id()" />
+        }
+      }
+    }
+  </div>
+</aside>

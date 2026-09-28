@@ -1,0 +1,26 @@
+<button
+  type="button"
+  class="cell"
+  [attr.aria-label]="(layout().cell.caption || typeName()) + ' cell'"
+  (click)="open()"
+>
+  @if (isLabel()) {
+    <span class="text">{{ layout().cell.caption || 'Label' }}</span>
+  } @else {
+    @if (layout().cell.caption) {
+      <span class="caption">
+        {{ layout().cell.caption }}
+        @if (layout().cell.isRequired) {
+          <span class="required" aria-label="required">*</span>
+        }
+      </span>
+    }
+    <span class="type">
+      <i class="pi" [class]="kind().icon" aria-hidden="true"></i>
+      {{ typeName() }}
+      @if (cellType()?.unit; as unit) {
+        <span class="unit">({{ unit }})</span>
+      }
+    </span>
+  }
+</button>

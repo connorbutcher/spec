@@ -1,0 +1,54 @@
+@if (template(); as template) {
+  <div class="fields">
+    <div class="field">
+      <label for="template-name">Name</label>
+      <input
+        #nameInput
+        id="template-name"
+        type="text"
+        maxlength="100"
+        [value]="template.name"
+        (change)="rename(nameInput)"
+      />
+    </div>
+
+    <div class="field">
+      <label for="template-orientation">Orientation</label>
+      <select
+        #orientation
+        id="template-orientation"
+        [disabled]="isSaving()"
+        (change)="setOrientation(orientation.value)"
+      >
+        <option value="Horizontal" [selected]="template.orientation === 'Horizontal'">
+          Horizontal
+        </option>
+        <option value="Vertical" [selected]="template.orientation === 'Vertical'">Vertical</option>
+      </select>
+      <span class="hint">
+        @if (template.orientation === 'Horizontal') {
+          Section headers run across the top; rows line up across sections.
+        } @else {
+          Section headers run down the left; columns line up across sections.
+        }
+      </span>
+    </div>
+
+    <h3 class="group-title">Sections</h3>
+    <app-panel-link-list [items]="sections()" emptyText="No sections yet." />
+    <div class="actions">
+      <button type="button" class="button" [disabled]="isSaving()" (click)="addSection()">
+        <i class="pi pi-plus" aria-hidden="true"></i> Add section
+      </button>
+    </div>
+
+    <div class="danger-zone">
+      <app-confirm-delete-button
+        label="Delete table"
+        warning="All of its sections, rows and cells go too."
+        [disabled]="isSaving()"
+        (confirmed)="delete()"
+      />
+    </div>
+  </div>
+}

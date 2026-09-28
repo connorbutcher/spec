@@ -1,0 +1,42 @@
+.crumbs ol {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 3px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.72rem;
+  color: #64748b;
+
+  li {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    min-width: 0;
+
+    & + li::before {
+      content: '\203A';
+      color: #94a3b8;
+    }
+  }
+
+  button {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: #475569;
+    font: inherit;
+    cursor: pointer;
+
+    &:hover {
+      color: var(--app-navy);
+      text-decoration: underline;
+    }
+  }
+
+  [aria-current] {
+    color: #1f2937;
+    font-weight: 600;
+  }
+}

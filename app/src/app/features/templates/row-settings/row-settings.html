@@ -1,0 +1,34 @@
+@if (entry(); as entry) {
+  <div class="fields">
+    <p class="note">Row {{ entry.number }} of {{ entry.section.name }}</p>
+
+    <div class="field">
+      <span class="label">Position</span>
+      <app-move-buttons
+        noun="row"
+        [position]="entry.number"
+        [count]="entry.section.rows.length"
+        [disabled]="isSaving()"
+        (moved)="move($event)"
+      />
+    </div>
+
+    <h3 class="group-title">Cells</h3>
+    <app-panel-link-list [items]="cells()" emptyText="No cells in this row yet." />
+    <div class="actions">
+      <button type="button" class="button" [disabled]="isSaving()" (click)="addCell()">
+        <i class="pi pi-plus" aria-hidden="true"></i> Add cell
+      </button>
+    </div>
+    <p class="note">New cells go after the last cell in the row.</p>
+
+    <div class="danger-zone">
+      <app-confirm-delete-button
+        label="Delete row"
+        warning="Its cells go too."
+        [disabled]="isSaving()"
+        (confirmed)="delete()"
+      />
+    </div>
+  </div>
+}

@@ -1,0 +1,136 @@
+@if (cellType(); as cellType) {
+  <div class="fields">
+    <div class="field">
+      <label for="cell-type-name">Name</label>
+      <input
+        #nameInput
+        id="cell-type-name"
+        type="text"
+        maxlength="100"
+        [value]="cellType.name"
+        (change)="rename(nameInput)"
+      />
+    </div>
+
+    <div class="field">
+      <label for="cell-type-kind">Kind</label>
+      <select
+        #kindSelect
+        id="cell-type-kind"
+        [disabled]="isSaving()"
+        (change)="setKind(kindSelect.value)"
+      >
+        @for (kind of kinds; track kind.kind) {
+          <option [value]="kind.kind" [selected]="kind.kind === cellType.kind">
+            {{ kind.label }}
+          </option>
+        }
+      </select>
+      <span class="hint">{{ kind().description }}</span>
+    </div>
+
+    <div class="field">
+      <label for="cell-type-description">Description</label>
+      <textarea
+        #descriptionInput
+        id="cell-type-description"
+        rows="2"
+        maxlength="500"
+        placeholder="Optional notes for whoever fills this in"
+        [value]="cellType.description ?? ''"
+        (change)="setText('description', descriptionInput)"
+      ></textarea>
+    </div>
+
+    @switch (cellType.kind) {
+      @case ('Text') {
+        <h3 class="group-title">Text settings</h3>
+        <div class="field">
+          <label for="cell-type-max-length">Max length</label>
+          <input
+            #maxLengthInput
+            id="cell-type-max-length"
+            type="number"
+            min="1"
+            max="4000"
+            placeholder="No limit"
+            [value]="cellType.maxLength ?? ''"
+            (change)="setNumber('maxLength', maxLengthInput)"
+          />
+        </div>
+      }
+      @case ('Number') {
+        <h3 class="group-title">Number settings</h3>
+        <div class="inline">
+          <div class="field">
+            <label for="cell-type-min">Min</label>
+            <input
+              #minInput
+              id="cell-type-min"
+              type="number"
+              placeholder="None"
+              [value]="cellType.minValue ?? ''"
+              (change)="setNumber('minValue', minInput)"
+            />
+          </div>
+          <div class="field">
+            <label for="cell-type-max">Max</label>
+            <input
+              #maxInput
+              id="cell-type-max"
+              type="number"
+              placeholder="None"
+              [value]="cellType.maxValue ?? ''"
+              (change)="setNumber('maxValue', maxInput)"
+            />
+          </div>
+          <div class="field">
+            <label for="cell-type-decimals">Decimals</label>
+            <input
+              #decimalsInput
+              id="cell-type-decimals"
+              type="number"
+              min="0"
+              max="6"
+              placeholder="Any"
+              [value]="cellType.decimalPlaces ?? ''"
+              (change)="setNumber('decimalPlaces', decimalsInput)"
+            />
+          </div>
+        </div>
+        <div class="field">
+          <label for="cell-type-unit">Unit</label>
+          <input
+            #unitInput
+            id="cell-type-unit"
+            type="text"
+            maxlength="20"
+            placeholder="e.g. Nm, mm, °C"
+            [value]="cellType.unit ?? ''"
+            (change)="setText('unit', unitInput)"
+          />
+        </div>
+      }
+      @case ('Dropdown') {
+        <h3 class="group-title">Options</h3>
+        <app-cell-type-options-editor
+          [options]="cellType.options"
+          [disabled]="isSaving()"
+          (changed)="setOptions($event)"
+        />
+      }
+      @default {
+        <p class="note">{{ kind().label }} cells have no extra settings.</p>
+      }
+    }
+
+    <div class="danger-zone">
+      <p class="note">{{ usage() }}</p>
+      <app-confirm-delete-button
+        label="Delete cell type"
+        [disabled]="isSaving() || cellType.usageCount > 0"
+        (confirmed)="delete()"
+      />
+    </div>
+  </div>
+}

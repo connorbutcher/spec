@@ -1,0 +1,7 @@
+@use '../styles/panel-form';
+
+:host {
+  display: block;
+
+  @include panel-form.controls();
+}

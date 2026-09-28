@@ -1,0 +1,68 @@
+button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border: 1px solid #cbd5e1;
+  border-radius: 3px;
+  background: #fff;
+  font: inherit;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.delete {
+  color: #b91c1c;
+
+  .pi {
+    font-size: 0.65rem;
+  }
+
+  &:hover:not(:disabled) {
+    border-color: #b91c1c;
+  }
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.5;
+  }
+}
+
+.confirm {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 6px;
+  border: 1px solid #fecaca;
+  border-radius: 3px;
+  background: #fef2f2;
+  font-size: 0.78rem;
+
+  .question {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    color: #7f1d1d;
+    font-weight: 600;
+  }
+
+  .warning {
+    color: #991b1b;
+    font-weight: 400;
+  }
+
+  .buttons {
+    display: flex;
+    gap: 6px;
+  }
+
+  .yes {
+    border-color: #b91c1c;
+    background: #b91c1c;
+    color: #fff;
+  }
+
+  .no:hover {
+    border-color: #64748b;
+  }
+}

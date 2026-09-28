@@ -1,0 +1,143 @@
+// Compact form styling shared by the configuration panel's pages. Include `panel-form.controls()` at the
+// top of a panel page's stylesheet.
+@mixin controls() {
+  .fields {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+
+    > label,
+    > .label {
+      color: #475569;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+
+    .hint {
+      color: #94a3b8;
+      font-size: 0.7rem;
+    }
+  }
+
+  .inline {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  input[type='text'],
+  input[type='number'],
+  select,
+  textarea {
+    width: 100%;
+    min-width: 0;
+    padding: 4px 6px;
+    border: 1px solid #cbd5e1;
+    border-radius: 3px;
+    background: #fff;
+    color: #1f2937;
+    font: inherit;
+    font-size: 0.8rem;
+
+    &:focus {
+      border-color: var(--app-navy);
+      outline: 1px solid var(--app-navy);
+    }
+
+    &:disabled {
+      background: #f8fafc;
+      color: #94a3b8;
+    }
+  }
+
+  textarea {
+    resize: vertical;
+  }
+
+  .check {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8rem;
+  }
+
+  .group-title {
+    margin: 4px 0 0;
+    padding-top: 8px;
+    border-top: 1px solid var(--app-card-border);
+    color: #475569;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .note {
+    margin: 0;
+    color: #64748b;
+    font-size: 0.75rem;
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .button {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 8px;
+    border: 1px solid #cbd5e1;
+    border-radius: 3px;
+    background: #fff;
+    color: #1f2937;
+    font: inherit;
+    font-size: 0.78rem;
+    cursor: pointer;
+
+    .pi {
+      font-size: 0.65rem;
+      color: #64748b;
+    }
+
+    &:hover:not(:disabled) {
+      border-color: var(--app-navy);
+      color: var(--app-navy);
+    }
+
+    &:disabled {
+      cursor: default;
+      opacity: 0.5;
+    }
+  }
+
+  .link {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--app-navy);
+    font: inherit;
+    font-size: 0.75rem;
+    cursor: pointer;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  .danger-zone {
+    margin-top: 4px;
+    padding-top: 8px;
+    border-top: 1px solid var(--app-card-border);
+  }
+}

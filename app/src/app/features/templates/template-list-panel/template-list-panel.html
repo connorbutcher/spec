@@ -1,0 +1,36 @@
+<aside class="app-card list-panel" aria-labelledby="template-list-heading">
+  <header class="panel-head">
+    <h2 id="template-list-heading">Tables by sheet</h2>
+  </header>
+
+  <div class="panel-body">
+    @if (hasError()) {
+      <app-empty-state
+        icon="pi-exclamation-circle"
+        title="Couldn't load templates"
+        message="Check the API is running, then try again."
+      >
+        <button type="button" class="retry" (click)="retry()">Try again</button>
+      </app-empty-state>
+    } @else if (isLoading()) {
+      <p class="loading">Loading…</p>
+    } @else {
+      @for (sheetType of sheetTypes(); track sheetType.id) {
+        <app-template-list-group [sheetType]="sheetType" />
+      }
+    }
+  </div>
+
+  <footer class="panel-foot">
+    <button
+      type="button"
+      class="cell-types"
+      [class.active]="isShowingCellTypes()"
+      (click)="openCellTypes()"
+    >
+      <i class="pi pi-th-large" aria-hidden="true"></i>
+      <span>Cell types</span>
+      <span class="count">{{ cellTypeCount() }}</span>
+    </button>
+  </footer>
+</aside>

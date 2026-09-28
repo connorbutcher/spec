@@ -1,0 +1,5 @@
+<div class="grid" role="group" aria-label="Table preview" [style]="layout().style">
+  @for (section of layout().sections; track section.section.id) {
+    <app-canvas-section [layout]="section" />
+  }
+</div>

@@ -1,0 +1,24 @@
+@use '../styles/panel-form';
+
+:host {
+  display: block;
+
+  @include panel-form.controls();
+}
+
+.type-row {
+  display: flex;
+  gap: 4px;
+
+  select {
+    flex: 1;
+  }
+
+  .button {
+    flex: 0 0 auto;
+  }
+}
+
+.hint .pi {
+  font-size: 0.6rem;
+}

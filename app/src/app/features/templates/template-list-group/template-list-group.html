@@ -1,0 +1,41 @@
+<div class="group">
+  <div class="group-head">
+    <i class="pi" [class]="icon()" aria-hidden="true"></i>
+    <span class="name">{{ sheetType().name }}</span>
+    <button
+      type="button"
+      class="add"
+      [disabled]="isSaving()"
+      [attr.aria-label]="'Add a table to ' + sheetType().name"
+      title="Add a table"
+      (click)="add()"
+    >
+      <i class="pi pi-plus" aria-hidden="true"></i>
+    </button>
+  </div>
+
+  @if (templates().length > 0) {
+    <ul class="templates">
+      @for (template of templates(); track template.id) {
+        <li>
+          <a
+            [routerLink]="['/templates', template.id]"
+            [class.selected]="isSelected(template)"
+            [attr.aria-current]="isSelected(template) ? 'page' : null"
+          >
+            <i
+              class="pi"
+              [class.pi-arrows-h]="template.orientation === 'Horizontal'"
+              [class.pi-arrows-v]="template.orientation === 'Vertical'"
+              [attr.title]="template.orientation"
+              aria-hidden="true"
+            ></i>
+            <span>{{ template.name }}</span>
+          </a>
+        </li>
+      }
+    </ul>
+  } @else {
+    <p class="none">No tables yet</p>
+  }
+</div>

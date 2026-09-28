@@ -13,8 +13,8 @@ export const routes: Routes = [
   {
     path: 'templates',
     title: 'Templates · PU Spec Sheet',
-    loadComponent: comingSoon,
-    data: { title: 'Templates', icon: 'pi-table' },
+    loadChildren: () =>
+      import('./features/templates/templates.routes').then((m) => m.TEMPLATES_ROUTES),
   },
   {
     path: 'admin',

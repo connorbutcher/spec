@@ -1,0 +1,88 @@
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--app-card-border);
+  font-size: 0.8rem;
+
+  button {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 8px;
+    border: 1px solid var(--app-card-border);
+    border-radius: 3px;
+    background: #fff;
+    color: #1f2937;
+    font: inherit;
+    cursor: pointer;
+
+    .pi {
+      font-size: 0.7rem;
+      color: #64748b;
+    }
+
+    &:hover:not(:disabled) {
+      background: #f8fafc;
+    }
+
+    &:disabled {
+      cursor: default;
+      opacity: 0.6;
+    }
+  }
+
+  .name {
+    border-color: transparent;
+    font-weight: 700;
+    font-size: 0.85rem;
+
+    &.active {
+      background: var(--p-highlight-background, #eef3fa);
+      color: var(--app-navy);
+    }
+  }
+
+  .orientation {
+    display: inline-flex;
+
+    button {
+      border-radius: 0;
+
+      &:first-child {
+        border-radius: 3px 0 0 3px;
+      }
+
+      & + button {
+        margin-left: -1px;
+      }
+
+      &:last-child {
+        border-radius: 0 3px 3px 0;
+      }
+
+      &.on {
+        position: relative;
+        border-color: var(--app-navy);
+        background: var(--app-navy);
+        color: #fff;
+
+        .pi {
+          color: #fff;
+        }
+      }
+    }
+  }
+
+  .status {
+    margin-left: auto;
+    color: #64748b;
+    font-size: 0.72rem;
+
+    .pi {
+      font-size: 0.7rem;
+    }
+  }
+}
