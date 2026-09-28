@@ -1,5 +1,4 @@
 using PUSpecSheet.Domain.Sheets;
-using PUSpecSheet.Domain.Templates;
 
 namespace PUSpecSheet.Domain.Values;
 
@@ -12,9 +11,9 @@ public class DateValue : ICellValue
 
     public SheetRowRevision SheetRowRevision { get; set; } = null!;
 
-    public int TemplateCellId { get; set; }
+    public int SheetCellId { get; set; }
 
-    public TemplateCell TemplateCell { get; set; } = null!;
+    public SheetCell SheetCell { get; set; } = null!;
 
     public DateOnly Value { get; set; }
 }

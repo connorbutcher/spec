@@ -12,7 +12,7 @@ public sealed class SheetTableConfiguration : IEntityTypeConfiguration<SheetTabl
 
         builder.HasKey(table => table.Id);
 
-        builder.HasIndex(table => new { table.SheetId, table.DisplayOrder });
+        builder.HasPublicId(table => table.PublicId);
 
         builder.Property(table => table.CreatedAtUtc)
             .HasDefaultValueSql("SYSUTCDATETIME()");

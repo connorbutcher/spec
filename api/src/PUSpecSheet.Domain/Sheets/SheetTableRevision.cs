@@ -24,6 +24,9 @@ public class SheetTableRevision
     /// <summary>The table's title as the user entered it.</summary>
     public string? Title { get; set; }
 
+    /// <summary>Order among the sheet's tables as of this revision.</summary>
+    public int DisplayOrder { get; set; }
+
     /// <summary>True when this revision removes the table from the sheet.</summary>
     public bool IsDeleted { get; set; }
 

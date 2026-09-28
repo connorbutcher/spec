@@ -3,12 +3,15 @@ using PUSpecSheet.Domain.Templates;
 namespace PUSpecSheet.Domain.Sheets;
 
 /// <summary>
-/// A table on a sheet, laid out from a <see cref="TableTemplate"/> of the sheet's type. Its title and
-/// whether it's on the sheet are versioned in <see cref="Revisions"/>, never stored on the table itself.
+/// A table on a sheet, laid out from a <see cref="TableTemplate"/> of the sheet's type. Its title,
+/// position and whether it's on the sheet are versioned in <see cref="Revisions"/>.
 /// </summary>
 public class SheetTable
 {
     public int Id { get; set; }
+
+    /// <summary>Stable identifier that stays with the table across every version.</summary>
+    public Guid PublicId { get; set; }
 
     public int SheetId { get; set; }
 
@@ -18,12 +21,9 @@ public class SheetTable
 
     public TableTemplate TableTemplate { get; set; } = null!;
 
-    /// <summary>Order among the sheet's tables.</summary>
-    public int DisplayOrder { get; set; }
-
     public DateTime CreatedAtUtc { get; set; }
 
     public ICollection<SheetTableRevision> Revisions { get; set; } = [];
 
-    public ICollection<SheetRow> Rows { get; set; } = [];
+    public ICollection<SheetSection> Sections { get; set; } = [];
 }

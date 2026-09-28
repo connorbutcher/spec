@@ -21,6 +21,9 @@ public class SheetRowRevision
 
     public RevisionStatus Status { get; set; }
 
+    /// <summary>Order among the section's rows as of this revision.</summary>
+    public int DisplayOrder { get; set; }
+
     /// <summary>True when this revision removes the row from the sheet.</summary>
     public bool IsDeleted { get; set; }
 

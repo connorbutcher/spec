@@ -12,14 +12,14 @@ public sealed class SheetRowConfiguration : IEntityTypeConfiguration<SheetRow>
 
         builder.HasKey(row => row.Id);
 
-        builder.HasIndex(row => new { row.SheetTableId, row.DisplayOrder });
+        builder.HasPublicId(row => row.PublicId);
 
         builder.Property(row => row.CreatedAtUtc)
             .HasDefaultValueSql("SYSUTCDATETIME()");
 
-        builder.HasOne(row => row.SheetTable)
-            .WithMany(table => table.Rows)
-            .HasForeignKey(row => row.SheetTableId)
+        builder.HasOne(row => row.SheetSection)
+            .WithMany(section => section.Rows)
+            .HasForeignKey(row => row.SheetSectionId)
             .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasOne(row => row.TemplateRow)

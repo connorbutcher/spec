@@ -43,7 +43,13 @@ public sealed class PuSpecSheetDbContext(DbContextOptions<PuSpecSheetDbContext> 
 
     public DbSet<SheetTableRevision> SheetTableRevisions => Set<SheetTableRevision>();
 
+    public DbSet<SheetSection> SheetSections => Set<SheetSection>();
+
+    public DbSet<SheetSectionRevision> SheetSectionRevisions => Set<SheetSectionRevision>();
+
     public DbSet<SheetRow> SheetRows => Set<SheetRow>();
+
+    public DbSet<SheetCell> SheetCells => Set<SheetCell>();
 
     public DbSet<SheetRowRevision> SheetRowRevisions => Set<SheetRowRevision>();
 

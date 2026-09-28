@@ -11,6 +11,9 @@ public class Sheet
 {
     public int Id { get; set; }
 
+    /// <summary>Stable identifier that never changes, for finding the sheet from anywhere.</summary>
+    public Guid PublicId { get; set; }
+
     public int PhaseId { get; set; }
 
     public Phase Phase { get; set; } = null!;
