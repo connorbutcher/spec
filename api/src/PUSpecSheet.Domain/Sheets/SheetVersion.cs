@@ -27,4 +27,7 @@ public class SheetVersion
 
     /// <summary>The row revisions published in this version.</summary>
     public ICollection<SheetRowRevision> RowRevisions { get; set; } = [];
+
+    /// <summary>The table revisions (titles, tables added or removed) published in this version.</summary>
+    public ICollection<SheetTableRevision> TableRevisions { get; set; } = [];
 }
