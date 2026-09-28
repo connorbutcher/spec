@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Domain.Phases;
 using PUSpecSheet.Domain.SheetTypes;
+using PUSpecSheet.Domain.Templates;
 
 namespace PUSpecSheet.Data;
 
@@ -15,6 +16,12 @@ public sealed class PuSpecSheetDbContext(DbContextOptions<PuSpecSheetDbContext> 
     public DbSet<Phase> Phases => Set<Phase>();
 
     public DbSet<PhaseSheetType> PhaseSheetTypes => Set<PhaseSheetType>();
+
+    public DbSet<TableTemplate> TableTemplates => Set<TableTemplate>();
+
+    public DbSet<TemplateSection> TemplateSections => Set<TemplateSection>();
+
+    public DbSet<TemplateCell> TemplateCells => Set<TemplateCell>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
