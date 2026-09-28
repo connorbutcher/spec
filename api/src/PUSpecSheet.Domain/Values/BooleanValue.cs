@@ -1,9 +1,10 @@
+using PUSpecSheet.Domain.Sheets;
 using PUSpecSheet.Domain.Templates;
 
-namespace PUSpecSheet.Domain.Sheets;
+namespace PUSpecSheet.Domain.Values;
 
-/// <summary>The value of one template cell in one row revision, stored as text and parsed by its cell type.</summary>
-public class SheetCellValue
+/// <summary>The value of a checkbox cell.</summary>
+public class BooleanValue : ICellValue
 {
     public int Id { get; set; }
 
@@ -15,5 +16,5 @@ public class SheetCellValue
 
     public TemplateCell TemplateCell { get; set; } = null!;
 
-    public string? Value { get; set; }
+    public bool Value { get; set; }
 }

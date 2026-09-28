@@ -1,4 +1,5 @@
 using PUSpecSheet.Domain.Users;
+using PUSpecSheet.Domain.Values;
 
 namespace PUSpecSheet.Domain.Sheets;
 
@@ -39,5 +40,15 @@ public class SheetRowRevision
 
     public SheetVersion? SheetVersion { get; set; }
 
-    public ICollection<SheetCellValue> CellValues { get; set; } = [];
+    // The revision's cell values, one typed table per cell kind in the "values" schema.
+
+    public ICollection<TextValue> TextValues { get; set; } = [];
+
+    public ICollection<NumericValue> NumericValues { get; set; } = [];
+
+    public ICollection<DateValue> DateValues { get; set; } = [];
+
+    public ICollection<BooleanValue> BooleanValues { get; set; } = [];
+
+    public ICollection<OptionValue> OptionValues { get; set; } = [];
 }

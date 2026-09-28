@@ -5,6 +5,7 @@ using PUSpecSheet.Domain.Sheets;
 using PUSpecSheet.Domain.SheetTypes;
 using PUSpecSheet.Domain.Templates;
 using PUSpecSheet.Domain.Users;
+using PUSpecSheet.Domain.Values;
 
 namespace PUSpecSheet.Data;
 
@@ -44,7 +45,15 @@ public sealed class PuSpecSheetDbContext(DbContextOptions<PuSpecSheetDbContext> 
 
     public DbSet<SheetRowRevision> SheetRowRevisions => Set<SheetRowRevision>();
 
-    public DbSet<SheetCellValue> SheetCellValues => Set<SheetCellValue>();
+    public DbSet<TextValue> TextValues => Set<TextValue>();
+
+    public DbSet<NumericValue> NumericValues => Set<NumericValue>();
+
+    public DbSet<DateValue> DateValues => Set<DateValue>();
+
+    public DbSet<BooleanValue> BooleanValues => Set<BooleanValue>();
+
+    public DbSet<OptionValue> OptionValues => Set<OptionValue>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
