@@ -1,0 +1,12 @@
+<nav class="sheet-switcher" aria-label="Sheets in this phase">
+  @for (sheetType of sheetTypes(); track sheetType.id) {
+    <a
+      [routerLink]="link(sheetType)"
+      [class.current]="sheetType.id === currentId()"
+      [attr.aria-current]="sheetType.id === currentId() ? 'page' : null"
+    >
+      <i class="pi" [class]="icon(sheetType)" aria-hidden="true"></i>
+      {{ sheetType.name }}
+    </a>
+  }
+</nav>

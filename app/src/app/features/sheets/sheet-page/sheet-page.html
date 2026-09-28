@@ -1,0 +1,49 @@
+@if (phase(); as phase) {
+  @if (sheetType(); as sheetType) {
+    <article class="app-card sheet-page">
+      <header class="sheet-head">
+        <div class="head-row">
+          <div class="title">
+            <app-breadcrumb [items]="breadcrumb()" />
+            <h1>
+              <span class="phase-code">{{ phase.code }}</span>
+              {{ sheetType.name }}
+            </h1>
+          </div>
+          <app-sheet-version-picker />
+        </div>
+        <app-sheet-switcher
+          [sheetTypes]="phaseSheetTypes()"
+          [phaseId]="phase.id"
+          [currentId]="sheetType.id"
+        />
+      </header>
+
+      <section class="sheet-body" [attr.aria-label]="sheetType.name + ' sheet'">
+        <app-sheet-placeholder [sheetType]="sheetType" [phaseCode]="phase.code" />
+      </section>
+    </article>
+  } @else {
+    <div class="app-card state">
+      <app-empty-state
+        icon="pi-search"
+        title="Sheet not available"
+        [message]="'This sheet type isn\'t available to ' + phase.code + '.'"
+      />
+    </div>
+  }
+} @else if (hasError()) {
+  <div class="app-card state">
+    <app-empty-state
+      icon="pi-exclamation-circle"
+      title="Couldn't load the sheet"
+      message="Check the API is running, then try again."
+    >
+      <button type="button" class="retry" (click)="retry()">Try again</button>
+    </app-empty-state>
+  </div>
+} @else if (!isLoading()) {
+  <div class="app-card state">
+    <app-empty-state icon="pi-search" title="Phase not found" message="It may have been removed." />
+  </div>
+}

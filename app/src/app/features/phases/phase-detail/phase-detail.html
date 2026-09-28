@@ -1,7 +1,7 @@
 @if (phase(); as phase) {
   <article class="app-card phase-detail">
     <header class="detail-head">
-      <app-phase-breadcrumb [ancestors]="ancestors()" [current]="phase" />
+      <app-breadcrumb [items]="breadcrumb()" />
       <app-phase-detail-header [phase]="phase" [parent]="ancestors().at(-1)" />
     </header>
 
@@ -10,10 +10,10 @@
         <h2 id="sheet-types-heading">PU Spec Sheets</h2>
         <span class="section-count">{{ sheetTypes().length }}</span>
       </div>
-      <app-sheet-type-list [sheetTypes]="sheetTypes()" [phaseCode]="phase.code" />
+      <app-sheet-type-table [sheetTypes]="sheetTypes()" [phase]="phase" />
     </section>
   </article>
-} @else if (!isLoading()) {
+} @else if (!isLoading() && !hasError()) {
   <div class="app-card not-found">
     <app-empty-state
       icon="pi-search"

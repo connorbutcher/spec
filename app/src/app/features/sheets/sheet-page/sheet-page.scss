@@ -1,0 +1,72 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
+// Full-width, full-height card: the header stays put and the sheet body scrolls.
+.sheet-page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+
+  .sheet-head {
+    flex: 0 0 auto;
+    padding: 8px 12px 0;
+    border-bottom: 1px solid var(--app-card-border);
+  }
+
+  .head-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    padding-bottom: 6px;
+  }
+
+  .title {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+
+    h1 {
+      margin: 0;
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: #0f172a;
+    }
+
+    .phase-code {
+      margin-right: 4px;
+      font-family: var(--app-font-mono);
+      color: #475569;
+    }
+  }
+
+  .sheet-body {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    padding: 8px 12px 12px;
+  }
+}
+
+.state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+
+  .retry {
+    margin-top: 6px;
+    padding: 4px 12px;
+    border: 1px solid var(--app-navy);
+    border-radius: 4px;
+    background: #fff;
+    color: var(--app-navy);
+    font: inherit;
+    font-size: 0.8rem;
+    cursor: pointer;
+  }
+}

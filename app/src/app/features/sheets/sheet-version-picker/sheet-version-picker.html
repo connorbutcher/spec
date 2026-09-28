@@ -1,0 +1,11 @@
+<label class="version-picker">
+  <span class="label">Version</span>
+  <p-select
+    [options]="versions()"
+    [(ngModel)]="selected"
+    [disabled]="versions().length === 0"
+    placeholder="No versions yet"
+    size="small"
+    ariaLabel="Sheet version"
+  />
+</label>

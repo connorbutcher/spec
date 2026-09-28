@@ -1,0 +1,35 @@
+@if (sheetTypes().length > 0) {
+  <p-table
+    class="sheet-table"
+    [value]="sheetTypes()"
+    size="small"
+    [showGridlines]="true"
+    [tableStyle]="{ 'min-width': '36rem' }"
+  >
+    <ng-template #header>
+      <tr>
+        <th class="num">#</th>
+        <th>Sheet</th>
+        <th class="narrow">Version</th>
+        <th class="narrow">Status</th>
+        <th class="wide">Last updated</th>
+      </tr>
+    </ng-template>
+    <ng-template #body let-sheetType let-rowIndex="rowIndex">
+      <tr>
+        <td class="num">{{ rowIndex + 1 }}</td>
+        <td>
+          <a class="sheet-link" [routerLink]="sheetLink(sheetType)">
+            <i class="pi" [class]="icon(sheetType)" aria-hidden="true"></i>
+            {{ sheetType.name }}
+          </a>
+        </td>
+        <td class="narrow muted">—</td>
+        <td class="narrow muted">—</td>
+        <td class="wide muted">—</td>
+      </tr>
+    </ng-template>
+  </p-table>
+} @else {
+  <p class="none">No PU Spec Sheet types have been made available to {{ phase().code }} yet.</p>
+}

@@ -1,0 +1,61 @@
+.sheet-table {
+  --p-datatable-header-cell-padding: 0.3rem 0.5rem;
+  --p-datatable-body-cell-padding: 0.3rem 0.5rem;
+  font-size: 0.8rem;
+
+  th {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #475569;
+  }
+
+  .num {
+    width: 2.5rem;
+    color: #94a3b8;
+    font-family: var(--app-font-mono);
+    text-align: right;
+  }
+
+  .narrow {
+    width: 6rem;
+  }
+
+  .wide {
+    width: 10rem;
+  }
+
+  .muted {
+    color: #94a3b8;
+  }
+
+  .sheet-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--app-navy);
+    font-weight: 500;
+    text-decoration: none;
+
+    .pi {
+      font-size: 0.8rem;
+      color: #64748b;
+    }
+
+    &:hover {
+      text-decoration: underline;
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--app-navy);
+      outline-offset: 1px;
+    }
+  }
+}
+
+.none {
+  margin: 0;
+  padding: 4px 0;
+  color: #64748b;
+  font-size: 0.8rem;
+}

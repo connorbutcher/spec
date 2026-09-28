@@ -1,0 +1,19 @@
+.sheet-placeholder {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px;
+  border: 1px dashed #cbd5e1;
+  border-radius: 4px;
+
+  .title {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #334155;
+  }
+
+  .hint {
+    font-size: 0.75rem;
+    color: #64748b;
+  }
+}
