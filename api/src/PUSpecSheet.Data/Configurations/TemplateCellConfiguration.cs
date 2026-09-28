@@ -23,6 +23,9 @@ public sealed class TemplateCellConfiguration : IEntityTypeConfiguration<Templat
         builder.Property(cell => cell.ColumnSpan)
             .HasDefaultValue(1);
 
+        builder.Property(cell => cell.Caption)
+            .HasMaxLength(200);
+
         // Only one cell can start at a given column in a row.
         builder.HasIndex(cell => new { cell.TemplateRowId, cell.Column })
             .IsUnique();
@@ -31,5 +34,11 @@ public sealed class TemplateCellConfiguration : IEntityTypeConfiguration<Templat
             .WithMany(row => row.Cells)
             .HasForeignKey(cell => cell.TemplateRowId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        // A cell type that is still used by a cell can't be deleted.
+        builder.HasOne(cell => cell.CellType)
+            .WithMany()
+            .HasForeignKey(cell => cell.CellTypeId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

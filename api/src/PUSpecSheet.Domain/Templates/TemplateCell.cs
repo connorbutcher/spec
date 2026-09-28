@@ -1,3 +1,5 @@
+using PUSpecSheet.Domain.CellTypes;
+
 namespace PUSpecSheet.Domain.Templates;
 
 /// <summary>
@@ -18,4 +20,14 @@ public class TemplateCell
     public int RowSpan { get; set; } = 1;
 
     public int ColumnSpan { get; set; } = 1;
+
+    public int CellTypeId { get; set; }
+
+    public CellType CellType { get; set; } = null!;
+
+    /// <summary>The text of a label cell, or the prompt shown in an input cell.</summary>
+    public string? Caption { get; set; }
+
+    /// <summary>Whether the cell must be filled in on a sheet. Ignored for label cells.</summary>
+    public bool IsRequired { get; set; }
 }
