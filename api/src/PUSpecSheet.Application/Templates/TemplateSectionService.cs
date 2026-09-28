@@ -50,6 +50,7 @@ public sealed class TemplateSectionService(PuSpecSheetDbContext db, TableTemplat
         var section = await FindAsync(id, cancellationToken);
 
         section.Name = request.Name.Trim();
+        section.Inclusion = request.Inclusion;
         await db.SaveChangesAsync(cancellationToken);
 
         return await reader.ReadAsync(section.TableTemplateId, cancellationToken);

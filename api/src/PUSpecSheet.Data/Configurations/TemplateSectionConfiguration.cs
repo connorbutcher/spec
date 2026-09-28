@@ -16,6 +16,11 @@ public sealed class TemplateSectionConfiguration : IEntityTypeConfiguration<Temp
             .IsRequired()
             .HasMaxLength(100);
 
+        builder.Property(section => section.Inclusion)
+            .IsRequired()
+            .HasConversion<string>()
+            .HasMaxLength(20);
+
         // Deleting a template removes all of its sections in one go.
         builder.HasOne(section => section.TableTemplate)
             .WithMany(template => template.Sections)

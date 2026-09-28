@@ -47,6 +47,7 @@ internal static class TableTemplateMappings
                 section.ParentSectionId,
                 section.Name,
                 section.DisplayOrder,
+                section.Inclusion,
                 MapSections(section.Id, sectionsByParent, rowsBySection),
                 rowsBySection[section.Id]
                     .OrderBy(row => row.DisplayOrder)

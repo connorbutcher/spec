@@ -24,6 +24,9 @@ public class TemplateSection
     /// <summary>Order among sibling sections.</summary>
     public int DisplayOrder { get; set; }
 
+    /// <summary>Whether the section comes with the table on a sheet, and whether it can be removed there.</summary>
+    public SectionInclusion Inclusion { get; set; } = SectionInclusion.Default;
+
     /// <summary>The rows of this section. Only leaf sections are expected to have rows.</summary>
     public ICollection<TemplateRow> Rows { get; set; } = [];
 }
