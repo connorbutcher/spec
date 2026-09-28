@@ -1,8 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Domain.CellTypes;
 using PUSpecSheet.Domain.Phases;
+using PUSpecSheet.Domain.Sheets;
 using PUSpecSheet.Domain.SheetTypes;
 using PUSpecSheet.Domain.Templates;
+using PUSpecSheet.Domain.Users;
 
 namespace PUSpecSheet.Data;
 
@@ -29,6 +31,20 @@ public sealed class PuSpecSheetDbContext(DbContextOptions<PuSpecSheetDbContext> 
     public DbSet<TemplateRow> TemplateRows => Set<TemplateRow>();
 
     public DbSet<TemplateCell> TemplateCells => Set<TemplateCell>();
+
+    public DbSet<User> Users => Set<User>();
+
+    public DbSet<Sheet> Sheets => Set<Sheet>();
+
+    public DbSet<SheetVersion> SheetVersions => Set<SheetVersion>();
+
+    public DbSet<SheetTable> SheetTables => Set<SheetTable>();
+
+    public DbSet<SheetRow> SheetRows => Set<SheetRow>();
+
+    public DbSet<SheetRowRevision> SheetRowRevisions => Set<SheetRowRevision>();
+
+    public DbSet<SheetCellValue> SheetCellValues => Set<SheetCellValue>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

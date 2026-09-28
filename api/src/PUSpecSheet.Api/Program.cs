@@ -2,7 +2,9 @@ using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Api.Cors;
 using PUSpecSheet.Api.ExceptionHandling;
+using PUSpecSheet.Api.Users;
 using PUSpecSheet.Application.DependencyInjection;
+using PUSpecSheet.Application.Users;
 using PUSpecSheet.Data;
 using PUSpecSheet.Data.DependencyInjection;
 using PUSpecSheet.Data.Seeding;
@@ -23,6 +25,9 @@ builder.Services.AddPuSpecSheetCors(builder.Configuration);
 
 builder.Services.AddPuSpecSheetData(connectionString);
 builder.Services.AddPuSpecSheetApplication();
+
+// Until sign-in is added, every request runs as the seeded developer user.
+builder.Services.AddScoped<ICurrentUser, DeveloperCurrentUser>();
 
 var app = builder.Build();
 
