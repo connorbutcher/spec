@@ -1,10 +1,5 @@
-<section class="sheet-section" [attr.aria-label]="sheetType().name + ' sheet for ' + phaseCode()">
-  <span class="position" aria-hidden="true">{{ positionLabel() }}</span>
-  <span class="icon" aria-hidden="true">
-    <i class="pi" [class]="appearance().icon"></i>
-  </span>
-  <div class="text">
-    <h3>{{ sheetType().name }}</h3>
-    <p>{{ phaseCode() }} · {{ sheetType().name }} sheet</p>
-  </div>
-</section>
+<div class="sheet-row" [attr.aria-label]="sheetType().name + ' sheet for ' + phaseCode()">
+  <span class="position" aria-hidden="true">{{ position() }}</span>
+  <i class="pi icon" [class]="icon()" aria-hidden="true"></i>
+  <span class="name">{{ sheetType().name }}</span>
+</div>

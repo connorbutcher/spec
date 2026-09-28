@@ -1,4 +1,4 @@
-:host {
+﻿:host {
   display: block;
   height: 100%;
   min-height: 0;
@@ -9,11 +9,11 @@
   flex-direction: column;
   height: 100%;
   min-height: 0;
-  padding: 16px 12px 12px;
+  padding: 8px;
 
   .panel-head {
     flex: 0 0 auto;
-    padding: 0 4px 10px;
+    padding: 0 2px 6px;
 
     h2 {
       margin: 0;
@@ -39,6 +39,10 @@
     flex-direction: column;
     min-height: 0;
     --p-tree-padding: 0;
+    --p-tree-gap: 1px;
+    --p-tree-node-padding: 0.125rem 0.375rem;
+    --p-tree-node-border-radius: 3px;
+    --p-tree-filter-margin: 0 0 0.375rem 0;
   }
 
   .tree-node {

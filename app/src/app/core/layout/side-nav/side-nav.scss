@@ -1,12 +1,12 @@
 :host {
   display: block;
   flex: 0 0 auto;
-  width: 220px;
+  width: 176px;
   background: var(--app-navy-dark);
   transition: width 0.15s ease;
 
   &.collapsed {
-    width: 64px;
+    width: 48px;
   }
 }
 
@@ -15,19 +15,19 @@
   flex-direction: column;
   justify-content: space-between;
   height: 100%;
-  padding: 12px;
+  padding: 6px;
 }
 
 .nav-list {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
   margin: 0;
   padding: 0;
   list-style: none;
 
   &.footer {
-    padding-top: 12px;
+    padding-top: 6px;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
   }
 }

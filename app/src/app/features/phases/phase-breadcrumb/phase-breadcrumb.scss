@@ -1,23 +1,23 @@
-.breadcrumb {
+﻿.breadcrumb {
   ol {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 6px;
+    gap: 4px;
     margin: 0;
     padding: 0;
     list-style: none;
-    font-size: 0.8rem;
+    font-size: 0.72rem;
     color: #64748b;
   }
 
   li {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: 4px;
 
     & + li::before {
-      content: '›';
+      content: '\203A';
       color: #94a3b8;
     }
   }

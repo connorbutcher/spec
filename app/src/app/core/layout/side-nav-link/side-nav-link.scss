@@ -1,23 +1,20 @@
 .side-nav-link {
   display: flex;
   align-items: center;
-  gap: 12px;
-  height: 40px;
-  padding: 0 12px;
-  border-radius: 8px;
+  gap: 10px;
+  height: 32px;
+  padding: 0 10px;
+  border-radius: 4px;
   color: #cbd5e1;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-weight: 500;
   text-decoration: none;
   white-space: nowrap;
-  transition:
-    background 0.12s ease,
-    color 0.12s ease;
 
   .pi {
     flex: 0 0 auto;
-    width: 18px;
-    font-size: 1rem;
+    width: 16px;
+    font-size: 0.9rem;
     text-align: center;
   }
 
@@ -28,7 +25,7 @@
 
   &:focus-visible {
     outline: 2px solid #adc3e5;
-    outline-offset: 2px;
+    outline-offset: 1px;
   }
 
   &.active {
