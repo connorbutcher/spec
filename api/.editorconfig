@@ -1,0 +1,38 @@
+root = true
+
+[*]
+indent_style = space
+end_of_line = crlf
+insert_final_newline = true
+trim_trailing_whitespace = true
+charset = utf-8
+
+[*.{csproj,props,targets,slnx,json,xml}]
+indent_size = 2
+
+[*.cs]
+indent_size = 4
+
+# Always use braces, even around single-line bodies.
+csharp_prefer_braces = true:error
+dotnet_diagnostic.IDE0011.severity = error
+
+# One namespace per file, file-scoped.
+csharp_style_namespace_declarations = file_scoped:error
+dotnet_diagnostic.IDE0161.severity = error
+
+# Usings
+dotnet_sort_system_directives_first = true
+dotnet_diagnostic.IDE0005.severity = warning
+
+# Prefer explicit accessibility modifiers.
+dotnet_style_require_accessibility_modifiers = for_non_interface_members:error
+dotnet_diagnostic.IDE0040.severity = error
+
+csharp_style_var_for_built_in_types = true:suggestion
+csharp_style_var_when_type_is_apparent = true:suggestion
+csharp_new_line_before_open_brace = all
+
+# EF Core migrations are generated code.
+[**/Migrations/*.cs]
+generated_code = true

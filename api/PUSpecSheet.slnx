@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/PUSpecSheet.Api/PUSpecSheet.Api.csproj" />
+    <Project Path="src/PUSpecSheet.Application/PUSpecSheet.Application.csproj" />
+    <Project Path="src/PUSpecSheet.Contracts/PUSpecSheet.Contracts.csproj" />
+    <Project Path="src/PUSpecSheet.Data/PUSpecSheet.Data.csproj" />
+    <Project Path="src/PUSpecSheet.Domain/PUSpecSheet.Domain.csproj" />
+  </Folder>
+</Solution>

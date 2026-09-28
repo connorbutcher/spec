@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\PUSpecSheet.Domain\PUSpecSheet.Domain.csproj" />
+    <ProjectReference Include="..\PUSpecSheet.Contracts\PUSpecSheet.Contracts.csproj" />
+    <ProjectReference Include="..\PUSpecSheet.Data\PUSpecSheet.Data.csproj" />
+  </ItemGroup>
+</Project>

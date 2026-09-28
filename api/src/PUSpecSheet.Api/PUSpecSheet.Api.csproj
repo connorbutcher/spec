@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.12" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.10">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" Version="10.0.10" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\PUSpecSheet.Application\PUSpecSheet.Application.csproj" />
+    <ProjectReference Include="..\PUSpecSheet.Contracts\PUSpecSheet.Contracts.csproj" />
+    <ProjectReference Include="..\PUSpecSheet.Data\PUSpecSheet.Data.csproj" />
+  </ItemGroup>
+</Project>

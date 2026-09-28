@@ -1,0 +1,6 @@
+bin/
+obj/
+.vs/
+*.user
+
+# Angular output is ignored by app/.gitignore
