@@ -14,9 +14,14 @@ var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("Default")
     ?? throw new InvalidOperationException("Connection string 'Default' is not configured.");
 
-// Enums such as a template's orientation or a cell type's kind go over the wire as their names.
+// Enums such as a template's orientation or a cell type's kind go over the wire as their names. A cell
+// configuration's "kind" discriminator can come anywhere in the object the UI sends.
 builder.Services.AddControllers()
-    .AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+        options.JsonSerializerOptions.AllowOutOfOrderMetadataProperties = true;
+    });
 builder.Services.AddOpenApi();
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<ApplicationExceptionHandler>();

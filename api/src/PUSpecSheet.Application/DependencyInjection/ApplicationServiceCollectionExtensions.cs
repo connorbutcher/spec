@@ -22,6 +22,7 @@ public static class ApplicationServiceCollectionExtensions
         services.AddScoped<ITemplateSectionService, TemplateSectionService>();
         services.AddScoped<ITemplateRowService, TemplateRowService>();
         services.AddScoped<ITemplateCellService, TemplateCellService>();
+        services.AddScoped<ITemplateCellOverrideService, TemplateCellOverrideService>();
 
         return services;
     }

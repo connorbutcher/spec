@@ -19,11 +19,8 @@ internal static class CellTypeMappings
             cellType.Kind,
             cellType.Description,
             cellType.DisplayOrder,
-            cellType.MaxLength,
-            cellType.DecimalPlaces,
-            cellType.MinValue,
-            cellType.MaxValue,
-            cellType.Unit,
+            cellType.Configuration,
+            cellType.Style,
             options,
             usageCount);
     }

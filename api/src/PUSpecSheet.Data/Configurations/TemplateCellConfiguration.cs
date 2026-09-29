@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using PUSpecSheet.Data.Conversions;
 using PUSpecSheet.Domain.Templates;
 
 namespace PUSpecSheet.Data.Configurations;
@@ -25,6 +26,12 @@ public sealed class TemplateCellConfiguration : IEntityTypeConfiguration<Templat
 
         builder.Property(cell => cell.Caption)
             .HasMaxLength(200);
+
+        builder.Property(cell => cell.ConfigurationOverride)
+            .HasConversion<CellConfigurationConverter>();
+
+        builder.Property(cell => cell.StyleOverride)
+            .HasConversion<CellStyleConverter>();
 
         // Only one cell can start at a given column in a row.
         builder.HasIndex(cell => new { cell.TemplateRowId, cell.Column })

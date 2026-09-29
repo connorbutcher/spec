@@ -1,4 +1,6 @@
 using PUSpecSheet.Domain.CellTypes;
+using PUSpecSheet.Domain.CellTypes.Configurations;
+using PUSpecSheet.Domain.CellTypes.Styles;
 
 namespace PUSpecSheet.Domain.Templates;
 
@@ -25,9 +27,18 @@ public class TemplateCell
 
     public CellType CellType { get; set; } = null!;
 
-    /// <summary>The text of a label cell, or the prompt shown in an input cell.</summary>
+    /// <summary>The text of a heading or group cell, or the prompt shown in an input cell.</summary>
     public string? Caption { get; set; }
 
-    /// <summary>Whether the cell must be filled in on a sheet. Ignored for label cells.</summary>
+    /// <summary>Whether the cell must be filled in on a sheet. Ignored for heading and group cells.</summary>
     public bool IsRequired { get; set; }
+
+    /// <summary>
+    /// The settings this cell changes from its cell type's <see cref="CellType.Configuration"/>, or null
+    /// to use them as they are. See <see cref="CellSettingsResolver"/>.
+    /// </summary>
+    public CellConfiguration? ConfigurationOverride { get; set; }
+
+    /// <summary>The style values this cell changes from its cell type's <see cref="CellType.Style"/>.</summary>
+    public CellStyle? StyleOverride { get; set; }
 }

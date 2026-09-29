@@ -3,6 +3,7 @@ using PUSpecSheet.Application.Common;
 using PUSpecSheet.Contracts.CellTypes;
 using PUSpecSheet.Data;
 using PUSpecSheet.Domain.CellTypes;
+using PUSpecSheet.Domain.CellTypes.Configurations;
 
 namespace PUSpecSheet.Application.CellTypes;
 
@@ -47,9 +48,23 @@ public sealed class CellTypeService(PuSpecSheetDbContext db) : ICellTypeService
         await EnsureNameIsFreeAsync(request.Name, id, cancellationToken);
         await EnsureSheetValuesKeepMeaningAsync(cellType, request, cancellationToken);
 
+        var kindChanged = request.Kind != cellType.Kind;
         CellTypeSettings.Apply(request, cellType);
+
+        await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
 
+        if (kindChanged)
+        {
+            // Cells' configuration overrides were for the old kind, so they no longer mean anything.
+            await db.TemplateCells
+                .Where(cell => cell.CellTypeId == id && cell.ConfigurationOverride != null)
+                .ExecuteUpdateAsync(
+                    setters => setters.SetProperty(cell => cell.ConfigurationOverride, (CellConfiguration?)null),
+                    cancellationToken);
+        }
+
+        await transaction.CommitAsync(cancellationToken);
         return cellType.ToDto(await CountUsageAsync(id, cancellationToken));
     }
 
@@ -110,7 +125,7 @@ public sealed class CellTypeService(PuSpecSheetDbContext db) : ICellTypeService
                 $"Sheets already have values for \"{cellType.Name}\" cells, so its kind can't change.");
         }
 
-        var keptValues = request.Kind == CellKind.Dropdown
+        var keptValues = request.Kind.IsDropdown()
             ? (request.Options ?? []).Select(option => option.Trim()).ToHashSet(StringComparer.OrdinalIgnoreCase)
             : [];
 

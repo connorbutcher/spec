@@ -62,6 +62,8 @@ internal static class TemplateVersionCopier
                             CellTypeId = cell.CellTypeId,
                             Caption = cell.Caption,
                             IsRequired = cell.IsRequired,
+                            ConfigurationOverride = cell.ConfigurationOverride,
+                            StyleOverride = cell.StyleOverride,
                         })
                         .ToList(),
                 })

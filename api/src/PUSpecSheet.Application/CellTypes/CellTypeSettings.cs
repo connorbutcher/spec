@@ -1,11 +1,14 @@
 using PUSpecSheet.Application.Common;
 using PUSpecSheet.Contracts.CellTypes;
 using PUSpecSheet.Domain.CellTypes;
+using PUSpecSheet.Domain.CellTypes.Configurations;
+using PUSpecSheet.Domain.CellTypes.Styles;
 
 namespace PUSpecSheet.Application.CellTypes;
 
 /// <summary>
-/// Copies a <see cref="SaveCellTypeRequest"/> onto a cell type, keeping only the settings its kind uses.
+/// Copies a <see cref="SaveCellTypeRequest"/> onto a cell type, keeping only the configuration and
+/// options its kind uses.
 /// </summary>
 internal static class CellTypeSettings
 {
@@ -13,84 +16,48 @@ internal static class CellTypeSettings
     {
         cellType.Name = request.Name.Trim();
         cellType.Kind = request.Kind;
-        cellType.Description = NullIfBlank(request.Description);
+        cellType.Description = CellSettingText.NullIfBlank(request.Description);
+        cellType.Configuration = CleanConfiguration(request.Kind, request.Configuration);
+        cellType.Style = CleanStyle(request.Style);
 
-        var isText = request.Kind == CellKind.Text;
-        var isNumber = request.Kind == CellKind.Number;
-
-        cellType.MaxLength = isText ? request.MaxLength : null;
-        cellType.DecimalPlaces = isNumber ? request.DecimalPlaces : null;
-        cellType.MinValue = isNumber ? request.MinValue : null;
-        cellType.MaxValue = isNumber ? request.MaxValue : null;
-        cellType.Unit = isNumber ? NullIfBlank(request.Unit) : null;
-
-        if (cellType.MinValue > cellType.MaxValue)
-        {
-            throw new InvalidRequestException("The minimum value can't be more than the maximum value.");
-        }
-
-        var options = request.Kind == CellKind.Dropdown ? CleanOptions(request.Options) : [];
-        SyncOptions(cellType, options);
+        var options = request.Kind.IsDropdown() ? CellTypeOptions.Clean(request.Kind, request.Options) : [];
+        CellTypeOptions.Sync(cellType, options);
     }
 
-    private static List<string> CleanOptions(IReadOnlyList<string>? options)
+    /// <summary>
+    /// Checks a configuration and trims its text. One for another kind is dropped, so changing a cell
+    /// type's kind starts the new kind with nothing set.
+    /// </summary>
+    public static CellConfiguration CleanConfiguration(CellKind kind, CellConfiguration? configuration)
     {
-        var cleaned = (options ?? [])
-            .Select(option => option.Trim())
-            .Where(option => option.Length > 0)
-            .ToList();
-
-        var duplicate = cleaned
-            .GroupBy(option => option, StringComparer.OrdinalIgnoreCase)
-            .FirstOrDefault(group => group.Count() > 1);
-
-        if (duplicate is not null)
+        if (configuration is null || configuration.Kind != kind)
         {
-            throw new InvalidRequestException($"The option \"{duplicate.Key}\" is listed more than once.");
+            return CellConfigurations.CreateEmpty(kind);
         }
 
-        if (cleaned.Any(option => option.Length > 100))
+        var cleaned = CellSettingText.Trim(configuration);
+        var problem = cleaned.Validate();
+        if (problem is not null)
         {
-            throw new InvalidRequestException("Options can be at most 100 characters.");
+            throw new InvalidRequestException(problem);
         }
 
         return cleaned;
     }
 
-    /// <summary>
-    /// Makes the cell type's options match <paramref name="values"/> in order, keeping existing option
-    /// records whose value matches (ignoring case) so their ids survive.
-    /// </summary>
-    private static void SyncOptions(CellType cellType, IReadOnlyList<string> values)
+    public static CellStyle CleanStyle(CellStyle? style)
     {
-        var existing = cellType.Options.ToList();
-
-        for (var index = 0; index < values.Count; index++)
+        var cleaned = style ?? new CellStyle();
+        var problem = cleaned.Validate();
+        if (problem is not null)
         {
-            var value = values[index];
-            var match = existing.FirstOrDefault(option =>
-                string.Equals(option.Value, value, StringComparison.OrdinalIgnoreCase));
-
-            if (match is null)
-            {
-                cellType.Options.Add(new CellTypeOption { Value = value, DisplayOrder = index + 1 });
-            }
-            else
-            {
-                existing.Remove(match);
-                match.Value = value;
-                match.DisplayOrder = index + 1;
-            }
+            throw new InvalidRequestException(problem);
         }
 
-        foreach (var removed in existing)
+        return cleaned with
         {
-            cellType.Options.Remove(removed);
-        }
-    }
-
-    private static string? NullIfBlank(string? value)
-    {
-        return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+            TextColor = cleaned.TextColor?.ToLowerInvariant(),
+            BackgroundColor = cleaned.BackgroundColor?.ToLowerInvariant(),
+        };
     }
 }
