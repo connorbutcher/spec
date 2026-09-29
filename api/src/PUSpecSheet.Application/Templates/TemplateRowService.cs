@@ -39,20 +39,29 @@ public sealed class TemplateRowService(
         }
 
         var rows = await db.TemplateRows
-            .AsNoTracking()
             .Include(row => row.Cells)
             .Where(row => row.TemplateSectionId == request.TemplateSectionId)
             .OrderBy(row => row.DisplayOrder)
             .ToListAsync(cancellationToken);
 
+        var source = rows.LastOrDefault();
+        if (request.CopyFromRowId is int copyFromId)
+        {
+            source = rows.SingleOrDefault(candidate => candidate.Id == copyFromId)
+                ?? throw new InvalidRequestException($"Row {copyFromId} isn't in this section.");
+        }
+
+        var insertIndex = Math.Clamp((request.Position ?? rows.Count + 1) - 1, 0, rows.Count);
         var defaultCellTypeId = await DefaultCellType.GetIdAsync(db, cancellationToken);
 
         var row = new TemplateRow
         {
             TemplateSectionId = request.TemplateSectionId,
-            DisplayOrder = rows.Count == 0 ? 1 : rows[^1].DisplayOrder + 1,
-            Cells = NewRowCells.For(rows, defaultCellTypeId),
+            Cells = NewRowCells.For(rows, source, insertIndex, defaultCellTypeId),
         };
+
+        rows.Insert(insertIndex, row);
+        DisplayOrdering.RenumberAsListed(rows, SetOrder);
 
         db.TemplateRows.Add(row);
         await db.SaveChangesAsync(cancellationToken);

@@ -2,25 +2,29 @@ using PUSpecSheet.Domain.Templates;
 
 namespace PUSpecSheet.Application.Templates;
 
-/// <summary>Works out the cells a row added to the end of a section starts with.</summary>
+/// <summary>Works out the cells a new row starts with.</summary>
 internal static class NewRowCells
 {
     /// <summary>
-    /// Copies the columns of the section's last row (type, column and column span, single row span),
-    /// skipping any column still covered by a row span from a row above. A section without rows
-    /// starts with one cell of <paramref name="defaultCellTypeId"/>.
+    /// Copies the columns of <paramref name="source"/> (type, column and column span, single row span),
+    /// skipping any column that a cell in an earlier row still spans down into at
+    /// <paramref name="insertIndex"/> (0-based). A section without rows starts with one cell of
+    /// <paramref name="defaultCellTypeId"/>.
     /// </summary>
-    public static List<TemplateCell> For(IReadOnlyList<TemplateRow> orderedRows, int defaultCellTypeId)
+    public static List<TemplateCell> For(
+        IReadOnlyList<TemplateRow> orderedRows,
+        TemplateRow? source,
+        int insertIndex,
+        int defaultCellTypeId)
     {
-        if (orderedRows.Count == 0)
+        if (source is null)
         {
             return [new TemplateCell { Column = 1, CellTypeId = defaultCellTypeId }];
         }
 
-        var newRowIndex = orderedRows.Count;
-        var covered = CoveredColumns(orderedRows, newRowIndex);
+        var covered = CoveredColumns(orderedRows, insertIndex);
 
-        return orderedRows[^1].Cells
+        return source.Cells
             .Where(cell => !Enumerable.Range(cell.Column, cell.ColumnSpan).Any(covered.Contains))
             .Select(cell => new TemplateCell
             {
@@ -31,11 +35,11 @@ internal static class NewRowCells
             .ToList();
     }
 
-    /// <summary>The columns that cells in earlier rows span down into the row at <paramref name="rowIndex"/> (0-based).</summary>
+    /// <summary>The columns that cells in rows before <paramref name="rowIndex"/> (0-based) span down into it.</summary>
     private static HashSet<int> CoveredColumns(IReadOnlyList<TemplateRow> orderedRows, int rowIndex)
     {
         var covered = new HashSet<int>();
-        for (var index = 0; index < orderedRows.Count; index++)
+        for (var index = 0; index < Math.Min(rowIndex, orderedRows.Count); index++)
         {
             foreach (var cell in orderedRows[index].Cells.Where(cell => index + cell.RowSpan > rowIndex))
             {

@@ -33,14 +33,28 @@ public sealed class TemplateCellService(
         var cellTypeId = request.CellTypeId ?? await DefaultCellType.GetIdAsync(db, cancellationToken);
         await EnsureCellTypeExistsAsync(cellTypeId, cancellationToken);
 
+        await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
+
+        var column = request.Column ?? row.NextColumn;
+        if (request.Column is not null)
+        {
+            // Make room: the cells from this column on move one to the right, in one statement so the
+            // one-cell-per-column index is only checked once they've all moved.
+            await db.TemplateCells
+                .Where(cell => cell.TemplateRowId == request.TemplateRowId && cell.Column >= column)
+                .ExecuteUpdateAsync(setters => setters.SetProperty(cell => cell.Column, cell => cell.Column + 1), cancellationToken);
+        }
+
         db.TemplateCells.Add(new TemplateCell
         {
             TemplateRowId = request.TemplateRowId,
-            Column = row.NextColumn,
+            Column = column,
             CellTypeId = cellTypeId,
         });
 
         await db.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
+
         return await reader.ReadVersionAsync(row.TableTemplateVersionId, cancellationToken);
     }
 

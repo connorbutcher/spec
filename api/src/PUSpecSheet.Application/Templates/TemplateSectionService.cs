@@ -27,17 +27,21 @@ public sealed class TemplateSectionService(
                 && section.ParentSectionId == request.ParentSectionId)
             .MaxAsync(section => (int?)section.DisplayOrder, cancellationToken);
 
-        // New sections start as a single block that's always on the table; the role can change after.
+        // At the top level, the first section is the table's header and the rest are sections people add
+        // on the sheet. Inside a section, new sections start as a single block that's always there.
+        var isHeader = request.ParentSectionId is null && !await HasHeaderAsync(versionId, null, cancellationToken);
+        var isAddable = request.ParentSectionId is null && !isHeader;
+
         db.TemplateSections.Add(new TemplateSection
         {
             TableTemplateVersionId = versionId,
             ParentSectionId = request.ParentSectionId,
             Name = request.Name.Trim(),
             DisplayOrder = (lastOrder ?? 0) + 1,
-            Role = SectionRole.Fixed,
-            MinInstances = 1,
-            MaxInstances = 1,
-            InitialInstances = 1,
+            Role = isAddable ? SectionRole.Repeating : SectionRole.Fixed,
+            MinInstances = isAddable ? 0 : 1,
+            MaxInstances = isAddable ? null : 1,
+            InitialInstances = isAddable ? 0 : 1,
         });
 
         await db.SaveChangesAsync(cancellationToken);
@@ -52,7 +56,15 @@ public sealed class TemplateSectionService(
         var section = await FindEditableAsync(id, cancellationToken);
 
         section.Name = request.Name.Trim();
-        SectionInstanceRules.Apply(request, section);
+
+        var isTopLevel = section.ParentSectionId is null;
+        if (isTopLevel && request.Role == SectionRole.Fixed
+            && await HasHeaderAsync(section.TableTemplateVersionId, section.Id, cancellationToken))
+        {
+            throw new ConflictException("This table already has a header. Other top-level sections are added on the sheet.");
+        }
+
+        SectionInstanceRules.Apply(request, section, isTopLevel);
         await db.SaveChangesAsync(cancellationToken);
 
         return await reader.ReadVersionAsync(section.TableTemplateVersionId, cancellationToken);
@@ -116,6 +128,17 @@ public sealed class TemplateSectionService(
     private static void SetOrder(TemplateSection section, int order)
     {
         section.DisplayOrder = order;
+    }
+
+    /// <summary>Whether the version has a top-level fixed section (its header) other than <paramref name="exceptId"/>.</summary>
+    private Task<bool> HasHeaderAsync(int versionId, int? exceptId, CancellationToken cancellationToken)
+    {
+        return db.TemplateSections.AnyAsync(
+            section => section.TableTemplateVersionId == versionId
+                && section.ParentSectionId == null
+                && section.Role == SectionRole.Fixed
+                && section.Id != exceptId,
+            cancellationToken);
     }
 
     private async Task EnsureCanHoldSectionsAsync(int versionId, int parentId, CancellationToken cancellationToken)
