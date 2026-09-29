@@ -1,6 +1,7 @@
 <button
   type="button"
   class="cell"
+  [style]="contentStyle()"
   [attr.aria-label]="(layout().cell.caption || typeName()) + ' cell'"
   (click)="open()"
   (contextmenu)="openMenu($event)"

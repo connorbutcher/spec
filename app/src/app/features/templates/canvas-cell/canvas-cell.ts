@@ -1,6 +1,7 @@
 import { Component, computed, inject, input } from '@angular/core';
 import { CanvasMenu } from '../canvas-menu';
-import { effectiveConfiguration } from '../cell-settings.util';
+import { effectiveConfiguration, effectiveStyle } from '../cell-settings.util';
+import { cellStyleCss } from '../cell-style-css.util';
 import { cellKindInfo, isDisplayOnly } from '../models/cell-kinds';
 import { CellKindInfo } from '../models/cell-kind-info.model';
 import { CellLayout } from '../models/cell-layout.model';
@@ -9,9 +10,16 @@ import { GridStyle } from '../models/grid-style';
 import { PanelNavigator } from '../panel-navigator';
 import { TemplatesStore } from '../templates.store';
 
+const FLEX_ALIGNMENT: Readonly<Record<string, string>> = {
+  left: 'flex-start',
+  center: 'center',
+  right: 'flex-end',
+};
+
 /**
  * A cell in the preview, placed on its section's subgrid by row, column and spans. Label cells show
- * their text; input cells show their caption and cell type. Right-click opens the quick-edit menu.
+ * their text; input cells show their caption and cell type. Each cell shows its effective style (its
+ * cell type's, with the cell's overrides on top). Right-click opens the quick-edit menu.
  */
 @Component({
   selector: 'app-canvas-cell',
@@ -35,12 +43,31 @@ export class CanvasCell {
     cellKindInfo(this.cellType()?.kind ?? 'Text'),
   );
 
+  /** The cell type's style with the cell's own overrides on top, as CSS. */
+  public readonly styleCss = computed<Record<string, string>>(() => {
+    const cellType = this.cellType();
+    return cellType
+      ? cellStyleCss(effectiveStyle(cellType.style, this.layout().cell.styleOverride))
+      : {};
+  });
+
   private readonly navigator = inject(PanelNavigator);
   private readonly store = inject(TemplatesStore);
   private readonly menu = inject(CanvasMenu);
 
+  /** The grid placement plus the cell's background, which fills the whole grid area. */
   public hostStyle(): GridStyle {
-    return this.layout().style;
+    const background = this.styleCss()['background-color'];
+    return background
+      ? { ...this.layout().style, 'background-color': background }
+      : this.layout().style;
+  }
+
+  /** The cell's text styling, with its alignment also lining up the caption and type lines. */
+  public contentStyle(): Record<string, string> {
+    const { 'background-color': _background, ...text } = this.styleCss();
+    const align = text['text-align'];
+    return align ? { ...text, 'align-items': FLEX_ALIGNMENT[align] ?? 'flex-start' } : text;
   }
 
   public isLabel(): boolean {
