@@ -53,91 +53,42 @@
       ></textarea>
     </div>
 
-    @switch (cellType.kind) {
-      @case ('Text') {
-        <h3 class="group-title">Text settings</h3>
-        <div class="field">
-          <label for="cell-type-max-length">Max length</label>
-          <app-number-field
-            inputId="cell-type-max-length"
-            [value]="cellType.maxLength"
-            [min]="1"
-            [max]="4000"
-            [allowEmpty]="true"
-            placeholder="No limit"
-            [disabled]="isSaving()"
-            (committed)="setNumber('maxLength', $event)"
-          />
-        </div>
-      }
-      @case ('Number') {
-        <h3 class="group-title">Number settings</h3>
-        <div class="inline">
-          <div class="field">
-            <label for="cell-type-min">Min</label>
-            <app-number-field
-              inputId="cell-type-min"
-              [value]="cellType.minValue"
-              [decimals]="4"
-              [allowEmpty]="true"
-              placeholder="None"
-              [disabled]="isSaving()"
-              (committed)="setNumber('minValue', $event)"
-            />
-          </div>
-          <div class="field">
-            <label for="cell-type-max">Max</label>
-            <app-number-field
-              inputId="cell-type-max"
-              [value]="cellType.maxValue"
-              [decimals]="4"
-              [allowEmpty]="true"
-              placeholder="None"
-              [disabled]="isSaving()"
-              (committed)="setNumber('maxValue', $event)"
-            />
-          </div>
-          <div class="field">
-            <label for="cell-type-decimals">Decimals</label>
-            <app-number-field
-              inputId="cell-type-decimals"
-              [value]="cellType.decimalPlaces"
-              [min]="0"
-              [max]="6"
-              [allowEmpty]="true"
-              placeholder="Any"
-              [disabled]="isSaving()"
-              (committed)="setNumber('decimalPlaces', $event)"
-            />
-          </div>
-        </div>
-        <div class="field">
-          <label for="cell-type-unit">Unit</label>
-          <input
-            #unitInput
-            pInputText
-            pSize="small"
-            id="cell-type-unit"
-            type="text"
-            maxlength="20"
-            placeholder="e.g. Nm, mm, °C"
-            [value]="cellType.unit ?? ''"
-            (change)="setText('unit', unitInput)"
-          />
-        </div>
-      }
-      @case ('Dropdown') {
-        <h3 class="group-title">Options</h3>
+    <h3 class="group-title">{{ kind().label }} settings</h3>
+    @if (configurationFields().length > 0) {
+      <app-settings-editor
+        idPrefix="cell-type-config"
+        [fields]="configurationFields()"
+        [defaults]="cellType.configuration"
+        [disabled]="isSaving()"
+        (changed)="setConfiguration($event)"
+      />
+    } @else if (!hasOptions()) {
+      <p class="note">{{ kind().label }} cells have no extra settings.</p>
+    }
+
+    @if (hasOptions()) {
+      <div class="field">
+        <span class="label">Options</span>
         <app-cell-type-options-editor
           [options]="cellType.options"
           [disabled]="isSaving()"
           (changed)="setOptions($event)"
         />
-      }
-      @default {
-        <p class="note">{{ kind().label }} cells have no extra settings.</p>
-      }
+        @if (cellType.kind === 'NumberDropdown') {
+          <span class="hint">Every option must be a number.</span>
+        }
+      </div>
     }
+
+    <h3 class="group-title">Style</h3>
+    <app-settings-editor
+      idPrefix="cell-type-style"
+      [fields]="styleFields"
+      [defaults]="cellType.style"
+      [disabled]="isSaving()"
+      (changed)="setStyle($event)"
+    />
+    <p class="note">These are the defaults. Each cell can override them.</p>
 
     <div class="danger-zone">
       <p class="note">{{ usage() }}</p>

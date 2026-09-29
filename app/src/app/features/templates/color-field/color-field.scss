@@ -1,0 +1,31 @@
+:host {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  min-height: 26px;
+}
+
+.hex {
+  font-family: ui-monospace, monospace;
+  font-size: 0.75rem;
+
+  &.unset {
+    color: #94a3b8;
+  }
+}
+
+::ng-deep app-color-field .p-colorpicker-preview {
+  width: 20px;
+  height: 20px;
+}
+
+// With no colour set, show an empty swatch rather than the picker's default red.
+::ng-deep app-color-field .unset .p-colorpicker-preview {
+  background: repeating-linear-gradient(45deg, #fff 0 3px, #e2e8f0 3px 6px) !important;
+}
+
+::ng-deep app-color-field .p-button.p-button-icon-only {
+  width: 22px;
+  height: 22px;
+}

@@ -50,7 +50,7 @@
     </div>
 
     <div class="field">
-      <label for="cell-caption">{{ isLabel() ? 'Text' : 'Caption' }}</label>
+      <label for="cell-caption">{{ isDisplayOnly() ? 'Text' : 'Caption' }}</label>
       <input
         #captionInput
         pInputText
@@ -58,14 +58,14 @@
         id="cell-caption"
         type="text"
         maxlength="200"
-        [placeholder]="isLabel() ? 'e.g. Torque' : 'Optional prompt'"
+        [placeholder]="isDisplayOnly() ? 'e.g. Torque' : 'Optional prompt'"
         [value]="entry.cell.caption ?? ''"
         [disabled]="!canEdit()"
         (change)="setCaption(captionInput)"
       />
     </div>
 
-    @if (!isLabel()) {
+    @if (!isDisplayOnly()) {
       <div class="check">
         <p-checkbox
           inputId="cell-required"
@@ -115,6 +115,46 @@
         />
       </div>
     </div>
+
+    @if (cellType(); as cellType) {
+      @if (configurationFields().length > 0) {
+        <h3 class="group-title">{{ kind().label }} settings</h3>
+        <app-settings-editor
+          idPrefix="cell-config"
+          [fields]="configurationFields()"
+          [defaults]="cellType.configuration"
+          [overrides]="configurationOverride()"
+          [overridable]="true"
+          [disabled]="!canEdit()"
+          (changed)="setConfigurationOverride($event)"
+        />
+      }
+
+      <h3 class="group-title">Style</h3>
+      <app-settings-editor
+        idPrefix="cell-style"
+        [fields]="styleFields"
+        [defaults]="cellType.style"
+        [overrides]="entry.cell.styleOverride"
+        [overridable]="true"
+        [disabled]="!canEdit()"
+        (changed)="setStyleOverride($event)"
+      />
+      <div class="override-note">
+        <span class="note">Unmarked values come from {{ cellType.name }}.</span>
+        @if (hasOverrides()) {
+          <p-button
+            label="Reset all"
+            icon="pi pi-undo"
+            size="small"
+            severity="secondary"
+            [text]="true"
+            [disabled]="isSaving() || !canEdit()"
+            (onClick)="resetAll()"
+          />
+        }
+      </div>
+    }
 
     <div class="danger-zone">
       <app-confirm-delete-button

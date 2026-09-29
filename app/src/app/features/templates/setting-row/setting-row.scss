@@ -1,0 +1,36 @@
+// Label, control and reset button on one compact line.
+:host {
+  display: grid;
+  grid-template-columns: 84px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+  padding-left: 6px;
+  border-left: 2px solid transparent;
+}
+
+:host(.overridden) {
+  border-left-color: var(--p-primary-color);
+
+  label {
+    color: var(--p-primary-color);
+  }
+}
+
+label {
+  color: #475569;
+  font-size: 0.75rem;
+}
+
+.inherited {
+  display: inline-flex;
+  justify-content: center;
+  width: 22px;
+  color: #cbd5e1;
+  font-size: 0.65rem;
+}
+
+::ng-deep app-setting-row .p-button.p-button-icon-only {
+  width: 22px;
+  height: 22px;
+}

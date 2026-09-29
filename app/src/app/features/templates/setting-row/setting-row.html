@@ -1,0 +1,27 @@
+<label [id]="inputId() + '-label'" [for]="inputId()">{{ field().label }}</label>
+<app-setting-control
+  [field]="field()"
+  [value]="value()"
+  [inputId]="inputId()"
+  [disabled]="disabled()"
+  (committed)="changed.emit($event)"
+/>
+@if (overridable()) {
+  @if (overridden()) {
+    <p-button
+      icon="pi pi-undo"
+      size="small"
+      severity="secondary"
+      [text]="true"
+      ariaLabel="Reset to default"
+      [pTooltip]="'Reset to default: ' + defaultText()"
+      tooltipPosition="left"
+      [disabled]="disabled()"
+      (onClick)="reset.emit()"
+    />
+  } @else {
+    <span class="inherited" title="Uses the cell type's default">
+      <i class="pi pi-link" aria-label="Default"></i>
+    </span>
+  }
+}

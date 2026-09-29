@@ -1,0 +1,13 @@
+@for (entry of entries(); track entry.field.key) {
+  <app-setting-row
+    [field]="entry.field"
+    [value]="entry.value"
+    [inputId]="idPrefix() + '-' + entry.field.key"
+    [overridable]="overridable()"
+    [overridden]="entry.overridden"
+    [defaultText]="entry.defaultText"
+    [disabled]="disabled()"
+    (changed)="set(entry.field, $event)"
+    (reset)="reset(entry.field)"
+  />
+}

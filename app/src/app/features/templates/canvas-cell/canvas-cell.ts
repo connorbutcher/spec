@@ -1,6 +1,7 @@
 import { Component, computed, inject, input } from '@angular/core';
 import { CanvasMenu } from '../canvas-menu';
-import { cellKindInfo } from '../models/cell-kinds';
+import { effectiveConfiguration } from '../cell-settings.util';
+import { cellKindInfo, isDisplayOnly } from '../models/cell-kinds';
 import { CellKindInfo } from '../models/cell-kind-info.model';
 import { CellLayout } from '../models/cell-layout.model';
 import { CellType } from '../models/cell-type.model';
@@ -43,7 +44,20 @@ export class CanvasCell {
   }
 
   public isLabel(): boolean {
-    return this.cellType()?.kind === 'Label';
+    return isDisplayOnly(this.cellType()?.kind);
+  }
+
+  /** The unit the cell uses, from its type's configuration with the cell's override on top. */
+  public unit(): string | null {
+    const cellType = this.cellType();
+    if (!cellType) {
+      return null;
+    }
+    const configuration = effectiveConfiguration(
+      cellType.configuration,
+      this.layout().cell.configurationOverride,
+    );
+    return 'unit' in configuration ? (configuration.unit ?? null) : null;
   }
 
   public isSelected(): boolean {

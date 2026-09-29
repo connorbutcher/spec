@@ -5,6 +5,7 @@ import { CellType } from './models/cell-type.model';
 import { SaveCellTypeRequest } from './models/save-cell-type-request.model';
 import { TableTemplate } from './models/table-template.model';
 import { TemplateOrientation } from './models/template-orientation';
+import { UpdateTemplateCellOverridesRequest } from './models/update-template-cell-overrides-request.model';
 import { UpdateTemplateCellRequest } from './models/update-template-cell-request.model';
 import { UpdateTemplateSectionRequest } from './models/update-template-section-request.model';
 
@@ -116,6 +117,16 @@ export class TemplatesApi {
 
   public updateCell(id: number, request: UpdateTemplateCellRequest): Promise<TableTemplate> {
     return firstValueFrom(this.http.put<TableTemplate>(`/api/template-cells/${id}`, request));
+  }
+
+  /** Replaces what a cell changes from its cell type's default configuration and style. */
+  public updateCellOverrides(
+    id: number,
+    request: UpdateTemplateCellOverridesRequest,
+  ): Promise<TableTemplate> {
+    return firstValueFrom(
+      this.http.put<TableTemplate>(`/api/template-cells/${id}/overrides`, request),
+    );
   }
 
   public deleteCell(id: number): Promise<TableTemplate> {

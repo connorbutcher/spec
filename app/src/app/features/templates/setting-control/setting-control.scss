@@ -1,0 +1,12 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+input {
+  width: 100%;
+}
+
+::ng-deep app-setting-control .p-selectbutton .p-togglebutton {
+  padding: 2px 8px;
+}

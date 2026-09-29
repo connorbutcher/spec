@@ -1,0 +1,64 @@
+@switch (field().control) {
+  @case ('text') {
+    <input
+      #textInput
+      pInputText
+      pSize="small"
+      type="text"
+      [id]="inputId()"
+      [attr.maxlength]="field().maxLength ?? null"
+      [placeholder]="field().placeholder ?? ''"
+      [value]="textValue() ?? ''"
+      [disabled]="disabled()"
+      (change)="commitText(textInput)"
+    />
+  }
+  @case ('boolean') {
+    <p-checkbox
+      size="small"
+      [inputId]="inputId()"
+      [binary]="true"
+      [ngModel]="value() === true"
+      [disabled]="disabled()"
+      (onChange)="commitBoolean($event)"
+    />
+  }
+  @case ('choice') {
+    <p-selectbutton
+      size="small"
+      optionLabel="label"
+      optionValue="value"
+      [options]="field().choices ?? []"
+      [allowEmpty]="true"
+      [ngModel]="value()"
+      [disabled]="disabled()"
+      [attr.aria-labelledby]="inputId() + '-label'"
+      (onChange)="commitChoice($event)"
+    >
+      <ng-template #item let-choice>
+        <i [class]="choice.icon" [attr.aria-label]="choice.label"></i>
+      </ng-template>
+    </p-selectbutton>
+  }
+  @case ('color') {
+    <app-color-field
+      [inputId]="inputId()"
+      [value]="textValue()"
+      [disabled]="disabled()"
+      (committed)="committed.emit($event)"
+    />
+  }
+  @default {
+    <app-number-field
+      [inputId]="inputId()"
+      [value]="numberValue()"
+      [min]="field().min"
+      [max]="field().max"
+      [decimals]="decimals()"
+      [allowEmpty]="true"
+      [placeholder]="field().placeholder ?? ''"
+      [disabled]="disabled()"
+      (committed)="committed.emit($event)"
+    />
+  }
+}

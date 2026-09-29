@@ -12,6 +12,7 @@ import { TableTemplate } from './models/table-template.model';
 import { TemplateIndex } from './models/template-index.model';
 import { TemplateLayout } from './models/template-layout.model';
 import { TemplateOrientation } from './models/template-orientation';
+import { UpdateTemplateCellOverridesRequest } from './models/update-template-cell-overrides-request.model';
 import { UpdateTemplateCellRequest } from './models/update-template-cell-request.model';
 import { UpdateTemplateSectionRequest } from './models/update-template-section-request.model';
 import { findRouteParam } from './route-param.util';
@@ -125,6 +126,9 @@ export class TemplatesStore {
   );
 
   private readonly pendingSaves = signal(0);
+
+  /** The last cell override save, which the next one waits for. */
+  private overrideSaves: Promise<void> = Promise.resolve();
 
   public reloadList(): void {
     this.sheetTypesResource.reload();
@@ -326,11 +330,8 @@ export class TemplatesStore {
         name,
         kind: 'Text',
         description: null,
-        maxLength: null,
-        decimalPlaces: null,
-        minValue: null,
-        maxValue: null,
-        unit: null,
+        configuration: null,
+        style: null,
         options: [],
       }),
     );
@@ -351,11 +352,8 @@ export class TemplatesStore {
       name: cellType.name,
       kind: cellType.kind,
       description: cellType.description,
-      maxLength: cellType.maxLength,
-      decimalPlaces: cellType.decimalPlaces,
-      minValue: cellType.minValue,
-      maxValue: cellType.maxValue,
-      unit: cellType.unit,
+      configuration: cellType.configuration,
+      style: cellType.style,
       options: cellType.options.map((option) => option.value),
       ...changes,
     };
@@ -364,7 +362,33 @@ export class TemplatesStore {
       this.cellTypesResource.update((cellTypes) =>
         (cellTypes ?? []).map((candidate) => (candidate.id === id ? updated : candidate)),
       );
+      if (updated.kind !== cellType.kind) {
+        // A kind change drops the configuration overrides of the cells that use the type.
+        this.templateResource.reload();
+      }
     }
+  }
+
+  /** Changes what a cell overrides from its cell type's defaults, keeping the rest. */
+  public updateCellOverrides(
+    id: number,
+    changes: Partial<UpdateTemplateCellOverridesRequest>,
+  ): Promise<void> {
+    // Quick clicks (bold, then align) each build on the result of the one before, so run them in turn.
+    const next = this.overrideSaves.then(async () => {
+      const cell = this.index().cells.get(id)?.cell;
+      if (!cell) {
+        return;
+      }
+      const request: UpdateTemplateCellOverridesRequest = {
+        configurationOverride: cell.configurationOverride,
+        styleOverride: cell.styleOverride,
+        ...changes,
+      };
+      await this.changeTemplate(() => this.api.updateCellOverrides(id, request));
+    });
+    this.overrideSaves = next;
+    return next;
   }
 
   public async deleteCellType(id: number): Promise<boolean> {

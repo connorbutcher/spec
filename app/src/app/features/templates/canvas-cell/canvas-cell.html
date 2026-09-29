@@ -19,7 +19,7 @@
     <span class="type">
       <i class="pi" [class]="kind().icon" aria-hidden="true"></i>
       {{ typeName() }}
-      @if (cellType()?.unit; as unit) {
+      @if (unit(); as unit) {
         <span class="unit">({{ unit }})</span>
       }
     </span>

@@ -1,0 +1,22 @@
+<p-colorpicker
+  format="hex"
+  appendTo="body"
+  [inputId]="inputId()"
+  [class.unset]="!draft()"
+  [ngModel]="draft()"
+  (ngModelChange)="draft.set($event)"
+  [disabled]="disabled()"
+  (onHide)="commit()"
+/>
+<span class="hex" [class.unset]="!value()">{{ value() ?? 'None' }}</span>
+@if (value()) {
+  <p-button
+    icon="pi pi-times"
+    size="small"
+    severity="secondary"
+    [text]="true"
+    ariaLabel="Clear colour"
+    [disabled]="disabled()"
+    (onClick)="clear()"
+  />
+}

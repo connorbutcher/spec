@@ -15,6 +15,8 @@ function cell(column: number, columnSpan = 1, rowSpan = 1): TemplateCell {
     rowSpan,
     caption: null,
     isRequired: false,
+    configurationOverride: null,
+    styleOverride: null,
   };
 }
 
