@@ -1,0 +1,18 @@
+<p-inputnumber
+  size="small"
+  [inputId]="inputId()"
+  [ngModel]="draft()"
+  (ngModelChange)="draft.set($event)"
+  [min]="min()"
+  [max]="max()"
+  [minFractionDigits]="0"
+  [maxFractionDigits]="decimals()"
+  [useGrouping]="false"
+  [allowEmpty]="allowEmpty()"
+  [placeholder]="placeholder()"
+  [suffix]="suffix()"
+  [disabled]="disabled()"
+  [fluid]="true"
+  (onBlur)="commit()"
+  (keydown.enter)="commit()"
+/>

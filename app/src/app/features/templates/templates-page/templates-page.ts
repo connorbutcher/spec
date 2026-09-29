@@ -1,5 +1,7 @@
 import { Component, effect, inject, untracked } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { ConfirmationService } from 'primeng/api';
+import { ConfirmPopupModule } from 'primeng/confirmpopup';
 import { ConfigPanel } from '../config-panel/config-panel';
 import { PanelNavigator } from '../panel-navigator';
 import { TemplateListPanel } from '../template-list-panel/template-list-panel';
@@ -11,8 +13,8 @@ import { TemplatesStore } from '../templates.store';
  */
 @Component({
   selector: 'app-templates-page',
-  imports: [RouterOutlet, TemplateListPanel, ConfigPanel],
-  providers: [TemplatesStore, PanelNavigator],
+  imports: [RouterOutlet, ConfirmPopupModule, TemplateListPanel, ConfigPanel],
+  providers: [TemplatesStore, PanelNavigator, ConfirmationService],
   templateUrl: './templates-page.html',
   styleUrl: './templates-page.scss',
 })

@@ -1,21 +1,23 @@
 <span class="move">
   <span class="position">{{ position() }} of {{ count() }}</span>
-  <button
-    type="button"
+  <p-button
+    icon="pi pi-chevron-up"
+    size="small"
+    severity="secondary"
+    [text]="true"
     [disabled]="!canMoveUp()"
-    [attr.aria-label]="'Move ' + noun() + ' earlier'"
-    title="Move earlier"
-    (click)="moveUp()"
-  >
-    <i class="pi pi-chevron-up" aria-hidden="true"></i>
-  </button>
-  <button
-    type="button"
+    [ariaLabel]="'Move ' + noun() + ' earlier'"
+    pTooltip="Move earlier"
+    (onClick)="moveUp()"
+  />
+  <p-button
+    icon="pi pi-chevron-down"
+    size="small"
+    severity="secondary"
+    [text]="true"
     [disabled]="!canMoveDown()"
-    [attr.aria-label]="'Move ' + noun() + ' later'"
-    title="Move later"
-    (click)="moveDown()"
-  >
-    <i class="pi pi-chevron-down" aria-hidden="true"></i>
-  </button>
+    [ariaLabel]="'Move ' + noun() + ' later'"
+    pTooltip="Move later"
+    (onClick)="moveDown()"
+  />
 </span>

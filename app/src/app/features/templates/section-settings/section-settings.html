@@ -4,10 +4,13 @@
       <label for="section-name">Name</label>
       <input
         #nameInput
+        pInputText
+        pSize="small"
         id="section-name"
         type="text"
         maxlength="100"
         [value]="entry.section.name"
+        [disabled]="!canEdit()"
         (change)="rename(nameInput)"
       />
     </div>
@@ -18,26 +21,119 @@
         noun="section"
         [position]="position()"
         [count]="entry.siblings.length"
-        [disabled]="isSaving()"
+        [disabled]="isSaving() || !canEdit()"
         (moved)="move($event)"
       />
     </div>
 
+    <h3 class="group-title">On a sheet</h3>
+    <div class="field">
+      <span class="label" id="section-role-label">Role</span>
+      <p-selectbutton
+        [options]="roles"
+        optionLabel="label"
+        optionValue="value"
+        [ngModel]="entry.section.role"
+        (onChange)="setRole($event)"
+        [allowEmpty]="false"
+        [disabled]="isSaving() || !canEdit()"
+        size="small"
+        ariaLabelledBy="section-role-label"
+      />
+      <span class="hint">
+        @if (entry.section.role === 'Fixed') {
+          A single block, such as a header. A table has at most one of it.
+        } @else {
+          A block people add copies of on the sheet to build up the table's data.
+        }
+      </span>
+    </div>
+
+    @if (entry.section.role === 'Fixed') {
+      <div class="field">
+        <label for="section-presence">On a new table</label>
+        <p-select
+          inputId="section-presence"
+          [options]="presences"
+          optionLabel="label"
+          optionValue="value"
+          [ngModel]="presence()"
+          (onChange)="setPresence($event)"
+          [disabled]="isSaving() || !canEdit()"
+          size="small"
+          [fluid]="true"
+          appendTo="body"
+        />
+        @if (presence() === 'always') {
+          <span class="hint">It can only be removed by removing the whole table.</span>
+        }
+      </div>
+    } @else {
+      <div class="inline">
+        <div class="field">
+          <label for="section-min">Min</label>
+          <app-number-field
+            inputId="section-min"
+            [value]="entry.section.minInstances"
+            [min]="0"
+            [max]="1000"
+            [disabled]="isSaving() || !canEdit()"
+            (committed)="setCount('minInstances', $event)"
+          />
+        </div>
+        <div class="field">
+          <label for="section-initial">Starts with</label>
+          <app-number-field
+            inputId="section-initial"
+            [value]="entry.section.initialInstances"
+            [min]="0"
+            [max]="1000"
+            [disabled]="isSaving() || !canEdit()"
+            (committed)="setCount('initialInstances', $event)"
+          />
+        </div>
+        <div class="field">
+          <label for="section-max">Max</label>
+          <app-number-field
+            inputId="section-max"
+            [value]="entry.section.maxInstances"
+            [min]="1"
+            [max]="1000"
+            [allowEmpty]="true"
+            placeholder="No limit"
+            [disabled]="isSaving() || !canEdit()"
+            (committed)="setCount('maxInstances', $event)"
+          />
+        </div>
+      </div>
+      <span class="note">Copies can't be removed below the minimum.</span>
+    }
+
     @if (hasChildSections()) {
       <h3 class="group-title">Sections inside</h3>
-      <app-panel-link-list [items]="childSections()" />
+      <app-panel-link-list [items]="childSections()" ariaLabel="Sections inside" />
       <div class="actions">
-        <button type="button" class="button" [disabled]="isSaving()" (click)="addSection()">
-          <i class="pi pi-plus" aria-hidden="true"></i> Add section inside
-        </button>
+        <p-button
+          icon="pi pi-plus"
+          label="Add section inside"
+          size="small"
+          [outlined]="true"
+          [disabled]="isSaving() || !canEdit()"
+          (onClick)="addSection()"
+        />
       </div>
     } @else if (hasRows()) {
       <h3 class="group-title">Rows</h3>
-      <app-panel-link-list [items]="rows()" />
+      <app-panel-link-list [items]="rows()" ariaLabel="Rows" />
       <div class="actions">
-        <button type="button" class="button" [disabled]="isSaving()" (click)="addRow()">
-          <i class="pi pi-plus" aria-hidden="true"></i> Add row
-        </button>
+        <p-button
+          icon="pi pi-plus"
+          label="Add row"
+          size="small"
+          [outlined]="true"
+          [disabled]="isSaving() || !canEdit()"
+          (onClick)="addRow()"
+        />
       </div>
       <p class="note">New rows copy the columns of the last row.</p>
     } @else {
@@ -47,12 +143,22 @@
         sections.
       </p>
       <div class="actions">
-        <button type="button" class="button" [disabled]="isSaving()" (click)="addRow()">
-          <i class="pi pi-plus" aria-hidden="true"></i> Add row
-        </button>
-        <button type="button" class="button" [disabled]="isSaving()" (click)="addSection()">
-          <i class="pi pi-plus" aria-hidden="true"></i> Add section inside
-        </button>
+        <p-button
+          icon="pi pi-plus"
+          label="Add row"
+          size="small"
+          [outlined]="true"
+          [disabled]="isSaving() || !canEdit()"
+          (onClick)="addRow()"
+        />
+        <p-button
+          icon="pi pi-plus"
+          label="Add section inside"
+          size="small"
+          [outlined]="true"
+          [disabled]="isSaving() || !canEdit()"
+          (onClick)="addSection()"
+        />
       </div>
     }
 
@@ -60,7 +166,7 @@
       <app-confirm-delete-button
         label="Delete section"
         [warning]="deleteWarning()"
-        [disabled]="isSaving()"
+        [disabled]="isSaving() || !canEdit()"
         (confirmed)="delete()"
       />
     </div>

@@ -3,10 +3,15 @@
     Cell types are shared by every table. Each is based on a kind (text, number, date, checkbox,
     dropdown or label) and carries that kind's settings.
   </p>
-  <app-panel-link-list [items]="items()" emptyText="No cell types yet." />
+  <app-panel-link-list [items]="items()" emptyText="No cell types yet." ariaLabel="Cell types" />
   <div class="actions">
-    <button type="button" class="button" [disabled]="isSaving()" (click)="add()">
-      <i class="pi pi-plus" aria-hidden="true"></i> New cell type
-    </button>
+    <p-button
+      icon="pi pi-plus"
+      label="New cell type"
+      size="small"
+      [outlined]="true"
+      [disabled]="isSaving()"
+      (onClick)="add()"
+    />
   </div>
 </div>

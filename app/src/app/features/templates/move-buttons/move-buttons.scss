@@ -8,32 +8,4 @@
     color: #64748b;
     font-size: 0.75rem;
   }
-
-  button {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 22px;
-    height: 22px;
-    padding: 0;
-    border: 1px solid #cbd5e1;
-    border-radius: 3px;
-    background: #fff;
-    color: #475569;
-    cursor: pointer;
-
-    .pi {
-      font-size: 0.6rem;
-    }
-
-    &:hover:not(:disabled) {
-      border-color: var(--app-navy);
-      color: var(--app-navy);
-    }
-
-    &:disabled {
-      cursor: default;
-      opacity: 0.4;
-    }
-  }
 }

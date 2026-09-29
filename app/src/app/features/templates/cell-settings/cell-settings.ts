@@ -1,10 +1,16 @@
 import { Component, computed, inject, input } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { ButtonModule } from 'primeng/button';
+import { CheckboxChangeEvent, CheckboxModule } from 'primeng/checkbox';
+import { InputTextModule } from 'primeng/inputtext';
+import { SelectChangeEvent, SelectModule } from 'primeng/select';
 import { ConfirmDeleteButton } from '../confirm-delete-button/confirm-delete-button';
 import { cellKindInfo } from '../models/cell-kinds';
 import { CellEntry } from '../models/cell-entry.model';
 import { CellKindInfo } from '../models/cell-kind-info.model';
 import { CellType } from '../models/cell-type.model';
 import { UpdateTemplateCellRequest } from '../models/update-template-cell-request.model';
+import { NumberField } from '../number-field/number-field';
 import { PanelNavigator } from '../panel-navigator';
 import { TemplatesStore } from '../templates.store';
 
@@ -13,7 +19,15 @@ type PlacementField = 'column' | 'columnSpan' | 'rowSpan';
 /** Panel page for a cell: its type, caption, whether it's required and where it sits in the row. */
 @Component({
   selector: 'app-cell-settings',
-  imports: [ConfirmDeleteButton],
+  imports: [
+    ButtonModule,
+    CheckboxModule,
+    ConfirmDeleteButton,
+    FormsModule,
+    InputTextModule,
+    NumberField,
+    SelectModule,
+  ],
   templateUrl: './cell-settings.html',
   styleUrl: './cell-settings.scss',
 })
@@ -33,23 +47,31 @@ export class CellSettings {
     cellKindInfo(this.cellType()?.kind ?? 'Text'),
   );
 
+  public readonly typeOptions = computed(() =>
+    this.store.cellTypes().map((cellType) => ({
+      label: `${cellType.name} (${cellType.kind})`,
+      value: cellType.id,
+      icon: cellKindInfo(cellType.kind).icon,
+    })),
+  );
+
   private readonly store = inject(TemplatesStore);
   private readonly navigator = inject(PanelNavigator);
 
-  public cellTypes(): CellType[] {
-    return this.store.cellTypes();
-  }
-
   public isSaving(): boolean {
     return this.store.isSaving();
+  }
+
+  public canEdit(): boolean {
+    return this.store.canEdit();
   }
 
   public isLabel(): boolean {
     return this.cellType()?.kind === 'Label';
   }
 
-  public setType(value: string): void {
-    void this.save({ cellTypeId: Number(value) });
+  public setType(event: SelectChangeEvent): void {
+    void this.save({ cellTypeId: event.value as number });
   }
 
   public async setCaption(input: HTMLInputElement): Promise<void> {
@@ -60,18 +82,14 @@ export class CellSettings {
     input.value = this.entry()?.cell.caption ?? '';
   }
 
-  public setRequired(checked: boolean): void {
-    void this.save({ isRequired: checked });
+  public setRequired(event: CheckboxChangeEvent): void {
+    void this.save({ isRequired: event.checked === true });
   }
 
-  /** Saves a whole number of at least 1, or puts the old value back. */
-  public async setPlacement(field: PlacementField, input: HTMLInputElement): Promise<void> {
-    const cell = this.entry()?.cell;
-    const value = Number(input.value);
-    if (cell && Number.isInteger(value) && value >= 1 && value <= 100 && value !== cell[field]) {
-      await this.save({ [field]: value });
+  public setPlacement(field: PlacementField, value: number | null): void {
+    if (value !== null) {
+      void this.save({ [field]: value });
     }
-    input.value = String(this.entry()?.cell[field] ?? '');
   }
 
   public openCellType(): void {

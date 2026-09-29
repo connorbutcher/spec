@@ -1,9 +1,13 @@
 import { Component, input, output } from '@angular/core';
+import { ButtonModule } from 'primeng/button';
+import { InputGroupModule } from 'primeng/inputgroup';
+import { InputTextModule } from 'primeng/inputtext';
 import { CellTypeOption } from '../models/cell-type-option.model';
 
 /** Edits a dropdown's choices: rename, reorder, remove and add. Emits the full new list each time. */
 @Component({
   selector: 'app-cell-type-options-editor',
+  imports: [ButtonModule, InputGroupModule, InputTextModule],
   templateUrl: './cell-type-options-editor.html',
   styleUrl: './cell-type-options-editor.scss',
 })

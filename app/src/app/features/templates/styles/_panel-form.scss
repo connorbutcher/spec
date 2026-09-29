@@ -1,5 +1,5 @@
-// Compact form styling shared by the configuration panel's pages. Include `panel-form.controls()` at the
-// top of a panel page's stylesheet.
+// Compact layout shared by the configuration panel's pages. The controls themselves are PrimeNG;
+// this only spaces fields and labels. Include `panel-form.controls()` in a panel page's `:host`.
 @mixin controls() {
   .fields {
     display: flex;
@@ -11,6 +11,7 @@
     display: flex;
     flex-direction: column;
     gap: 3px;
+    min-width: 0;
 
     > label,
     > .label {
@@ -31,35 +32,6 @@
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 6px;
-  }
-
-  input[type='text'],
-  input[type='number'],
-  select,
-  textarea {
-    width: 100%;
-    min-width: 0;
-    padding: 4px 6px;
-    border: 1px solid #cbd5e1;
-    border-radius: 3px;
-    background: #fff;
-    color: #1f2937;
-    font: inherit;
-    font-size: 0.8rem;
-
-    &:focus {
-      border-color: var(--app-navy);
-      outline: 1px solid var(--app-navy);
-    }
-
-    &:disabled {
-      background: #f8fafc;
-      color: #94a3b8;
-    }
-  }
-
-  textarea {
-    resize: vertical;
   }
 
   .check {
@@ -90,49 +62,6 @@
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
-  }
-
-  .button {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    padding: 3px 8px;
-    border: 1px solid #cbd5e1;
-    border-radius: 3px;
-    background: #fff;
-    color: #1f2937;
-    font: inherit;
-    font-size: 0.78rem;
-    cursor: pointer;
-
-    .pi {
-      font-size: 0.65rem;
-      color: #64748b;
-    }
-
-    &:hover:not(:disabled) {
-      border-color: var(--app-navy);
-      color: var(--app-navy);
-    }
-
-    &:disabled {
-      cursor: default;
-      opacity: 0.5;
-    }
-  }
-
-  .link {
-    padding: 0;
-    border: 0;
-    background: none;
-    color: var(--app-navy);
-    font: inherit;
-    font-size: 0.75rem;
-    cursor: pointer;
-
-    &:hover {
-      text-decoration: underline;
-    }
   }
 
   .danger-zone {

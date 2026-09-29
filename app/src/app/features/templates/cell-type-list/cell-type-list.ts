@@ -1,4 +1,5 @@
 import { Component, computed, inject } from '@angular/core';
+import { ButtonModule } from 'primeng/button';
 import { cellKindInfo } from '../models/cell-kinds';
 import { PanelLinkItem } from '../models/panel-link-item.model';
 import { PanelLinkList } from '../panel-link-list/panel-link-list';
@@ -9,7 +10,7 @@ import { TemplatesStore } from '../templates.store';
 /** Panel page listing every cell type, with a way to add one. */
 @Component({
   selector: 'app-cell-type-list',
-  imports: [PanelLinkList],
+  imports: [ButtonModule, PanelLinkList],
   templateUrl: './cell-type-list.html',
   styleUrl: './cell-type-list.scss',
 })

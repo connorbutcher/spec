@@ -1,5 +1,5 @@
 import { httpResource } from '@angular/common/http';
-import { computed, inject, Injectable, signal } from '@angular/core';
+import { computed, inject, Injectable, linkedSignal, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router } from '@angular/router';
 import { filter } from 'rxjs';
@@ -13,6 +13,7 @@ import { TemplateIndex } from './models/template-index.model';
 import { TemplateLayout } from './models/template-layout.model';
 import { TemplateOrientation } from './models/template-orientation';
 import { UpdateTemplateCellRequest } from './models/update-template-cell-request.model';
+import { UpdateTemplateSectionRequest } from './models/update-template-section-request.model';
 import { findRouteParam } from './route-param.util';
 import { addedIds, buildTemplateIndex } from './template-index.util';
 import { layoutTemplate } from './template-layout.util';
@@ -67,6 +68,18 @@ export class TemplatesStore {
     return template?.id === id ? template : null;
   });
 
+  /** Whether the open version can change: the latest version, while no sheet uses it. */
+  public readonly canEdit = computed(() => this.template()?.isEditable ?? false);
+
+  /**
+   * The version being looked at, or null for the latest. Goes back to the latest whenever a different
+   * table is opened.
+   */
+  public readonly viewedVersion = linkedSignal<number | null, number | null>({
+    source: () => this.selectedTemplateId(),
+    computation: () => null,
+  });
+
   public readonly templateIsLoading = computed(() => this.templateResource.isLoading());
   public readonly templateHasError = computed(() => this.templateResource.status() === 'error');
 
@@ -98,7 +111,13 @@ export class TemplatesStore {
 
   private readonly templateResource = httpResource<TableTemplate>(() => {
     const id = this.selectedTemplateId();
-    return id === null ? undefined : `/api/table-templates/${id}`;
+    if (id === null) {
+      return undefined;
+    }
+    const version = this.viewedVersion();
+    return version === null
+      ? `/api/table-templates/${id}`
+      : `/api/table-templates/${id}?version=${version}`;
   });
 
   private readonly cellTypesById = computed(
@@ -156,6 +175,28 @@ export class TemplatesStore {
     }
   }
 
+  /** Shows an older version (read-only), or the latest with null. */
+  public showVersion(versionNumber: number | null): void {
+    const latest = this.template()?.versions.at(-1)?.versionNumber;
+    this.viewedVersion.set(versionNumber === latest ? null : versionNumber);
+  }
+
+  /** Copies the latest version into a new editable one and opens it. */
+  public async createVersion(): Promise<boolean> {
+    const template = this.template();
+    if (!template) {
+      return false;
+    }
+    const created = await this.save(() => this.api.createVersion(template.id));
+    if (!created) {
+      return false;
+    }
+    this.viewedVersion.set(null);
+    this.templateResource.set(created);
+    this.summariesResource.reload();
+    return true;
+  }
+
   public async deleteTemplate(): Promise<void> {
     const template = this.template();
     if (!template) {
@@ -188,13 +229,29 @@ export class TemplatesStore {
       true,
     );
     return this.changeTemplate(
-      () => this.api.createSection(template.id, parentId, name),
+      () => this.api.createSection(template.versionId, parentId, name),
       'sections',
     );
   }
 
-  public async renameSection(id: number, name: string): Promise<void> {
-    await this.changeTemplate(() => this.api.renameSection(id, name));
+  /** Changes some of a section's settings, keeping the rest. */
+  public async updateSection(
+    id: number,
+    changes: Partial<UpdateTemplateSectionRequest>,
+  ): Promise<void> {
+    const section = this.index().sections.get(id)?.section;
+    if (!section) {
+      return;
+    }
+    const request: UpdateTemplateSectionRequest = {
+      name: section.name,
+      role: section.role,
+      minInstances: section.minInstances,
+      maxInstances: section.maxInstances,
+      initialInstances: section.initialInstances,
+      ...changes,
+    };
+    await this.changeTemplate(() => this.api.updateSection(id, request));
   }
 
   public async moveSection(id: number, position: number): Promise<void> {

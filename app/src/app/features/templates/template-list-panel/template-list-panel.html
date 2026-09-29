@@ -10,27 +10,67 @@
         title="Couldn't load templates"
         message="Check the API is running, then try again."
       >
-        <button type="button" class="retry" (click)="retry()">Try again</button>
+        <p-button label="Try again" size="small" [outlined]="true" (onClick)="retry()" />
       </app-empty-state>
     } @else if (isLoading()) {
       <p class="loading">Loading…</p>
     } @else {
-      @for (sheetType of sheetTypes(); track sheetType.id) {
-        <app-template-list-group [sheetType]="sheetType" />
-      }
+      <p-listbox
+        class="templates"
+        [options]="groups()"
+        [group]="true"
+        optionGroupLabel="label"
+        optionGroupChildren="items"
+        optionLabel="name"
+        optionValue="id"
+        [ngModel]="selectedTemplateId()"
+        (onChange)="open($event)"
+        ariaLabel="Tables by sheet type"
+        emptyMessage="No sheet types yet."
+        [fluid]="true"
+      >
+        <ng-template #group let-group>
+          <span class="group-head">
+            <i class="pi" [class]="group.icon" aria-hidden="true"></i>
+            <span class="name">{{ group.label }}</span>
+            <p-button
+              icon="pi pi-plus"
+              size="small"
+              severity="secondary"
+              [text]="true"
+              [disabled]="isSaving()"
+              [ariaLabel]="'Add a table to ' + group.label"
+              pTooltip="Add a table"
+              (onClick)="add(group, $event)"
+            />
+          </span>
+        </ng-template>
+        <ng-template #item let-template>
+          <span class="template">
+            <i
+              class="pi"
+              [class.pi-arrows-h]="template.orientation === 'Horizontal'"
+              [class.pi-arrows-v]="template.orientation === 'Vertical'"
+              aria-hidden="true"
+            ></i>
+            <span class="name">{{ template.name }}</span>
+            <span class="version">v{{ template.latestVersionNumber }}</span>
+          </span>
+        </ng-template>
+      </p-listbox>
     }
   </div>
 
   <footer class="panel-foot">
-    <button
-      type="button"
-      class="cell-types"
-      [class.active]="isShowingCellTypes()"
-      (click)="openCellTypes()"
-    >
-      <i class="pi pi-th-large" aria-hidden="true"></i>
-      <span>Cell types</span>
-      <span class="count">{{ cellTypeCount() }}</span>
-    </button>
+    <p-button
+      styleClass="cell-types"
+      icon="pi pi-th-large"
+      [label]="'Cell types (' + cellTypeCount() + ')'"
+      size="small"
+      [severity]="isShowingCellTypes() ? 'primary' : 'secondary'"
+      [text]="!isShowingCellTypes()"
+      [fluid]="true"
+      (onClick)="openCellTypes()"
+    />
   </footer>
 </aside>

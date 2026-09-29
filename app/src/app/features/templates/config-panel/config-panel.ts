@@ -1,4 +1,7 @@
 import { Component, computed, inject } from '@angular/core';
+import { ButtonModule } from 'primeng/button';
+import { MessageModule } from 'primeng/message';
+import { TooltipModule } from 'primeng/tooltip';
 import { CellSettings } from '../cell-settings/cell-settings';
 import { CellTypeList } from '../cell-type-list/cell-type-list';
 import { CellTypeSettings } from '../cell-type-settings/cell-type-settings';
@@ -28,6 +31,9 @@ const TITLES: Readonly<Record<PanelRef['kind'], string>> = {
 @Component({
   selector: 'app-config-panel',
   imports: [
+    ButtonModule,
+    MessageModule,
+    TooltipModule,
     CellSettings,
     CellTypeList,
     CellTypeSettings,

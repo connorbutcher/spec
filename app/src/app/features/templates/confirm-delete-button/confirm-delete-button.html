@@ -1,18 +1,9 @@
-@if (isConfirming()) {
-  <div class="confirm" role="alertdialog" [attr.aria-label]="label() + '?'">
-    <span class="question">
-      {{ label() }}?
-      @if (warning()) {
-        <span class="warning">{{ warning() }}</span>
-      }
-    </span>
-    <span class="buttons">
-      <button type="button" class="yes" (click)="confirm()">Delete</button>
-      <button type="button" class="no" (click)="cancel()">Cancel</button>
-    </span>
-  </div>
-} @else {
-  <button type="button" class="delete" [disabled]="disabled()" (click)="ask()">
-    <i class="pi pi-trash" aria-hidden="true"></i> {{ label() }}
-  </button>
-}
+<p-button
+  [label]="label()"
+  icon="pi pi-trash"
+  severity="danger"
+  size="small"
+  [outlined]="true"
+  [disabled]="disabled()"
+  (onClick)="ask($event)"
+/>

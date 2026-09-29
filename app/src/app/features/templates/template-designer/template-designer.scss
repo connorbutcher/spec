@@ -22,27 +22,4 @@
     color: #64748b;
     font-size: 0.8rem;
   }
-
-  .action {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    margin-top: 6px;
-    padding: 4px 12px;
-    border: 1px solid var(--app-navy);
-    border-radius: 4px;
-    background: #fff;
-    color: var(--app-navy);
-    font: inherit;
-    font-size: 0.8rem;
-    cursor: pointer;
-
-    .pi {
-      font-size: 0.7rem;
-    }
-
-    &:hover {
-      background: #eef3fa;
-    }
-  }
 }

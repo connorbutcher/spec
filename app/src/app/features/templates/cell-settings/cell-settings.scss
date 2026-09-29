@@ -10,15 +10,28 @@
   display: flex;
   gap: 4px;
 
-  select {
+  p-select {
     flex: 1;
+    min-width: 0;
   }
+}
 
-  .button {
-    flex: 0 0 auto;
+.type-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  .pi {
+    font-size: 0.7rem;
+    color: #64748b;
   }
 }
 
 .hint .pi {
   font-size: 0.6rem;
+}
+
+::ng-deep .inline-link.p-button {
+  padding: 0;
+  font-size: 0.75rem;
 }

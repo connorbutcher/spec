@@ -1,18 +1,21 @@
-@if (items().length > 0) {
-  <ul class="links">
-    @for (item of items(); track $index) {
-      <li>
-        <button type="button" [class.muted]="item.muted" (click)="open(item)">
-          <i class="pi" [class]="item.icon" aria-hidden="true"></i>
-          <span class="label">{{ item.label }}</span>
-          @if (item.meta) {
-            <span class="meta">{{ item.meta }}</span>
-          }
-          <i class="pi pi-chevron-right chevron" aria-hidden="true"></i>
-        </button>
-      </li>
-    }
-  </ul>
-} @else {
-  <p class="empty">{{ emptyText() }}</p>
-}
+<p-listbox
+  class="links"
+  [options]="items()"
+  optionLabel="label"
+  [ariaLabel]="ariaLabel()"
+  [emptyMessage]="emptyText()"
+  [highlightOnSelect]="false"
+  [fluid]="true"
+  (onClick)="open($event)"
+>
+  <ng-template #item let-item>
+    <span class="link" [class.muted]="item.muted">
+      <i class="pi" [class]="item.icon" aria-hidden="true"></i>
+      <span class="label">{{ item.label }}</span>
+      @if (item.meta) {
+        <span class="meta">{{ item.meta }}</span>
+      }
+      <i class="pi pi-chevron-right chevron" aria-hidden="true"></i>
+    </span>
+  </ng-template>
+</p-listbox>

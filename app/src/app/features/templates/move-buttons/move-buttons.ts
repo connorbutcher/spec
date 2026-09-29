@@ -1,8 +1,11 @@
 import { Component, input, output } from '@angular/core';
+import { ButtonModule } from 'primeng/button';
+import { TooltipModule } from 'primeng/tooltip';
 
 /** Up and down buttons for an item's 1-based position among its siblings. Emits the new position. */
 @Component({
   selector: 'app-move-buttons',
+  imports: [ButtonModule, TooltipModule],
   templateUrl: './move-buttons.html',
   styleUrl: './move-buttons.scss',
 })

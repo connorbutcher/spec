@@ -28,7 +28,6 @@
     display: flex;
     flex: 1;
     flex-direction: column;
-    gap: 6px;
     min-height: 0;
     overflow-y: auto;
   }
@@ -36,6 +35,10 @@
   .panel-foot {
     padding-top: 6px;
     border-top: 1px solid var(--app-card-border);
+
+    ::ng-deep .cell-types {
+      justify-content: flex-start;
+    }
   }
 
   .loading {
@@ -44,53 +47,62 @@
     font-size: 0.8rem;
     color: #64748b;
   }
+}
 
-  .cell-types {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    width: 100%;
-    padding: 4px 6px;
-    border: 0;
-    border-radius: 3px;
-    background: none;
-    color: #1f2937;
-    font: inherit;
-    font-size: 0.8rem;
-    text-align: left;
-    cursor: pointer;
+.templates {
+  --p-listbox-border-color: transparent;
+  --p-listbox-shadow: none;
+  --p-listbox-list-padding: 0;
+  --p-listbox-list-gap: 1px;
+  --p-listbox-option-padding: 0.15rem 0.4rem 0.15rem 1.4rem;
+  --p-listbox-option-group-padding: 0.25rem 0 0.1rem 0.25rem;
+  font-size: 0.8rem;
+}
 
-    .pi {
-      font-size: 0.75rem;
-      color: #64748b;
-    }
+.group-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  color: #334155;
+  font-weight: 600;
 
-    .count {
-      margin-left: auto;
-      color: #94a3b8;
-      font-size: 0.72rem;
-    }
-
-    &:hover {
-      background: #f1f5f9;
-    }
-
-    &.active {
-      background: var(--p-highlight-background, #eef3fa);
-      color: var(--app-navy);
-      font-weight: 600;
-    }
+  > .pi {
+    font-size: 0.75rem;
+    color: #64748b;
   }
 
-  .retry {
-    margin-top: 8px;
-    padding: 4px 12px;
-    border: 1px solid var(--app-navy);
-    border-radius: 4px;
-    background: #fff;
-    color: var(--app-navy);
-    font: inherit;
-    font-size: 0.8rem;
-    cursor: pointer;
+  .name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.template {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  min-width: 0;
+
+  .pi {
+    font-size: 0.65rem;
+    color: #94a3b8;
+  }
+
+  .name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .version {
+    color: #94a3b8;
+    font-size: 0.7rem;
   }
 }

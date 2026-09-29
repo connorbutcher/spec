@@ -6,6 +6,22 @@
   @include panel-form.controls();
 }
 
+.kind-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  .pi {
+    font-size: 0.7rem;
+    color: #64748b;
+  }
+}
+
+textarea {
+  width: 100%;
+  resize: vertical;
+}
+
 .danger-zone {
   display: flex;
   flex-direction: column;

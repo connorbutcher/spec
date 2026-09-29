@@ -8,17 +8,26 @@
         noun="row"
         [position]="entry.number"
         [count]="entry.section.rows.length"
-        [disabled]="isSaving()"
+        [disabled]="isSaving() || !canEdit()"
         (moved)="move($event)"
       />
     </div>
 
     <h3 class="group-title">Cells</h3>
-    <app-panel-link-list [items]="cells()" emptyText="No cells in this row yet." />
+    <app-panel-link-list
+      [items]="cells()"
+      emptyText="No cells in this row yet."
+      ariaLabel="Cells"
+    />
     <div class="actions">
-      <button type="button" class="button" [disabled]="isSaving()" (click)="addCell()">
-        <i class="pi pi-plus" aria-hidden="true"></i> Add cell
-      </button>
+      <p-button
+        icon="pi pi-plus"
+        label="Add cell"
+        size="small"
+        [outlined]="true"
+        [disabled]="isSaving() || !canEdit()"
+        (onClick)="addCell()"
+      />
     </div>
     <p class="note">New cells go after the last cell in the row.</p>
 
@@ -26,7 +35,7 @@
       <app-confirm-delete-button
         label="Delete row"
         warning="Its cells go too."
-        [disabled]="isSaving()"
+        [disabled]="isSaving() || !canEdit()"
         (confirmed)="delete()"
       />
     </div>

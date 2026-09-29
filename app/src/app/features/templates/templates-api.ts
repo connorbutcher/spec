@@ -6,6 +6,7 @@ import { SaveCellTypeRequest } from './models/save-cell-type-request.model';
 import { TableTemplate } from './models/table-template.model';
 import { TemplateOrientation } from './models/template-orientation';
 import { UpdateTemplateCellRequest } from './models/update-template-cell-request.model';
+import { UpdateTemplateSectionRequest } from './models/update-template-section-request.model';
 
 /**
  * Write calls for templates and cell types. Reads go through `httpResource` in the store. Every
@@ -39,22 +40,29 @@ export class TemplatesApi {
     return firstValueFrom(this.http.delete<void>(`/api/table-templates/${id}`));
   }
 
+  /** Copies the latest version into a new, editable version. */
+  public createVersion(templateId: number): Promise<TableTemplate> {
+    return firstValueFrom(
+      this.http.post<TableTemplate>(`/api/table-templates/${templateId}/versions`, {}),
+    );
+  }
+
   public createSection(
-    tableTemplateId: number,
+    tableTemplateVersionId: number,
     parentSectionId: number | null,
     name: string,
   ): Promise<TableTemplate> {
     return firstValueFrom(
       this.http.post<TableTemplate>('/api/template-sections', {
-        tableTemplateId,
+        tableTemplateVersionId,
         parentSectionId,
         name,
       }),
     );
   }
 
-  public renameSection(id: number, name: string): Promise<TableTemplate> {
-    return firstValueFrom(this.http.put<TableTemplate>(`/api/template-sections/${id}`, { name }));
+  public updateSection(id: number, request: UpdateTemplateSectionRequest): Promise<TableTemplate> {
+    return firstValueFrom(this.http.put<TableTemplate>(`/api/template-sections/${id}`, request));
   }
 
   public moveSection(id: number, displayOrder: number): Promise<TableTemplate> {

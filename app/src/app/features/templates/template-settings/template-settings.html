@@ -4,27 +4,30 @@
       <label for="template-name">Name</label>
       <input
         #nameInput
+        pInputText
+        pSize="small"
         id="template-name"
         type="text"
         maxlength="100"
         [value]="template.name"
         (change)="rename(nameInput)"
       />
+      <span class="hint">The name applies to every version.</span>
     </div>
 
     <div class="field">
-      <label for="template-orientation">Orientation</label>
-      <select
-        #orientation
-        id="template-orientation"
-        [disabled]="isSaving()"
-        (change)="setOrientation(orientation.value)"
-      >
-        <option value="Horizontal" [selected]="template.orientation === 'Horizontal'">
-          Horizontal
-        </option>
-        <option value="Vertical" [selected]="template.orientation === 'Vertical'">Vertical</option>
-      </select>
+      <span class="label" id="template-orientation-label">Orientation</span>
+      <p-selectbutton
+        [options]="orientations"
+        optionLabel="label"
+        optionValue="value"
+        [ngModel]="template.orientation"
+        (onChange)="setOrientation($event)"
+        [allowEmpty]="false"
+        [disabled]="isSaving() || !canEdit()"
+        size="small"
+        ariaLabelledBy="template-orientation-label"
+      />
       <span class="hint">
         @if (template.orientation === 'Horizontal') {
           Section headers run across the top; rows line up across sections.
@@ -34,18 +37,35 @@
       </span>
     </div>
 
+    <div class="field">
+      <span class="label">Version</span>
+      <span class="note">
+        Version {{ template.versionNumber }} of {{ template.versions.length }}.
+        @if (canEdit()) {
+          Not used on any sheet yet, so it can still change.
+        } @else {
+          Read-only: sheets keep the layout they were built with.
+        }
+      </span>
+    </div>
+
     <h3 class="group-title">Sections</h3>
-    <app-panel-link-list [items]="sections()" emptyText="No sections yet." />
+    <app-panel-link-list [items]="sections()" emptyText="No sections yet." ariaLabel="Sections" />
     <div class="actions">
-      <button type="button" class="button" [disabled]="isSaving()" (click)="addSection()">
-        <i class="pi pi-plus" aria-hidden="true"></i> Add section
-      </button>
+      <p-button
+        icon="pi pi-plus"
+        label="Add section"
+        size="small"
+        [outlined]="true"
+        [disabled]="isSaving() || !canEdit()"
+        (onClick)="addSection()"
+      />
     </div>
 
     <div class="danger-zone">
       <app-confirm-delete-button
         label="Delete table"
-        warning="All of its sections, rows and cells go too."
+        warning="Every version, with its sections, rows and cells, goes too."
         [disabled]="isSaving()"
         (confirmed)="delete()"
       />

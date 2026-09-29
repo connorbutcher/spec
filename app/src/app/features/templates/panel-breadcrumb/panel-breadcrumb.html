@@ -1,13 +1,1 @@
-<nav class="crumbs" aria-label="Panel location">
-  <ol>
-    @for (crumb of crumbs(); track $index; let last = $last) {
-      <li>
-        @if (last) {
-          <span aria-current="location">{{ crumb.label }}</span>
-        } @else {
-          <button type="button" (click)="open(crumb)">{{ crumb.label }}</button>
-        }
-      </li>
-    }
-  </ol>
-</nav>
+<p-breadcrumb class="crumbs" [model]="items()" />

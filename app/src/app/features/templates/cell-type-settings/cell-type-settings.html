@@ -4,6 +4,8 @@
       <label for="cell-type-name">Name</label>
       <input
         #nameInput
+        pInputText
+        pSize="small"
         id="cell-type-name"
         type="text"
         maxlength="100"
@@ -14,18 +16,25 @@
 
     <div class="field">
       <label for="cell-type-kind">Kind</label>
-      <select
-        #kindSelect
-        id="cell-type-kind"
+      <p-select
+        inputId="cell-type-kind"
+        [options]="kinds"
+        optionLabel="label"
+        optionValue="kind"
+        [ngModel]="cellType.kind"
+        (onChange)="setKind($event)"
         [disabled]="isSaving()"
-        (change)="setKind(kindSelect.value)"
+        size="small"
+        [fluid]="true"
+        appendTo="body"
       >
-        @for (kind of kinds; track kind.kind) {
-          <option [value]="kind.kind" [selected]="kind.kind === cellType.kind">
+        <ng-template #item let-kind>
+          <span class="kind-option">
+            <i class="pi" [class]="kind.icon" aria-hidden="true"></i>
             {{ kind.label }}
-          </option>
-        }
-      </select>
+          </span>
+        </ng-template>
+      </p-select>
       <span class="hint">{{ kind().description }}</span>
     </div>
 
@@ -33,6 +42,8 @@
       <label for="cell-type-description">Description</label>
       <textarea
         #descriptionInput
+        pTextarea
+        pSize="small"
         id="cell-type-description"
         rows="2"
         maxlength="500"
@@ -47,15 +58,15 @@
         <h3 class="group-title">Text settings</h3>
         <div class="field">
           <label for="cell-type-max-length">Max length</label>
-          <input
-            #maxLengthInput
-            id="cell-type-max-length"
-            type="number"
-            min="1"
-            max="4000"
+          <app-number-field
+            inputId="cell-type-max-length"
+            [value]="cellType.maxLength"
+            [min]="1"
+            [max]="4000"
+            [allowEmpty]="true"
             placeholder="No limit"
-            [value]="cellType.maxLength ?? ''"
-            (change)="setNumber('maxLength', maxLengthInput)"
+            [disabled]="isSaving()"
+            (committed)="setNumber('maxLength', $event)"
           />
         </div>
       }
@@ -64,37 +75,39 @@
         <div class="inline">
           <div class="field">
             <label for="cell-type-min">Min</label>
-            <input
-              #minInput
-              id="cell-type-min"
-              type="number"
+            <app-number-field
+              inputId="cell-type-min"
+              [value]="cellType.minValue"
+              [decimals]="4"
+              [allowEmpty]="true"
               placeholder="None"
-              [value]="cellType.minValue ?? ''"
-              (change)="setNumber('minValue', minInput)"
+              [disabled]="isSaving()"
+              (committed)="setNumber('minValue', $event)"
             />
           </div>
           <div class="field">
             <label for="cell-type-max">Max</label>
-            <input
-              #maxInput
-              id="cell-type-max"
-              type="number"
+            <app-number-field
+              inputId="cell-type-max"
+              [value]="cellType.maxValue"
+              [decimals]="4"
+              [allowEmpty]="true"
               placeholder="None"
-              [value]="cellType.maxValue ?? ''"
-              (change)="setNumber('maxValue', maxInput)"
+              [disabled]="isSaving()"
+              (committed)="setNumber('maxValue', $event)"
             />
           </div>
           <div class="field">
             <label for="cell-type-decimals">Decimals</label>
-            <input
-              #decimalsInput
-              id="cell-type-decimals"
-              type="number"
-              min="0"
-              max="6"
+            <app-number-field
+              inputId="cell-type-decimals"
+              [value]="cellType.decimalPlaces"
+              [min]="0"
+              [max]="6"
+              [allowEmpty]="true"
               placeholder="Any"
-              [value]="cellType.decimalPlaces ?? ''"
-              (change)="setNumber('decimalPlaces', decimalsInput)"
+              [disabled]="isSaving()"
+              (committed)="setNumber('decimalPlaces', $event)"
             />
           </div>
         </div>
@@ -102,6 +115,8 @@
           <label for="cell-type-unit">Unit</label>
           <input
             #unitInput
+            pInputText
+            pSize="small"
             id="cell-type-unit"
             type="text"
             maxlength="20"

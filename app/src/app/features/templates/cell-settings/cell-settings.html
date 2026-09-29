@@ -2,33 +2,47 @@
   <div class="fields">
     <p class="note">
       Column {{ entry.cell.column }} of
-      <button type="button" class="link" (click)="openRow()">row {{ entry.row.number }}</button>
+      <p-button
+        [label]="'row ' + entry.row.number"
+        [link]="true"
+        size="small"
+        styleClass="inline-link"
+        (onClick)="openRow()"
+      />
       in {{ entry.row.section.name }}
     </p>
 
     <div class="field">
       <label for="cell-type">Cell type</label>
       <div class="type-row">
-        <select
-          #typeSelect
-          id="cell-type"
-          [disabled]="isSaving()"
-          (change)="setType(typeSelect.value)"
+        <p-select
+          inputId="cell-type"
+          [options]="typeOptions()"
+          optionLabel="label"
+          optionValue="value"
+          [ngModel]="entry.cell.cellTypeId"
+          (onChange)="setType($event)"
+          [disabled]="isSaving() || !canEdit()"
+          [filter]="typeOptions().length > 8"
+          size="small"
+          [fluid]="true"
+          appendTo="body"
         >
-          @for (cellType of cellTypes(); track cellType.id) {
-            <option [value]="cellType.id" [selected]="cellType.id === entry.cell.cellTypeId">
-              {{ cellType.name }} ({{ cellType.kind }})
-            </option>
-          }
-        </select>
-        <button
-          type="button"
-          class="button"
-          title="Configure this cell type"
-          (click)="openCellType()"
-        >
-          <i class="pi pi-cog" aria-hidden="true"></i> Configure
-        </button>
+          <ng-template #item let-option>
+            <span class="type-option">
+              <i class="pi" [class]="option.icon" aria-hidden="true"></i>
+              {{ option.label }}
+            </span>
+          </ng-template>
+        </p-select>
+        <p-button
+          icon="pi pi-cog"
+          label="Configure"
+          size="small"
+          severity="secondary"
+          [outlined]="true"
+          (onClick)="openCellType()"
+        />
       </div>
       <span class="hint">
         <i class="pi" [class]="kind().icon" aria-hidden="true"></i> {{ kind().description }}
@@ -39,64 +53,65 @@
       <label for="cell-caption">{{ isLabel() ? 'Text' : 'Caption' }}</label>
       <input
         #captionInput
+        pInputText
+        pSize="small"
         id="cell-caption"
         type="text"
         maxlength="200"
         [placeholder]="isLabel() ? 'e.g. Torque' : 'Optional prompt'"
         [value]="entry.cell.caption ?? ''"
+        [disabled]="!canEdit()"
         (change)="setCaption(captionInput)"
       />
     </div>
 
     @if (!isLabel()) {
-      <label class="check">
-        <input
-          #requiredInput
-          type="checkbox"
-          [checked]="entry.cell.isRequired"
-          [disabled]="isSaving()"
-          (change)="setRequired(requiredInput.checked)"
+      <div class="check">
+        <p-checkbox
+          inputId="cell-required"
+          [binary]="true"
+          [ngModel]="entry.cell.isRequired"
+          (onChange)="setRequired($event)"
+          [disabled]="isSaving() || !canEdit()"
+          size="small"
         />
-        Must be filled in
-      </label>
+        <label for="cell-required">Must be filled in</label>
+      </div>
     }
 
     <h3 class="group-title">Placement</h3>
     <div class="inline">
       <div class="field">
         <label for="cell-column">Column</label>
-        <input
-          #columnInput
-          id="cell-column"
-          type="number"
-          min="1"
-          max="100"
+        <app-number-field
+          inputId="cell-column"
           [value]="entry.cell.column"
-          (change)="setPlacement('column', columnInput)"
+          [min]="1"
+          [max]="100"
+          [disabled]="isSaving() || !canEdit()"
+          (committed)="setPlacement('column', $event)"
         />
       </div>
       <div class="field">
         <label for="cell-column-span">Col span</label>
-        <input
-          #columnSpanInput
-          id="cell-column-span"
-          type="number"
-          min="1"
-          max="100"
+        <app-number-field
+          inputId="cell-column-span"
           [value]="entry.cell.columnSpan"
-          (change)="setPlacement('columnSpan', columnSpanInput)"
+          [min]="1"
+          [max]="100"
+          [disabled]="isSaving() || !canEdit()"
+          (committed)="setPlacement('columnSpan', $event)"
         />
       </div>
       <div class="field">
         <label for="cell-row-span">Row span</label>
-        <input
-          #rowSpanInput
-          id="cell-row-span"
-          type="number"
-          min="1"
-          max="100"
+        <app-number-field
+          inputId="cell-row-span"
           [value]="entry.cell.rowSpan"
-          (change)="setPlacement('rowSpan', rowSpanInput)"
+          [min]="1"
+          [max]="100"
+          [disabled]="isSaving() || !canEdit()"
+          (committed)="setPlacement('rowSpan', $event)"
         />
       </div>
     </div>
@@ -104,7 +119,7 @@
     <div class="danger-zone">
       <app-confirm-delete-button
         label="Delete cell"
-        [disabled]="isSaving()"
+        [disabled]="isSaving() || !canEdit()"
         (confirmed)="delete()"
       />
     </div>

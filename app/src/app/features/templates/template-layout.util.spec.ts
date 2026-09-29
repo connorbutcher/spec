@@ -17,26 +17,49 @@ function cell(column: number, columnSpan = 1, rowSpan = 1): TemplateCell {
   };
 }
 
-function leaf(name: string, rows: TemplateCell[][]): TemplateSection {
+function section(
+  name: string,
+  sections: TemplateSection[],
+  rows: TemplateCell[][],
+): TemplateSection {
   return {
     id: nextId++,
     parentSectionId: null,
     name,
     displayOrder: 1,
-    sections: [],
+    role: 'Fixed',
+    minInstances: 1,
+    maxInstances: 1,
+    initialInstances: 1,
+    sections,
     rows: rows.map((cells, index) => ({ id: nextId++, displayOrder: index + 1, cells })),
   };
 }
 
+function leaf(name: string, rows: TemplateCell[][]): TemplateSection {
+  return section(name, [], rows);
+}
+
 function parent(name: string, sections: TemplateSection[]): TemplateSection {
-  return { id: nextId++, parentSectionId: null, name, displayOrder: 1, sections, rows: [] };
+  return section(name, sections, []);
 }
 
 function template(
   orientation: 'Horizontal' | 'Vertical',
   sections: TemplateSection[],
 ): TableTemplate {
-  return { id: 1, sheetTypeId: 1, name: 'T', displayOrder: 1, orientation, sections };
+  return {
+    id: 1,
+    sheetTypeId: 1,
+    name: 'T',
+    displayOrder: 1,
+    versionId: 1,
+    versionNumber: 1,
+    orientation,
+    isEditable: true,
+    versions: [{ id: 1, versionNumber: 1, createdAtUtc: '2026-09-29T00:00:00Z', isInUse: false }],
+    sections,
+  };
 }
 
 describe('layoutTemplate', () => {

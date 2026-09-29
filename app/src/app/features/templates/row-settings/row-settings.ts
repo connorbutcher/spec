@@ -1,4 +1,5 @@
 import { Component, computed, inject, input } from '@angular/core';
+import { ButtonModule } from 'primeng/button';
 import { ConfirmDeleteButton } from '../confirm-delete-button/confirm-delete-button';
 import { cellKindInfo } from '../models/cell-kinds';
 import { PanelLinkItem } from '../models/panel-link-item.model';
@@ -12,7 +13,7 @@ import { TemplatesStore } from '../templates.store';
 /** Panel page for a row: where it sits in its section and its cells. */
 @Component({
   selector: 'app-row-settings',
-  imports: [ConfirmDeleteButton, MoveButtons, PanelLinkList],
+  imports: [ButtonModule, ConfirmDeleteButton, MoveButtons, PanelLinkList],
   templateUrl: './row-settings.html',
   styleUrl: './row-settings.scss',
 })
@@ -32,6 +33,10 @@ export class RowSettings {
 
   public isSaving(): boolean {
     return this.store.isSaving();
+  }
+
+  public canEdit(): boolean {
+    return this.store.canEdit();
   }
 
   public move(position: number): void {

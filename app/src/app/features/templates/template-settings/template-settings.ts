@@ -1,4 +1,8 @@
 import { Component, computed, inject } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { ButtonModule } from 'primeng/button';
+import { InputTextModule } from 'primeng/inputtext';
+import { SelectButtonChangeEvent, SelectButtonModule } from 'primeng/selectbutton';
 import { ConfirmDeleteButton } from '../confirm-delete-button/confirm-delete-button';
 import { PanelLinkItem } from '../models/panel-link-item.model';
 import { TableTemplate } from '../models/table-template.model';
@@ -8,10 +12,17 @@ import { PanelNavigator } from '../panel-navigator';
 import { sectionLinks } from '../section-links.util';
 import { TemplatesStore } from '../templates.store';
 
-/** Panel page for the open table: its name, orientation and top-level sections. */
+/** Panel page for the open table: its name, orientation, version and top-level sections. */
 @Component({
   selector: 'app-template-settings',
-  imports: [ConfirmDeleteButton, PanelLinkList],
+  imports: [
+    ButtonModule,
+    ConfirmDeleteButton,
+    FormsModule,
+    InputTextModule,
+    PanelLinkList,
+    SelectButtonModule,
+  ],
   templateUrl: './template-settings.html',
   styleUrl: './template-settings.scss',
 })
@@ -22,11 +33,20 @@ export class TemplateSettings {
     sectionLinks(this.template()?.sections ?? []),
   );
 
+  public readonly orientations = [
+    { label: 'Horizontal', value: 'Horizontal' },
+    { label: 'Vertical', value: 'Vertical' },
+  ];
+
   private readonly store = inject(TemplatesStore);
   private readonly navigator = inject(PanelNavigator);
 
   public isSaving(): boolean {
     return this.store.isSaving();
+  }
+
+  public canEdit(): boolean {
+    return this.store.canEdit();
   }
 
   public async rename(input: HTMLInputElement): Promise<void> {
@@ -38,10 +58,11 @@ export class TemplateSettings {
     input.value = this.template()?.name ?? '';
   }
 
-  public setOrientation(value: string): void {
+  public setOrientation(event: SelectButtonChangeEvent): void {
     const template = this.template();
-    if (template && value !== template.orientation) {
-      void this.store.updateTemplate(template.name, value as TemplateOrientation);
+    const orientation = event.value as TemplateOrientation | null;
+    if (template && orientation && orientation !== template.orientation) {
+      void this.store.updateTemplate(template.name, orientation);
     }
   }
 

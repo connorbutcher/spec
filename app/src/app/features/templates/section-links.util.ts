@@ -6,7 +6,12 @@ export function sectionLinks(sections: TemplateSection[]): PanelLinkItem[] {
   return sections.map((section) => ({
     ref: { kind: 'section', id: section.id },
     label: section.name,
-    icon: section.sections.length > 0 ? 'pi-folder' : 'pi-table',
+    icon:
+      section.role === 'Repeating'
+        ? 'pi-clone'
+        : section.sections.length > 0
+          ? 'pi-folder'
+          : 'pi-table',
     meta: sectionContents(section),
   }));
 }

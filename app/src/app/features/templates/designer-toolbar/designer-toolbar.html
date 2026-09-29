@@ -1,38 +1,51 @@
 <div class="toolbar">
-  <button
-    type="button"
-    class="name"
-    [class.active]="isTemplateOpen()"
-    title="Table settings"
-    (click)="openSettings()"
+  <p-button
+    icon="pi pi-table"
+    [label]="template().name"
+    size="small"
+    [severity]="isTemplateOpen() ? 'primary' : 'secondary'"
+    [text]="!isTemplateOpen()"
+    styleClass="name"
+    (onClick)="openSettings()"
+  />
+
+  <p-select
+    [options]="versionOptions()"
+    optionLabel="label"
+    optionValue="value"
+    [ngModel]="template().versionNumber"
+    (onChange)="showVersion($event)"
+    size="small"
+    ariaLabel="Version"
+    appendTo="body"
+  />
+
+  <p-selectbutton
+    [options]="orientations"
+    optionLabel="label"
+    optionValue="value"
+    [ngModel]="template().orientation"
+    (onChange)="setOrientation($event)"
+    [allowEmpty]="false"
+    [disabled]="isSaving() || !canEdit()"
+    size="small"
+    ariaLabelledBy="orientation-label"
   >
-    <i class="pi pi-table" aria-hidden="true"></i>
-    <span>{{ template().name }}</span>
-  </button>
+    <ng-template #item let-option>
+      <i [class]="option.icon" aria-hidden="true"></i>
+      <span>{{ option.label }}</span>
+    </ng-template>
+  </p-selectbutton>
+  <span id="orientation-label" class="visually-hidden">Orientation</span>
 
-  <div class="orientation" role="group" aria-label="Orientation">
-    @for (orientation of orientations; track orientation) {
-      <button
-        type="button"
-        [class.on]="template().orientation === orientation"
-        [attr.aria-pressed]="template().orientation === orientation"
-        [disabled]="isSaving()"
-        (click)="setOrientation(orientation)"
-      >
-        <i
-          class="pi"
-          [class.pi-arrows-h]="orientation === 'Horizontal'"
-          [class.pi-arrows-v]="orientation === 'Vertical'"
-          aria-hidden="true"
-        ></i>
-        {{ orientation }}
-      </button>
-    }
-  </div>
-
-  <button type="button" class="add" [disabled]="isSaving()" (click)="addSection()">
-    <i class="pi pi-plus" aria-hidden="true"></i> Section
-  </button>
+  <p-button
+    icon="pi pi-plus"
+    label="Section"
+    size="small"
+    [outlined]="true"
+    [disabled]="isSaving() || !canEdit()"
+    (onClick)="addSection()"
+  />
 
   <span class="status" aria-live="polite">
     @if (isSaving()) {
