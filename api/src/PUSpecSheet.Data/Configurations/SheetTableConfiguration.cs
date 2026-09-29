@@ -22,10 +22,10 @@ public sealed class SheetTableConfiguration : IEntityTypeConfiguration<SheetTabl
             .HasForeignKey(table => table.SheetId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // A template in use on a sheet can't be deleted.
-        builder.HasOne(table => table.TableTemplate)
+        // A template version in use on a sheet can't be deleted.
+        builder.HasOne(table => table.TableTemplateVersion)
             .WithMany()
-            .HasForeignKey(table => table.TableTemplateId)
+            .HasForeignKey(table => table.TableTemplateVersionId)
             .OnDelete(DeleteBehavior.Restrict);
     }
 }

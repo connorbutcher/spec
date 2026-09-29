@@ -6,7 +6,10 @@ using PUSpecSheet.Domain.Templates;
 
 namespace PUSpecSheet.Application.Templates;
 
-public sealed class TableTemplateService(PuSpecSheetDbContext db, TableTemplateReader reader) : ITableTemplateService
+public sealed class TableTemplateService(
+    PuSpecSheetDbContext db,
+    TableTemplateReader reader,
+    TemplateVersionGuard guard) : ITableTemplateService
 {
     public async Task<IReadOnlyList<TableTemplateSummaryDto>> GetSummariesAsync(
         int? sheetTypeId,
@@ -18,18 +21,28 @@ public sealed class TableTemplateService(PuSpecSheetDbContext db, TableTemplateR
             query = query.Where(template => template.SheetTypeId == sheetTypeId);
         }
 
-        var templates = await query
+        return await query
             .OrderBy(template => template.SheetTypeId)
             .ThenBy(template => template.DisplayOrder)
             .ThenBy(template => template.Name)
+            .Select(template => new
+            {
+                template,
+                Latest = template.Versions.OrderByDescending(version => version.VersionNumber).First(),
+            })
+            .Select(entry => new TableTemplateSummaryDto(
+                entry.template.Id,
+                entry.template.SheetTypeId,
+                entry.template.Name,
+                entry.template.DisplayOrder,
+                entry.Latest.VersionNumber,
+                entry.Latest.Orientation))
             .ToListAsync(cancellationToken);
-
-        return templates.Select(template => template.ToSummaryDto()).ToList();
     }
 
-    public Task<TableTemplateDto> GetAsync(int id, CancellationToken cancellationToken)
+    public Task<TableTemplateDto> GetAsync(int id, int? versionNumber, CancellationToken cancellationToken)
     {
-        return reader.ReadAsync(id, cancellationToken);
+        return reader.ReadAsync(id, versionNumber, cancellationToken);
     }
 
     public async Task<TableTemplateDto> CreateAsync(CreateTableTemplateRequest request, CancellationToken cancellationToken)
@@ -54,14 +67,14 @@ public sealed class TableTemplateService(PuSpecSheetDbContext db, TableTemplateR
         {
             SheetTypeId = request.SheetTypeId,
             Name = name,
-            Orientation = request.Orientation,
             DisplayOrder = (lastOrder ?? 0) + 1,
+            Versions = [new TableTemplateVersion { VersionNumber = 1, Orientation = request.Orientation }],
         };
 
         db.TableTemplates.Add(template);
         await db.SaveChangesAsync(cancellationToken);
 
-        return await reader.ReadAsync(template.Id, cancellationToken);
+        return await reader.ReadAsync(template.Id, null, cancellationToken);
     }
 
     public async Task<TableTemplateDto> UpdateAsync(
@@ -73,20 +86,37 @@ public sealed class TableTemplateService(PuSpecSheetDbContext db, TableTemplateR
 
         var name = request.Name.Trim();
         await EnsureNameIsFreeAsync(template.SheetTypeId, name, id, cancellationToken);
-
         template.Name = name;
-        template.Orientation = request.Orientation;
+
+        // The name belongs to the table; orientation is part of the layout, so it's versioned.
+        var latest = await LatestVersionAsync(id, cancellationToken);
+        if (latest.Orientation != request.Orientation)
+        {
+            await guard.EnsureEditableAsync(latest.Id, cancellationToken);
+            latest.Orientation = request.Orientation;
+        }
+
+        await db.SaveChangesAsync(cancellationToken);
+        return await reader.ReadAsync(id, null, cancellationToken);
+    }
+
+    public async Task<TableTemplateDto> CreateVersionAsync(int id, CancellationToken cancellationToken)
+    {
+        await FindAsync(id, cancellationToken);
+        var latest = await LatestVersionAsync(id, cancellationToken);
+
+        await TemplateVersionCopier.CopyAsync(db, latest, latest.VersionNumber + 1, cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
 
-        return await reader.ReadAsync(id, cancellationToken);
+        return await reader.ReadAsync(id, null, cancellationToken);
     }
 
     public async Task DeleteAsync(int id, CancellationToken cancellationToken)
     {
         var template = await FindAsync(id, cancellationToken);
-        await SheetDataGuard.EnsureTemplateUnusedAsync(db, id, cancellationToken);
+        await guard.EnsureTemplateUnusedAsync(id, cancellationToken);
 
-        // Sections, rows and cells go with it through the database's cascading deletes.
+        // Versions, sections, rows and cells go with it through the database's cascading deletes.
         db.TableTemplates.Remove(template);
         await db.SaveChangesAsync(cancellationToken);
 
@@ -107,6 +137,14 @@ public sealed class TableTemplateService(PuSpecSheetDbContext db, TableTemplateR
         }
 
         return template;
+    }
+
+    private Task<TableTemplateVersion> LatestVersionAsync(int templateId, CancellationToken cancellationToken)
+    {
+        return db.TableTemplateVersions
+            .Where(version => version.TableTemplateId == templateId)
+            .OrderByDescending(version => version.VersionNumber)
+            .FirstAsync(cancellationToken);
     }
 
     private async Task EnsureNameIsFreeAsync(int sheetTypeId, string name, int? exceptId, CancellationToken cancellationToken)

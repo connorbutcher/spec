@@ -27,6 +27,8 @@ public sealed class PuSpecSheetDbContext(DbContextOptions<PuSpecSheetDbContext> 
 
     public DbSet<TableTemplate> TableTemplates => Set<TableTemplate>();
 
+    public DbSet<TableTemplateVersion> TableTemplateVersions => Set<TableTemplateVersion>();
+
     public DbSet<TemplateSection> TemplateSections => Set<TemplateSection>();
 
     public DbSet<TemplateRow> TemplateRows => Set<TemplateRow>();

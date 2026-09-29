@@ -5,21 +5,15 @@ namespace PUSpecSheet.Application.Templates;
 
 internal static class TableTemplateMappings
 {
-    public static TableTemplateSummaryDto ToSummaryDto(this TableTemplate template)
-    {
-        return new TableTemplateSummaryDto(
-            template.Id,
-            template.SheetTypeId,
-            template.Name,
-            template.DisplayOrder,
-            template.Orientation);
-    }
-
     /// <summary>
-    /// Maps a template and its flat lists of sections and rows (with cells loaded) to the nested DTO.
+    /// Maps a template at one version, with that version's flat lists of sections and rows (cells
+    /// loaded), to the nested DTO.
     /// </summary>
     public static TableTemplateDto ToDto(
         this TableTemplate template,
+        TableTemplateVersion version,
+        bool isEditable,
+        IReadOnlyList<TableTemplateVersionSummaryDto> versions,
         IReadOnlyList<TemplateSection> sections,
         IReadOnlyList<TemplateRow> rows)
     {
@@ -31,7 +25,11 @@ internal static class TableTemplateMappings
             template.SheetTypeId,
             template.Name,
             template.DisplayOrder,
-            template.Orientation,
+            version.Id,
+            version.VersionNumber,
+            version.Orientation,
+            isEditable,
+            versions,
             MapSections(null, sectionsByParent, rowsBySection));
     }
 
@@ -47,7 +45,10 @@ internal static class TableTemplateMappings
                 section.ParentSectionId,
                 section.Name,
                 section.DisplayOrder,
-                section.Inclusion,
+                section.Role,
+                section.MinInstances,
+                section.MaxInstances,
+                section.InitialInstances,
                 MapSections(section.Id, sectionsByParent, rowsBySection),
                 rowsBySection[section.Id]
                     .OrderBy(row => row.DisplayOrder)

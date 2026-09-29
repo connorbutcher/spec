@@ -3,7 +3,7 @@ using PUSpecSheet.Domain.Templates;
 namespace PUSpecSheet.Domain.Sheets;
 
 /// <summary>
-/// A table on a sheet, laid out from a <see cref="TableTemplate"/> of the sheet's type. Its title,
+/// A table on a sheet, laid out from a <see cref="TableTemplateVersion"/> of the sheet's type. Its title,
 /// position and whether it's on the sheet are versioned in <see cref="Revisions"/>.
 /// </summary>
 public class SheetTable
@@ -17,9 +17,10 @@ public class SheetTable
 
     public Sheet Sheet { get; set; } = null!;
 
-    public int TableTemplateId { get; set; }
+    /// <summary>The template version the table was built from. The table keeps this layout.</summary>
+    public int TableTemplateVersionId { get; set; }
 
-    public TableTemplate TableTemplate { get; set; } = null!;
+    public TableTemplateVersion TableTemplateVersion { get; set; } = null!;
 
     public DateTime CreatedAtUtc { get; set; }
 

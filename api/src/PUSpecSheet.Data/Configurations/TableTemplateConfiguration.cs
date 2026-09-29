@@ -16,11 +16,6 @@ public sealed class TableTemplateConfiguration : IEntityTypeConfiguration<TableT
             .IsRequired()
             .HasMaxLength(100);
 
-        builder.Property(template => template.Orientation)
-            .IsRequired()
-            .HasConversion<string>()
-            .HasMaxLength(20);
-
         builder.HasIndex(template => new { template.SheetTypeId, template.Name })
             .IsUnique();
 

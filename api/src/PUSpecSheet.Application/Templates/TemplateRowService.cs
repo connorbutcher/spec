@@ -7,7 +7,10 @@ using PUSpecSheet.Domain.Templates;
 
 namespace PUSpecSheet.Application.Templates;
 
-public sealed class TemplateRowService(PuSpecSheetDbContext db, TableTemplateReader reader) : ITemplateRowService
+public sealed class TemplateRowService(
+    PuSpecSheetDbContext db,
+    TableTemplateReader reader,
+    TemplateVersionGuard guard) : ITemplateRowService
 {
     public async Task<TableTemplateDto> CreateAsync(CreateTemplateRowRequest request, CancellationToken cancellationToken)
     {
@@ -16,7 +19,7 @@ public sealed class TemplateRowService(PuSpecSheetDbContext db, TableTemplateRea
             .Where(candidate => candidate.Id == request.TemplateSectionId)
             .Select(candidate => new
             {
-                candidate.TableTemplateId,
+                candidate.TableTemplateVersionId,
                 candidate.Name,
                 HasChildSections = candidate.ChildSections.Any(),
             })
@@ -26,6 +29,8 @@ public sealed class TemplateRowService(PuSpecSheetDbContext db, TableTemplateRea
         {
             throw new NotFoundException($"Section {request.TemplateSectionId} was not found.");
         }
+
+        await guard.EnsureEditableAsync(section.TableTemplateVersionId, cancellationToken);
 
         if (section.HasChildSections)
         {
@@ -52,31 +57,30 @@ public sealed class TemplateRowService(PuSpecSheetDbContext db, TableTemplateRea
         db.TemplateRows.Add(row);
         await db.SaveChangesAsync(cancellationToken);
 
-        return await reader.ReadAsync(section.TableTemplateId, cancellationToken);
+        return await reader.ReadVersionAsync(section.TableTemplateVersionId, cancellationToken);
     }
 
     public async Task<TableTemplateDto> MoveAsync(int id, MoveRequest request, CancellationToken cancellationToken)
     {
-        var row = await FindAsync(id, cancellationToken);
+        var row = await FindEditableAsync(id, cancellationToken);
         var siblings = await LoadSiblingsAsync(row, cancellationToken);
 
         DisplayOrdering.Move(siblings, row, request.DisplayOrder, sibling => sibling.DisplayOrder, SetOrder);
         await db.SaveChangesAsync(cancellationToken);
 
-        return await reader.ReadAsync(row.TemplateSection.TableTemplateId, cancellationToken);
+        return await reader.ReadVersionAsync(row.TemplateSection.TableTemplateVersionId, cancellationToken);
     }
 
     public async Task<TableTemplateDto> DeleteAsync(int id, CancellationToken cancellationToken)
     {
-        var row = await FindAsync(id, cancellationToken);
-        await SheetDataGuard.EnsureRowsUnusedAsync(db, [id], "this row", cancellationToken);
+        var row = await FindEditableAsync(id, cancellationToken);
         var siblings = await LoadSiblingsAsync(row, cancellationToken);
 
         db.TemplateRows.Remove(row);
         DisplayOrdering.Renumber(siblings.Where(sibling => sibling.Id != id), sibling => sibling.DisplayOrder, SetOrder);
         await db.SaveChangesAsync(cancellationToken);
 
-        return await reader.ReadAsync(row.TemplateSection.TableTemplateId, cancellationToken);
+        return await reader.ReadVersionAsync(row.TemplateSection.TableTemplateVersionId, cancellationToken);
     }
 
     private static void SetOrder(TemplateRow row, int order)
@@ -84,7 +88,7 @@ public sealed class TemplateRowService(PuSpecSheetDbContext db, TableTemplateRea
         row.DisplayOrder = order;
     }
 
-    private async Task<TemplateRow> FindAsync(int id, CancellationToken cancellationToken)
+    private async Task<TemplateRow> FindEditableAsync(int id, CancellationToken cancellationToken)
     {
         var row = await db.TemplateRows
             .Include(candidate => candidate.TemplateSection)
@@ -95,6 +99,7 @@ public sealed class TemplateRowService(PuSpecSheetDbContext db, TableTemplateRea
             throw new NotFoundException($"Row {id} was not found.");
         }
 
+        await guard.EnsureEditableAsync(row.TemplateSection.TableTemplateVersionId, cancellationToken);
         return row;
     }
 

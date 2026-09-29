@@ -6,7 +6,10 @@ using PUSpecSheet.Domain.Templates;
 
 namespace PUSpecSheet.Application.Templates;
 
-public sealed class TemplateCellService(PuSpecSheetDbContext db, TableTemplateReader reader) : ITemplateCellService
+public sealed class TemplateCellService(
+    PuSpecSheetDbContext db,
+    TableTemplateReader reader,
+    TemplateVersionGuard guard) : ITemplateCellService
 {
     public async Task<TableTemplateDto> CreateAsync(CreateTemplateCellRequest request, CancellationToken cancellationToken)
     {
@@ -15,7 +18,7 @@ public sealed class TemplateCellService(PuSpecSheetDbContext db, TableTemplateRe
             .Where(candidate => candidate.Id == request.TemplateRowId)
             .Select(candidate => new
             {
-                candidate.TemplateSection.TableTemplateId,
+                candidate.TemplateSection.TableTemplateVersionId,
                 NextColumn = candidate.Cells.Max(cell => (int?)(cell.Column + cell.ColumnSpan)) ?? 1,
             })
             .SingleOrDefaultAsync(cancellationToken);
@@ -24,6 +27,8 @@ public sealed class TemplateCellService(PuSpecSheetDbContext db, TableTemplateRe
         {
             throw new NotFoundException($"Row {request.TemplateRowId} was not found.");
         }
+
+        await guard.EnsureEditableAsync(row.TableTemplateVersionId, cancellationToken);
 
         var cellTypeId = request.CellTypeId ?? await DefaultCellType.GetIdAsync(db, cancellationToken);
         await EnsureCellTypeExistsAsync(cellTypeId, cancellationToken);
@@ -36,7 +41,7 @@ public sealed class TemplateCellService(PuSpecSheetDbContext db, TableTemplateRe
         });
 
         await db.SaveChangesAsync(cancellationToken);
-        return await reader.ReadAsync(row.TableTemplateId, cancellationToken);
+        return await reader.ReadVersionAsync(row.TableTemplateVersionId, cancellationToken);
     }
 
     public async Task<TableTemplateDto> UpdateAsync(
@@ -44,7 +49,7 @@ public sealed class TemplateCellService(PuSpecSheetDbContext db, TableTemplateRe
         UpdateTemplateCellRequest request,
         CancellationToken cancellationToken)
     {
-        var cell = await FindAsync(id, cancellationToken);
+        var cell = await FindEditableAsync(id, cancellationToken);
         await EnsureCellTypeExistsAsync(request.CellTypeId, cancellationToken);
 
         var columnTaken = await db.TemplateCells.AnyAsync(
@@ -64,21 +69,20 @@ public sealed class TemplateCellService(PuSpecSheetDbContext db, TableTemplateRe
         cell.IsRequired = request.IsRequired;
 
         await db.SaveChangesAsync(cancellationToken);
-        return await reader.ReadAsync(cell.TemplateRow.TemplateSection.TableTemplateId, cancellationToken);
+        return await reader.ReadVersionAsync(cell.TemplateRow.TemplateSection.TableTemplateVersionId, cancellationToken);
     }
 
     public async Task<TableTemplateDto> DeleteAsync(int id, CancellationToken cancellationToken)
     {
-        var cell = await FindAsync(id, cancellationToken);
-        await SheetDataGuard.EnsureCellsUnusedAsync(db, [id], "this cell", cancellationToken);
+        var cell = await FindEditableAsync(id, cancellationToken);
 
         db.TemplateCells.Remove(cell);
         await db.SaveChangesAsync(cancellationToken);
 
-        return await reader.ReadAsync(cell.TemplateRow.TemplateSection.TableTemplateId, cancellationToken);
+        return await reader.ReadVersionAsync(cell.TemplateRow.TemplateSection.TableTemplateVersionId, cancellationToken);
     }
 
-    private async Task<TemplateCell> FindAsync(int id, CancellationToken cancellationToken)
+    private async Task<TemplateCell> FindEditableAsync(int id, CancellationToken cancellationToken)
     {
         var cell = await db.TemplateCells
             .Include(candidate => candidate.TemplateRow)
@@ -90,6 +94,7 @@ public sealed class TemplateCellService(PuSpecSheetDbContext db, TableTemplateRe
             throw new NotFoundException($"Cell {id} was not found.");
         }
 
+        await guard.EnsureEditableAsync(cell.TemplateRow.TemplateSection.TableTemplateVersionId, cancellationToken);
         return cell;
     }
 

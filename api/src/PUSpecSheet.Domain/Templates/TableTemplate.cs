@@ -3,7 +3,8 @@ using PUSpecSheet.Domain.SheetTypes;
 namespace PUSpecSheet.Domain.Templates;
 
 /// <summary>
-/// The layout of one table on a sheet type, made up of a tree of <see cref="TemplateSection"/>s.
+/// A type of table that can go on a sheet type. Its layout lives in <see cref="Versions"/>; the latest
+/// version is the one new sheet tables use.
 /// </summary>
 public class TableTemplate
 {
@@ -19,8 +20,5 @@ public class TableTemplate
     /// <summary>Order among the templates of the same sheet type.</summary>
     public int DisplayOrder { get; set; }
 
-    public TemplateOrientation Orientation { get; set; }
-
-    /// <summary>Every section in the template, at all levels of the tree.</summary>
-    public ICollection<TemplateSection> Sections { get; set; } = [];
+    public ICollection<TableTemplateVersion> Versions { get; set; } = [];
 }

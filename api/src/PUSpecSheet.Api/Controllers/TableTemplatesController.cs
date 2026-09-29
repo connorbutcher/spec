@@ -17,10 +17,22 @@ public sealed class TableTemplatesController(ITableTemplateService templates) : 
         return Ok(result);
     }
 
+    /// <summary>The template at <paramref name="version"/>, or at its latest version when omitted.</summary>
     [HttpGet("{id:int}")]
-    public async Task<ActionResult<TableTemplateDto>> Get(int id, CancellationToken cancellationToken)
+    public async Task<ActionResult<TableTemplateDto>> Get(
+        int id,
+        [FromQuery] int? version,
+        CancellationToken cancellationToken)
     {
-        var result = await templates.GetAsync(id, cancellationToken);
+        var result = await templates.GetAsync(id, version, cancellationToken);
+        return Ok(result);
+    }
+
+    /// <summary>Copies the latest version into a new editable version, for when the latest is in use.</summary>
+    [HttpPost("{id:int}/versions")]
+    public async Task<ActionResult<TableTemplateDto>> CreateVersion(int id, CancellationToken cancellationToken)
+    {
+        var result = await templates.CreateVersionAsync(id, cancellationToken);
         return Ok(result);
     }
 

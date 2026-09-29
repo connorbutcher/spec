@@ -17,6 +17,7 @@ public static class ApplicationServiceCollectionExtensions
         services.AddScoped<ICellTypeService, CellTypeService>();
 
         services.AddScoped<TableTemplateReader>();
+        services.AddScoped<TemplateVersionGuard>();
         services.AddScoped<ITableTemplateService, TableTemplateService>();
         services.AddScoped<ITemplateSectionService, TemplateSectionService>();
         services.AddScoped<ITemplateRowService, TemplateRowService>();
