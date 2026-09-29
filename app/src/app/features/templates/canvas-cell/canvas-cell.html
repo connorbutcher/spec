@@ -3,6 +3,7 @@
   class="cell"
   [attr.aria-label]="(layout().cell.caption || typeName()) + ' cell'"
   (click)="open()"
+  (contextmenu)="openMenu($event)"
 >
   @if (isLabel()) {
     <span class="text">{{ layout().cell.caption || 'Label' }}</span>

@@ -1,4 +1,5 @@
 import { Component, computed, inject, input } from '@angular/core';
+import { CanvasMenu } from '../canvas-menu';
 import { cellKindInfo } from '../models/cell-kinds';
 import { CellKindInfo } from '../models/cell-kind-info.model';
 import { CellLayout } from '../models/cell-layout.model';
@@ -9,7 +10,7 @@ import { TemplatesStore } from '../templates.store';
 
 /**
  * A cell in the preview, placed on its section's subgrid by row, column and spans. Label cells show
- * their text; input cells show their caption and cell type.
+ * their text; input cells show their caption and cell type. Right-click opens the quick-edit menu.
  */
 @Component({
   selector: 'app-canvas-cell',
@@ -35,6 +36,7 @@ export class CanvasCell {
 
   private readonly navigator = inject(PanelNavigator);
   private readonly store = inject(TemplatesStore);
+  private readonly menu = inject(CanvasMenu);
 
   public hostStyle(): GridStyle {
     return this.layout().style;
@@ -58,5 +60,9 @@ export class CanvasCell {
 
   public open(): void {
     this.navigator.open({ kind: 'cell', id: this.layout().cell.id });
+  }
+
+  public openMenu(event: MouseEvent): void {
+    this.menu.openForCell(event, this.layout().cell.id);
   }
 }

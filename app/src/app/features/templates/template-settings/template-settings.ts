@@ -10,6 +10,7 @@ import { TemplateOrientation } from '../models/template-orientation';
 import { PanelLinkList } from '../panel-link-list/panel-link-list';
 import { PanelNavigator } from '../panel-navigator';
 import { sectionLinks } from '../section-links.util';
+import { topLevelOrder } from '../template-layout.util';
 import { TemplatesStore } from '../templates.store';
 
 /** Panel page for the open table: its name, orientation, version and top-level sections. */
@@ -30,7 +31,7 @@ export class TemplateSettings {
   public readonly template = computed<TableTemplate | null>(() => this.store.template());
 
   public readonly sections = computed<PanelLinkItem[]>(() =>
-    sectionLinks(this.template()?.sections ?? []),
+    sectionLinks(topLevelOrder(this.template()?.sections ?? [])),
   );
 
   public readonly orientations = [

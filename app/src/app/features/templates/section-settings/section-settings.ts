@@ -49,6 +49,12 @@ export class SectionSettings {
     { label: 'Repeating', value: 'Repeating' },
   ];
 
+  /** At the top level, the fixed section is the table's header and the rest are added on the sheet. */
+  public readonly topLevelRoles = [
+    { label: 'Header', value: 'Fixed' },
+    { label: 'Added on the sheet', value: 'Repeating' },
+  ];
+
   public readonly presences = [
     { label: 'Always included (e.g. a header)', value: 'always' },
     { label: 'Included, can be removed', value: 'default' },
@@ -87,6 +93,11 @@ export class SectionSettings {
 
   public canEdit(): boolean {
     return this.store.canEdit();
+  }
+
+  /** Top-level sections are independent: the header plus sections added on the sheet in any order. */
+  public isTopLevel(): boolean {
+    return this.entry()?.section.parentSectionId === null;
   }
 
   public hasChildSections(): boolean {

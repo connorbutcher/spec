@@ -1,4 +1,4 @@
-// The outer grid. Sections draw their own borders; the 1px gap shows through as grid lines.
+// The outer grid. Sections are invisible; the 1px gap shows through between cells as grid lines.
 .grid {
   display: grid;
   gap: 1px;

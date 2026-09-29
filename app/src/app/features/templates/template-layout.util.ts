@@ -6,116 +6,120 @@ import { TemplateLayout } from './models/template-layout.model';
 import { TemplateSection } from './models/template-section.model';
 
 /**
- * Lays a template out as one CSS grid with every section as a nested subgrid, so cells line up across
- * sections.
+ * Lays a template out as one CSS grid with every section as a nested subgrid. Sections draw nothing
+ * themselves; only their rows and cells show, and the subgrids keep cells lined up across sections.
  *
- * Horizontal: sections sit side by side along the columns. The first `depth` grid rows hold the section
- * headers (a leaf section's header stretches down to the deepest header row), then every leaf's rows
- * share the same data rows.
+ * Horizontal: the header section comes first, then each top-level section stacks below it, all on the
+ * same columns so data lines up under the header. Inside a section, child sections sit side by side and
+ * share the section's rows.
  *
- * Vertical is the same layout transposed: sections stack down the rows, the first `depth` grid columns
- * hold the headers, and every leaf's columns share the same data columns.
+ * Vertical is the same layout transposed: a template row runs down a grid column, the header is on the
+ * left and top-level sections follow to the right.
  */
 export function layoutTemplate(template: TableTemplate): TemplateLayout {
   const horizontal = template.orientation === 'Horizontal';
-  const headerTracks = maxDepth(template.sections);
-  const dataTracks = Math.max(
-    1,
-    ...allLeaves(template.sections).map((leaf) => crossExtent(leaf, horizontal)),
-  );
-  const flowTracks = Math.max(
-    1,
-    sum(template.sections.map((section) => flowExtent(section, horizontal))),
-  );
+  const sections = topLevelOrder(template.sections);
 
+  const acrossTracks = Math.max(1, ...sections.map(acrossExtent));
+  const alongTracks = Math.max(1, sum(sections.map(alongExtent)));
+
+  // "Along" is the direction template rows run in; "across" is the direction of a row's cells.
+  const along = `repeat(${alongTracks}, minmax(30px, auto))`;
+  const across = `repeat(${acrossTracks}, minmax(88px, 1fr))`;
   const style: GridStyle = horizontal
-    ? {
-        'grid-template-columns': `repeat(${flowTracks}, minmax(88px, 1fr))`,
-        'grid-template-rows': `repeat(${headerTracks}, auto) repeat(${dataTracks}, minmax(30px, auto))`,
-      }
+    ? { 'grid-template-rows': along, 'grid-template-columns': across }
     : {
-        'grid-template-columns': `repeat(${headerTracks}, minmax(88px, max-content)) repeat(${dataTracks}, minmax(88px, 1fr))`,
-        'grid-template-rows': `repeat(${flowTracks}, minmax(30px, auto))`,
+        'grid-template-columns': `repeat(${alongTracks}, minmax(88px, 1fr))`,
+        'grid-template-rows': `repeat(${acrossTracks}, minmax(30px, auto))`,
       };
 
-  const context: LayoutContext = { horizontal, headerTracks };
-  return { style, sections: layoutSiblings(template.sections, 1, context) };
-}
-
-interface LayoutContext {
-  horizontal: boolean;
-  headerTracks: number;
-}
-
-function layoutSiblings(
-  sections: TemplateSection[],
-  depth: number,
-  context: LayoutContext,
-): SectionLayout[] {
   let start = 1;
-  return sections.map((section) => {
-    const layout = layoutSection(section, depth, start, context);
-    start += flowExtent(section, context.horizontal);
+  const layouts = sections.map((section) => {
+    const layout = layoutSection(
+      section,
+      place(horizontal, `${start} / span ${alongExtent(section)}`, '1 / -1'),
+      horizontal,
+    );
+    start += alongExtent(section);
     return layout;
   });
+
+  return { style, sections: layouts };
+}
+
+/** The header (the top-level fixed section) first, then the rest in list order. */
+export function topLevelOrder(sections: TemplateSection[]): TemplateSection[] {
+  return [
+    ...sections.filter((section) => section.role === 'Fixed'),
+    ...sections.filter((section) => section.role !== 'Fixed'),
+  ];
 }
 
 function layoutSection(
   section: TemplateSection,
-  depth: number,
-  start: number,
-  context: LayoutContext,
+  style: GridStyle,
+  horizontal: boolean,
 ): SectionLayout {
-  const { horizontal, headerTracks } = context;
   const isLeaf = section.sections.length === 0;
-  const flow = `${start} / span ${flowExtent(section, horizontal)}`;
-  const across = depth === 1 ? '1 / -1' : '2 / -1';
+  const cells = isLeaf ? layoutCells(section, horizontal) : [];
 
-  // Header tracks this section's own header takes; a leaf's reaches down to where the data starts.
-  const headerSpan = isLeaf ? headerTracks - depth + 1 : 1;
-  const cells = isLeaf ? layoutCells(section, headerSpan, horizontal) : [];
+  let start = 1;
+  const children = section.sections.map((child) => {
+    const layout = layoutSection(
+      child,
+      place(horizontal, '1 / -1', `${start} / span ${acrossExtent(child)}`),
+      horizontal,
+    );
+    start += acrossExtent(child);
+    return layout;
+  });
 
   return {
     section,
     isLeaf,
-    style: horizontal
-      ? { 'grid-column': flow, 'grid-row': across }
-      : { 'grid-row': flow, 'grid-column': across },
-    headerStyle: horizontal
-      ? { 'grid-column': '1 / -1', 'grid-row': `1 / span ${headerSpan}` }
-      : { 'grid-row': '1 / -1', 'grid-column': `1 / span ${headerSpan}` },
+    style,
     emptyStyle:
-      isLeaf && cells.length === 0
-        ? horizontal
-          ? { 'grid-row': `${headerSpan + 1} / -1`, 'grid-column': '1 / -1' }
-          : { 'grid-row': '1 / -1', 'grid-column': `${headerSpan + 1} / -1` }
-        : null,
-    children: layoutSiblings(section.sections, depth + 1, context),
+      isLeaf && cells.length === 0 ? { 'grid-row': '1 / -1', 'grid-column': '1 / -1' } : null,
+    children,
     cells,
   };
 }
 
-function layoutCells(section: TemplateSection, offset: number, horizontal: boolean): CellLayout[] {
+function layoutCells(section: TemplateSection, horizontal: boolean): CellLayout[] {
   return section.rows.flatMap((row, index) =>
-    row.cells.map((cell) => {
-      const rowTrack = `${(horizontal ? offset : 0) + index + 1} / span ${cell.rowSpan}`;
-      const columnTrack = `${(horizontal ? 0 : offset) + cell.column} / span ${cell.columnSpan}`;
-      return { cell, rowId: row.id, style: { 'grid-row': rowTrack, 'grid-column': columnTrack } };
-    }),
+    row.cells.map((cell) => ({
+      cell,
+      rowId: row.id,
+      style: place(
+        horizontal,
+        `${index + 1} / span ${cell.rowSpan}`,
+        `${cell.column} / span ${cell.columnSpan}`,
+      ),
+    })),
   );
 }
 
-/** How many tracks a section takes along the direction sections flow. */
-function flowExtent(section: TemplateSection, horizontal: boolean): number {
-  if (section.sections.length > 0) {
-    return sum(section.sections.map((child) => flowExtent(child, horizontal)));
-  }
-  return Math.max(1, horizontal ? columnExtent(section) : rowExtent(section));
+/** Grid placement from a position along the rows' direction and one across it. */
+function place(horizontal: boolean, along: string, across: string): GridStyle {
+  return horizontal
+    ? { 'grid-row': along, 'grid-column': across }
+    : { 'grid-column': along, 'grid-row': across };
 }
 
-/** How many data tracks a leaf section needs across the flow. */
-function crossExtent(leaf: TemplateSection, horizontal: boolean): number {
-  return horizontal ? rowExtent(leaf) : columnExtent(leaf);
+/** How many tracks a section takes in the direction its rows run: its tallest child, or its rows. */
+function alongExtent(section: TemplateSection): number {
+  if (section.sections.length > 0) {
+    return Math.max(1, ...section.sections.map(alongExtent));
+  }
+  return Math.max(1, rowExtent(section));
+}
+
+/** How many tracks a section takes across its rows: its children side by side, or its cells. */
+function acrossExtent(section: TemplateSection): number {
+  if (section.sections.length > 0) {
+    return sum(section.sections.map(acrossExtent));
+  }
+  return Math.max(1, columnExtent(section));
 }
 
 /** The last column any cell in the section reaches. */
@@ -130,18 +134,6 @@ function columnExtent(section: TemplateSection): number {
 function rowExtent(section: TemplateSection): number {
   const spans = section.rows.flatMap((row, index) => row.cells.map((cell) => index + cell.rowSpan));
   return Math.max(section.rows.length, ...spans);
-}
-
-function maxDepth(sections: TemplateSection[]): number {
-  return sections.length === 0
-    ? 0
-    : 1 + Math.max(...sections.map((section) => maxDepth(section.sections)));
-}
-
-function allLeaves(sections: TemplateSection[]): TemplateSection[] {
-  return sections.flatMap((section) =>
-    section.sections.length === 0 ? [section] : allLeaves(section.sections),
-  );
 }
 
 function sum(values: number[]): number {

@@ -262,9 +262,19 @@ export class TemplatesStore {
     return (await this.changeTemplate(() => this.api.deleteSection(id))) !== null;
   }
 
-  /** Adds a row to the end of a section. Returns the new row's id. */
-  public async addRow(sectionId: number): Promise<number | null> {
-    return this.changeTemplate(() => this.api.createRow(sectionId), 'rows');
+  /**
+   * Adds a row to a section at 1-based `position` (default: the end), copying the columns of
+   * `copyFromRowId` (default: the last row). Returns the new row's id.
+   */
+  public async addRow(
+    sectionId: number,
+    position: number | null = null,
+    copyFromRowId: number | null = null,
+  ): Promise<number | null> {
+    return this.changeTemplate(
+      () => this.api.createRow(sectionId, position, copyFromRowId),
+      'rows',
+    );
   }
 
   public async moveRow(id: number, position: number): Promise<void> {
@@ -275,9 +285,12 @@ export class TemplatesStore {
     return (await this.changeTemplate(() => this.api.deleteRow(id))) !== null;
   }
 
-  /** Adds a cell to the end of a row. Returns the new cell's id. */
-  public async addCell(rowId: number): Promise<number | null> {
-    return this.changeTemplate(() => this.api.createCell(rowId), 'cells');
+  /**
+   * Adds a cell to a row at `column`, moving the cells from there on one column along (default: after
+   * the last cell). Returns the new cell's id.
+   */
+  public async addCell(rowId: number, column: number | null = null): Promise<number | null> {
+    return this.changeTemplate(() => this.api.createCell(rowId, column), 'cells');
   }
 
   /** Changes some of a cell's settings, keeping the rest. */

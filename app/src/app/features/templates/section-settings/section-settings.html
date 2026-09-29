@@ -15,22 +15,24 @@
       />
     </div>
 
-    <div class="field">
-      <span class="label">Position</span>
-      <app-move-buttons
-        noun="section"
-        [position]="position()"
-        [count]="entry.siblings.length"
-        [disabled]="isSaving() || !canEdit()"
-        (moved)="move($event)"
-      />
-    </div>
+    @if (!isTopLevel()) {
+      <div class="field">
+        <span class="label">Position</span>
+        <app-move-buttons
+          noun="section"
+          [position]="position()"
+          [count]="entry.siblings.length"
+          [disabled]="isSaving() || !canEdit()"
+          (moved)="move($event)"
+        />
+      </div>
+    }
 
     <h3 class="group-title">On a sheet</h3>
     <div class="field">
       <span class="label" id="section-role-label">Role</span>
       <p-selectbutton
-        [options]="roles"
+        [options]="isTopLevel() ? topLevelRoles : roles"
         optionLabel="label"
         optionValue="value"
         [ngModel]="entry.section.role"
@@ -41,15 +43,24 @@
         ariaLabelledBy="section-role-label"
       />
       <span class="hint">
-        @if (entry.section.role === 'Fixed') {
-          A single block, such as a header. A table has at most one of it.
+        @if (isTopLevel()) {
+          @if (entry.section.role === 'Fixed') {
+            The table's header. It's always there, comes first, and only goes with the whole table.
+          } @else {
+            A section people add on the sheet, as often as needed and in any order, to build up the
+            table's data.
+          }
+        } @else if (entry.section.role === 'Fixed') {
+          A single block inside its section. There's at most one of it.
         } @else {
-          A block people add copies of on the sheet to build up the table's data.
+          A block people add copies of inside its section.
         }
       </span>
     </div>
 
-    @if (entry.section.role === 'Fixed') {
+    @if (isTopLevel() && entry.section.role === 'Fixed') {
+      <!-- A header is always exactly one copy, so there's nothing more to set. -->
+    } @else if (entry.section.role === 'Fixed') {
       <div class="field">
         <label for="section-presence">On a new table</label>
         <p-select

@@ -75,9 +75,21 @@ export class TemplatesApi {
     return firstValueFrom(this.http.delete<TableTemplate>(`/api/template-sections/${id}`));
   }
 
-  public createRow(templateSectionId: number): Promise<TableTemplate> {
+  /**
+   * Adds a row at 1-based `position` (or the end), copying the columns of `copyFromRowId` (or the
+   * section's last row).
+   */
+  public createRow(
+    templateSectionId: number,
+    position: number | null,
+    copyFromRowId: number | null,
+  ): Promise<TableTemplate> {
     return firstValueFrom(
-      this.http.post<TableTemplate>('/api/template-rows', { templateSectionId }),
+      this.http.post<TableTemplate>('/api/template-rows', {
+        templateSectionId,
+        position,
+        copyFromRowId,
+      }),
     );
   }
 
@@ -91,9 +103,14 @@ export class TemplatesApi {
     return firstValueFrom(this.http.delete<TableTemplate>(`/api/template-rows/${id}`));
   }
 
-  public createCell(templateRowId: number): Promise<TableTemplate> {
+  /** Adds a cell at `column` (moving the rest right), or after the row's last cell when null. */
+  public createCell(templateRowId: number, column: number | null): Promise<TableTemplate> {
     return firstValueFrom(
-      this.http.post<TableTemplate>('/api/template-cells', { templateRowId, cellTypeId: null }),
+      this.http.post<TableTemplate>('/api/template-cells', {
+        templateRowId,
+        cellTypeId: null,
+        column,
+      }),
     );
   }
 

@@ -1,22 +1,3 @@
-<button
-  type="button"
-  class="header"
-  [style]="layout().headerStyle"
-  [attr.aria-label]="layout().section.name + ', ' + roleText()"
-  [pTooltip]="roleText()"
-  tooltipPosition="top"
-  (click)="open()"
->
-  <span class="name">{{ layout().section.name }}</span>
-  @if (layout().section.role === 'Repeating') {
-    <p-tag severity="info" icon="pi pi-clone" [value]="repeatText()" styleClass="role-tag" />
-  } @else if (layout().section.minInstances >= 1) {
-    <i class="pi pi-lock role-icon" aria-hidden="true"></i>
-  } @else if (layout().section.initialInstances === 0) {
-    <p-tag severity="secondary" value="optional" styleClass="role-tag" />
-  }
-</button>
-
 @for (child of layout().children; track child.section.id) {
   <app-canvas-section [layout]="child" />
 }
@@ -26,15 +7,14 @@
 }
 
 @if (layout().emptyStyle; as emptyStyle) {
-  <div class="empty" [style]="emptyStyle">
-    <p-button
-      icon="pi pi-plus"
-      label="Add row"
-      size="small"
-      severity="secondary"
-      [outlined]="true"
-      [disabled]="isSaving() || !canEdit()"
-      (onClick)="addRow()"
-    />
-  </div>
+  <button
+    type="button"
+    class="empty"
+    [style]="emptyStyle"
+    [attr.aria-label]="layout().section.name + ' is empty. Open its settings.'"
+    (click)="open()"
+    (contextmenu)="openMenu($event)"
+  >
+    {{ layout().section.name }}: empty. Right-click to add a row or section.
+  </button>
 }

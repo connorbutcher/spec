@@ -1,5 +1,12 @@
-<div class="grid" role="group" aria-label="Table preview" [style]="layout().style">
+<div
+  class="grid"
+  role="group"
+  aria-label="Table preview. Right-click or press the menu key on a cell for more actions."
+  [style]="layout().style"
+  (contextmenu)="openMenu($event)"
+>
   @for (section of layout().sections; track section.section.id) {
     <app-canvas-section [layout]="section" />
   }
 </div>
+<p-contextmenu [model]="menu.items()" appendTo="body" />
