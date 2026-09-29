@@ -71,7 +71,6 @@ export class CanvasMenu {
 
   private cellItems(entry: CellEntry): MenuItem[] {
     const { cell, row } = entry;
-    const horizontal = this.store.template()?.orientation !== 'Vertical';
     const locked = !this.store.canEdit();
     const section = this.store.index().sections.get(row.section.id);
 
@@ -87,27 +86,28 @@ export class CanvasMenu {
         command: () => this.open({ kind: 'row', id: row.row.id }),
       },
       { separator: true },
+      // Rows always run across the page and cells sit side by side in them, whatever the orientation.
       {
-        label: horizontal ? 'Insert row above' : 'Insert row to the left',
-        icon: horizontal ? 'pi pi-arrow-up' : 'pi pi-arrow-left',
+        label: 'Insert row above',
+        icon: 'pi pi-arrow-up',
         disabled: locked,
         command: () => void this.addRow(row.section.id, row.number, row.row.id),
       },
       {
-        label: horizontal ? 'Insert row below' : 'Insert row to the right',
-        icon: horizontal ? 'pi pi-arrow-down' : 'pi pi-arrow-right',
+        label: 'Insert row below',
+        icon: 'pi pi-arrow-down',
         disabled: locked,
         command: () => void this.addRow(row.section.id, row.number + 1, row.row.id),
       },
       {
-        label: horizontal ? 'Insert cell to the left' : 'Insert cell above',
-        icon: horizontal ? 'pi pi-arrow-left' : 'pi pi-arrow-up',
+        label: 'Insert cell to the left',
+        icon: 'pi pi-arrow-left',
         disabled: locked,
         command: () => void this.addCell(row.row.id, cell.column),
       },
       {
-        label: horizontal ? 'Insert cell to the right' : 'Insert cell below',
-        icon: horizontal ? 'pi pi-arrow-right' : 'pi pi-arrow-down',
+        label: 'Insert cell to the right',
+        icon: 'pi pi-arrow-right',
         disabled: locked,
         command: () => void this.addCell(row.row.id, cell.column + cell.columnSpan),
       },

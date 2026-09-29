@@ -95,20 +95,37 @@ describe('layoutTemplate', () => {
     });
   });
 
-  it('transposes a vertical table so template rows run down grid columns', () => {
-    const header = section('Header', 'Fixed', [], [[cell(1), cell(2)]]);
-    const data = section('Data', 'Repeating', [], [[cell(1), cell(2)]]);
+  it('puts vertical sections side by side on shared rows, keeping rows as rows', () => {
+    const header = section('Header', 'Fixed', [], [[cell(1)], [cell(1)], [cell(1)]]);
+    const data = section('Data', 'Repeating', [], [[cell(1), cell(2)], [cell(1, 2)]]);
 
-    const layout = layoutTemplate(template('Vertical', [header, data]));
+    const layout = layoutTemplate(template('Vertical', [data, header]));
 
     expect(layout.style).toEqual({
-      'grid-template-columns': 'repeat(2, minmax(88px, 1fr))',
-      'grid-template-rows': 'repeat(2, minmax(30px, auto))',
+      'grid-template-rows': 'repeat(3, minmax(30px, auto))',
+      'grid-template-columns': 'repeat(3, minmax(88px, 1fr))',
     });
-    expect(layout.sections[1].style).toEqual({ 'grid-column': '2 / span 1', 'grid-row': '1 / -1' });
+    expect(layout.sections.map((entry) => entry.section.name)).toEqual(['Header', 'Data']);
+    expect(layout.sections[1].style).toEqual({ 'grid-column': '2 / span 2', 'grid-row': '1 / -1' });
+    // A cell's row and column are the same as in a horizontal table.
     expect(layout.sections[1].cells[1].style).toEqual({
-      'grid-column': '1 / span 1',
-      'grid-row': '2 / span 1',
+      'grid-row': '1 / span 1',
+      'grid-column': '2 / span 1',
+    });
+  });
+
+  it('stacks child sections inside a vertical section', () => {
+    const top = section('Top', 'Fixed', [], [[cell(1), cell(2)]]);
+    const bottom = section('Bottom', 'Fixed', [], [[cell(1)], [cell(1)]]);
+    const parent = section('Parent', 'Repeating', [top, bottom], []);
+
+    const layout = layoutTemplate(template('Vertical', [parent]));
+
+    expect(layout.style['grid-template-rows']).toBe('repeat(3, minmax(30px, auto))');
+    expect(layout.style['grid-template-columns']).toBe('repeat(2, minmax(88px, 1fr))');
+    expect(layout.sections[0].children[1].style).toEqual({
+      'grid-row': '2 / span 2',
+      'grid-column': '1 / -1',
     });
   });
 
