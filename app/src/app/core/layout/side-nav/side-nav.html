@@ -1,16 +1,12 @@
 <nav class="side-nav" aria-label="Main">
-  <ul class="nav-list">
-    @for (item of mainItems; track item.path) {
-      <li>
-        <app-side-nav-link [item]="item" [collapsed]="collapsed()" />
-      </li>
-    }
-  </ul>
-  <ul class="nav-list footer">
-    @for (item of footerItems; track item.path) {
-      <li>
-        <app-side-nav-link [item]="item" [collapsed]="collapsed()" />
-      </li>
-    }
-  </ul>
+  <p-menu class="nav-menu" [model]="mainItems">
+    <ng-template #item let-item>
+      <app-side-nav-link [item]="navItem(item)" [collapsed]="collapsed()" />
+    </ng-template>
+  </p-menu>
+  <p-menu class="nav-menu footer" [model]="footerItems">
+    <ng-template #item let-item>
+      <app-side-nav-link [item]="navItem(item)" [collapsed]="collapsed()" />
+    </ng-template>
+  </p-menu>
 </nav>

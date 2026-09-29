@@ -39,7 +39,13 @@
       title="Couldn't load the sheet"
       message="Check the API is running, then try again."
     >
-      <button type="button" class="retry" (click)="retry()">Try again</button>
+      <p-button
+        label="Try again"
+        icon="pi pi-refresh"
+        size="small"
+        [outlined]="true"
+        (onClick)="retry()"
+      />
     </app-empty-state>
   </div>
 } @else if (!isLoading()) {

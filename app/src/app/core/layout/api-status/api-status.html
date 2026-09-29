@@ -1,4 +1,7 @@
-<span class="api-status" [class]="status()" role="status">
-  <i class="pi" [class]="icon()" aria-hidden="true"></i>
-  {{ label() }}
-</span>
+<p-tag
+  [value]="label()"
+  [icon]="'pi ' + icon()"
+  [severity]="severity()"
+  [rounded]="true"
+  role="status"
+/>

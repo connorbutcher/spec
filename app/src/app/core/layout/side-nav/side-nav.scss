@@ -18,13 +18,15 @@
   padding: 6px;
 }
 
-.nav-list {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
+// PrimeNG menus restyled for the dark rail: no card, and the links draw their own states.
+.nav-menu {
+  --p-menu-background: transparent;
+  --p-menu-border-color: transparent;
+  --p-menu-list-padding: 0;
+  --p-menu-list-gap: 2px;
+  --p-menu-item-padding: 0;
+  --p-menu-item-focus-background: transparent;
+  --p-menu-min-width: 0;
 
   &.footer {
     padding-top: 6px;

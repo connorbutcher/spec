@@ -3,7 +3,9 @@
   [routerLink]="item().path"
   routerLinkActive="active"
   ariaCurrentWhenActive="page"
-  [attr.title]="collapsed() ? item().label : null"
+  [pTooltip]="item().label"
+  tooltipPosition="right"
+  [tooltipDisabled]="!collapsed()"
 >
   <i class="pi" [class]="item().icon" aria-hidden="true"></i>
   <span class="label" [class.visually-hidden]="collapsed()">{{ item().label }}</span>

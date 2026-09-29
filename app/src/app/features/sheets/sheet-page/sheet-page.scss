@@ -57,16 +57,4 @@
   align-items: center;
   justify-content: center;
   height: 100%;
-
-  .retry {
-    margin-top: 6px;
-    padding: 4px 12px;
-    border: 1px solid var(--app-navy);
-    border-radius: 4px;
-    background: #fff;
-    color: var(--app-navy);
-    font: inherit;
-    font-size: 0.8rem;
-    cursor: pointer;
-  }
 }

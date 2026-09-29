@@ -13,27 +13,10 @@
     gap: 6px;
   }
 
-  .nav-toggle {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-    border: 0;
-    border-radius: 4px;
-    background: transparent;
-    color: inherit;
-    cursor: pointer;
-
-    &:hover {
-      background: rgba(255, 255, 255, 0.1);
-    }
-
-    &:focus-visible {
-      outline: 2px solid #adc3e5;
-      outline-offset: 1px;
-    }
-  }
+  // The toggle is a PrimeNG text button on the dark header, so it uses light text.
+  --p-button-text-contrast-color: #fff;
+  --p-button-text-contrast-hover-background: rgba(255, 255, 255, 0.1);
+  --p-button-text-contrast-active-background: rgba(255, 255, 255, 0.16);
 
   .brand {
     display: inline-flex;

@@ -1,4 +1,5 @@
 import { Component, computed, inject, input } from '@angular/core';
+import { ButtonModule } from 'primeng/button';
 import { Phase } from '../../../core/models/phase.model';
 import { SheetType } from '../../../core/models/sheet-type.model';
 import { Breadcrumb } from '../../../shared/components/breadcrumb/breadcrumb';
@@ -15,7 +16,14 @@ import { SheetVersionPicker } from '../sheet-version-picker/sheet-version-picker
  */
 @Component({
   selector: 'app-sheet-page',
-  imports: [Breadcrumb, EmptyState, SheetPlaceholder, SheetSwitcher, SheetVersionPicker],
+  imports: [
+    Breadcrumb,
+    ButtonModule,
+    EmptyState,
+    SheetPlaceholder,
+    SheetSwitcher,
+    SheetVersionPicker,
+  ],
   providers: [PhasesStore],
   templateUrl: './sheet-page.html',
   styleUrl: './sheet-page.scss',

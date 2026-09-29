@@ -1,5 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { TreeNode } from 'primeng/api';
+import { BadgeModule } from 'primeng/badge';
+import { ButtonModule } from 'primeng/button';
 import { TreeModule, TreeNodeSelectEvent } from 'primeng/tree';
 import { Phase } from '../../../core/models/phase.model';
 import { EmptyState } from '../../../shared/components/empty-state/empty-state';
@@ -9,7 +11,7 @@ import { PhasesStore } from '../phases.store';
 /** The left-hand card: the PrimeNG phase tree with its filter, plus loading, error and empty states. */
 @Component({
   selector: 'app-phase-tree-panel',
-  imports: [EmptyState, PhaseTreeSkeleton, TreeModule],
+  imports: [BadgeModule, ButtonModule, EmptyState, PhaseTreeSkeleton, TreeModule],
   templateUrl: './phase-tree-panel.html',
   styleUrl: './phase-tree-panel.scss',
 })

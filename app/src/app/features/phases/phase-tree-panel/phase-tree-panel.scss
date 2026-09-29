@@ -61,33 +61,5 @@
       text-overflow: ellipsis;
       white-space: nowrap;
     }
-
-    .count {
-      flex: 0 0 auto;
-      min-width: 22px;
-      padding: 1px 7px;
-      border-radius: 999px;
-      background: #f1f5f9;
-      color: #475569;
-      font-size: 0.72rem;
-      font-weight: 600;
-      text-align: center;
-    }
-  }
-
-  .retry {
-    margin-top: 8px;
-    padding: 6px 14px;
-    border: 1px solid var(--app-navy);
-    border-radius: 6px;
-    background: #fff;
-    color: var(--app-navy);
-    font: inherit;
-    font-size: 0.85rem;
-    cursor: pointer;
-
-    &:hover {
-      background: #eef3fa;
-    }
   }
 }

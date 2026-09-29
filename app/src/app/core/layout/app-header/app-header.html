@@ -1,14 +1,14 @@
 <header class="app-header">
   <div class="start">
-    <button
-      type="button"
-      class="nav-toggle"
-      [attr.aria-label]="sideNavCollapsed() ? 'Expand navigation' : 'Collapse navigation'"
+    <p-button
+      icon="pi pi-bars"
+      [text]="true"
+      severity="contrast"
+      styleClass="nav-toggle"
+      [ariaLabel]="sideNavCollapsed() ? 'Expand navigation' : 'Collapse navigation'"
       [attr.aria-expanded]="!sideNavCollapsed()"
-      (click)="toggleSideNav()"
-    >
-      <i class="pi pi-bars" aria-hidden="true"></i>
-    </button>
+      (onClick)="toggleSideNav()"
+    />
     <a class="brand" routerLink="/">
       <i class="pi pi-file-edit" aria-hidden="true"></i>
       <span>PU Spec Sheet</span>

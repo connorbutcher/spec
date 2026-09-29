@@ -1,4 +1,5 @@
 import { Component, computed, inject, input } from '@angular/core';
+import { BadgeModule } from 'primeng/badge';
 import { Phase } from '../../../core/models/phase.model';
 import { SheetType } from '../../../core/models/sheet-type.model';
 import { Breadcrumb } from '../../../shared/components/breadcrumb/breadcrumb';
@@ -11,7 +12,7 @@ import { SheetTypeTable } from '../sheet-type-table/sheet-type-table';
 /** The right-hand card for the phase selected in the tree (from the `:phaseId` route parameter). */
 @Component({
   selector: 'app-phase-detail',
-  imports: [Breadcrumb, EmptyState, PhaseDetailHeader, SheetTypeTable],
+  imports: [BadgeModule, Breadcrumb, EmptyState, PhaseDetailHeader, SheetTypeTable],
   templateUrl: './phase-detail.html',
   styleUrl: './phase-detail.scss',
 })

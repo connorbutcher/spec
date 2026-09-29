@@ -10,7 +10,13 @@
         title="Couldn't load phases"
         message="Check the API is running, then try again."
       >
-        <button type="button" class="retry" (click)="retry()">Try again</button>
+        <p-button
+          label="Try again"
+          icon="pi pi-refresh"
+          size="small"
+          [outlined]="true"
+          (onClick)="retry()"
+        />
       </app-empty-state>
     } @else if (isLoading() && !hasPhases()) {
       <app-phase-tree-skeleton />
@@ -38,9 +44,11 @@
         <ng-template #node let-node>
           <span class="tree-node">
             <span class="code">{{ node.label }}</span>
-            <span class="count" [attr.aria-label]="sheetTypeCount(node) + ' sheet types'">
-              {{ sheetTypeCount(node) }}
-            </span>
+            <p-badge
+              [value]="sheetTypeCount(node)"
+              severity="secondary"
+              [attr.aria-label]="sheetTypeCount(node) + ' sheet types'"
+            />
           </span>
         </ng-template>
       </p-tree>

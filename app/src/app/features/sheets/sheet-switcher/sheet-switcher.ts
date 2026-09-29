@@ -1,12 +1,13 @@
 import { Component, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { TabsModule } from 'primeng/tabs';
 import { SheetType } from '../../../core/models/sheet-type.model';
 import { sheetTypeIcon } from '../../../shared/sheet-type-icon';
 
-/** A compact strip of the phase's other sheets, to jump between them without going back. */
+/** PrimeNG tabs for the phase's sheets; each tab navigates to that sheet's own route. */
 @Component({
   selector: 'app-sheet-switcher',
-  imports: [RouterLink],
+  imports: [RouterLink, TabsModule],
   templateUrl: './sheet-switcher.html',
   styleUrl: './sheet-switcher.scss',
 })

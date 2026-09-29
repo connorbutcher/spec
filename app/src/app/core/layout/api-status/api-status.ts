@@ -1,10 +1,12 @@
 import { httpResource } from '@angular/common/http';
 import { Component, computed } from '@angular/core';
+import { TagModule } from 'primeng/tag';
 import { ApiHealthState } from './api-health-state';
 
 /** Shows whether the API (and, through its health check, the database) is reachable. */
 @Component({
   selector: 'app-api-status',
+  imports: [TagModule],
   templateUrl: './api-status.html',
   styleUrl: './api-status.scss',
 })
@@ -40,6 +42,20 @@ export class ApiStatus {
       }
       default: {
         return 'pi-exclamation-circle';
+      }
+    }
+  });
+
+  public readonly severity = computed<'secondary' | 'success' | 'danger'>(() => {
+    switch (this.status()) {
+      case 'checking': {
+        return 'secondary';
+      }
+      case 'online': {
+        return 'success';
+      }
+      default: {
+        return 'danger';
       }
     }
   });
