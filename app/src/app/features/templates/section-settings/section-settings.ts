@@ -1,42 +1,34 @@
 import { Component, computed, inject, input } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
-import { SelectChangeEvent, SelectModule } from 'primeng/select';
-import { SelectButtonChangeEvent, SelectButtonModule } from 'primeng/selectbutton';
 import { ConfirmDeleteButton } from '../confirm-delete-button/confirm-delete-button';
-import { FixedPresence } from '../models/fixed-presence';
 import { PanelLinkItem } from '../models/panel-link-item.model';
 import { PanelRef } from '../models/panel-ref';
 import { SectionEntry } from '../models/section-entry.model';
-import { SectionRole } from '../models/section-role';
 import { UpdateTemplateSectionRequest } from '../models/update-template-section-request.model';
 import { MoveButtons } from '../move-buttons/move-buttons';
 import { NumberField } from '../number-field/number-field';
 import { PanelLinkList } from '../panel-link-list/panel-link-list';
 import { PanelNavigator } from '../panel-navigator';
 import { plural, sectionLinks } from '../section-links.util';
-import { countsForRole, fixedCounts, fixedPresence } from '../section-role.util';
+import { isHeader, sectionNoun } from '../section-role.util';
 import { TemplatesStore } from '../templates.store';
 
 type InstanceField = 'minInstances' | 'maxInstances' | 'initialInstances';
 
 /**
- * Panel page for a section: its name, position, role and either the sections inside it or its rows. A
- * section holds one or the other, so an empty section offers both.
+ * Panel page for a section: its name, how it's added on a sheet, its own rows and its sub-sections. The
+ * header is always exactly one and can't be moved or removed; every other section is addable.
  */
 @Component({
   selector: 'app-section-settings',
   imports: [
     ButtonModule,
     ConfirmDeleteButton,
-    FormsModule,
     InputTextModule,
     MoveButtons,
     NumberField,
     PanelLinkList,
-    SelectButtonModule,
-    SelectModule,
   ],
   templateUrl: './section-settings.html',
   styleUrl: './section-settings.scss',
@@ -44,30 +36,19 @@ type InstanceField = 'minInstances' | 'maxInstances' | 'initialInstances';
 export class SectionSettings {
   public readonly sectionId = input.required<number>();
 
-  public readonly roles = [
-    { label: 'Fixed', value: 'Fixed' },
-    { label: 'Repeating', value: 'Repeating' },
-  ];
-
-  /** At the top level, the fixed section is the table's header and the rest are added on the sheet. */
-  public readonly topLevelRoles = [
-    { label: 'Header', value: 'Fixed' },
-    { label: 'Added on the sheet', value: 'Repeating' },
-  ];
-
-  public readonly presences = [
-    { label: 'Always included (e.g. a header)', value: 'always' },
-    { label: 'Included, can be removed', value: 'default' },
-    { label: 'Optional, added when needed', value: 'optional' },
-  ];
-
   public readonly entry = computed<SectionEntry | undefined>(() =>
     this.store.index().sections.get(this.sectionId()),
   );
 
-  public readonly presence = computed<FixedPresence | null>(() => {
+  /** "Header", "Section" or "Sub-section". */
+  public readonly noun = computed(() => {
     const section = this.entry()?.section;
-    return section ? fixedPresence(section) : null;
+    return section ? sectionNoun(section) : 'Section';
+  });
+
+  public readonly isHeader = computed(() => {
+    const section = this.entry()?.section;
+    return section ? isHeader(section) : false;
   });
 
   public readonly childSections = computed<PanelLinkItem[]>(() =>
@@ -95,17 +76,9 @@ export class SectionSettings {
     return this.store.canEdit();
   }
 
-  /** Top-level sections are independent: the header plus sections added on the sheet in any order. */
+  /** Top-level sections are independent of each other, so they have no position to change. */
   public isTopLevel(): boolean {
     return this.entry()?.section.parentSectionId === null;
-  }
-
-  public hasChildSections(): boolean {
-    return (this.entry()?.section.sections.length ?? 0) > 0;
-  }
-
-  public hasRows(): boolean {
-    return (this.entry()?.section.rows.length ?? 0) > 0;
   }
 
   public position(): number {
@@ -122,19 +95,7 @@ export class SectionSettings {
     input.value = this.entry()?.section.name ?? '';
   }
 
-  public setRole(event: SelectButtonChangeEvent): void {
-    const section = this.entry()?.section;
-    const role = event.value as SectionRole | null;
-    if (section && role && role !== section.role) {
-      void this.save(countsForRole(section, role));
-    }
-  }
-
-  public setPresence(event: SelectChangeEvent): void {
-    void this.save(fixedCounts(event.value as FixedPresence));
-  }
-
-  /** Saves one of a repeating section's counts, nudging the others so min <= start <= max holds. */
+  /** Saves one of the counts, nudging the others so fewest <= starts with <= most still holds. */
   public setCount(field: InstanceField, value: number | null): void {
     const section = this.entry()?.section;
     if (!section) {
@@ -160,7 +121,7 @@ export class SectionSettings {
     void this.store.moveSection(this.sectionId(), position);
   }
 
-  public async addSection(): Promise<void> {
+  public async addSubSection(): Promise<void> {
     const id = await this.store.addSection(this.sectionId());
     if (id !== null) {
       this.navigator.open({ kind: 'section', id });
@@ -175,9 +136,7 @@ export class SectionSettings {
   }
 
   public deleteWarning(): string {
-    return this.hasChildSections()
-      ? 'The sections inside it, with their rows and cells, go too.'
-      : 'Its rows and cells go too.';
+    return 'Its rows and sub-sections, with their cells, go too.';
   }
 
   public async delete(): Promise<void> {

@@ -1,7 +1,7 @@
 @if (entry(); as entry) {
   <div class="fields">
     <div class="field">
-      <label for="section-name">Name</label>
+      <label for="section-name">{{ noun() }} name</label>
       <input
         #nameInput
         pInputText
@@ -15,74 +15,36 @@
       />
     </div>
 
-    @if (!isTopLevel()) {
-      <div class="field">
-        <span class="label">Position</span>
-        <app-move-buttons
-          noun="section"
-          [position]="position()"
-          [count]="entry.siblings.length"
-          [disabled]="isSaving() || !canEdit()"
-          (moved)="move($event)"
-        />
-      </div>
-    }
-
-    <h3 class="group-title">On a sheet</h3>
-    <div class="field">
-      <span class="label" id="section-role-label">Role</span>
-      <p-selectbutton
-        [options]="isTopLevel() ? topLevelRoles : roles"
-        optionLabel="label"
-        optionValue="value"
-        [ngModel]="entry.section.role"
-        (onChange)="setRole($event)"
-        [allowEmpty]="false"
-        [disabled]="isSaving() || !canEdit()"
-        size="small"
-        ariaLabelledBy="section-role-label"
-      />
-      <span class="hint">
-        @if (isTopLevel()) {
-          @if (entry.section.role === 'Fixed') {
-            The table's header. It's always there, comes first, and only goes with the whole table.
-          } @else {
-            A section people add on the sheet, as often as needed and in any order, to build up the
-            table's data.
-          }
-        } @else if (entry.section.role === 'Fixed') {
-          A single block inside its section. There's at most one of it.
-        } @else {
-          A block people add copies of inside its section.
-        }
-      </span>
-    </div>
-
-    @if (isTopLevel() && entry.section.role === 'Fixed') {
-      <!-- A header is always exactly one copy, so there's nothing more to set. -->
-    } @else if (entry.section.role === 'Fixed') {
-      <div class="field">
-        <label for="section-presence">On a new table</label>
-        <p-select
-          inputId="section-presence"
-          [options]="presences"
-          optionLabel="label"
-          optionValue="value"
-          [ngModel]="presence()"
-          (onChange)="setPresence($event)"
-          [disabled]="isSaving() || !canEdit()"
-          size="small"
-          [fluid]="true"
-          appendTo="body"
-        />
-        @if (presence() === 'always') {
-          <span class="hint">It can only be removed by removing the whole table.</span>
-        }
-      </div>
+    @if (isHeader()) {
+      <p class="note">
+        The table's header. Every table has exactly one: it comes first, is always on the table, and
+        can't be moved or removed.
+      </p>
     } @else {
+      @if (!isTopLevel()) {
+        <div class="field">
+          <span class="label">Order in its section</span>
+          <app-move-buttons
+            noun="sub-section"
+            [position]="position()"
+            [count]="entry.siblings.length"
+            [disabled]="isSaving() || !canEdit()"
+            (moved)="move($event)"
+          />
+        </div>
+      }
+
+      <h3 class="group-title">Added on the sheet</h3>
+      <p class="note">
+        @if (isTopLevel()) {
+          People add this section to the table on the sheet, as often as needed and in any order.
+        } @else {
+          People add this sub-section inside its section on the sheet, as often as needed.
+        }
+      </p>
       <div class="inline">
         <div class="field">
-          <label for="section-min">Min</label>
+          <label for="section-min">Fewest</label>
           <app-number-field
             inputId="section-min"
             [value]="entry.section.minInstances"
@@ -104,7 +66,7 @@
           />
         </div>
         <div class="field">
-          <label for="section-max">Max</label>
+          <label for="section-max">Most</label>
           <app-number-field
             inputId="section-max"
             [value]="entry.section.maxInstances"
@@ -117,69 +79,51 @@
           />
         </div>
       </div>
-      <span class="note">Copies can't be removed below the minimum.</span>
+      <span class="note">Copies can't be removed below the fewest.</span>
     }
 
-    @if (hasChildSections()) {
-      <h3 class="group-title">Sections inside</h3>
-      <app-panel-link-list [items]="childSections()" ariaLabel="Sections inside" />
-      <div class="actions">
-        <p-button
-          icon="pi pi-plus"
-          label="Add section inside"
-          size="small"
-          [outlined]="true"
-          [disabled]="isSaving() || !canEdit()"
-          (onClick)="addSection()"
-        />
-      </div>
-    } @else if (hasRows()) {
-      <h3 class="group-title">Rows</h3>
-      <app-panel-link-list [items]="rows()" ariaLabel="Rows" />
-      <div class="actions">
-        <p-button
-          icon="pi pi-plus"
-          label="Add row"
-          size="small"
-          [outlined]="true"
-          [disabled]="isSaving() || !canEdit()"
-          (onClick)="addRow()"
-        />
-      </div>
-      <p class="note">New rows copy the columns of the last row.</p>
-    } @else {
-      <h3 class="group-title">Contents</h3>
-      <p class="note">
-        A section holds either rows of cells or more sections. Add rows here, or split it into
-        sections.
-      </p>
-      <div class="actions">
-        <p-button
-          icon="pi pi-plus"
-          label="Add row"
-          size="small"
-          [outlined]="true"
-          [disabled]="isSaving() || !canEdit()"
-          (onClick)="addRow()"
-        />
-        <p-button
-          icon="pi pi-plus"
-          label="Add section inside"
-          size="small"
-          [outlined]="true"
-          [disabled]="isSaving() || !canEdit()"
-          (onClick)="addSection()"
-        />
-      </div>
-    }
-
-    <div class="danger-zone">
-      <app-confirm-delete-button
-        label="Delete section"
-        [warning]="deleteWarning()"
+    <h3 class="group-title">Rows</h3>
+    <app-panel-link-list [items]="rows()" emptyText="No rows yet." ariaLabel="Rows" />
+    <div class="actions">
+      <p-button
+        icon="pi pi-plus"
+        label="Add row"
+        size="small"
+        [outlined]="true"
         [disabled]="isSaving() || !canEdit()"
-        (confirmed)="delete()"
+        (onClick)="addRow()"
       />
     </div>
+    @if (!isHeader() && entry.section.sections.length > 0) {
+      <p class="note">These rows show first, above the sub-sections.</p>
+    }
+
+    @if (!isHeader()) {
+      <h3 class="group-title">Sub-sections</h3>
+      <app-panel-link-list
+        [items]="childSections()"
+        emptyText="No sub-sections yet."
+        ariaLabel="Sub-sections"
+      />
+      <div class="actions">
+        <p-button
+          icon="pi pi-plus"
+          label="Add sub-section"
+          size="small"
+          [outlined]="true"
+          [disabled]="isSaving() || !canEdit()"
+          (onClick)="addSubSection()"
+        />
+      </div>
+
+      <div class="danger-zone">
+        <app-confirm-delete-button
+          [label]="'Delete ' + noun().toLowerCase()"
+          [warning]="deleteWarning()"
+          [disabled]="isSaving() || !canEdit()"
+          (confirmed)="delete()"
+        />
+      </div>
+    }
   </div>
 }

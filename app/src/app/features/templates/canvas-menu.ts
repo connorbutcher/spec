@@ -5,6 +5,7 @@ import { CellEntry } from './models/cell-entry.model';
 import { PanelRef } from './models/panel-ref';
 import { SectionEntry } from './models/section-entry.model';
 import { PanelNavigator } from './panel-navigator';
+import { isHeader, sectionNoun } from './section-role.util';
 import { TemplatesStore } from './templates.store';
 
 /**
@@ -115,7 +116,7 @@ export class CanvasMenu {
       ...(section
         ? [
             {
-              label: `Section: ${section.section.name}`,
+              label: `${sectionNoun(section.section)}: ${section.section.name}`,
               icon: 'pi pi-objects-column',
               items: this.sectionItems(section),
             },
@@ -149,12 +150,14 @@ export class CanvasMenu {
 
   private sectionItems(entry: SectionEntry): MenuItem[] {
     const { section } = entry;
+    const noun = sectionNoun(section);
+    const header = isHeader(section);
     const locked = !this.store.canEdit();
     const parentId = entry.ancestors.at(-1)?.id ?? null;
 
     return [
       {
-        label: 'Section settings',
+        label: `${noun} settings`,
         icon: 'pi pi-cog',
         command: () => this.open({ kind: 'section', id: section.id }),
       },
@@ -162,26 +165,29 @@ export class CanvasMenu {
       {
         label: 'Add row',
         icon: 'pi pi-plus',
-        disabled: locked || section.sections.length > 0,
+        disabled: locked,
         command: () => void this.addRow(section.id, null, null),
       },
       {
-        label: 'Add section inside',
+        label: 'Add sub-section',
         icon: 'pi pi-sitemap',
-        disabled: locked || section.rows.length > 0,
+        // The header holds rows only.
+        disabled: locked || header,
         command: () => void this.addSection(section.id),
       },
       {
-        label: parentId === null ? 'Add top-level section' : 'Add section alongside',
+        // A sub-section's sibling goes in its parent; at the top level a new section is an addable one.
+        label: parentId === null ? 'Add section' : 'Add sub-section alongside',
         icon: 'pi pi-plus-circle',
         disabled: locked,
         command: () => void this.addSection(parentId),
       },
       { separator: true },
       {
-        label: 'Delete section',
+        label: `Delete ${noun.toLowerCase()}`,
         icon: 'pi pi-trash',
-        disabled: locked,
+        // The header is part of every table.
+        disabled: locked || header,
         command: () =>
           this.confirmDelete(`Delete "${section.name}" with everything in it?`, async () => {
             const fallback: PanelRef =

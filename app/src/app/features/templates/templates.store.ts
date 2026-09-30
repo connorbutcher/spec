@@ -217,7 +217,10 @@ export class TemplatesStore {
     }
   }
 
-  /** Adds a section at the top level or inside `parentId`. Returns the new section's id. */
+  /**
+   * Adds an addable section at the top level, or a sub-section inside `parentId`. (The header comes
+   * with the table.) Returns the new section's id.
+   */
   public async addSection(parentId: number | null): Promise<number | null> {
     const template = this.template();
     if (!template) {
@@ -228,7 +231,7 @@ export class TemplatesStore {
         ? template.sections
         : (this.index().sections.get(parentId)?.section.sections ?? []);
     const name = nextName(
-      'Section',
+      parentId === null ? 'Section' : 'Sub-section',
       siblings.map((section) => section.name),
       true,
     );
@@ -249,7 +252,6 @@ export class TemplatesStore {
     }
     const request: UpdateTemplateSectionRequest = {
       name: section.name,
-      role: section.role,
       minInstances: section.minInstances,
       maxInstances: section.maxInstances,
       initialInstances: section.initialInstances,

@@ -4,7 +4,7 @@ import { CanvasMenu } from '../canvas-menu';
 import { GridStyle } from '../models/grid-style';
 import { SectionLayout } from '../models/section-layout.model';
 import { PanelNavigator } from '../panel-navigator';
-import { describeInstances } from '../section-role.util';
+import { describeInstances, isHeader } from '../section-role.util';
 
 /**
  * A section in the preview. It draws nothing of its own: the host element is an invisible subgrid that
@@ -40,8 +40,7 @@ export class CanvasSection {
   /** The hover label: the name and its role, e.g. "Readings · Repeats: 0 min, any number". */
   public label(): string {
     const section = this.layout().section;
-    const isHeader = section.parentSectionId === null && section.role === 'Fixed';
-    return `${section.name} · ${isHeader ? 'Header' : describeInstances(section)}`;
+    return `${section.name} · ${isHeader(section) ? 'Header' : describeInstances(section)}`;
   }
 
   public open(): void {

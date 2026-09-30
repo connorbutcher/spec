@@ -14,24 +14,19 @@
       <app-designer-toolbar [template]="template" />
       <app-version-banner [template]="template" />
 
+      <p-panel class="structure" header="Structure" [toggleable]="true" toggler="header">
+        <app-structure-tree />
+      </p-panel>
+
       <div class="canvas-scroll">
         @if (layout(); as layout) {
           <app-template-canvas [layout]="layout" />
         } @else {
           <app-empty-state
             icon="pi-objects-column"
-            title="This table has no sections yet"
-            message="Sections group the table's cells. Add one, then give it rows and cells, or sections inside it."
-          >
-            <p-button
-              icon="pi pi-plus"
-              label="Add section"
-              size="small"
-              [outlined]="true"
-              [disabled]="!canEdit()"
-              (onClick)="addFirstSection()"
-            />
-          </app-empty-state>
+            title="Nothing to show yet"
+            message="This table has no header. Reload the page; every table has one."
+          />
         }
       </div>
     }

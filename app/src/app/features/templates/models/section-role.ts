@@ -1,2 +1,5 @@
-/** A single block such as a header, or a block people add copies of on a sheet. Matches the API. */
-export type SectionRole = 'Fixed' | 'Repeating';
+/**
+ * `Header` is the table's one header section; every other section is `Addable`: people add copies of it
+ * on the sheet. Matches the API.
+ */
+export type SectionRole = 'Header' | 'Addable';

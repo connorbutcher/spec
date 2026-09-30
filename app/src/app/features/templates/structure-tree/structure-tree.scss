@@ -1,0 +1,35 @@
+:host {
+  display: block;
+}
+
+.tree {
+  --p-tree-padding: 0;
+  --p-tree-gap: 1px;
+  --p-tree-node-padding: 0.1rem 0.35rem;
+  --p-tree-node-border-radius: 3px;
+  --p-tree-border-color: transparent;
+  font-size: 0.78rem;
+}
+
+.node {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+
+  > .pi {
+    font-size: 0.7rem;
+    color: #64748b;
+  }
+
+  .name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  ::ng-deep .node-tag {
+    padding: 0 4px;
+    font-size: 0.62rem;
+  }
+}

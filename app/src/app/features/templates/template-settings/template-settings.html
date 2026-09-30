@@ -49,8 +49,12 @@
       </span>
     </div>
 
-    <h3 class="group-title">Sections</h3>
-    <app-panel-link-list [items]="sections()" emptyText="No sections yet." ariaLabel="Sections" />
+    <h3 class="group-title">Header and sections</h3>
+    <app-panel-link-list
+      [items]="sections()"
+      emptyText="No sections yet."
+      ariaLabel="Header and sections"
+    />
     <div class="actions">
       <p-button
         icon="pi pi-plus"
