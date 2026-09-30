@@ -27,23 +27,17 @@ public sealed class TemplateSectionService(
                 && section.ParentSectionId == request.ParentSectionId)
             .MaxAsync(section => (int?)section.DisplayOrder, cancellationToken);
 
-        // At the top level, the first section is the table's header and the rest are sections people add
-        // on the sheet. Inside a section, new sections start as a single block that's always there.
-        var isHeader = request.ParentSectionId is null && !await HasHeaderAsync(versionId, null, cancellationToken);
-        var isAddable = request.ParentSectionId is null && !isHeader;
-
-        db.TemplateSections.Add(new TemplateSection
+        // The header is created with the table, so every section added here is an addable section.
+        var section = new TemplateSection
         {
             TableTemplateVersionId = versionId,
             ParentSectionId = request.ParentSectionId,
             Name = request.Name.Trim(),
             DisplayOrder = (lastOrder ?? 0) + 1,
-            Role = isAddable ? SectionRole.Repeating : SectionRole.Fixed,
-            MinInstances = isAddable ? 0 : 1,
-            MaxInstances = isAddable ? null : 1,
-            InitialInstances = isAddable ? 0 : 1,
-        });
+        };
+        SectionInstanceRules.ApplyNewAddable(section);
 
+        db.TemplateSections.Add(section);
         await db.SaveChangesAsync(cancellationToken);
         return await reader.ReadVersionAsync(versionId, cancellationToken);
     }
@@ -57,14 +51,15 @@ public sealed class TemplateSectionService(
 
         section.Name = request.Name.Trim();
 
-        var isTopLevel = section.ParentSectionId is null;
-        if (isTopLevel && request.Role == SectionRole.Fixed
-            && await HasHeaderAsync(section.TableTemplateVersionId, section.Id, cancellationToken))
+        if (section.Role == SectionRole.Header)
         {
-            throw new ConflictException("This table already has a header. Other top-level sections are added on the sheet.");
+            SectionInstanceRules.ApplyHeader(section);
+        }
+        else
+        {
+            SectionInstanceRules.ApplyAddable(request, section);
         }
 
-        SectionInstanceRules.Apply(request, section, isTopLevel);
         await db.SaveChangesAsync(cancellationToken);
 
         return await reader.ReadVersionAsync(section.TableTemplateVersionId, cancellationToken);
@@ -73,6 +68,8 @@ public sealed class TemplateSectionService(
     public async Task<TableTemplateDto> MoveAsync(int id, MoveRequest request, CancellationToken cancellationToken)
     {
         var section = await FindEditableAsync(id, cancellationToken);
+        EnsureNotHeader(section, "move");
+
         var siblings = await db.TemplateSections
             .Where(candidate => candidate.TableTemplateVersionId == section.TableTemplateVersionId
                 && candidate.ParentSectionId == section.ParentSectionId)
@@ -87,6 +84,7 @@ public sealed class TemplateSectionService(
     public async Task<TableTemplateDto> DeleteAsync(int id, CancellationToken cancellationToken)
     {
         var section = await FindEditableAsync(id, cancellationToken);
+        EnsureNotHeader(section, "delete");
 
         // Child sections can't cascade in SQL Server (the version already cascades to every section), so
         // the whole subtree is removed here. Rows and cells cascade from their sections.
@@ -130,15 +128,13 @@ public sealed class TemplateSectionService(
         section.DisplayOrder = order;
     }
 
-    /// <summary>Whether the version has a top-level fixed section (its header) other than <paramref name="exceptId"/>.</summary>
-    private Task<bool> HasHeaderAsync(int versionId, int? exceptId, CancellationToken cancellationToken)
+    /// <summary>The header is part of every table: it can't be moved or removed on its own.</summary>
+    private static void EnsureNotHeader(TemplateSection section, string action)
     {
-        return db.TemplateSections.AnyAsync(
-            section => section.TableTemplateVersionId == versionId
-                && section.ParentSectionId == null
-                && section.Role == SectionRole.Fixed
-                && section.Id != exceptId,
-            cancellationToken);
+        if (section.Role == SectionRole.Header)
+        {
+            throw new ConflictException($"The header is part of the table and can't be {action}d.");
+        }
     }
 
     private async Task EnsureCanHoldSectionsAsync(int versionId, int parentId, CancellationToken cancellationToken)
@@ -146,7 +142,7 @@ public sealed class TemplateSectionService(
         var parent = await db.TemplateSections
             .AsNoTracking()
             .Where(section => section.Id == parentId && section.TableTemplateVersionId == versionId)
-            .Select(section => new { section.Name, HasRows = section.Rows.Any() })
+            .Select(section => new { section.Role })
             .SingleOrDefaultAsync(cancellationToken);
 
         if (parent is null)
@@ -154,10 +150,10 @@ public sealed class TemplateSectionService(
             throw new InvalidRequestException($"Section {parentId} isn't part of this version.");
         }
 
-        if (parent.HasRows)
+        // An addable section can hold its own rows and sub-sections together; the header holds rows only.
+        if (parent.Role == SectionRole.Header)
         {
-            throw new ConflictException(
-                $"\"{parent.Name}\" has rows. A section holds either sections or rows, so delete its rows first.");
+            throw new ConflictException("The header holds rows only. Sub-sections go in addable sections.");
         }
     }
 

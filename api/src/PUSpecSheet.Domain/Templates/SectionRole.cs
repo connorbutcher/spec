@@ -3,9 +3,15 @@ namespace PUSpecSheet.Domain.Templates;
 /// <summary>What a <see cref="TemplateSection"/> is for when a table is filled in on a sheet.</summary>
 public enum SectionRole
 {
-    /// <summary>A single block, such as a header. At most one copy of it is on a table.</summary>
-    Fixed,
+    /// <summary>
+    /// The table's header: its single top-level section with the heading rows. Every table version has
+    /// exactly one, it's always first, and it can't be removed or repeated.
+    /// </summary>
+    Header,
 
-    /// <summary>A block people add copies of on the sheet to build up the table's data.</summary>
-    Repeating,
+    /// <summary>
+    /// A section people add copies of on the sheet to build up the table's data, such as a group of
+    /// rows. Sections nested inside one are addable sections too, so they form a tree.
+    /// </summary>
+    Addable,
 }

@@ -4,35 +4,43 @@ using PUSpecSheet.Domain.Templates;
 
 namespace PUSpecSheet.Application.Templates;
 
-/// <summary>Checks and applies a section's role and how many copies of it a sheet table may hold.</summary>
+/// <summary>Checks and applies how many copies of a section a sheet table may hold.</summary>
 internal static class SectionInstanceRules
 {
-    /// <summary>
-    /// A top-level fixed section is the table's header, so it's always exactly one copy. Any other fixed
-    /// section is at most one copy; a repeating one takes the counts as given.
-    /// </summary>
-    public static void Apply(UpdateTemplateSectionRequest request, TemplateSection section, bool isTopLevel)
+    /// <summary>The header is always exactly one copy; its counts can't change.</summary>
+    public static void ApplyHeader(TemplateSection section)
     {
-        var isHeader = isTopLevel && request.Role == SectionRole.Fixed;
-        var min = isHeader ? 1 : request.MinInstances;
-        var initial = isHeader ? 1 : request.InitialInstances;
-        var max = request.Role == SectionRole.Fixed ? 1 : request.MaxInstances;
+        section.Role = SectionRole.Header;
+        section.MinInstances = 1;
+        section.MaxInstances = 1;
+        section.InitialInstances = 1;
+    }
 
-        if (min > initial)
+    /// <summary>Applies an addable section's counts, which must satisfy min &lt;= starts with &lt;= max.</summary>
+    public static void ApplyAddable(UpdateTemplateSectionRequest request, TemplateSection section)
+    {
+        if (request.MinInstances > request.InitialInstances)
         {
-            throw new InvalidRequestException("A table can't start with fewer copies than the minimum.");
+            throw new InvalidRequestException("A table can't start with fewer copies than the fewest allowed.");
         }
 
-        if (max is not null && initial > max)
+        if (request.MaxInstances is not null && request.InitialInstances > request.MaxInstances)
         {
-            throw new InvalidRequestException(request.Role == SectionRole.Fixed
-                ? "A fixed section is a single block, so a table starts with at most one."
-                : "A table can't start with more copies than the maximum.");
+            throw new InvalidRequestException("A table can't start with more copies than the most allowed.");
         }
 
-        section.Role = request.Role;
-        section.MinInstances = min;
-        section.MaxInstances = max;
-        section.InitialInstances = initial;
+        section.Role = SectionRole.Addable;
+        section.MinInstances = request.MinInstances;
+        section.MaxInstances = request.MaxInstances;
+        section.InitialInstances = request.InitialInstances;
+    }
+
+    /// <summary>The counts a new addable section starts with: none until someone adds one on a sheet.</summary>
+    public static void ApplyNewAddable(TemplateSection section)
+    {
+        section.Role = SectionRole.Addable;
+        section.MinInstances = 0;
+        section.MaxInstances = null;
+        section.InitialInstances = 0;
     }
 }

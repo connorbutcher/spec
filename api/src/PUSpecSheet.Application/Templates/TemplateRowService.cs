@@ -20,8 +20,6 @@ public sealed class TemplateRowService(
             .Select(candidate => new
             {
                 candidate.TableTemplateVersionId,
-                candidate.Name,
-                HasChildSections = candidate.ChildSections.Any(),
             })
             .SingleOrDefaultAsync(cancellationToken);
 
@@ -31,12 +29,6 @@ public sealed class TemplateRowService(
         }
 
         await guard.EnsureEditableAsync(section.TableTemplateVersionId, cancellationToken);
-
-        if (section.HasChildSections)
-        {
-            throw new ConflictException(
-                $"\"{section.Name}\" has sections inside it. Rows go in the sections at the bottom level.");
-        }
 
         var rows = await db.TemplateRows
             .Include(row => row.Cells)

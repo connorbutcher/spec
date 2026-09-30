@@ -3,8 +3,9 @@ using PUSpecSheet.Domain.Templates;
 namespace PUSpecSheet.Contracts.Templates;
 
 /// <summary>
-/// A section with its child sections nested. Only a section without children has rows. The instance
-/// counts say how many copies a sheet table starts with and may hold; a null maximum means no limit.
+/// A section with its child sections nested and its own rows, which show before its child sections.
+/// The instance counts say how many copies a sheet table starts with and may hold; a null maximum
+/// means no limit. The header is always exactly one copy.
 /// </summary>
 public sealed record TemplateSectionDto(
     int Id,

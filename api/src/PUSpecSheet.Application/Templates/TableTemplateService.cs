@@ -63,12 +63,24 @@ public sealed class TableTemplateService(
             .Where(template => template.SheetTypeId == request.SheetTypeId)
             .MaxAsync(template => (int?)template.DisplayOrder, cancellationToken);
 
+        // Every table starts with its header, the one section it always has.
+        var header = new TemplateSection { Name = "Header", DisplayOrder = 1 };
+        SectionInstanceRules.ApplyHeader(header);
+
         var template = new TableTemplate
         {
             SheetTypeId = request.SheetTypeId,
             Name = name,
             DisplayOrder = (lastOrder ?? 0) + 1,
-            Versions = [new TableTemplateVersion { VersionNumber = 1, Orientation = request.Orientation }],
+            Versions =
+            [
+                new TableTemplateVersion
+                {
+                    VersionNumber = 1,
+                    Orientation = request.Orientation,
+                    Sections = [header],
+                },
+            ],
         };
 
         db.TableTemplates.Add(template);

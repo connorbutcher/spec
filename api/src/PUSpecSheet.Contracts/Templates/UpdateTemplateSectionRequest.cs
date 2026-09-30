@@ -1,15 +1,14 @@
 using System.ComponentModel.DataAnnotations;
-using PUSpecSheet.Domain.Templates;
 
 namespace PUSpecSheet.Contracts.Templates;
 
 /// <summary>
-/// Renames a section and sets its role. For a fixed section the maximum is always 1; for a repeating
-/// one a null maximum means no limit. Counts must satisfy min &lt;= initial &lt;= max.
+/// Renames a section and, for an addable section, sets how many copies a sheet table may hold:
+/// the counts must satisfy min &lt;= starts with &lt;= max, and a null maximum means no limit. The
+/// counts of the header are fixed at one and are ignored.
 /// </summary>
 public sealed record UpdateTemplateSectionRequest(
     [Required, MaxLength(100)] string Name,
-    SectionRole Role,
     [Range(0, 1000)] int MinInstances,
     [Range(1, 1000)] int? MaxInstances,
     [Range(0, 1000)] int InitialInstances);

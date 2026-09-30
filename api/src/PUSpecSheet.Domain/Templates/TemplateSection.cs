@@ -2,8 +2,9 @@ namespace PUSpecSheet.Domain.Templates;
 
 /// <summary>
 /// A named block of a <see cref="TableTemplateVersion"/>. Sections form a tree through
-/// <see cref="ParentSectionId"/>; a section with no parent sits at the top of the table. A section holds
-/// either child sections or <see cref="TemplateRow"/>s of cells, never both, and maps onto a CSS subgrid.
+/// <see cref="ParentSectionId"/>: the one top-level header, then addable sections with addable
+/// sub-sections inside them. A section can hold its own <see cref="TemplateRow"/>s of cells and child
+/// sections together; its rows come first, then its sub-sections. It maps onto a CSS subgrid.
 /// </summary>
 public class TemplateSection
 {
@@ -24,18 +25,18 @@ public class TemplateSection
     /// <summary>Order among sibling sections.</summary>
     public int DisplayOrder { get; set; }
 
-    /// <summary>A single block such as a header, or a block people add copies of on a sheet.</summary>
-    public SectionRole Role { get; set; } = SectionRole.Fixed;
+    /// <summary>The table's header, or a section people add copies of on a sheet.</summary>
+    public SectionRole Role { get; set; } = SectionRole.Addable;
 
     /// <summary>The fewest copies a sheet table can have. Copies can't be removed below this.</summary>
-    public int MinInstances { get; set; } = 1;
+    public int MinInstances { get; set; }
 
-    /// <summary>The most copies a sheet table can have; null means no limit. Always 1 for a fixed section.</summary>
-    public int? MaxInstances { get; set; } = 1;
+    /// <summary>The most copies a sheet table can have; null means no limit. Always 1 for the header.</summary>
+    public int? MaxInstances { get; set; }
 
     /// <summary>How many copies a table starts with when it's added to a sheet.</summary>
-    public int InitialInstances { get; set; } = 1;
+    public int InitialInstances { get; set; }
 
-    /// <summary>The rows of this section. Only a section without child sections has rows.</summary>
+    /// <summary>This section's own rows, shown before its child sections.</summary>
     public ICollection<TemplateRow> Rows { get; set; } = [];
 }
