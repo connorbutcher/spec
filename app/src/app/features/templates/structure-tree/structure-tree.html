@@ -5,20 +5,33 @@
   [selection]="selected()"
   (onNodeSelect)="open($event)"
   ariaLabel="Table structure"
-  scrollHeight="9rem"
+  scrollHeight="10rem"
 >
   <ng-template #node let-node>
-    <span class="node" [attr.title]="hint(node)">
-      <i class="pi" [class]="icon(node)" aria-hidden="true"></i>
-      <span class="name">{{ node.label }}</span>
-      @if (tag(node); as tag) {
-        <p-tag
-          [value]="tag"
-          [severity]="isAddable(node) ? 'info' : 'secondary'"
-          [icon]="isAddable(node) ? 'pi pi-clone' : 'pi pi-lock'"
-          styleClass="node-tag"
-        />
-      }
-    </span>
+    @if (isAdd(node)) {
+      <p-button
+        class="add-node"
+        icon="pi pi-plus"
+        [label]="node.label"
+        size="small"
+        severity="secondary"
+        [text]="true"
+        [disabled]="isBusy()"
+        (onClick)="add(node)"
+      />
+    } @else {
+      <span class="node" [attr.title]="hint(node)">
+        <i class="pi" [class]="icon(node)" aria-hidden="true"></i>
+        <span class="name">{{ node.label }}</span>
+        @if (tag(node); as tag) {
+          <p-tag
+            [value]="tag"
+            [severity]="isAddable(node) ? 'info' : 'secondary'"
+            [icon]="isAddable(node) ? 'pi pi-clone' : 'pi pi-lock'"
+            styleClass="node-tag"
+          />
+        }
+      </span>
+    }
   </ng-template>
 </p-tree>

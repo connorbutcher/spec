@@ -32,20 +32,13 @@
     ariaLabelledBy="orientation-label"
   >
     <ng-template #item let-option>
-      <i [class]="option.icon" aria-hidden="true"></i>
-      <span>{{ option.label }}</span>
+      <span class="orientation-option" [attr.title]="option.hint">
+        <i [class]="option.icon" aria-hidden="true"></i>
+        {{ option.label }}
+      </span>
     </ng-template>
   </p-selectbutton>
   <span id="orientation-label" class="visually-hidden">Orientation</span>
-
-  <p-button
-    icon="pi pi-plus"
-    label="Add section"
-    size="small"
-    [outlined]="true"
-    [disabled]="isSaving() || !canEdit()"
-    (onClick)="addSection()"
-  />
 
   <span class="status" aria-live="polite">
     @if (isSaving()) {

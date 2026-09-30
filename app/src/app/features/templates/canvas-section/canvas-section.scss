@@ -31,19 +31,21 @@
   font-weight: 600;
 }
 
-.empty {
-  min-height: 30px;
-  padding: 4px 8px;
-  border: 0;
+// The dashed area at the end of a section: where another sub-section (or the first row) is added.
+.add-area {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 6px;
+  min-height: 34px;
+  padding: 4px 6px;
+  border: 1px dashed #94a3b8;
   background: repeating-linear-gradient(45deg, #f8fafc, #f8fafc 6px, #f1f5f9 6px, #f1f5f9 12px);
-  color: #64748b;
-  font: inherit;
-  font-size: 0.72rem;
-  text-align: left;
-  cursor: pointer;
 
-  &:focus-visible {
-    outline: 2px solid var(--app-navy);
-    outline-offset: -2px;
+  ::ng-deep .dashed.p-button {
+    border-style: dashed;
+    background: #fff;
+    font-size: 0.72rem;
   }
 }

@@ -5,7 +5,7 @@ import { TableTemplate } from './models/table-template.model';
 import { TemplateLayout } from './models/template-layout.model';
 import { TemplateSection } from './models/template-section.model';
 
-/** Which way a set of sections is laid out next to each other. */
+/** The direction sections are added in: stacked top to bottom, or side by side left to right. */
 type Flow = 'down' | 'across';
 
 interface Size {
@@ -16,29 +16,27 @@ interface Size {
 /**
  * Lays a template out as one CSS grid with every section as a nested subgrid. Sections draw nothing
  * themselves; only their rows and cells show. Rows always run across the page and cells sit side by
- * side in them; orientation only decides where sections go.
+ * side in them.
  *
- * A section's own rows come first, and its sub-sections follow below them.
+ * Orientation is the direction sections are added in, at every level:
+ * - Vertical: the header, the addable sections and the sub-sections inside them all stack top to bottom.
+ * - Horizontal: they all run left to right.
  *
- * Horizontal: the header comes first and the addable sections stack below it, all on the same columns
- * so data lines up under the header. Sub-sections inside a section sit side by side.
- *
- * Vertical: the header is on the left and the addable sections sit to its right, all on the same rows
- * so data lines up beside the header. Sub-sections inside a section stack.
+ * A section's own rows come first, then its sub-sections, then a dashed area for adding more. Pass
+ * `only` to lay out a single top-level section on its own.
  */
-export function layoutTemplate(template: TableTemplate): TemplateLayout {
-  const topFlow: Flow = template.orientation === 'Horizontal' ? 'down' : 'across';
-  const childFlow: Flow = topFlow === 'down' ? 'across' : 'down';
-  const sections = topLevelOrder(template.sections);
-  const sizes = sections.map((section) => sectionSize(section, childFlow));
+export function layoutTemplate(template: TableTemplate, only?: TemplateSection): TemplateLayout {
+  const flow: Flow = template.orientation === 'Vertical' ? 'down' : 'across';
+  const sections = only ? [only] : topLevelOrder(template.sections);
+  const sizes = sections.map((section) => sectionSize(section, flow));
 
   const rows = combine(
     sizes.map((size) => size.rows),
-    topFlow === 'down',
+    flow === 'down',
   );
   const columns = combine(
     sizes.map((size) => size.columns),
-    topFlow === 'across',
+    flow === 'across',
   );
 
   return {
@@ -46,7 +44,7 @@ export function layoutTemplate(template: TableTemplate): TemplateLayout {
       'grid-template-rows': `repeat(${rows}, minmax(30px, auto))`,
       'grid-template-columns': `repeat(${columns}, minmax(88px, 1fr))`,
     },
-    sections: layoutSiblings(sections, topFlow, childFlow, 0),
+    sections: layoutSiblings(sections, flow, 0),
   };
 }
 
@@ -65,33 +63,50 @@ export function topLevelOrder(sections: TemplateSection[]): TemplateSection[] {
 function layoutSiblings(
   sections: TemplateSection[],
   flow: Flow,
-  childFlow: Flow,
   rowOffset: number,
 ): SectionLayout[] {
   let start = 1;
   return sections.map((section) => {
-    const size = sectionSize(section, childFlow);
+    const size = sectionSize(section, flow);
     const style: GridStyle =
       flow === 'down'
         ? { 'grid-row': `${rowOffset + start} / span ${size.rows}`, 'grid-column': '1 / -1' }
         : { 'grid-column': `${start} / span ${size.columns}`, 'grid-row': `${rowOffset + 1} / -1` };
     start += flow === 'down' ? size.rows : size.columns;
-    return layoutSection(section, style, childFlow);
+    return layoutSection(section, style, flow);
   });
 }
 
-function layoutSection(section: TemplateSection, style: GridStyle, childFlow: Flow): SectionLayout {
-  const cells = layoutCells(section);
-  const isEmpty = cells.length === 0 && section.sections.length === 0;
+function layoutSection(section: TemplateSection, style: GridStyle, flow: Flow): SectionLayout {
+  const ownRows = rowExtent(section);
+  const children = childExtent(section, flow);
 
   return {
     section,
     isLeaf: section.sections.length === 0,
     style,
-    emptyStyle: isEmpty ? { 'grid-row': '1 / -1', 'grid-column': '1 / -1' } : null,
-    children: layoutSiblings(section.sections, childFlow, childFlow, rowExtent(section)),
-    cells,
+    addAreaStyle: addAreaStyle(section, flow, ownRows, children),
+    children: layoutSiblings(section.sections, flow, ownRows),
+    cells: layoutCells(section),
   };
+}
+
+/**
+ * Where the dashed "add" area sits: after a section's sub-sections, for adding another. The header has
+ * no such area, but an empty one shows a place to add its first row.
+ */
+function addAreaStyle(
+  section: TemplateSection,
+  flow: Flow,
+  ownRows: number,
+  children: Size,
+): GridStyle | null {
+  if (section.role === 'Header') {
+    return section.rows.length === 0 ? { 'grid-row': '1 / -1', 'grid-column': '1 / -1' } : null;
+  }
+  return flow === 'down'
+    ? { 'grid-row': `${ownRows + children.rows + 1} / span 1`, 'grid-column': '1 / -1' }
+    : { 'grid-column': `${children.columns + 1} / span 1`, 'grid-row': `${ownRows + 1} / -1` };
 }
 
 function layoutCells(section: TemplateSection): CellLayout[] {
@@ -107,33 +122,44 @@ function layoutCells(section: TemplateSection): CellLayout[] {
   );
 }
 
+/** The rows and columns a section's sub-sections take together, laid out in `flow`. */
+function childExtent(section: TemplateSection, flow: Flow): Size {
+  if (section.sections.length === 0) {
+    return { rows: 0, columns: 0 };
+  }
+  const sizes = section.sections.map((child) => sectionSize(child, flow));
+  return {
+    rows: combine(
+      sizes.map((size) => size.rows),
+      flow === 'down',
+    ),
+    columns: combine(
+      sizes.map((size) => size.columns),
+      flow === 'across',
+    ),
+  };
+}
+
 /**
- * The rows and columns a section needs: its own rows on top, with its sub-sections laid out below them
- * in `childFlow`. A section with nothing in it still takes one cell so it can be selected.
+ * The rows and columns a section needs: its own rows on top, its sub-sections below them in `flow`, and
+ * room for the add area (an addable section's dashed "add" button, or an empty header's first row).
  */
-function sectionSize(section: TemplateSection, childFlow: Flow): Size {
+function sectionSize(section: TemplateSection, flow: Flow): Size {
   const ownRows = rowExtent(section);
   const ownColumns = columnExtent(section);
-  const children = section.sections.map((child) => sectionSize(child, childFlow));
+  const children = childExtent(section, flow);
+  const addable = section.role !== 'Header';
 
-  const childRows =
-    children.length > 0
-      ? combine(
-          children.map((size) => size.rows),
-          childFlow === 'down',
-        )
-      : 0;
-  const childColumns =
-    children.length > 0
-      ? combine(
-          children.map((size) => size.columns),
-          childFlow === 'across',
-        )
-      : 0;
-
+  if (flow === 'down') {
+    const content = ownRows + children.rows;
+    return {
+      rows: content + (addable || content === 0 ? 1 : 0),
+      columns: Math.max(1, ownColumns, children.columns),
+    };
+  }
   return {
-    rows: Math.max(1, ownRows + childRows),
-    columns: Math.max(1, ownColumns, childColumns),
+    rows: Math.max(1, ownRows + (addable ? Math.max(children.rows, 1) : children.rows)),
+    columns: Math.max(1, ownColumns, children.columns + (addable ? 1 : 0)),
   };
 }
 

@@ -29,10 +29,12 @@
         ariaLabelledBy="template-orientation-label"
       />
       <span class="hint">
-        @if (template.orientation === 'Horizontal') {
-          The header runs across the top; sections added on the sheet stack below it.
+        @if (template.orientation === 'Vertical') {
+          Sections are added top to bottom: the header first, then each section below it, and
+          sub-sections below their section.
         } @else {
-          The header runs down the left; sections added on the sheet sit to its right.
+          Sections are added left to right: the header first, then each section beside it, and
+          sub-sections beside each other inside their section.
         }
       </span>
     </div>

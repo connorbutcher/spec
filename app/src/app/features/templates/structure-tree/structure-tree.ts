@@ -1,5 +1,6 @@
 import { Component, computed, inject } from '@angular/core';
 import { TreeNode } from 'primeng/api';
+import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
 import { TreeModule, TreeNodeSelectEvent } from 'primeng/tree';
 import { TemplateSection } from '../models/template-section.model';
@@ -9,21 +10,25 @@ import { describeInstances, instanceTag, isHeader } from '../section-role.util';
 import { topLevelOrder } from '../template-layout.util';
 import { TemplatesStore } from '../templates.store';
 
+/** A node of the tree: the table, a section, or an "add" entry for the section named in `data`. */
+type StructureNode = TreeNode<TemplateSection | null>;
+
 /** The key of the tree's root node, which stands for the table itself. */
 const TABLE_KEY = 'table';
 
 /**
  * The table's structure as a tree: the table, its header, its addable sections and the sub-sections
- * inside them. Tags show how each can be added on a sheet. Selecting a node opens its settings.
+ * inside them. Tags show how each is added on a sheet. Every addable section ends with a
+ * "+ Add sub-section" entry, and the table ends with "+ Add section". Selecting a node opens its settings.
  */
 @Component({
   selector: 'app-structure-tree',
-  imports: [TagModule, TreeModule],
+  imports: [ButtonModule, TagModule, TreeModule],
   templateUrl: './structure-tree.html',
   styleUrl: './structure-tree.scss',
 })
 export class StructureTree {
-  public readonly nodes = computed<TreeNode<TemplateSection | null>[]>(() => {
+  public readonly nodes = computed<StructureNode[]>(() => {
     const template = this.store.template();
     if (!template) {
       return [];
@@ -34,13 +39,16 @@ export class StructureTree {
         label: template.name,
         data: null,
         expanded: true,
-        children: this.sectionNodes(topLevelOrder(template.sections)),
+        children: [
+          ...this.sectionNodes(topLevelOrder(template.sections)),
+          this.addNode(null, 'Add section'),
+        ],
       },
     ];
   });
 
   /** The node for what the panel is showing, as the same object the tree renders. */
-  public readonly selected = computed<TreeNode<TemplateSection | null> | null>(() => {
+  public readonly selected = computed<StructureNode | null>(() => {
     const current = this.navigator.current();
     const key =
       current.kind === 'section'
@@ -55,7 +63,7 @@ export class StructureTree {
   private readonly navigator = inject(PanelNavigator);
 
   public open(event: TreeNodeSelectEvent): void {
-    const node = event.node as TreeNode<TemplateSection | null>;
+    const node = event.node as StructureNode;
     if (node.data) {
       this.navigator.open({ kind: 'section', id: node.data.id });
     } else {
@@ -63,36 +71,65 @@ export class StructureTree {
     }
   }
 
-  public icon(node: TreeNode<TemplateSection | null>): string {
+  /** Adds an addable section (under the table) or a sub-section (under the section the node is for). */
+  public async add(node: StructureNode): Promise<void> {
+    const id = await this.store.addSection(node.data?.id ?? null);
+    if (id !== null) {
+      this.navigator.open({ kind: 'section', id });
+    }
+  }
+
+  public isAdd(node: StructureNode): boolean {
+    return node.type === 'add';
+  }
+
+  public isBusy(): boolean {
+    return this.store.isSaving() || !this.store.canEdit();
+  }
+
+  public icon(node: StructureNode): string {
     return node.data ? sectionIcon(node.data) : 'pi-table';
   }
 
-  public tag(node: TreeNode<TemplateSection | null>): string {
+  public tag(node: StructureNode): string {
     return node.data ? instanceTag(node.data) : '';
   }
 
-  public isAddable(node: TreeNode<TemplateSection | null>): boolean {
+  public isAddable(node: StructureNode): boolean {
     return node.data ? !isHeader(node.data) : false;
   }
 
-  public hint(node: TreeNode<TemplateSection | null>): string {
+  public hint(node: StructureNode): string {
     return node.data ? `${describeInstances(node.data)} · ${sectionContents(node.data)}` : '';
   }
 
-  private sectionNodes(sections: TemplateSection[]): TreeNode<TemplateSection | null>[] {
+  private sectionNodes(sections: TemplateSection[]): StructureNode[] {
     return sections.map((section) => ({
       key: String(section.id),
       label: section.name,
       data: section,
       expanded: true,
-      children: this.sectionNodes(section.sections),
+      children: [
+        ...this.sectionNodes(section.sections),
+        // The header holds rows only; every addable section can have sub-sections.
+        ...(isHeader(section) ? [] : [this.addNode(section, 'Add sub-section')]),
+      ],
     }));
   }
 
-  private find(
-    nodes: TreeNode<TemplateSection | null>[],
-    key: string,
-  ): TreeNode<TemplateSection | null> | undefined {
+  /** An entry that adds under `parent` (null for the table itself). Not selectable: it only adds. */
+  private addNode(parent: TemplateSection | null, label: string): StructureNode {
+    return {
+      key: `add:${parent?.id ?? TABLE_KEY}`,
+      label,
+      type: 'add',
+      data: parent,
+      selectable: false,
+      leaf: true,
+    };
+  }
+
+  private find(nodes: StructureNode[], key: string): StructureNode | undefined {
     for (const node of nodes) {
       if (node.key === key) {
         return node;

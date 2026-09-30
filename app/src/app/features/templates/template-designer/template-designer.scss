@@ -9,6 +9,41 @@
   height: 100%;
   min-height: 0;
 
+  .tabbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px 0;
+
+    .tabs {
+      flex: 1;
+      min-width: 0;
+      --p-tabs-tab-padding: 0.35rem 0.6rem;
+      --p-tabs-tab-font-size: 0.78rem;
+    }
+  }
+
+  .tab-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+
+    .pi {
+      font-size: 0.7rem;
+    }
+
+    ::ng-deep .tab-tag {
+      padding: 0 4px;
+      font-size: 0.62rem;
+    }
+  }
+
+  .intro {
+    display: block;
+    margin: 6px 8px 0;
+    font-size: 0.75rem;
+  }
+
   .structure {
     display: block;
     margin: 6px 8px 0;

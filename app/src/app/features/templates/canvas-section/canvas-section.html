@@ -1,20 +1,43 @@
-@for (child of layout().children; track child.section.id) {
-  <app-canvas-section [layout]="child" />
-}
-
 @for (cell of layout().cells; track cell.cell.id) {
   <app-canvas-cell [layout]="cell" />
 }
 
-@if (layout().emptyStyle; as emptyStyle) {
-  <button
-    type="button"
-    class="empty"
-    [style]="emptyStyle"
-    [attr.aria-label]="layout().section.name + ' is empty. Open its settings.'"
-    (click)="open()"
+@for (child of layout().children; track child.section.id) {
+  <app-canvas-section [layout]="child" />
+}
+
+@if (layout().addAreaStyle; as areaStyle) {
+  <div
+    class="add-area"
+    [style]="areaStyle"
+    [attr.aria-label]="'Add to ' + layout().section.name"
     (contextmenu)="openMenu($event)"
   >
-    {{ layout().section.name }}: empty. Right-click to add a row or section.
-  </button>
+    @if (hasNoRows()) {
+      <p-button
+        icon="pi pi-plus"
+        label="Add row"
+        size="small"
+        severity="secondary"
+        [outlined]="true"
+        styleClass="dashed"
+        [disabled]="isBusy()"
+        (onClick)="addRow()"
+      />
+    }
+    @if (canAddSubSection()) {
+      <p-button
+        icon="pi pi-plus"
+        label="Add sub-section"
+        size="small"
+        severity="secondary"
+        [outlined]="true"
+        styleClass="dashed"
+        [pTooltip]="tooltip()"
+        tooltipPosition="top"
+        [disabled]="isBusy()"
+        (onClick)="addSubSection()"
+      />
+    }
+  </div>
 }

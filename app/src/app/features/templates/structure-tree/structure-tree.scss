@@ -33,3 +33,12 @@
     font-size: 0.62rem;
   }
 }
+
+// The dashed "+ Add ..." entry at the end of a section's children.
+.add-node {
+  ::ng-deep .p-button {
+    padding: 0 0.3rem;
+    border: 1px dashed #94a3b8;
+    font-size: 0.72rem;
+  }
+}

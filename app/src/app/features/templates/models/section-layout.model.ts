@@ -7,8 +7,11 @@ export interface SectionLayout {
   section: TemplateSection;
   isLeaf: boolean;
   style: GridStyle;
-  /** Placement of the "empty section" filler for a leaf section without cells, otherwise null. */
-  emptyStyle: GridStyle | null;
+  /**
+   * Placement of the dashed "add" area: after an addable section's sub-sections, or an empty header's
+   * first row. Null for a header that already has rows.
+   */
+  addAreaStyle: GridStyle | null;
   children: SectionLayout[];
   cells: CellLayout[];
 }
