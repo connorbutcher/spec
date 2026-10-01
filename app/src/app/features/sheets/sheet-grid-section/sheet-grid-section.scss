@@ -35,3 +35,19 @@
   top: 2px;
   z-index: 5;
 }
+
+// A group is boxed in: a heavy bar down its left edge and a boundary around it and all it holds.
+:host(.group)::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border: 1px solid #64748b;
+  border-left: 5px solid #475569;
+  pointer-events: none;
+}
+
+:host(.group.nested)::before {
+  border-color: #94a3b8;
+  border-left-color: #64748b;
+}

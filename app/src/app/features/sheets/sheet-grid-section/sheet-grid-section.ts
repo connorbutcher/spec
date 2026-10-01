@@ -19,6 +19,8 @@ import { SheetStore } from '../sheet.store';
   host: {
     '[style]': 'hostStyle()',
     '[class.selected]': 'isSelected()',
+    '[class.group]': 'isGroup()',
+    '[class.nested]': 'isNested()',
     '(click)': 'select($event)',
   },
 })
@@ -37,6 +39,20 @@ export class SheetGridSection {
 
   public readonly tableId = computed(
     () => this.store.index().sectionTable.get(this.layout().section.id) ?? -1,
+  );
+
+  /** A group holds other sections; it gets a bar and boundary around it and everything inside. */
+  public readonly isGroup = computed(() => {
+    const section = this.sheetSection();
+    return (
+      section !== null &&
+      section.role !== 'Header' &&
+      (section.sections.length > 0 || section.addableSections.length > 0)
+    );
+  });
+
+  public readonly isNested = computed(
+    () => sectionAncestors(this.store.index(), this.layout().section.id).length > 0,
   );
 
   /** Whether the group offers an add control: it can take sections and the sheet is live. */

@@ -24,16 +24,20 @@
   border-bottom-color: #94a3b8;
 }
 
+:host([data-tone^='group']) {
+  font-weight: 600;
+}
+
 :host([data-tone='group-0']) {
-  background-color: #e9eef5;
+  background-color: #dbe3ee;
 }
 
 :host([data-tone='group-1']) {
-  background-color: #f0f4f9;
+  background-color: #e6ecf4;
 }
 
 :host([data-tone='group-2']) {
-  background-color: #f6f8fb;
+  background-color: #eff3f8;
 }
 
 // The row the user is editing, and a row someone else is editing, are tinted quietly.

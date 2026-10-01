@@ -52,6 +52,9 @@ export class SheetActionBar {
     }));
   });
 
+  /** A section with one row is removed as a whole; separate row actions only exist when it has several. */
+  public readonly hasSeveralRows = computed(() => (this.section()?.rows.length ?? 0) > 1);
+
   public readonly isHeader = computed(() => this.section()?.role === 'Header');
 
   public readonly canMoveSectionUp = computed(() => {
