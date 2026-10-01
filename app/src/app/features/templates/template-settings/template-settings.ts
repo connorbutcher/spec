@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectButtonChangeEvent, SelectButtonModule } from 'primeng/selectbutton';
+import { columnBlockLinks } from '../column-block-links.util';
 import { ConfirmDeleteButton } from '../confirm-delete-button/confirm-delete-button';
 import { PanelLinkItem } from '../models/panel-link-item.model';
 import { TableTemplate } from '../models/table-template.model';
@@ -13,7 +14,10 @@ import { sectionLinks } from '../section-links.util';
 import { topLevelOrder } from '../template-layout.util';
 import { TemplatesStore } from '../templates.store';
 
-/** Panel page for the open table: its name, orientation, version and top-level sections. */
+/**
+ * Panel page for the open table: its name, orientation, version, top-level sections and, for a
+ * horizontal table, its column blocks.
+ */
 @Component({
   selector: 'app-template-settings',
   imports: [
@@ -34,6 +38,8 @@ export class TemplateSettings {
     sectionLinks(topLevelOrder(this.template()?.sections ?? [])),
   );
 
+  public readonly columnBlocks = computed<PanelLinkItem[]>(() => columnBlockLinks(this.template()));
+
   public readonly orientations = [
     { label: 'Horizontal', value: 'Horizontal' },
     { label: 'Vertical', value: 'Vertical' },
@@ -41,6 +47,11 @@ export class TemplateSettings {
 
   private readonly store = inject(TemplatesStore);
   private readonly navigator = inject(PanelNavigator);
+
+  /** Only horizontal tables have column blocks. */
+  public isHorizontal(): boolean {
+    return this.template()?.orientation === 'Horizontal';
+  }
 
   public isSaving(): boolean {
     return this.store.isSaving();
@@ -71,6 +82,13 @@ export class TemplateSettings {
     const id = await this.store.addSection(null);
     if (id !== null) {
       this.navigator.open({ kind: 'section', id });
+    }
+  }
+
+  public async addColumnBlock(): Promise<void> {
+    const id = await this.store.addColumnBlock();
+    if (id !== null) {
+      this.navigator.open({ kind: 'columnBlock', id });
     }
   }
 

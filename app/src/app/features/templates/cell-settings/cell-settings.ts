@@ -82,6 +82,14 @@ export class CellSettings {
     () => this.configurationOverride() !== null || this.entry()?.cell.styleOverride != null,
   );
 
+  /** The name of the column block the cell is in, or null for one of the row's own cells. */
+  public readonly blockName = computed<string | null>(() => {
+    const blockId = this.entry()?.cell.columnBlockId ?? null;
+    return blockId === null
+      ? null
+      : (this.store.index().columnBlocks.get(blockId)?.block.name ?? null);
+  });
+
   private readonly store = inject(TemplatesStore);
   private readonly navigator = inject(PanelNavigator);
 

@@ -8,5 +8,8 @@
   @for (section of layout().sections; track section.section.id) {
     <app-canvas-section [layout]="section" />
   }
+  @for (block of layout().columnBlocks; track block.block.id) {
+    <app-canvas-column-block [layout]="block" />
+  }
 </div>
 <p-contextmenu [model]="menu.items()" appendTo="body" />

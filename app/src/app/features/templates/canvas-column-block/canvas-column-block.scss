@@ -1,0 +1,29 @@
+// A frame over the block's columns that never catches the pointer, so the cells below stay clickable.
+:host {
+  position: relative;
+  z-index: 5;
+  outline: 1px dashed #9ca3af;
+  outline-offset: -1px;
+  pointer-events: none;
+}
+
+:host(.selected) {
+  outline: 2px solid var(--app-navy);
+  outline-offset: -2px;
+}
+
+.name {
+  position: absolute;
+  top: -1px;
+  right: -1px;
+  padding: 0 4px;
+  background: #f3f4f6;
+  color: #6b7280;
+  font-size: 0.65rem;
+  line-height: 14px;
+}
+
+:host(.selected) .name {
+  background: var(--app-navy);
+  color: #fff;
+}

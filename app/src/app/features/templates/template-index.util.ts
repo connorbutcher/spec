@@ -1,13 +1,15 @@
 import { CellEntry } from './models/cell-entry.model';
+import { ColumnBlockEntry } from './models/column-block-entry.model';
 import { RowEntry } from './models/row-entry.model';
 import { SectionEntry } from './models/section-entry.model';
 import { TableTemplate } from './models/table-template.model';
 import { TemplateIndex } from './models/template-index.model';
 import { TemplateSection } from './models/template-section.model';
 
-/** Indexes every section, row and cell of a template by id. */
+/** Indexes every section, column block, row and cell of a template by id. */
 export function buildTemplateIndex(template: TableTemplate | null): TemplateIndex {
   const sections = new Map<number, SectionEntry>();
+  const columnBlocks = new Map<number, ColumnBlockEntry>();
   const rows = new Map<number, RowEntry>();
   const cells = new Map<number, CellEntry>();
 
@@ -26,7 +28,10 @@ export function buildTemplateIndex(template: TableTemplate | null): TemplateInde
   };
 
   visit(template?.sections ?? [], []);
-  return { sections, rows, cells };
+  [...(template?.columnBlocks ?? [])]
+    .sort((a, b) => a.displayOrder - b.displayOrder)
+    .forEach((block, index) => columnBlocks.set(block.id, { block, number: index + 1 }));
+  return { sections, columnBlocks, rows, cells };
 }
 
 /** The ids in `after` that aren't in `before`, used to find what a create call added. */

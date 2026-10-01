@@ -14,6 +14,7 @@ import { TemplateLayout } from './models/template-layout.model';
 import { TemplateOrientation } from './models/template-orientation';
 import { UpdateTemplateCellOverridesRequest } from './models/update-template-cell-overrides-request.model';
 import { UpdateTemplateCellRequest } from './models/update-template-cell-request.model';
+import { UpdateTemplateColumnBlockRequest } from './models/update-template-column-block-request.model';
 import { UpdateTemplateSectionRequest } from './models/update-template-section-request.model';
 import { findRouteParam } from './route-param.util';
 import { addedIds, buildTemplateIndex } from './template-index.util';
@@ -268,6 +269,50 @@ export class TemplatesStore {
     return (await this.changeTemplate(() => this.api.deleteSection(id))) !== null;
   }
 
+  /** Adds a column block after the others (horizontal tables only). Returns the new block's id. */
+  public async addColumnBlock(): Promise<number | null> {
+    const template = this.template();
+    if (!template) {
+      return null;
+    }
+    const name = nextName(
+      'Column block',
+      template.columnBlocks.map((block) => block.name),
+      true,
+    );
+    return this.changeTemplate(
+      () => this.api.createColumnBlock(template.versionId, name),
+      'columnBlocks',
+    );
+  }
+
+  /** Changes some of a column block's settings, keeping the rest. */
+  public async updateColumnBlock(
+    id: number,
+    changes: Partial<UpdateTemplateColumnBlockRequest>,
+  ): Promise<void> {
+    const block = this.index().columnBlocks.get(id)?.block;
+    if (!block) {
+      return;
+    }
+    const request: UpdateTemplateColumnBlockRequest = {
+      name: block.name,
+      minInstances: block.minInstances,
+      maxInstances: block.maxInstances,
+      initialInstances: block.initialInstances,
+      ...changes,
+    };
+    await this.changeTemplate(() => this.api.updateColumnBlock(id, request));
+  }
+
+  public async moveColumnBlock(id: number, position: number): Promise<void> {
+    await this.changeTemplate(() => this.api.moveColumnBlock(id, position));
+  }
+
+  public async deleteColumnBlock(id: number): Promise<boolean> {
+    return (await this.changeTemplate(() => this.api.deleteColumnBlock(id))) !== null;
+  }
+
   /**
    * Adds a row to a section at 1-based `position` (default: the end), copying the columns of
    * `copyFromRowId` (default: the last row). Returns the new row's id.
@@ -293,10 +338,14 @@ export class TemplatesStore {
 
   /**
    * Adds a cell to a row at `column`, moving the cells from there on one column along (default: after
-   * the last cell). Returns the new cell's id.
+   * the last cell), among the row's own cells or a column block's. Returns the new cell's id.
    */
-  public async addCell(rowId: number, column: number | null = null): Promise<number | null> {
-    return this.changeTemplate(() => this.api.createCell(rowId, column), 'cells');
+  public async addCell(
+    rowId: number,
+    column: number | null = null,
+    columnBlockId: number | null = null,
+  ): Promise<number | null> {
+    return this.changeTemplate(() => this.api.createCell(rowId, column, columnBlockId), 'cells');
   }
 
   /** Changes some of a cell's settings, keeping the rest. */
@@ -408,7 +457,7 @@ export class TemplatesStore {
 
   /**
    * Runs a template change and swaps in the returned template. With `added`, returns the id of the
-   * section, row or cell the change created; otherwise returns 0 on success. Null means it failed.
+   * section, column block, row or cell the change created; otherwise returns 0 on success. Null means it failed.
    */
   private async changeTemplate(
     change: () => Promise<TableTemplate>,

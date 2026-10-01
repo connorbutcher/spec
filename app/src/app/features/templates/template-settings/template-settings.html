@@ -46,6 +46,28 @@
       />
     </div>
 
+    @if (isHorizontal()) {
+      <h3 class="group-title">Column blocks</h3>
+      <app-panel-link-list
+        [items]="columnBlocks()"
+        emptyText="No column blocks yet."
+        ariaLabel="Column blocks"
+      />
+      <div class="actions">
+        <p-button
+          icon="pi pi-plus"
+          label="Add column block"
+          size="small"
+          [outlined]="true"
+          [disabled]="isSaving() || !canEdit()"
+          (onClick)="addColumnBlock()"
+        />
+      </div>
+      <p class="note">
+        People add copies of each block across the sheet. Every row has cells in every copy.
+      </p>
+    }
+
     <div class="danger-zone">
       <app-confirm-delete-button
         label="Delete table"

@@ -6,6 +6,7 @@ import { SaveCellTypeRequest } from './models/save-cell-type-request.model';
 import { TableTemplate } from './models/table-template.model';
 import { TemplateOrientation } from './models/template-orientation';
 import { UpdateTemplateCellOverridesRequest } from './models/update-template-cell-overrides-request.model';
+import { UpdateTemplateColumnBlockRequest } from './models/update-template-column-block-request.model';
 import { UpdateTemplateCellRequest } from './models/update-template-cell-request.model';
 import { UpdateTemplateSectionRequest } from './models/update-template-section-request.model';
 
@@ -76,6 +77,36 @@ export class TemplatesApi {
     return firstValueFrom(this.http.delete<TableTemplate>(`/api/template-sections/${id}`));
   }
 
+  /** Adds a column block after the others; every row gets one cell in it. */
+  public createColumnBlock(tableTemplateVersionId: number, name: string): Promise<TableTemplate> {
+    return firstValueFrom(
+      this.http.post<TableTemplate>('/api/template-column-blocks', {
+        tableTemplateVersionId,
+        name,
+      }),
+    );
+  }
+
+  public updateColumnBlock(
+    id: number,
+    request: UpdateTemplateColumnBlockRequest,
+  ): Promise<TableTemplate> {
+    return firstValueFrom(
+      this.http.put<TableTemplate>(`/api/template-column-blocks/${id}`, request),
+    );
+  }
+
+  public moveColumnBlock(id: number, displayOrder: number): Promise<TableTemplate> {
+    return firstValueFrom(
+      this.http.post<TableTemplate>(`/api/template-column-blocks/${id}/move`, { displayOrder }),
+    );
+  }
+
+  /** Deletes a column block with its cells in every row. */
+  public deleteColumnBlock(id: number): Promise<TableTemplate> {
+    return firstValueFrom(this.http.delete<TableTemplate>(`/api/template-column-blocks/${id}`));
+  }
+
   /**
    * Adds a row at 1-based `position` (or the end), copying the columns of `copyFromRowId` (or the
    * section's last row).
@@ -104,13 +135,21 @@ export class TemplatesApi {
     return firstValueFrom(this.http.delete<TableTemplate>(`/api/template-rows/${id}`));
   }
 
-  /** Adds a cell at `column` (moving the rest right), or after the row's last cell when null. */
-  public createCell(templateRowId: number, column: number | null): Promise<TableTemplate> {
+  /**
+   * Adds a cell at `column` (moving the rest right), or after the last one when null, among the row's
+   * own cells or, with `columnBlockId`, that block's cells in the row.
+   */
+  public createCell(
+    templateRowId: number,
+    column: number | null,
+    columnBlockId: number | null,
+  ): Promise<TableTemplate> {
     return firstValueFrom(
       this.http.post<TableTemplate>('/api/template-cells', {
         templateRowId,
         cellTypeId: null,
         column,
+        templateColumnBlockId: columnBlockId,
       }),
     );
   }

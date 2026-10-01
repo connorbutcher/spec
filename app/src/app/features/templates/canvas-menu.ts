@@ -59,6 +59,16 @@ export class CanvasMenu {
         disabled: !this.store.canEdit(),
         command: () => void this.addSection(null),
       },
+      ...(this.store.template()?.orientation === 'Horizontal'
+        ? [
+            {
+              label: 'Add column block',
+              icon: 'pi pi-pause',
+              disabled: !this.store.canEdit(),
+              command: () => void this.addColumnBlock(),
+            },
+          ]
+        : []),
     ]);
   }
 
@@ -74,6 +84,10 @@ export class CanvasMenu {
     const { cell, row } = entry;
     const locked = !this.store.canEdit();
     const section = this.store.index().sections.get(row.section.id);
+    const block =
+      cell.columnBlockId === null
+        ? undefined
+        : this.store.index().columnBlocks.get(cell.columnBlockId);
 
     return [
       {
@@ -86,6 +100,15 @@ export class CanvasMenu {
         icon: 'pi pi-bars',
         command: () => this.open({ kind: 'row', id: row.row.id }),
       },
+      ...(block
+        ? [
+            {
+              label: `${block.block.name} settings`,
+              icon: 'pi pi-pause',
+              command: () => this.open({ kind: 'columnBlock', id: block.block.id }),
+            },
+          ]
+        : []),
       { separator: true },
       // Rows always run across the page and cells sit side by side in them, whatever the orientation.
       {
@@ -104,13 +127,14 @@ export class CanvasMenu {
         label: 'Insert cell to the left',
         icon: 'pi pi-arrow-left',
         disabled: locked,
-        command: () => void this.addCell(row.row.id, cell.column),
+        command: () => void this.addCell(row.row.id, cell.column, cell.columnBlockId),
       },
       {
         label: 'Insert cell to the right',
         icon: 'pi pi-arrow-right',
         disabled: locked,
-        command: () => void this.addCell(row.row.id, cell.column + cell.columnSpan),
+        command: () =>
+          void this.addCell(row.row.id, cell.column + cell.columnSpan, cell.columnBlockId),
       },
       { separator: true },
       ...(section
@@ -215,10 +239,21 @@ export class CanvasMenu {
     }
   }
 
-  private async addCell(rowId: number, column: number): Promise<void> {
-    const id = await this.store.addCell(rowId, column);
+  private async addCell(
+    rowId: number,
+    column: number,
+    columnBlockId: number | null,
+  ): Promise<void> {
+    const id = await this.store.addCell(rowId, column, columnBlockId);
     if (id !== null) {
       this.navigator.open({ kind: 'cell', id });
+    }
+  }
+
+  private async addColumnBlock(): Promise<void> {
+    const id = await this.store.addColumnBlock();
+    if (id !== null) {
+      this.navigator.open({ kind: 'columnBlock', id });
     }
   }
 

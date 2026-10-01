@@ -4,6 +4,7 @@ import { MessageModule } from 'primeng/message';
 import { CellSettings } from '../cell-settings/cell-settings';
 import { CellTypeList } from '../cell-type-list/cell-type-list';
 import { CellTypeSettings } from '../cell-type-settings/cell-type-settings';
+import { ColumnBlockSettings } from '../column-block-settings/column-block-settings';
 import { PanelCrumb } from '../models/panel-crumb.model';
 import { PanelRef } from '../models/panel-ref';
 import { panelCrumbs } from '../panel-crumbs.util';
@@ -17,6 +18,7 @@ import { TemplatesStore } from '../templates.store';
 const TITLES: Readonly<Record<PanelRef['kind'], string>> = {
   template: 'Table',
   section: 'Section',
+  columnBlock: 'Column block',
   row: 'Row',
   cell: 'Cell',
   cellTypes: 'Cell types',
@@ -35,6 +37,7 @@ const TITLES: Readonly<Record<PanelRef['kind'], string>> = {
     CellSettings,
     CellTypeList,
     CellTypeSettings,
+    ColumnBlockSettings,
     PanelBreadcrumb,
     RowSettings,
     SectionSettings,

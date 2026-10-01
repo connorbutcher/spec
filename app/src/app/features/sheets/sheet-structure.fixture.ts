@@ -21,6 +21,7 @@ export function fixtureCell(column: number, columnSpan = 1): SheetCell {
       isRequired: false,
       configurationOverride: null,
       styleOverride: null,
+      columnBlockId: null,
     },
     textValue: null,
     numberValue: null,

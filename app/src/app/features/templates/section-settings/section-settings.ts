@@ -2,6 +2,8 @@ import { Component, computed, inject, input } from '@angular/core';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { ConfirmDeleteButton } from '../confirm-delete-button/confirm-delete-button';
+import { withCount } from '../instance-counts.util';
+import { InstanceField } from '../models/instance-field';
 import { PanelLinkItem } from '../models/panel-link-item.model';
 import { PanelRef } from '../models/panel-ref';
 import { SectionEntry } from '../models/section-entry.model';
@@ -13,8 +15,6 @@ import { PanelNavigator } from '../panel-navigator';
 import { plural, sectionLinks } from '../section-links.util';
 import { isHeader, sectionNoun } from '../section-role.util';
 import { TemplatesStore } from '../templates.store';
-
-type InstanceField = 'minInstances' | 'maxInstances' | 'initialInstances';
 
 /**
  * Panel page for a section: its name, how it's added on a sheet, its own rows and its sub-sections. The
@@ -101,20 +101,7 @@ export class SectionSettings {
     if (!section) {
       return;
     }
-    const counts = {
-      minInstances: section.minInstances,
-      maxInstances: section.maxInstances,
-      initialInstances: section.initialInstances,
-      [field]: field === 'maxInstances' ? value : (value ?? 0),
-    };
-    if (field === 'minInstances') {
-      counts.initialInstances = Math.max(counts.initialInstances, counts.minInstances);
-    }
-    if (counts.maxInstances !== null) {
-      counts.initialInstances = Math.min(counts.initialInstances, counts.maxInstances);
-      counts.minInstances = Math.min(counts.minInstances, counts.initialInstances);
-    }
-    void this.save(counts);
+    void this.save(withCount(section, field, value));
   }
 
   public move(position: number): void {

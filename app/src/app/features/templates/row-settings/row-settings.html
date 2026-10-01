@@ -28,8 +28,18 @@
         [disabled]="isSaving() || !canEdit()"
         (onClick)="addCell()"
       />
+      @for (block of columnBlocks(); track block.id) {
+        <p-button
+          icon="pi pi-plus"
+          [label]="'Add cell to ' + block.name"
+          size="small"
+          [outlined]="true"
+          [disabled]="isSaving() || !canEdit()"
+          (onClick)="addCell(block.id)"
+        />
+      }
     </div>
-    <p class="note">New cells go after the last cell in the row.</p>
+    <p class="note">New cells go after the last cell in the row, or in the column block.</p>
 
     <div class="danger-zone">
       <app-confirm-delete-button

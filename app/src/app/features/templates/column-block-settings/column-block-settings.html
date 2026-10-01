@@ -1,0 +1,84 @@
+@if (entry(); as entry) {
+  <div class="fields">
+    <div class="field">
+      <label for="column-block-name">Column block name</label>
+      <input
+        #nameInput
+        pInputText
+        pSize="small"
+        id="column-block-name"
+        type="text"
+        maxlength="100"
+        [value]="entry.block.name"
+        [disabled]="!canEdit()"
+        (change)="rename(nameInput)"
+      />
+    </div>
+
+    <div class="field">
+      <span class="label">Order, left to right</span>
+      <app-move-buttons
+        noun="column block"
+        [position]="entry.number"
+        [count]="blockCount()"
+        [disabled]="isSaving() || !canEdit()"
+        (moved)="move($event)"
+      />
+    </div>
+
+    <h3 class="group-title">Added on the sheet</h3>
+    <div class="inline">
+      <div class="field">
+        <label for="column-block-min">Fewest</label>
+        <app-number-field
+          inputId="column-block-min"
+          [value]="entry.block.minInstances"
+          [min]="0"
+          [max]="1000"
+          [disabled]="isSaving() || !canEdit()"
+          (committed)="setCount('minInstances', $event)"
+        />
+      </div>
+      <div class="field">
+        <label for="column-block-initial">Starts with</label>
+        <app-number-field
+          inputId="column-block-initial"
+          [value]="entry.block.initialInstances"
+          [min]="0"
+          [max]="1000"
+          [disabled]="isSaving() || !canEdit()"
+          (committed)="setCount('initialInstances', $event)"
+        />
+      </div>
+      <div class="field">
+        <label for="column-block-max">Most</label>
+        <app-number-field
+          inputId="column-block-max"
+          [value]="entry.block.maxInstances"
+          [min]="1"
+          [max]="1000"
+          [allowEmpty]="true"
+          placeholder="No limit"
+          [disabled]="isSaving() || !canEdit()"
+          (committed)="setCount('maxInstances', $event)"
+        />
+      </div>
+    </div>
+
+    <h3 class="group-title">Cells</h3>
+    <p class="note">{{ cellSummary() }}</p>
+    <p class="note">
+      Each row has its own cells for this block, and every copy on a sheet runs through every row.
+      Add or change them from a row, or right-click a cell in the block.
+    </p>
+
+    <div class="danger-zone">
+      <app-confirm-delete-button
+        label="Delete column block"
+        warning="Its cells in every row go too."
+        [disabled]="isSaving() || !canEdit()"
+        (confirmed)="delete()"
+      />
+    </div>
+  </div>
+}

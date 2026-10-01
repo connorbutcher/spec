@@ -1,10 +1,11 @@
+import { TemplateColumnBlock } from './template-column-block.model';
 import { TemplateOrientation } from './template-orientation';
 import { TemplateSection } from './template-section.model';
 import { TemplateVersionSummary } from './template-version-summary.model';
 
 /**
- * A table template at one version, with that version's section tree. Only the latest version, while
- * no sheet uses it, is editable.
+ * A table template at one version, with that version's section tree and column blocks. Only the
+ * latest version, while no sheet uses it, is editable.
  */
 export interface TableTemplate {
   id: number;
@@ -17,4 +18,6 @@ export interface TableTemplate {
   isEditable: boolean;
   versions: TemplateVersionSummary[];
   sections: TemplateSection[];
+  /** Left to right. Only horizontal tables have any. */
+  columnBlocks: TemplateColumnBlock[];
 }

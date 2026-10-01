@@ -15,6 +15,7 @@ function cell(values: Partial<SheetCell> = {}): SheetCell {
       isRequired: false,
       configurationOverride: null,
       styleOverride: null,
+      columnBlockId: null,
     },
     textValue: null,
     numberValue: null,

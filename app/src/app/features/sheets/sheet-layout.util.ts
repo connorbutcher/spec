@@ -22,6 +22,7 @@ export function layoutSheetTable(table: SheetTable): TemplateLayout {
     isEditable: false,
     versions: [],
     sections: table.sections.map((section) => toTemplateSection(section, null)),
+    columnBlocks: [],
   };
   return layoutTemplate(template);
 }

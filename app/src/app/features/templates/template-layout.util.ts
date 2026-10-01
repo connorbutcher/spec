@@ -1,49 +1,35 @@
 import { CellLayout } from './models/cell-layout.model';
+import { ColumnBlockLayout } from './models/column-block-layout.model';
+import { ColumnPlan } from './models/column-plan.model';
 import { GridStyle } from './models/grid-style';
 import { SectionLayout } from './models/section-layout.model';
 import { TableTemplate } from './models/table-template.model';
+import { TemplateCell } from './models/template-cell.model';
+import { TemplateColumnBlock } from './models/template-column-block.model';
 import { TemplateLayout } from './models/template-layout.model';
 import { TemplateSection } from './models/template-section.model';
-
-/** The direction sections are added in: stacked top to bottom, or side by side left to right. */
-type Flow = 'down' | 'across';
-
-interface Size {
-  rows: number;
-  columns: number;
-}
 
 /**
  * Lays a template out as one CSS grid with every section as a nested subgrid. Sections draw nothing
  * themselves; only their rows and cells show. Rows always run across the page and cells sit side by
  * side in them.
  *
- * Orientation is the direction sections are added in, at every level:
- * - Vertical: the header, the addable sections and the sub-sections inside them all stack top to bottom.
- * - Horizontal: they all run left to right.
- *
- * A section's own rows come first, then its sub-sections.
+ * Sections stack top to bottom in both orientations: the header, then the addable sections, each with
+ * its own rows first and its sub-sections below them. A horizontal table's column blocks take the
+ * columns after the rows' own cells, one copy of each, running through every row.
  */
 export function layoutTemplate(template: TableTemplate): TemplateLayout {
-  const flow: Flow = template.orientation === 'Vertical' ? 'down' : 'across';
+  const plan = planColumns(template);
   const sections = topLevelOrder(template.sections);
-  const sizes = sections.map((section) => sectionSize(section, flow));
-
-  const rows = combine(
-    sizes.map((size) => size.rows),
-    flow === 'down',
-  );
-  const columns = combine(
-    sizes.map((size) => size.columns),
-    flow === 'across',
-  );
+  const rows = Math.max(1, sum(sections.map(sectionRows)));
 
   return {
     style: {
       'grid-template-rows': `repeat(${rows}, minmax(30px, auto))`,
-      'grid-template-columns': `repeat(${columns}, minmax(112px, 1fr))`,
+      'grid-template-columns': `repeat(${plan.total}, minmax(112px, 1fr))`,
     },
-    sections: layoutSiblings(sections, flow, 0, rows),
+    sections: layoutSiblings(sections, 0, plan),
+    columnBlocks: template.columnBlocks.map((block) => layoutColumnBlock(block, plan)),
   };
 }
 
@@ -56,41 +42,78 @@ export function topLevelOrder(sections: TemplateSection[]): TemplateSection[] {
 }
 
 /**
- * Places sections one after another in `flow`, each filling the parent the other way. `rowOffset` is
- * how many of the parent's rows its own rows take, and `rows` how many rows the sections share below them.
+ * Shares the columns out: the rows' own cells take the first columns, then each column block takes as
+ * many as its widest row needs (at least one), left to right in block order.
  */
+export function planColumns(template: TableTemplate): ColumnPlan {
+  const cells = allSections(template.sections).flatMap((section) =>
+    section.rows.flatMap((row) => row.cells),
+  );
+  const ownWidth = extent(cells.filter((cell) => cell.columnBlockId === null));
+
+  const blockStarts = new Map<number, number>();
+  const blockWidths = new Map<number, number>();
+  let next = ownWidth + 1;
+  for (const block of [...template.columnBlocks].sort((a, b) => a.displayOrder - b.displayOrder)) {
+    const width = Math.max(1, extent(cells.filter((cell) => cell.columnBlockId === block.id)));
+    blockStarts.set(block.id, next);
+    blockWidths.set(block.id, width);
+    next += width;
+  }
+
+  return { total: Math.max(1, next - 1), blockStarts, blockWidths };
+}
+
+/** The table column a cell starts on: its own column, moved along to its block's columns if it has one. */
+export function tableColumn(cell: TemplateCell, plan: ColumnPlan): number {
+  return cell.columnBlockId === null
+    ? cell.column
+    : (plan.blockStarts.get(cell.columnBlockId) ?? 1) + cell.column - 1;
+}
+
+/** Places sections one under another, below the `rowOffset` rows their parent's own rows take. */
 function layoutSiblings(
   sections: TemplateSection[],
-  flow: Flow,
   rowOffset: number,
-  rows: number,
+  plan: ColumnPlan,
 ): SectionLayout[] {
   let start = 1;
   return sections.map((section) => {
-    const size = sectionSize(section, flow);
-    const style: GridStyle =
-      flow === 'down'
-        ? { 'grid-row': `${rowOffset + start} / span ${size.rows}`, 'grid-column': '1 / -1' }
-        : {
-            'grid-column': `${start} / span ${size.columns}`,
-            'grid-row': `${rowOffset + 1} / span ${rows}`,
-          };
-    start += flow === 'down' ? size.rows : size.columns;
-    return layoutSection(section, style, flow);
+    const rows = sectionRows(section);
+    const style: GridStyle = {
+      'grid-row': `${rowOffset + start} / span ${rows}`,
+      'grid-column': '1 / -1',
+    };
+    start += rows;
+    return layoutSection(section, style, plan);
   });
 }
 
-function layoutSection(section: TemplateSection, style: GridStyle, flow: Flow): SectionLayout {
+function layoutSection(
+  section: TemplateSection,
+  style: GridStyle,
+  plan: ColumnPlan,
+): SectionLayout {
   const ownRows = rowExtent(section);
-  const children = childExtent(section, flow);
+  const childRows = sum(section.sections.map(sectionRows));
 
   return {
     section,
     isLeaf: section.sections.length === 0,
     style,
-    emptyStyle: emptyStyle(ownRows + children.rows),
-    children: layoutSiblings(section.sections, flow, ownRows, children.rows),
-    cells: layoutCells(section),
+    emptyStyle: emptyStyle(ownRows + childRows),
+    children: layoutSiblings(section.sections, ownRows, plan),
+    cells: layoutCells(section, plan),
+  };
+}
+
+function layoutColumnBlock(block: TemplateColumnBlock, plan: ColumnPlan): ColumnBlockLayout {
+  return {
+    block,
+    style: {
+      'grid-row': '1 / -1',
+      'grid-column': `${plan.blockStarts.get(block.id)} / span ${plan.blockWidths.get(block.id)}`,
+    },
   };
 }
 
@@ -102,69 +125,37 @@ function emptyStyle(contentRows: number): GridStyle | null {
   return contentRows === 0 ? { 'grid-row': '1 / -1', 'grid-column': '1 / -1' } : null;
 }
 
-function layoutCells(section: TemplateSection): CellLayout[] {
+function layoutCells(section: TemplateSection, plan: ColumnPlan): CellLayout[] {
   return section.rows.flatMap((row, index) =>
     row.cells.map((cell) => ({
       cell,
       rowId: row.id,
       style: {
         'grid-row': `${index + 1} / span ${cell.rowSpan}`,
-        'grid-column': `${cell.column} / span ${cell.columnSpan}`,
+        'grid-column': `${tableColumn(cell, plan)} / span ${cell.columnSpan}`,
       },
     })),
   );
 }
 
-/** The rows and columns a section's sub-sections take together, laid out in `flow`. */
-function childExtent(section: TemplateSection, flow: Flow): Size {
-  if (section.sections.length === 0) {
-    return { rows: 0, columns: 0 };
-  }
-  const sizes = section.sections.map((child) => sectionSize(child, flow));
-  return {
-    rows: combine(
-      sizes.map((size) => size.rows),
-      flow === 'down',
-    ),
-    columns: combine(
-      sizes.map((size) => size.columns),
-      flow === 'across',
-    ),
-  };
+/** The rows a section needs: its own rows, its sub-sections below them, or one for its placeholder. */
+function sectionRows(section: TemplateSection): number {
+  return Math.max(1, rowExtent(section) + sum(section.sections.map(sectionRows)));
 }
 
-/**
- * The rows and columns a section needs: its own rows on top, its sub-sections below them in `flow`, and
- * a row for the placeholder of a section with nothing in it yet.
- */
-function sectionSize(section: TemplateSection, flow: Flow): Size {
-  const ownRows = rowExtent(section);
-  const children = childExtent(section, flow);
-  const content = ownRows + children.rows;
-
-  return {
-    rows: Math.max(1, content),
-    columns: Math.max(1, columnExtent(section), children.columns),
-  };
-}
-
-/** Sections placed one after another add up; sections alongside each other take the largest. */
-function combine(values: number[], inSequence: boolean): number {
-  return inSequence ? Math.max(1, sum(values)) : Math.max(1, ...values);
-}
-
-/** The last column any cell in the section's own rows reaches. */
-function columnExtent(section: TemplateSection): number {
-  return Math.max(
-    0,
-    ...section.rows.flatMap((row) => row.cells.map((cell) => cell.column + cell.columnSpan - 1)),
-  );
+/** The last column any of `cells` reaches, counted from the first column of the cells' block. */
+function extent(cells: TemplateCell[]): number {
+  return Math.max(0, ...cells.map((cell) => cell.column + cell.columnSpan - 1));
 }
 
 /** The last row any cell in the section's own rows reaches, counting row spans. */
 function rowExtent(section: TemplateSection): number {
   const spans = section.rows.flatMap((row, index) => row.cells.map((cell) => index + cell.rowSpan));
   return Math.max(section.rows.length, ...spans);
+}
+
+function allSections(sections: TemplateSection[]): TemplateSection[] {
+  return sections.flatMap((section) => [section, ...allSections(section.sections)]);
 }
 
 function sum(values: number[]): number {

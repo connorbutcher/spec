@@ -56,6 +56,9 @@
         @case ('section') {
           <app-section-settings [sectionId]="id()" />
         }
+        @case ('columnBlock') {
+          <app-column-block-settings [columnBlockId]="id()" />
+        }
         @case ('row') {
           <app-row-settings [rowId]="id()" />
         }

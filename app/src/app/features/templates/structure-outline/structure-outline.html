@@ -18,20 +18,34 @@
           [text]="true"
           [disabled]="isBusy()"
           [ariaLabel]="'Add sub-section to ' + node.label"
-          (onClick)="add(node.data, $event)"
+          (onClick)="addTo(node, $event)"
         />
       }
     </span>
   </ng-template>
 </p-tree>
 
-<p-button
-  class="add-section"
-  icon="pi pi-plus"
-  label="Add section"
-  size="small"
-  severity="secondary"
-  [text]="true"
-  [disabled]="isBusy()"
-  (onClick)="add(null)"
-/>
+<div class="add-actions">
+  <p-button
+    class="add-section"
+    icon="pi pi-plus"
+    label="Add section"
+    size="small"
+    severity="secondary"
+    [text]="true"
+    [disabled]="isBusy()"
+    (onClick)="add(null)"
+  />
+  @if (isHorizontal()) {
+    <p-button
+      class="add-section"
+      icon="pi pi-plus"
+      label="Add column block"
+      size="small"
+      severity="secondary"
+      [text]="true"
+      [disabled]="isBusy()"
+      (onClick)="addColumnBlock()"
+    />
+  }
+</div>

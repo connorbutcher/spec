@@ -5,12 +5,16 @@ import { cellKindInfo } from '../models/cell-kinds';
 import { PanelLinkItem } from '../models/panel-link-item.model';
 import { RowEntry } from '../models/row-entry.model';
 import { TemplateCell } from '../models/template-cell.model';
+import { TemplateColumnBlock } from '../models/template-column-block.model';
 import { MoveButtons } from '../move-buttons/move-buttons';
 import { PanelLinkList } from '../panel-link-list/panel-link-list';
 import { PanelNavigator } from '../panel-navigator';
 import { TemplatesStore } from '../templates.store';
 
-/** Panel page for a row: where it sits in its section and its cells. */
+/**
+ * Panel page for a row: where it sits in its section and its cells, the row's own first and then, in a
+ * horizontal table, its cells in each column block.
+ */
 @Component({
   selector: 'app-row-settings',
   imports: [ButtonModule, ConfirmDeleteButton, MoveButtons, PanelLinkList],
@@ -24,8 +28,23 @@ export class RowSettings {
     this.store.index().rows.get(this.rowId()),
   );
 
-  public readonly cells = computed<PanelLinkItem[]>(() =>
-    (this.entry()?.row.cells ?? []).map((cell) => this.cellLink(cell)),
+  public readonly cells = computed<PanelLinkItem[]>(() => {
+    const order = new Map(this.columnBlocks().map((block, index) => [block.id, index + 1]));
+    return [...(this.entry()?.row.cells ?? [])]
+      .sort(
+        (a, b) =>
+          (a.columnBlockId === null ? 0 : (order.get(a.columnBlockId) ?? 0)) -
+            (b.columnBlockId === null ? 0 : (order.get(b.columnBlockId) ?? 0)) ||
+          a.column - b.column,
+      )
+      .map((cell) => this.cellLink(cell));
+  });
+
+  /** The table's column blocks, left to right; each can take cells in this row. */
+  public readonly columnBlocks = computed<TemplateColumnBlock[]>(() =>
+    [...this.store.index().columnBlocks.values()]
+      .sort((a, b) => a.number - b.number)
+      .map((entry) => entry.block),
   );
 
   private readonly store = inject(TemplatesStore);
@@ -43,8 +62,9 @@ export class RowSettings {
     void this.store.moveRow(this.rowId(), position);
   }
 
-  public async addCell(): Promise<void> {
-    const id = await this.store.addCell(this.rowId());
+  /** Adds a cell after the last of the row's own cells, or of a column block's cells with its id. */
+  public async addCell(columnBlockId: number | null = null): Promise<void> {
+    const id = await this.store.addCell(this.rowId(), null, columnBlockId);
     if (id !== null) {
       this.navigator.open({ kind: 'cell', id });
     }
@@ -64,11 +84,17 @@ export class RowSettings {
       cell.rowSpan > 1 ? `${cell.rowSpan} rows` : '',
     ].filter(Boolean);
 
+    const block =
+      cell.columnBlockId === null
+        ? undefined
+        : this.store.index().columnBlocks.get(cell.columnBlockId);
+    const place = block ? `${block.block.name} col ${cell.column}` : `Col ${cell.column}`;
+
     return {
       ref: { kind: 'cell', id: cell.id },
       label: cell.caption || cellType?.name || 'Cell',
       icon: cellKindInfo(cellType?.kind ?? 'Text').icon,
-      meta: [`Col ${cell.column}`, ...spans].join(' · '),
+      meta: [place, ...spans].join(' · '),
     };
   }
 }

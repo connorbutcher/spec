@@ -1,7 +1,11 @@
 @if (entry(); as entry) {
   <div class="fields">
     <p class="note">
-      Column {{ entry.cell.column }} of
+      @if (blockName(); as blockName) {
+        {{ blockName }} column {{ entry.cell.column }} of
+      } @else {
+        Column {{ entry.cell.column }} of
+      }
       <p-button
         [label]="'row ' + entry.row.number"
         [link]="true"

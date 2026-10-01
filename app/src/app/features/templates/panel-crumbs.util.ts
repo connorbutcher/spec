@@ -2,11 +2,13 @@ import { CellType } from './models/cell-type.model';
 import { PanelCrumb } from './models/panel-crumb.model';
 import { PanelRef } from './models/panel-ref';
 import { TableTemplate } from './models/table-template.model';
+import { TemplateCell } from './models/template-cell.model';
 import { TemplateIndex } from './models/template-index.model';
 import { TemplateSection } from './models/template-section.model';
 
 /**
- * The path to a panel through the table: table › sections › row › cell, or cell types › type.
+ * The path to a panel through the table: table › sections › row › cell, table › column block, or
+ * cell types › type.
  * Returns an empty list when the item no longer exists.
  */
 export function panelCrumbs(
@@ -28,6 +30,10 @@ export function panelCrumbs(
       const entry = index.sections.get(ref.id);
       return entry ? [...tableCrumb, ...sectionCrumbs([...entry.ancestors, entry.section])] : [];
     }
+    case 'columnBlock': {
+      const entry = index.columnBlocks.get(ref.id);
+      return entry ? [...tableCrumb, { label: entry.block.name, ref }] : [];
+    }
     case 'row': {
       const entry = index.rows.get(ref.id);
       if (!entry) {
@@ -48,7 +54,7 @@ export function panelCrumbs(
       const rowRef: PanelRef = { kind: 'row', id: entry.row.row.id };
       return [
         ...panelCrumbs(rowRef, template, index, cellType),
-        { label: `Column ${entry.cell.column}`, ref },
+        { label: cellLabel(entry.cell, index), ref },
       ];
     }
     case 'cellTypes':
@@ -63,4 +69,11 @@ export function panelCrumbs(
         : [];
     }
   }
+}
+
+/** "Column 2", or "Part column 2" for a cell in a column block. */
+function cellLabel(cell: TemplateCell, index: TemplateIndex): string {
+  const block =
+    cell.columnBlockId === null ? undefined : index.columnBlocks.get(cell.columnBlockId);
+  return block ? `${block.block.name} column ${cell.column}` : `Column ${cell.column}`;
 }
