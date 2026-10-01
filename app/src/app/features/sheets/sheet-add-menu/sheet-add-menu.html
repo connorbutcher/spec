@@ -1,0 +1,14 @@
+@if (choices().length > 0) {
+  <p-button
+    [label]="label()"
+    icon="pi pi-plus"
+    size="small"
+    severity="secondary"
+    [outlined]="true"
+    [disabled]="isBusy() || (only()?.disabled ?? false)"
+    (onClick)="add($event)"
+  />
+  @if (only() === null) {
+    <p-menu [popup]="true" [model]="choices()" appendTo="body" />
+  }
+}

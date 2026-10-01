@@ -1,0 +1,22 @@
+:host {
+  display: flex;
+  flex: 1 1 auto;
+  align-self: stretch;
+  width: 100%;
+  min-width: 0;
+}
+
+// The whole cell is the click target; the box sits in the middle of it. Mouse clicks land on this
+// area, not on the box, so a click is never counted twice.
+.fill {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  min-height: 30px;
+  cursor: pointer;
+}
+
+p-checkbox {
+  pointer-events: none;
+}

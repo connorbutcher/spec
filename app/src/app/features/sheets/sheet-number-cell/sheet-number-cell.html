@@ -1,0 +1,18 @@
+<p-inputnumber
+  size="small"
+  [fluid]="true"
+  [useGrouping]="false"
+  [minFractionDigits]="settings()?.decimalPlaces ?? 0"
+  [maxFractionDigits]="settings()?.decimalPlaces ?? 10"
+  [min]="settings()?.minValue ?? undefined"
+  [max]="settings()?.maxValue ?? undefined"
+  [suffix]="suffix()"
+  [placeholder]="label()"
+  [ariaLabel]="label() || 'Number'"
+  [inputStyle]="inputStyle"
+  [ngModel]="number()"
+  (ngModelChange)="number.set($event)"
+  (onFocus)="started.emit()"
+  (onBlur)="commit()"
+  (keydown.enter)="commit()"
+/>

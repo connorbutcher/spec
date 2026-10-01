@@ -1,0 +1,10 @@
+@use '../cell-field' as field;
+
+:host {
+  @include field.cell-field;
+}
+
+p-inputnumber {
+  flex: 1;
+  min-width: 0;
+}

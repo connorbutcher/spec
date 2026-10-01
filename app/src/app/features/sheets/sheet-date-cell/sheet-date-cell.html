@@ -1,0 +1,17 @@
+<p-datepicker
+  size="small"
+  [fluid]="true"
+  dateFormat="yy-mm-dd"
+  appendTo="body"
+  [showClear]="true"
+  [showButtonBar]="true"
+  [placeholder]="label()"
+  [ariaLabel]="label() || 'Date'"
+  [inputStyle]="inputStyle"
+  [ngModel]="date()"
+  (ngModelChange)="date.set($event)"
+  (onFocus)="started.emit()"
+  (onBlur)="commit()"
+  (onSelect)="pick($event)"
+  (onClear)="pick(null)"
+/>

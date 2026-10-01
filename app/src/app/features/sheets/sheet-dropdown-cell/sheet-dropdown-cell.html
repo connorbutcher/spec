@@ -1,0 +1,14 @@
+<p-select
+  size="small"
+  [fluid]="true"
+  appendTo="body"
+  optionLabel="value"
+  optionValue="id"
+  [options]="options()"
+  [showClear]="true"
+  [placeholder]="label()"
+  [ariaLabel]="label() || cellType().name"
+  [ngModel]="optionId()"
+  (onFocus)="started.emit()"
+  (onChange)="choose($event.value ?? null)"
+/>

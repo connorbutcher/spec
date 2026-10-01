@@ -1,11 +1,17 @@
+:host {
+  display: block;
+  // Always reserves its height so the grid does not jump when the first selection shows the bar.
+  min-height: 34px;
+  border-bottom: 1px solid var(--app-card-border);
+  background: #f8fafc;
+}
+
 .action-bar {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 4px 12px;
   padding: 4px 8px;
-  border-bottom: 1px solid var(--app-card-border);
-  background: #f8fafc;
 }
 
 .path {
@@ -33,4 +39,11 @@
   gap: 6px;
   color: #6b7280;
   font-size: 0.8rem;
+}
+
+.hint {
+  margin: 0;
+  padding: 8px;
+  color: #6b7280;
+  font-size: 0.75rem;
 }

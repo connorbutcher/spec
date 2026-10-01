@@ -9,3 +9,13 @@
 @if (layout().emptyStyle; as emptyStyle) {
   <div class="empty" [style]="emptyStyle">Empty section</div>
 }
+
+@if (canAdd() && sheetSection(); as section) {
+  <div class="add" [style.left]="gutterOffset()" (click)="$event.stopPropagation()">
+    <app-sheet-add-menu
+      [tableId]="tableId()"
+      [sectionId]="section.id"
+      [sections]="section.addableSections"
+    />
+  </div>
+}

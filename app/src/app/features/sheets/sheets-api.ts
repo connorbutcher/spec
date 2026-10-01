@@ -22,10 +22,6 @@ export class SheetsApi {
     return firstValueFrom(this.http.post<Sheet>(`/api/sheets/${sheetId}/publish`, { note }));
   }
 
-  public discardDrafts(sheetId: number): Promise<Sheet> {
-    return firstValueFrom(this.http.delete<Sheet>(`/api/sheets/${sheetId}/drafts`));
-  }
-
   public setTableTitle(tableId: number, title: string | null): Promise<Sheet> {
     return firstValueFrom(this.http.put<Sheet>(`/api/sheet-tables/${tableId}`, { title }));
   }
@@ -85,9 +81,5 @@ export class SheetsApi {
 
   public removeRow(rowId: number): Promise<Sheet> {
     return firstValueFrom(this.http.delete<Sheet>(`/api/sheet-rows/${rowId}`));
-  }
-
-  public discardRow(rowId: number): Promise<Sheet> {
-    return firstValueFrom(this.http.delete<Sheet>(`/api/sheet-rows/${rowId}/draft`));
   }
 }

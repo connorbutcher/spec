@@ -1,7 +1,9 @@
 import { Component, computed, inject, input } from '@angular/core';
 import { GridStyle } from '../../templates/models/grid-style';
 import { SectionLayout } from '../../templates/models/section-layout.model';
+import { SheetAddMenu } from '../sheet-add-menu/sheet-add-menu';
 import { SheetGridCell } from '../sheet-grid-cell/sheet-grid-cell';
+import { sectionAncestors } from '../sheet-index.util';
 import { SheetStore } from '../sheet.store';
 
 /**
@@ -11,7 +13,7 @@ import { SheetStore } from '../sheet.store';
  */
 @Component({
   selector: 'app-sheet-grid-section',
-  imports: [SheetGridCell],
+  imports: [SheetAddMenu, SheetGridCell],
   templateUrl: './sheet-grid-section.html',
   styleUrl: './sheet-grid-section.scss',
   host: {
@@ -26,6 +28,27 @@ export class SheetGridSection {
   public readonly isSelected = computed(() => {
     const selection = this.store.selection();
     return selection?.sectionId === this.layout().section.id && selection.rowId === null;
+  });
+
+  /** The sheet's copy of this section, which knows what can be added to it. */
+  public readonly sheetSection = computed(
+    () => this.store.index().sections.get(this.layout().section.id) ?? null,
+  );
+
+  public readonly tableId = computed(
+    () => this.store.index().sectionTable.get(this.layout().section.id) ?? -1,
+  );
+
+  /** Whether the group offers an add control: it can take sections and the sheet is live. */
+  public readonly canAdd = computed(() => {
+    const section = this.sheetSection();
+    return this.store.canEdit() && section !== null && section.addableSections.length > 0;
+  });
+
+  /** Nested groups put their button further along the gutter so two never sit on top of each other. */
+  public readonly gutterOffset = computed(() => {
+    const depth = sectionAncestors(this.store.index(), this.layout().section.id).length;
+    return `calc(100% + 6px + ${depth * 90}px)`;
   });
 
   private readonly store = inject(SheetStore);

@@ -1,0 +1,32 @@
+// What every cell editor shares: it fills its whole cell like a bare <td> control. PrimeNG form
+// controls take their look from design tokens, so setting them here removes the border, background
+// and rounding; only the focus state is drawn, as the one accent colour.
+@mixin cell-field {
+  display: flex;
+  flex: 1 1 auto;
+  align-self: stretch;
+  width: 100%;
+  min-width: 0;
+
+  --p-inputtext-background: transparent;
+  --p-inputtext-disabled-background: transparent;
+  --p-inputtext-border-color: transparent;
+  --p-inputtext-hover-border-color: transparent;
+  --p-inputtext-focus-border-color: var(--app-navy);
+  --p-inputtext-border-radius: 0;
+  --p-inputtext-shadow: none;
+  --p-inputtext-padding-x: 0.5rem;
+  --p-inputtext-padding-y: 0.25rem;
+  --p-inputtext-font-size: 0.8rem;
+
+  --p-select-background: transparent;
+  --p-select-disabled-background: transparent;
+  --p-select-border-color: transparent;
+  --p-select-hover-border-color: transparent;
+  --p-select-focus-border-color: var(--app-navy);
+  --p-select-border-radius: 0;
+  --p-select-shadow: none;
+  --p-select-padding-x: 0.5rem;
+  --p-select-padding-y: 0.25rem;
+  --p-select-font-size: 0.8rem;
+}

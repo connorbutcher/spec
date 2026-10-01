@@ -9,7 +9,12 @@ import { GridStyle } from '../../templates/models/grid-style';
 import { CellValueRequest } from '../models/cell-value-request.model';
 import { SheetCell } from '../models/sheet-cell.model';
 import { SheetRow } from '../models/sheet-row.model';
-import { SheetCellEditor } from '../sheet-cell-editor/sheet-cell-editor';
+import { SheetCheckboxCell } from '../sheet-checkbox-cell/sheet-checkbox-cell';
+import { SheetDateCell } from '../sheet-date-cell/sheet-date-cell';
+import { SheetDropdownCell } from '../sheet-dropdown-cell/sheet-dropdown-cell';
+import { SheetNumberCell } from '../sheet-number-cell/sheet-number-cell';
+import { SheetTextCell } from '../sheet-text-cell/sheet-text-cell';
+import { sectionAncestors } from '../sheet-index.util';
 import { SheetStore } from '../sheet.store';
 
 const FLEX_ALIGNMENT: Readonly<Record<string, string>> = {
@@ -19,14 +24,22 @@ const FLEX_ALIGNMENT: Readonly<Record<string, string>> = {
 };
 
 /**
- * A cell on the sheet grid, placed by the template layout. Heading and group cells show their caption.
- * Other cells show their value, or, in a row the user has locked, a PrimeNG editor for it. A row locked
- * by someone else is marked with a lock and can't be edited. Clicking selects the cell's row; double
- * clicking (or Enter) locks it for editing.
+ * A cell on the sheet grid, placed by the template layout. It behaves like a table cell: heading and
+ * group cells show their caption; a value cell holds a control for its kind that fills the whole cell,
+ * so the user can click in and type. Moving into a control locks its row to the user if it's free; the
+ * row stays private until they publish. A row locked by someone else, or a past version, shows plain
+ * values instead, with a lock mark on the row's first cell.
  */
 @Component({
   selector: 'app-sheet-grid-cell',
-  imports: [SheetCellEditor, TooltipModule],
+  imports: [
+    SheetCheckboxCell,
+    SheetDateCell,
+    SheetDropdownCell,
+    SheetNumberCell,
+    SheetTextCell,
+    TooltipModule,
+  ],
   templateUrl: './sheet-grid-cell.html',
   styleUrl: './sheet-grid-cell.scss',
   host: {
@@ -36,10 +49,11 @@ const FLEX_ALIGNMENT: Readonly<Record<string, string>> = {
     '[class.mine]': 'isMine()',
     '[class.theirs]': 'lockedByOther()',
     '[class.display-only]': 'displayOnly()',
-    '[attr.tabindex]': 'isEditing() ? null : 0',
+    '[class.editable]': 'isEditable()',
+    '[attr.data-tone]': 'tone()',
+    '[attr.tabindex]': 'isEditable() ? null : 0',
     '(click)': 'select($event)',
-    '(dblclick)': 'startEditing()',
-    '(keydown.enter)': 'startEditing()',
+    '(keydown.enter)': 'select($event)',
   },
 })
 export class SheetGridCell {
@@ -80,10 +94,37 @@ export class SheetGridCell {
     return lock !== null && lock !== undefined && !lock.isMine;
   });
 
-  /** Whether the cell shows an editor: its row is locked by the user, on the live sheet. */
-  public readonly isEditing = computed(
-    () => this.store.canEdit() && this.isMine() && !this.displayOnly() && this.cellType() !== null,
+  /**
+   * Whether the cell holds a control: it takes a value, the sheet is live, and nobody else has the row.
+   * A free row counts too, since moving into one of its cells is what locks it.
+   */
+  public readonly isEditable = computed(
+    () =>
+      this.store.canEdit() &&
+      !this.displayOnly() &&
+      !this.lockedByOther() &&
+      this.cell() !== null &&
+      this.cellType() !== null &&
+      this.configuration() !== null,
   );
+
+  /**
+   * The cell's fill, from where its section sits: the header, a group (a section that holds other
+   * sections) at its depth, or plain data. Deeper groups are lighter, so the tree reads at a glance. A
+   * background set in the cell's own style takes precedence.
+   */
+  public readonly tone = computed<string>(() => {
+    const index = this.store.index();
+    const section = index.sections.get(index.rowSection.get(this.layout().rowId) ?? -1);
+    if (section === undefined) {
+      return 'plain';
+    }
+    if (section.role === 'Header') {
+      return 'header';
+    }
+    const isGroup = section.sections.length > 0 || section.addableSections.length > 0;
+    return isGroup ? `group-${Math.min(sectionAncestors(index, section.id).length, 2)}` : 'plain';
+  });
 
   public readonly isSelected = computed(
     () => this.store.selection()?.rowId === this.layout().rowId,
@@ -104,7 +145,12 @@ export class SheetGridCell {
 
   public readonly caption = computed(() => this.layout().cell.caption ?? '');
 
-  /** What a cell shows when it isn't being edited. */
+  /** The caption doubles as the hint inside an empty control, marked if the cell is required. */
+  public readonly hint = computed(() =>
+    this.layout().cell.isRequired && this.caption() ? `${this.caption()} *` : this.caption(),
+  );
+
+  /** What a cell shows when it isn't a control. */
   public readonly display = computed(() => {
     const cell = this.cell();
     const cellType = this.cellType();
@@ -150,7 +196,7 @@ export class SheetGridCell {
       : this.layout().style;
   }
 
-  /** The cell's text styling, with its alignment also lining up the caption and value. */
+  /** The cell's text styling, with its alignment also lining up what's inside. */
   public contentStyle(): Record<string, string> {
     const { 'background-color': _background, ...text } = this.styleCss();
     const align = text['text-align'];
@@ -162,13 +208,9 @@ export class SheetGridCell {
     this.store.selectRow(this.layout().rowId);
   }
 
-  public startEditing(): void {
-    const row = this.row();
-    if (!this.store.canEdit() || this.displayOnly() || row === null || row.lock !== null) {
-      return;
-    }
-    this.store.selectRow(row.id);
-    void this.store.lockRow(row.id);
+  /** The user moved into the cell's control: take the row's lock if it's free. */
+  public beginEditing(): void {
+    this.store.beginEditing(this.layout().rowId);
   }
 
   public save(request: CellValueRequest): void {

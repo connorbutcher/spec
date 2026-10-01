@@ -1,0 +1,10 @@
+@use '../cell-field' as field;
+
+:host {
+  @include field.cell-field;
+}
+
+p-datepicker {
+  flex: 1;
+  min-width: 0;
+}

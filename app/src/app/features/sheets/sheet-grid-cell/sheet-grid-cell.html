@@ -1,45 +1,76 @@
 <div class="content" [style]="contentStyle()">
   @if (displayOnly()) {
     <span class="text">{{ caption() }}</span>
-  } @else if (isEditing() && cellType(); as type) {
-    @if (caption()) {
-      <span class="caption">
-        {{ caption() }}
-        @if (layout().cell.isRequired) {
-          <span class="required" aria-label="required">*</span>
-        }
-      </span>
-    }
-    @if (cell(); as cell) {
+  } @else if (isEditable() && cell(); as cell) {
+    @if (cellType(); as type) {
       @if (configuration(); as configuration) {
-        <app-sheet-cell-editor
-          [cell]="cell"
-          [cellType]="type"
-          [configuration]="configuration"
-          [label]="caption() || type.name"
-          (changed)="save($event)"
-        />
+        @switch (type.kind) {
+          @case ('Text') {
+            <app-sheet-text-cell
+              [cell]="cell"
+              [configuration]="configuration"
+              [label]="hint()"
+              (started)="beginEditing()"
+              (changed)="save($event)"
+            />
+          }
+          @case ('Number') {
+            <app-sheet-number-cell
+              [cell]="cell"
+              [configuration]="configuration"
+              [label]="hint()"
+              (started)="beginEditing()"
+              (changed)="save($event)"
+            />
+          }
+          @case ('Date') {
+            <app-sheet-date-cell
+              [cell]="cell"
+              [label]="hint()"
+              (started)="beginEditing()"
+              (changed)="save($event)"
+            />
+          }
+          @case ('Checkbox') {
+            <app-sheet-checkbox-cell
+              [cell]="cell"
+              [label]="hint()"
+              (started)="beginEditing()"
+              (changed)="save($event)"
+            />
+          }
+          @case ('TextDropdown') {
+            <app-sheet-dropdown-cell
+              [cell]="cell"
+              [cellType]="type"
+              [label]="hint()"
+              (started)="beginEditing()"
+              (changed)="save($event)"
+            />
+          }
+          @case ('NumberDropdown') {
+            <app-sheet-dropdown-cell
+              [cell]="cell"
+              [cellType]="type"
+              [label]="hint()"
+              (started)="beginEditing()"
+              (changed)="save($event)"
+            />
+          }
+        }
       }
     }
+  } @else if (isCheckbox()) {
+    <i
+      class="pi"
+      [class.pi-check-square]="isChecked()"
+      [class.pi-stop]="!isChecked()"
+      [attr.aria-label]="isChecked() ? 'Ticked' : 'Not ticked'"
+    ></i>
+  } @else if (display()) {
+    <span class="value">{{ display() }}</span>
   } @else {
-    @if (caption()) {
-      <span class="caption">
-        {{ caption() }}
-        @if (layout().cell.isRequired) {
-          <span class="required" aria-label="required">*</span>
-        }
-      </span>
-    }
-    @if (isCheckbox()) {
-      <i
-        class="pi"
-        [class.pi-check-square]="isChecked()"
-        [class.pi-stop]="!isChecked()"
-        [attr.aria-label]="isChecked() ? 'Ticked' : 'Not ticked'"
-      ></i>
-    } @else {
-      <span class="value">{{ display() }}</span>
-    }
+    <span class="hint">{{ hint() }}</span>
   }
 
   @if (showsLock()) {

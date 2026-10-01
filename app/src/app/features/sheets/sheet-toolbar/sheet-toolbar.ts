@@ -1,5 +1,5 @@
 import { Component, computed, inject } from '@angular/core';
-import { ConfirmationService, MenuItem } from 'primeng/api';
+import { MenuItem } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { MenuModule } from 'primeng/menu';
 import { TagModule } from 'primeng/tag';
@@ -9,7 +9,7 @@ import { SheetStore } from '../sheet.store';
 
 /**
  * The tools for the whole sheet: which version to look at, adding a table from one of the sheet type's
- * templates, publishing the user's changes, discarding them and refreshing. A past version is read-only,
+ * templates, publishing the user's changes, and refreshing. A past version is read-only,
  * so it only offers the picker and refresh.
  */
 @Component({
@@ -52,21 +52,8 @@ export class SheetToolbar {
   });
 
   private readonly store = inject(SheetStore);
-  private readonly confirmation = inject(ConfirmationService);
 
   public reload(): void {
     this.store.reload();
-  }
-
-  public askDiscard(event: Event): void {
-    this.confirmation.confirm({
-      target: event.currentTarget as EventTarget,
-      message: `Discard your ${this.changeCount()} unpublished ${this.changeCount() === 1 ? 'change' : 'changes'}?`,
-      acceptLabel: 'Discard',
-      rejectLabel: 'Keep',
-      acceptButtonProps: { size: 'small', severity: 'danger' },
-      rejectButtonProps: { severity: 'secondary', size: 'small', outlined: true },
-      accept: () => void this.store.discardAll(),
-    });
   }
 }

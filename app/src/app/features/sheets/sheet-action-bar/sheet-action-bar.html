@@ -3,41 +3,12 @@
     <p-breadcrumb class="path" [model]="path()" />
 
     <div class="group" role="group" aria-label="Section">
-      @for (addable of addableSections(); track addable.templateSectionId) {
-        <p-button
-          [label]="addable.name"
-          icon="pi pi-plus"
-          size="small"
-          severity="secondary"
-          [outlined]="true"
-          [disabled]="!addable.canAdd || isBusy()"
-          [ariaLabel]="'Add ' + addable.name"
-          (onClick)="addSection(addable)"
+      @if (section.addableSections.length === 0 && section.addableRows.length > 0) {
+        <app-sheet-add-menu
+          [tableId]="table().id"
+          [sectionId]="section.id"
+          [rows]="section.addableRows"
         />
-      }
-      @if (section.addableRows.length === 1) {
-        <p-button
-          label="Row"
-          icon="pi pi-plus"
-          size="small"
-          severity="secondary"
-          [outlined]="true"
-          [disabled]="isBusy()"
-          ariaLabel="Add a row"
-          (onClick)="addOnlyRow()"
-        />
-      } @else if (section.addableRows.length > 1) {
-        <p-button
-          label="Row"
-          icon="pi pi-plus"
-          size="small"
-          severity="secondary"
-          [outlined]="true"
-          [disabled]="isBusy()"
-          ariaLabel="Add a row"
-          (onClick)="rowMenuPopup.toggle($event)"
-        />
-        <p-menu #rowMenuPopup [popup]="true" [model]="rowMenu()" appendTo="body" />
       }
       @if (!isHeader()) {
         <p-button
@@ -72,25 +43,7 @@
 
     @if (row(); as row) {
       <div class="group" role="group" aria-label="Row">
-        @if (row.lock === null) {
-          <p-button
-            label="Edit row"
-            icon="pi pi-pencil"
-            size="small"
-            [disabled]="isBusy() || isHeader()"
-            (onClick)="lockRow()"
-          />
-        } @else if (row.lock.isMine) {
-          <p-button
-            label="Discard changes"
-            icon="pi pi-undo"
-            size="small"
-            severity="secondary"
-            [outlined]="true"
-            [disabled]="isBusy()"
-            (onClick)="discardRow()"
-          />
-        } @else {
+        @if (lockedByOther() && row.lock) {
           <span class="locked">
             <i class="pi pi-lock" aria-hidden="true"></i>
             Being edited by {{ row.lock.userName }}
@@ -128,4 +81,6 @@
       </div>
     }
   </div>
+} @else {
+  <p class="hint">Click into a cell to edit it, or select a group or row for more actions.</p>
 }

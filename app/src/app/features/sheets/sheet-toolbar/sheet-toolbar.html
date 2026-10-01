@@ -33,15 +33,6 @@
     />
     <p-menu #tableMenu [popup]="true" [model]="templateMenu()" appendTo="body" />
 
-    <p-button
-      label="Discard"
-      icon="pi pi-undo"
-      size="small"
-      severity="secondary"
-      [outlined]="true"
-      [disabled]="changeCount() === 0 || isBusy()"
-      (onClick)="askDiscard($event)"
-    />
     <app-sheet-publish />
   }
 </div>

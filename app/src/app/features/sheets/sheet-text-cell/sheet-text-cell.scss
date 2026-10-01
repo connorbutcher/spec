@@ -1,0 +1,18 @@
+@use '../cell-field' as field;
+
+:host {
+  @include field.cell-field;
+}
+
+// The box fills the cell and takes its alignment from the cell's style.
+input[pInputText],
+textarea[pTextarea] {
+  flex: 1;
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  color: inherit;
+  font: inherit;
+  text-align: inherit;
+  resize: none;
+}

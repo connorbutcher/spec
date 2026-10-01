@@ -5,6 +5,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { TagModule } from 'primeng/tag';
 import { SheetTable } from '../models/sheet-table.model';
 import { SheetActionBar } from '../sheet-action-bar/sheet-action-bar';
+import { SheetAddMenu } from '../sheet-add-menu/sheet-add-menu';
 import { SheetGrid } from '../sheet-grid/sheet-grid';
 import { SheetStore } from '../sheet.store';
 
@@ -14,7 +15,7 @@ import { SheetStore } from '../sheet.store';
  */
 @Component({
   selector: 'app-sheet-table-card',
-  imports: [ButtonModule, InputTextModule, SheetActionBar, SheetGrid, TagModule],
+  imports: [ButtonModule, InputTextModule, SheetActionBar, SheetAddMenu, SheetGrid, TagModule],
   templateUrl: './sheet-table-card.html',
   styleUrl: './sheet-table-card.scss',
 })
@@ -59,10 +60,6 @@ export class SheetTableCard {
     if (title !== (this.table().title ?? '')) {
       void this.store.setTableTitle(this.table().id, title === '' ? null : title);
     }
-  }
-
-  public addSection(templateSectionId: number): void {
-    void this.store.addSection(this.table().id, templateSectionId, null);
   }
 
   public move(step: -1 | 1): void {

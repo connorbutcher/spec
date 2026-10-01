@@ -1,0 +1,31 @@
+@if (settings()?.multiline) {
+  <textarea
+    pTextarea
+    pSize="small"
+    rows="1"
+    [autoResize]="true"
+    [attr.maxlength]="settings()?.maxLength ?? null"
+    [attr.aria-label]="label() || 'Text'"
+    [placeholder]="label()"
+    [ngModel]="text()"
+    (ngModelChange)="text.set($event)"
+    (focus)="started.emit()"
+    (blur)="commit()"
+    (keydown.escape)="revert()"
+  ></textarea>
+} @else {
+  <input
+    pInputText
+    pSize="small"
+    type="text"
+    [attr.maxlength]="settings()?.maxLength ?? null"
+    [attr.aria-label]="label() || 'Text'"
+    [placeholder]="label()"
+    [ngModel]="text()"
+    (ngModelChange)="text.set($event)"
+    (focus)="started.emit()"
+    (blur)="commit()"
+    (keydown.enter)="commit()"
+    (keydown.escape)="revert()"
+  />
+}

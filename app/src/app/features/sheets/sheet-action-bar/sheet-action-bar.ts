@@ -2,8 +2,7 @@ import { Component, computed, inject, input } from '@angular/core';
 import { ConfirmationService, MenuItem } from 'primeng/api';
 import { BreadcrumbModule } from 'primeng/breadcrumb';
 import { ButtonModule } from 'primeng/button';
-import { MenuModule } from 'primeng/menu';
-import { AddableSection } from '../models/addable-section.model';
+import { SheetAddMenu } from '../sheet-add-menu/sheet-add-menu';
 import { SheetRow } from '../models/sheet-row.model';
 import { SheetSection } from '../models/sheet-section.model';
 import { SheetTable } from '../models/sheet-table.model';
@@ -12,13 +11,12 @@ import { sectionLabel } from '../sheet-labels.util';
 import { SheetStore } from '../sheet.store';
 
 /**
- * The actions for what is selected in a table: where it is, the sections that can be added under the
- * selected section, and what can be done to the selected section and row (lock, discard, move and
- * remove). It sits above the grid so it works the same however the table is laid out.
+ * The actions for what is selected in a table: where it is, the sections' and rows' own move and
+ * remove actions (adding lives on the group that takes the new item). It sits above the grid so it works the same however the table is laid out.
  */
 @Component({
   selector: 'app-sheet-action-bar',
-  imports: [BreadcrumbModule, ButtonModule, MenuModule],
+  imports: [BreadcrumbModule, ButtonModule, SheetAddMenu],
   templateUrl: './sheet-action-bar.html',
   styleUrl: './sheet-action-bar.scss',
 })
@@ -55,21 +53,6 @@ export class SheetActionBar {
   });
 
   public readonly isHeader = computed(() => this.section()?.role === 'Header');
-
-  public readonly addableSections = computed<AddableSection[]>(
-    () => this.section()?.addableSections ?? [],
-  );
-
-  public readonly rowMenu = computed<MenuItem[]>(() => {
-    const section = this.section();
-    if (section === null) {
-      return [];
-    }
-    return section.addableRows.map((addable) => ({
-      label: addable.label,
-      command: () => void this.store.addRow(section.id, addable.templateRowId),
-    }));
-  });
 
   public readonly canMoveSectionUp = computed(() => {
     const section = this.section();
@@ -117,21 +100,6 @@ export class SheetActionBar {
   private readonly store = inject(SheetStore);
   private readonly confirmation = inject(ConfirmationService);
 
-  public addSection(addable: AddableSection): void {
-    const section = this.section();
-    if (section !== null) {
-      void this.store.addSection(this.table().id, addable.templateSectionId, section.id);
-    }
-  }
-
-  public addOnlyRow(): void {
-    const section = this.section();
-    const addable = section?.addableRows[0];
-    if (section && addable) {
-      void this.store.addRow(section.id, addable.templateRowId);
-    }
-  }
-
   public moveSection(step: -1 | 1): void {
     const section = this.section();
     if (section !== null) {
@@ -147,20 +115,6 @@ export class SheetActionBar {
     this.confirm(event, `Remove ${sectionLabel(section)}? Its rows and sections go too.`, () =>
       this.store.removeSection(section.id),
     );
-  }
-
-  public lockRow(): void {
-    const row = this.row();
-    if (row !== null) {
-      void this.store.lockRow(row.id);
-    }
-  }
-
-  public discardRow(): void {
-    const row = this.row();
-    if (row !== null) {
-      void this.store.discardRow(row.id);
-    }
   }
 
   public moveRow(step: -1 | 1): void {

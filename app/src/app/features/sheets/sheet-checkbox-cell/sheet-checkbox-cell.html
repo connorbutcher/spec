@@ -1,0 +1,10 @@
+<div class="fill" (click)="toggleFromCell($event)">
+  <p-checkbox
+    size="small"
+    [binary]="true"
+    [ariaLabel]="label() || 'Checkbox'"
+    [ngModel]="checked()"
+    (onFocus)="started.emit()"
+    (onChange)="set($event.checked)"
+  />
+</div>

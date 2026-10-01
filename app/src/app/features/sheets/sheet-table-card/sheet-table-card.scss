@@ -46,4 +46,6 @@
 // A wide table scrolls inside its card, not the page.
 .grid-scroll {
   overflow-x: auto;
+  // Room beside the grid for the add buttons of its groups.
+  padding-right: 130px;
 }

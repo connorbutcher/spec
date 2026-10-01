@@ -23,8 +23,15 @@
   align-items: center;
   min-height: 32px;
   padding: 0 8px;
-  border-right: 1px solid #e5e7eb;
-  border-bottom: 1px solid #e5e7eb;
+  border-right: 1px solid #d5dbe3;
+  border-bottom: 1px solid #d5dbe3;
   color: #9ca3af;
   font-size: 0.75rem;
+}
+
+// The group's add button sits in the gutter beside the table, level with the top of the group.
+.add {
+  position: absolute;
+  top: 2px;
+  z-index: 5;
 }

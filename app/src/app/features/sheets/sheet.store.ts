@@ -81,6 +81,7 @@ export class SheetStore {
   private readonly route = inject(ActivatedRoute);
   private readonly rawSelection = signal<SheetSelection | null>(null);
   private readonly inFlight = signal(0);
+  private readonly lockRequests = new Set<number>();
   private tail: Promise<unknown> = Promise.resolve();
 
   private readonly target = toSignal(
@@ -216,6 +217,20 @@ export class SheetStore {
     await this.run(() => this.api.lockRow(rowId));
   }
 
+  /**
+   * The user moved into a cell: take the row's lock if nobody has it, so what they type is saved to
+   * their own draft. A row they already hold, or someone else holds, is left alone.
+   */
+  public beginEditing(rowId: number): void {
+    const row = this.index().rows.get(rowId);
+    if (!this.canEdit() || row === undefined || row.lock !== null || this.lockRequests.has(rowId)) {
+      return;
+    }
+    this.lockRequests.add(rowId);
+    this.selectRow(rowId);
+    void this.lockRow(rowId).finally(() => this.lockRequests.delete(rowId));
+  }
+
   public async saveValues(rowId: number, values: CellValueRequest[]): Promise<void> {
     await this.run(() => this.api.saveValues(rowId, values));
   }
@@ -236,23 +251,12 @@ export class SheetStore {
     }
   }
 
-  public async discardRow(rowId: number): Promise<void> {
-    await this.run(() => this.api.discardRow(rowId));
-  }
-
   public async publish(note: string | null): Promise<boolean> {
     const sheetId = this.sheet()?.id;
     if (sheetId === undefined) {
       return false;
     }
     return (await this.run(() => this.api.publish(sheetId, note))) !== null;
-  }
-
-  public async discardAll(): Promise<void> {
-    const sheetId = this.sheet()?.id;
-    if (sheetId !== undefined) {
-      await this.run(() => this.api.discardDrafts(sheetId));
-    }
   }
 
   private run(change: () => Promise<Sheet>): Promise<Sheet | null> {

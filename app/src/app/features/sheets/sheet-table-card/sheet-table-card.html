@@ -39,18 +39,7 @@
         aria-label="Table actions"
         (click)="$event.stopPropagation()"
       >
-        @for (addable of table().addableSections; track addable.templateSectionId) {
-          <p-button
-            [label]="addable.name"
-            icon="pi pi-plus"
-            size="small"
-            severity="secondary"
-            [outlined]="true"
-            [disabled]="!addable.canAdd || isBusy()"
-            [ariaLabel]="'Add ' + addable.name"
-            (onClick)="addSection(addable.templateSectionId)"
-          />
-        }
+        <app-sheet-add-menu [tableId]="table().id" [sections]="table().addableSections" />
         <p-button
           icon="pi pi-arrow-up"
           size="small"

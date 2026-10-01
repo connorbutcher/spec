@@ -5,8 +5,8 @@
   display: flex;
   min-width: 0;
   min-height: 30px;
-  border-right: 1px solid #e5e7eb;
-  border-bottom: 1px solid #e5e7eb;
+  border-right: 1px solid #d5dbe3;
+  border-bottom: 1px solid #d5dbe3;
   background: #fff;
   cursor: default;
 
@@ -15,6 +15,25 @@
     outline-offset: -2px;
     z-index: 3;
   }
+}
+
+// Muted blue-greys by role and depth: the header is the darkest, groups step lighter the deeper they
+// are, and data cells stay white. The header also gets a heavier rule beneath it.
+:host([data-tone='header']) {
+  background-color: #dfe6ef;
+  border-bottom-color: #94a3b8;
+}
+
+:host([data-tone='group-0']) {
+  background-color: #e9eef5;
+}
+
+:host([data-tone='group-1']) {
+  background-color: #f0f4f9;
+}
+
+:host([data-tone='group-2']) {
+  background-color: #f6f8fb;
 }
 
 // The row the user is editing, and a row someone else is editing, are tinted quietly.
@@ -26,11 +45,21 @@
   background-color: #faf6ee;
 }
 
+// A cell that can be typed into hints at it when the pointer is over it.
+:host(.editable:hover:not(:focus-within)) {
+  background-color: #f1f5f9;
+}
+
 // The selected row is outlined cell by cell; the accent colour is used for nothing else here.
 :host(.selected) {
   outline: 1px solid var(--app-navy);
   outline-offset: -1px;
   z-index: 2;
+}
+
+// The cell holding the control the user is typing in.
+:host(:focus-within) {
+  z-index: 3;
 }
 
 .content {
@@ -45,31 +74,32 @@
   line-height: 1.25;
 }
 
+// A cell with a control has no padding of its own: the control fills the cell edge to edge, like a
+// control inside a <td>.
+:host(.editable) .content {
+  align-items: stretch;
+  padding: 0;
+}
+
 .text,
 .value {
   overflow-wrap: anywhere;
 }
 
-.caption {
-  color: #6b7280;
-  font-size: 0.68rem;
+// The caption of an empty value cell that can't be edited.
+.hint {
+  color: #9ca3af;
+  font-size: 0.75rem;
   font-style: normal;
   font-weight: 400;
-}
-
-.required {
-  color: inherit;
-}
-
-// With an editor open the cell's own padding would double up on the editor's.
-:host(.mine) .content:has(app-sheet-cell-editor) {
-  padding: 2px 4px;
 }
 
 .lock {
   position: absolute;
   top: 3px;
   right: 4px;
+  z-index: 1;
   color: #6b7280;
   font-size: 0.65rem;
+  pointer-events: none;
 }
