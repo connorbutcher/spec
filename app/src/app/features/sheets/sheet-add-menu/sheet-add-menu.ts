@@ -22,6 +22,9 @@ export class SheetAddMenu {
   /** The section to add into, or null to add to the table itself. */
   public readonly sectionId = input<number | null>(null);
 
+  /** Show just the plus, naming the action for assistive technology only. */
+  public readonly iconOnly = input(false);
+
   public readonly sections = input<AddableSection[]>([]);
 
   public readonly choices = computed<MenuItem[]>(() => {

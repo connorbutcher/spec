@@ -1,10 +1,12 @@
 @if (choices().length > 0) {
   <p-button
-    [label]="label()"
+    [label]="iconOnly() ? undefined : label()"
+    [ariaLabel]="label()"
     icon="pi pi-plus"
     size="small"
     severity="secondary"
-    [outlined]="true"
+    [outlined]="!iconOnly()"
+    [text]="iconOnly()"
     [disabled]="isBusy() || (only()?.disabled ?? false)"
     (onClick)="add($event)"
   />

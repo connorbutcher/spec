@@ -30,9 +30,23 @@
 
       <section class="sheet-body" [attr.aria-label]="sheetType.name + ' sheet'">
         @if (sheet(); as sheet) {
-          @for (table of sheet.tables; track table.id) {
-            <app-sheet-table-card [table]="table" />
-          } @empty {
+          <div
+            class="tables"
+            cdkDropList
+            [cdkDropListDisabled]="!canEdit()"
+            (cdkDropListDropped)="dropTable($event)"
+          >
+            @for (table of sheet.tables; track table.id) {
+              <app-sheet-table-card
+                cdkDrag
+                cdkDragLockAxis="y"
+                [cdkDragDisabled]="!canEdit()"
+                [cdkDragData]="table.id"
+                [table]="table"
+              />
+            }
+          </div>
+          @if (sheet.tables.length === 0) {
             <app-empty-state icon="pi-table" title="No tables yet" [message]="emptyMessage()" />
           }
         } @else if (hasSheetError()) {

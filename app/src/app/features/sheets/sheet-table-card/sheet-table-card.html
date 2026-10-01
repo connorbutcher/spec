@@ -1,10 +1,33 @@
 <section class="app-card table-card" [attr.aria-label]="label()">
   <header class="table-head" (click)="selectTable()">
+    <div class="side left">
+      @if (canEditTable()) {
+        <i
+          cdkDragHandle
+          class="pi pi-bars handle"
+          role="button"
+          aria-label="Drag to reorder the table"
+          (click)="$event.stopPropagation()"
+        ></i>
+      }
+      <span class="meta">{{ table().templateName }} · v{{ table().templateVersionNumber }}</span>
+      @if (table().isPending) {
+        <p-tag value="New" severity="secondary" [rounded]="true" />
+      }
+      @if (lockedBy(); as user) {
+        <p-tag
+          [value]="'Being edited by ' + user"
+          icon="pi pi-lock"
+          severity="warn"
+          [rounded]="true"
+        />
+      }
+    </div>
+
     @if (canEditTable()) {
       <input
         #titleInput
         pInputText
-        pSize="small"
         class="title"
         type="text"
         maxlength="200"
@@ -12,63 +35,38 @@
         [placeholder]="table().templateName"
         [value]="table().title ?? ''"
         (change)="rename(titleInput)"
+        (keydown.enter)="titleInput.blur()"
         (click)="$event.stopPropagation()"
       />
     } @else {
-      <h2 class="title-text">{{ label() }}</h2>
-    }
-    <span class="meta">{{ table().templateName }} · v{{ table().templateVersionNumber }}</span>
-    @if (table().isPending) {
-      <p-tag value="New" severity="secondary" [rounded]="true" />
-    }
-    @if (lockedBy(); as user) {
-      <p-tag
-        [value]="'Being edited by ' + user"
-        icon="pi pi-lock"
-        severity="warn"
-        [rounded]="true"
-      />
+      <h2 class="title title-text">{{ label() }}</h2>
     }
 
-    <span class="spacer"></span>
-
-    @if (canEditTable()) {
-      <div
-        class="actions"
-        role="group"
-        aria-label="Table actions"
-        (click)="$event.stopPropagation()"
-      >
-        <app-sheet-add-menu [tableId]="table().id" [sections]="table().addableSections" />
-        <p-button
-          icon="pi pi-arrow-up"
-          size="small"
-          severity="secondary"
-          [text]="true"
-          [disabled]="!canMoveUp() || isBusy()"
-          ariaLabel="Move the table up"
-          (onClick)="move(-1)"
-        />
-        <p-button
-          icon="pi pi-arrow-down"
-          size="small"
-          severity="secondary"
-          [text]="true"
-          [disabled]="!canMoveDown() || isBusy()"
-          ariaLabel="Move the table down"
-          (onClick)="move(1)"
-        />
-        <p-button
-          icon="pi pi-trash"
-          size="small"
-          severity="secondary"
-          [text]="true"
-          [disabled]="isBusy()"
-          ariaLabel="Remove the table"
-          (onClick)="askRemove($event)"
-        />
-      </div>
-    }
+    <div class="side right">
+      @if (canEditTable()) {
+        <div
+          class="actions"
+          role="group"
+          aria-label="Table actions"
+          (click)="$event.stopPropagation()"
+        >
+          <app-sheet-add-menu
+            [tableId]="table().id"
+            [sections]="table().addableSections"
+            [iconOnly]="true"
+          />
+          <p-button
+            icon="pi pi-trash"
+            size="small"
+            severity="secondary"
+            [text]="true"
+            [disabled]="isBusy()"
+            ariaLabel="Remove the table"
+            (onClick)="askRemove($event)"
+          />
+        </div>
+      }
+    </div>
   </header>
 
   @if (canEdit()) {

@@ -7,37 +7,71 @@
 }
 
 .table-head {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: 1fr minmax(0, 2fr) 1fr;
   align-items: center;
-  gap: 6px 10px;
+  gap: 8px;
   padding: 6px 8px;
   border-bottom: 1px solid var(--app-card-border);
 
-  .title {
-    width: 22rem;
-    max-width: 100%;
-    font-weight: 600;
+  .side {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+
+    &.right {
+      justify-content: flex-end;
+    }
   }
 
-  .title-text {
+  .handle {
+    color: #94a3b8;
+    cursor: grab;
+    font-size: 0.8rem;
+
+    &:hover {
+      color: #475569;
+    }
+  }
+
+  // The title is plain text until it's clicked: no box, centred, large and bold.
+  .title {
+    width: 100%;
     margin: 0;
-    font-size: 0.95rem;
-    font-weight: 600;
+    padding: 2px 8px;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    background: transparent;
+    box-shadow: none;
+    color: #0f172a;
+    font-size: 1.35rem;
+    font-weight: 700;
+    text-align: center;
+
+    &::placeholder {
+      color: #cbd5e1;
+    }
+
+    &:hover {
+      background: #f8fafc;
+    }
+
+    &:focus {
+      border-color: #e2e8f0;
+      background: #f8fafc;
+      outline: none;
+    }
   }
 
   .meta {
     color: #6b7280;
     font-size: 0.75rem;
-  }
-
-  .spacer {
-    flex: 1;
+    white-space: nowrap;
   }
 
   .actions {
     display: flex;
-    flex-wrap: wrap;
     align-items: center;
     gap: 2px;
   }

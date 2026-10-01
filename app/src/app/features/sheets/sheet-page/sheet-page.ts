@@ -1,3 +1,4 @@
+import { CdkDrag, CdkDragDrop, CdkDropList } from '@angular/cdk/drag-drop';
 import { Component, computed, inject, input } from '@angular/core';
 import { ConfirmationService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -25,6 +26,8 @@ import { SheetStore } from '../sheet.store';
   selector: 'app-sheet-page',
   imports: [
     Breadcrumb,
+    CdkDrag,
+    CdkDropList,
     ButtonModule,
     ConfirmPopupModule,
     EmptyState,
@@ -75,6 +78,7 @@ export class SheetPage {
   });
 
   public readonly sheet = computed(() => this.sheetStore.sheet());
+  public readonly canEdit = computed(() => this.sheetStore.canEdit());
   public readonly error = computed(() => this.sheetStore.error());
 
   public readonly emptyMessage = computed(() => {
@@ -112,6 +116,12 @@ export class SheetPage {
   public retry(): void {
     this.phases.reload();
     this.sheetStore.reload();
+  }
+
+  public dropTable(event: CdkDragDrop<unknown>): void {
+    if (event.previousIndex !== event.currentIndex) {
+      void this.sheetStore.moveTableTo(event.item.data as number, event.currentIndex);
+    }
   }
 
   public dismissError(): void {

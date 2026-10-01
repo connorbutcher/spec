@@ -1,3 +1,4 @@
+import { CdkDragHandle } from '@angular/cdk/drag-drop';
 import { Component, computed, inject, input } from '@angular/core';
 import { ConfirmationService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -15,7 +16,15 @@ import { SheetStore } from '../sheet.store';
  */
 @Component({
   selector: 'app-sheet-table-card',
-  imports: [ButtonModule, InputTextModule, SheetActionBar, SheetAddMenu, SheetGrid, TagModule],
+  imports: [
+    ButtonModule,
+    CdkDragHandle,
+    InputTextModule,
+    SheetActionBar,
+    SheetAddMenu,
+    SheetGrid,
+    TagModule,
+  ],
   templateUrl: './sheet-table-card.html',
   styleUrl: './sheet-table-card.scss',
 })
@@ -37,15 +46,6 @@ export class SheetTableCard {
     return lock !== null && !lock.isMine ? lock.userName : null;
   });
 
-  public readonly canMoveUp = computed(
-    () => (this.store.sheet()?.tables.findIndex((table) => table.id === this.table().id) ?? 0) > 0,
-  );
-
-  public readonly canMoveDown = computed(() => {
-    const tables = this.store.sheet()?.tables ?? [];
-    return tables.findIndex((table) => table.id === this.table().id) < tables.length - 1;
-  });
-
   public readonly isBusy = computed(() => this.store.isBusy());
 
   private readonly store = inject(SheetStore);
@@ -60,10 +60,6 @@ export class SheetTableCard {
     if (title !== (this.table().title ?? '')) {
       void this.store.setTableTitle(this.table().id, title === '' ? null : title);
     }
-  }
-
-  public move(step: -1 | 1): void {
-    void this.store.moveTable(this.table().id, step);
   }
 
   public askRemove(event: Event): void {

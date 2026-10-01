@@ -59,3 +59,22 @@
   justify-content: center;
   height: 100%;
 }
+
+.tables {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+// While a table is dragged, its old place fades and the dragged copy floats above the page.
+.cdk-drag-placeholder {
+  opacity: 0.35;
+}
+
+.cdk-drag-preview {
+  box-shadow: 0 4px 14px rgb(15 23 42 / 18%);
+}
+
+.cdk-drag-animating {
+  transition: transform 180ms ease;
+}

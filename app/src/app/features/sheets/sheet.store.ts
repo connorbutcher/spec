@@ -159,10 +159,9 @@ export class SheetStore {
     await this.run(() => this.api.setTableTitle(tableId, title));
   }
 
-  public async moveTable(tableId: number, step: -1 | 1): Promise<void> {
-    const tables = this.sheet()?.tables ?? [];
-    const position = tables.findIndex((table) => table.id === tableId) + 1 + step;
-    await this.run(() => this.api.moveTable(tableId, position));
+  /** Put the table at a 0-based place in the sheet's table order. */
+  public async moveTableTo(tableId: number, index: number): Promise<void> {
+    await this.run(() => this.api.moveTable(tableId, index + 1));
   }
 
   public async removeTable(tableId: number): Promise<void> {
