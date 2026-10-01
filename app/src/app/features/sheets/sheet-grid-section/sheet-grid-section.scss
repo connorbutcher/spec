@@ -36,18 +36,19 @@
   z-index: 5;
 }
 
-// A group is boxed in: a heavy bar down its left edge and a boundary around it and all it holds.
+// A group is marked by a thin boundary around it and everything it holds, with a slightly stronger rule
+// down its left edge.
 :host(.group)::before {
   content: '';
   position: absolute;
   inset: 0;
   z-index: 1;
-  border: 1px solid #64748b;
-  border-left: 5px solid #475569;
+  border: 1px solid #94a3b8;
+  border-left: 2px solid #64748b;
   pointer-events: none;
 }
 
 :host(.group.nested)::before {
-  border-color: #94a3b8;
-  border-left-color: #64748b;
+  border-color: #cbd5e1;
+  border-left-color: #94a3b8;
 }
