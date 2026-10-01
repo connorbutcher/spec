@@ -74,9 +74,8 @@
   }
 
   @if (rowChange(); as change) {
-    <span class="row-mark" [pTooltip]="change.label" tooltipPosition="right">{{
-      change.version
-    }}</span>
+    <span class="row-mark" [pTooltip]="change.label" tooltipPosition="right"></span>
+    <span class="row-version">{{ change.version }}</span>
   }
 
   @if (cellChange(); as label) {

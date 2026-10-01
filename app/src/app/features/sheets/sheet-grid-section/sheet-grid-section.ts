@@ -70,12 +70,6 @@ export class SheetGridSection {
     return this.store.isMarked(change) && change !== null ? changeLabel(change) : null;
   });
 
-  /** Nested groups put their button further along the gutter so two never sit on top of each other. */
-  public readonly gutterOffset = computed(() => {
-    const depth = sectionAncestors(this.store.index(), this.layout().section.id).length;
-    return `calc(100% + 6px + ${depth * 90}px)`;
-  });
-
   private readonly store = inject(SheetStore);
 
   public hostStyle(): GridStyle {

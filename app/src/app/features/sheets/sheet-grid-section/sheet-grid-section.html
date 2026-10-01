@@ -12,12 +12,13 @@
 
 @if (sheetSection(); as section) {
   @if (canAdd() || changeLabel()) {
-    <div class="add" [style.left]="gutterOffset()" (click)="$event.stopPropagation()">
+    <div class="add" (click)="$event.stopPropagation()">
       @if (canAdd()) {
         <app-sheet-add-menu
           [tableId]="tableId()"
           [sectionId]="section.id"
           [sections]="section.addableSections"
+          [iconOnly]="true"
         />
       }
       @if (changeLabel(); as label) {

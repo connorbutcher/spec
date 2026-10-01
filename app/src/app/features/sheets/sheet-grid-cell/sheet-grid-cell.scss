@@ -118,20 +118,26 @@
   cursor: help;
 }
 
-// A row changed: a thin bar in the gutter beside its first cell, with the version written against it.
+// A row changed: a thin bar down the left edge of its first cell, with the version written small below.
 .row-mark {
   position: absolute;
   top: 0;
-  right: 100%;
   bottom: 0;
+  left: 0;
   z-index: 2;
   display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  width: 28px;
-  padding-right: 3px;
-  border-right: 3px solid #64748b;
-  color: #64748b;
-  font-size: 0.6rem;
+  width: 3px;
+  background: #64748b;
   cursor: help;
+}
+
+.row-version {
+  position: absolute;
+  bottom: 0;
+  left: 5px;
+  z-index: 2;
+  color: #64748b;
+  font-size: 0.55rem;
+  line-height: 1;
+  pointer-events: none;
 }

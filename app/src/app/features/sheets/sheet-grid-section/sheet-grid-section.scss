@@ -29,10 +29,11 @@
   font-size: 0.75rem;
 }
 
-// The group's add button sits in the gutter beside the table, level with the top of the group.
+// The group's add button sits inline at the right end of its heading row.
 .add {
   position: absolute;
   top: 2px;
+  right: 4px;
   z-index: 5;
   display: flex;
   align-items: center;

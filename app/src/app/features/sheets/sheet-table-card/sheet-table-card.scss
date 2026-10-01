@@ -4,6 +4,10 @@
 
 .table-card {
   overflow: hidden;
+  // Edge to edge: no side borders or rounding, so the table spans the whole content area.
+  border-right: 0;
+  border-left: 0;
+  border-radius: 0;
 }
 
 .table-head {
@@ -80,7 +84,4 @@
 // A wide table scrolls inside its card, not the page.
 .grid-scroll {
   overflow-x: auto;
-  // Room beside the grid for the add buttons of its groups.
-  padding-right: 130px;
-  padding-left: 32px;
 }
