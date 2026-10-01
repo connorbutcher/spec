@@ -4,6 +4,7 @@ using PUSpecSheet.Api.Cors;
 using PUSpecSheet.Api.ExceptionHandling;
 using PUSpecSheet.Api.Users;
 using PUSpecSheet.Application.DependencyInjection;
+using PUSpecSheet.Application.Sheets.Demo;
 using PUSpecSheet.Application.Users;
 using PUSpecSheet.Data;
 using PUSpecSheet.Data.DependencyInjection;
@@ -43,6 +44,7 @@ if (app.Environment.IsDevelopment())
     var db = scope.ServiceProvider.GetRequiredService<PuSpecSheetDbContext>();
     await db.Database.MigrateAsync();
     await DevelopmentDataSeeder.SeedAsync(db);
+    await scope.ServiceProvider.GetRequiredService<DemoDataSeeder>().SeedAsync();
 
     app.MapOpenApi();
 }

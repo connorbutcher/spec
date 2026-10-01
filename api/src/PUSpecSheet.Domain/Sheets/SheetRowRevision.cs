@@ -8,7 +8,7 @@ namespace PUSpecSheet.Domain.Sheets;
 /// revision at a time; that draft is the row's lock, held by <see cref="AuthorUserId"/>. Publishing
 /// stamps <see cref="PublishedAtUtc"/> and ties the revision to a <see cref="SheetVersion"/>.
 /// </summary>
-public class SheetRowRevision
+public class SheetRowRevision : ISheetRevision
 {
     public int Id { get; set; }
 

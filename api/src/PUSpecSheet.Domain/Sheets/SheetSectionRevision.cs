@@ -7,7 +7,7 @@ namespace PUSpecSheet.Domain.Sheets;
 /// sheet. Versioned like rows: a <see cref="RevisionStatus.Draft"/> locks the section to its author
 /// until published.
 /// </summary>
-public class SheetSectionRevision
+public class SheetSectionRevision : ISheetRevision
 {
     public int Id { get; set; }
 

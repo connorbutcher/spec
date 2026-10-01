@@ -8,7 +8,7 @@ namespace PUSpecSheet.Domain.Sheets;
 /// table's details to its author until published, and "as of a date" uses the latest published
 /// revision at or before that moment.
 /// </summary>
-public class SheetTableRevision
+public class SheetTableRevision : ISheetRevision
 {
     public int Id { get; set; }
 

@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using PUSpecSheet.Application.CellTypes;
 using PUSpecSheet.Application.Phases;
+using PUSpecSheet.Application.Sheets;
 using PUSpecSheet.Application.SheetTypes;
 using PUSpecSheet.Application.Templates;
 
@@ -23,6 +24,8 @@ public static class ApplicationServiceCollectionExtensions
         services.AddScoped<ITemplateRowService, TemplateRowService>();
         services.AddScoped<ITemplateCellService, TemplateCellService>();
         services.AddScoped<ITemplateCellOverrideService, TemplateCellOverrideService>();
+
+        services.AddPuSpecSheetSheets();
 
         return services;
     }
