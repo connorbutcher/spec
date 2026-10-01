@@ -147,10 +147,10 @@ export class SheetGridCell {
     () => this.store.selection()?.rowId === this.layout().rowId,
   );
 
-  /** The lock marker goes on the first cell of the row only. */
+  /** The lock marker goes on the first cell of a row someone else is editing. Your own rows are only tinted. */
   public readonly showsLock = computed(() => {
     const row = this.row();
-    return row !== null && row.lock !== null && row.cells[0]?.id === this.layout().cell.id;
+    return row !== null && this.lockedByOther() && row.cells[0]?.id === this.layout().cell.id;
   });
 
   public readonly lockLabel = computed(() => {
