@@ -12,6 +12,7 @@ public static class SheetServiceCollectionExtensions
         services.AddScoped<SheetChangeHistoryLoader>();
         services.AddScoped<SheetSnapshotLoader>();
         services.AddScoped<SheetReader>();
+        services.AddScoped<ISheetItemLocator, SheetItemLocator>();
         services.AddScoped<SheetInstantiator>();
         services.AddScoped<LiveSectionQuery>();
         services.AddScoped<TableDrafts>();
