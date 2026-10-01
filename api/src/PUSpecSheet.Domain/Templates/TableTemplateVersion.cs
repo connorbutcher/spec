@@ -22,4 +22,7 @@ public class TableTemplateVersion
 
     /// <summary>Every section in this version, at all levels of the tree.</summary>
     public ICollection<TemplateSection> Sections { get; set; } = [];
+
+    /// <summary>The column blocks people add copies of across a horizontal table. Vertical tables have none.</summary>
+    public ICollection<TemplateColumnBlock> ColumnBlocks { get; set; } = [];
 }

@@ -45,11 +45,16 @@ public sealed class TemplateRowService(
 
         var insertIndex = Math.Clamp((request.Position ?? rows.Count + 1) - 1, 0, rows.Count);
         var defaultCellTypeId = await DefaultCellType.GetIdAsync(db, cancellationToken);
+        var columnBlockIds = await db.TemplateColumnBlocks
+            .Where(block => block.TableTemplateVersionId == section.TableTemplateVersionId)
+            .OrderBy(block => block.DisplayOrder)
+            .Select(block => block.Id)
+            .ToListAsync(cancellationToken);
 
         var row = new TemplateRow
         {
             TemplateSectionId = request.TemplateSectionId,
-            Cells = NewRowCells.For(rows, source, insertIndex, defaultCellTypeId),
+            Cells = NewRowCells.For(rows, source, insertIndex, defaultCellTypeId, columnBlockIds),
         };
 
         rows.Insert(insertIndex, row);

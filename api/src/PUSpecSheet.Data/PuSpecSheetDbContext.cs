@@ -35,6 +35,8 @@ public sealed class PuSpecSheetDbContext(DbContextOptions<PuSpecSheetDbContext> 
 
     public DbSet<TemplateCell> TemplateCells => Set<TemplateCell>();
 
+    public DbSet<TemplateColumnBlock> TemplateColumnBlocks => Set<TemplateColumnBlock>();
+
     public DbSet<User> Users => Set<User>();
 
     public DbSet<Sheet> Sheets => Set<Sheet>();
@@ -48,6 +50,10 @@ public sealed class PuSpecSheetDbContext(DbContextOptions<PuSpecSheetDbContext> 
     public DbSet<SheetSection> SheetSections => Set<SheetSection>();
 
     public DbSet<SheetSectionRevision> SheetSectionRevisions => Set<SheetSectionRevision>();
+
+    public DbSet<SheetColumnBlock> SheetColumnBlocks => Set<SheetColumnBlock>();
+
+    public DbSet<SheetColumnBlockRevision> SheetColumnBlockRevisions => Set<SheetColumnBlockRevision>();
 
     public DbSet<SheetRow> SheetRows => Set<SheetRow>();
 

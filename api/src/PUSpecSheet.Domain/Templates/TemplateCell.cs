@@ -6,7 +6,9 @@ namespace PUSpecSheet.Domain.Templates;
 
 /// <summary>
 /// One cell in a <see cref="TemplateRow"/>. The cell starts on its row; <see cref="Column"/> is
-/// 1-based, and the spans map directly onto CSS grid-row / grid-column span.
+/// 1-based, and the spans map directly onto CSS grid-row / grid-column span. In a horizontal table a
+/// cell can belong to a <see cref="TemplateColumnBlock"/>; its column then counts from the block's first
+/// column, and every copy of the block on a sheet gets its own copy of the cell.
 /// </summary>
 public class TemplateCell
 {
@@ -16,7 +18,12 @@ public class TemplateCell
 
     public TemplateRow TemplateRow { get; set; } = null!;
 
-    /// <summary>The 1-based column the cell starts on.</summary>
+    /// <summary>The column block the cell belongs to, or null for the row's own cells, which come before the blocks.</summary>
+    public int? TemplateColumnBlockId { get; set; }
+
+    public TemplateColumnBlock? TemplateColumnBlock { get; set; }
+
+    /// <summary>The 1-based column the cell starts on, within its column block when it has one.</summary>
     public int Column { get; set; }
 
     public int RowSpan { get; set; } = 1;

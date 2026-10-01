@@ -7,7 +7,7 @@ internal static class TableTemplateMappings
 {
     /// <summary>
     /// Maps a template at one version, with that version's flat lists of sections and rows (cells
-    /// loaded), to the nested DTO.
+    /// loaded) and its column blocks, to the nested DTO.
     /// </summary>
     public static TableTemplateDto ToDto(
         this TableTemplate template,
@@ -15,7 +15,8 @@ internal static class TableTemplateMappings
         bool isEditable,
         IReadOnlyList<TableTemplateVersionSummaryDto> versions,
         IReadOnlyList<TemplateSection> sections,
-        IReadOnlyList<TemplateRow> rows)
+        IReadOnlyList<TemplateRow> rows,
+        IReadOnlyList<TemplateColumnBlock> columnBlocks)
     {
         var sectionsByParent = sections.ToLookup(section => section.ParentSectionId);
         var rowsBySection = rows.ToLookup(row => row.TemplateSectionId);
@@ -30,7 +31,17 @@ internal static class TableTemplateMappings
             version.Orientation,
             isEditable,
             versions,
-            MapSections(null, sectionsByParent, rowsBySection));
+            MapSections(null, sectionsByParent, rowsBySection),
+            columnBlocks
+                .OrderBy(block => block.DisplayOrder)
+                .Select(block => new TemplateColumnBlockDto(
+                    block.Id,
+                    block.Name,
+                    block.DisplayOrder,
+                    block.MinInstances,
+                    block.MaxInstances,
+                    block.InitialInstances))
+                .ToList());
     }
 
     private static List<TemplateSectionDto> MapSections(
@@ -60,7 +71,8 @@ internal static class TableTemplateMappings
     private static TemplateRowDto ToDto(this TemplateRow row)
     {
         var cells = row.Cells
-            .OrderBy(cell => cell.Column)
+            .OrderBy(cell => cell.TemplateColumnBlockId ?? 0)
+            .ThenBy(cell => cell.Column)
             .Select(cell => new TemplateCellDto(
                 cell.Id,
                 cell.CellTypeId,
@@ -70,7 +82,8 @@ internal static class TableTemplateMappings
                 cell.Caption,
                 cell.IsRequired,
                 cell.ConfigurationOverride,
-                cell.StyleOverride))
+                cell.StyleOverride,
+                cell.TemplateColumnBlockId))
             .ToList();
 
         return new TemplateRowDto(row.Id, row.DisplayOrder, cells);

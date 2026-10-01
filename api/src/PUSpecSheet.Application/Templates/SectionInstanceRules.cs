@@ -19,15 +19,7 @@ internal static class SectionInstanceRules
     /// <summary>Applies an addable section's counts, which must satisfy min &lt;= starts with &lt;= max.</summary>
     public static void ApplyAddable(UpdateTemplateSectionRequest request, TemplateSection section)
     {
-        if (request.MinInstances > request.InitialInstances)
-        {
-            throw new InvalidRequestException("A table can't start with fewer copies than the fewest allowed.");
-        }
-
-        if (request.MaxInstances is not null && request.InitialInstances > request.MaxInstances)
-        {
-            throw new InvalidRequestException("A table can't start with more copies than the most allowed.");
-        }
+        EnsureValid(request.MinInstances, request.MaxInstances, request.InitialInstances);
 
         section.Role = SectionRole.Addable;
         section.MinInstances = request.MinInstances;
@@ -42,5 +34,19 @@ internal static class SectionInstanceRules
         section.MinInstances = 0;
         section.MaxInstances = null;
         section.InitialInstances = 0;
+    }
+
+    /// <summary>Copy counts must satisfy min &lt;= starts with &lt;= max, for sections and column blocks alike.</summary>
+    public static void EnsureValid(int minInstances, int? maxInstances, int initialInstances)
+    {
+        if (minInstances > initialInstances)
+        {
+            throw new InvalidRequestException("A table can't start with fewer copies than the fewest allowed.");
+        }
+
+        if (maxInstances is not null && initialInstances > maxInstances)
+        {
+            throw new InvalidRequestException("A table can't start with more copies than the most allowed.");
+        }
     }
 }

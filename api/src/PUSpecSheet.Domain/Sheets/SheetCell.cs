@@ -21,4 +21,12 @@ public class SheetCell
     public int TemplateCellId { get; set; }
 
     public TemplateCell TemplateCell { get; set; } = null!;
+
+    /// <summary>
+    /// The column block copy the cell belongs to, for a cell of a <see cref="TemplateColumnBlock"/>; null
+    /// for the row's own cells. A row holds one cell per block template cell for every block copy.
+    /// </summary>
+    public int? SheetColumnBlockId { get; set; }
+
+    public SheetColumnBlock? SheetColumnBlock { get; set; }
 }

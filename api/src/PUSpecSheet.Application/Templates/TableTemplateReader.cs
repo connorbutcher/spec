@@ -64,8 +64,13 @@ public sealed class TableTemplateReader(PuSpecSheetDbContext db)
             .Where(row => row.TemplateSection.TableTemplateVersionId == version.Id)
             .ToListAsync(cancellationToken);
 
+        var columnBlocks = await db.TemplateColumnBlocks
+            .AsNoTracking()
+            .Where(block => block.TableTemplateVersionId == version.Id)
+            .ToListAsync(cancellationToken);
+
         var isEditable = version == versions[^1] && !inUse.Contains(version.Id);
-        return template.ToDto(version, isEditable, summaries, sections, rows);
+        return template.ToDto(version, isEditable, summaries, sections, rows, columnBlocks);
     }
 
     /// <summary>Reads the version with the given id.</summary>

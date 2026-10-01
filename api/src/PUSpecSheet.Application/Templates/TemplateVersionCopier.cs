@@ -4,7 +4,7 @@ using PUSpecSheet.Domain.Templates;
 
 namespace PUSpecSheet.Application.Templates;
 
-/// <summary>Deep-copies a template version (sections, rows and cells) into the next version number.</summary>
+/// <summary>Deep-copies a template version (column blocks, sections, rows and cells) into the next version number.</summary>
 internal static class TemplateVersionCopier
 {
     /// <summary>Adds the copy to the context; the caller saves it.</summary>
@@ -21,6 +21,11 @@ internal static class TemplateVersionCopier
             .ThenInclude(row => row.Cells)
             .ToListAsync(cancellationToken);
 
+        var columnBlocks = await db.TemplateColumnBlocks
+            .AsNoTracking()
+            .Where(block => block.TableTemplateVersionId == source.Id)
+            .ToListAsync(cancellationToken);
+
         var copy = new TableTemplateVersion
         {
             TableTemplateId = source.TableTemplateId,
@@ -28,7 +33,9 @@ internal static class TemplateVersionCopier
             Orientation = source.Orientation,
         };
 
-        var copies = sections.ToDictionary(section => section.Id, section => CopySection(section, copy));
+        var blockCopies = columnBlocks.ToDictionary(block => block.Id, block => CopyColumnBlock(block, copy));
+
+        var copies = sections.ToDictionary(section => section.Id, section => CopySection(section, copy, blockCopies));
         foreach (var section in sections.Where(section => section.ParentSectionId is not null))
         {
             copies[section.Id].ParentSection = copies[section.ParentSectionId!.Value];
@@ -38,7 +45,26 @@ internal static class TemplateVersionCopier
         return copy;
     }
 
-    private static TemplateSection CopySection(TemplateSection section, TableTemplateVersion version)
+    private static TemplateColumnBlock CopyColumnBlock(TemplateColumnBlock block, TableTemplateVersion version)
+    {
+        var copy = new TemplateColumnBlock
+        {
+            TableTemplateVersion = version,
+            Name = block.Name,
+            DisplayOrder = block.DisplayOrder,
+            MinInstances = block.MinInstances,
+            MaxInstances = block.MaxInstances,
+            InitialInstances = block.InitialInstances,
+        };
+
+        version.ColumnBlocks.Add(copy);
+        return copy;
+    }
+
+    private static TemplateSection CopySection(
+        TemplateSection section,
+        TableTemplateVersion version,
+        Dictionary<int, TemplateColumnBlock> blockCopies)
     {
         var copy = new TemplateSection
         {
@@ -56,6 +82,7 @@ internal static class TemplateVersionCopier
                     Cells = row.Cells
                         .Select(cell => new TemplateCell
                         {
+                            TemplateColumnBlock = cell.TemplateColumnBlockId is int blockId ? blockCopies[blockId] : null,
                             Column = cell.Column,
                             RowSpan = cell.RowSpan,
                             ColumnSpan = cell.ColumnSpan,

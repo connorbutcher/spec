@@ -105,6 +105,15 @@ public sealed class TableTemplateService(
         if (latest.Orientation != request.Orientation)
         {
             await guard.EnsureEditableAsync(latest.Id, cancellationToken);
+
+            var hasColumnBlocks = await db.TemplateColumnBlocks.AnyAsync(
+                block => block.TableTemplateVersionId == latest.Id,
+                cancellationToken);
+            if (request.Orientation != TemplateOrientation.Horizontal && hasColumnBlocks)
+            {
+                throw new ConflictException("Only horizontal tables have column blocks. Remove the column blocks first.");
+            }
+
             latest.Orientation = request.Orientation;
         }
 

@@ -5,7 +5,8 @@ namespace PUSpecSheet.Contracts.Templates;
 
 /// <summary>
 /// A cell in a row. The overrides hold only what the cell changes from its cell type's defaults; the
-/// cell uses the defaults with the overrides laid on top.
+/// cell uses the defaults with the overrides laid on top. A cell with a <see cref="ColumnBlockId"/>
+/// belongs to that column block, and its column counts from the block's first column.
 /// </summary>
 public sealed record TemplateCellDto(
     int Id,
@@ -16,4 +17,5 @@ public sealed record TemplateCellDto(
     string? Caption,
     bool IsRequired,
     CellConfiguration? ConfigurationOverride,
-    CellStyle? StyleOverride);
+    CellStyle? StyleOverride,
+    int? ColumnBlockId = null);

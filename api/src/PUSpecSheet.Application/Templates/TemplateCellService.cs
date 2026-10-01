@@ -19,7 +19,9 @@ public sealed class TemplateCellService(
             .Select(candidate => new
             {
                 candidate.TemplateSection.TableTemplateVersionId,
-                NextColumn = candidate.Cells.Max(cell => (int?)(cell.Column + cell.ColumnSpan)) ?? 1,
+                NextColumn = candidate.Cells
+                    .Where(cell => cell.TemplateColumnBlockId == request.TemplateColumnBlockId)
+                    .Max(cell => (int?)(cell.Column + cell.ColumnSpan)) ?? 1,
             })
             .SingleOrDefaultAsync(cancellationToken);
 
@@ -29,6 +31,11 @@ public sealed class TemplateCellService(
         }
 
         await guard.EnsureEditableAsync(row.TableTemplateVersionId, cancellationToken);
+
+        if (request.TemplateColumnBlockId is int blockId)
+        {
+            await EnsureBlockInVersionAsync(blockId, row.TableTemplateVersionId, cancellationToken);
+        }
 
         var cellTypeId = request.CellTypeId ?? await DefaultCellType.GetIdAsync(db, cancellationToken);
         await EnsureCellTypeExistsAsync(cellTypeId, cancellationToken);
@@ -41,13 +48,16 @@ public sealed class TemplateCellService(
             // Make room: the cells from this column on move one to the right, in one statement so the
             // one-cell-per-column index is only checked once they've all moved.
             await db.TemplateCells
-                .Where(cell => cell.TemplateRowId == request.TemplateRowId && cell.Column >= column)
+                .Where(cell => cell.TemplateRowId == request.TemplateRowId
+                    && cell.TemplateColumnBlockId == request.TemplateColumnBlockId
+                    && cell.Column >= column)
                 .ExecuteUpdateAsync(setters => setters.SetProperty(cell => cell.Column, cell => cell.Column + 1), cancellationToken);
         }
 
         db.TemplateCells.Add(new TemplateCell
         {
             TemplateRowId = request.TemplateRowId,
+            TemplateColumnBlockId = request.TemplateColumnBlockId,
             Column = column,
             CellTypeId = cellTypeId,
         });
@@ -67,12 +77,16 @@ public sealed class TemplateCellService(
         await EnsureCellTypeExistsAsync(request.CellTypeId, cancellationToken);
 
         var columnTaken = await db.TemplateCells.AnyAsync(
-            other => other.TemplateRowId == cell.TemplateRowId && other.Column == request.Column && other.Id != id,
+            other => other.TemplateRowId == cell.TemplateRowId
+                && other.TemplateColumnBlockId == cell.TemplateColumnBlockId
+                && other.Column == request.Column
+                && other.Id != id,
             cancellationToken);
 
         if (columnTaken)
         {
-            throw new ConflictException($"Another cell in this row already starts at column {request.Column}.");
+            var place = cell.TemplateColumnBlockId is null ? "this row" : "this row's column block";
+            throw new ConflictException($"Another cell in {place} already starts at column {request.Column}.");
         }
 
         cell.CellTypeId = request.CellTypeId;
@@ -110,6 +124,17 @@ public sealed class TemplateCellService(
 
         await guard.EnsureEditableAsync(cell.TemplateRow.TemplateSection.TableTemplateVersionId, cancellationToken);
         return cell;
+    }
+
+    private async Task EnsureBlockInVersionAsync(int blockId, int versionId, CancellationToken cancellationToken)
+    {
+        var exists = await db.TemplateColumnBlocks.AnyAsync(
+            block => block.Id == blockId && block.TableTemplateVersionId == versionId,
+            cancellationToken);
+        if (!exists)
+        {
+            throw new InvalidRequestException($"Column block {blockId} isn't part of this table version.");
+        }
     }
 
     private async Task EnsureCellTypeExistsAsync(int cellTypeId, CancellationToken cancellationToken)

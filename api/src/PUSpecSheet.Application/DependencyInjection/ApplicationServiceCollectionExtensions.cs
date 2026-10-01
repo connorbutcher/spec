@@ -24,6 +24,7 @@ public static class ApplicationServiceCollectionExtensions
         services.AddScoped<ITemplateRowService, TemplateRowService>();
         services.AddScoped<ITemplateCellService, TemplateCellService>();
         services.AddScoped<ITemplateCellOverrideService, TemplateCellOverrideService>();
+        services.AddScoped<ITemplateColumnBlockService, TemplateColumnBlockService>();
 
         services.AddPuSpecSheetSheets();
 

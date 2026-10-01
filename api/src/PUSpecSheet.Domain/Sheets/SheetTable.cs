@@ -27,4 +27,7 @@ public class SheetTable
     public ICollection<SheetTableRevision> Revisions { get; set; } = [];
 
     public ICollection<SheetSection> Sections { get; set; } = [];
+
+    /// <summary>The copies of the template's column blocks, for a horizontal table.</summary>
+    public ICollection<SheetColumnBlock> ColumnBlocks { get; set; } = [];
 }
