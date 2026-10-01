@@ -1,0 +1,80 @@
+import { SheetCell } from './models/sheet-cell.model';
+import { SheetIndex } from './models/sheet-index.model';
+import { SheetRow } from './models/sheet-row.model';
+import { SheetSection } from './models/sheet-section.model';
+import { SheetTable } from './models/sheet-table.model';
+import { Sheet } from './models/sheet.model';
+
+/** Indexes every table, section, row and cell of the sheet by id. */
+export function buildSheetIndex(sheet: Sheet | null): SheetIndex {
+  const index = {
+    tables: new Map<number, SheetTable>(),
+    sections: new Map<number, SheetSection>(),
+    rows: new Map<number, SheetRow>(),
+    cells: new Map<number, SheetCell>(),
+    sectionParent: new Map<number, number | null>(),
+    sectionTable: new Map<number, number>(),
+    rowSection: new Map<number, number>(),
+    cellRow: new Map<number, number>(),
+  } satisfies SheetIndex;
+
+  const addSection = (section: SheetSection, tableId: number, parentId: number | null): void => {
+    index.sections.set(section.id, section);
+    index.sectionParent.set(section.id, parentId);
+    index.sectionTable.set(section.id, tableId);
+    for (const row of section.rows) {
+      index.rows.set(row.id, row);
+      index.rowSection.set(row.id, section.id);
+      for (const cell of row.cells) {
+        index.cells.set(cell.id, cell);
+        index.cellRow.set(cell.id, row.id);
+      }
+    }
+    for (const child of section.sections) {
+      addSection(child, tableId, section.id);
+    }
+  };
+
+  for (const table of sheet?.tables ?? []) {
+    index.tables.set(table.id, table);
+    for (const section of table.sections) {
+      addSection(section, table.id, null);
+    }
+  }
+  return index;
+}
+
+/** The ids of every section in the sheet, for spotting the one that was just added. */
+export function sectionIds(index: SheetIndex): Set<number> {
+  return new Set(index.sections.keys());
+}
+
+/** The ids of every row in the sheet, for spotting the one that was just added. */
+export function rowIds(index: SheetIndex): Set<number> {
+  return new Set(index.rows.keys());
+}
+
+/** The section's ancestors from the top level down to (not including) the section itself. */
+export function sectionAncestors(index: SheetIndex, sectionId: number): SheetSection[] {
+  const ancestors: SheetSection[] = [];
+  let parentId = index.sectionParent.get(sectionId) ?? null;
+  while (parentId !== null) {
+    const parent = index.sections.get(parentId);
+    if (!parent) {
+      break;
+    }
+    ancestors.unshift(parent);
+    parentId = index.sectionParent.get(parentId) ?? null;
+  }
+  return ancestors;
+}
+
+/** The sections at the same level as `sectionId`, in display order, including itself. */
+export function sectionSiblings(index: SheetIndex, sectionId: number): SheetSection[] {
+  const parentId = index.sectionParent.get(sectionId) ?? null;
+  if (parentId !== null) {
+    return index.sections.get(parentId)?.sections ?? [];
+  }
+  const table = index.tables.get(index.sectionTable.get(sectionId) ?? -1);
+  return table?.sections ?? [];
+}

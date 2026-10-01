@@ -2,15 +2,12 @@
   @if (sheetType(); as sheetType) {
     <article class="app-card sheet-page">
       <header class="sheet-head">
-        <div class="head-row">
-          <div class="title">
-            <app-breadcrumb [items]="breadcrumb()" />
-            <h1>
-              <span class="phase-code">{{ phase.code }}</span>
-              {{ sheetType.name }}
-            </h1>
-          </div>
-          <app-sheet-version-picker />
+        <div class="title">
+          <app-breadcrumb [items]="breadcrumb()" />
+          <h1>
+            <span class="phase-code">{{ phase.code }}</span>
+            {{ sheetType.name }}
+          </h1>
         </div>
         <app-sheet-switcher
           [sheetTypes]="phaseSheetTypes()"
@@ -19,8 +16,42 @@
         />
       </header>
 
+      @if (sheet(); as sheet) {
+        <app-sheet-toolbar />
+      }
+
+      @if (error(); as message) {
+        <div class="error">
+          <p-message severity="error" size="small" [closable]="true" (onClose)="dismissError()">
+            {{ message }}
+          </p-message>
+        </div>
+      }
+
       <section class="sheet-body" [attr.aria-label]="sheetType.name + ' sheet'">
-        <app-sheet-placeholder [sheetType]="sheetType" [phaseCode]="phase.code" />
+        @if (sheet(); as sheet) {
+          @for (table of sheet.tables; track table.id) {
+            <app-sheet-table-card [table]="table" />
+          } @empty {
+            <app-empty-state icon="pi-table" title="No tables yet" [message]="emptyMessage()" />
+          }
+        } @else if (hasSheetError()) {
+          <app-empty-state
+            icon="pi-exclamation-circle"
+            title="Couldn't load the sheet"
+            message="Check the API is running, then try again."
+          >
+            <p-button
+              label="Try again"
+              icon="pi pi-refresh"
+              size="small"
+              [outlined]="true"
+              (onClick)="retry()"
+            />
+          </app-empty-state>
+        } @else if (isLoadingSheet()) {
+          <p-skeleton height="8rem" />
+        }
       </section>
     </article>
   } @else {
@@ -32,7 +63,7 @@
       />
     </div>
   }
-} @else if (hasError()) {
+} @else if (hasPhasesError()) {
   <div class="app-card state">
     <app-empty-state
       icon="pi-exclamation-circle"
@@ -48,8 +79,10 @@
       />
     </app-empty-state>
   </div>
-} @else if (!isLoading()) {
+} @else if (!isLoadingPhases()) {
   <div class="app-card state">
     <app-empty-state icon="pi-search" title="Phase not found" message="It may have been removed." />
   </div>
 }
+
+<p-confirmpopup />

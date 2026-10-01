@@ -1,0 +1,11 @@
+// The outer grid. Sections are invisible; each cell draws its own hairline borders, so unused grid
+// tracks stay plain white.
+.grid {
+  display: grid;
+  gap: 0;
+  width: 100%;
+  border-top: 1px solid #e5e7eb;
+  border-left: 1px solid #e5e7eb;
+  background: #fff;
+  font-size: 0.8rem;
+}

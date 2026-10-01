@@ -1,0 +1,49 @@
+:host {
+  display: block;
+}
+
+.table-card {
+  overflow: hidden;
+}
+
+.table-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--app-card-border);
+
+  .title {
+    width: 22rem;
+    max-width: 100%;
+    font-weight: 600;
+  }
+
+  .title-text {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 600;
+  }
+
+  .meta {
+    color: #6b7280;
+    font-size: 0.75rem;
+  }
+
+  .spacer {
+    flex: 1;
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 2px;
+  }
+}
+
+// A wide table scrolls inside its card, not the page.
+.grid-scroll {
+  overflow-x: auto;
+}

@@ -1,0 +1,22 @@
+.publish-form {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 20rem;
+
+  label {
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+
+  textarea {
+    width: 100%;
+    resize: vertical;
+  }
+
+  .buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 6px;
+  }
+}

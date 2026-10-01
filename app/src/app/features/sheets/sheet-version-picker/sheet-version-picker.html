@@ -1,11 +1,41 @@
-<label class="version-picker">
-  <span class="label">Version</span>
+<div class="version-picker" role="group" aria-label="Which version of the sheet to show">
   <p-select
-    [options]="versions()"
-    [(ngModel)]="selected"
-    [disabled]="versions().length === 0"
-    placeholder="No versions yet"
     size="small"
-    ariaLabel="Sheet version"
+    optionLabel="label"
+    optionValue="value"
+    appendTo="body"
+    ariaLabel="Version"
+    [options]="options()"
+    [ngModel]="selected()"
+    [disabled]="!hasVersions() && selected() === null"
+    placeholder="No versions yet"
+    (onChange)="chooseVersion($event.value)"
   />
-</label>
+  <p-datepicker
+    size="small"
+    appendTo="body"
+    placeholder="As of date"
+    dateFormat="yy-mm-dd"
+    [showTime]="true"
+    hourFormat="24"
+    [showIcon]="true"
+    [showClear]="true"
+    [showButtonBar]="true"
+    [maxDate]="today"
+    ariaLabel="Show the sheet as of a date and time"
+    [disabled]="!hasVersions()"
+    [ngModel]="asOf()"
+    (onSelect)="chooseDate($event)"
+    (onClear)="chooseDate(null)"
+  />
+  @if (!isLive()) {
+    <p-button
+      label="Back to live"
+      icon="pi pi-history"
+      size="small"
+      severity="secondary"
+      [outlined]="true"
+      (onClick)="backToLive()"
+    />
+  }
+</div>

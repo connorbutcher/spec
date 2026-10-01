@@ -1,19 +1,14 @@
 .version-picker {
-  display: inline-flex;
-  flex: 0 0 auto;
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 6px;
+}
 
-  .label {
-    font-size: 0.72rem;
-    font-weight: 600;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    color: #64748b;
-  }
+p-select {
+  min-width: 15rem;
+}
 
-  p-select {
-    min-width: 10rem;
-    font-size: 0.8rem;
-  }
+p-datepicker {
+  min-width: 11rem;
 }

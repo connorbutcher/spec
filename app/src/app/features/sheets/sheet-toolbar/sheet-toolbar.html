@@ -1,0 +1,47 @@
+<div class="sheet-toolbar" role="toolbar" aria-label="Sheet tools">
+  <app-sheet-version-picker />
+
+  @if (pastLabel(); as label) {
+    <p-tag
+      [value]="'Read-only: ' + label"
+      icon="pi pi-lock"
+      severity="secondary"
+      [rounded]="true"
+    />
+  }
+
+  <span class="spacer"></span>
+
+  <p-button
+    icon="pi pi-refresh"
+    size="small"
+    severity="secondary"
+    [text]="true"
+    ariaLabel="Refresh the sheet"
+    (onClick)="reload()"
+  />
+
+  @if (canEdit()) {
+    <p-button
+      label="Add table"
+      icon="pi pi-plus"
+      size="small"
+      severity="secondary"
+      [outlined]="true"
+      [disabled]="!hasTemplates() || isBusy()"
+      (onClick)="tableMenu.toggle($event)"
+    />
+    <p-menu #tableMenu [popup]="true" [model]="templateMenu()" appendTo="body" />
+
+    <p-button
+      label="Discard"
+      icon="pi pi-undo"
+      size="small"
+      severity="secondary"
+      [outlined]="true"
+      [disabled]="changeCount() === 0 || isBusy()"
+      (onClick)="askDiscard($event)"
+    />
+    <app-sheet-publish />
+  }
+</div>

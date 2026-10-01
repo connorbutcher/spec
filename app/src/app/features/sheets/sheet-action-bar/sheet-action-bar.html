@@ -1,0 +1,131 @@
+@if (section(); as section) {
+  <div class="action-bar" role="toolbar" aria-label="Actions for the selection">
+    <p-breadcrumb class="path" [model]="path()" />
+
+    <div class="group" role="group" aria-label="Section">
+      @for (addable of addableSections(); track addable.templateSectionId) {
+        <p-button
+          [label]="addable.name"
+          icon="pi pi-plus"
+          size="small"
+          severity="secondary"
+          [outlined]="true"
+          [disabled]="!addable.canAdd || isBusy()"
+          [ariaLabel]="'Add ' + addable.name"
+          (onClick)="addSection(addable)"
+        />
+      }
+      @if (section.addableRows.length === 1) {
+        <p-button
+          label="Row"
+          icon="pi pi-plus"
+          size="small"
+          severity="secondary"
+          [outlined]="true"
+          [disabled]="isBusy()"
+          ariaLabel="Add a row"
+          (onClick)="addOnlyRow()"
+        />
+      } @else if (section.addableRows.length > 1) {
+        <p-button
+          label="Row"
+          icon="pi pi-plus"
+          size="small"
+          severity="secondary"
+          [outlined]="true"
+          [disabled]="isBusy()"
+          ariaLabel="Add a row"
+          (onClick)="rowMenuPopup.toggle($event)"
+        />
+        <p-menu #rowMenuPopup [popup]="true" [model]="rowMenu()" appendTo="body" />
+      }
+      @if (!isHeader()) {
+        <p-button
+          icon="pi pi-arrow-up"
+          size="small"
+          severity="secondary"
+          [text]="true"
+          [disabled]="!canMoveSectionUp() || isBusy()"
+          ariaLabel="Move the section up"
+          (onClick)="moveSection(-1)"
+        />
+        <p-button
+          icon="pi pi-arrow-down"
+          size="small"
+          severity="secondary"
+          [text]="true"
+          [disabled]="!canMoveSectionDown() || isBusy()"
+          ariaLabel="Move the section down"
+          (onClick)="moveSection(1)"
+        />
+        <p-button
+          icon="pi pi-trash"
+          size="small"
+          severity="secondary"
+          [text]="true"
+          [disabled]="!section.canRemove || isBusy()"
+          ariaLabel="Remove the section"
+          (onClick)="askRemoveSection($event)"
+        />
+      }
+    </div>
+
+    @if (row(); as row) {
+      <div class="group" role="group" aria-label="Row">
+        @if (row.lock === null) {
+          <p-button
+            label="Edit row"
+            icon="pi pi-pencil"
+            size="small"
+            [disabled]="isBusy() || isHeader()"
+            (onClick)="lockRow()"
+          />
+        } @else if (row.lock.isMine) {
+          <p-button
+            label="Discard changes"
+            icon="pi pi-undo"
+            size="small"
+            severity="secondary"
+            [outlined]="true"
+            [disabled]="isBusy()"
+            (onClick)="discardRow()"
+          />
+        } @else {
+          <span class="locked">
+            <i class="pi pi-lock" aria-hidden="true"></i>
+            Being edited by {{ row.lock.userName }}
+          </span>
+        }
+        @if (row.canRemove) {
+          <p-button
+            icon="pi pi-arrow-up"
+            size="small"
+            severity="secondary"
+            [text]="true"
+            [disabled]="!canMoveRowUp() || isBusy() || lockedByOther()"
+            ariaLabel="Move the row up"
+            (onClick)="moveRow(-1)"
+          />
+          <p-button
+            icon="pi pi-arrow-down"
+            size="small"
+            severity="secondary"
+            [text]="true"
+            [disabled]="!canMoveRowDown() || isBusy() || lockedByOther()"
+            ariaLabel="Move the row down"
+            (onClick)="moveRow(1)"
+          />
+          <p-button
+            icon="pi pi-trash"
+            size="small"
+            severity="secondary"
+            [text]="true"
+            [disabled]="isBusy() || lockedByOther()"
+            ariaLabel="Remove the row"
+            (onClick)="askRemoveRow($event)"
+          />
+        }
+      </div>
+    }
+  </div>
+}

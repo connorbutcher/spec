@@ -1,0 +1,36 @@
+.action-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--app-card-border);
+  background: #f8fafc;
+}
+
+.path {
+  --p-breadcrumb-padding: 0;
+  --p-breadcrumb-background: transparent;
+  --p-breadcrumb-gap: 0.25rem;
+  font-size: 0.75rem;
+}
+
+.group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px;
+
+  & + & {
+    padding-left: 12px;
+    border-left: 1px solid var(--app-card-border);
+  }
+}
+
+.locked {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #6b7280;
+  font-size: 0.8rem;
+}

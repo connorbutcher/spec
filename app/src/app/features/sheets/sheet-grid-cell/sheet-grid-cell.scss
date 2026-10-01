@@ -1,0 +1,75 @@
+// Same hairline borders as the template preview, so a sheet looks like its template. Background, text
+// colour, weight, italics and alignment come from the cell's effective style (inline).
+:host {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  min-height: 30px;
+  border-right: 1px solid #e5e7eb;
+  border-bottom: 1px solid #e5e7eb;
+  background: #fff;
+  cursor: default;
+
+  &:focus-visible {
+    outline: 2px solid var(--app-navy);
+    outline-offset: -2px;
+    z-index: 3;
+  }
+}
+
+// The row the user is editing, and a row someone else is editing, are tinted quietly.
+:host(.mine:not(.display-only)) {
+  background-color: #f3f7fd;
+}
+
+:host(.theirs:not(.display-only)) {
+  background-color: #faf6ee;
+}
+
+// The selected row is outlined cell by cell; the accent colour is used for nothing else here.
+:host(.selected) {
+  outline: 1px solid var(--app-navy);
+  outline-offset: -1px;
+  z-index: 2;
+}
+
+.content {
+  position: relative;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+  padding: 3px 8px;
+  font-size: 0.8rem;
+  line-height: 1.25;
+}
+
+.text,
+.value {
+  overflow-wrap: anywhere;
+}
+
+.caption {
+  color: #6b7280;
+  font-size: 0.68rem;
+  font-style: normal;
+  font-weight: 400;
+}
+
+.required {
+  color: inherit;
+}
+
+// With an editor open the cell's own padding would double up on the editor's.
+:host(.mine) .content:has(app-sheet-cell-editor) {
+  padding: 2px 4px;
+}
+
+.lock {
+  position: absolute;
+  top: 3px;
+  right: 4px;
+  color: #6b7280;
+  font-size: 0.65rem;
+}

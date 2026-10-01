@@ -1,0 +1,55 @@
+<div class="content" [style]="contentStyle()">
+  @if (displayOnly()) {
+    <span class="text">{{ caption() }}</span>
+  } @else if (isEditing() && cellType(); as type) {
+    @if (caption()) {
+      <span class="caption">
+        {{ caption() }}
+        @if (layout().cell.isRequired) {
+          <span class="required" aria-label="required">*</span>
+        }
+      </span>
+    }
+    @if (cell(); as cell) {
+      @if (configuration(); as configuration) {
+        <app-sheet-cell-editor
+          [cell]="cell"
+          [cellType]="type"
+          [configuration]="configuration"
+          [label]="caption() || type.name"
+          (changed)="save($event)"
+        />
+      }
+    }
+  } @else {
+    @if (caption()) {
+      <span class="caption">
+        {{ caption() }}
+        @if (layout().cell.isRequired) {
+          <span class="required" aria-label="required">*</span>
+        }
+      </span>
+    }
+    @if (isCheckbox()) {
+      <i
+        class="pi"
+        [class.pi-check-square]="isChecked()"
+        [class.pi-stop]="!isChecked()"
+        [attr.aria-label]="isChecked() ? 'Ticked' : 'Not ticked'"
+      ></i>
+    } @else {
+      <span class="value">{{ display() }}</span>
+    }
+  }
+
+  @if (showsLock()) {
+    <i
+      class="pi lock"
+      [class.pi-lock]="lockedByOther()"
+      [class.pi-pencil]="isMine()"
+      [pTooltip]="lockLabel()"
+      tooltipPosition="left"
+      [attr.aria-label]="lockLabel()"
+    ></i>
+  }
+</div>

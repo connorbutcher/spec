@@ -1,30 +1,40 @@
 import { Component, computed, inject, input } from '@angular/core';
+import { ConfirmationService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
+import { ConfirmPopupModule } from 'primeng/confirmpopup';
+import { MessageModule } from 'primeng/message';
+import { SkeletonModule } from 'primeng/skeleton';
 import { Phase } from '../../../core/models/phase.model';
 import { SheetType } from '../../../core/models/sheet-type.model';
 import { Breadcrumb } from '../../../shared/components/breadcrumb/breadcrumb';
 import { BreadcrumbItem } from '../../../shared/components/breadcrumb/breadcrumb-item.model';
 import { EmptyState } from '../../../shared/components/empty-state/empty-state';
 import { PhasesStore } from '../../phases/phases.store';
-import { SheetPlaceholder } from '../sheet-placeholder/sheet-placeholder';
 import { SheetSwitcher } from '../sheet-switcher/sheet-switcher';
-import { SheetVersionPicker } from '../sheet-version-picker/sheet-version-picker';
+import { SheetTableCard } from '../sheet-table-card/sheet-table-card';
+import { SheetToolbar } from '../sheet-toolbar/sheet-toolbar';
+import { SheetStore } from '../sheet.store';
 
 /**
- * One PU Spec Sheet for a phase (`/phases/:phaseId/sheets/:sheetTypeId`), full width. Each sheet is
- * versioned on its own; the version picker comes alive once versions exist.
+ * One PU Spec Sheet for a phase (`/phases/:phaseId/sheets/:sheetTypeId`), full width. Users build it up
+ * from the sheet type's table templates: adding tables, then sections and rows within them, and filling
+ * in the cells. Each table, section and row is locked to its editor until they publish, and each
+ * publish is a numbered version that can be viewed again by number or date.
  */
 @Component({
   selector: 'app-sheet-page',
   imports: [
     Breadcrumb,
     ButtonModule,
+    ConfirmPopupModule,
     EmptyState,
-    SheetPlaceholder,
+    MessageModule,
     SheetSwitcher,
-    SheetVersionPicker,
+    SheetTableCard,
+    SheetToolbar,
+    SkeletonModule,
   ],
-  providers: [PhasesStore],
+  providers: [ConfirmationService, PhasesStore, SheetStore],
   templateUrl: './sheet-page.html',
   styleUrl: './sheet-page.scss',
 })
@@ -34,13 +44,13 @@ export class SheetPage {
   public readonly sheetTypeId = input.required<string>();
 
   public readonly phase = computed<Phase | undefined>(() =>
-    this.store.phaseById(Number(this.phaseId())),
+    this.phases.phaseById(Number(this.phaseId())),
   );
 
   /** The phase's available sheets, for the switcher. */
   public readonly phaseSheetTypes = computed<SheetType[]>(() => {
     const phase = this.phase();
-    return phase ? this.store.sheetTypesFor(phase) : [];
+    return phase ? this.phases.sheetTypesFor(phase) : [];
   });
 
   /** The open sheet type, only if it's available to this phase. */
@@ -56,7 +66,7 @@ export class SheetPage {
     }
     return [
       { label: 'Phases', link: ['/phases'] },
-      ...this.store
+      ...this.phases
         .ancestorsOf(phase.id)
         .map((ancestor) => ({ label: ancestor.code, link: ['/phases', ancestor.id] })),
       { label: phase.code, link: ['/phases', phase.id] },
@@ -64,17 +74,47 @@ export class SheetPage {
     ];
   });
 
-  private readonly store = inject(PhasesStore);
+  public readonly sheet = computed(() => this.sheetStore.sheet());
+  public readonly error = computed(() => this.sheetStore.error());
 
-  public isLoading(): boolean {
-    return this.store.isLoading();
+  public readonly emptyMessage = computed(() => {
+    const sheet = this.sheet();
+    if (sheet === null) {
+      return '';
+    }
+    if (!sheet.isLive) {
+      return 'Nothing had been published at that point.';
+    }
+    return sheet.availableTemplates.length > 0
+      ? "Use Add table to start from one of this sheet type's templates."
+      : 'There are no table templates for this sheet type yet. Create one under Templates.';
+  });
+
+  private readonly phases = inject(PhasesStore);
+  private readonly sheetStore = inject(SheetStore);
+
+  public isLoadingPhases(): boolean {
+    return this.phases.isLoading();
   }
 
-  public hasError(): boolean {
-    return this.store.hasError();
+  public hasPhasesError(): boolean {
+    return this.phases.hasError();
+  }
+
+  public isLoadingSheet(): boolean {
+    return this.sheetStore.isLoading() && this.sheet() === null;
+  }
+
+  public hasSheetError(): boolean {
+    return this.sheetStore.hasError() && this.sheet() === null;
   }
 
   public retry(): void {
-    this.store.reload();
+    this.phases.reload();
+    this.sheetStore.reload();
+  }
+
+  public dismissError(): void {
+    this.sheetStore.dismissError();
   }
 }

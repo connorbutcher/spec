@@ -3,7 +3,7 @@
   height: 100%;
 }
 
-// Full-width, full-height card: the header stays put and the sheet body scrolls.
+// Full-width, full-height card: the header and tools stay put and the tables scroll beneath them.
 .sheet-page {
   display: flex;
   flex-direction: column;
@@ -16,18 +16,11 @@
     border-bottom: 1px solid var(--app-card-border);
   }
 
-  .head-row {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 12px;
-    padding-bottom: 6px;
-  }
-
   .title {
     display: flex;
     flex-direction: column;
     gap: 2px;
+    padding-bottom: 6px;
     min-width: 0;
 
     h1 {
@@ -44,8 +37,16 @@
     }
   }
 
+  .error {
+    flex: 0 0 auto;
+    padding: 0 12px 6px;
+  }
+
   .sheet-body {
+    display: flex;
     flex: 1;
+    flex-direction: column;
+    gap: 8px;
     min-height: 0;
     overflow: auto;
     padding: 8px 12px 12px;

@@ -1,18 +1,77 @@
-import { Component, signal } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { ButtonModule } from 'primeng/button';
+import { DatePickerModule } from 'primeng/datepicker';
 import { SelectModule } from 'primeng/select';
+import { SheetVersionOption } from '../models/sheet-version-option.model';
+import { SheetStore } from '../sheet.store';
+
+/** Marks the "custom date" entry, which only appears while a date is being viewed. */
+const DATE_OPTION = -1;
 
 /**
- * Picks which version of the sheet to view. Disabled until sheet versions exist; it will default to
- * the latest version, with older versions read-only.
+ * Chooses which moment of the sheet to look at: the live sheet, the state when a version was published,
+ * or the state at a date and time, which works whatever has been published since. Past views are read-only.
  */
 @Component({
   selector: 'app-sheet-version-picker',
-  imports: [FormsModule, SelectModule],
+  imports: [ButtonModule, DatePickerModule, FormsModule, SelectModule],
   templateUrl: './sheet-version-picker.html',
   styleUrl: './sheet-version-picker.scss',
 })
 export class SheetVersionPicker {
-  public readonly versions = signal<string[]>([]);
-  public readonly selected = signal<string | null>(null);
+  public readonly options = computed<SheetVersionOption[]>(() => {
+    const versions = [...(this.store.sheet()?.versions ?? [])].sort(
+      (a, b) => b.versionNumber - a.versionNumber,
+    );
+    const options: SheetVersionOption[] = [{ label: 'Latest (live)', value: null }];
+    if (this.store.view().asOf) {
+      options.push({ label: 'Date and time', value: DATE_OPTION });
+    }
+    for (const version of versions) {
+      options.push({
+        label: `v${version.versionNumber} · ${formatMoment(version.publishedAtUtc)} · ${version.publishedByName}`,
+        value: version.versionNumber,
+      });
+    }
+    return options;
+  });
+
+  public readonly selected = computed<number | null>(() => {
+    const view = this.store.view();
+    return view.asOf ? DATE_OPTION : (view.version ?? null);
+  });
+
+  public readonly asOf = computed<Date | null>(() => {
+    const asOf = this.store.view().asOf;
+    return asOf ? new Date(asOf) : null;
+  });
+
+  public readonly isLive = computed(() => this.store.sheet()?.isLive ?? true);
+
+  public readonly hasVersions = computed(() => (this.store.sheet()?.versions.length ?? 0) > 0);
+
+  /** A date can't be picked from the future. */
+  public readonly today = new Date();
+
+  private readonly store = inject(SheetStore);
+
+  public chooseVersion(value: number | null): void {
+    if (value === DATE_OPTION) {
+      return;
+    }
+    this.store.setView(value === null ? {} : { version: value });
+  }
+
+  public chooseDate(date: Date | null): void {
+    this.store.setView(date === null ? {} : { asOf: date.toISOString() });
+  }
+
+  public backToLive(): void {
+    this.store.setView({});
+  }
+}
+
+function formatMoment(utc: string): string {
+  return new Date(utc).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
 }

@@ -1,0 +1,96 @@
+@switch (kind()) {
+  @case ('Text') {
+    @if (textSettings()?.multiline) {
+      <textarea
+        pTextarea
+        pSize="small"
+        rows="2"
+        [autoResize]="true"
+        [attr.maxlength]="textSettings()?.maxLength ?? null"
+        [attr.aria-label]="label()"
+        [ngModel]="text()"
+        (ngModelChange)="text.set($event)"
+        (blur)="commitText()"
+      ></textarea>
+    } @else {
+      <input
+        pInputText
+        pSize="small"
+        type="text"
+        [attr.maxlength]="textSettings()?.maxLength ?? null"
+        [attr.aria-label]="label()"
+        [ngModel]="text()"
+        (ngModelChange)="text.set($event)"
+        (blur)="commitText()"
+        (keydown.enter)="commitText()"
+      />
+    }
+  }
+  @case ('Number') {
+    <p-inputnumber
+      size="small"
+      [fluid]="true"
+      [useGrouping]="false"
+      [minFractionDigits]="numberSettings()?.decimalPlaces ?? 0"
+      [maxFractionDigits]="numberSettings()?.decimalPlaces ?? 10"
+      [min]="minValue()"
+      [max]="maxValue()"
+      [suffix]="suffix()"
+      [ariaLabel]="label()"
+      [ngModel]="number()"
+      (ngModelChange)="number.set($event)"
+      (onBlur)="commitNumber()"
+    />
+  }
+  @case ('Date') {
+    <p-datepicker
+      size="small"
+      [fluid]="true"
+      dateFormat="yy-mm-dd"
+      appendTo="body"
+      [showClear]="true"
+      [showButtonBar]="true"
+      [ariaLabel]="label()"
+      [ngModel]="date()"
+      (onSelect)="commitDate($event)"
+      (onClear)="commitDate(null)"
+    />
+  }
+  @case ('Checkbox') {
+    <p-checkbox
+      size="small"
+      [binary]="true"
+      [ariaLabel]="label()"
+      [ngModel]="checked()"
+      (onChange)="commitChecked($event.checked)"
+    />
+  }
+  @case ('TextDropdown') {
+    <p-select
+      size="small"
+      [fluid]="true"
+      appendTo="body"
+      optionLabel="value"
+      optionValue="id"
+      [options]="options()"
+      [showClear]="true"
+      [ariaLabel]="label()"
+      [ngModel]="optionId()"
+      (onChange)="commitOption($event.value ?? null)"
+    />
+  }
+  @case ('NumberDropdown') {
+    <p-select
+      size="small"
+      [fluid]="true"
+      appendTo="body"
+      optionLabel="value"
+      optionValue="id"
+      [options]="options()"
+      [showClear]="true"
+      [ariaLabel]="label()"
+      [ngModel]="optionId()"
+      (onChange)="commitOption($event.value ?? null)"
+    />
+  }
+}

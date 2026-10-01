@@ -1,0 +1,38 @@
+<p-button
+  [label]="label()"
+  icon="pi pi-upload"
+  size="small"
+  [disabled]="changeCount() === 0 || isBusy()"
+  (onClick)="popover.toggle($event)"
+/>
+<p-popover #popover appendTo="body">
+  <form class="publish-form" (submit)="$event.preventDefault()">
+    <label for="publish-note">Note for this version (optional)</label>
+    <textarea
+      pTextarea
+      pSize="small"
+      id="publish-note"
+      rows="3"
+      maxlength="1000"
+      [ngModel]="note()"
+      (ngModelChange)="note.set($event)"
+      [ngModelOptions]="{ standalone: true }"
+    ></textarea>
+    <div class="buttons">
+      <p-button
+        label="Cancel"
+        size="small"
+        severity="secondary"
+        [outlined]="true"
+        (onClick)="popover.hide()"
+      />
+      <p-button
+        [label]="label()"
+        icon="pi pi-upload"
+        size="small"
+        [disabled]="isBusy()"
+        (onClick)="publish(popover)"
+      />
+    </div>
+  </form>
+</p-popover>
