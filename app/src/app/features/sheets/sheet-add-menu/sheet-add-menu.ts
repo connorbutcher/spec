@@ -2,12 +2,11 @@ import { Component, computed, inject, input, viewChild } from '@angular/core';
 import { MenuItem } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { Menu, MenuModule } from 'primeng/menu';
-import { AddableRow } from '../models/addable-row.model';
 import { AddableSection } from '../models/addable-section.model';
 import { SheetStore } from '../sheet.store';
 
 /**
- * The one add button for a place that can grow: a table or a group section. When a single thing can be
+ * The one add button for a place that can grow: a table or a group section, listing the section types it takes. When a single section can be
  * added the button adds it; when there is a choice it opens a menu of what can go here. Sections at
  * their template maximum are shown but can't be picked.
  */
@@ -25,8 +24,6 @@ export class SheetAddMenu {
 
   public readonly sections = input<AddableSection[]>([]);
 
-  public readonly rows = input<AddableRow[]>([]);
-
   public readonly choices = computed<MenuItem[]>(() => {
     const sectionId = this.sectionId();
     const sections: MenuItem[] = this.sections().map((addable) => ({
@@ -36,21 +33,7 @@ export class SheetAddMenu {
       command: () =>
         void this.store.addSection(this.tableId(), addable.templateSectionId, sectionId),
     }));
-    const rows: MenuItem[] =
-      sectionId === null
-        ? []
-        : this.rows().map((addable) => ({
-            label: addable.label,
-            icon: 'pi pi-minus',
-            command: () => void this.store.addRow(sectionId, addable.templateRowId),
-          }));
-    if (sections.length > 0 && rows.length > 0) {
-      return [
-        { label: 'Row', items: rows },
-        { label: 'Section', items: sections },
-      ];
-    }
-    return [...rows, ...sections];
+    return sections;
   });
 
   /** The only thing that can be added here, when there's no choice to make. */
@@ -64,7 +47,7 @@ export class SheetAddMenu {
     if (only === null) {
       return 'Add';
     }
-    return this.sections().length === 0 ? 'Add row' : `Add ${only.label?.toLowerCase()}`;
+    return `Add ${only.label?.toLowerCase()}`;
   });
 
   public readonly isBusy = computed(() => this.store.isBusy());

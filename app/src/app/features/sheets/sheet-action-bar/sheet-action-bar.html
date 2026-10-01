@@ -3,13 +3,6 @@
     <p-breadcrumb class="path" [model]="path()" />
 
     <div class="group" role="group" aria-label="Section">
-      @if (section.addableSections.length === 0 && section.addableRows.length > 0) {
-        <app-sheet-add-menu
-          [tableId]="table().id"
-          [sectionId]="section.id"
-          [rows]="section.addableRows"
-        />
-      }
       @if (!isHeader()) {
         <p-button
           icon="pi pi-arrow-up"

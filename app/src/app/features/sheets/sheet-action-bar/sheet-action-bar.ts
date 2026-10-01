@@ -2,7 +2,6 @@ import { Component, computed, inject, input } from '@angular/core';
 import { ConfirmationService, MenuItem } from 'primeng/api';
 import { BreadcrumbModule } from 'primeng/breadcrumb';
 import { ButtonModule } from 'primeng/button';
-import { SheetAddMenu } from '../sheet-add-menu/sheet-add-menu';
 import { SheetRow } from '../models/sheet-row.model';
 import { SheetSection } from '../models/sheet-section.model';
 import { SheetTable } from '../models/sheet-table.model';
@@ -16,7 +15,7 @@ import { SheetStore } from '../sheet.store';
  */
 @Component({
   selector: 'app-sheet-action-bar',
-  imports: [BreadcrumbModule, ButtonModule, SheetAddMenu],
+  imports: [BreadcrumbModule, ButtonModule],
   templateUrl: './sheet-action-bar.html',
   styleUrl: './sheet-action-bar.scss',
 })
