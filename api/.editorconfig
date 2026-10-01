@@ -32,6 +32,23 @@ csharp_style_var_for_built_in_types = true:suggestion
 csharp_style_var_when_type_is_apparent = true:suggestion
 csharp_new_line_before_open_brace = all
 
+# One type per file, in a file named after it (StyleCop). Every other StyleCop rule is off.
+dotnet_analyzer_diagnostic.category-StyleCop.CSharp.DocumentationRules.severity = none
+dotnet_analyzer_diagnostic.category-StyleCop.CSharp.LayoutRules.severity = none
+dotnet_analyzer_diagnostic.category-StyleCop.CSharp.MaintainabilityRules.severity = none
+dotnet_analyzer_diagnostic.category-StyleCop.CSharp.NamingRules.severity = none
+dotnet_analyzer_diagnostic.category-StyleCop.CSharp.OrderingRules.severity = none
+dotnet_analyzer_diagnostic.category-StyleCop.CSharp.ReadabilityRules.severity = none
+dotnet_analyzer_diagnostic.category-StyleCop.CSharp.SpacingRules.severity = none
+dotnet_analyzer_diagnostic.category-StyleCop.CSharp.SpecialRules.severity = none
+dotnet_diagnostic.SA1402.severity = error
+dotnet_diagnostic.SA1403.severity = error
+dotnet_diagnostic.SA1649.severity = error
+
+# Test names use underscores (Method_Scenario_Result).
+[tests/**/*.cs]
+dotnet_diagnostic.CA1707.severity = none
+
 # EF Core migrations are generated code.
 [**/Migrations/*.cs]
 generated_code = true

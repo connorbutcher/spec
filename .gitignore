@@ -1,6 +1,7 @@
 bin/
 obj/
 .vs/
+.lint-build/
 *.user
 
 # Angular output is ignored by app/.gitignore

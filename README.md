@@ -18,9 +18,10 @@ Project references flow one way: `Api -> Application -> Data -> Domain`, with `C
 
 ## Conventions
 
-- One class / interface per file, braces always.
-- API: `IDE0011` (braces) and file-scoped namespaces are build errors via `.editorconfig` + `EnforceCodeStyleInBuild`.
-- UI: signals for state, `httpResource` / `resource` for data fetching, small single-purpose components. ESLint enforces `curly`, one class per file, one interface per file, and explicit member accessibility.
+Both linters fail on any violation, so a clean run means these standards hold.
+
+- API (`dotnet build`; rules in `api/.editorconfig`, run in every build via `EnforceCodeStyleInBuild`): braces always (`IDE0011`), one type per file named after it (StyleCop `SA1402`, `SA1649`), file-scoped namespaces, explicit accessibility, and the `latest-recommended` .NET analyzers.
+- UI (`npm run lint`; rules in `app/eslint.config.mjs` plus the project rules in `app/eslint-rules/`): braces always, one class and one interface per file, every component in `<name>/<name>.ts` with `<name>.html` and `<name>.scss` beside it, no `.component` in file names or `Component` on class names, signal inputs/outputs/queries, `httpResource` for reads and no `subscribe` in components, built-in control flow, and PrimeNG controls instead of native buttons, inputs, selects, textareas and tables.
 
 ## Running
 
@@ -40,6 +41,12 @@ The UI runs on http://localhost:4200 and proxies `/api` to the API on http://loc
 
 ```bash
 dotnet build api/PUSpecSheet.slnx && dotnet format api/PUSpecSheet.slnx --verify-no-changes
+```
+
+While the API is running its `bin` folders are locked, so build into a separate folder instead:
+
+```bash
+dotnet build api/PUSpecSheet.slnx --artifacts-path api/.lint-build
 ```
 
 ```bash

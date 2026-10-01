@@ -6,9 +6,16 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <!-- Runs the .editorconfig code-style rules (braces, file-scoped namespaces, ...) as part of every build. -->
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <AnalysisLevel>latest-recommended</AnalysisLevel>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <!-- Missing XML doc comments are not enforced. -->
     <NoWarn>$(NoWarn);CS1591</NoWarn>
   </PropertyGroup>
+
+  <!-- StyleCop supplies the one-type-per-file rules (SA1402, SA1649); .editorconfig turns the rest off. -->
+  <ItemGroup>
+    <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.556" PrivateAssets="all" />
+    <AdditionalFiles Include="$(MSBuildThisFileDirectory)stylecop.json" Link="stylecop.json" />
+  </ItemGroup>
 
 </Project>
