@@ -65,19 +65,14 @@ describe('layoutTemplate', () => {
 
     const layout = layoutTemplate(template('Vertical', [data, header]));
 
-    // Header: 1 row. Data: 2 rows plus a row for its dashed "add" area.
     expect(layout.style).toEqual({
-      'grid-template-rows': 'repeat(4, minmax(30px, auto))',
-      'grid-template-columns': 'repeat(3, minmax(88px, 1fr))',
+      'grid-template-rows': 'repeat(3, minmax(30px, auto))',
+      'grid-template-columns': 'repeat(3, minmax(112px, 1fr))',
     });
     expect(layout.sections.map((entry) => entry.section.name)).toEqual(['Header', 'Data']);
     expect(layout.sections[0].style).toEqual({ 'grid-row': '1 / span 1', 'grid-column': '1 / -1' });
-    expect(layout.sections[0].addAreaStyle).toBeNull();
-    expect(layout.sections[1].style).toEqual({ 'grid-row': '2 / span 3', 'grid-column': '1 / -1' });
-    expect(layout.sections[1].addAreaStyle).toEqual({
-      'grid-row': '3 / span 1',
-      'grid-column': '1 / -1',
-    });
+    expect(layout.sections[1].style).toEqual({ 'grid-row': '2 / span 2', 'grid-column': '1 / -1' });
+    expect(layout.sections[0].emptyStyle).toBeNull();
     // A cell's row and column are the same in both orientations.
     expect(layout.sections[1].cells[1].style).toEqual({
       'grid-row': '1 / span 1',
@@ -92,15 +87,16 @@ describe('layoutTemplate', () => {
     const layout = layoutTemplate(template('Horizontal', [header, data]));
 
     expect(layout.style).toEqual({
-      'grid-template-rows': 'repeat(3, minmax(30px, auto))',
-      'grid-template-columns': 'repeat(4, minmax(88px, 1fr))',
+      'grid-template-rows': 'repeat(2, minmax(30px, auto))',
+      'grid-template-columns': 'repeat(4, minmax(112px, 1fr))',
     });
-    expect(layout.sections[0].style).toEqual({ 'grid-column': '1 / span 3', 'grid-row': '1 / -1' });
-    expect(layout.sections[1].style).toEqual({ 'grid-column': '4 / span 1', 'grid-row': '1 / -1' });
-    // The add area sits below the section's own rows.
-    expect(layout.sections[1].addAreaStyle).toEqual({
-      'grid-column': '1 / span 1',
-      'grid-row': '3 / -1',
+    expect(layout.sections[0].style).toEqual({
+      'grid-column': '1 / span 3',
+      'grid-row': '1 / span 2',
+    });
+    expect(layout.sections[1].style).toEqual({
+      'grid-column': '4 / span 1',
+      'grid-row': '1 / span 2',
     });
   });
 
@@ -111,19 +107,18 @@ describe('layoutTemplate', () => {
 
     const layout = layoutTemplate(template('Vertical', [group]));
 
-    // Title row, left (2 rows + add), right (1 row + add), then the group's own add area.
-    expect(layout.style['grid-template-rows']).toBe('repeat(7, minmax(30px, auto))');
-    expect(layout.style['grid-template-columns']).toBe('repeat(3, minmax(88px, 1fr))');
+    // Title row, then left (2 rows) and right (1 row) stacked below it.
+    expect(layout.style['grid-template-rows']).toBe('repeat(4, minmax(30px, auto))');
+    expect(layout.style['grid-template-columns']).toBe('repeat(3, minmax(112px, 1fr))');
     const [groupLayout] = layout.sections;
     expect(groupLayout.children[0].style).toEqual({
-      'grid-row': '2 / span 3',
+      'grid-row': '2 / span 2',
       'grid-column': '1 / -1',
     });
     expect(groupLayout.children[1].style).toEqual({
-      'grid-row': '5 / span 2',
+      'grid-row': '4 / span 1',
       'grid-column': '1 / -1',
     });
-    expect(groupLayout.addAreaStyle).toEqual({ 'grid-row': '7 / span 1', 'grid-column': '1 / -1' });
   });
 
   it('runs a section sub-sections side by side in a horizontal table, beneath its own rows', () => {
@@ -133,8 +128,8 @@ describe('layoutTemplate', () => {
 
     const layout = layoutTemplate(template('Horizontal', [group]));
 
-    expect(layout.style['grid-template-rows']).toBe('repeat(4, minmax(30px, auto))');
-    expect(layout.style['grid-template-columns']).toBe('repeat(4, minmax(88px, 1fr))');
+    expect(layout.style['grid-template-rows']).toBe('repeat(3, minmax(30px, auto))');
+    expect(layout.style['grid-template-columns']).toBe('repeat(3, minmax(112px, 1fr))');
     const [groupLayout] = layout.sections;
     expect(groupLayout.cells[0].style).toEqual({
       'grid-row': '1 / span 1',
@@ -142,34 +137,19 @@ describe('layoutTemplate', () => {
     });
     expect(groupLayout.children[0].style).toEqual({
       'grid-column': '1 / span 1',
-      'grid-row': '2 / -1',
+      'grid-row': '2 / span 2',
     });
     expect(groupLayout.children[1].style).toEqual({
       'grid-column': '2 / span 2',
-      'grid-row': '2 / -1',
-    });
-    expect(groupLayout.addAreaStyle).toEqual({
-      'grid-column': '4 / span 1',
-      'grid-row': '2 / -1',
+      'grid-row': '2 / span 2',
     });
   });
 
-  it('lays out one top-level section on its own', () => {
-    const header = section('Header', 'Header', [], [[cell(1)]]);
-    const data = section('Data', 'Addable', [], [[cell(1), cell(2)]]);
-
-    const layout = layoutTemplate(template('Vertical', [header, data]), data);
-
-    expect(layout.sections.map((entry) => entry.section.name)).toEqual(['Data']);
-    expect(layout.style['grid-template-rows']).toBe('repeat(2, minmax(30px, auto))');
-    expect(layout.sections[0].style).toEqual({ 'grid-row': '1 / span 2', 'grid-column': '1 / -1' });
-  });
-
-  it('gives an empty header an area to add its first row', () => {
+  it('gives an empty section a placeholder so it can still be selected', () => {
     const layout = layoutTemplate(template('Vertical', [section('Header', 'Header', [], [])]));
 
     expect(layout.style['grid-template-rows']).toBe('repeat(1, minmax(30px, auto))');
-    expect(layout.sections[0].addAreaStyle).toEqual({
+    expect(layout.sections[0].emptyStyle).toEqual({
       'grid-row': '1 / -1',
       'grid-column': '1 / -1',
     });

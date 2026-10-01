@@ -9,62 +9,32 @@
   height: 100%;
   min-height: 0;
 
-  .tabbar {
+  .workspace {
     display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 6px 8px 0;
-
-    .tabs {
-      flex: 1;
-      min-width: 0;
-      --p-tabs-tab-padding: 0.35rem 0.6rem;
-      --p-tabs-tab-font-size: 0.78rem;
-    }
+    flex: 1;
+    min-height: 0;
   }
 
-  .tab-label {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-
-    .pi {
-      font-size: 0.7rem;
-    }
-
-    ::ng-deep .tab-tag {
-      padding: 0 4px;
-      font-size: 0.62rem;
-    }
-  }
-
-  .intro {
-    display: block;
-    margin: 6px 8px 0;
-    font-size: 0.75rem;
-  }
-
-  .structure {
-    display: block;
-    margin: 6px 8px 0;
-    --p-panel-header-padding: 0.25rem 0.5rem;
-    --p-panel-content-padding: 0.25rem 0.4rem;
-    --p-panel-title-font-size: 0.72rem;
-    --p-panel-border-radius: 4px;
-    font-size: 0.78rem;
+  // The outline is the only place structure is edited; the preview beside it stays clean.
+  .outline {
+    flex: 0 0 210px;
+    overflow-y: auto;
+    padding: 8px 6px;
+    border-right: 1px solid #e5e7eb;
   }
 
   .canvas-scroll {
     flex: 1;
+    min-width: 0;
     min-height: 0;
     overflow: auto;
-    padding: 10px;
+    padding: 12px;
   }
 
   .loading {
     margin: 0;
     padding: 12px;
-    color: #64748b;
+    color: #6b7280;
     font-size: 0.8rem;
   }
 }

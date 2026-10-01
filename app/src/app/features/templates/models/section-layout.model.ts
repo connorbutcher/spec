@@ -7,11 +7,8 @@ export interface SectionLayout {
   section: TemplateSection;
   isLeaf: boolean;
   style: GridStyle;
-  /**
-   * Placement of the dashed "add" area: after an addable section's sub-sections, or an empty header's
-   * first row. Null for a header that already has rows.
-   */
-  addAreaStyle: GridStyle | null;
+  /** Placement of the placeholder for a section with no rows and no sub-sections yet, otherwise null. */
+  emptyStyle: GridStyle | null;
   children: SectionLayout[];
   cells: CellLayout[];
 }

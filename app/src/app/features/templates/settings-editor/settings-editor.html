@@ -8,6 +8,6 @@
     [defaultText]="entry.defaultText"
     [disabled]="disabled()"
     (changed)="set(entry.field, $event)"
-    (reset)="reset(entry.field)"
+    (restored)="reset(entry.field)"
   />
 }

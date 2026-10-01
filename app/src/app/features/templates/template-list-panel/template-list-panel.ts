@@ -3,7 +3,6 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { ListboxChangeEvent, ListboxModule } from 'primeng/listbox';
-import { TooltipModule } from 'primeng/tooltip';
 import { EmptyState } from '../../../shared/components/empty-state/empty-state';
 import { sheetTypeIcon } from '../../../shared/sheet-type-icon';
 import { TemplateListGroup } from '../models/template-list-group.model';
@@ -16,7 +15,7 @@ import { TemplatesStore } from '../templates.store';
  */
 @Component({
   selector: 'app-template-list-panel',
-  imports: [ButtonModule, EmptyState, FormsModule, ListboxModule, TooltipModule],
+  imports: [ButtonModule, EmptyState, FormsModule, ListboxModule],
   templateUrl: './template-list-panel.html',
   styleUrl: './template-list-panel.scss',
 })

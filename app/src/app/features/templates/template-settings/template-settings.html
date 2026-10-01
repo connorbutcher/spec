@@ -12,7 +12,6 @@
         [value]="template.name"
         (change)="rename(nameInput)"
       />
-      <span class="hint">The name applies to every version.</span>
     </div>
 
     <div class="field">
@@ -28,27 +27,6 @@
         size="small"
         ariaLabelledBy="template-orientation-label"
       />
-      <span class="hint">
-        @if (template.orientation === 'Vertical') {
-          Sections are added top to bottom: the header first, then each section below it, and
-          sub-sections below their section.
-        } @else {
-          Sections are added left to right: the header first, then each section beside it, and
-          sub-sections beside each other inside their section.
-        }
-      </span>
-    </div>
-
-    <div class="field">
-      <span class="label">Version</span>
-      <span class="note">
-        Version {{ template.versionNumber }} of {{ template.versions.length }}.
-        @if (canEdit()) {
-          Not used on any sheet yet, so it can still change.
-        } @else {
-          Read-only: sheets keep the layout they were built with.
-        }
-      </span>
     </div>
 
     <h3 class="group-title">Header and sections</h3>

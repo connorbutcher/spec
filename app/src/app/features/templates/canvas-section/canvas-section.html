@@ -6,38 +6,6 @@
   <app-canvas-section [layout]="child" />
 }
 
-@if (layout().addAreaStyle; as areaStyle) {
-  <div
-    class="add-area"
-    [style]="areaStyle"
-    [attr.aria-label]="'Add to ' + layout().section.name"
-    (contextmenu)="openMenu($event)"
-  >
-    @if (hasNoRows()) {
-      <p-button
-        icon="pi pi-plus"
-        label="Add row"
-        size="small"
-        severity="secondary"
-        [outlined]="true"
-        styleClass="dashed"
-        [disabled]="isBusy()"
-        (onClick)="addRow()"
-      />
-    }
-    @if (canAddSubSection()) {
-      <p-button
-        icon="pi pi-plus"
-        label="Add sub-section"
-        size="small"
-        severity="secondary"
-        [outlined]="true"
-        styleClass="dashed"
-        [pTooltip]="tooltip()"
-        tooltipPosition="top"
-        [disabled]="isBusy()"
-        (onClick)="addSubSection()"
-      />
-    }
-  </div>
+@if (layout().emptyStyle; as emptyStyle) {
+  <div class="empty" [style]="emptyStyle" (contextmenu)="openMenu($event)">Empty</div>
 }

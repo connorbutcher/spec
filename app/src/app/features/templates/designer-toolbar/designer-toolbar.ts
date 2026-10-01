@@ -5,12 +5,12 @@ import { SelectChangeEvent, SelectModule } from 'primeng/select';
 import { SelectButtonChangeEvent, SelectButtonModule } from 'primeng/selectbutton';
 import { TableTemplate } from '../models/table-template.model';
 import { TemplateOrientation } from '../models/template-orientation';
-import { PanelNavigator } from '../panel-navigator';
 import { TemplatesStore } from '../templates.store';
 
 /**
- * The bar above the canvas: the table's name, which version is showing and its orientation: the
- * direction sections are added in, top to bottom (vertical) or left to right (horizontal).
+ * The bar above the canvas: the table's name, which version is showing and its orientation, the
+ * direction sections are added in (vertical: top to bottom; horizontal: left to right). A version
+ * that can't change says so and offers the way on.
  */
 @Component({
   selector: 'app-designer-toolbar',
@@ -22,18 +22,8 @@ export class DesignerToolbar {
   public readonly template = input.required<TableTemplate>();
 
   public readonly orientations = [
-    {
-      label: 'Horizontal',
-      value: 'Horizontal',
-      icon: 'pi pi-arrows-h',
-      hint: 'Sections are added left to right',
-    },
-    {
-      label: 'Vertical',
-      value: 'Vertical',
-      icon: 'pi pi-arrows-v',
-      hint: 'Sections are added top to bottom',
-    },
+    { label: 'Horizontal', value: 'Horizontal' },
+    { label: 'Vertical', value: 'Vertical' },
   ];
 
   public readonly versionOptions = computed(() =>
@@ -44,7 +34,6 @@ export class DesignerToolbar {
   );
 
   private readonly store = inject(TemplatesStore);
-  private readonly navigator = inject(PanelNavigator);
 
   public isSaving(): boolean {
     return this.store.isSaving();
@@ -54,16 +43,22 @@ export class DesignerToolbar {
     return this.store.canEdit();
   }
 
-  public isTemplateOpen(): boolean {
-    return this.navigator.current().kind === 'template';
-  }
-
-  public openSettings(): void {
-    this.navigator.open({ kind: 'template' });
+  /** Whether the version showing is the latest one. */
+  public isLatest(): boolean {
+    const template = this.template();
+    return template.versionNumber === template.versions.at(-1)?.versionNumber;
   }
 
   public showVersion(event: SelectChangeEvent): void {
     this.store.showVersion(event.value as number);
+  }
+
+  public showLatest(): void {
+    this.store.showVersion(null);
+  }
+
+  public createVersion(): void {
+    void this.store.createVersion();
   }
 
   public setOrientation(event: SelectButtonChangeEvent): void {

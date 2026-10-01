@@ -1,28 +1,19 @@
-<button
-  type="button"
-  class="cell"
+<p-button
+  styleClass="cell"
+  [text]="true"
+  severity="secondary"
   [style]="contentStyle()"
-  [attr.aria-label]="(layout().cell.caption || typeName()) + ' cell'"
-  (click)="open()"
+  [ariaLabel]="(layout().cell.caption || typeName()) + ' cell'"
+  (onClick)="open()"
   (contextmenu)="openMenu($event)"
 >
-  @if (isLabel()) {
-    <span class="text">{{ layout().cell.caption || 'Label' }}</span>
-  } @else {
-    @if (layout().cell.caption) {
-      <span class="caption">
-        {{ layout().cell.caption }}
-        @if (layout().cell.isRequired) {
-          <span class="required" aria-label="required">*</span>
-        }
-      </span>
+  <span class="caption">
+    {{ layout().cell.caption }}
+    @if (layout().cell.isRequired && !isLabel()) {
+      <span class="required" aria-label="required">*</span>
     }
-    <span class="type">
-      <i class="pi" [class]="kind().icon" aria-hidden="true"></i>
-      {{ typeName() }}
-      @if (unit(); as unit) {
-        <span class="unit">({{ unit }})</span>
-      }
-    </span>
+  </span>
+  @if (!isLabel()) {
+    <span class="type">{{ typeName() }}</span>
   }
-</button>
+</p-button>

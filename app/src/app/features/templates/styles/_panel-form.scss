@@ -1,37 +1,31 @@
 // Compact layout shared by the configuration panel's pages. The controls themselves are PrimeNG;
-// this only spaces fields and labels. Include `panel-form.controls()` in a panel page's `:host`.
+// this only spaces fields and labels, in neutral greys. Include `panel-form.controls()` in a panel
+// page's `:host`.
 @mixin controls() {
   .fields {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 10px;
   }
 
   .field {
     display: flex;
     flex-direction: column;
-    gap: 3px;
+    gap: 4px;
     min-width: 0;
 
     > label,
     > .label {
-      color: #475569;
-      font-size: 0.7rem;
-      font-weight: 600;
-      letter-spacing: 0.03em;
-      text-transform: uppercase;
-    }
-
-    .hint {
-      color: #94a3b8;
-      font-size: 0.7rem;
+      color: #374151;
+      font-size: 0.75rem;
+      font-weight: 500;
     }
   }
 
   .inline {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 6px;
+    gap: 8px;
   }
 
   .check {
@@ -42,19 +36,17 @@
   }
 
   .group-title {
-    margin: 4px 0 0;
-    padding-top: 8px;
-    border-top: 1px solid var(--app-card-border);
-    color: #475569;
-    font-size: 0.7rem;
-    font-weight: 700;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
+    margin: 6px 0 0;
+    padding-top: 10px;
+    border-top: 1px solid #e5e7eb;
+    color: #111827;
+    font-size: 0.78rem;
+    font-weight: 600;
   }
 
   .note {
     margin: 0;
-    color: #64748b;
+    color: #6b7280;
     font-size: 0.75rem;
   }
 
@@ -65,8 +57,8 @@
   }
 
   .danger-zone {
-    margin-top: 4px;
-    padding-top: 8px;
-    border-top: 1px solid var(--app-card-border);
+    margin-top: 6px;
+    padding-top: 10px;
+    border-top: 1px solid #e5e7eb;
   }
 }

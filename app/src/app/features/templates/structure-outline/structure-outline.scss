@@ -1,0 +1,60 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 0;
+}
+
+// A plain indented list in greys; the accent colour only marks the selected node.
+.tree {
+  --p-tree-padding: 0;
+  --p-tree-gap: 1px;
+  --p-tree-node-padding: 0.2rem 0.4rem;
+  --p-tree-node-border-radius: 3px;
+  --p-tree-border-color: transparent;
+  --p-tree-background: transparent;
+  --p-tree-node-color: #111827;
+  --p-tree-node-hover-background: #f3f4f6;
+  --p-tree-node-hover-color: #111827;
+  --p-tree-node-selected-background: #eef1f7;
+  --p-tree-node-selected-color: var(--app-navy);
+  --p-tree-node-toggle-button-color: #9ca3af;
+  font-size: 0.8rem;
+}
+
+.node {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  min-width: 0;
+
+  .name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  // The "+" only appears on the node you're pointing at or have selected.
+  .add {
+    opacity: 0;
+    transition: opacity 0.1s;
+  }
+}
+
+:host ::ng-deep .p-tree-node-content:hover .add,
+:host ::ng-deep .p-tree-node-content.p-tree-node-selected .add,
+:host ::ng-deep .add:focus-within {
+  opacity: 1;
+}
+
+.add-section {
+  align-self: flex-start;
+  margin-left: 4px;
+
+  ::ng-deep .p-button {
+    color: #6b7280;
+    font-size: 0.78rem;
+  }
+}

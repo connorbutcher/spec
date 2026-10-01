@@ -16,10 +16,7 @@
     </div>
 
     @if (isHeader()) {
-      <p class="note">
-        The table's header. Every table has exactly one: it comes first, is always on the table, and
-        can't be moved or removed.
-      </p>
+      <p class="note">Always one, and always first.</p>
     } @else {
       @if (!isTopLevel()) {
         <div class="field">
@@ -35,13 +32,6 @@
       }
 
       <h3 class="group-title">Added on the sheet</h3>
-      <p class="note">
-        @if (isTopLevel()) {
-          People add this section to the table on the sheet, as often as needed and in any order.
-        } @else {
-          People add this sub-section inside its section on the sheet, as often as needed.
-        }
-      </p>
       <div class="inline">
         <div class="field">
           <label for="section-min">Fewest</label>
@@ -79,7 +69,6 @@
           />
         </div>
       </div>
-      <span class="note">Copies can't be removed below the fewest.</span>
     }
 
     <h3 class="group-title">Rows</h3>
@@ -94,9 +83,6 @@
         (onClick)="addRow()"
       />
     </div>
-    @if (!isHeader() && entry.section.sections.length > 0) {
-      <p class="note">These rows show first, above the sub-sections.</p>
-    }
 
     @if (!isHeader()) {
       <h3 class="group-title">Sub-sections</h3>

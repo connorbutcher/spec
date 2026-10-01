@@ -1,13 +1,5 @@
 <div class="toolbar">
-  <p-button
-    icon="pi pi-table"
-    [label]="template().name"
-    size="small"
-    [severity]="isTemplateOpen() ? 'primary' : 'secondary'"
-    [text]="!isTemplateOpen()"
-    styleClass="name"
-    (onClick)="openSettings()"
-  />
+  <span class="name">{{ template().name }}</span>
 
   <p-select
     [options]="versionOptions()"
@@ -29,20 +21,30 @@
     [allowEmpty]="false"
     [disabled]="isSaving() || !canEdit()"
     size="small"
-    ariaLabelledBy="orientation-label"
-  >
-    <ng-template #item let-option>
-      <span class="orientation-option" [attr.title]="option.hint">
-        <i [class]="option.icon" aria-hidden="true"></i>
-        {{ option.label }}
-      </span>
-    </ng-template>
-  </p-selectbutton>
-  <span id="orientation-label" class="visually-hidden">Orientation</span>
+    ariaLabel="Orientation"
+  />
 
-  <span class="status" aria-live="polite">
-    @if (isSaving()) {
-      <i class="pi pi-spin pi-spinner" aria-hidden="true"></i> Saving
+  @if (!template().isEditable) {
+    <span class="readonly">Read-only</span>
+    @if (isLatest()) {
+      <p-button
+        label="New version"
+        size="small"
+        severity="secondary"
+        [outlined]="true"
+        [disabled]="isSaving()"
+        (onClick)="createVersion()"
+      />
+    } @else {
+      <p-button
+        label="Open latest"
+        size="small"
+        severity="secondary"
+        [outlined]="true"
+        (onClick)="showLatest()"
+      />
     }
-  </span>
+  }
+
+  <span class="status" aria-live="polite">{{ isSaving() ? 'Saving…' : '' }}</span>
 </div>

@@ -1,20 +1,14 @@
 import { Component, computed, inject, input } from '@angular/core';
+import { ButtonModule } from 'primeng/button';
 import { CanvasMenu } from '../canvas-menu';
 import { effectiveConfiguration, effectiveStyle } from '../cell-settings.util';
 import { cellStyleCss } from '../cell-style-css.util';
-import { cellKindInfo, isDisplayOnly } from '../models/cell-kinds';
-import { CellKindInfo } from '../models/cell-kind-info.model';
+import { isDisplayOnly } from '../models/cell-kinds';
 import { CellLayout } from '../models/cell-layout.model';
 import { CellType } from '../models/cell-type.model';
 import { GridStyle } from '../models/grid-style';
 import { PanelNavigator } from '../panel-navigator';
 import { TemplatesStore } from '../templates.store';
-
-const FLEX_ALIGNMENT: Readonly<Record<string, string>> = {
-  left: 'flex-start',
-  center: 'center',
-  right: 'flex-end',
-};
 
 /**
  * A cell in the preview, placed on its section's subgrid by row, column and spans. Label cells show
@@ -23,13 +17,12 @@ const FLEX_ALIGNMENT: Readonly<Record<string, string>> = {
  */
 @Component({
   selector: 'app-canvas-cell',
+  imports: [ButtonModule],
   templateUrl: './canvas-cell.html',
   styleUrl: './canvas-cell.scss',
   host: {
     '[style]': 'hostStyle()',
     '[class.selected]': 'isSelected()',
-    '[class.in-row]': 'isInSelectedRow()',
-    '[class.label]': 'isLabel()',
   },
 })
 export class CanvasCell {
@@ -37,10 +30,6 @@ export class CanvasCell {
 
   public readonly cellType = computed<CellType | undefined>(() =>
     this.store.cellType(this.layout().cell.cellTypeId),
-  );
-
-  public readonly kind = computed<CellKindInfo>(() =>
-    cellKindInfo(this.cellType()?.kind ?? 'Text'),
   );
 
   /** The cell type's style with the cell's own overrides on top, as CSS. */
@@ -63,11 +52,10 @@ export class CanvasCell {
       : this.layout().style;
   }
 
-  /** The cell's text styling, with its alignment also lining up the caption and type lines. */
+  /** The cell's text styling: weight, italics, colour and alignment. */
   public contentStyle(): Record<string, string> {
     const { 'background-color': _background, ...text } = this.styleCss();
-    const align = text['text-align'];
-    return align ? { ...text, 'align-items': FLEX_ALIGNMENT[align] ?? 'flex-start' } : text;
+    return text;
   }
 
   public isLabel(): boolean {
@@ -89,10 +77,6 @@ export class CanvasCell {
 
   public isSelected(): boolean {
     return this.navigator.isShowing({ kind: 'cell', id: this.layout().cell.id });
-  }
-
-  public isInSelectedRow(): boolean {
-    return this.navigator.isShowing({ kind: 'row', id: this.layout().rowId });
   }
 
   public typeName(): string {

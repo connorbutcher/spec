@@ -26,10 +26,9 @@ export class ConfirmDeleteButton {
     this.confirmation.confirm({
       target: event.currentTarget as EventTarget,
       message: [`${this.label()}?`, this.warning()].filter(Boolean).join(' '),
-      icon: 'pi pi-exclamation-triangle',
       acceptLabel: 'Delete',
       rejectLabel: 'Cancel',
-      acceptButtonProps: { severity: 'danger', size: 'small' },
+      acceptButtonProps: { size: 'small' },
       rejectButtonProps: { severity: 'secondary', size: 'small', outlined: true },
       accept: () => this.confirmed.emit(),
     });

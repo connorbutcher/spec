@@ -2,22 +2,25 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
-  padding: 6px 8px;
-  border-bottom: 1px solid var(--app-card-border);
+  gap: 10px;
+  padding: 6px 10px;
+  border-bottom: 1px solid #e5e7eb;
   font-size: 0.8rem;
 
-  ::ng-deep .name {
-    font-weight: 700;
+  .name {
+    margin-right: 4px;
+    color: #111827;
+    font-size: 0.9rem;
+    font-weight: 600;
   }
 
-  i {
-    font-size: 0.7rem;
+  .readonly,
+  .status {
+    color: #6b7280;
+    font-size: 0.75rem;
   }
 
   .status {
     margin-left: auto;
-    color: #64748b;
-    font-size: 0.72rem;
   }
 }

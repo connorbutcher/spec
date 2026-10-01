@@ -31,5 +31,5 @@ export class SettingRow {
   public readonly disabled = input(false);
 
   public readonly changed = output<SettingValue>();
-  public readonly reset = output<void>();
+  public readonly restored = output<void>();
 }

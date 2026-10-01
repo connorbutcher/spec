@@ -8,7 +8,6 @@
         [text]="true"
         [disabled]="!canGoBack()"
         ariaLabel="Back"
-        pTooltip="Back"
         (onClick)="back()"
       />
       <p-button
@@ -18,7 +17,6 @@
         [text]="true"
         [disabled]="!canGoForward()"
         ariaLabel="Forward"
-        pTooltip="Forward"
         (onClick)="forward()"
       />
       <h2 id="config-panel-title">{{ title() }}</h2>

@@ -1,0 +1,37 @@
+<p-tree
+  class="tree"
+  [value]="nodes()"
+  selectionMode="single"
+  [selection]="selected()"
+  (onNodeSelect)="open($event)"
+  ariaLabel="Table structure"
+>
+  <ng-template #node let-node>
+    <span class="node">
+      <span class="name">{{ node.label }}</span>
+      @if (canAddTo(node)) {
+        <p-button
+          class="add"
+          icon="pi pi-plus"
+          size="small"
+          severity="secondary"
+          [text]="true"
+          [disabled]="isBusy()"
+          [ariaLabel]="'Add sub-section to ' + node.label"
+          (onClick)="add(node.data, $event)"
+        />
+      }
+    </span>
+  </ng-template>
+</p-tree>
+
+<p-button
+  class="add-section"
+  icon="pi pi-plus"
+  label="Add section"
+  size="small"
+  severity="secondary"
+  [text]="true"
+  [disabled]="isBusy()"
+  (onClick)="add(null)"
+/>

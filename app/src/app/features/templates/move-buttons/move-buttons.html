@@ -7,7 +7,6 @@
     [text]="true"
     [disabled]="!canMoveUp()"
     [ariaLabel]="'Move ' + noun() + ' earlier'"
-    pTooltip="Move earlier"
     (onClick)="moveUp()"
   />
   <p-button
@@ -17,7 +16,6 @@
     [text]="true"
     [disabled]="!canMoveDown()"
     [ariaLabel]="'Move ' + noun() + ' later'"
-    pTooltip="Move later"
     (onClick)="moveDown()"
   />
 </span>

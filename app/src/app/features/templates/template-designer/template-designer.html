@@ -12,62 +12,17 @@
   } @else {
     @if (template(); as template) {
       <app-designer-toolbar [template]="template" />
-      <app-version-banner [template]="template" />
 
-      <div class="tabbar">
-        <p-tabs
-          class="tabs"
-          [value]="activeTab()"
-          (valueChange)="selectTab($event)"
-          [scrollable]="true"
-        >
-          <p-tablist>
-            <p-tab value="overview">
-              <span class="tab-label"><i class="pi pi-table" aria-hidden="true"></i>Overview</span>
-            </p-tab>
-            @for (section of topSections(); track section.id) {
-              <p-tab [value]="section.id">
-                <span class="tab-label">
-                  <i class="pi" [class]="icon(section)" aria-hidden="true"></i>
-                  {{ section.name }}
-                  <p-tag
-                    [value]="tag(section)"
-                    [severity]="isHeader(section) ? 'secondary' : 'info'"
-                    styleClass="tab-tag"
-                  />
-                </span>
-              </p-tab>
-            }
-          </p-tablist>
-        </p-tabs>
-        <p-button
-          icon="pi pi-plus"
-          label="Add section"
-          size="small"
-          [outlined]="true"
-          [disabled]="isSaving() || !canEdit()"
-          (onClick)="addSection()"
-        />
-      </div>
+      <div class="workspace">
+        <nav class="outline" aria-label="Table structure">
+          <app-structure-outline />
+        </nav>
 
-      <p-message class="intro" severity="info" size="small" icon="pi pi-info-circle">
-        {{ intro() }}
-      </p-message>
-
-      <p-panel class="structure" header="Structure" [toggleable]="true" toggler="header">
-        <app-structure-tree />
-      </p-panel>
-
-      <div class="canvas-scroll">
-        @if (layout(); as layout) {
-          <app-template-canvas [layout]="layout" />
-        } @else {
-          <app-empty-state
-            icon="pi-objects-column"
-            title="Nothing to show yet"
-            message="This table has no header. Reload the page; every table has one."
-          />
-        }
+        <div class="canvas-scroll">
+          @if (layout(); as layout) {
+            <app-template-canvas [layout]="layout" />
+          }
+        </div>
       </div>
     }
   }
