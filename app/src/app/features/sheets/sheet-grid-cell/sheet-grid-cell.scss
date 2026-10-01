@@ -50,16 +50,17 @@
   background-color: #f1f5f9;
 }
 
-// The selected row is outlined cell by cell; the accent colour is used for nothing else here.
-:host(.selected) {
-  outline: 1px solid var(--app-navy);
-  outline-offset: -1px;
-  z-index: 2;
+// The selected row is tinted, not outlined, so selecting never adds a line to the cell borders.
+:host(.selected:not(.display-only)) {
+  background-color: #f1f5f9;
 }
 
 // The cell holding the control the user is typing in.
+// The one focus indicator: a single inset line on the cell that holds the control being typed in.
 :host(:focus-within) {
   z-index: 3;
+  outline: 1px solid var(--app-navy);
+  outline-offset: -1px;
 }
 
 .content {

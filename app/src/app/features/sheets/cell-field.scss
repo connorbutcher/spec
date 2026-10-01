@@ -1,6 +1,6 @@
 // What every cell editor shares: it fills its whole cell like a bare <td> control. PrimeNG form
 // controls take their look from design tokens, so setting them here removes the border, background
-// and rounding; only the focus state is drawn, as the one accent colour.
+// and rounding; the focus indicator is drawn once, by the cell itself, so a focused cell never shows two lines.
 @mixin cell-field {
   display: flex;
   flex: 1 1 auto;
@@ -12,7 +12,9 @@
   --p-inputtext-disabled-background: transparent;
   --p-inputtext-border-color: transparent;
   --p-inputtext-hover-border-color: transparent;
-  --p-inputtext-focus-border-color: var(--app-navy);
+  --p-inputtext-focus-border-color: transparent;
+  --p-inputtext-focus-ring-width: 0;
+  --p-inputtext-focus-ring-shadow: none;
   --p-inputtext-border-radius: 0;
   --p-inputtext-shadow: none;
   --p-inputtext-padding-x: 0.5rem;
@@ -23,7 +25,15 @@
   --p-select-disabled-background: transparent;
   --p-select-border-color: transparent;
   --p-select-hover-border-color: transparent;
-  --p-select-focus-border-color: var(--app-navy);
+  --p-select-focus-border-color: transparent;
+  --p-select-focus-ring-width: 0;
+  --p-select-focus-ring-shadow: none;
+
+  --p-checkbox-focus-ring-width: 0;
+  --p-checkbox-focus-ring-shadow: none;
+
+  --p-datepicker-focus-ring-width: 0;
+  --p-datepicker-focus-ring-shadow: none;
   --p-select-border-radius: 0;
   --p-select-shadow: none;
   --p-select-padding-x: 0.5rem;
