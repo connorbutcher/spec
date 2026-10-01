@@ -3,6 +3,7 @@ import { MenuItem } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { MenuModule } from 'primeng/menu';
 import { TagModule } from 'primeng/tag';
+import { SheetComparePicker } from '../sheet-compare-picker/sheet-compare-picker';
 import { SheetPublish } from '../sheet-publish/sheet-publish';
 import { SheetVersionPicker } from '../sheet-version-picker/sheet-version-picker';
 import { SheetStore } from '../sheet.store';
@@ -14,7 +15,14 @@ import { SheetStore } from '../sheet.store';
  */
 @Component({
   selector: 'app-sheet-toolbar',
-  imports: [ButtonModule, MenuModule, SheetPublish, SheetVersionPicker, TagModule],
+  imports: [
+    ButtonModule,
+    MenuModule,
+    SheetComparePicker,
+    SheetPublish,
+    SheetVersionPicker,
+    TagModule,
+  ],
   templateUrl: './sheet-toolbar.html',
   styleUrl: './sheet-toolbar.scss',
 })

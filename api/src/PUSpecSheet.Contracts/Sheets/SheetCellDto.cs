@@ -14,4 +14,5 @@ public sealed record SheetCellDto(
     decimal? NumberValue,
     DateOnly? DateValue,
     bool? BooleanValue,
-    int? OptionId);
+    int? OptionId,
+    SheetChangeDto? LastChange);

@@ -34,21 +34,24 @@
   position: absolute;
   top: 2px;
   z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
-// A group is marked by a thin boundary around it and everything it holds, with a slightly stronger rule
-// down its left edge.
+// A group is marked by a single rule down its left edge, so no second line is added around it.
 :host(.group)::before {
   content: '';
   position: absolute;
-  inset: 0;
+  top: 0;
+  bottom: 0;
+  left: 0;
   z-index: 1;
-  border: 1px solid #94a3b8;
-  border-left: 2px solid #64748b;
+  width: 2px;
+  background: #94a3b8;
   pointer-events: none;
 }
 
 :host(.group.nested)::before {
-  border-color: #cbd5e1;
-  border-left-color: #94a3b8;
+  background: #cbd5e1;
 }

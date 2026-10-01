@@ -27,6 +27,7 @@ export function fixtureCell(column: number, columnSpan = 1): SheetCell {
     dateValue: null,
     booleanValue: null,
     optionId: null,
+    lastChange: null,
   };
 }
 
@@ -40,6 +41,7 @@ export function fixtureRow(cells: SheetCell[]): SheetRow {
     lock: null,
     isPending: false,
     canRemove: true,
+    lastChange: null,
     cells,
   };
 }
@@ -68,6 +70,7 @@ export function fixtureSection(
     sections,
     addableSections: [],
     addableRows: [],
+    lastChange: null,
   };
 }
 

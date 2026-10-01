@@ -10,12 +10,24 @@
   <div class="empty" [style]="emptyStyle">Empty section</div>
 }
 
-@if (canAdd() && sheetSection(); as section) {
-  <div class="add" [style.left]="gutterOffset()" (click)="$event.stopPropagation()">
-    <app-sheet-add-menu
-      [tableId]="tableId()"
-      [sectionId]="section.id"
-      [sections]="section.addableSections"
-    />
-  </div>
+@if (sheetSection(); as section) {
+  @if (canAdd() || changeLabel()) {
+    <div class="add" [style.left]="gutterOffset()" (click)="$event.stopPropagation()">
+      @if (canAdd()) {
+        <app-sheet-add-menu
+          [tableId]="tableId()"
+          [sectionId]="section.id"
+          [sections]="section.addableSections"
+        />
+      }
+      @if (changeLabel(); as label) {
+        <p-tag
+          [value]="'v' + section.lastChange?.versionNumber"
+          severity="secondary"
+          [pTooltip]="label"
+          tooltipPosition="right"
+        />
+      }
+    </div>
+  }
 }

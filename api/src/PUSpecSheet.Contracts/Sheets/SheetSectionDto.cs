@@ -22,4 +22,5 @@ public sealed record SheetSectionDto(
     IReadOnlyList<SheetRowDto> Rows,
     IReadOnlyList<SheetSectionDto> Sections,
     IReadOnlyList<AddableSectionDto> AddableSections,
-    IReadOnlyList<AddableRowDto> AddableRows);
+    IReadOnlyList<AddableRowDto> AddableRows,
+    SheetChangeDto? LastChange);

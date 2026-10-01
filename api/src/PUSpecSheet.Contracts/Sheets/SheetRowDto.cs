@@ -13,4 +13,5 @@ public sealed record SheetRowDto(
     SheetLockDto? Lock,
     bool IsPending,
     bool CanRemove,
-    IReadOnlyList<SheetCellDto> Cells);
+    IReadOnlyList<SheetCellDto> Cells,
+    SheetChangeDto? LastChange);

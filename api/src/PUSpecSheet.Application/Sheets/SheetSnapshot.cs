@@ -30,6 +30,8 @@ public sealed class SheetSnapshot
     /// <summary>Cell values by row revision id, then by sheet cell id.</summary>
     public required IReadOnlyDictionary<int, Dictionary<int, CellValueBag>> Values { get; init; }
 
+    public SheetChangeHistory Changes { get; set; } = SheetChangeHistory.Empty;
+
     public required IReadOnlyDictionary<int, string> UserNames { get; init; }
 
     /// <summary>Every section of every template version the sheet's tables use.</summary>

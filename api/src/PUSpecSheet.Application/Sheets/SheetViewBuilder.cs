@@ -145,7 +145,8 @@ internal sealed class SheetViewBuilder
             rows,
             childSections,
             AddableSectionsUnder(template.TableTemplateVersionId, template.Id, children),
-            isHeader ? [] : AddableRows(template.Id));
+            isHeader ? [] : AddableRows(template.Id),
+            snapshot.Changes.Sections.GetValueOrDefault(section.Id));
     }
 
     private SheetRowDto BuildRow(SheetRow row, bool inHeader)
@@ -157,7 +158,7 @@ internal sealed class SheetViewBuilder
         var cells = row.Cells
             .OrderBy(cell => cell.TemplateCell.Column)
             .ThenBy(cell => cell.Id)
-            .Select(cell => BuildCell(cell, values?.GetValueOrDefault(cell.Id)))
+            .Select(cell => BuildCell(cell, values?.GetValueOrDefault(cell.Id), snapshot.Changes.Cells.GetValueOrDefault(cell.Id)))
             .ToList();
 
         return new SheetRowDto(
@@ -168,10 +169,11 @@ internal sealed class SheetViewBuilder
             LockOf(resolution),
             IsPending(resolution),
             !inHeader,
-            cells);
+            cells,
+            snapshot.Changes.Rows.GetValueOrDefault(row.Id));
     }
 
-    private static SheetCellDto BuildCell(SheetCell cell, CellValueBag? value)
+    private static SheetCellDto BuildCell(SheetCell cell, CellValueBag? value, SheetChangeDto? change)
     {
         var template = cell.TemplateCell;
         return new SheetCellDto(
@@ -191,7 +193,8 @@ internal sealed class SheetViewBuilder
             value?.Number,
             value?.Date,
             value?.Boolean,
-            value?.OptionId);
+            value?.OptionId,
+            change);
     }
 
     /// <summary>The kinds of section that can be added under a parent (or the table), with their current counts.</summary>

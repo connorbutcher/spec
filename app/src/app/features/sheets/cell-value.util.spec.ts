@@ -21,6 +21,7 @@ function cell(values: Partial<SheetCell> = {}): SheetCell {
     dateValue: null,
     booleanValue: null,
     optionId: null,
+    lastChange: null,
     ...values,
   };
 }

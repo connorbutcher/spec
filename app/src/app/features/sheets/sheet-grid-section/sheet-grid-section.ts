@@ -1,8 +1,11 @@
 import { Component, computed, inject, input } from '@angular/core';
+import { TagModule } from 'primeng/tag';
+import { TooltipModule } from 'primeng/tooltip';
 import { GridStyle } from '../../templates/models/grid-style';
 import { SectionLayout } from '../../templates/models/section-layout.model';
 import { SheetAddMenu } from '../sheet-add-menu/sheet-add-menu';
 import { SheetGridCell } from '../sheet-grid-cell/sheet-grid-cell';
+import { changeLabel } from '../sheet-labels.util';
 import { sectionAncestors } from '../sheet-index.util';
 import { SheetStore } from '../sheet.store';
 
@@ -13,7 +16,7 @@ import { SheetStore } from '../sheet.store';
  */
 @Component({
   selector: 'app-sheet-grid-section',
-  imports: [SheetAddMenu, SheetGridCell],
+  imports: [SheetAddMenu, SheetGridCell, TagModule, TooltipModule],
   templateUrl: './sheet-grid-section.html',
   styleUrl: './sheet-grid-section.scss',
   host: {
@@ -59,6 +62,12 @@ export class SheetGridSection {
   public readonly canAdd = computed(() => {
     const section = this.sheetSection();
     return this.store.canEdit() && section !== null && section.addableSections.length > 0;
+  });
+
+  /** What changed directly in this section after the compared version, as "v3 · 12 Sep 2026 · A. Smith". */
+  public readonly changeLabel = computed(() => {
+    const change = this.sheetSection()?.lastChange ?? null;
+    return this.store.isMarked(change) && change !== null ? changeLabel(change) : null;
   });
 
   /** Nested groups put their button further along the gutter so two never sit on top of each other. */

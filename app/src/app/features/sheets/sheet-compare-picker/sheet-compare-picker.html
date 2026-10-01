@@ -1,0 +1,12 @@
+@if (hasVersions()) {
+  <p-select
+    size="small"
+    optionLabel="label"
+    optionValue="value"
+    appendTo="body"
+    ariaLabel="Mark what changed since a version"
+    [options]="options()"
+    [ngModel]="selected()"
+    (onChange)="choose($event.value)"
+  />
+}

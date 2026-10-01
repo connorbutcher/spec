@@ -9,6 +9,7 @@ public static class SheetServiceCollectionExtensions
     public static IServiceCollection AddPuSpecSheetSheets(this IServiceCollection services)
     {
         services.AddScoped<RowValueStore>();
+        services.AddScoped<SheetChangeHistoryLoader>();
         services.AddScoped<SheetSnapshotLoader>();
         services.AddScoped<SheetReader>();
         services.AddScoped<SheetInstantiator>();

@@ -1,6 +1,7 @@
 import { SectionRole } from '../../templates/models/section-role';
 import { AddableRow } from './addable-row.model';
 import { AddableSection } from './addable-section.model';
+import { SheetChange } from './sheet-change.model';
 import { SheetLock } from './sheet-lock.model';
 import { SheetRow } from './sheet-row.model';
 
@@ -25,4 +26,6 @@ export interface SheetSection {
   sections: SheetSection[];
   addableSections: AddableSection[];
   addableRows: AddableRow[];
+  /** The publish that last added, removed or moved a section or row directly in this one. */
+  lastChange: SheetChange | null;
 }

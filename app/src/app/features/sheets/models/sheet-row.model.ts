@@ -1,3 +1,4 @@
+import { SheetChange } from './sheet-change.model';
 import { SheetCell } from './sheet-cell.model';
 import { SheetLock } from './sheet-lock.model';
 
@@ -14,4 +15,6 @@ export interface SheetRow {
   isPending: boolean;
   canRemove: boolean;
   cells: SheetCell[];
+  /** The publish that last added the row or changed one of its cells. */
+  lastChange: SheetChange | null;
 }

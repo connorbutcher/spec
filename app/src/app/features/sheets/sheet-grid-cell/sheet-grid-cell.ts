@@ -14,6 +14,7 @@ import { SheetDateCell } from '../sheet-date-cell/sheet-date-cell';
 import { SheetDropdownCell } from '../sheet-dropdown-cell/sheet-dropdown-cell';
 import { SheetNumberCell } from '../sheet-number-cell/sheet-number-cell';
 import { SheetTextCell } from '../sheet-text-cell/sheet-text-cell';
+import { changeLabel } from '../sheet-labels.util';
 import { sectionAncestors } from '../sheet-index.util';
 import { SheetStore } from '../sheet.store';
 
@@ -124,6 +125,22 @@ export class SheetGridCell {
     }
     const isGroup = section.sections.length > 0 || section.addableSections.length > 0;
     return isGroup ? `group-${Math.min(sectionAncestors(index, section.id).length, 2)}` : 'plain';
+  });
+
+  /** The cell's value changed after the version being compared against. */
+  public readonly cellChange = computed(() => {
+    const change = this.cell()?.lastChange ?? null;
+    return this.store.isMarked(change) && change !== null ? changeLabel(change) : null;
+  });
+
+  /** On the row's first cell: the row changed after the version being compared against. */
+  public readonly rowChange = computed(() => {
+    const row = this.row();
+    const change = row?.lastChange ?? null;
+    const isFirst = row !== null && row.cells[0]?.id === this.layout().cell.id;
+    return isFirst && this.store.isMarked(change) && change !== null
+      ? { version: `v${change.versionNumber}`, label: changeLabel(change) }
+      : null;
   });
 
   public readonly isSelected = computed(

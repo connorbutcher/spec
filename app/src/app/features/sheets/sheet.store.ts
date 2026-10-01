@@ -6,6 +6,7 @@ import { map } from 'rxjs';
 import { apiErrorMessage } from '../templates/api-error-message';
 import { CellType } from '../templates/models/cell-type.model';
 import { CellValueRequest } from './models/cell-value-request.model';
+import { SheetChange } from './models/sheet-change.model';
 import { SheetIndex } from './models/sheet-index.model';
 import { SheetSelection } from './models/sheet-selection.model';
 import { SheetView } from './models/sheet-view.model';
@@ -32,6 +33,12 @@ export class SheetStore {
   public readonly view = linkedSignal<SheetTarget | null, SheetView>({
     source: () => this.target(),
     computation: () => ({}),
+  });
+
+  /** Mark everything that changed after this version; null leaves the tables clean. */
+  public readonly changesSince = linkedSignal<SheetTarget | null, number | null>({
+    source: () => this.target(),
+    computation: () => null,
   });
 
   public readonly sheet = computed<Sheet | null>(() =>
@@ -117,6 +124,16 @@ export class SheetStore {
   public setView(view: SheetView): void {
     this.view.set(view);
     this.rawSelection.set(null);
+  }
+
+  public setChangesSince(version: number | null): void {
+    this.changesSince.set(version);
+  }
+
+  /** Whether a change happened after the version being compared against. */
+  public isMarked(change: SheetChange | null): boolean {
+    const base = this.changesSince();
+    return base !== null && change !== null && change.versionNumber > base;
   }
 
   public dismissError(): void {

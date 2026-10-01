@@ -10,7 +10,7 @@ namespace PUSpecSheet.Application.Sheets;
 /// drafts; a past view reads only the revisions whose published range covers that moment, which is what
 /// the (item, published, superseded) indexes are for.
 /// </summary>
-public sealed class SheetSnapshotLoader(PuSpecSheetDbContext db, RowValueStore valueStore)
+public sealed class SheetSnapshotLoader(PuSpecSheetDbContext db, RowValueStore valueStore, SheetChangeHistoryLoader changeLoader)
 {
     public async Task<SheetSnapshot> LoadAsync(int sheetId, SheetViewPoint view, int currentUserId, CancellationToken cancellationToken)
     {
@@ -107,7 +107,7 @@ public sealed class SheetSnapshotLoader(PuSpecSheetDbContext db, RowValueStore v
             .AsNoTracking()
             .ToDictionaryAsync(user => user.Id, user => user.DisplayName, cancellationToken);
 
-        return new SheetSnapshot
+        var snapshot = new SheetSnapshot
         {
             Sheet = sheet,
             AsOfUtc = moment,
@@ -126,6 +126,8 @@ public sealed class SheetSnapshotLoader(PuSpecSheetDbContext db, RowValueStore v
             AvailableTemplates = availableTemplates,
             LatestTemplateVersions = latestVersions,
         };
+        snapshot.Changes = await changeLoader.LoadAsync(snapshot, moment, cancellationToken);
+        return snapshot;
     }
 
     private static (DateTime? Moment, int? VersionNumber) ResolveMoment(SheetViewPoint view, IReadOnlyList<SheetVersion> versions)
