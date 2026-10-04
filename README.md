@@ -37,6 +37,12 @@ cd app && npm start
 
 The UI runs on http://localhost:4200 and proxies `/api` to the API on http://localhost:5047. The header shows whether `/api/health` (which includes a database check) is reachable.
 
+## API documentation
+
+In Development the API serves interactive documentation (Scalar) for every endpoint at http://localhost:5047/scalar, built from the OpenAPI document at http://localhost:5047/openapi/v1.json. Neither is served outside Development.
+
+Endpoint text comes from the XML comments on the controller actions (`<summary>`, `<remarks>`, `<param>`, `<response>`) and on the contracts. Everything else lives in `api/src/PUSpecSheet.Api/ApiDocumentation`: the sidebar groups (`ApiTagCatalog`), the 400/404/409 problem responses every action gets (`ProblemResponsesConvention`), and the document transformers. A new controller needs a `[Tags(ApiTags.…)]` and comments on its actions.
+
 ## Checks
 
 ```bash

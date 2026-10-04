@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
+using PUSpecSheet.Api.ApiDocumentation;
 using PUSpecSheet.Api.Cors;
 using PUSpecSheet.Api.ExceptionHandling;
 using PUSpecSheet.Api.Users;
@@ -23,7 +24,7 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
         options.JsonSerializerOptions.AllowOutOfOrderMetadataProperties = true;
     });
-builder.Services.AddOpenApi();
+builder.Services.AddPuSpecSheetApiDocumentation();
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<ApplicationExceptionHandler>();
 builder.Services.AddHealthChecks().AddDbContextCheck<PuSpecSheetDbContext>();
@@ -46,7 +47,7 @@ if (app.Environment.IsDevelopment())
     await DevelopmentDataSeeder.SeedAsync(db);
     await scope.ServiceProvider.GetRequiredService<DemoDataSeeder>().SeedAsync();
 
-    app.MapOpenApi();
+    app.MapPuSpecSheetApiDocumentation();
 }
 
 app.UseExceptionHandler();
