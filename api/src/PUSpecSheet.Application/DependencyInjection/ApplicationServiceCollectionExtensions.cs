@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using PUSpecSheet.Application.CellTypes;
 using PUSpecSheet.Application.Phases;
+using PUSpecSheet.Application.Published;
 using PUSpecSheet.Application.Sheets;
 using PUSpecSheet.Application.SheetTypes;
 using PUSpecSheet.Application.Templates;
@@ -27,6 +28,7 @@ public static class ApplicationServiceCollectionExtensions
         services.AddScoped<ITemplateColumnBlockService, TemplateColumnBlockService>();
 
         services.AddPuSpecSheetSheets();
+        services.AddPuSpecSheetPublished();
 
         return services;
     }
