@@ -26,6 +26,17 @@
       />
     </div>
 
+    <div class="field">
+      <app-sticky-columns-field
+        id="column-block-sticky"
+        label="Sticky columns"
+        [count]="entry.block.stickyColumnCount"
+        [available]="blockColumns()"
+        [disabled]="isSaving() || !canEdit()"
+        (changed)="setSticky($event)"
+      />
+    </div>
+
     <h3 class="group-title">Added on the sheet</h3>
     <div class="inline">
       <div class="field">

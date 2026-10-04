@@ -168,12 +168,23 @@ export class TemplatesStore {
     }
   }
 
-  public async updateTemplate(name: string, orientation: TemplateOrientation): Promise<void> {
+  public async updateTemplate(
+    name: string,
+    orientation: TemplateOrientation,
+    stickyColumnCount?: number,
+  ): Promise<void> {
     const template = this.template();
     if (!template) {
       return;
     }
-    const updated = await this.save(() => this.api.updateTemplate(template.id, name, orientation));
+    const updated = await this.save(() =>
+      this.api.updateTemplate(
+        template.id,
+        name,
+        orientation,
+        stickyColumnCount ?? template.stickyColumnCount,
+      ),
+    );
     if (updated) {
       this.templateResource.set(updated);
       this.summariesResource.reload();
@@ -300,6 +311,7 @@ export class TemplatesStore {
       minInstances: block.minInstances,
       maxInstances: block.maxInstances,
       initialInstances: block.initialInstances,
+      stickyColumnCount: block.stickyColumnCount,
       ...changes,
     };
     await this.changeTemplate(() => this.api.updateColumnBlock(id, request));

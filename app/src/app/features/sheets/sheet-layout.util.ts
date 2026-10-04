@@ -2,10 +2,11 @@ import { TemplateColumnBlock } from '../templates/models/template-column-block.m
 import { TableTemplate } from '../templates/models/table-template.model';
 import { TemplateLayout } from '../templates/models/template-layout.model';
 import { TemplateSection } from '../templates/models/template-section.model';
-import { layoutTemplate } from '../templates/template-layout.util';
+import { layoutTemplate, planColumns } from '../templates/template-layout.util';
 import { SheetColumnBlock } from './models/sheet-column-block.model';
 import { SheetSection } from './models/sheet-section.model';
 import { SheetTable } from './models/sheet-table.model';
+import { applySticky, stickyColumnLefts, stickyColumnSizes } from './sheet-sticky.util';
 
 /**
  * Lays a sheet table out with the template layout util, so it looks exactly like the template. The
@@ -21,12 +22,22 @@ export function layoutSheetTable(table: SheetTable): TemplateLayout {
     versionId: 0,
     versionNumber: table.templateVersionNumber,
     orientation: table.orientation,
+    stickyColumnCount: table.stickyColumnCount,
     isEditable: false,
     versions: [],
     sections: table.sections.map((section) => toTemplateSection(section, null)),
     columnBlocks: table.columnBlocks.map(toTemplateColumnBlock),
   };
-  return layoutTemplate(template);
+  const layout = layoutTemplate(template);
+
+  // Pinned columns get a fixed width and stay at the left while the rest scroll.
+  const plan = planColumns(template);
+  const lefts = stickyColumnLefts(table, plan);
+  if (lefts.size > 0) {
+    layout.style['grid-template-columns'] = stickyColumnSizes(plan, lefts);
+    applySticky(layout, lefts);
+  }
+  return layout;
 }
 
 /** Each copy of a block is its own block of columns, so the layout gives every copy its own place. */
@@ -38,6 +49,7 @@ function toTemplateColumnBlock(block: SheetColumnBlock, index: number): Template
     minInstances: block.minInstances,
     maxInstances: block.maxInstances,
     initialInstances: block.initialInstances,
+    stickyColumnCount: block.stickyColumnCount,
   };
 }
 

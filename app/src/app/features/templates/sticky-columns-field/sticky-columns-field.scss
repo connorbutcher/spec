@@ -1,0 +1,21 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sticky-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+}
+
+.count {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: 8rem;
+  color: #475569;
+  font-size: 0.75rem;
+}

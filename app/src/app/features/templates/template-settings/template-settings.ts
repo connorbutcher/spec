@@ -10,8 +10,9 @@ import { TableTemplate } from '../models/table-template.model';
 import { TemplateOrientation } from '../models/template-orientation';
 import { PanelLinkList } from '../panel-link-list/panel-link-list';
 import { PanelNavigator } from '../panel-navigator';
+import { StickyColumnsField } from '../sticky-columns-field/sticky-columns-field';
 import { sectionLinks } from '../section-links.util';
-import { topLevelOrder } from '../template-layout.util';
+import { planColumns, topLevelOrder } from '../template-layout.util';
 import { TemplatesStore } from '../templates.store';
 
 /**
@@ -27,6 +28,7 @@ import { TemplatesStore } from '../templates.store';
     InputTextModule,
     PanelLinkList,
     SelectButtonModule,
+    StickyColumnsField,
   ],
   templateUrl: './template-settings.html',
   styleUrl: './template-settings.scss',
@@ -39,6 +41,17 @@ export class TemplateSettings {
   );
 
   public readonly columnBlocks = computed<PanelLinkItem[]>(() => columnBlockLinks(this.template()));
+
+  /** How many columns the table's own cells take, before the column blocks: the most that can be pinned. */
+  public readonly ownColumns = computed(() => {
+    const template = this.template();
+    if (!template) {
+      return 1;
+    }
+    const plan = planColumns(template);
+    const firstBlock = Math.min(...plan.blockStarts.values(), plan.total + 1);
+    return Math.max(1, firstBlock - 1);
+  });
 
   public readonly orientations = [
     { label: 'Horizontal', value: 'Horizontal' },
@@ -75,6 +88,13 @@ export class TemplateSettings {
     const orientation = event.value as TemplateOrientation | null;
     if (template && orientation && orientation !== template.orientation) {
       void this.store.updateTemplate(template.name, orientation);
+    }
+  }
+
+  public setSticky(count: number): void {
+    const template = this.template();
+    if (template) {
+      void this.store.updateTemplate(template.name, template.orientation, count);
     }
   }
 

@@ -1,7 +1,8 @@
 // Spans the block's columns through every row but is never in the way: only the controls take clicks.
 :host {
   position: relative;
-  z-index: 6;
+  // Below the pinned columns (z-index 4), so a block scrolled out from under them hides its controls too.
+  z-index: 3;
   pointer-events: none;
 }
 

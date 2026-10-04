@@ -9,6 +9,8 @@ import { MoveButtons } from '../move-buttons/move-buttons';
 import { NumberField } from '../number-field/number-field';
 import { PanelNavigator } from '../panel-navigator';
 import { plural } from '../section-links.util';
+import { StickyColumnsField } from '../sticky-columns-field/sticky-columns-field';
+import { planColumns } from '../template-layout.util';
 import { TemplatesStore } from '../templates.store';
 
 /**
@@ -18,7 +20,7 @@ import { TemplatesStore } from '../templates.store';
  */
 @Component({
   selector: 'app-column-block-settings',
-  imports: [ConfirmDeleteButton, InputTextModule, MoveButtons, NumberField],
+  imports: [ConfirmDeleteButton, InputTextModule, MoveButtons, NumberField, StickyColumnsField],
   templateUrl: './column-block-settings.html',
   styleUrl: './column-block-settings.scss',
 })
@@ -39,6 +41,12 @@ export class ColumnBlockSettings {
     return cells === 0
       ? 'No cells yet.'
       : `${plural(cells, 'cell')} in ${plural(counts.length, 'row')}.`;
+  });
+
+  /** How many columns the block takes: the most of it that can be pinned. */
+  public readonly blockColumns = computed(() => {
+    const template = this.store.template();
+    return template ? (planColumns(template).blockWidths.get(this.columnBlockId()) ?? 1) : 1;
   });
 
   private readonly store = inject(TemplatesStore);
@@ -71,6 +79,10 @@ export class ColumnBlockSettings {
     if (block) {
       void this.save(withCount(block, field, value));
     }
+  }
+
+  public setSticky(count: number): void {
+    void this.save({ stickyColumnCount: count });
   }
 
   public move(position: number): void {

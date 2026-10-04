@@ -51,7 +51,15 @@ function section(
 }
 
 function block(id: number, name: string, displayOrder: number): TemplateColumnBlock {
-  return { id, name, displayOrder, minInstances: 0, maxInstances: null, initialInstances: 1 };
+  return {
+    id,
+    name,
+    displayOrder,
+    minInstances: 0,
+    maxInstances: null,
+    initialInstances: 1,
+    stickyColumnCount: 0,
+  };
 }
 
 function template(
@@ -67,6 +75,7 @@ function template(
     versionId: 1,
     versionNumber: 1,
     orientation,
+    stickyColumnCount: 0,
     isEditable: true,
     versions: [{ id: 1, versionNumber: 1, createdAtUtc: '2026-09-29T00:00:00Z', isInUse: false }],
     sections,

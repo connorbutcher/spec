@@ -13,6 +13,8 @@ export interface SheetTable {
   templateName: string;
   templateVersionNumber: number;
   orientation: TemplateOrientation;
+  /** How many of the table's own columns, from the left, stay pinned while the rest scroll. */
+  stickyColumnCount: number;
   title: string | null;
   displayOrder: number;
   lock: SheetLock | null;

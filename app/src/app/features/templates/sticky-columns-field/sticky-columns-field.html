@@ -1,0 +1,22 @@
+<div class="sticky-field">
+  <p-toggleswitch
+    [inputId]="id()"
+    [ngModel]="isOn()"
+    [disabled]="disabled()"
+    (onChange)="toggle($event.checked)"
+  />
+  <label [for]="id()">{{ label() }}</label>
+</div>
+@if (isOn()) {
+  <div class="count">
+    <label [for]="id() + '-count'">Pinned from the left</label>
+    <app-number-field
+      [inputId]="id() + '-count'"
+      [value]="count()"
+      [min]="1"
+      [max]="available()"
+      [disabled]="disabled()"
+      (committed)="setCount($event)"
+    />
+  </div>
+}

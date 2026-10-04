@@ -10,4 +10,6 @@ export interface TemplateColumnBlock {
   minInstances: number;
   maxInstances: number | null;
   initialInstances: number;
+  /** How many of the block's columns, from its left, stay pinned once scrolled to. */
+  stickyColumnCount: number;
 }

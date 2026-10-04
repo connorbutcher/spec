@@ -92,6 +92,7 @@ export function fixtureTable(): SheetTable {
     templateName: 'Limits table',
     templateVersionNumber: 1,
     orientation: 'Vertical',
+    stickyColumnCount: 0,
     title: null,
     displayOrder: 1,
     lock: null,

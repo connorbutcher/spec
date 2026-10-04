@@ -32,9 +32,14 @@ export class TemplatesApi {
     id: number,
     name: string,
     orientation: TemplateOrientation,
+    stickyColumnCount: number,
   ): Promise<TableTemplate> {
     return firstValueFrom(
-      this.http.put<TableTemplate>(`/api/table-templates/${id}`, { name, orientation }),
+      this.http.put<TableTemplate>(`/api/table-templates/${id}`, {
+        name,
+        orientation,
+        stickyColumnCount,
+      }),
     );
   }
 

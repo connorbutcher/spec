@@ -7,4 +7,5 @@ export interface UpdateTemplateColumnBlockRequest {
   minInstances: number;
   maxInstances: number | null;
   initialInstances: number;
+  stickyColumnCount: number;
 }

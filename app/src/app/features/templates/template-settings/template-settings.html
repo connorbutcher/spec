@@ -29,6 +29,19 @@
       />
     </div>
 
+    @if (isHorizontal()) {
+      <div class="field">
+        <app-sticky-columns-field
+          id="template-sticky"
+          label="Sticky columns"
+          [count]="template.stickyColumnCount"
+          [available]="ownColumns()"
+          [disabled]="isSaving() || !canEdit()"
+          (changed)="setSticky($event)"
+        />
+      </div>
+    }
+
     <h3 class="group-title">Header and sections</h3>
     <app-panel-link-list
       [items]="sections()"

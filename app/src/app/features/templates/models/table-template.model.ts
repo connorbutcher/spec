@@ -15,6 +15,8 @@ export interface TableTemplate {
   versionId: number;
   versionNumber: number;
   orientation: TemplateOrientation;
+  /** How many of the table's own columns, from the left, stay pinned while the rest scroll. */
+  stickyColumnCount: number;
   isEditable: boolean;
   versions: TemplateVersionSummary[];
   sections: TemplateSection[];
