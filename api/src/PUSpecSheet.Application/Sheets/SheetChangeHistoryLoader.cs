@@ -27,6 +27,10 @@ public sealed class SheetChangeHistoryLoader(PuSpecSheetDbContext db, RowValueSt
                 db.SheetSectionRevisions.Where(revision => revision.SheetSection.SheetTable.SheetId == sheetId),
                 moment)
             .ToListAsync(cancellationToken);
+        var blockRevisions = await Published(
+                db.SheetColumnBlockRevisions.Where(revision => revision.SheetColumnBlock.SheetTable.SheetId == sheetId),
+                moment)
+            .ToListAsync(cancellationToken);
         var values = await valueStore.LoadAsync(rowRevisions.Select(revision => revision.Id).ToList(), cancellationToken);
 
         var history = new SheetChangeHistory();
@@ -91,6 +95,14 @@ public sealed class SheetChangeHistoryLoader(PuSpecSheetDbContext db, RowValueSt
                 && Change(revision) is { } change)
             {
                 history.Sections[parentId] = change;
+            }
+        }
+
+        foreach (var revision in blockRevisions.OrderBy(candidate => candidate.PublishedAtUtc))
+        {
+            if (Change(revision) is { } change)
+            {
+                history.ColumnBlocks[revision.SheetColumnBlockId] = change;
             }
         }
 

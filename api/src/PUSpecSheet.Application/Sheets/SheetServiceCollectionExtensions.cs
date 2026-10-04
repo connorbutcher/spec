@@ -18,14 +18,19 @@ public static class SheetServiceCollectionExtensions
         services.AddScoped<TableDrafts>();
         services.AddScoped<SectionDrafts>();
         services.AddScoped<RowDrafts>();
+        services.AddScoped<ColumnBlockDrafts>();
+        services.AddScoped<ISheetCellFiller, SheetCellFiller>();
 
         services.AddScoped<ISheetService, SheetService>();
         services.AddScoped<ISheetTableService, SheetTableService>();
         services.AddScoped<ISheetSectionService, SheetSectionService>();
         services.AddScoped<ISheetRowService, SheetRowService>();
+        services.AddScoped<ISheetColumnBlockService, SheetColumnBlockService>();
 
         services.AddScoped<DemoLimitsTemplateSeeder>();
         services.AddScoped<DemoLimitsSheetSeeder>();
+        services.AddScoped<DemoPartsGridTemplateSeeder>();
+        services.AddScoped<DemoPartsGridSheetSeeder>();
         services.AddScoped<DemoDataSeeder>();
 
         return services;

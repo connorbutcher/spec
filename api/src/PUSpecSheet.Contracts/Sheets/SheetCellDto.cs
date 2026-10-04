@@ -15,4 +15,5 @@ public sealed record SheetCellDto(
     DateOnly? DateValue,
     bool? BooleanValue,
     int? OptionId,
+    int? SheetColumnBlockId,
     SheetChangeDto? LastChange);

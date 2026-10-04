@@ -35,6 +35,32 @@ public sealed class SheetInstantiator(ICurrentUser currentUser)
         }
     }
 
+    /// <summary>How many copies of a column block a new horizontal table starts with.</summary>
+    public static int StartingCopies(TemplateColumnBlock template)
+    {
+        return Math.Max(template.MinInstances, template.InitialInstances);
+    }
+
+    /// <summary>Adds the column block copies a new horizontal table starts with to <paramref name="table"/>.</summary>
+    public void AddStartingColumnBlocks(SheetTable table, TemplateTree tree)
+    {
+        var order = 0;
+        foreach (var template in tree.ColumnBlocks)
+        {
+            for (var copy = 0; copy < StartingCopies(template); copy++)
+            {
+                order += OrderGaps.Spacing;
+                table.ColumnBlocks.Add(NewColumnBlock(0, template, order, table));
+            }
+        }
+    }
+
+    /// <summary>A new copy of a template column block, as its author's first draft. Its cells are added by the cell filler.</summary>
+    public SheetColumnBlock NewColumnBlock(int tableId, TemplateColumnBlock template, int displayOrder)
+    {
+        return NewColumnBlock(tableId, template, displayOrder, null);
+    }
+
     /// <summary>A new copy of a template section, with its rows and its starting sub-sections.</summary>
     public SheetSection NewSection(SheetTable table, TemplateSection template, TemplateTree tree, int displayOrder)
     {
@@ -73,11 +99,39 @@ public sealed class SheetInstantiator(ICurrentUser currentUser)
         return section;
     }
 
-    /// <summary>A new row built from a template row, with one cell per template cell. The caller attaches it to its section.</summary>
+    private SheetColumnBlock NewColumnBlock(int tableId, TemplateColumnBlock template, int displayOrder, SheetTable? table)
+    {
+        var block = new SheetColumnBlock { TemplateColumnBlockId = template.Id };
+        if (table is null)
+        {
+            block.SheetTableId = tableId;
+        }
+        else
+        {
+            block.SheetTable = table;
+        }
+
+        block.Revisions.Add(new SheetColumnBlockRevision
+        {
+            RevisionNumber = 1,
+            Status = RevisionStatus.Draft,
+            DisplayOrder = displayOrder,
+            AuthorUserId = currentUser.UserId,
+            CreatedAtUtc = DateTime.UtcNow,
+            UpdatedAtUtc = DateTime.UtcNow,
+        });
+        return block;
+    }
+
+    /// <summary>
+    /// A new row built from a template row, with a cell for each of its own template cells. Its cells in
+    /// column blocks are added by the cell filler, since they depend on how many copies the table has. The
+    /// caller attaches the row to its section.
+    /// </summary>
     public SheetRow NewRow(TemplateRow templateRow, int displayOrder)
     {
         var row = new SheetRow { TemplateRowId = templateRow.Id };
-        foreach (var templateCell in templateRow.Cells.OrderBy(cell => cell.Column).ThenBy(cell => cell.Id))
+        foreach (var templateCell in templateRow.Cells.Where(cell => cell.TemplateColumnBlockId is null).OrderBy(cell => cell.Column).ThenBy(cell => cell.Id))
         {
             row.Cells.Add(new SheetCell { TemplateCellId = templateCell.Id });
         }

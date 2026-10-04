@@ -1,0 +1,25 @@
+// Spans the block's columns through every row but is never in the way: only the controls take clicks.
+:host {
+  position: relative;
+  z-index: 6;
+  pointer-events: none;
+}
+
+// Pinned in the top corner of the block's columns, over the header row's cell.
+.controls {
+  position: sticky;
+  top: 0;
+  float: right;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin: 2px 4px 0 0;
+  opacity: 0.45;
+  pointer-events: auto;
+  transition: opacity 120ms;
+
+  &:hover,
+  &:focus-within {
+    opacity: 1;
+  }
+}

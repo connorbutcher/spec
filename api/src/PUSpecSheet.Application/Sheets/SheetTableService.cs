@@ -12,6 +12,7 @@ public sealed class SheetTableService(
     PuSpecSheetDbContext db,
     TableDrafts drafts,
     SheetInstantiator instantiator,
+    ISheetCellFiller filler,
     SheetReader reader,
     ICurrentUser currentUser) : ISheetTableService
 {
@@ -46,9 +47,11 @@ public sealed class SheetTableService(
             UpdatedAtUtc = DateTime.UtcNow,
         });
         instantiator.AddStartingSections(table, tree);
+        instantiator.AddStartingColumnBlocks(table, tree);
 
         db.SheetTables.Add(table);
         await db.SaveSheetChangesAsync(cancellationToken);
+        await filler.FillAsync(table.Id, cancellationToken);
         return await reader.ReadLiveAsync(sheetId, cancellationToken);
     }
 
@@ -87,7 +90,9 @@ public sealed class SheetTableService(
         var othersInside = await db.SheetSectionRevisions
             .AnyAsync(revision => revision.SheetSection.SheetTableId == tableId && revision.Status == RevisionStatus.Draft && revision.AuthorUserId != me, cancellationToken)
             || await db.SheetRowRevisions
-                .AnyAsync(revision => revision.SheetRow.SheetSection.SheetTableId == tableId && revision.Status == RevisionStatus.Draft && revision.AuthorUserId != me, cancellationToken);
+                .AnyAsync(revision => revision.SheetRow.SheetSection.SheetTableId == tableId && revision.Status == RevisionStatus.Draft && revision.AuthorUserId != me, cancellationToken)
+            || await db.SheetColumnBlockRevisions
+                .AnyAsync(revision => revision.SheetColumnBlock.SheetTableId == tableId && revision.Status == RevisionStatus.Draft && revision.AuthorUserId != me, cancellationToken);
         if (othersInside)
         {
             throw new ConflictException("Someone else is editing inside this table, so it can't be removed yet.");

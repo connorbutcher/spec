@@ -10,6 +10,8 @@ namespace PUSpecSheet.Application.Sheets.Demo;
 public sealed partial class DemoDataSeeder(
     DemoLimitsTemplateSeeder templateSeeder,
     DemoLimitsSheetSeeder sheetSeeder,
+    DemoPartsGridTemplateSeeder partsTemplateSeeder,
+    DemoPartsGridSheetSeeder partsSheetSeeder,
     ILogger<DemoDataSeeder> logger)
 {
     public async Task SeedAsync(CancellationToken cancellationToken = default)
@@ -18,6 +20,8 @@ public sealed partial class DemoDataSeeder(
         {
             await templateSeeder.SeedAsync(cancellationToken);
             await sheetSeeder.SeedAsync(cancellationToken);
+            await partsTemplateSeeder.SeedAsync(cancellationToken);
+            await partsSheetSeeder.SeedAsync(cancellationToken);
         }
         catch (Exception exception)
         {

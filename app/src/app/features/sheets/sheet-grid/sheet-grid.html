@@ -2,4 +2,7 @@
   @for (section of layout().sections; track section.section.id) {
     <app-sheet-grid-section [layout]="section" />
   }
+  @for (block of layout().columnBlocks; track block.block.id) {
+    <app-sheet-grid-column-block [layout]="block" [table]="table()" />
+  }
 </div>

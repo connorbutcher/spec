@@ -6,6 +6,7 @@ public enum SheetItemKind
     Sheet,
     Table,
     Section,
+    ColumnBlock,
     Row,
     Cell,
 }

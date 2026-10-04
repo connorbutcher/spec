@@ -2,11 +2,13 @@ import { Component, computed, inject, input, viewChild } from '@angular/core';
 import { MenuItem } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { Menu, MenuModule } from 'primeng/menu';
+import { AddableColumnBlock } from '../models/addable-column-block.model';
 import { AddableSection } from '../models/addable-section.model';
 import { SheetStore } from '../sheet.store';
 
 /**
- * The one add button for a place that can grow: a table or a group section, listing the section types it takes. When a single section can be
+ * The one add button for a place that can grow: a table or a group section, listing the section types it takes and, for a horizontal table, its
+ * column blocks. When a single thing can be
  * added the button adds it; when there is a choice it opens a menu of what can go here. Sections at
  * their template maximum are shown but can't be picked.
  */
@@ -27,6 +29,9 @@ export class SheetAddMenu {
 
   public readonly sections = input<AddableSection[]>([]);
 
+  /** The column blocks the table can take, for a horizontal table; only offered when adding to the table. */
+  public readonly columnBlocks = input<AddableColumnBlock[]>([]);
+
   public readonly choices = computed<MenuItem[]>(() => {
     const sectionId = this.sectionId();
     const sections: MenuItem[] = this.sections().map((addable) => ({
@@ -36,7 +41,23 @@ export class SheetAddMenu {
       command: () =>
         void this.store.addSection(this.tableId(), addable.templateSectionId, sectionId),
     }));
-    return sections;
+    const blocks: MenuItem[] =
+      sectionId === null
+        ? this.columnBlocks().map((addable) => ({
+            label: addable.name,
+            icon: 'pi pi-arrows-h',
+            disabled: !addable.canAdd,
+            command: () =>
+              void this.store.addColumnBlock(this.tableId(), addable.templateColumnBlockId),
+          }))
+        : [];
+    if (sections.length > 0 && blocks.length > 0) {
+      return [
+        { label: 'Row group', items: sections },
+        { label: 'Column', items: blocks },
+      ];
+    }
+    return [...sections, ...blocks];
   });
 
   /** The only thing that can be added here, when there's no choice to make. */

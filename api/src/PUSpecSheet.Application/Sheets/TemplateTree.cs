@@ -10,8 +10,12 @@ public sealed class TemplateTree
     private readonly Dictionary<int, TemplateSection> byId;
     private readonly ILookup<int?, TemplateSection> byParent;
 
-    private TemplateTree(List<TemplateSection> sections)
+    private TemplateTree(List<TemplateSection> sections, List<TemplateColumnBlock> columnBlocks)
     {
+        ColumnBlocks = columnBlocks
+            .OrderBy(block => block.DisplayOrder)
+            .ThenBy(block => block.Id)
+            .ToList();
         byId = sections.ToDictionary(section => section.Id);
         byParent = sections.ToLookup(section => section.ParentSectionId);
     }
@@ -25,8 +29,15 @@ public sealed class TemplateTree
             .Where(section => section.TableTemplateVersionId == versionId)
             .AsSplitQuery()
             .ToListAsync(cancellationToken);
-        return new TemplateTree(sections);
+        var columnBlocks = await db.TemplateColumnBlocks
+            .AsNoTracking()
+            .Where(block => block.TableTemplateVersionId == versionId)
+            .ToListAsync(cancellationToken);
+        return new TemplateTree(sections, columnBlocks);
     }
+
+    /// <summary>The version's column blocks, left to right. Empty for a vertical table.</summary>
+    public IReadOnlyList<TemplateColumnBlock> ColumnBlocks { get; }
 
     public TemplateSection? Find(int templateSectionId)
     {

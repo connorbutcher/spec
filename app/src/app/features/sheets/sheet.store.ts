@@ -219,6 +219,24 @@ export class SheetStore {
     }
   }
 
+  public async addColumnBlock(tableId: number, templateColumnBlockId: number): Promise<void> {
+    await this.run(() => this.api.addColumnBlock(tableId, templateColumnBlockId));
+  }
+
+  public async moveColumnBlock(
+    tableId: number,
+    columnBlockId: number,
+    step: -1 | 1,
+  ): Promise<void> {
+    const blocks = this.index().tables.get(tableId)?.columnBlocks ?? [];
+    const position = blocks.findIndex((block) => block.id === columnBlockId) + 1 + step;
+    await this.run(() => this.api.moveColumnBlock(columnBlockId, position));
+  }
+
+  public async removeColumnBlock(columnBlockId: number): Promise<void> {
+    await this.run(() => this.api.removeColumnBlock(columnBlockId));
+  }
+
   public async addRow(sectionId: number, templateRowId: number): Promise<void> {
     const tableId = this.index().sectionTable.get(sectionId);
     const before = rowIds(this.index());

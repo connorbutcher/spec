@@ -21,11 +21,15 @@ public sealed class SheetSnapshot
 
     public required IReadOnlyList<SheetRow> Rows { get; init; }
 
+    public required IReadOnlyList<SheetColumnBlock> ColumnBlocks { get; init; }
+
     public required IReadOnlyDictionary<int, RevisionResolution<SheetTableRevision>> TableRevisions { get; init; }
 
     public required IReadOnlyDictionary<int, RevisionResolution<SheetSectionRevision>> SectionRevisions { get; init; }
 
     public required IReadOnlyDictionary<int, RevisionResolution<SheetRowRevision>> RowRevisions { get; init; }
+
+    public required IReadOnlyDictionary<int, RevisionResolution<SheetColumnBlockRevision>> ColumnBlockRevisions { get; init; }
 
     /// <summary>Cell values by row revision id, then by sheet cell id.</summary>
     public required IReadOnlyDictionary<int, Dictionary<int, CellValueBag>> Values { get; init; }
@@ -36,6 +40,9 @@ public sealed class SheetSnapshot
 
     /// <summary>Every section of every template version the sheet's tables use.</summary>
     public required IReadOnlyList<TemplateSection> TemplateSections { get; init; }
+
+    /// <summary>Every column block of those template versions.</summary>
+    public required IReadOnlyList<TemplateColumnBlock> TemplateColumnBlocks { get; init; }
 
     /// <summary>Every row, with cells, of those template sections.</summary>
     public required IReadOnlyList<TemplateRow> TemplateRows { get; init; }

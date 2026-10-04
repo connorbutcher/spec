@@ -1,5 +1,6 @@
 import { Component, computed, input } from '@angular/core';
 import { TemplateLayout } from '../../templates/models/template-layout.model';
+import { SheetGridColumnBlock } from '../sheet-grid-column-block/sheet-grid-column-block';
 import { SheetGridSection } from '../sheet-grid-section/sheet-grid-section';
 import { layoutSheetTable } from '../sheet-layout.util';
 import { SheetTable } from '../models/sheet-table.model';
@@ -7,7 +8,7 @@ import { SheetTable } from '../models/sheet-table.model';
 /** One sheet table as a CSS grid, laid out with the template layout util so it matches its template. */
 @Component({
   selector: 'app-sheet-grid',
-  imports: [SheetGridSection],
+  imports: [SheetGridColumnBlock, SheetGridSection],
   templateUrl: './sheet-grid.html',
   styleUrl: './sheet-grid.scss',
 })

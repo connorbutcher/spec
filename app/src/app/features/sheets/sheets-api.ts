@@ -59,6 +59,26 @@ export class SheetsApi {
     return firstValueFrom(this.http.delete<Sheet>(`/api/sheet-sections/${sectionId}`));
   }
 
+  public addColumnBlock(tableId: number, templateColumnBlockId: number): Promise<Sheet> {
+    return firstValueFrom(
+      this.http.post<Sheet>(`/api/sheet-tables/${tableId}/column-blocks`, {
+        templateColumnBlockId,
+      }),
+    );
+  }
+
+  public moveColumnBlock(columnBlockId: number, position: number): Promise<Sheet> {
+    return firstValueFrom(
+      this.http.post<Sheet>(`/api/sheet-column-blocks/${columnBlockId}/move`, {
+        displayOrder: position,
+      }),
+    );
+  }
+
+  public removeColumnBlock(columnBlockId: number): Promise<Sheet> {
+    return firstValueFrom(this.http.delete<Sheet>(`/api/sheet-column-blocks/${columnBlockId}`));
+  }
+
   public addRow(sectionId: number, templateRowId: number): Promise<Sheet> {
     return firstValueFrom(
       this.http.post<Sheet>(`/api/sheet-sections/${sectionId}/rows`, { templateRowId }),

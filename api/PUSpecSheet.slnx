@@ -7,6 +7,7 @@
     <Project Path="src/PUSpecSheet.Domain/PUSpecSheet.Domain.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/PUSpecSheet.Application.Tests/PUSpecSheet.Application.Tests.csproj" />
     <Project Path="tests/PUSpecSheet.Data.Tests/PUSpecSheet.Data.Tests.csproj" />
     <Project Path="tests/PUSpecSheet.Domain.Tests/PUSpecSheet.Domain.Tests.csproj" />
   </Folder>

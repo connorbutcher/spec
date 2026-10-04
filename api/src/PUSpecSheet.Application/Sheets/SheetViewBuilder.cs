@@ -17,6 +17,7 @@ internal sealed class SheetViewBuilder
     private readonly Dictionary<int, List<SheetSection>> topLevelByTable;
     private readonly Dictionary<int, List<SheetSection>> childrenByParent;
     private readonly Dictionary<int, List<SheetRow>> rowsBySection;
+    private readonly HashSet<int> hiddenColumnBlockIds;
 
     public SheetViewBuilder(SheetSnapshot snapshot, int currentUserId)
     {
@@ -26,6 +27,10 @@ internal sealed class SheetViewBuilder
         var visibleSections = snapshot.Sections
             .Where(section => RevisionResolver.IsVisible(snapshot.SectionRevisions.GetValueOrDefault(section.Id)))
             .ToList();
+        hiddenColumnBlockIds = snapshot.ColumnBlocks
+            .Where(block => !RevisionResolver.IsVisible(snapshot.ColumnBlockRevisions.GetValueOrDefault(block.Id)))
+            .Select(block => block.Id)
+            .ToHashSet();
         topLevelByTable = visibleSections
             .Where(section => section.ParentSheetSectionId is null)
             .GroupBy(section => section.SheetTableId)
@@ -94,6 +99,8 @@ internal sealed class SheetViewBuilder
             .Select(section => BuildSection(section, topLevel))
             .ToList();
 
+        var blocks = BuildColumnBlocks(table);
+
         return new SheetTableDto(
             table.Id,
             table.PublicId,
@@ -106,7 +113,9 @@ internal sealed class SheetViewBuilder
             LockOf(resolution),
             IsPending(resolution),
             sections,
-            AddableSectionsUnder(version.Id, null, topLevel));
+            AddableSectionsUnder(version.Id, null, topLevel),
+            blocks,
+            AddableColumnBlocksFor(version.Id, blocks));
     }
 
     private SheetSectionDto BuildSection(SheetSection section, IReadOnlyList<SheetSection> siblings)
@@ -156,6 +165,7 @@ internal sealed class SheetViewBuilder
         var values = snapshot.Values.GetValueOrDefault(shown.Id);
 
         var cells = row.Cells
+            .Where(cell => cell.SheetColumnBlockId is not { } blockId || !hiddenColumnBlockIds.Contains(blockId))
             .OrderBy(cell => cell.TemplateCell.Column)
             .ThenBy(cell => cell.Id)
             .Select(cell => BuildCell(cell, values?.GetValueOrDefault(cell.Id), snapshot.Changes.Cells.GetValueOrDefault(cell.Id)))
@@ -188,13 +198,68 @@ internal sealed class SheetViewBuilder
                 template.Caption,
                 template.IsRequired,
                 template.ConfigurationOverride,
-                template.StyleOverride),
+                template.StyleOverride,
+                template.TemplateColumnBlockId),
             value?.Text,
             value?.Number,
             value?.Date,
             value?.Boolean,
             value?.OptionId,
+            cell.SheetColumnBlockId,
             change);
+    }
+
+    private List<SheetColumnBlockDto> BuildColumnBlocks(SheetTable table)
+    {
+        var visible = snapshot.ColumnBlocks
+            .Where(block => block.SheetTableId == table.Id
+                && RevisionResolver.IsVisible(snapshot.ColumnBlockRevisions.GetValueOrDefault(block.Id)))
+            .ToList();
+
+        return visible
+            .OrderBy(block => snapshot.ColumnBlockRevisions[block.Id].Shown!.DisplayOrder)
+            .ThenBy(block => block.Id)
+            .Select(block =>
+            {
+                var resolution = snapshot.ColumnBlockRevisions[block.Id];
+                var template = block.TemplateColumnBlock;
+                var copies = visible.Count(candidate => candidate.TemplateColumnBlockId == block.TemplateColumnBlockId);
+                return new SheetColumnBlockDto(
+                    block.Id,
+                    block.PublicId,
+                    template.Id,
+                    template.Name,
+                    template.MinInstances,
+                    template.MaxInstances,
+                    template.InitialInstances,
+                    resolution.Shown!.DisplayOrder,
+                    LockOf(resolution),
+                    IsPending(resolution),
+                    copies > template.MinInstances,
+                    snapshot.Changes.ColumnBlocks.GetValueOrDefault(block.Id));
+            })
+            .ToList();
+    }
+
+    /// <summary>The kinds of column block the table can still take, with their current counts.</summary>
+    private List<AddableColumnBlockDto> AddableColumnBlocksFor(int versionId, IReadOnlyList<SheetColumnBlockDto> existing)
+    {
+        return snapshot.TemplateColumnBlocks
+            .Where(template => template.TableTemplateVersionId == versionId)
+            .OrderBy(template => template.DisplayOrder)
+            .ThenBy(template => template.Id)
+            .Select(template =>
+            {
+                var count = existing.Count(block => block.TemplateColumnBlockId == template.Id);
+                return new AddableColumnBlockDto(
+                    template.Id,
+                    template.Name,
+                    count,
+                    template.MinInstances,
+                    template.MaxInstances,
+                    template.MaxInstances is null || count < template.MaxInstances);
+            })
+            .ToList();
     }
 
     /// <summary>The kinds of section that can be added under a parent (or the table), with their current counts.</summary>
@@ -265,7 +330,8 @@ internal sealed class SheetViewBuilder
     {
         return snapshot.TableRevisions.Values.Count(resolution => resolution.Draft?.AuthorUserId == currentUserId)
             + snapshot.SectionRevisions.Values.Count(resolution => resolution.Draft?.AuthorUserId == currentUserId)
-            + snapshot.RowRevisions.Values.Count(resolution => resolution.Draft?.AuthorUserId == currentUserId);
+            + snapshot.RowRevisions.Values.Count(resolution => resolution.Draft?.AuthorUserId == currentUserId)
+            + snapshot.ColumnBlockRevisions.Values.Count(resolution => resolution.Draft?.AuthorUserId == currentUserId);
     }
 
     private static DateTime Utc(DateTime value)

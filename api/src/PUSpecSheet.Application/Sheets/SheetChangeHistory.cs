@@ -17,4 +17,6 @@ public sealed class SheetChangeHistory
     public Dictionary<int, SheetChangeDto> Rows { get; } = [];
 
     public Dictionary<int, SheetChangeDto> Sections { get; } = [];
+
+    public Dictionary<int, SheetChangeDto> ColumnBlocks { get; } = [];
 }

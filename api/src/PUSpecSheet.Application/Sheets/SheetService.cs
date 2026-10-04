@@ -50,7 +50,11 @@ public sealed class SheetService(
             .Where(revision => revision.SheetRow.SheetSection.SheetTable.SheetId == sheetId && revision.Status == RevisionStatus.Draft && revision.AuthorUserId == me)
             .ToListAsync(cancellationToken);
 
-        if (tableDrafts.Count + sectionDrafts.Count + rowDrafts.Count == 0)
+        var blockDrafts = await db.SheetColumnBlockRevisions
+            .Where(revision => revision.SheetColumnBlock.SheetTable.SheetId == sheetId && revision.Status == RevisionStatus.Draft && revision.AuthorUserId == me)
+            .ToListAsync(cancellationToken);
+
+        if (tableDrafts.Count + sectionDrafts.Count + rowDrafts.Count + blockDrafts.Count == 0)
         {
             throw new InvalidRequestException("You have no changes to publish.");
         }
@@ -81,6 +85,7 @@ public sealed class SheetService(
         var tableIds = tableDrafts.Select(draft => draft.SheetTableId).ToList();
         var sectionIds = sectionDrafts.Select(draft => draft.SheetSectionId).ToList();
         var rowIds = rowDrafts.Select(draft => draft.SheetRowId).ToList();
+        var blockIds = blockDrafts.Select(draft => draft.SheetColumnBlockId).ToList();
 
         var previousTables = await db.SheetTableRevisions
             .Where(revision => tableIds.Contains(revision.SheetTableId) && revision.Status == RevisionStatus.Published && revision.SupersededAtUtc == null)
@@ -90,6 +95,10 @@ public sealed class SheetService(
             .ToListAsync(cancellationToken);
         var previousRows = await db.SheetRowRevisions
             .Where(revision => rowIds.Contains(revision.SheetRowId) && revision.Status == RevisionStatus.Published && revision.SupersededAtUtc == null)
+            .ToListAsync(cancellationToken);
+
+        var previousBlocks = await db.SheetColumnBlockRevisions
+            .Where(revision => blockIds.Contains(revision.SheetColumnBlockId) && revision.Status == RevisionStatus.Published && revision.SupersededAtUtc == null)
             .ToListAsync(cancellationToken);
 
         foreach (var previous in previousTables)
@@ -107,6 +116,11 @@ public sealed class SheetService(
             previous.SupersededAtUtc = now;
         }
 
+        foreach (var previous in previousBlocks)
+        {
+            previous.SupersededAtUtc = now;
+        }
+
         await db.SaveSheetChangesAsync(cancellationToken);
 
         foreach (var draft in tableDrafts)
@@ -120,6 +134,11 @@ public sealed class SheetService(
         }
 
         foreach (var draft in rowDrafts)
+        {
+            Publish(draft, version, now);
+        }
+
+        foreach (var draft in blockDrafts)
         {
             Publish(draft, version, now);
         }
@@ -143,6 +162,9 @@ public sealed class SheetService(
         await db.SheetRowRevisions
             .Where(revision => revision.SheetRow.SheetSection.SheetTable.SheetId == sheetId && revision.Status == RevisionStatus.Draft && revision.AuthorUserId == me)
             .ExecuteDeleteAsync(cancellationToken);
+        await db.SheetColumnBlockRevisions
+            .Where(revision => revision.SheetColumnBlock.SheetTable.SheetId == sheetId && revision.Status == RevisionStatus.Draft && revision.AuthorUserId == me)
+            .ExecuteDeleteAsync(cancellationToken);
         await db.SheetSectionRevisions
             .Where(revision => revision.SheetSection.SheetTable.SheetId == sheetId && revision.Status == RevisionStatus.Draft && revision.AuthorUserId == me)
             .ExecuteDeleteAsync(cancellationToken);
@@ -151,6 +173,11 @@ public sealed class SheetService(
             .ExecuteDeleteAsync(cancellationToken);
 
         // Items that only ever existed as the user's drafts now have no revisions at all, so they go too.
+        var orphanBlockIds = await db.SheetColumnBlocks
+            .Where(block => block.SheetTable.SheetId == sheetId && !block.Revisions.Any())
+            .Select(block => block.Id)
+            .ToListAsync(cancellationToken);
+        await ColumnBlockCells.DeleteBlocksAsync(db, orphanBlockIds, cancellationToken);
         await db.SheetRows
             .Where(row => row.SheetSection.SheetTable.SheetId == sheetId && !row.Revisions.Any())
             .ExecuteDeleteAsync(cancellationToken);

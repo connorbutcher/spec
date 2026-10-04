@@ -1,0 +1,45 @@
+@if (canEdit() || changeLabel()) {
+  <div
+    class="controls"
+    role="group"
+    [attr.aria-label]="(block()?.name ?? 'Column') + ' column controls'"
+  >
+    @if (changeLabel(); as label) {
+      <p-tag
+        [value]="'v' + block()?.lastChange?.versionNumber"
+        severity="secondary"
+        [pTooltip]="label"
+        tooltipPosition="bottom"
+      />
+    }
+    @if (canEdit()) {
+      <p-button
+        icon="pi pi-arrow-left"
+        size="small"
+        severity="secondary"
+        [text]="true"
+        [disabled]="!canMoveLeft() || isBusy()"
+        ariaLabel="Move the column left"
+        (onClick)="move(-1)"
+      />
+      <p-button
+        icon="pi pi-arrow-right"
+        size="small"
+        severity="secondary"
+        [text]="true"
+        [disabled]="!canMoveRight() || isBusy()"
+        ariaLabel="Move the column right"
+        (onClick)="move(1)"
+      />
+      <p-button
+        icon="pi pi-trash"
+        size="small"
+        severity="secondary"
+        [text]="true"
+        [disabled]="!canRemove() || isBusy()"
+        ariaLabel="Remove the column"
+        (onClick)="askRemove($event)"
+      />
+    }
+  </div>
+}

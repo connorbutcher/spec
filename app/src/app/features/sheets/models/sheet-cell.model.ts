@@ -16,6 +16,8 @@ export interface SheetCell {
   dateValue: string | null;
   booleanValue: boolean | null;
   optionId: number | null;
+  /** The column block copy the cell belongs to, or null for the row's own cells. */
+  sheetColumnBlockId: number | null;
   /** The publish that last changed this value. */
   lastChange: SheetChange | null;
 }

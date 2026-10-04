@@ -1,7 +1,9 @@
+import { TemplateColumnBlock } from '../templates/models/template-column-block.model';
 import { TableTemplate } from '../templates/models/table-template.model';
 import { TemplateLayout } from '../templates/models/template-layout.model';
 import { TemplateSection } from '../templates/models/template-section.model';
 import { layoutTemplate } from '../templates/template-layout.util';
+import { SheetColumnBlock } from './models/sheet-column-block.model';
 import { SheetSection } from './models/sheet-section.model';
 import { SheetTable } from './models/sheet-table.model';
 
@@ -22,9 +24,21 @@ export function layoutSheetTable(table: SheetTable): TemplateLayout {
     isEditable: false,
     versions: [],
     sections: table.sections.map((section) => toTemplateSection(section, null)),
-    columnBlocks: [],
+    columnBlocks: table.columnBlocks.map(toTemplateColumnBlock),
   };
   return layoutTemplate(template);
+}
+
+/** Each copy of a block is its own block of columns, so the layout gives every copy its own place. */
+function toTemplateColumnBlock(block: SheetColumnBlock, index: number): TemplateColumnBlock {
+  return {
+    id: block.id,
+    name: block.name,
+    displayOrder: index + 1,
+    minInstances: block.minInstances,
+    maxInstances: block.maxInstances,
+    initialInstances: block.initialInstances,
+  };
 }
 
 function toTemplateSection(section: SheetSection, parentId: number | null): TemplateSection {
@@ -41,7 +55,11 @@ function toTemplateSection(section: SheetSection, parentId: number | null): Temp
     rows: section.rows.map((row) => ({
       id: row.id,
       displayOrder: row.displayOrder,
-      cells: row.cells.map((cell) => ({ ...cell.template, id: cell.id })),
+      cells: row.cells.map((cell) => ({
+        ...cell.template,
+        id: cell.id,
+        columnBlockId: cell.sheetColumnBlockId,
+      })),
     })),
   };
 }

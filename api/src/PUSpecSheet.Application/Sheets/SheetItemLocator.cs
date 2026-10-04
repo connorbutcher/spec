@@ -67,6 +67,22 @@ public sealed class SheetItemLocator(PuSpecSheetDbContext db) : ISheetItemLocato
             return Reference(SheetItemKind.Section, publicId, section.Id, section.Sheet, section.SheetTableId, section.Id, null, section.Deleted);
         }
 
+        var columnBlock = await db.SheetColumnBlocks
+            .AsNoTracking()
+            .Where(candidate => candidate.PublicId == publicId)
+            .Select(candidate => new
+            {
+                candidate.Id,
+                candidate.SheetTableId,
+                candidate.SheetTable.Sheet,
+                Deleted = candidate.Revisions.Any(revision => revision.Status == RevisionStatus.Published && revision.SupersededAtUtc == null && revision.IsDeleted),
+            })
+            .SingleOrDefaultAsync(cancellationToken);
+        if (columnBlock is not null)
+        {
+            return Reference(SheetItemKind.ColumnBlock, publicId, columnBlock.Id, columnBlock.Sheet, columnBlock.SheetTableId, null, null, columnBlock.Deleted);
+        }
+
         var row = await db.SheetRows
             .AsNoTracking()
             .Where(candidate => candidate.PublicId == publicId)

@@ -48,6 +48,12 @@ public sealed class SheetSnapshotLoader(PuSpecSheetDbContext db, RowValueStore v
             .Where(row => row.SheetSection.SheetTable.SheetId == sheetId)
             .ToListAsync(cancellationToken);
 
+        var columnBlocks = await db.SheetColumnBlocks
+            .AsNoTracking()
+            .Include(block => block.TemplateColumnBlock)
+            .Where(block => block.SheetTable.SheetId == sheetId)
+            .ToListAsync(cancellationToken);
+
         var tableRevisions = RevisionResolver.Resolve(
             await LoadRevisionsAsync(
                 db.SheetTableRevisions.Where(revision => revision.SheetTable.SheetId == sheetId),
@@ -72,6 +78,14 @@ public sealed class SheetSnapshotLoader(PuSpecSheetDbContext db, RowValueStore v
             revision => revision.SheetRowId,
             currentUserId);
 
+        var columnBlockRevisions = RevisionResolver.Resolve(
+            await LoadRevisionsAsync(
+                db.SheetColumnBlockRevisions.Where(revision => revision.SheetColumnBlock.SheetTable.SheetId == sheetId),
+                moment,
+                cancellationToken),
+            revision => revision.SheetColumnBlockId,
+            currentUserId);
+
         var shownRowRevisionIds = rowRevisions.Values
             .Where(resolution => resolution.Shown is not null)
             .Select(resolution => resolution.Shown!.Id)
@@ -82,6 +96,10 @@ public sealed class SheetSnapshotLoader(PuSpecSheetDbContext db, RowValueStore v
         var templateSections = await db.TemplateSections
             .AsNoTracking()
             .Where(section => versionIds.Contains(section.TableTemplateVersionId))
+            .ToListAsync(cancellationToken);
+        var templateColumnBlocks = await db.TemplateColumnBlocks
+            .AsNoTracking()
+            .Where(block => versionIds.Contains(block.TableTemplateVersionId))
             .ToListAsync(cancellationToken);
         var templateRows = await db.TemplateRows
             .AsNoTracking()
@@ -116,12 +134,15 @@ public sealed class SheetSnapshotLoader(PuSpecSheetDbContext db, RowValueStore v
             Tables = tables,
             Sections = sections,
             Rows = rows,
+            ColumnBlocks = columnBlocks,
             TableRevisions = tableRevisions,
             SectionRevisions = sectionRevisions,
             RowRevisions = rowRevisions,
+            ColumnBlockRevisions = columnBlockRevisions,
             Values = values,
             UserNames = userNames,
             TemplateSections = templateSections,
+            TemplateColumnBlocks = templateColumnBlocks,
             TemplateRows = templateRows,
             AvailableTemplates = availableTemplates,
             LatestTemplateVersions = latestVersions,

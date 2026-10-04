@@ -14,6 +14,7 @@ public sealed class SheetRowService(
     RowDrafts drafts,
     RowValueStore valueStore,
     SheetInstantiator instantiator,
+    ISheetCellFiller filler,
     SheetReader reader,
     ICurrentUser currentUser) : ISheetRowService
 {
@@ -42,6 +43,7 @@ public sealed class SheetRowService(
 
         db.SheetRows.Add(row);
         await db.SaveSheetChangesAsync(cancellationToken);
+        await filler.FillAsync(section.SheetTableId, cancellationToken);
         return await reader.ReadLiveAsync(section.SheetTable.SheetId, cancellationToken);
     }
 
