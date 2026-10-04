@@ -9,7 +9,7 @@ import { PhaseDetailHeader } from '../phase-detail-header/phase-detail-header';
 import { PhasesStore } from '../phases.store';
 import { SheetTypeTable } from '../sheet-type-table/sheet-type-table';
 
-/** The right-hand card for the phase selected in the tree (from the `:phaseId` route parameter). */
+/** The card for the phase selected in the side nav tree (from the `:phaseId` route parameter). */
 @Component({
   selector: 'app-phase-detail',
   imports: [BadgeModule, Breadcrumb, EmptyState, PhaseDetailHeader, SheetTypeTable],
@@ -50,7 +50,7 @@ export class PhaseDetail {
     return this.store.isLoading();
   }
 
-  /** When loading failed the tree panel shows the error, so this panel shouldn't claim "not found". */
+  /** When loading failed the nav tree shows the error, so this panel shouldn't claim "not found". */
   public hasError(): boolean {
     return this.store.hasError();
   }

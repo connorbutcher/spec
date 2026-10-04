@@ -37,7 +37,7 @@ import { SheetStore } from '../sheet.store';
     SheetToolbar,
     SkeletonModule,
   ],
-  providers: [ConfirmationService, PhasesStore, SheetStore],
+  providers: [ConfirmationService, SheetStore],
   templateUrl: './sheet-page.html',
   styleUrl: './sheet-page.scss',
 })

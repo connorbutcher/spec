@@ -1,0 +1,70 @@
+:host {
+  display: block;
+  padding: 2px 0 6px;
+  // The loading placeholder, softened for the dark rail.
+  --p-skeleton-background: rgba(255, 255, 255, 0.12);
+}
+
+// The PrimeNG tree restyled for the dark rail: transparent, light text, quiet hover and selection.
+.phase-tree {
+  --p-tree-background: transparent;
+  --p-tree-color: #cbd5e1;
+  --p-tree-node-color: #cbd5e1;
+  --p-tree-padding: 0;
+  --p-tree-gap: 1px;
+  --p-tree-node-padding: 0.125rem 0.375rem;
+  --p-tree-node-border-radius: 4px;
+  --p-tree-node-hover-background: rgba(255, 255, 255, 0.08);
+  --p-tree-node-hover-color: #fff;
+  --p-tree-node-selected-background: rgba(255, 255, 255, 0.16);
+  --p-tree-node-selected-color: #fff;
+  --p-tree-node-toggle-button-color: #94a3b8;
+  --p-tree-node-toggle-button-hover-color: #fff;
+  --p-tree-node-toggle-button-hover-background: transparent;
+  --p-tree-node-toggle-button-selected-hover-background: transparent;
+  --p-tree-node-icon-color: #94a3b8;
+  --p-tree-node-icon-hover-color: #fff;
+  --p-tree-node-icon-selected-color: #fff;
+  --p-tree-indent: 0.75rem;
+  display: block;
+  padding-left: 14px;
+}
+
+.code {
+  font-family: var(--app-font-mono);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+// Collapsed: the phases as a column of small codes.
+.codes {
+  --p-menu-background: transparent;
+  --p-menu-border-color: transparent;
+  --p-menu-list-padding: 0;
+  --p-menu-list-gap: 1px;
+  --p-menu-item-padding: 0.125rem 0;
+  --p-menu-item-color: #94a3b8;
+  --p-menu-item-focus-background: rgba(255, 255, 255, 0.08);
+  --p-menu-item-focus-color: #fff;
+  --p-menu-min-width: 0;
+  display: block;
+  font-family: var(--app-font-mono);
+  font-size: 0.6rem;
+  text-align: center;
+
+  ::ng-deep .selected {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.16);
+    border-radius: 3px;
+  }
+}
+
+.note {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 4px 12px;
+  color: #94a3b8;
+  font-size: 0.75rem;
+}

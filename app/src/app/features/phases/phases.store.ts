@@ -1,5 +1,5 @@
 import { httpResource } from '@angular/common/http';
-import { computed, inject, Injectable } from '@angular/core';
+import { computed, inject, Service } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRouteSnapshot, NavigationEnd, Router } from '@angular/router';
 import { TreeNode } from 'primeng/api';
@@ -9,11 +9,11 @@ import { SheetType } from '../../core/models/sheet-type.model';
 import { buildPhaseTree, indexTreeNodes, phaseAncestors } from './phase-tree.util';
 
 /**
- * State for the phases screen: the phase list and sheet types (fetched with resources), the tree
- * built from them and which phase is selected. Provided by the phases page so the tree and the detail
- * panel share one instance.
+ * State for the phases: the phase list and sheet types (fetched with resources), the tree built from them and
+ * which phase is selected. One instance for the whole app, shared by the phase tree in the side nav and by
+ * the pages it opens.
  */
-@Injectable()
+@Service()
 export class PhasesStore {
   public readonly isLoading = computed(
     () => this.phasesResource.isLoading() || this.sheetTypesResource.isLoading(),
@@ -40,6 +40,19 @@ export class PhasesStore {
     this.navigationEnd();
     const phaseId = findRouteParam(this.router.routerState.snapshot.root, 'phaseId');
     return phaseId === null ? null : Number(phaseId);
+  });
+
+  /** Whether the current page is in the Phases section (`/phases` and anything under it). */
+  public readonly inPhasesSection = computed(() => {
+    this.navigationEnd();
+    return this.router.url.startsWith('/phases');
+  });
+
+  /** The sheet type in the current URL (`/phases/:phaseId/sheets/:sheetTypeId`), or null when no sheet is open. */
+  public readonly selectedSheetTypeId = computed<number | null>(() => {
+    this.navigationEnd();
+    const sheetTypeId = findRouteParam(this.router.routerState.snapshot.root, 'sheetTypeId');
+    return sheetTypeId === null ? null : Number(sheetTypeId);
   });
 
   /** The tree node for the selected phase, as the same object the tree renders. */
@@ -69,7 +82,17 @@ export class PhasesStore {
     this.sheetTypesResource.reload();
   }
 
+  /**
+   * Opens a phase. When a sheet is open and the phase has that sheet type, opens the same sheet for the
+   * phase instead, so moving between phases doesn't lose your place.
+   */
   public selectPhase(id: number): void {
+    const sheetTypeId = this.selectedSheetTypeId();
+    const phase = this.phaseById(id);
+    if (sheetTypeId !== null && phase?.sheetTypeIds.includes(sheetTypeId)) {
+      void this.router.navigate(['/phases', id, 'sheets', sheetTypeId]);
+      return;
+    }
     void this.router.navigate(['/phases', id]);
   }
 

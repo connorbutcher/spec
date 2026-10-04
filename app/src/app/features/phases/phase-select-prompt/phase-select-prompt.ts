@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { EmptyState } from '../../../shared/components/empty-state/empty-state';
 
-/** Shown on the right until a phase is picked from the tree. */
+/** Shown until a phase is picked from the phase tree in the side nav. */
 @Component({
   selector: 'app-phase-select-prompt',
   imports: [EmptyState],

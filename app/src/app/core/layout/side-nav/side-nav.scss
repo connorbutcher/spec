@@ -1,7 +1,7 @@
 :host {
   display: block;
   flex: 0 0 auto;
-  width: 176px;
+  width: 216px;
   background: var(--app-navy-dark);
   transition: width 0.15s ease;
 
@@ -12,10 +12,15 @@
 
 .side-nav {
   display: flex;
+  overflow-y: auto;
   flex-direction: column;
   justify-content: space-between;
   height: 100%;
   padding: 6px;
+}
+
+.main {
+  min-height: 0;
 }
 
 // PrimeNG menus restyled for the dark rail: no card, and the links draw their own states.

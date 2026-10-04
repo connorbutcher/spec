@@ -1,9 +1,14 @@
 <nav class="side-nav" aria-label="Main">
-  <p-menu class="nav-menu" [model]="mainItems">
-    <ng-template #item let-item>
-      <app-side-nav-link [item]="navItem(item)" [collapsed]="collapsed()" />
-    </ng-template>
-  </p-menu>
+  <div class="main">
+    <p-menu class="nav-menu" [model]="mainItems">
+      <ng-template #item let-item>
+        <app-side-nav-link [item]="navItem(item)" [collapsed]="collapsed()" />
+        @if (navItem(item).path === '/phases' && inPhases()) {
+          <app-side-nav-phase-tree [collapsed]="collapsed()" />
+        }
+      </ng-template>
+    </p-menu>
+  </div>
   <p-menu class="nav-menu footer" [model]="footerItems">
     <ng-template #item let-item>
       <app-side-nav-link [item]="navItem(item)" [collapsed]="collapsed()" />

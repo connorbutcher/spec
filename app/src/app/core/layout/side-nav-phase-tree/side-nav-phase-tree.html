@@ -1,0 +1,31 @@
+@if (store.hasError()) {
+  <div class="note">
+    <span>Couldn't load phases.</span>
+    <p-button
+      label="Try again"
+      size="small"
+      [text]="true"
+      severity="contrast"
+      (onClick)="store.reload()"
+    />
+  </div>
+} @else if (store.isLoading() && store.phases().length === 0) {
+  <app-phase-tree-skeleton />
+} @else if (store.phases().length === 0) {
+  <p class="note">No phases yet.</p>
+} @else if (collapsed()) {
+  <p-menu class="codes" [model]="codes()" aria-label="Phases" />
+} @else {
+  <p-tree
+    class="phase-tree"
+    [value]="store.tree()"
+    selectionMode="single"
+    [selection]="store.selectedTreeNode()"
+    (onNodeSelect)="onNodeSelect($event)"
+    ariaLabel="Phases"
+  >
+    <ng-template #node let-node>
+      <span class="code">{{ node.label }}</span>
+    </ng-template>
+  </p-tree>
+}

@@ -3,21 +3,13 @@
   height: 100%;
 }
 
-// Both columns fill the available height; each card scrolls its own content.
+// The selected phase fills the whole width; its card scrolls its own content.
 .phases-page {
-  display: grid;
-  grid-template-columns: minmax(200px, 260px) minmax(0, 1fr);
-  grid-template-rows: minmax(0, 1fr);
-  gap: 8px;
   height: 100%;
 
   .detail {
+    height: 100%;
     min-width: 0;
     min-height: 0;
-  }
-
-  @media (max-width: 800px) {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: minmax(320px, 40%) minmax(0, 1fr);
   }
 }
