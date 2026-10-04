@@ -5,10 +5,10 @@ using PUSpecSheet.Data;
 namespace PUSpecSheet.Application.Sheets.Demo;
 
 /// <summary>
-/// Fills in the V6 Parts sheet from the sample "Parts grid" template using the same services the API does:
-/// version 1 builds a table with a part number over each of two parts and three rows of limits across both,
-/// and version 2 adds a third part, so the new columns get every existing row. Does nothing if the sheet
-/// already has tables.
+/// Fills in the A3 Parts sheet from the sample "Parts limits" template using the same services the API does:
+/// version 1 builds a table with a part number over each of four parts and a good spread of limit rows
+/// across all of them, some a Min and Max and some a single value, and version 2 adds a fifth part, so the
+/// new columns get every existing row. Does nothing if the sheet already has tables.
 /// </summary>
 public sealed class DemoPartsGridSheetSeeder(
     PuSpecSheetDbContext db,
@@ -18,16 +18,32 @@ public sealed class DemoPartsGridSheetSeeder(
     ISheetColumnBlockService columnBlocks,
     ISheetRowService rows)
 {
-    private const string PhaseCode = "V6";
+    private const string PhaseCode = "A3";
 
-    private static readonly string[] PartNumbers = ["P-1001", "P-1002", "P-1003"];
+    private const int StartingParts = 4;
 
-    // Description, then Min and Max for each part in turn.
-    private static readonly (string Description, decimal[][] Limits)[] Specs =
+    private static readonly string[] PartNumbers = ["P-1001", "P-1002", "P-1003", "P-1004", "P-1005"];
+
+    // Description, whether it's one value (rather than Min and Max), the value for the first part, how much
+    // it differs from one part to the next, and the allowed spread either side for a Min and Max.
+    private static readonly (string Description, bool Single, decimal Base, decimal Step, decimal Spread)[] Rows =
     [
-        ("Bore (mm)", [[81.98m, 82.02m], [81.99m, 82.03m], [82.00m, 82.04m]]),
-        ("Stroke (mm)", [[94.58m, 94.62m], [94.58m, 94.62m], [94.59m, 94.63m]]),
-        ("Weight (g)", [[405m, 415m], [402m, 412m], [408m, 418m]]),
+        ("Bore (mm)", false, 82.00m, 0.01m, 0.02m),
+        ("Stroke (mm)", false, 94.60m, 0.00m, 0.02m),
+        ("Material hardness (HV)", true, 118m, 2m, 0m),
+        ("Pin bore (mm)", false, 21.00m, 0.00m, 0.01m),
+        ("Compression height (mm)", false, 31.50m, 0.05m, 0.03m),
+        ("Crown volume (cc)", true, 6.40m, 0.10m, 0m),
+        ("Ring groove 1 width (mm)", false, 1.20m, 0.00m, 0.02m),
+        ("Ring groove 2 width (mm)", false, 1.20m, 0.00m, 0.02m),
+        ("Oil ring groove width (mm)", false, 2.00m, 0.00m, 0.02m),
+        ("Skirt diameter (mm)", false, 81.95m, 0.01m, 0.02m),
+        ("Surface roughness Ra (um)", true, 0.40m, 0.02m, 0m),
+        ("Weight (g)", false, 410m, 3m, 5m),
+        ("Pin offset (mm)", true, 0.80m, 0.00m, 0m),
+        ("Maximum operating temperature (C)", true, 320m, 5m, 0m),
+        ("Ring gap, top ring (mm)", false, 0.30m, 0.01m, 0.05m),
+        ("Ring gap, second ring (mm)", false, 0.45m, 0.01m, 0.05m),
     ];
 
     public async Task SeedAsync(CancellationToken cancellationToken)
@@ -72,33 +88,36 @@ public sealed class DemoPartsGridSheetSeeder(
         var tableId = dto.Tables[0].Id;
         await tables.SetTitleAsync(tableId, new UpdateSheetTableRequest("Piston parts"), cancellationToken);
 
-        var specTemplateId = dto.Tables[0].AddableSections.Single(section => section.Name == DemoPartsGridTemplateSeeder.SpecName).TemplateSectionId;
+        var limitsTemplateId = dto.Tables[0].AddableSections.Single(section => section.Name == DemoPartsGridTemplateSeeder.LimitsName).TemplateSectionId;
+        var singleTemplateId = dto.Tables[0].AddableSections.Single(section => section.Name == DemoPartsGridTemplateSeeder.SingleValueName).TemplateSectionId;
 
-        foreach (var (description, limits) in Specs)
+        foreach (var spec in Rows)
         {
-            dto = await sections.AddAsync(tableId, new AddSheetSectionRequest(specTemplateId, null), cancellationToken);
+            var templateSectionId = spec.Single ? singleTemplateId : limitsTemplateId;
+            dto = await sections.AddAsync(tableId, new AddSheetSectionRequest(templateSectionId, null), cancellationToken);
             var row = dto.Tables[0].Sections[^1].Rows[0];
-            var requests = new List<CellValueRequest> { new(StubCell(row).Id, description, null, null, null, null) };
-            requests.AddRange(LimitRequests(dto.Tables[0], row, limits, from: 0, count: 2));
+            var requests = new List<CellValueRequest> { new(StubCell(row).Id, spec.Description, null, null, null, null) };
+            requests.AddRange(ValueRequests(dto.Tables[0], row, spec, from: 0, count: StartingParts));
             await rows.SaveValuesAsync(row.Id, new SaveRowValuesRequest(requests), cancellationToken);
         }
 
-        await SavePartNumbersAsync(dto.Tables[0], from: 0, count: 2, cancellationToken);
+        await SavePartNumbersAsync(dto.Tables[0], from: 0, count: StartingParts, cancellationToken);
         await sheets.PublishAsync(sheetId, new PublishSheetRequest("Sample parts"), cancellationToken);
 
-        // Version 2: a third part. Every existing row gets its Min and Max cells in the new columns.
+        // Version 2: a fifth part. Every existing row gets its cells in the new columns.
         var partTemplateId = dto.Tables[0].AddableColumnBlocks.Single().TemplateColumnBlockId;
         dto = await columnBlocks.AddAsync(tableId, new AddSheetColumnBlockRequest(partTemplateId), cancellationToken);
         var table = dto.Tables[0];
-        var specRows = table.Sections.Where(section => section.Name == DemoPartsGridTemplateSeeder.SpecName).Select(section => section.Rows[0]).ToList();
-        for (var index = 0; index < specRows.Count; index++)
+        var specSections = table.Sections.Where(section => section.Name != "Header").ToList();
+        for (var index = 0; index < specSections.Count; index++)
         {
-            var requests = LimitRequests(table, specRows[index], Specs[index].Limits, from: 2, count: 1);
-            await rows.SaveValuesAsync(specRows[index].Id, new SaveRowValuesRequest(requests), cancellationToken);
+            var row = specSections[index].Rows[0];
+            var requests = ValueRequests(table, row, Rows[index], from: StartingParts, count: 1);
+            await rows.SaveValuesAsync(row.Id, new SaveRowValuesRequest(requests), cancellationToken);
         }
 
-        await SavePartNumbersAsync(table, from: 2, count: 1, cancellationToken);
-        await sheets.PublishAsync(sheetId, new PublishSheetRequest("Added a third part"), cancellationToken);
+        await SavePartNumbersAsync(table, from: StartingParts, count: 1, cancellationToken);
+        await sheets.PublishAsync(sheetId, new PublishSheetRequest("Added a fifth part"), cancellationToken);
     }
 
     /// <summary>The part number of each part in the header's first row, for <paramref name="count"/> parts from <paramref name="from"/>.</summary>
@@ -115,15 +134,30 @@ public sealed class DemoPartsGridSheetSeeder(
         await rows.SaveValuesAsync(header.Id, new SaveRowValuesRequest(requests), cancellationToken);
     }
 
-    /// <summary>Min and Max for parts <paramref name="from"/> onwards, written into each part's own two cells.</summary>
-    private static List<CellValueRequest> LimitRequests(SheetTableDto table, SheetRowDto row, decimal[][] limits, int from, int count)
+    /// <summary>
+    /// The values of one row for parts <paramref name="from"/> onwards: a Min and a Max in each part's two
+    /// cells, or a single value in its one cell.
+    /// </summary>
+    private static List<CellValueRequest> ValueRequests(
+        SheetTableDto table,
+        SheetRowDto row,
+        (string Description, bool Single, decimal Base, decimal Step, decimal Spread) spec,
+        int from,
+        int count)
     {
         var requests = new List<CellValueRequest>();
         for (var part = from; part < from + count; part++)
         {
+            var centre = Math.Round(spec.Base + (spec.Step * part), 2);
             var cells = BlockCells(row, table.ColumnBlocks[part].Id);
-            requests.Add(new CellValueRequest(cells[0].Id, null, limits[part][0], null, null, null));
-            requests.Add(new CellValueRequest(cells[1].Id, null, limits[part][1], null, null, null));
+            if (spec.Single)
+            {
+                requests.Add(new CellValueRequest(cells[0].Id, null, centre, null, null, null));
+                continue;
+            }
+
+            requests.Add(new CellValueRequest(cells[0].Id, null, centre - spec.Spread, null, null, null));
+            requests.Add(new CellValueRequest(cells[1].Id, null, centre + spec.Spread, null, null, null));
         }
 
         return requests;

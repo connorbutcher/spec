@@ -7,17 +7,18 @@ using PUSpecSheet.Domain.Templates;
 namespace PUSpecSheet.Application.Sheets.Demo;
 
 /// <summary>
-/// Adds the "Parts grid" sample template to the Parts sheet type: a horizontal table whose own column holds
-/// the descriptions and whose "Part" column block, two columns wide, people add copies of, one per part.
-/// The header has the part number across the top of each part, in blue, with Min and Max under it; the
-/// addable "Spec" section is one row of limits, a description and a Min and Max for every part. Does
-/// nothing if a template with that name already exists.
+/// Adds the "Parts limits" sample template to the Parts sheet type: a horizontal table whose own column holds
+/// the descriptions and whose "Part" column block, two columns wide, people add a copy of for each part. The
+/// header has the part number across the top of each part, in blue, with Min and Max under it. Below it
+/// people add rows of limits, each either a Min and Max for every part or a single value across both of a
+/// part's columns. Does nothing if a template with that name already exists.
 /// </summary>
 public sealed class DemoPartsGridTemplateSeeder(PuSpecSheetDbContext db)
 {
     public const string SheetTypeName = "Parts";
-    public const string TemplateName = "Parts grid";
-    public const string SpecName = "Spec";
+    public const string TemplateName = "Parts limits";
+    public const string LimitsName = "Limits";
+    public const string SingleValueName = "Single value";
     public const string PartBlockName = "Part";
 
     private static readonly CellStyle PartNumberStyle = new()
@@ -69,7 +70,7 @@ public sealed class DemoPartsGridTemplateSeeder(PuSpecSheetDbContext db)
             DisplayOrder = 1,
             MinInstances = 0,
             MaxInstances = null,
-            InitialInstances = 2,
+            InitialInstances = 4,
         };
         version.ColumnBlocks.Add(part);
 
@@ -80,8 +81,11 @@ public sealed class DemoPartsGridTemplateSeeder(PuSpecSheetDbContext db)
             Cell(text.Id, part, 1, "Part number", columnSpan: 2, style: PartNumberStyle)));
         header.Rows.Add(NewRow(2, Cell(heading.Id, part, 1, "Min"), Cell(heading.Id, part, 2, "Max")));
 
-        var spec = NewSection(version, SpecName, SectionRole.Addable, 2, minimum: 0, maximum: null, initial: 0);
-        spec.Rows.Add(NewRow(1, Cell(text.Id, null, 1, null), Cell(number.Id, part, 1, null), Cell(number.Id, part, 2, null)));
+        var limits = NewSection(version, LimitsName, SectionRole.Addable, 2, minimum: 0, maximum: null, initial: 0);
+        limits.Rows.Add(NewRow(1, Cell(text.Id, null, 1, null), Cell(number.Id, part, 1, null), Cell(number.Id, part, 2, null)));
+
+        var single = NewSection(version, SingleValueName, SectionRole.Addable, 3, minimum: 0, maximum: null, initial: 0);
+        single.Rows.Add(NewRow(1, Cell(text.Id, null, 1, null), Cell(number.Id, part, 1, null, columnSpan: 2)));
 
         db.TableTemplates.Add(template);
         await db.SaveChangesAsync(cancellationToken);
