@@ -1,14 +1,16 @@
 using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Data;
 using PUSpecSheet.Domain.CellTypes;
+using PUSpecSheet.Domain.CellTypes.Styles;
 using PUSpecSheet.Domain.Templates;
 
 namespace PUSpecSheet.Application.Sheets.Demo;
 
 /// <summary>
 /// Adds the "Parts grid" sample template to the Parts sheet type: a horizontal table whose own column holds
-/// the descriptions and whose "Part" column block people add copies of, one per part. The header row names
-/// the columns and the addable "Spec" section has one row, a description and a value for each part. Does
+/// the descriptions and whose "Part" column block, two columns wide, people add copies of, one per part.
+/// The header has the part number across the top of each part, in blue, with Min and Max under it; the
+/// addable "Spec" section is one row of limits, a description and a Min and Max for every part. Does
 /// nothing if a template with that name already exists.
 /// </summary>
 public sealed class DemoPartsGridTemplateSeeder(PuSpecSheetDbContext db)
@@ -17,6 +19,14 @@ public sealed class DemoPartsGridTemplateSeeder(PuSpecSheetDbContext db)
     public const string TemplateName = "Parts grid";
     public const string SpecName = "Spec";
     public const string PartBlockName = "Part";
+
+    private static readonly CellStyle PartNumberStyle = new()
+    {
+        BackgroundColor = "#bfdbfe",
+        TextColor = "#1e3a8a",
+        Bold = true,
+        Align = CellTextAlign.Center,
+    };
 
     public async Task<bool> SeedAsync(CancellationToken cancellationToken)
     {
@@ -64,10 +74,14 @@ public sealed class DemoPartsGridTemplateSeeder(PuSpecSheetDbContext db)
         version.ColumnBlocks.Add(part);
 
         var header = NewSection(version, "Header", SectionRole.Header, 1, minimum: 1, maximum: 1, initial: 1);
-        header.Rows.Add(NewRow(1, Cell(heading.Id, null, "Description"), Cell(heading.Id, part, "Part")));
+        header.Rows.Add(NewRow(
+            1,
+            Cell(heading.Id, null, 1, "Description", rowSpan: 2),
+            Cell(text.Id, part, 1, "Part number", columnSpan: 2, style: PartNumberStyle)));
+        header.Rows.Add(NewRow(2, Cell(heading.Id, part, 1, "Min"), Cell(heading.Id, part, 2, "Max")));
 
         var spec = NewSection(version, SpecName, SectionRole.Addable, 2, minimum: 0, maximum: null, initial: 0);
-        spec.Rows.Add(NewRow(1, Cell(text.Id, null, null), Cell(number.Id, part, null)));
+        spec.Rows.Add(NewRow(1, Cell(text.Id, null, 1, null), Cell(number.Id, part, 1, null), Cell(number.Id, part, 2, null)));
 
         db.TableTemplates.Add(template);
         await db.SaveChangesAsync(cancellationToken);
@@ -117,14 +131,24 @@ public sealed class DemoPartsGridTemplateSeeder(PuSpecSheetDbContext db)
         return row;
     }
 
-    private static TemplateCell Cell(int cellTypeId, TemplateColumnBlock? block, string? caption)
+    private static TemplateCell Cell(
+        int cellTypeId,
+        TemplateColumnBlock? block,
+        int column,
+        string? caption,
+        int columnSpan = 1,
+        int rowSpan = 1,
+        CellStyle? style = null)
     {
         return new TemplateCell
         {
             CellTypeId = cellTypeId,
             TemplateColumnBlock = block,
-            Column = 1,
+            Column = column,
+            ColumnSpan = columnSpan,
+            RowSpan = rowSpan,
             Caption = caption,
+            StyleOverride = style,
         };
     }
 }
