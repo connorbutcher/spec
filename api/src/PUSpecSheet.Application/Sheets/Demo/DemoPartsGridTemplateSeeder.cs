@@ -48,6 +48,7 @@ public sealed class DemoPartsGridTemplateSeeder(PuSpecSheetDbContext db)
         {
             VersionNumber = 1,
             Orientation = TemplateOrientation.Horizontal,
+            StickyColumnCount = 1,
             CreatedAtUtc = DateTime.UtcNow,
         };
         template.Versions.Add(version);

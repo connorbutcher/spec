@@ -18,6 +18,12 @@ public class TableTemplateVersion
 
     public TemplateOrientation Orientation { get; set; }
 
+    /// <summary>
+    /// How many of the table's own columns, from the left, stay pinned while the rest scroll sideways: 1 pins
+    /// just the first (usually the heading column). Column blocks have their own count.
+    /// </summary>
+    public int StickyColumnCount { get; set; }
+
     public DateTime CreatedAtUtc { get; set; }
 
     /// <summary>Every section in this version, at all levels of the tree.</summary>

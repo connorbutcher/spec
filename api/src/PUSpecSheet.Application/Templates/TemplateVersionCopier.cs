@@ -31,6 +31,7 @@ internal static class TemplateVersionCopier
             TableTemplateId = source.TableTemplateId,
             VersionNumber = newVersionNumber,
             Orientation = source.Orientation,
+            StickyColumnCount = source.StickyColumnCount,
         };
 
         var blockCopies = columnBlocks.ToDictionary(block => block.Id, block => CopyColumnBlock(block, copy));
@@ -55,6 +56,7 @@ internal static class TemplateVersionCopier
             MinInstances = block.MinInstances,
             MaxInstances = block.MaxInstances,
             InitialInstances = block.InitialInstances,
+            StickyColumnCount = block.StickyColumnCount,
         };
 
         version.ColumnBlocks.Add(copy);

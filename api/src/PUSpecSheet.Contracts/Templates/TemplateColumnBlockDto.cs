@@ -11,4 +11,5 @@ public sealed record TemplateColumnBlockDto(
     int DisplayOrder,
     int MinInstances,
     int? MaxInstances,
-    int InitialInstances);
+    int InitialInstances,
+    int StickyColumnCount);

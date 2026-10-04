@@ -117,6 +117,12 @@ public sealed class TableTemplateService(
             latest.Orientation = request.Orientation;
         }
 
+        if (latest.StickyColumnCount != request.StickyColumnCount)
+        {
+            await guard.EnsureEditableAsync(latest.Id, cancellationToken);
+            latest.StickyColumnCount = request.StickyColumnCount;
+        }
+
         await db.SaveChangesAsync(cancellationToken);
         return await reader.ReadAsync(id, null, cancellationToken);
     }

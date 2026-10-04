@@ -13,6 +13,7 @@ public sealed record SheetTableDto(
     string TemplateName,
     int TemplateVersionNumber,
     TemplateOrientation Orientation,
+    int StickyColumnCount,
     string? Title,
     int DisplayOrder,
     SheetLockDto? Lock,

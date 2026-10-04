@@ -23,6 +23,9 @@ public sealed class TemplateColumnBlockConfiguration : IEntityTypeConfiguration<
             .IsRequired()
             .HasMaxLength(100);
 
+        builder.Property(block => block.StickyColumnCount)
+            .HasDefaultValue(0);
+
         // Deleting a version removes its blocks; their cells go with the version's sections and rows.
         builder.HasOne(block => block.TableTemplateVersion)
             .WithMany(version => version.ColumnBlocks)

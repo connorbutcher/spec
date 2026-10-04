@@ -10,4 +10,5 @@ public sealed record UpdateTemplateColumnBlockRequest(
     [Required, MaxLength(100)] string Name,
     [Range(0, 1000)] int MinInstances,
     [Range(1, 1000)] int? MaxInstances,
-    [Range(0, 1000)] int InitialInstances);
+    [Range(0, 1000)] int InitialInstances,
+    [Range(0, 50)] int StickyColumnCount);

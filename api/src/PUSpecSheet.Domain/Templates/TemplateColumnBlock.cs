@@ -29,6 +29,12 @@ public class TemplateColumnBlock
     /// <summary>How many copies a table starts with when it's added to a sheet.</summary>
     public int InitialInstances { get; set; }
 
+    /// <summary>
+    /// How many of the block's columns, from its left, stay pinned beside the table's own sticky columns once
+    /// scrolled to. 0 leaves the whole block free to scroll.
+    /// </summary>
+    public int StickyColumnCount { get; set; }
+
     /// <summary>The block's cells across every row of the version.</summary>
     public ICollection<TemplateCell> Cells { get; set; } = [];
 }

@@ -15,6 +15,9 @@ public sealed class TableTemplateVersionConfiguration : IEntityTypeConfiguration
 
         builder.HasKey(version => version.Id);
 
+        builder.Property(version => version.StickyColumnCount)
+            .HasDefaultValue(0);
+
         builder.Property(version => version.Orientation)
             .IsRequired()
             .HasConversion<string>()

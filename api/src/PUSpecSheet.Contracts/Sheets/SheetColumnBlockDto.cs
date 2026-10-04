@@ -13,6 +13,7 @@ public sealed record SheetColumnBlockDto(
     int MinInstances,
     int? MaxInstances,
     int InitialInstances,
+    int StickyColumnCount,
     int DisplayOrder,
     SheetLockDto? Lock,
     bool IsPending,

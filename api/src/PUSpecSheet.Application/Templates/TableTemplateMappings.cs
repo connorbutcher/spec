@@ -29,6 +29,7 @@ internal static class TableTemplateMappings
             version.Id,
             version.VersionNumber,
             version.Orientation,
+            version.StickyColumnCount,
             isEditable,
             versions,
             MapSections(null, sectionsByParent, rowsBySection),
@@ -40,7 +41,8 @@ internal static class TableTemplateMappings
                     block.DisplayOrder,
                     block.MinInstances,
                     block.MaxInstances,
-                    block.InitialInstances))
+                    block.InitialInstances,
+                    block.StickyColumnCount))
                 .ToList());
     }
 

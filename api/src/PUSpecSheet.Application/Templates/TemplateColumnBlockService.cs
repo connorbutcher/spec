@@ -62,6 +62,7 @@ public sealed class TemplateColumnBlockService(
         block.MinInstances = request.MinInstances;
         block.MaxInstances = request.MaxInstances;
         block.InitialInstances = request.InitialInstances;
+        block.StickyColumnCount = request.StickyColumnCount;
 
         await db.SaveChangesAsync(cancellationToken);
         return await reader.ReadVersionAsync(block.TableTemplateVersionId, cancellationToken);

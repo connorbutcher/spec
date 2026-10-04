@@ -15,6 +15,7 @@ public sealed record TableTemplateDto(
     int VersionId,
     int VersionNumber,
     TemplateOrientation Orientation,
+    int StickyColumnCount,
     bool IsEditable,
     IReadOnlyList<TableTemplateVersionSummaryDto> Versions,
     IReadOnlyList<TemplateSectionDto> Sections,
