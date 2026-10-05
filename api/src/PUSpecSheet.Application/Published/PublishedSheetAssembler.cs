@@ -54,6 +54,7 @@ public static class PublishedSheetAssembler
                 First = row.First(),
                 Dto = new PublishedRowDto(row.First().RowPublicId, Cells(row, selection, structure, blockOrder, values)),
             })
+            .Where(row => row.Dto.Cells.Count > 0)
             .OrderBy(row => row.First.RowOrder)
             .ThenBy(row => row.First.RowId)
             .ToLookup(row => row.First.SectionId, row => row.Dto);
@@ -138,8 +139,8 @@ public static class PublishedSheetAssembler
                 continue;
             }
 
-            var block = cell.ColumnBlockId is { } blockId ? structure.ColumnBlock(blockId)?.PublicId : null;
-            result.Add(new PublishedCellDto(cell.CellPublicId, value, block, selection.IncludeLabels ? cell.Caption : null));
+            var column = cell.ColumnBlockId is { } blockId ? structure.ColumnBlock(blockId)?.PublicId : null;
+            result.Add(new PublishedCellDto(cell.CellPublicId, value, column, selection.IncludeLabels ? cell.Caption : null));
         }
 
         return result;

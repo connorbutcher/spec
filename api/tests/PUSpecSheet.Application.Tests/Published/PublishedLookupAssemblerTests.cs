@@ -4,7 +4,7 @@ using PUSpecSheet.Domain.CellTypes;
 namespace PUSpecSheet.Application.Tests.Published;
 
 /// <summary>
-/// What a caller receives for a cell a lookup found: the column of a cell in a column block, or the rows
+/// What a caller receives for a cell a lookup found, as rows by identifier: the column of a cell in a column block, or the rows
 /// of a cell among a row's own cells, on a horizontal table and a vertical one.
 /// </summary>
 public sealed class PublishedLookupAssemblerTests
@@ -61,32 +61,26 @@ public sealed class PublishedLookupAssemblerTests
     };
 
     [Fact]
-    public void ACellInAColumnBlock_BringsThatColumnWithEachRowsDescription()
+    public void ACellInAColumnBlock_BringsThatColumnWithEachRowsOwnValues()
     {
         var match = PublishedLookupAssembler.Assemble(PartHit(), Version, Structure, PartColumn, PartValues);
 
         Assert.Equal(Id(100), match.Table);
         Assert.Equal("Piston parts", match.Title);
-        Assert.Equal(Id(206), match.Block);
-        Assert.Equal(["Min", "Max"], match.Columns);
-        Assert.Null(match.Blocks);
+        Assert.Equal("P-1003", match.Column);
+        Assert.Equal(["Min", "Max"], match.Headings);
+        Assert.Equal([RowId(3), RowId(4)], match.Rows.Keys);
 
-        Assert.Collection(
-            match.Rows,
-            row =>
-            {
-                Assert.Equal(RowId(3), row.Row);
-                Assert.Equal("Limits", row.Section);
-                Assert.Equal("Bore (mm)", row.Description);
-                Assert.Equal([82.00m, 82.04m], row.Values);
-                Assert.Null(row.Blocks);
-            },
-            row =>
-            {
-                Assert.Equal("Single value", row.Section);
-                Assert.Equal("Material hardness (HV)", row.Description);
-                Assert.Equal([122m], row.Values);
-            });
+        var limits = match.Rows[RowId(3)];
+        Assert.Equal("Limits", limits.Section);
+        Assert.Equal(["Bore (mm)"], limits.Values);
+        Assert.Equal(["P-1003"], limits.Columns!.Keys);
+        Assert.Equal([82.00m, 82.04m], limits.Columns["P-1003"]);
+
+        var single = match.Rows[RowId(4)];
+        Assert.Equal("Single value", single.Section);
+        Assert.Equal(["Material hardness (HV)"], single.Values);
+        Assert.Equal([122m], single.Columns!["P-1003"]);
     }
 
     [Fact]
@@ -97,7 +91,7 @@ public sealed class PublishedLookupAssemblerTests
 
         var match = PublishedLookupAssembler.Assemble(PartHit(), Version, Structure, PartColumn, values);
 
-        Assert.Equal([null, 82.04m], match.Rows[0].Values);
+        Assert.Equal([null, 82.04m], match.Rows[RowId(3)].Columns!["P-1003"]);
     }
 
     [Fact]
@@ -111,14 +105,20 @@ public sealed class PublishedLookupAssemblerTests
     }
 
     [Fact]
-    public void SeveralOwnCells_GiveTheDescriptionAsAList()
+    public void OtherPartsInTheHeader_AreNotBroughtAlong()
     {
-        PublishedLookupCellRecord[] cells = [.. PartColumn, Cell(row: 3, section: 20, rowOrder: 0, cell: 50, column: 2)];
-        var values = new Dictionary<int, object>(PartValues) { [50] = "mm" };
+        PublishedLookupCellRecord[] cells =
+        [
+            .. PartColumn,
+            Cell(row: 1, section: 10, rowOrder: 0, cell: 30, column: 1, block: 5, key: PartNumberKey, header: true),
+        ];
+        var values = new Dictionary<int, object>(PartValues) { [30] = "P-1002" };
 
         var match = PublishedLookupAssembler.Assemble(PartHit(), Version, Structure, cells, values);
 
-        Assert.Equal(new object?[] { "Bore (mm)", "mm" }, Assert.IsAssignableFrom<IEnumerable<object?>>(match.Rows[0].Description));
+        Assert.Equal("P-1003", match.Column);
+        Assert.Equal([RowId(3), RowId(4)], match.Rows.Keys);
+        Assert.All(match.Rows.Values, row => Assert.Equal(["P-1003"], row.Columns!.Keys));
     }
 
     [Fact]
@@ -141,19 +141,19 @@ public sealed class PublishedLookupAssemblerTests
 
         var match = PublishedLookupAssembler.Assemble(hit, Version, Structure, cells, values);
 
-        Assert.Null(match.Block);
-        Assert.Null(match.Blocks);
-        Assert.Equal(["Description", "Min", "Max"], match.Columns);
+        Assert.Null(match.Column);
+        Assert.Equal(["Description", "Min", "Max"], match.Headings);
 
         // The group's own row holds only the cell that was found, so only the limits row comes back.
         var row = Assert.Single(match.Rows);
-        Assert.Equal("Limits", row.Section);
-        Assert.Null(row.Description);
-        Assert.Equal(["Oil pressure (bar)", 2.5m, 4.2m], row.Values);
+        Assert.Equal(RowId(12), row.Key);
+        Assert.Equal("Limits", row.Value.Section);
+        Assert.Equal(["Oil pressure (bar)", 2.5m, 4.2m], row.Value.Values);
+        Assert.Null(row.Value.Columns);
     }
 
     [Fact]
-    public void ACellInAHorizontalRow_BringsTheRowAcrossEveryBlockAndNamesTheBlocks()
+    public void ACellInAHorizontalRow_BringsTheRowAcrossEveryPart()
     {
         PublishedLookupCellRecord[] cells =
         [
@@ -184,26 +184,14 @@ public sealed class PublishedLookupAssemblerTests
 
         var match = PublishedLookupAssembler.Assemble(hit, Version, Structure, cells, values);
 
-        Assert.Equal(["Description"], match.Columns);
-        Assert.Collection(
-            match.Blocks!,
-            block =>
-            {
-                Assert.Equal(Id(205), block.Block);
-                Assert.Equal("P-1002", block.Keys![PartNumberKey]);
-            },
-            block =>
-            {
-                Assert.Equal(Id(206), block.Block);
-                Assert.Equal("P-1003", block.Keys![PartNumberKey]);
-            });
+        Assert.Null(match.Column);
+        Assert.Equal(["Description"], match.Headings);
 
-        var row = Assert.Single(match.Rows);
+        var row = Assert.Single(match.Rows).Value;
         Assert.Equal(["Bore (mm)"], row.Values);
-        Assert.Collection(
-            row.Blocks!,
-            block => Assert.Equal([81.99m, 82.03m], block.Values),
-            block => Assert.Equal([82.00m, 82.04m], block.Values));
+        Assert.Equal(["P-1002", "P-1003"], row.Columns!.Keys);
+        Assert.Equal([81.99m, 82.03m], row.Columns["P-1002"]);
+        Assert.Equal([82.00m, 82.04m], row.Columns["P-1003"]);
     }
 
     [Fact]

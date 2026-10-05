@@ -64,7 +64,7 @@ public sealed class PublishedSheetAssemblerTests
         var table = Assert.Single(sheet.Tables!);
         Assert.Equal(Id(100), table.Id);
         Assert.Equal([Id(110), Id(120)], table.Sections.Select(section => section.Id));
-        Assert.Equal([Id(150), Id(160)], table.ColumnBlocks!.Select(block => block.Id));
+        Assert.Equal([Id(150), Id(160)], table.Columns!.Select(block => block.Id));
 
         var bolts = table.Sections[1];
         Assert.Equal([RowId(1), RowId(2)], bolts.Rows.Select(row => row.Id));
@@ -80,7 +80,7 @@ public sealed class PublishedSheetAssemblerTests
 
         Assert.Equal([CellId(1), CellId(5), CellId(3)], row.Cells.Select(cell => cell.Id));
         Assert.Equal(["M8", 9m, 12.5m], row.Cells.Select(cell => cell.Value));
-        Assert.Equal([null, Id(150), Id(160)], row.Cells.Select(cell => cell.Block));
+        Assert.Equal([null, Id(150), Id(160)], row.Cells.Select(cell => cell.Column));
     }
 
     [Fact]
@@ -98,7 +98,7 @@ public sealed class PublishedSheetAssemblerTests
         Assert.Null(plain.Tables[0].Sections[0].Name);
         Assert.Equal("Torques", labelled.Tables![0].Title);
         Assert.Equal("Header", labelled.Tables[0].Sections[0].Name);
-        Assert.Equal("First", labelled.Tables[0].ColumnBlocks![0].Name);
+        Assert.Equal("First", labelled.Tables[0].Columns![0].Name);
     }
 
     [Fact]

@@ -4,8 +4,9 @@ using PUSpecSheet.Domain.CellTypes;
 namespace PUSpecSheet.Application.Published;
 
 /// <summary>
-/// Builds what a caller receives for one cell a lookup found. A cell in a column block brings the block's
-/// column: every row of the table with its description and the block's values. A cell among a row's own
+/// Builds what a caller receives for one cell a lookup found, as rows by identifier in the same shape as
+/// <see cref="PublishedRowsAssembler"/>. A cell in a column block brings the block's column: every row of
+/// the table with its own values and the block's values under the block's name. A cell among a row's own
 /// cells brings its rows: those of its section and sub-sections, or of the whole table when the cell is in
 /// the header. Rows that hold nothing besides the cell that was found are left out.
 /// </summary>
@@ -72,7 +73,7 @@ public static class PublishedLookupAssembler
             .ToList();
 
         // The headings over the values: the block's for a cell in a block, the table's own otherwise.
-        var columns = shown
+        var headings = shown
             .Where(cell => cell.IsHeader
                 && !cell.Kind.StoresValue()
                 && !string.IsNullOrWhiteSpace(cell.Caption)
@@ -80,35 +81,48 @@ public static class PublishedLookupAssembler
             .Select(cell => cell.Caption!)
             .ToList();
 
-        var blocks = hit.ColumnBlockId is null ? BlocksIn(shown, structure) : [];
+        var blocks = structure.ColumnBlocks
+            .Where(block => block.TableId == hit.TableId)
+            .OrderBy(block => block.DisplayOrder)
+            .ThenBy(block => block.Id)
+            .ToList();
+        var names = PublishedRowsAssembler.BlockNames(blocks, shown, values);
 
-        var rows = new List<PublishedLookupRowDto>();
+        // A cell in a block brings that block alone; a cell in a row brings the row across every block.
+        var kept = hit.ColumnBlockId is { } matchedBlockId
+            ? blocks.Where(block => block.Id == matchedBlockId).ToList()
+            : blocks;
+
+        var rows = new Dictionary<Guid, PublishedRowValuesDto>();
         foreach (var row in shown.Where(cell => scope is null || scope.Contains(cell.SectionId)).GroupBy(cell => cell.RowId))
         {
-            var valueCells = row.Where(cell => cell.Kind.StoresValue()).ToList();
+            var valueCells = row
+                .Where(cell => cell.Kind.StoresValue()
+                    && (cell.ColumnBlockId is not { } blockId || kept.Any(block => block.Id == blockId)))
+                .ToList();
             if (!valueCells.Any(cell => cell.CellId != hit.CellId && values.ContainsKey(cell.CellId)))
             {
                 continue;
             }
 
             var first = row.First();
-            var section = sections[first.SectionId].Name;
             var own = ValuesOf(valueCells.Where(cell => cell.ColumnBlockId is null), values);
 
-            if (hit.ColumnBlockId is { } blockId)
+            Dictionary<string, IReadOnlyList<object?>>? columns = null;
+            if (row.Any(cell => cell.ColumnBlockId is not null))
             {
-                var inBlock = ValuesOf(valueCells.Where(cell => cell.ColumnBlockId == blockId), values);
-                rows.Add(new PublishedLookupRowDto(first.RowPublicId, section, Description(own), inBlock, null));
-                continue;
+                columns = [];
+                foreach (var block in kept)
+                {
+                    var inBlock = valueCells.Where(cell => cell.ColumnBlockId == block.Id).ToList();
+                    if (inBlock.Count > 0)
+                    {
+                        columns[names[block.Id]] = ValuesOf(inBlock, values);
+                    }
+                }
             }
 
-            var perBlock = blocks
-                .Select(block => new PublishedLookupBlockValuesDto(
-                    block.PublicId,
-                    ValuesOf(valueCells.Where(cell => cell.ColumnBlockId == block.Id), values)))
-                .Where(entry => entry.Values.Count > 0)
-                .ToList();
-            rows.Add(new PublishedLookupRowDto(first.RowPublicId, section, null, own, perBlock.Count == 0 ? null : perBlock));
+            rows[first.RowPublicId] = new PublishedRowValuesDto(sections[first.SectionId].Name, own, columns);
         }
 
         return new PublishedLookupMatchDto(
@@ -119,9 +133,8 @@ public static class PublishedLookupAssembler
             version.PublishedAtUtc,
             table.PublicId,
             table.Title,
-            hit.ColumnBlockId is { } matchedBlockId ? structure.ColumnBlock(matchedBlockId)!.PublicId : null,
-            columns,
-            blocks.Count == 0 ? null : blocks.Select(block => BlockDto(block, shown, values)).ToList(),
+            hit.ColumnBlockId is { } namedBlockId ? names[namedBlockId] : null,
+            headings,
             rows);
     }
 
@@ -150,49 +163,8 @@ public static class PublishedLookupAssembler
         return order;
     }
 
-    /// <summary>The column blocks the cells sit in, left to right.</summary>
-    private static List<PublishedColumnBlockRecord> BlocksIn(List<PublishedLookupCellRecord> shown, PublishedStructure structure)
-    {
-        return shown
-            .Where(cell => cell.ColumnBlockId is not null)
-            .Select(cell => cell.ColumnBlockId!.Value)
-            .Distinct()
-            .Select(blockId => structure.ColumnBlock(blockId)!)
-            .OrderBy(block => block.DisplayOrder)
-            .ThenBy(block => block.Id)
-            .ToList();
-    }
-
-    private static PublishedLookupBlockDto BlockDto(
-        PublishedColumnBlockRecord block,
-        List<PublishedLookupCellRecord> shown,
-        IReadOnlyDictionary<int, object> values)
-    {
-        var keys = new Dictionary<string, object>();
-        foreach (var cell in shown.Where(cell => cell.ColumnBlockId == block.Id && cell.LookupKey is not null))
-        {
-            if (values.TryGetValue(cell.CellId, out var value))
-            {
-                keys.TryAdd(cell.LookupKey!, value);
-            }
-        }
-
-        return new PublishedLookupBlockDto(block.PublicId, keys.Count == 0 ? null : keys);
-    }
-
     private static List<object?> ValuesOf(IEnumerable<PublishedLookupCellRecord> cells, IReadOnlyDictionary<int, object> values)
     {
         return cells.Select(cell => values.GetValueOrDefault(cell.CellId)).ToList();
-    }
-
-    /// <summary>A row's own cells beside a block: the one value, the list when there are several, or nothing.</summary>
-    private static object? Description(List<object?> own)
-    {
-        if (own.All(value => value is null))
-        {
-            return null;
-        }
-
-        return own.Count == 1 ? own[0] : own;
     }
 }

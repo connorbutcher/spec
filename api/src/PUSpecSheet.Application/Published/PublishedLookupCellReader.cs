@@ -7,8 +7,8 @@ namespace PUSpecSheet.Application.Published;
 
 /// <summary>
 /// Reads the cells that belong to a lookup match, in one query, each joined to its row's revision at the
-/// version. A match in a column block reads that block's cells and the rows' own cells, and leaves the
-/// table's other blocks alone. A match in a row's own cell reads its sections' rows and the header.
+/// version. A match in a column block reads that block's cells, the rows' own cells and the header, and
+/// leaves the table's other blocks alone. A match in a row's own cell reads its sections' rows and the header.
 /// </summary>
 public sealed class PublishedLookupCellReader(PuSpecSheetDbContext db)
 {
@@ -27,7 +27,10 @@ public sealed class PublishedLookupCellReader(PuSpecSheetDbContext db)
 
         if (hit.ColumnBlockId is { } blockId)
         {
-            cells = cells.Where(cell => cell.SheetColumnBlockId == null || cell.SheetColumnBlockId == blockId);
+            // The whole header comes too, so the block is named the same way as when rows are read by id.
+            cells = cells.Where(cell => cell.SheetColumnBlockId == null
+                || cell.SheetColumnBlockId == blockId
+                || cell.SheetRow.SheetSection.TemplateSection.Role == SectionRole.Header);
         }
         else if (sectionIds is not null)
         {

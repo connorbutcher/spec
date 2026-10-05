@@ -20,7 +20,7 @@ public sealed class PublishedSchemaTransformer : IOpenApiSchemaTransformer
     private const string MaximumCell = "9a7b5c3d-1e2f-4a6b-8c0d-2e4f6a8b0c51";
     private const string UnitCell = "6c4e2a08-9b7d-4f5e-a3c1-0d2f4b6e8a62";
 
-    private const string ValueProperty = "v";
+    private const string ValueProperty = "value";
     private const string ValueDescription =
         "The cell's value: a number, text, `true` or `false`, or a date as `yyyy-MM-dd`. A dropdown gives the "
         + "chosen option's text, or its number for a number dropdown.";
@@ -60,8 +60,8 @@ public sealed class PublishedSchemaTransformer : IOpenApiSchemaTransformer
         return new JsonObject
         {
             ["sheet"] = Sheet,
-            ["phaseCode"] = "V6",
-            ["sheetTypeId"] = 1,
+            ["phase"] = "V6",
+            ["sheetType"] = 1,
             ["latestVersion"] = 3,
         };
     }
@@ -168,14 +168,6 @@ public sealed class PublishedSchemaTransformer : IOpenApiSchemaTransformer
 
     private static JsonObject Lookup()
     {
-        var row = new JsonObject
-        {
-            ["row"] = Row,
-            ["section"] = "Limits",
-            ["description"] = "Bore (mm)",
-            ["values"] = new JsonArray(82.0, 82.04),
-        };
-
         var match = new JsonObject
         {
             ["sheet"] = Sheet,
@@ -185,9 +177,17 @@ public sealed class PublishedSchemaTransformer : IOpenApiSchemaTransformer
             ["publishedAtUtc"] = "2026-09-30T14:02:11Z",
             ["table"] = Table,
             ["title"] = "Piston parts",
-            ["block"] = Section,
-            ["columns"] = new JsonArray("Min", "Max"),
-            ["rows"] = new JsonArray(row),
+            ["column"] = "P-1003",
+            ["headings"] = new JsonArray("Min", "Max"),
+            ["rows"] = new JsonObject
+            {
+                [Row] = new JsonObject
+                {
+                    ["section"] = "Limits",
+                    ["values"] = new JsonArray("Bore (mm)"),
+                    ["columns"] = new JsonObject { ["P-1003"] = new JsonArray(82.0, 82.04) },
+                },
+            },
         };
 
         return new JsonObject
@@ -203,7 +203,7 @@ public sealed class PublishedSchemaTransformer : IOpenApiSchemaTransformer
         return new JsonObject
         {
             ["id"] = id,
-            ["v"] = value,
+            ["value"] = value,
             ["caption"] = caption,
         };
     }

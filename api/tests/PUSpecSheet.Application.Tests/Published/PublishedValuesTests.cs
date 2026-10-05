@@ -64,6 +64,6 @@ public sealed class PublishedValuesTests
 
         var json = JsonSerializer.Serialize(cell, JsonSerializerOptions.Web);
 
-        Assert.Equal("{\"id\":\"a41e0000-0000-0000-0000-000000000001\",\"v\":12.5}", json);
+        Assert.Equal("{\"id\":\"a41e0000-0000-0000-0000-000000000001\",\"value\":12.5}", json);
     }
 }

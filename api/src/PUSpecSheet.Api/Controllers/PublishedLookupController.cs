@@ -24,9 +24,10 @@ public sealed class PublishedLookupController(IPublishedLookupService lookup) : 
     /// belongs to it on each. A key is given to a template cell in the template editor, or with
     /// <c>PUT /api/template-cells/{id}/lookup-key</c>, and works on any sheet type and any table layout.
     ///
-    /// What comes back depends on where the cell is. A cell in a column block, such as a part number over a
-    /// part's columns, brings that column: every row of the table as its <c>description</c> and the part's
-    /// <c>values</c>. A cell among a row's own cells brings its rows: those of its section and
+    /// Each match has <c>rows</c> by row identifier, in the same shape as reading rows by identifier. A
+    /// value at the top of a part's columns, such as a part number, brings every row of the table with
+    /// the part's values under <c>columns["P-1003"]</c> and the row's own cells, such as its description,
+    /// in <c>values</c>. A value in one of a row's own cells brings the rows of its section and
     /// sub-sections, or of the whole table when the cell is in the header.
     ///
     /// Each sheet is read at its newest version, or with <c>at</c> as it stood at that moment. The value is

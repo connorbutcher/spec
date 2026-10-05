@@ -86,7 +86,7 @@ public static class PublishedRowsAssembler
     /// A block with no such value, or with one an earlier block of its table already has, goes by its
     /// identifier, so no two blocks of a table share a name.
     /// </summary>
-    private static Dictionary<int, string> BlockNames(
+    internal static Dictionary<int, string> BlockNames(
         List<PublishedColumnBlockRecord> blocks,
         IEnumerable<PublishedLookupCellRecord> headerCells,
         IReadOnlyDictionary<int, object> values)
