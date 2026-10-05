@@ -5,8 +5,9 @@ using Microsoft.OpenApi;
 namespace PUSpecSheet.Api.ApiDocumentation;
 
 /// <summary>
-/// Sets the document's title and introduction, and lists the tags in sidebar order with their
-/// descriptions. The groups go out as <c>x-tagGroups</c>, which Scalar turns into sidebar headings.
+/// Sets the document's title and introduction, and lists the tags in group order with their
+/// descriptions, which is the order Swagger UI shows them in. The groups also go out as
+/// <c>x-tagGroups</c> for tools that draw group headings.
 /// </summary>
 public sealed class ApiInfoDocumentTransformer : IOpenApiDocumentTransformer
 {

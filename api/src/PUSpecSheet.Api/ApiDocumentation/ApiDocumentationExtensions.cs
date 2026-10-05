@@ -1,18 +1,20 @@
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Mvc;
-using Scalar.AspNetCore;
+using Swashbuckle.AspNetCore.SwaggerUI;
 
 namespace PUSpecSheet.Api.ApiDocumentation;
 
 /// <summary>
-/// The OpenAPI document and the Scalar page that shows it. The document is at
-/// <c>/openapi/v1.json</c> and the interactive documentation at <c>/scalar</c>.
+/// The OpenAPI document and the Swagger UI page that shows it. The document is at
+/// <c>/openapi/v1.json</c> and the interactive documentation at <c>/docs</c>.
 /// </summary>
 public static class ApiDocumentationExtensions
 {
     public const string DocumentName = "v1";
 
-    public const string ScalarRoute = "/scalar";
+    public const string DocumentRoute = "/openapi/v1.json";
+
+    public const string SwaggerUiRoutePrefix = "docs";
 
     public static IServiceCollection AddPuSpecSheetApiDocumentation(this IServiceCollection services)
     {
@@ -46,22 +48,19 @@ public static class ApiDocumentationExtensions
     public static WebApplication MapPuSpecSheetApiDocumentation(this WebApplication app)
     {
         app.MapOpenApi();
-        app.MapScalarApiReference(ScalarRoute, options =>
+        app.UseSwaggerUI(options =>
         {
-            options.Title = "PU Spec Sheet API";
-            options.Theme = ScalarTheme.Default;
-            options.Layout = ScalarLayout.Modern;
-            options.DefaultOpenAllTags = false;
-            options.HideClientButton = true;
-            options.ShowOperationId = true;
-
-            // The page is for reading and trying the API: nothing is sent to Scalar, and its hosted
-            // extras (AI chat, MCP generation, the share and deploy toolbar) are switched off.
-            options.Telemetry = false;
-            options.ShowDeveloperTools = DeveloperToolsVisibility.Never;
-            options.Agent = new ScalarAgentOptions { Disabled = true };
-            options.Mcp = new ScalarMcpOptions { Disabled = true };
-            options.DefaultHttpClient = new KeyValuePair<ScalarTarget, ScalarClient>(ScalarTarget.CSharp, ScalarClient.HttpClient);
+            // Swagger UI only draws the page: the document it shows is the one mapped above.
+            options.RoutePrefix = SwaggerUiRoutePrefix;
+            options.SwaggerEndpoint(DocumentRoute, "PU Spec Sheet API v1");
+            options.DocumentTitle = "PU Spec Sheet API";
+            options.DocExpansion(DocExpansion.List);
+            options.DefaultModelsExpandDepth(0);
+            options.DisplayOperationId();
+            options.DisplayRequestDuration();
+            options.EnableDeepLinking();
+            options.EnableFilter();
+            options.EnableTryItOutByDefault();
         });
 
         return app;
