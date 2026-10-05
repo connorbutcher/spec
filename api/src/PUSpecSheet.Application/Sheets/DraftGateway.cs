@@ -60,6 +60,61 @@ public abstract class DraftGateway<TRevision>(PuSpecSheetDbContext db, ICurrentU
         return true;
     }
 
+    /// <summary>
+    /// After items in a group of siblings have been moved, drops the viewer's drafts that only differ in their
+    /// numeric order when the group is back in its published order (see <see cref="OrderRestoration"/>). Each
+    /// such item goes back to its published number, so it is exactly what is published and nothing is left to
+    /// publish. A draft with any other difference (a changed value, a removal) is kept.
+    /// </summary>
+    public async Task ReleaseRestoredOrderAsync(IReadOnlyCollection<int> siblingIds, CancellationToken cancellationToken)
+    {
+        var me = currentUser.UserId;
+        var states = new List<(int Id, DraftState<TRevision> State)>();
+        foreach (var id in siblingIds)
+        {
+            states.Add((id, await LoadAsync(id, cancellationToken)));
+        }
+
+        var items = states
+            .Select(entry =>
+            {
+                var shown = entry.State.Draft is { } draft && draft.AuthorUserId == me ? draft : entry.State.Current;
+                return (entry.Id, entry.State.Current?.DisplayOrder, shown?.DisplayOrder ?? 0, shown?.IsDeleted ?? true);
+            })
+            .ToList();
+        if (!OrderRestoration.IsRestored(items))
+        {
+            return;
+        }
+
+        var released = false;
+        foreach (var (_, state) in states)
+        {
+            if (state.Draft is not { } draft || state.Current is not { } current || draft.AuthorUserId != me
+                || draft.DisplayOrder == current.DisplayOrder)
+            {
+                continue;
+            }
+
+            var movedBack = draft.DisplayOrder;
+            draft.DisplayOrder = current.DisplayOrder;
+            if (await IsUnchangedAsync(draft, current, cancellationToken))
+            {
+                db.Remove(draft);
+                released = true;
+            }
+            else
+            {
+                draft.DisplayOrder = movedBack;
+            }
+        }
+
+        if (released)
+        {
+            await db.SaveSheetChangesAsync(cancellationToken);
+        }
+    }
+
     public async Task<DraftState<TRevision>> LoadAsync(int itemId, CancellationToken cancellationToken)
     {
         var revisions = await CurrentAndDrafts(itemId).ToListAsync(cancellationToken);

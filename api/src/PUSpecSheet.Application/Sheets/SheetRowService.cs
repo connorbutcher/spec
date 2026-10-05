@@ -113,6 +113,9 @@ public sealed class SheetRowService(
         draft.DisplayOrder = order;
         await db.SaveSheetChangesAsync(cancellationToken);
         await drafts.ReleaseIfUnchangedAsync(rowId, cancellationToken);
+        await drafts.ReleaseRestoredOrderAsync(
+            await db.SheetRows.Where(candidate => candidate.SheetSectionId == sectionId).Select(candidate => candidate.Id).ToListAsync(cancellationToken),
+            cancellationToken);
         await transaction.CommitAsync(cancellationToken);
 
         return await reader.ReadLiveAsync(sheetId, cancellationToken);

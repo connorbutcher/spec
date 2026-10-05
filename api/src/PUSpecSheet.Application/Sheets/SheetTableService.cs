@@ -79,6 +79,9 @@ public sealed class SheetTableService(
 
         await db.SaveSheetChangesAsync(cancellationToken);
         await drafts.ReleaseIfUnchangedAsync(tableId, cancellationToken);
+        await drafts.ReleaseRestoredOrderAsync(
+            await db.SheetTables.Where(candidate => candidate.SheetId == sheetId).Select(candidate => candidate.Id).ToListAsync(cancellationToken),
+            cancellationToken);
         return await reader.ReadLiveAsync(sheetId, cancellationToken);
     }
 

@@ -88,6 +88,12 @@ public sealed class SheetSectionService(
 
         await db.SaveSheetChangesAsync(cancellationToken);
         await drafts.ReleaseIfUnchangedAsync(sectionId, cancellationToken);
+        await drafts.ReleaseRestoredOrderAsync(
+            await db.SheetSections
+                .Where(candidate => candidate.SheetTableId == section.SheetTableId && candidate.ParentSheetSectionId == section.ParentSheetSectionId)
+                .Select(candidate => candidate.Id)
+                .ToListAsync(cancellationToken),
+            cancellationToken);
         return await reader.ReadLiveAsync(section.SheetTable.SheetId, cancellationToken);
     }
 

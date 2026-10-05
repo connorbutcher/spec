@@ -68,6 +68,9 @@ public sealed class SheetColumnBlockService(
 
         await db.SaveSheetChangesAsync(cancellationToken);
         await drafts.ReleaseIfUnchangedAsync(columnBlockId, cancellationToken);
+        await drafts.ReleaseRestoredOrderAsync(
+            await db.SheetColumnBlocks.Where(candidate => candidate.SheetTableId == block.SheetTableId).Select(candidate => candidate.Id).ToListAsync(cancellationToken),
+            cancellationToken);
         return await reader.ReadLiveAsync(block.SheetTable.SheetId, cancellationToken);
     }
 
