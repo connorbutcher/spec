@@ -8,4 +8,13 @@ public interface IPhaseService
     Task<IReadOnlyList<PhaseDto>> GetAllAsync(CancellationToken cancellationToken);
 
     Task<PhaseDto> GetAsync(int id, CancellationToken cancellationToken);
+
+    /// <summary>Adds a phase after its siblings, under a parent or at the top level.</summary>
+    Task<PhaseDto> CreateAsync(CreatePhaseRequest request, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Replaces the sheet types a phase has. A type whose sheet already has tables on this phase can't be
+    /// removed.
+    /// </summary>
+    Task<PhaseDto> SetSheetTypesAsync(int id, SetPhaseSheetTypesRequest request, CancellationToken cancellationToken);
 }

@@ -69,12 +69,22 @@ public static class ApiTagCatalog
         new ApiTagGroup(
             "Reference data",
             [
-                new ApiTagDescription(ApiTags.Phases, "The phases sheets belong to, as a flat list that forms a tree."),
+                new ApiTagDescription(
+                    ApiTags.Phases,
+                    "The phases sheets belong to, as a flat list that forms a tree, and which sheet types each phase has."),
                 new ApiTagDescription(ApiTags.SheetTypes, "The kinds of sheet a phase can have, such as Specification, PFKs or Parts."),
                 new ApiTagDescription(
                     ApiTags.CellTypes,
                     "The cell types templates build their cells from: a kind (text, number, date, checkbox, dropdown) "
                     + "with a default configuration and style."),
+            ]),
+        new ApiTagGroup(
+            "Access",
+            [
+                new ApiTagDescription(
+                    ApiTags.CurrentUser,
+                    "Who a request runs as and what their roles allow. Changes that need a permission say which in "
+                    + "their description, and answer `403` to a user without it. The Administrator role has every permission."),
             ]),
         new ApiTagGroup(
             "Operations",

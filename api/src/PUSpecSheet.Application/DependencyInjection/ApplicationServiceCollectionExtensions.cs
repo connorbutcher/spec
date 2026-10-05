@@ -5,6 +5,7 @@ using PUSpecSheet.Application.Published;
 using PUSpecSheet.Application.Sheets;
 using PUSpecSheet.Application.SheetTypes;
 using PUSpecSheet.Application.Templates;
+using PUSpecSheet.Application.Users;
 
 namespace PUSpecSheet.Application.DependencyInjection;
 
@@ -15,6 +16,7 @@ public static class ApplicationServiceCollectionExtensions
     {
         services.AddScoped<ISheetTypeService, SheetTypeService>();
         services.AddScoped<IPhaseService, PhaseService>();
+        services.AddScoped<IUserAccessService, UserAccessService>();
 
         services.AddScoped<ICellTypeService, CellTypeService>();
 

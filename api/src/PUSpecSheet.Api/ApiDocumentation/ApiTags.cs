@@ -33,5 +33,7 @@ public static class ApiTags
 
     public const string CellTypes = "Cell types";
 
+    public const string CurrentUser = "Current user";
+
     public const string Health = "Health";
 }
