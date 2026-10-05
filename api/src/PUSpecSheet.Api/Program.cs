@@ -2,6 +2,7 @@ using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Api.ApiDocumentation;
 using PUSpecSheet.Api.Authorization;
+using PUSpecSheet.Api.Compression;
 using PUSpecSheet.Api.Cors;
 using PUSpecSheet.Api.ExceptionHandling;
 using PUSpecSheet.Application.DependencyInjection;
@@ -28,6 +29,7 @@ builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<ApplicationExceptionHandler>();
 builder.Services.AddHealthChecks().AddDbContextCheck<PuSpecSheetDbContext>();
 builder.Services.AddPuSpecSheetCors(builder.Configuration);
+builder.Services.AddPuSpecSheetResponseCompression(builder.Configuration);
 
 builder.Services.AddPuSpecSheetData(connectionString);
 builder.Services.AddPuSpecSheetApplication();
@@ -49,6 +51,8 @@ if (app.Environment.IsDevelopment())
     app.MapPuSpecSheetApiDocumentation();
 }
 
+// First, so every response written after it is compressed, including the exception handler's problem details.
+app.UsePuSpecSheetResponseCompression();
 app.UseExceptionHandler();
 
 // CORS runs before the HTTPS redirect: browsers reject a redirected preflight (OPTIONS) request, so
