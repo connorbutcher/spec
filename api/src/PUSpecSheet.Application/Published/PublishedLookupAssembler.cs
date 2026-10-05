@@ -126,7 +126,7 @@ public static class PublishedLookupAssembler
     }
 
     /// <summary>Each section's place when the table is read top to bottom, sub-sections after their parent's rows.</summary>
-    private static Dictionary<int, int> SectionOrder(IEnumerable<PublishedSectionRecord> sections)
+    internal static Dictionary<int, int> SectionOrder(IEnumerable<PublishedSectionRecord> sections)
     {
         var byParent = sections
             .OrderBy(section => section.DisplayOrder)

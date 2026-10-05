@@ -16,6 +16,9 @@ public static class PublishedServiceCollectionExtensions
         services.AddScoped<PublishedLookupHitReader>();
         services.AddScoped<PublishedLookupCellReader>();
         services.AddScoped<IPublishedLookupService, PublishedLookupService>();
+        services.AddSingleton<PublishedRowsCache>();
+        services.AddScoped<PublishedKindValueReader>();
+        services.AddScoped<IPublishedRowsService, PublishedRowsService>();
 
         return services;
     }

@@ -36,7 +36,45 @@ public sealed class PublishedLookupCellReader(PuSpecSheetDbContext db)
                 || cell.SheetRow.SheetSection.TemplateSection.Role == SectionRole.Header);
         }
 
-        var moment = version.PublishedAtUtc;
+        return Project(cells, version.PublishedAtUtc);
+    }
+
+    /// <summary>Every cell of the sheet's rows at the version, headings included.</summary>
+    public IQueryable<PublishedLookupCellRecord> QuerySheet(ResolvedSheetVersion version)
+    {
+        var sheetId = version.SheetId;
+        var cells = db.SheetCells
+            .AsNoTracking()
+            .Where(cell => cell.SheetRow.SheetSection.SheetTable.SheetId == sheetId);
+
+        return Project(cells, version.PublishedAtUtc);
+    }
+
+    /// <summary>The cells of some rows of the sheet, found by the rows' public identifiers.</summary>
+    public IQueryable<PublishedLookupCellRecord> QueryRows(ResolvedSheetVersion version, IReadOnlyList<Guid> rowPublicIds)
+    {
+        var sheetId = version.SheetId;
+        var cells = db.SheetCells
+            .AsNoTracking()
+            .Where(cell => rowPublicIds.Contains(cell.SheetRow.PublicId)
+                && cell.SheetRow.SheetSection.SheetTable.SheetId == sheetId);
+
+        return Project(cells, version.PublishedAtUtc);
+    }
+
+    /// <summary>The cells of some tables' headers: their headings, and the cells that name each column block.</summary>
+    public IQueryable<PublishedLookupCellRecord> QueryHeaders(ResolvedSheetVersion version, IReadOnlyList<int> tableIds)
+    {
+        var cells = db.SheetCells
+            .AsNoTracking()
+            .Where(cell => tableIds.Contains(cell.SheetRow.SheetSection.SheetTableId)
+                && cell.SheetRow.SheetSection.TemplateSection.Role == SectionRole.Header);
+
+        return Project(cells, version.PublishedAtUtc);
+    }
+
+    private static IQueryable<PublishedLookupCellRecord> Project(IQueryable<SheetCell> cells, DateTime moment)
+    {
         return cells.SelectMany(
             cell => cell.SheetRow.Revisions.Where(revision => revision.Status == RevisionStatus.Published
                 && revision.PublishedAtUtc <= moment

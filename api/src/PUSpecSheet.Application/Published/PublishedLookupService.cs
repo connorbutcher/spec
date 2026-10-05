@@ -2,7 +2,6 @@ using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Application.Common;
 using PUSpecSheet.Contracts.Published;
 using PUSpecSheet.Data;
-using PUSpecSheet.Domain.CellTypes;
 
 namespace PUSpecSheet.Application.Published;
 
@@ -12,7 +11,7 @@ public sealed class PublishedLookupService(
     PublishedLookupHitReader hitReader,
     PublishedStructureReader structureReader,
     PublishedLookupCellReader cellReader,
-    PublishedValueReader valueReader) : IPublishedLookupService
+    PublishedKindValueReader valueReader) : IPublishedLookupService
 {
     public async Task<PublishedLookupResolution> ResolveAsync(
         PublishedLookupCriteria criteria,
@@ -75,21 +74,7 @@ public sealed class PublishedLookupService(
 
             var sectionIds = PublishedLookupAssembler.ScopeSections(hit, structure);
             var cells = await cellReader.Query(version, hit, sectionIds).ToListAsync(cancellationToken);
-            var valueCells = cells
-                .Where(cell => cell.Kind.StoresValue())
-                .Select(cell => new PublishedCellRecord(
-                    cell.RowRevisionId,
-                    cell.RowId,
-                    cell.RowPublicId,
-                    cell.SectionId,
-                    cell.RowOrder,
-                    cell.CellId,
-                    cell.CellPublicId,
-                    cell.ColumnBlockId,
-                    cell.Column,
-                    null))
-                .ToList();
-            var values = await valueReader.ReadAsync(version, valueCells, cancellationToken);
+            var values = await valueReader.ReadAsync(version, cells, wholeSheet: false, cancellationToken);
 
             matches.Add(PublishedLookupAssembler.Assemble(hit, version, structure, cells, values));
         }

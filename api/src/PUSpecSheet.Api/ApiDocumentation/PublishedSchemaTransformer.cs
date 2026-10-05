@@ -31,6 +31,10 @@ public sealed class PublishedSchemaTransformer : IOpenApiSchemaTransformer
         [typeof(PublishedVersionDto)] = Version,
         [typeof(PublishedSheetQueryRequest)] = QueryRequest,
         [typeof(PublishedSheetDto)] = SheetAsTree,
+        [typeof(PublishedRowsDto)] = Rows,
+        [typeof(PublishedSheetRowDto)] = OneRow,
+        [typeof(PublishedRowsQueryRequest)] = RowsRequest,
+        [typeof(PublishedLookupDto)] = Lookup,
     };
 
     public Task TransformAsync(OpenApiSchema schema, OpenApiSchemaTransformerContext context, CancellationToken cancellationToken)
@@ -112,6 +116,85 @@ public sealed class PublishedSchemaTransformer : IOpenApiSchemaTransformer
             ["publishedAtUtc"] = "2026-09-30T14:02:11Z",
             ["tables"] = new JsonArray(table),
             ["missing"] = new JsonArray(),
+        };
+    }
+
+    private static JsonObject Rows()
+    {
+        return new JsonObject
+        {
+            ["sheet"] = Sheet,
+            ["version"] = 3,
+            ["publishedAtUtc"] = "2026-09-30T14:02:11Z",
+            ["rows"] = new JsonObject
+            {
+                [Row] = new JsonObject
+                {
+                    ["section"] = "Limits",
+                    ["values"] = new JsonArray("Bore (mm)"),
+                    ["columns"] = new JsonObject
+                    {
+                        ["P-1003"] = new JsonArray(82.0, 82.04),
+                        ["P-1004"] = new JsonArray(82.01, 82.05),
+                    },
+                },
+            },
+            ["missing"] = new JsonArray(),
+        };
+    }
+
+    private static JsonObject OneRow()
+    {
+        return new JsonObject
+        {
+            ["sheet"] = Sheet,
+            ["version"] = 3,
+            ["publishedAtUtc"] = "2026-09-30T14:02:11Z",
+            ["row"] = Row,
+            ["section"] = "Limits",
+            ["values"] = new JsonArray("Bore (mm)"),
+            ["columns"] = new JsonObject { ["P-1003"] = new JsonArray(82.0, 82.04) },
+        };
+    }
+
+    private static JsonObject RowsRequest()
+    {
+        return new JsonObject
+        {
+            ["rows"] = new JsonArray(Row),
+            ["columns"] = new JsonArray("P-1003", "P-1004"),
+        };
+    }
+
+    private static JsonObject Lookup()
+    {
+        var row = new JsonObject
+        {
+            ["row"] = Row,
+            ["section"] = "Limits",
+            ["description"] = "Bore (mm)",
+            ["values"] = new JsonArray(82.0, 82.04),
+        };
+
+        var match = new JsonObject
+        {
+            ["sheet"] = Sheet,
+            ["phase"] = "V6",
+            ["sheetType"] = 2,
+            ["version"] = 3,
+            ["publishedAtUtc"] = "2026-09-30T14:02:11Z",
+            ["table"] = Table,
+            ["title"] = "Piston parts",
+            ["block"] = Section,
+            ["columns"] = new JsonArray("Min", "Max"),
+            ["rows"] = new JsonArray(row),
+        };
+
+        return new JsonObject
+        {
+            ["key"] = "partNumber",
+            ["value"] = "P-1003",
+            ["matches"] = new JsonArray(match),
         };
     }
 
