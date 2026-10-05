@@ -12,6 +12,7 @@ api/                          .NET 10 solution (PUSpecSheet.slnx)
   src/PUSpecSheet.Data          EF Core DbContext, entity configurations, migrations (SQL Server)
   src/PUSpecSheet.Domain        Domain entities and enums
 app/                          Angular 22 UI (PrimeNG)
+database/                     SQL database project mirroring the migrated schema, one script per object (see database/README.md)
 ```
 
 Project references flow one way: `Api -> Application -> Data -> Domain`, with `Contracts` referenced by `Api` and `Application`.
