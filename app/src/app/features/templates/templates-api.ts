@@ -173,6 +173,13 @@ export class TemplatesApi {
     );
   }
 
+  /** Sets or removes the name other applications look a cell up by. Works on a version in use too. */
+  public updateCellLookupKey(id: number, lookupKey: string | null): Promise<TableTemplate> {
+    return firstValueFrom(
+      this.http.put<TableTemplate>(`/api/template-cells/${id}/lookup-key`, { lookupKey }),
+    );
+  }
+
   public deleteCell(id: number): Promise<TableTemplate> {
     return firstValueFrom(this.http.delete<TableTemplate>(`/api/template-cells/${id}`));
   }

@@ -83,6 +83,27 @@
       </div>
     }
 
+    @if (kind().kind === 'Text') {
+      <div class="field">
+        <label for="cell-lookup-key">Lookup key</label>
+        <input
+          #lookupKeyInput
+          pInputText
+          pSize="small"
+          id="cell-lookup-key"
+          type="text"
+          maxlength="50"
+          placeholder="e.g. partNumber"
+          [value]="entry.cell.lookupKey ?? ''"
+          (change)="setLookupKey(lookupKeyInput)"
+        />
+        <span class="hint">
+          Other systems find this cell by its value under this name. It can be set on a version
+          sheets already use.
+        </span>
+      </div>
+    }
+
     <h3 class="group-title">Placement</h3>
     <div class="inline">
       <div class="field">

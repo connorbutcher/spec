@@ -18,4 +18,6 @@ export interface TemplateCell {
   styleOverride: CellStyle | null;
   /** The column block the cell belongs to, or null. In a block, `column` counts from its first column. */
   columnBlockId: number | null;
+  /** The name other applications look the cell up by, such as `partNumber`. Null or absent when it has none. */
+  lookupKey?: string | null;
 }

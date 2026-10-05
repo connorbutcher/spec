@@ -378,6 +378,11 @@ export class TemplatesStore {
     await this.changeTemplate(() => this.api.updateCell(id, request));
   }
 
+  /** Sets or removes the name other applications look a cell up by. */
+  public async updateCellLookupKey(id: number, lookupKey: string | null): Promise<void> {
+    await this.changeTemplate(() => this.api.updateCellLookupKey(id, lookupKey));
+  }
+
   public async deleteCell(id: number): Promise<boolean> {
     return (await this.changeTemplate(() => this.api.deleteCell(id))) !== null;
   }

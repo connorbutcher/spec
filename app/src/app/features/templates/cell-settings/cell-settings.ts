@@ -24,7 +24,7 @@ import { TemplatesStore } from '../templates.store';
 type PlacementField = 'column' | 'columnSpan' | 'rowSpan';
 
 /**
- * Panel page for a cell: its type, caption, whether it's required, where it sits in the row, and the
+ * Panel page for a cell: its type, caption, whether it's required, its lookup key, where it sits in the row, and the
  * configuration and style it overrides from its cell type.
  */
 @Component({
@@ -119,6 +119,14 @@ export class CellSettings {
 
   public setRequired(event: CheckboxChangeEvent): void {
     void this.save({ isRequired: event.checked === true });
+  }
+
+  public async setLookupKey(input: HTMLInputElement): Promise<void> {
+    const lookupKey = input.value.trim() || null;
+    if (lookupKey !== (this.entry()?.cell.lookupKey ?? null)) {
+      await this.store.updateCellLookupKey(this.cellId(), lookupKey);
+    }
+    input.value = this.entry()?.cell.lookupKey ?? '';
   }
 
   public setPlacement(field: PlacementField, value: number | null): void {
