@@ -1,14 +1,16 @@
 using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Contracts.Sheets;
 using PUSpecSheet.Data;
+using PUSpecSheet.Domain.Phases;
 
 namespace PUSpecSheet.Application.Sheets.Demo;
 
 /// <summary>
-/// Fills in the A3 Parts sheet from the sample "Parts limits" template using the same services the API does:
+/// Fills in the V6 and A3 Parts sheets from the sample "Parts limits" template using the same services the API does:
 /// version 1 builds a table with a part number over each of four parts and a good spread of limit rows
 /// across all of them, some a Min and Max and some a single value, and version 2 adds a fifth part, so the
-/// new columns get every existing row. Does nothing if the sheet already has tables.
+/// new columns get every existing row. A phase whose Parts sheet already has tables is left alone, and a phase
+/// that doesn't offer the Parts sheet type is given it so the sample can be seen.
 /// </summary>
 public sealed class DemoPartsGridSheetSeeder(
     PuSpecSheetDbContext db,
@@ -18,7 +20,7 @@ public sealed class DemoPartsGridSheetSeeder(
     ISheetColumnBlockService columnBlocks,
     ISheetRowService rows)
 {
-    private const string PhaseCode = "A3";
+    private static readonly string[] PhaseCodes = ["V6", "A3"];
 
     private const int StartingParts = 4;
 
@@ -48,6 +50,14 @@ public sealed class DemoPartsGridSheetSeeder(
 
     public async Task SeedAsync(CancellationToken cancellationToken)
     {
+        foreach (var phaseCode in PhaseCodes)
+        {
+            await SeedPhaseAsync(phaseCode, cancellationToken);
+        }
+    }
+
+    private async Task SeedPhaseAsync(string phaseCode, CancellationToken cancellationToken)
+    {
         var template = await db.TableTemplates
             .AsNoTracking()
             .SingleOrDefaultAsync(candidate => candidate.Name == DemoPartsGridTemplateSeeder.TemplateName, cancellationToken);
@@ -56,12 +66,18 @@ public sealed class DemoPartsGridSheetSeeder(
             .Select(candidate => (int?)candidate.Id)
             .SingleOrDefaultAsync(cancellationToken);
         var phaseId = await db.Phases
-            .Where(candidate => candidate.Code == PhaseCode)
+            .Where(candidate => candidate.Code == phaseCode)
             .Select(candidate => (int?)candidate.Id)
             .SingleOrDefaultAsync(cancellationToken);
         if (template is null || sheetTypeId is null || phaseId is null)
         {
             return;
+        }
+
+        if (!await db.PhaseSheetTypes.AnyAsync(link => link.PhaseId == phaseId && link.SheetTypeId == sheetTypeId, cancellationToken))
+        {
+            db.PhaseSheetTypes.Add(new PhaseSheetType { PhaseId = phaseId.Value, SheetTypeId = sheetTypeId.Value });
+            await db.SaveChangesAsync(cancellationToken);
         }
 
         var sheet = await sheets.OpenAsync(phaseId.Value, sheetTypeId.Value, SheetViewPoint.Live, cancellationToken);
