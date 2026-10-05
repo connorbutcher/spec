@@ -13,6 +13,12 @@ public interface IPhaseService
     Task<PhaseDto> CreateAsync(CreatePhaseRequest request, CancellationToken cancellationToken);
 
     /// <summary>
+    /// Moves a phase to a position under a parent, or at the top level, and renumbers the siblings it
+    /// joins and leaves. A phase can't go under itself or anything beneath it. Returns every phase.
+    /// </summary>
+    Task<IReadOnlyList<PhaseDto>> MoveAsync(int id, MovePhaseRequest request, CancellationToken cancellationToken);
+
+    /// <summary>
     /// Replaces the sheet types a phase has. A type whose sheet already has tables on this phase can't be
     /// removed.
     /// </summary>

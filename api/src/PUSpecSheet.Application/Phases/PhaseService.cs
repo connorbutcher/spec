@@ -105,6 +105,31 @@ public sealed class PhaseService(PuSpecSheetDbContext db) : IPhaseService
         return phase.ToDto();
     }
 
+    public async Task<IReadOnlyList<PhaseDto>> MoveAsync(int id, MovePhaseRequest request, CancellationToken cancellationToken)
+    {
+        // Every phase is loaded: the move renumbers two groups of siblings and checks the whole chain of parents.
+        var all = await db.Phases
+            .Include(candidate => candidate.SheetTypes)
+            .ToListAsync(cancellationToken);
+
+        var phase = all.SingleOrDefault(candidate => candidate.Id == id);
+        if (phase is null)
+        {
+            throw new NotFoundException($"Phase {id} was not found.");
+        }
+
+        PhaseMover.Move(all, phase, request.ParentPhaseId, request.Position);
+
+        // One save, so the move and both renumberings are stored together or not at all.
+        await db.SaveChangesAsync(cancellationToken);
+
+        return all
+            .OrderBy(candidate => candidate.DisplayOrder)
+            .ThenBy(candidate => candidate.Code)
+            .Select(candidate => candidate.ToDto())
+            .ToList();
+    }
+
     /// <summary>The distinct ids asked for, once every one is known to be a sheet type.</summary>
     private async Task<HashSet<int>> ExistingSheetTypeIdsAsync(IReadOnlyList<int> sheetTypeIds, CancellationToken cancellationToken)
     {
