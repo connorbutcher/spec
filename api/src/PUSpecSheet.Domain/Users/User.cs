@@ -16,4 +16,7 @@ public class User
     public bool IsActive { get; set; } = true;
 
     public DateTime CreatedAtUtc { get; set; }
+
+    /// <summary>The roles the user has, which decide what the user is allowed to do.</summary>
+    public ICollection<UserRole> Roles { get; set; } = [];
 }
