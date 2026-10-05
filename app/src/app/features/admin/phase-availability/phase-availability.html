@@ -1,0 +1,56 @@
+<header class="head">
+  <h2>{{ path() }}</h2>
+  @if (phase().description; as description) {
+    <p class="description">{{ description }}</p>
+  }
+</header>
+
+<div class="fields">
+  <div class="field">
+    <span class="label" id="phase-sheet-types-label"
+      >Sheet types available to {{ phase().code }}</span
+    >
+    <p-listbox
+      class="sheet-types"
+      [options]="sheetTypes()"
+      optionLabel="name"
+      optionValue="id"
+      [multiple]="true"
+      [checkbox]="true"
+      [showToggleAll]="false"
+      [metaKeySelection]="false"
+      [ngModel]="ticked()"
+      (ngModelChange)="ticked.set($event)"
+      [disabled]="!canManage() || isSaving()"
+      ariaLabelledBy="phase-sheet-types-label"
+      emptyMessage="No sheet types yet. Add one on the Sheet types tab."
+    />
+  </div>
+
+  @if (!canManage()) {
+    <p class="note">You need the phases.manage permission to change this.</p>
+  }
+
+  @if (error(); as error) {
+    <p-message severity="error" size="small" icon="pi pi-exclamation-circle">{{ error }}</p-message>
+  }
+
+  <div class="actions">
+    <p-button
+      label="Save"
+      icon="pi pi-check"
+      size="small"
+      [disabled]="!canManage() || !hasChanges() || isSaving()"
+      [loading]="isSaving()"
+      (onClick)="save()"
+    />
+    <p-button
+      label="Reset"
+      size="small"
+      severity="secondary"
+      [outlined]="true"
+      [disabled]="!hasChanges() || isSaving()"
+      (onClick)="reset()"
+    />
+  </div>
+</div>

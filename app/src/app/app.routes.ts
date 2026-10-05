@@ -19,8 +19,7 @@ export const routes: Routes = [
   {
     path: 'admin',
     title: 'Admin · PU Spec Sheet',
-    loadComponent: comingSoon,
-    data: { title: 'Admin', icon: 'pi-cog' },
+    loadChildren: () => import('./features/admin/admin.routes').then((m) => m.ADMIN_ROUTES),
   },
   {
     path: 'help',

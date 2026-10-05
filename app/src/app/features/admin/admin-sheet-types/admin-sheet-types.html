@@ -1,0 +1,50 @@
+<header class="head">
+  <h2>Sheet types</h2>
+  <span
+    [pTooltip]="'You need the sheetTypes.manage permission to add sheet types.'"
+    [tooltipDisabled]="canManage()"
+    tooltipPosition="bottom"
+  >
+    <p-button
+      icon="pi pi-plus"
+      label="Add sheet type"
+      size="small"
+      [outlined]="true"
+      [disabled]="!canManage()"
+      (onClick)="isAdding.set(true)"
+    />
+  </span>
+</header>
+
+<p-table class="types" [value]="rows()" size="small" [showGridlines]="true">
+  <ng-template #header>
+    <tr>
+      <th class="num">#</th>
+      <th class="name">Sheet type</th>
+      <th>Available to</th>
+    </tr>
+  </ng-template>
+  <ng-template #body let-row let-rowIndex="rowIndex">
+    <tr>
+      <td class="num">{{ rowIndex + 1 }}</td>
+      <td class="name">
+        <i class="pi" [class]="icon(row)" aria-hidden="true"></i>
+        {{ row.sheetType.name }}
+      </td>
+      <td>
+        @if (row.phaseCodes.length > 0) {
+          <span class="codes">{{ row.phaseCodes.join(', ') }}</span>
+        } @else {
+          <span class="muted">No phases yet</span>
+        }
+      </td>
+    </tr>
+  </ng-template>
+  <ng-template #emptymessage>
+    <tr>
+      <td colspan="3" class="muted">No sheet types yet.</td>
+    </tr>
+  </ng-template>
+</p-table>
+
+<app-add-sheet-type-dialog [(visible)]="isAdding" (created)="onCreated()" />

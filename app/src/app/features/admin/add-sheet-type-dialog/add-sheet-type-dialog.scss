@@ -1,0 +1,5 @@
+@use '../../templates/styles/panel-form';
+
+:host {
+  @include panel-form.controls();
+}

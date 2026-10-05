@@ -1,0 +1,53 @@
+<p-dialog
+  header="Add sheet type"
+  [(visible)]="visible"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [style]="{ width: '22rem' }"
+  (onShow)="reset()"
+>
+  <div class="fields">
+    <div class="field">
+      <label for="add-sheet-type-name">Name</label>
+      <input
+        pInputText
+        pSize="small"
+        id="add-sheet-type-name"
+        type="text"
+        maxlength="100"
+        autocomplete="off"
+        placeholder="e.g. Torque Sheet"
+        [ngModel]="name()"
+        (ngModelChange)="name.set($event)"
+        (keydown.enter)="add()"
+      />
+      <p class="note">No phase has it until you tick it for a phase on the Phases tab.</p>
+    </div>
+
+    @if (error(); as error) {
+      <p-message severity="error" size="small" icon="pi pi-exclamation-circle">{{
+        error
+      }}</p-message>
+    }
+  </div>
+
+  <ng-template #footer>
+    <p-button
+      label="Cancel"
+      size="small"
+      severity="secondary"
+      [outlined]="true"
+      [disabled]="isSaving()"
+      (onClick)="visible.set(false)"
+    />
+    <p-button
+      label="Add sheet type"
+      icon="pi pi-plus"
+      size="small"
+      [disabled]="!canAdd()"
+      [loading]="isSaving()"
+      (onClick)="add()"
+    />
+  </ng-template>
+</p-dialog>

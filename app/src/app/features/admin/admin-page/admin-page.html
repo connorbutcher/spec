@@ -1,0 +1,33 @@
+<section class="app-card admin-page">
+  <header class="page-head">
+    <h1>Admin</h1>
+    <span class="who">{{ who() }}</span>
+  </header>
+
+  @if (hasError()) {
+    <app-empty-state
+      icon="pi-exclamation-circle"
+      title="Couldn't load your permissions"
+      message="Check the API is running, then try again."
+    >
+      <p-button label="Try again" size="small" [outlined]="true" (onClick)="retry()" />
+    </app-empty-state>
+  } @else if (user()) {
+    <p-tabs class="tabs" [value]="tab()" (valueChange)="tab.set($event)">
+      <p-tablist>
+        <p-tab value="phases">Phases</p-tab>
+        <p-tab value="sheet-types">Sheet types</p-tab>
+      </p-tablist>
+      <p-tabpanels>
+        <p-tabpanel value="phases">
+          <app-admin-phases />
+        </p-tabpanel>
+        <p-tabpanel value="sheet-types">
+          <app-admin-sheet-types />
+        </p-tabpanel>
+      </p-tabpanels>
+    </p-tabs>
+  } @else {
+    <p class="loading">Loading…</p>
+  }
+</section>

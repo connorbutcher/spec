@@ -1,0 +1,34 @@
+@use '../../templates/styles/panel-form';
+
+:host {
+  display: block;
+  max-width: 28rem;
+  padding: 8px 12px 12px;
+
+  @include panel-form.controls();
+}
+
+.head {
+  padding-bottom: 8px;
+
+  h2 {
+    margin: 0;
+    font-family: var(--app-font-mono);
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #111827;
+  }
+
+  .description {
+    margin: 2px 0 0;
+    color: #64748b;
+    font-size: 0.75rem;
+  }
+}
+
+.sheet-types {
+  --p-listbox-list-padding: 0.125rem;
+  --p-listbox-list-gap: 0;
+  --p-listbox-option-padding: 0.2rem 0.4rem;
+  font-size: 0.8rem;
+}

@@ -1,0 +1,104 @@
+<p-dialog
+  header="Add phase"
+  [(visible)]="visible"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [style]="{ width: '26rem' }"
+  (onShow)="reset()"
+>
+  <div class="fields">
+    <div class="field">
+      <label for="add-phase-code">Code</label>
+      <input
+        pInputText
+        pSize="small"
+        id="add-phase-code"
+        type="text"
+        maxlength="50"
+        autocomplete="off"
+        placeholder="e.g. 01-A2"
+        [ngModel]="code()"
+        (ngModelChange)="code.set($event)"
+        (keydown.enter)="add()"
+      />
+    </div>
+
+    <div class="field">
+      <label for="add-phase-description">Description (optional)</label>
+      <input
+        pInputText
+        pSize="small"
+        id="add-phase-description"
+        type="text"
+        maxlength="500"
+        autocomplete="off"
+        [ngModel]="description()"
+        (ngModelChange)="description.set($event)"
+        (keydown.enter)="add()"
+      />
+    </div>
+
+    <div class="field">
+      <label for="add-phase-parent">Parent phase</label>
+      <p-select
+        inputId="add-phase-parent"
+        [options]="parentOptions()"
+        optionLabel="label"
+        optionValue="id"
+        [ngModel]="parentId()"
+        (ngModelChange)="parentId.set($event ?? null)"
+        [showClear]="true"
+        [filter]="parentOptions().length > 8"
+        placeholder="None (top level)"
+        size="small"
+        appendTo="body"
+        [fluid]="true"
+      />
+    </div>
+
+    <div class="field">
+      <label for="add-phase-sheet-types">Sheet types</label>
+      <p-multiselect
+        inputId="add-phase-sheet-types"
+        [options]="sheetTypes()"
+        optionLabel="name"
+        optionValue="id"
+        [ngModel]="sheetTypeIds()"
+        (ngModelChange)="sheetTypeIds.set($event ?? [])"
+        [showHeader]="false"
+        [maxSelectedLabels]="6"
+        placeholder="None yet"
+        size="small"
+        appendTo="body"
+        [fluid]="true"
+      />
+      <p class="note">Not inherited from the parent. You can change them afterwards.</p>
+    </div>
+
+    @if (error(); as error) {
+      <p-message severity="error" size="small" icon="pi pi-exclamation-circle">{{
+        error
+      }}</p-message>
+    }
+  </div>
+
+  <ng-template #footer>
+    <p-button
+      label="Cancel"
+      size="small"
+      severity="secondary"
+      [outlined]="true"
+      [disabled]="isSaving()"
+      (onClick)="visible.set(false)"
+    />
+    <p-button
+      label="Add phase"
+      icon="pi pi-plus"
+      size="small"
+      [disabled]="!canAdd()"
+      [loading]="isSaving()"
+      (onClick)="add()"
+    />
+  </ng-template>
+</p-dialog>

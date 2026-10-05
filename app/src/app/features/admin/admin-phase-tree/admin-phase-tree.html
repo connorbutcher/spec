@@ -1,0 +1,49 @@
+<header class="head">
+  <h2>Phases</h2>
+  <span
+    [pTooltip]="'You need the phases.manage permission to add phases.'"
+    [tooltipDisabled]="canManage()"
+    tooltipPosition="bottom"
+  >
+    <p-button
+      icon="pi pi-plus"
+      label="Add phase"
+      size="small"
+      [outlined]="true"
+      [disabled]="!canManage()"
+      (onClick)="add.emit()"
+    />
+  </span>
+</header>
+
+@if (hasError()) {
+  <div class="note">
+    <span>Couldn't load phases.</span>
+    <p-button label="Try again" size="small" [text]="true" (onClick)="retry()" />
+  </div>
+} @else if (isLoading()) {
+  <p class="note">Loading…</p>
+} @else if (tree().length === 0) {
+  <p class="note">No phases yet.</p>
+} @else {
+  <p-tree
+    class="phase-tree"
+    [value]="tree()"
+    selectionMode="single"
+    [selection]="selectedNode()"
+    (onNodeSelect)="onNodeSelect($event)"
+    ariaLabel="Phases"
+  >
+    <ng-template #node let-node>
+      <span class="node">
+        <span class="code">{{ node.data.code }}</span>
+        @if (node.data.description) {
+          <span class="description">{{ node.data.description }}</span>
+        }
+        <span class="count" [attr.aria-label]="node.data.sheetTypeIds.length + ' sheet types'">
+          {{ node.data.sheetTypeIds.length }}
+        </span>
+      </span>
+    </ng-template>
+  </p-tree>
+}

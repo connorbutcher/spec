@@ -1,0 +1,62 @@
+:host {
+  display: block;
+  max-width: 48rem;
+  padding: 8px 12px 12px;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-bottom: 6px;
+
+  h2 {
+    margin: 0;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: #475569;
+  }
+}
+
+.types {
+  --p-datatable-header-cell-padding: 0.3rem 0.5rem;
+  --p-datatable-body-cell-padding: 0.3rem 0.5rem;
+  font-size: 0.8rem;
+
+  th {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #475569;
+  }
+
+  .num {
+    width: 2.5rem;
+    color: #94a3b8;
+    font-family: var(--app-font-mono);
+    text-align: right;
+  }
+
+  .name {
+    width: 16rem;
+    font-weight: 500;
+
+    .pi {
+      margin-right: 4px;
+      font-size: 0.8rem;
+      color: #64748b;
+    }
+  }
+
+  .codes {
+    font-family: var(--app-font-mono);
+    font-size: 0.75rem;
+  }
+
+  .muted {
+    color: #94a3b8;
+  }
+}

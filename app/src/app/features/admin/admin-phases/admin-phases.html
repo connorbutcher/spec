@@ -1,0 +1,27 @@
+<div class="admin-phases">
+  <app-admin-phase-tree
+    class="tree"
+    [selectedPhaseId]="selectedPhaseId()"
+    [canManage]="canManage()"
+    (selected)="selectedPhaseId.set($event)"
+    (add)="isAdding.set(true)"
+  />
+
+  <section class="detail" aria-live="polite">
+    @if (selectedPhase(); as phase) {
+      <app-phase-availability [phase]="phase" [canManage]="canManage()" />
+    } @else {
+      <app-empty-state
+        icon="pi-sitemap"
+        title="Pick a phase"
+        message="Choose a phase in the tree to set which sheet types it has."
+      />
+    }
+  </section>
+</div>
+
+<app-add-phase-dialog
+  [(visible)]="isAdding"
+  [parentPhaseId]="selectedPhaseId()"
+  (created)="onCreated($event)"
+/>
