@@ -93,6 +93,7 @@ internal static class TemplateVersionCopier
                             IsRequired = cell.IsRequired,
                             ConfigurationOverride = cell.ConfigurationOverride,
                             StyleOverride = cell.StyleOverride,
+                            LookupKey = cell.LookupKey,
                         })
                         .ToList(),
                 })

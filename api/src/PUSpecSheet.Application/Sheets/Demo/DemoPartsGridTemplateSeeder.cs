@@ -20,6 +20,7 @@ public sealed class DemoPartsGridTemplateSeeder(PuSpecSheetDbContext db)
     public const string LimitsName = "Limits";
     public const string SingleValueName = "Single value";
     public const string PartBlockName = "Part";
+    public const string PartNumberKey = "partNumber";
 
     private static readonly CellStyle PartNumberStyle = new()
     {
@@ -78,7 +79,7 @@ public sealed class DemoPartsGridTemplateSeeder(PuSpecSheetDbContext db)
         header.Rows.Add(NewRow(
             1,
             Cell(heading.Id, null, 1, "Description", rowSpan: 2),
-            Cell(text.Id, part, 1, "Part number", columnSpan: 2, style: PartNumberStyle)));
+            Cell(text.Id, part, 1, "Part number", columnSpan: 2, style: PartNumberStyle, lookupKey: PartNumberKey)));
         header.Rows.Add(NewRow(2, Cell(heading.Id, part, 1, "Min"), Cell(heading.Id, part, 2, "Max")));
 
         var limits = NewSection(version, LimitsName, SectionRole.Addable, 2, minimum: 0, maximum: null, initial: 0);
@@ -142,7 +143,8 @@ public sealed class DemoPartsGridTemplateSeeder(PuSpecSheetDbContext db)
         string? caption,
         int columnSpan = 1,
         int rowSpan = 1,
-        CellStyle? style = null)
+        CellStyle? style = null,
+        string? lookupKey = null)
     {
         return new TemplateCell
         {
@@ -153,6 +155,7 @@ public sealed class DemoPartsGridTemplateSeeder(PuSpecSheetDbContext db)
             RowSpan = rowSpan,
             Caption = caption,
             StyleOverride = style,
+            LookupKey = lookupKey,
         };
     }
 }

@@ -33,6 +33,13 @@ public sealed class TemplateCellConfiguration : IEntityTypeConfiguration<Templat
         builder.Property(cell => cell.StyleOverride)
             .HasConversion<CellStyleConverter>();
 
+        builder.Property(cell => cell.LookupKey)
+            .HasMaxLength(LookupKeyRules.MaxLength);
+
+        // Finding the cells that answer to a lookup key; most cells have none.
+        builder.HasIndex(cell => cell.LookupKey)
+            .HasFilter("[LookupKey] IS NOT NULL");
+
         // Only one cell can start at a given column of a row's own cells, or of one column block in a row.
         // No filter, so the row's own cells (no block) are unique among themselves too.
         builder.HasIndex(cell => new { cell.TemplateRowId, cell.TemplateColumnBlockId, cell.Column })

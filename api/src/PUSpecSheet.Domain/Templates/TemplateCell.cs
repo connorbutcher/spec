@@ -48,4 +48,10 @@ public class TemplateCell
 
     /// <summary>The style values this cell changes from its cell type's <see cref="CellType.Style"/>.</summary>
     public CellStyle? StyleOverride { get; set; }
+
+    /// <summary>
+    /// The name other applications look this cell up by, such as "partNumber", or null when it can't be
+    /// looked up. See <see cref="LookupKeyRules"/>. It is carried into each new version of the template.
+    /// </summary>
+    public string? LookupKey { get; set; }
 }

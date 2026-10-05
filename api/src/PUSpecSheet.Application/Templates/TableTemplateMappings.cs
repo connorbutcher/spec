@@ -85,7 +85,8 @@ internal static class TableTemplateMappings
                 cell.IsRequired,
                 cell.ConfigurationOverride,
                 cell.StyleOverride,
-                cell.TemplateColumnBlockId))
+                cell.TemplateColumnBlockId,
+                cell.LookupKey))
             .ToList();
 
         return new TemplateRowDto(row.Id, row.DisplayOrder, cells);
