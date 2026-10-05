@@ -15,6 +15,20 @@ export class AdminApi {
     return firstValueFrom(this.http.post<Phase>('/api/phases', request));
   }
 
+  /**
+   * Moves a phase to a 1-based position under a parent (null for the top level) and returns every
+   * phase with its new order. Needs the `phases.manage` permission.
+   */
+  public movePhase(
+    phaseId: number,
+    parentPhaseId: number | null,
+    position: number,
+  ): Promise<Phase[]> {
+    return firstValueFrom(
+      this.http.post<Phase[]>(`/api/phases/${phaseId}/move`, { parentPhaseId, position }),
+    );
+  }
+
   /** Replaces the sheet types a phase has. Needs the `phases.manage` permission. */
   public setPhaseSheetTypes(phaseId: number, sheetTypeIds: number[]): Promise<Phase> {
     return firstValueFrom(

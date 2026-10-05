@@ -1,6 +1,7 @@
 import { TreeNode } from 'primeng/api';
 import { Phase } from '../../core/models/phase.model';
 import { SheetType } from '../../core/models/sheet-type.model';
+import { PhaseLocation } from './models/phase-location.model';
 import { PhaseOption } from './models/phase-option.model';
 import { SheetTypeUsage } from './models/sheet-type-usage.model';
 
@@ -45,6 +46,29 @@ export function sheetTypeUsage(
       .filter((phase) => phase.sheetTypeIds.includes(sheetType.id))
       .map((phase) => phase.code),
   }));
+}
+
+/** Where a phase's node sits in the tree as it stands, or null when the tree doesn't hold it. */
+export function phaseLocation(
+  tree: readonly TreeNode<Phase>[],
+  phaseId: number,
+): PhaseLocation | null {
+  const search = (
+    nodes: readonly TreeNode<Phase>[],
+    parentPhaseId: number | null,
+  ): PhaseLocation | null => {
+    for (const [index, node] of nodes.entries()) {
+      if (node.data?.id === phaseId) {
+        return { parentPhaseId, position: index + 1 };
+      }
+      const found = search(node.children ?? [], node.data?.id ?? null);
+      if (found) {
+        return found;
+      }
+    }
+    return null;
+  };
+  return search(tree, null);
 }
 
 /** Whether two lists of ids hold the same ids, in any order. */

@@ -59,6 +59,17 @@
   }
 }
 
+.error {
+  display: block;
+  margin-bottom: 6px;
+}
+
+.hint {
+  margin: 8px 2px 0;
+  color: #94a3b8;
+  font-size: 0.72rem;
+}
+
 .note {
   display: flex;
   flex-direction: column;

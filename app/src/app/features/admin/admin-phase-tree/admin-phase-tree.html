@@ -16,6 +16,19 @@
   </span>
 </header>
 
+@if (error(); as error) {
+  <p-message
+    class="error"
+    severity="error"
+    size="small"
+    icon="pi pi-exclamation-circle"
+    [closable]="true"
+    (onClose)="this.error.set(null)"
+  >
+    {{ error }}
+  </p-message>
+}
+
 @if (hasError()) {
   <div class="note">
     <span>Couldn't load phases.</span>
@@ -32,6 +45,12 @@
     selectionMode="single"
     [selection]="selectedNode()"
     (onNodeSelect)="onNodeSelect($event)"
+    [draggableNodes]="canManage() && !isMoving()"
+    [droppableNodes]="canManage()"
+    draggableScope="admin-phases"
+    droppableScope="admin-phases"
+    [validateDrop]="true"
+    (onNodeDrop)="onNodeDrop($event)"
     ariaLabel="Phases"
   >
     <ng-template #node let-node>
@@ -46,4 +65,9 @@
       </span>
     </ng-template>
   </p-tree>
+  @if (canManage()) {
+    <p class="hint">
+      Drag a phase to reorder it, or drop it on another phase to move it under that one.
+    </p>
+  }
 }

@@ -1,7 +1,7 @@
 import { Phase } from '../../core/models/phase.model';
 import { SheetType } from '../../core/models/sheet-type.model';
 import { buildPhaseTree } from '../phases/phase-tree.util';
-import { phaseOptions, sameIds, sheetTypeUsage } from './admin.util';
+import { phaseLocation, phaseOptions, sameIds, sheetTypeUsage } from './admin.util';
 
 function phase(
   id: number,
@@ -52,6 +52,33 @@ describe('sheetTypeUsage', () => {
       ['V6', 'Rig', 'A3'],
       [],
     ]);
+  });
+});
+
+describe('phaseLocation', () => {
+  it('finds a top-level phase', () => {
+    expect(phaseLocation(tree, 4)).toEqual({ parentPhaseId: null, position: 2 });
+  });
+
+  it('finds a nested phase under its parent', () => {
+    expect(phaseLocation(tree, 2)).toEqual({ parentPhaseId: 1, position: 2 });
+    expect(phaseLocation(tree, 5)).toEqual({ parentPhaseId: 3, position: 1 });
+  });
+
+  it('follows the nodes as they stand after one is moved', () => {
+    const moved = buildPhaseTree([
+      phase(1, 'V6', null, 1),
+      phase(2, 'A3', 1, 1),
+      phase(4, 'SC', null, 2),
+    ]);
+    const [a3] = moved[0].children!.splice(0, 1);
+    moved[1].children = [a3];
+
+    expect(phaseLocation(moved, 2)).toEqual({ parentPhaseId: 4, position: 1 });
+  });
+
+  it('is null for a phase the tree does not hold', () => {
+    expect(phaseLocation(tree, 99)).toBeNull();
   });
 });
 
