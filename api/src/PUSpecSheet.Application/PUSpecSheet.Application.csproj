@@ -4,4 +4,7 @@
     <ProjectReference Include="..\PUSpecSheet.Contracts\PUSpecSheet.Contracts.csproj" />
     <ProjectReference Include="..\PUSpecSheet.Data\PUSpecSheet.Data.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="PUSpecSheet.Application.Tests" />
+  </ItemGroup>
 </Project>

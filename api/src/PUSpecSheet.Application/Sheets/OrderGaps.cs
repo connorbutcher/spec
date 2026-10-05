@@ -29,6 +29,26 @@ internal static class OrderGaps
         return Between(before, after);
     }
 
+    /// <summary>
+    /// Like <see cref="PlaceAt(IReadOnlyList{int}, int)"/>, but when the item's published order
+    /// (<paramref name="publishedOrder"/>) already puts it at that position, that order is kept. Moving an item
+    /// and then moving it back therefore returns it to exactly what was published, so nothing is left to publish.
+    /// </summary>
+    public static int PlaceAt(IReadOnlyList<int> siblingOrders, int position, int? publishedOrder)
+    {
+        if (publishedOrder is { } published)
+        {
+            var index = Math.Clamp(position - 1, 0, siblingOrders.Count);
+            var rank = siblingOrders.Count(order => order < published);
+            if (rank == index && !siblingOrders.Contains(published))
+            {
+                return published;
+            }
+        }
+
+        return PlaceAt(siblingOrders, position);
+    }
+
     private static int Between(int? before, int? after)
     {
         if (before is null && after is null)

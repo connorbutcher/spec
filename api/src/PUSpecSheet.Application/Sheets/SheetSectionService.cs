@@ -81,12 +81,13 @@ public sealed class SheetSectionService(
             .Select(candidate => candidate.DisplayOrder)
             .Order()
             .ToList();
-        var order = OrderGaps.PlaceAt(siblingOrders, request.DisplayOrder);
+        var order = OrderGaps.PlaceAt(siblingOrders, request.DisplayOrder, state.Current?.DisplayOrder);
 
         var (draft, _) = await drafts.EnsureMineAsync(sectionId, state, cancellationToken);
         draft.DisplayOrder = order;
 
         await db.SaveSheetChangesAsync(cancellationToken);
+        await drafts.ReleaseIfUnchangedAsync(sectionId, cancellationToken);
         return await reader.ReadLiveAsync(section.SheetTable.SheetId, cancellationToken);
     }
 

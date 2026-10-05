@@ -35,6 +35,9 @@ export class SheetCheckboxCell {
 
   public set(value: boolean): void {
     this.checked.set(value);
-    this.changed.emit(valueRequest(this.cell(), 'Checkbox', value));
+    // Unticked is the same as nothing saved, so only a real difference is sent.
+    if (value !== (this.cell().booleanValue ?? false)) {
+      this.changed.emit(valueRequest(this.cell(), 'Checkbox', value));
+    }
   }
 }

@@ -15,6 +15,13 @@ public sealed class TableDrafts(PuSpecSheetDbContext db, ICurrentUser currentUse
         return Db.SheetTableRevisions.Where(revision => revision.SheetTableId == itemId && revision.SupersededAtUtc == null);
     }
 
+    protected override Task<bool> IsUnchangedAsync(SheetTableRevision draft, SheetTableRevision current, CancellationToken cancellationToken)
+    {
+        return Task.FromResult(
+            SheetRevisionComparer.SameStructure(draft, current)
+            && SheetRevisionComparer.SameText(draft.Title, current.Title));
+    }
+
     protected override async Task<int> LastRevisionNumberAsync(int itemId, CancellationToken cancellationToken)
     {
         return await Db.SheetTableRevisions

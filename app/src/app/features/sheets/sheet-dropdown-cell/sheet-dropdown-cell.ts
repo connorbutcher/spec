@@ -34,6 +34,8 @@ export class SheetDropdownCell {
 
   public choose(value: number | null): void {
     this.optionId.set(value);
-    this.changed.emit(valueRequest(this.cell(), this.cellType().kind, value));
+    if (value !== this.cell().optionId) {
+      this.changed.emit(valueRequest(this.cell(), this.cellType().kind, value));
+    }
   }
 }

@@ -88,10 +88,13 @@ public sealed class SheetRowService(
         foreach (var value in request.Values)
         {
             var kind = cellsById[value.SheetCellId].TemplateCell.CellType.Kind;
-            await valueStore.SetAsync(draft.Id, value.SheetCellId, kind, value, cancellationToken);
+            await valueStore.SetAsync(draft.Id, value.SheetCellId, kind, value with { Text = value.Text?.Trim() }, cancellationToken);
         }
 
         await db.SaveSheetChangesAsync(cancellationToken);
+
+        // Values put back to what is published leave nothing to publish, so the row is released.
+        await drafts.ReleaseIfUnchangedAsync(rowId, cancellationToken);
         await transaction.CommitAsync(cancellationToken);
         return await reader.ReadLiveAsync(row.SheetSection.SheetTable.SheetId, cancellationToken);
     }
@@ -102,12 +105,14 @@ public sealed class SheetRowService(
         var sheetId = await SheetIdOfAsync(rowId, cancellationToken);
 
         var siblingOrders = await VisibleRowOrdersAsync(sectionId, rowId, cancellationToken);
-        var order = OrderGaps.PlaceAt(siblingOrders, request.DisplayOrder);
+        var published = (await drafts.LoadAsync(rowId, cancellationToken)).Current?.DisplayOrder;
+        var order = OrderGaps.PlaceAt(siblingOrders, request.DisplayOrder, published);
 
         await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
         var draft = await StartDraftAsync(rowId, cancellationToken);
         draft.DisplayOrder = order;
         await db.SaveSheetChangesAsync(cancellationToken);
+        await drafts.ReleaseIfUnchangedAsync(rowId, cancellationToken);
         await transaction.CommitAsync(cancellationToken);
 
         return await reader.ReadLiveAsync(sheetId, cancellationToken);

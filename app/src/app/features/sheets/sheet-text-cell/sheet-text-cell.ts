@@ -36,10 +36,13 @@ export class SheetTextCell {
   });
 
   public commit(): void {
-    const value = this.text();
-    if (value !== (this.cell().textValue ?? '')) {
-      this.changed.emit(valueRequest(this.cell(), 'Text', value === '' ? null : value));
+    // Spaces around the text aren't a change: it's shown as saved if that's all that differs.
+    const value = this.text().trim();
+    if (value === (this.cell().textValue ?? '').trim()) {
+      this.revert();
+      return;
     }
+    this.changed.emit(valueRequest(this.cell(), 'Text', value === '' ? null : value));
   }
 
   public revert(): void {

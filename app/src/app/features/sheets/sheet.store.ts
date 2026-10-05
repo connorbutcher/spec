@@ -88,7 +88,6 @@ export class SheetStore {
   private readonly route = inject(ActivatedRoute);
   private readonly rawSelection = signal<SheetSelection | null>(null);
   private readonly inFlight = signal(0);
-  private readonly lockRequests = new Set<number>();
   private tail: Promise<unknown> = Promise.resolve();
 
   private readonly target = toSignal(
@@ -245,24 +244,6 @@ export class SheetStore {
       const added = [...buildSheetIndex(sheet).rows.keys()].find((id) => !before.has(id));
       this.rawSelection.set({ tableId, sectionId, rowId: added ?? null });
     }
-  }
-
-  public async lockRow(rowId: number): Promise<void> {
-    await this.run(() => this.api.lockRow(rowId));
-  }
-
-  /**
-   * The user moved into a cell: take the row's lock if nobody has it, so what they type is saved to
-   * their own draft. A row they already hold, or someone else holds, is left alone.
-   */
-  public beginEditing(rowId: number): void {
-    const row = this.index().rows.get(rowId);
-    if (!this.canEdit() || row === undefined || row.lock !== null || this.lockRequests.has(rowId)) {
-      return;
-    }
-    this.lockRequests.add(rowId);
-    this.selectRow(rowId);
-    void this.lockRow(rowId).finally(() => this.lockRequests.delete(rowId));
   }
 
   public async saveValues(rowId: number, values: CellValueRequest[]): Promise<void> {

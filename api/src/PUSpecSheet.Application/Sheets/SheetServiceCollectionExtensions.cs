@@ -19,6 +19,7 @@ public static class SheetServiceCollectionExtensions
         services.AddScoped<SectionDrafts>();
         services.AddScoped<RowDrafts>();
         services.AddScoped<ColumnBlockDrafts>();
+        services.AddScoped<DraftSweeper>();
         services.AddScoped<ISheetCellFiller, SheetCellFiller>();
 
         services.AddScoped<ISheetService, SheetService>();

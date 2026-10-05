@@ -12,6 +12,7 @@ public sealed class SheetService(
     PuSpecSheetDbContext db,
     SheetReader reader,
     RowValueStore valueStore,
+    DraftSweeper sweeper,
     ICurrentUser currentUser) : ISheetService
 {
     public async Task<SheetDto> OpenAsync(int phaseId, int sheetTypeId, SheetViewPoint view, CancellationToken cancellationToken)
@@ -26,18 +27,29 @@ public sealed class SheetService(
             sheetId = await CreateSheetAsync(phaseId, sheetTypeId, cancellationToken);
         }
 
+        if (view.IsLive)
+        {
+            await sweeper.SweepAsync(sheetId.Value, cancellationToken);
+        }
+
         return await reader.ReadAsync(sheetId.Value, view, cancellationToken);
     }
 
-    public Task<SheetDto> GetAsync(int sheetId, SheetViewPoint view, CancellationToken cancellationToken)
+    public async Task<SheetDto> GetAsync(int sheetId, SheetViewPoint view, CancellationToken cancellationToken)
     {
-        return reader.ReadAsync(sheetId, view, cancellationToken);
+        if (view.IsLive)
+        {
+            await sweeper.SweepAsync(sheetId, cancellationToken);
+        }
+
+        return await reader.ReadAsync(sheetId, view, cancellationToken);
     }
 
     public async Task<SheetDto> PublishAsync(int sheetId, PublishSheetRequest request, CancellationToken cancellationToken)
     {
         var sheet = await db.Sheets.SingleOrDefaultAsync(candidate => candidate.Id == sheetId, cancellationToken)
             ?? throw new NotFoundException($"Sheet {sheetId} was not found.");
+        await sweeper.SweepAsync(sheetId, cancellationToken);
         var me = currentUser.UserId;
 
         var tableDrafts = await db.SheetTableRevisions

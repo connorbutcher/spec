@@ -27,8 +27,8 @@ const FLEX_ALIGNMENT: Readonly<Record<string, string>> = {
 /**
  * A cell on the sheet grid, placed by the template layout. It behaves like a table cell: heading and
  * group cells show their caption; a value cell holds a control for its kind that fills the whole cell,
- * so the user can click in and type. Moving into a control locks its row to the user if it's free; the
- * row stays private until they publish. A row locked by someone else, or a past version, shows plain
+ * so the user can click in and type. Moving into a control only selects the row; the row is locked to the
+ * user, and held until they publish, by the first change that makes a real difference to what is published. A row locked by someone else, or a past version, shows plain
  * values instead, with a lock mark on the row's first cell.
  */
 @Component({
@@ -97,7 +97,7 @@ export class SheetGridCell {
 
   /**
    * Whether the cell holds a control: it takes a value, the sheet is live, and nobody else has the row.
-   * A free row counts too, since moving into one of its cells is what locks it.
+   * A free row counts too: the first real change to one of its cells is what locks it.
    */
   public readonly isEditable = computed(
     () =>
@@ -225,9 +225,9 @@ export class SheetGridCell {
     this.store.selectRow(this.layout().rowId);
   }
 
-  /** The user moved into the cell's control: take the row's lock if it's free. */
+  /** The user moved into the cell's control: select its row. Nothing is locked or changed until they change a value. */
   public beginEditing(): void {
-    this.store.beginEditing(this.layout().rowId);
+    this.store.selectRow(this.layout().rowId);
   }
 
   public save(request: CellValueRequest): void {

@@ -85,10 +85,6 @@ export class SheetsApi {
     );
   }
 
-  public lockRow(rowId: number): Promise<Sheet> {
-    return firstValueFrom(this.http.post<Sheet>(`/api/sheet-rows/${rowId}/lock`, {}));
-  }
-
   public saveValues(rowId: number, values: CellValueRequest[]): Promise<Sheet> {
     return firstValueFrom(this.http.put<Sheet>(`/api/sheet-rows/${rowId}/values`, { values }));
   }

@@ -61,12 +61,13 @@ public sealed class SheetColumnBlockService(
             .Select(candidate => candidate.DisplayOrder)
             .Order()
             .ToList();
-        var order = OrderGaps.PlaceAt(siblingOrders, request.DisplayOrder);
+        var order = OrderGaps.PlaceAt(siblingOrders, request.DisplayOrder, state.Current?.DisplayOrder);
 
         var (draft, _) = await drafts.EnsureMineAsync(columnBlockId, state, cancellationToken);
         draft.DisplayOrder = order;
 
         await db.SaveSheetChangesAsync(cancellationToken);
+        await drafts.ReleaseIfUnchangedAsync(columnBlockId, cancellationToken);
         return await reader.ReadLiveAsync(block.SheetTable.SheetId, cancellationToken);
     }
 

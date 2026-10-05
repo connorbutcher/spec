@@ -62,6 +62,7 @@ public sealed class SheetTableService(
         draft.Title = string.IsNullOrWhiteSpace(request.Title) ? null : request.Title.Trim();
 
         await db.SaveSheetChangesAsync(cancellationToken);
+        await drafts.ReleaseIfUnchangedAsync(tableId, cancellationToken);
         return await reader.ReadLiveAsync(await SheetIdOfAsync(tableId, cancellationToken), cancellationToken);
     }
 
@@ -71,12 +72,13 @@ public sealed class SheetTableService(
         var state = await drafts.LoadAsync(tableId, cancellationToken);
 
         var siblingOrders = await VisibleTableOrdersAsync(sheetId, tableId, cancellationToken);
-        var order = OrderGaps.PlaceAt(siblingOrders, request.DisplayOrder);
+        var order = OrderGaps.PlaceAt(siblingOrders, request.DisplayOrder, state.Current?.DisplayOrder);
 
         var draft = await MyDraftAsync(tableId, state, cancellationToken);
         draft.DisplayOrder = order;
 
         await db.SaveSheetChangesAsync(cancellationToken);
+        await drafts.ReleaseIfUnchangedAsync(tableId, cancellationToken);
         return await reader.ReadLiveAsync(sheetId, cancellationToken);
     }
 

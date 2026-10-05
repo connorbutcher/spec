@@ -27,6 +27,39 @@ public abstract class DraftGateway<TRevision>(PuSpecSheetDbContext db, ICurrentU
     /// <summary>Points a new revision at its item and adds it to the context.</summary>
     protected abstract void Add(TRevision revision, int itemId);
 
+    /// <summary>
+    /// Whether a draft makes no net difference to the published revision it started from, so it needn't be kept:
+    /// the same place in the order and the same existence. Revision types with more to compare add to this.
+    /// </summary>
+    protected virtual Task<bool> IsUnchangedAsync(TRevision draft, TRevision current, CancellationToken cancellationToken)
+    {
+        return Task.FromResult(SheetRevisionComparer.SameStructure(draft, current));
+    }
+
+    /// <summary>
+    /// Throws the viewer's draft away, releasing the lock, when it has been put back to what's published (a
+    /// value typed back, an item moved back to where it was, a title restored). Nothing is left to publish.
+    /// An item that has never been published has no original to return to, so it is left alone.
+    /// </summary>
+    /// <returns>True when a draft was dropped.</returns>
+    public async Task<bool> ReleaseIfUnchangedAsync(int itemId, CancellationToken cancellationToken)
+    {
+        var state = await LoadAsync(itemId, cancellationToken);
+        if (state.Draft is not { } draft || state.Current is not { } current || draft.AuthorUserId != currentUser.UserId)
+        {
+            return false;
+        }
+
+        if (!await IsUnchangedAsync(draft, current, cancellationToken))
+        {
+            return false;
+        }
+
+        db.Remove(draft);
+        await db.SaveSheetChangesAsync(cancellationToken);
+        return true;
+    }
+
     public async Task<DraftState<TRevision>> LoadAsync(int itemId, CancellationToken cancellationToken)
     {
         var revisions = await CurrentAndDrafts(itemId).ToListAsync(cancellationToken);
