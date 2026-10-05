@@ -11,7 +11,8 @@ namespace PUSpecSheet.Application.Sheets.Demo;
 /// the descriptions and whose "Part" column block, two columns wide, people add a copy of for each part. The
 /// header has the part number across the top of each part, in blue, with Min and Max under it. Below it
 /// people add rows of limits, each either a Min and Max for every part or a single value across both of a
-/// part's columns. Does nothing if a template with that name already exists.
+/// part's columns. If a template with that name already exists it only makes sure the part number cell has
+/// its lookup key.
 /// </summary>
 public sealed class DemoPartsGridTemplateSeeder(PuSpecSheetDbContext db)
 {
@@ -21,6 +22,7 @@ public sealed class DemoPartsGridTemplateSeeder(PuSpecSheetDbContext db)
     public const string SingleValueName = "Single value";
     public const string PartBlockName = "Part";
     public const string PartNumberKey = "partNumber";
+    public const string PartNumberCaption = "Part number";
 
     private static readonly CellStyle PartNumberStyle = new()
     {
@@ -40,6 +42,7 @@ public sealed class DemoPartsGridTemplateSeeder(PuSpecSheetDbContext db)
 
         if (await db.TableTemplates.AnyAsync(template => template.SheetTypeId == sheetType.Id && template.Name == TemplateName, cancellationToken))
         {
+            await EnsurePartNumberKeyAsync(sheetType.Id, cancellationToken);
             return false;
         }
 
@@ -79,7 +82,7 @@ public sealed class DemoPartsGridTemplateSeeder(PuSpecSheetDbContext db)
         header.Rows.Add(NewRow(
             1,
             Cell(heading.Id, null, 1, "Description", rowSpan: 2),
-            Cell(text.Id, part, 1, "Part number", columnSpan: 2, style: PartNumberStyle, lookupKey: PartNumberKey)));
+            Cell(text.Id, part, 1, PartNumberCaption, columnSpan: 2, style: PartNumberStyle, lookupKey: PartNumberKey)));
         header.Rows.Add(NewRow(2, Cell(heading.Id, part, 1, "Min"), Cell(heading.Id, part, 2, "Max")));
 
         var limits = NewSection(version, LimitsName, SectionRole.Addable, 2, minimum: 0, maximum: null, initial: 0);
@@ -91,6 +94,25 @@ public sealed class DemoPartsGridTemplateSeeder(PuSpecSheetDbContext db)
         db.TableTemplates.Add(template);
         await db.SaveChangesAsync(cancellationToken);
         return true;
+    }
+
+    /// <summary>
+    /// Gives the part number cell its lookup key on a sample template that was added before lookup keys
+    /// existed, in every version of it, so the sheets already built from it can be looked up by part
+    /// number. A cell that has a key is left alone.
+    /// </summary>
+    private async Task EnsurePartNumberKeyAsync(int sheetTypeId, CancellationToken cancellationToken)
+    {
+        await db.TemplateCells
+            .Where(cell => cell.LookupKey == null
+                && cell.Caption == PartNumberCaption
+                && cell.CellType.Kind == CellKind.Text
+                && cell.TemplateColumnBlock != null
+                && cell.TemplateColumnBlock.Name == PartBlockName
+                && cell.TemplateRow.TemplateSection.Role == SectionRole.Header
+                && cell.TemplateRow.TemplateSection.TableTemplateVersion.TableTemplate.Name == TemplateName
+                && cell.TemplateRow.TemplateSection.TableTemplateVersion.TableTemplate.SheetTypeId == sheetTypeId)
+            .ExecuteUpdateAsync(setters => setters.SetProperty(cell => cell.LookupKey, PartNumberKey), cancellationToken);
     }
 
     private async Task<CellType?> FindCellTypeAsync(CellKind kind, CancellationToken cancellationToken)
