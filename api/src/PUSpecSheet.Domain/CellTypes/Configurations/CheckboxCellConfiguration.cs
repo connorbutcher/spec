@@ -8,7 +8,7 @@ public sealed record CheckboxCellConfiguration : CellConfiguration
         return CellKind.Checkbox;
     }
 
-    public override CellConfiguration Apply(CellConfiguration? overrides)
+    public override CellConfiguration Apply(CellConfiguration? cellOverride)
     {
         return this;
     }

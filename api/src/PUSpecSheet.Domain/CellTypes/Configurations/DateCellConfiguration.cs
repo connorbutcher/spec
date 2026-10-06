@@ -11,9 +11,9 @@ public sealed record DateCellConfiguration : CellConfiguration
     /// <summary>Whether a time of day is entered along with the date.</summary>
     public bool? IncludeTime { get; init; }
 
-    public override CellConfiguration Apply(CellConfiguration? overrides)
+    public override CellConfiguration Apply(CellConfiguration? cellOverride)
     {
-        if (overrides is not DateCellConfiguration date)
+        if (cellOverride is not DateCellConfiguration date)
         {
             return this;
         }

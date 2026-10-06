@@ -23,10 +23,10 @@ public abstract record CellConfiguration
     public CellKind Kind => GetKind();
 
     /// <summary>
-    /// These settings with every value <paramref name="overrides"/> sets laid on top. Overrides for a
+    /// These settings with every value <paramref name="cellOverride"/> sets laid on top. Overrides for a
     /// different kind are ignored, so a cell whose type changed kind falls back to the defaults.
     /// </summary>
-    public abstract CellConfiguration Apply(CellConfiguration? overrides);
+    public abstract CellConfiguration Apply(CellConfiguration? cellOverride);
 
     /// <summary>Why these settings are invalid, or null when they're fine.</summary>
     public virtual string? Validate()

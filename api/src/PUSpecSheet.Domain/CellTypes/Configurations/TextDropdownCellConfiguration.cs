@@ -8,7 +8,7 @@ public sealed record TextDropdownCellConfiguration : CellConfiguration
         return CellKind.TextDropdown;
     }
 
-    public override CellConfiguration Apply(CellConfiguration? overrides)
+    public override CellConfiguration Apply(CellConfiguration? cellOverride)
     {
         return this;
     }

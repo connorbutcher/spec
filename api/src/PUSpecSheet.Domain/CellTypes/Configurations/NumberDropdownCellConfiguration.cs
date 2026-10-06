@@ -17,9 +17,9 @@ public sealed record NumberDropdownCellConfiguration : CellConfiguration
     /// <summary>The unit shown after the value, e.g. "mm".</summary>
     public string? Unit { get; init; }
 
-    public override CellConfiguration Apply(CellConfiguration? overrides)
+    public override CellConfiguration Apply(CellConfiguration? cellOverride)
     {
-        if (overrides is not NumberDropdownCellConfiguration number)
+        if (cellOverride is not NumberDropdownCellConfiguration number)
         {
             return this;
         }

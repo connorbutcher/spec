@@ -20,9 +20,9 @@ public sealed record NumberCellConfiguration : CellConfiguration
     /// <summary>The unit shown after the value, e.g. "Nm".</summary>
     public string? Unit { get; init; }
 
-    public override CellConfiguration Apply(CellConfiguration? overrides)
+    public override CellConfiguration Apply(CellConfiguration? cellOverride)
     {
-        if (overrides is not NumberCellConfiguration number)
+        if (cellOverride is not NumberCellConfiguration number)
         {
             return this;
         }

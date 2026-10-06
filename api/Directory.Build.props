@@ -7,6 +7,8 @@
     <!-- Runs the .editorconfig code-style rules (braces, file-scoped namespaces, ...) as part of every build. -->
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <AnalysisLevel>latest-recommended</AnalysisLevel>
+    <!-- An analyzer warning fails the build, so the standards can't drift. -->
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <!-- Missing XML doc comments are not enforced. -->
     <NoWarn>$(NoWarn);CS1591</NoWarn>

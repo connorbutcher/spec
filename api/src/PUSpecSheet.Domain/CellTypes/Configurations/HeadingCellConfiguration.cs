@@ -8,7 +8,7 @@ public sealed record HeadingCellConfiguration : CellConfiguration
         return CellKind.Heading;
     }
 
-    public override CellConfiguration Apply(CellConfiguration? overrides)
+    public override CellConfiguration Apply(CellConfiguration? cellOverride)
     {
         return this;
     }

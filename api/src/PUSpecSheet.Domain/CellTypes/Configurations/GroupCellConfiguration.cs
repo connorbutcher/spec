@@ -8,7 +8,7 @@ public sealed record GroupCellConfiguration : CellConfiguration
         return CellKind.Group;
     }
 
-    public override CellConfiguration Apply(CellConfiguration? overrides)
+    public override CellConfiguration Apply(CellConfiguration? cellOverride)
     {
         return this;
     }

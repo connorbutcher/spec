@@ -16,9 +16,9 @@ public sealed record TextCellConfiguration : CellConfiguration
     /// <summary>Whether the value is entered in a multi-line box.</summary>
     public bool? Multiline { get; init; }
 
-    public override CellConfiguration Apply(CellConfiguration? overrides)
+    public override CellConfiguration Apply(CellConfiguration? cellOverride)
     {
-        if (overrides is not TextCellConfiguration text)
+        if (cellOverride is not TextCellConfiguration text)
         {
             return this;
         }
