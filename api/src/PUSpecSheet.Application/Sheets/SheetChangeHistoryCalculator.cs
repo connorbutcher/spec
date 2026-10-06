@@ -38,8 +38,7 @@ internal static class SheetChangeHistoryCalculator
             return new SheetChange(number, DateTime.SpecifyKind(at, DateTimeKind.Utc), revision.AuthorUserId);
         }
 
-        // Rows are taken in the order they were first published, whatever order the revisions arrive in.
-        foreach (var group in rowRevisions.OrderBy(revision => revision.Id).GroupBy(revision => revision.SheetRowId))
+        foreach (var group in rowRevisions.GroupBy(revision => revision.SheetRowId))
         {
             SheetRowRevision? previous = null;
             foreach (var revision in group.OrderBy(candidate => candidate.RevisionNumber))
@@ -68,7 +67,7 @@ internal static class SheetChangeHistoryCalculator
                         || revision.DisplayOrder != previous.DisplayOrder;
                     if (restructured && rowSections.TryGetValue(group.Key, out var sectionId))
                     {
-                        history.Sections[sectionId] = change;
+                        KeepNewest(history.Sections, sectionId, change);
                     }
                 }
 
@@ -76,12 +75,12 @@ internal static class SheetChangeHistoryCalculator
             }
         }
 
-        foreach (var revision in sectionRevisions.OrderBy(candidate => candidate.PublishedAtUtc).ThenBy(candidate => candidate.Id))
+        foreach (var revision in sectionRevisions)
         {
             if (sectionParents.GetValueOrDefault(revision.SheetSectionId) is { } parentId
                 && Change(revision) is { } change)
             {
-                history.Sections[parentId] = change;
+                KeepNewest(history.Sections, parentId, change);
             }
         }
 
@@ -94,6 +93,18 @@ internal static class SheetChangeHistoryCalculator
         }
 
         return history;
+    }
+
+    /// <summary>
+    /// Records a change to a section unless a later one is already recorded. Several rows and sub-sections
+    /// feed the same section, in no particular order, and the section shows the most recent of them.
+    /// </summary>
+    private static void KeepNewest(Dictionary<int, SheetChange> changes, int itemId, SheetChange change)
+    {
+        if (!changes.TryGetValue(itemId, out var recorded) || change.VersionNumber >= recorded.VersionNumber)
+        {
+            changes[itemId] = change;
+        }
     }
 
     private static bool Same(CellValueBag? left, CellValueBag? right)
