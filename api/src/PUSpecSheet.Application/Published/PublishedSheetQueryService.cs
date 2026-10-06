@@ -58,7 +58,7 @@ public sealed class PublishedSheetQueryService(
     public async Task<PublishedSheetDto> ReadAsync(ResolvedSheetVersion version, PublishedSheetSelection selection, CancellationToken cancellationToken)
     {
         var key = version.KeyFor(selection);
-        if (cache.TryGet(key, out var cached) && cached is not null)
+        if (cache.TryGet(key, out var cached))
         {
             return cached;
         }

@@ -12,7 +12,7 @@ public sealed class PublishedRowsService(
     public async Task<PublishedRowsDto> ReadAsync(ResolvedSheetVersion version, PublishedRowsSelection selection, CancellationToken cancellationToken)
     {
         var key = $"{version.SheetPublicId:N}-v{version.VersionNumber}-{selection.Key}";
-        if (cache.TryGet(key, out var cached) && cached is not null)
+        if (cache.TryGet(key, out var cached))
         {
             return cached;
         }
