@@ -223,10 +223,9 @@ public sealed class SheetRowService(
     {
         var me = currentUser.UserId;
         var revisions = await db.SheetRowRevisions
+            .Where(revision => revision.SheetRow.SheetSectionId == sectionId)
+            .VisibleTo(me)
             .AsNoTracking()
-            .Where(revision => revision.SheetRow.SheetSectionId == sectionId
-                && revision.SupersededAtUtc == null
-                && (revision.Status == RevisionStatus.Published || revision.AuthorUserId == me))
             .ToListAsync(cancellationToken);
 
         return RevisionResolver.Resolve(revisions, revision => revision.SheetRowId, me)

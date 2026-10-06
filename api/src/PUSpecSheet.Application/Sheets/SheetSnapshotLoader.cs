@@ -182,7 +182,7 @@ public sealed class SheetSnapshotLoader(PuSpecSheetDbContext db, RowValueStore v
             ? query.Where(revision => revision.Status == RevisionStatus.Published
                 && revision.PublishedAtUtc <= at
                 && (revision.SupersededAtUtc == null || revision.SupersededAtUtc > at))
-            : query.Where(revision => revision.SupersededAtUtc == null);
+            : query.CurrentAndDrafts();
 
         return await filtered.AsNoTracking().ToListAsync(cancellationToken);
     }

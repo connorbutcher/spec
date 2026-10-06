@@ -100,17 +100,21 @@ public sealed class SheetService(
         var blockIds = blockDrafts.Select(draft => draft.SheetColumnBlockId).ToList();
 
         var previousTables = await db.SheetTableRevisions
-            .Where(revision => tableIds.Contains(revision.SheetTableId) && revision.Status == RevisionStatus.Published && revision.SupersededAtUtc == null)
+            .Where(revision => tableIds.Contains(revision.SheetTableId))
+            .Current()
             .ToListAsync(cancellationToken);
         var previousSections = await db.SheetSectionRevisions
-            .Where(revision => sectionIds.Contains(revision.SheetSectionId) && revision.Status == RevisionStatus.Published && revision.SupersededAtUtc == null)
+            .Where(revision => sectionIds.Contains(revision.SheetSectionId))
+            .Current()
             .ToListAsync(cancellationToken);
         var previousRows = await db.SheetRowRevisions
-            .Where(revision => rowIds.Contains(revision.SheetRowId) && revision.Status == RevisionStatus.Published && revision.SupersededAtUtc == null)
+            .Where(revision => rowIds.Contains(revision.SheetRowId))
+            .Current()
             .ToListAsync(cancellationToken);
 
         var previousBlocks = await db.SheetColumnBlockRevisions
-            .Where(revision => blockIds.Contains(revision.SheetColumnBlockId) && revision.Status == RevisionStatus.Published && revision.SupersededAtUtc == null)
+            .Where(revision => blockIds.Contains(revision.SheetColumnBlockId))
+            .Current()
             .ToListAsync(cancellationToken);
 
         foreach (var previous in previousTables)

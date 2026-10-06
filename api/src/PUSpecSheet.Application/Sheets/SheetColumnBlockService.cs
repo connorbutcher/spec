@@ -127,10 +127,9 @@ public sealed class SheetColumnBlockService(
             .Select(block => new { block.Id, block.TemplateColumnBlockId })
             .ToListAsync(cancellationToken);
         var revisions = await db.SheetColumnBlockRevisions
+            .Where(revision => revision.SheetColumnBlock.SheetTableId == tableId)
+            .VisibleTo(me)
             .AsNoTracking()
-            .Where(revision => revision.SheetColumnBlock.SheetTableId == tableId
-                && revision.SupersededAtUtc == null
-                && (revision.Status == RevisionStatus.Published || revision.AuthorUserId == me))
             .ToListAsync(cancellationToken);
         var resolved = RevisionResolver.Resolve(revisions, revision => revision.SheetColumnBlockId, me);
 

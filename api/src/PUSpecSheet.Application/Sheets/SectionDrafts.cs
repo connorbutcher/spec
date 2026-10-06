@@ -12,7 +12,7 @@ public sealed class SectionDrafts(PuSpecSheetDbContext db, ICurrentUser currentU
 
     protected override IQueryable<SheetSectionRevision> CurrentAndDrafts(IReadOnlyCollection<int> itemIds)
     {
-        return Db.SheetSectionRevisions.Where(revision => itemIds.Contains(revision.SheetSectionId) && revision.SupersededAtUtc == null);
+        return Db.SheetSectionRevisions.Where(revision => itemIds.Contains(revision.SheetSectionId)).CurrentAndDrafts();
     }
 
     protected override int ItemIdOf(SheetSectionRevision revision)

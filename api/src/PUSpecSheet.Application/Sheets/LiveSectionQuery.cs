@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Application.Users;
 using PUSpecSheet.Data;
-using PUSpecSheet.Domain.Sheets;
 
 namespace PUSpecSheet.Application.Sheets;
 
@@ -22,10 +21,9 @@ public sealed class LiveSectionQuery(PuSpecSheetDbContext db, ICurrentUser curre
             .ToListAsync(cancellationToken);
 
         var revisions = await db.SheetSectionRevisions
+            .Where(revision => revision.SheetSection.SheetTableId == tableId)
+            .VisibleTo(me)
             .AsNoTracking()
-            .Where(revision => revision.SheetSection.SheetTableId == tableId
-                && revision.SupersededAtUtc == null
-                && (revision.Status == RevisionStatus.Published || revision.AuthorUserId == me))
             .ToListAsync(cancellationToken);
         var resolved = RevisionResolver.Resolve(revisions, revision => revision.SheetSectionId, me);
 
