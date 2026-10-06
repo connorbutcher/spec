@@ -9,6 +9,7 @@
       [label]="hint()"
       (started)="selectRow()"
       (changed)="save($event)"
+      (left)="stopEditing()"
     />
   } @else {
     <app-sheet-cell-value

@@ -135,6 +135,13 @@ export class SheetStore {
     this.editingCellId.set(cellId);
   }
 
+  /** The user left a cell: it goes back to its plain value, unless another cell has taken over since. */
+  public stopEditing(cellId: number): void {
+    if (this.editingCellId() === cellId) {
+      this.editingCellId.set(null);
+    }
+  }
+
   public setChangesSince(version: number | null): void {
     this.changesSince.set(version);
   }

@@ -76,7 +76,9 @@ user action ─► component ─► store method ─► SheetsApi ─► whole l
   the cell, and emit `changed` only when the value really differs.
 - **One editor at a time.** A cell that can be edited shows its plain value (`sheet-cell-value`) and
   is a tab stop. Pressing on it or tabbing to it makes it `store.editingCellId()`, which swaps in its
-  editor and moves focus into it; the cell that had the editor goes back to its plain value. This is
+  editor and moves focus into it. The cell goes back to its plain value as soon as the user presses or
+  moves focus anywhere outside it (`SheetCellEditor.left`); the panels a control opens, such as a
+  dropdown's list or a calendar, count as inside. This is
   what keeps opening a sheet fast: a PrimeNG control per cell was about 85% of the time to open one.
   The plain value is styled to sit exactly where the control's text sits (`sheet-cell-value.scss`), so
   nothing moves on the swap. Checkboxes are the exception and always show their control.

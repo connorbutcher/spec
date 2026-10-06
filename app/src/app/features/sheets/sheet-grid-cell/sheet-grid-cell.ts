@@ -35,8 +35,8 @@ const FLEX_ALIGNMENT: Readonly<Record<string, string>> = {
 /**
  * A cell on the sheet grid, placed by the template layout. It behaves like a table cell: heading and
  * group cells show their caption; a value cell shows its value, and swaps it for a control of its kind,
- * filling the whole cell, when the user clicks or tabs into it. Only one cell holds a control at a
- * time, so opening a sheet doesn't build one per cell. Moving into a control only selects the row; the
+ * filling the whole cell, when the user clicks or tabs into it, and back again as soon as they click
+ * or tab away. Only one cell holds a control at a time, so opening a sheet doesn't build one per cell. Moving into a control only selects the row; the
  * row is locked to the user, and held until they publish, by the first change that makes a real
  * difference to what is published. A row locked by someone else, or a past version, only ever shows
  * plain values, with a lock mark on the row's first cell.
@@ -201,6 +201,14 @@ export class SheetGridCell {
     }
     this.store.edit(editable.cell.id);
     afterNextRender(() => this.enterEditor(byPointer), { injector: this.injector });
+  }
+
+  /** The user clicked or tabbed away: back to the plain value. The control saved its value as it lost focus. */
+  public stopEditing(): void {
+    const cell = this.cell();
+    if (cell !== null) {
+      this.store.stopEditing(cell.id);
+    }
   }
 
   public select(event: Event): void {

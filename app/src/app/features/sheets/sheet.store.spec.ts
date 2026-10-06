@@ -110,6 +110,12 @@ describe('SheetStore', () => {
     store.edit(12);
     expect(store.editingCellId()).toBe(12);
 
+    store.stopEditing(11);
+    expect(store.editingCellId()).toBe(12);
+    store.stopEditing(12);
+    expect(store.editingCellId()).toBeNull();
+    store.edit(12);
+
     store.setView({ version: 1 });
     expect(store.editingCellId()).toBeNull();
 
