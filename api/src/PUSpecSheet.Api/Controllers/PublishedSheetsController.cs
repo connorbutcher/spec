@@ -1,8 +1,6 @@
-using System.Globalization;
 using Microsoft.AspNetCore.Mvc;
 using PUSpecSheet.Api.ApiDocumentation;
 using PUSpecSheet.Api.Published;
-using PUSpecSheet.Application.Common;
 using PUSpecSheet.Application.Published;
 using PUSpecSheet.Contracts.Published;
 
@@ -124,13 +122,8 @@ public sealed class PublishedSheetsController(IPublishedSheetQueryService sheets
         [FromQuery] PublishedSheetQueryOptions options,
         CancellationToken cancellationToken)
     {
-        if (!DateTimeOffset.TryParse(instant, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out var parsed))
-        {
-            throw new InvalidRequestException($"\"{instant}\" is not a date and time.");
-        }
-
         // What a sheet held at a past moment is settled; a future moment can still gain a version.
-        var moment = parsed.UtcDateTime;
+        var moment = PublishedMoment.ParseUtc(instant);
         var isPast = moment <= DateTime.UtcNow;
         return ReadAsync(sheetPublicId, PublishedVersionPoint.At(moment), options.ToSelection(), isPast, cancellationToken);
     }
@@ -171,9 +164,7 @@ public sealed class PublishedSheetsController(IPublishedSheetQueryService sheets
 
         if (point.VersionNumber is null)
         {
-            // Tells the caller which version it got, as the address that always returns the same answer.
-            Response.Headers.ContentLocation =
-                $"{Request.PathBase}/api/published/sheets/{sheetPublicId}/versions/{version.VersionNumber}{Request.QueryString}";
+            PublishedSheetHttpCache.PointAtVersion(Request, Response, version, null);
         }
 
         if (PublishedSheetHttpCache.CallerHas(Request, etag))

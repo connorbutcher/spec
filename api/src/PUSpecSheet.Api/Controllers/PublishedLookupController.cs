@@ -1,9 +1,7 @@
-using System.Globalization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Net.Http.Headers;
 using PUSpecSheet.Api.ApiDocumentation;
 using PUSpecSheet.Api.Published;
-using PUSpecSheet.Application.Common;
 using PUSpecSheet.Application.Published;
 using PUSpecSheet.Contracts.Published;
 
@@ -57,12 +55,7 @@ public sealed class PublishedLookupController(IPublishedLookupService lookup) : 
         var point = PublishedVersionPoint.Latest;
         if (!string.IsNullOrWhiteSpace(at))
         {
-            if (!DateTimeOffset.TryParse(at, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out var parsed))
-            {
-                throw new InvalidRequestException($"\"{at}\" is not a date and time.");
-            }
-
-            point = PublishedVersionPoint.At(parsed.UtcDateTime);
+            point = PublishedVersionPoint.At(PublishedMoment.ParseUtc(at));
         }
 
         var criteria = PublishedLookupCriteria.Create(key, value, phase, sheetType);

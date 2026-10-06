@@ -221,9 +221,7 @@ public sealed class PublishedRowsController(IPublishedSheetQueryService sheets, 
 
         if (point.VersionNumber is null)
         {
-            // Tells the caller which version it got, as the address that always returns the same answer.
-            Response.Headers.ContentLocation =
-                $"{Request.PathBase}/api/published/sheets/{version.SheetPublicId}/versions/{version.VersionNumber}/{path}{Request.QueryString}";
+            PublishedSheetHttpCache.PointAtVersion(Request, Response, version, path);
         }
 
         return PublishedSheetHttpCache.CallerHas(Request, etag);

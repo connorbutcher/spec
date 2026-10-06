@@ -27,6 +27,17 @@ public static class PublishedSheetHttpCache
         response.Headers.CacheControl = isFixed ? Fixed : Revalidate;
     }
 
+    /// <summary>
+    /// Tells a caller that asked for "latest" (or a moment) which version it got, as the address that always
+    /// returns the same answer. <paramref name="path"/> is what follows the version, such as <c>rows</c>.
+    /// </summary>
+    public static void PointAtVersion(HttpRequest request, HttpResponse response, ResolvedSheetVersion version, string? path)
+    {
+        var rest = path is null ? string.Empty : $"/{path}";
+        response.Headers.ContentLocation =
+            $"{request.PathBase}/api/published/sheets/{version.SheetPublicId}/versions/{version.VersionNumber}{rest}{request.QueryString}";
+    }
+
     /// <summary>Whether the caller already holds this answer, from the ETag it sent in <c>If-None-Match</c>.</summary>
     public static bool CallerHas(HttpRequest request, EntityTagHeaderValue etag)
     {
