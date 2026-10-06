@@ -85,12 +85,13 @@ public sealed class SheetRowService(
 
         await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
         var draft = await StartDraftAsync(rowId, cancellationToken);
-        foreach (var value in request.Values)
-        {
-            var kind = cellsById[value.SheetCellId].TemplateCell.CellType.Kind;
-            await valueStore.SetAsync(draft.Id, value.SheetCellId, kind, value with { Text = value.Text?.Trim() }, cancellationToken);
-        }
-
+        var changes = request.Values
+            .Select(value => new CellValueChange(
+                value.SheetCellId,
+                cellsById[value.SheetCellId].TemplateCell.CellType.Kind,
+                value with { Text = value.Text?.Trim() }))
+            .ToList();
+        await valueStore.SetManyAsync(draft.Id, changes, cancellationToken);
         await db.SaveSheetChangesAsync(cancellationToken);
 
         // Values put back to what is published leave nothing to publish, so the row is released.

@@ -77,115 +77,102 @@ public sealed class RowValueStore(PuSpecSheetDbContext db)
         }
     }
 
-    /// <summary>Sets, replaces or clears one cell's value in a draft row revision. The value is already validated.</summary>
-    public async Task SetAsync(int revisionId, int cellId, CellKind kind, CellValueRequest request, CancellationToken cancellationToken)
+    /// <summary>
+    /// Sets, replaces or clears cell values in a draft row revision, reading what the revision already holds
+    /// once per kind of value rather than once per cell. The values are already validated. When a cell is
+    /// listed more than once, its last value is the one kept.
+    /// </summary>
+    public async Task SetManyAsync(int revisionId, IReadOnlyList<CellValueChange> changes, CancellationToken cancellationToken)
     {
-        switch (kind)
-        {
-            case CellKind.Text:
-                {
-                    var existing = await db.TextValues.SingleOrDefaultAsync(v => v.SheetRowRevisionId == revisionId && v.SheetCellId == cellId, cancellationToken);
-                    if (string.IsNullOrEmpty(request.Text))
-                    {
-                        Remove(db.TextValues, existing);
-                    }
-                    else if (existing is null)
-                    {
-                        db.TextValues.Add(new TextValue { SheetRowRevisionId = revisionId, SheetCellId = cellId, Value = request.Text });
-                    }
-                    else
-                    {
-                        existing.Value = request.Text;
-                    }
-
-                    break;
-                }
-
-            case CellKind.Number:
-                {
-                    var existing = await db.NumericValues.SingleOrDefaultAsync(v => v.SheetRowRevisionId == revisionId && v.SheetCellId == cellId, cancellationToken);
-                    if (request.Number is not { } number)
-                    {
-                        Remove(db.NumericValues, existing);
-                    }
-                    else if (existing is null)
-                    {
-                        db.NumericValues.Add(new NumericValue { SheetRowRevisionId = revisionId, SheetCellId = cellId, Value = number });
-                    }
-                    else
-                    {
-                        existing.Value = number;
-                    }
-
-                    break;
-                }
-
-            case CellKind.Date:
-                {
-                    var existing = await db.DateValues.SingleOrDefaultAsync(v => v.SheetRowRevisionId == revisionId && v.SheetCellId == cellId, cancellationToken);
-                    if (request.Date is not { } date)
-                    {
-                        Remove(db.DateValues, existing);
-                    }
-                    else if (existing is null)
-                    {
-                        db.DateValues.Add(new DateValue { SheetRowRevisionId = revisionId, SheetCellId = cellId, Value = date });
-                    }
-                    else
-                    {
-                        existing.Value = date;
-                    }
-
-                    break;
-                }
-
-            case CellKind.Checkbox:
-                {
-                    var existing = await db.BooleanValues.SingleOrDefaultAsync(v => v.SheetRowRevisionId == revisionId && v.SheetCellId == cellId, cancellationToken);
-                    if (request.Boolean is not { } flag)
-                    {
-                        Remove(db.BooleanValues, existing);
-                    }
-                    else if (existing is null)
-                    {
-                        db.BooleanValues.Add(new BooleanValue { SheetRowRevisionId = revisionId, SheetCellId = cellId, Value = flag });
-                    }
-                    else
-                    {
-                        existing.Value = flag;
-                    }
-
-                    break;
-                }
-
-            case CellKind.TextDropdown:
-            case CellKind.NumberDropdown:
-                {
-                    var existing = await db.OptionValues.SingleOrDefaultAsync(v => v.SheetRowRevisionId == revisionId && v.SheetCellId == cellId, cancellationToken);
-                    if (request.OptionId is not { } optionId)
-                    {
-                        Remove(db.OptionValues, existing);
-                    }
-                    else if (existing is null)
-                    {
-                        db.OptionValues.Add(new OptionValue { SheetRowRevisionId = revisionId, SheetCellId = cellId, CellTypeOptionId = optionId });
-                    }
-                    else
-                    {
-                        existing.CellTypeOptionId = optionId;
-                    }
-
-                    break;
-                }
-        }
+        await ApplyAsync(
+            db.TextValues,
+            revisionId,
+            Of(changes, CellKind.Text),
+            request => !string.IsNullOrEmpty(request.Text),
+            (value, request) => value.Value = request.Text!,
+            cancellationToken);
+        await ApplyAsync(
+            db.NumericValues,
+            revisionId,
+            Of(changes, CellKind.Number),
+            request => request.Number is not null,
+            (value, request) => value.Value = request.Number!.Value,
+            cancellationToken);
+        await ApplyAsync(
+            db.DateValues,
+            revisionId,
+            Of(changes, CellKind.Date),
+            request => request.Date is not null,
+            (value, request) => value.Value = request.Date!.Value,
+            cancellationToken);
+        await ApplyAsync(
+            db.BooleanValues,
+            revisionId,
+            Of(changes, CellKind.Checkbox),
+            request => request.Boolean is not null,
+            (value, request) => value.Value = request.Boolean!.Value,
+            cancellationToken);
+        await ApplyAsync(
+            db.OptionValues,
+            revisionId,
+            Of(changes, CellKind.TextDropdown, CellKind.NumberDropdown),
+            request => request.OptionId is not null,
+            (value, request) => value.CellTypeOptionId = request.OptionId!.Value,
+            cancellationToken);
     }
 
-    private static void Remove<TValue>(DbSet<TValue> set, TValue? existing)
-        where TValue : class
+    /// <summary>The changes for cells of the given kinds, one per cell: a cell's last change wins.</summary>
+    private static List<CellValueChange> Of(IReadOnlyList<CellValueChange> changes, params CellKind[] kinds)
     {
-        if (existing is not null)
+        return changes
+            .Where(change => kinds.Contains(change.Kind))
+            .GroupBy(change => change.SheetCellId)
+            .Select(cell => cell.Last())
+            .ToList();
+    }
+
+    /// <summary>
+    /// Applies the changes to one value table: a cell with nothing to hold loses its row, a cell that already
+    /// has a row has it updated, and any other cell gets a new one.
+    /// </summary>
+    private static async Task ApplyAsync<TValue>(
+        DbSet<TValue> set,
+        int revisionId,
+        List<CellValueChange> changes,
+        Func<CellValueRequest, bool> hasValue,
+        Action<TValue, CellValueRequest> assign,
+        CancellationToken cancellationToken)
+        where TValue : class, ICellValue, new()
+    {
+        if (changes.Count == 0)
         {
-            set.Remove(existing);
+            return;
+        }
+
+        var cellIds = changes.Select(change => change.SheetCellId).ToList();
+        var existing = await set
+            .Where(value => value.SheetRowRevisionId == revisionId && cellIds.Contains(value.SheetCellId))
+            .ToDictionaryAsync(value => value.SheetCellId, cancellationToken);
+        foreach (var change in changes)
+        {
+            var value = existing.GetValueOrDefault(change.SheetCellId);
+            if (!hasValue(change.Value))
+            {
+                if (value is not null)
+                {
+                    set.Remove(value);
+                }
+
+                continue;
+            }
+
+            if (value is null)
+            {
+                value = new TValue { SheetRowRevisionId = revisionId, SheetCellId = change.SheetCellId };
+                set.Add(value);
+            }
+
+            assign(value, change.Value);
         }
     }
 
