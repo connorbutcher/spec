@@ -44,6 +44,15 @@ export function buildSheetIndex(sheet: Sheet | null): SheetIndex {
   return index;
 }
 
+/** The sheet's cells with the given ids. */
+export function cellsById(sheet: Sheet, cellIds: number[]): Set<object> {
+  if (cellIds.length === 0) {
+    return new Set();
+  }
+  const cells = buildSheetIndex(sheet).cells;
+  return new Set(cellIds.map((id) => cells.get(id)).filter((cell) => cell !== undefined));
+}
+
 /** The ids of every section in the sheet, for spotting the one that was just added. */
 export function sectionIds(index: SheetIndex): Set<number> {
   return new Set(index.sections.keys());

@@ -3,6 +3,7 @@ import { computed, inject, Injectable, linkedSignal, signal } from '@angular/cor
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { map } from 'rxjs';
+import { reuseUnchanged } from '../../shared/reuse-unchanged.util';
 import { apiErrorMessage } from '../templates/api-error-message';
 import { CellType } from '../templates/models/cell-type.model';
 import { CellValueRequest } from './models/cell-value-request.model';
@@ -11,7 +12,13 @@ import { SheetIndex } from './models/sheet-index.model';
 import { SheetSelection } from './models/sheet-selection.model';
 import { SheetView } from './models/sheet-view.model';
 import { Sheet } from './models/sheet.model';
-import { buildSheetIndex, rowIds, sectionIds, sectionSiblings } from './sheet-index.util';
+import {
+  buildSheetIndex,
+  cellsById,
+  rowIds,
+  sectionIds,
+  sectionSiblings,
+} from './sheet-index.util';
 import { SheetsApi } from './sheets-api';
 
 interface SheetTarget {
@@ -26,6 +33,9 @@ interface SheetTarget {
  * Changes save straight away and each returns the refreshed live sheet, which replaces the open copy.
  * Changes are sent one at a time, in the order they were made. A failed change shows its reason and
  * reloads the sheet, so the screen goes back to what the server has.
+ *
+ * A refreshed sheet keeps the objects of everything that did not change (see `reuseUnchanged`), so a
+ * change only re-renders the tables, rows and cells it touched.
  */
 @Injectable()
 export class SheetStore {
@@ -247,7 +257,10 @@ export class SheetStore {
   }
 
   public async saveValues(rowId: number, values: CellValueRequest[]): Promise<void> {
-    await this.run(() => this.api.saveValues(rowId, values));
+    await this.run(
+      () => this.api.saveValues(rowId, values),
+      values.map((value) => value.sheetCellId),
+    );
   }
 
   public async moveRow(rowId: number, step: -1 | 1): Promise<void> {
@@ -274,17 +287,26 @@ export class SheetStore {
     return (await this.run(() => this.api.publish(sheetId, note))) !== null;
   }
 
-  private run(change: () => Promise<Sheet>): Promise<Sheet | null> {
-    const task = this.tail.then(() => this.execute(change));
+  /**
+   * Queues a change. The cells in `savedCellIds` always come back as new objects, so their editors
+   * drop what was typed and show what the server stored, even when that is what was there before.
+   */
+  private run(change: () => Promise<Sheet>, savedCellIds: number[] = []): Promise<Sheet | null> {
+    const task = this.tail.then(() => this.execute(change, savedCellIds));
     this.tail = task;
     return task;
   }
 
-  private async execute(change: () => Promise<Sheet>): Promise<Sheet | null> {
+  private async execute(
+    change: () => Promise<Sheet>,
+    savedCellIds: number[],
+  ): Promise<Sheet | null> {
     this.inFlight.update((count) => count + 1);
     this.error.set(null);
     try {
-      const sheet = await change();
+      const refreshed = await change();
+      const saved = cellsById(refreshed, savedCellIds);
+      const sheet = reuseUnchanged(this.sheet(), refreshed, (part) => saved.has(part));
       this.sheetResource.set(sheet);
       return sheet;
     } catch (failure) {
