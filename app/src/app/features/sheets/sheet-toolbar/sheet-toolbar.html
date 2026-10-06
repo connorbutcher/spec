@@ -2,13 +2,8 @@
   <app-sheet-version-picker />
   <app-sheet-compare-picker />
 
-  @if (pastLabel(); as label) {
-    <p-tag
-      [value]="'Read-only: ' + label"
-      icon="pi pi-lock"
-      severity="secondary"
-      [rounded]="true"
-    />
+  @if (readOnlyLabel(); as label) {
+    <p-tag [value]="label" icon="pi pi-lock" severity="secondary" [rounded]="true" />
   }
 
   <span class="spacer"></span>

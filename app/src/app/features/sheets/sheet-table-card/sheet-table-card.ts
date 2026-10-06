@@ -7,6 +7,7 @@ import { TagModule } from 'primeng/tag';
 import { SheetTable } from '../models/sheet-table.model';
 import { SheetActionBar } from '../sheet-action-bar/sheet-action-bar';
 import { SheetAddMenu } from '../sheet-add-menu/sheet-add-menu';
+import { confirmRemoval } from '../sheet-confirm.util';
 import { SheetGrid } from '../sheet-grid/sheet-grid';
 import { tableLabel } from '../sheet-labels.util';
 import { otherUsersLock } from '../sheet-lock.util';
@@ -61,14 +62,11 @@ export class SheetTableCard {
   }
 
   public askRemove(event: Event): void {
-    this.confirmation.confirm({
-      target: event.currentTarget as EventTarget,
-      message: `Remove ${this.label()}? Everything in it goes too.`,
-      acceptLabel: 'Remove',
-      rejectLabel: 'Cancel',
-      acceptButtonProps: { size: 'small', severity: 'danger' },
-      rejectButtonProps: { severity: 'secondary', size: 'small', outlined: true },
-      accept: () => void this.store.removeTable(this.table().id),
-    });
+    confirmRemoval(
+      this.confirmation,
+      event,
+      `Remove ${this.label()}? Everything in it goes too.`,
+      () => this.store.removeTable(this.table().id),
+    );
   }
 }

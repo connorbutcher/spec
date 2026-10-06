@@ -2,6 +2,7 @@ import { Component, computed, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { SelectModule } from 'primeng/select';
 import { SheetVersionOption } from '../models/sheet-version-option.model';
+import { versionLabel } from '../sheet-labels.util';
 import { SheetStore } from '../sheet.store';
 
 /**
@@ -15,22 +16,17 @@ import { SheetStore } from '../sheet.store';
   styleUrl: './sheet-compare-picker.scss',
 })
 export class SheetComparePicker {
-  public readonly options = computed<SheetVersionOption[]>(() => {
-    const versions = [...(this.store.sheet()?.versions ?? [])].sort(
-      (a, b) => b.versionNumber - a.versionNumber,
-    );
-    return [
-      { label: 'Changes: off', value: null },
-      ...versions.map((version) => ({
-        label: `Changes since v${version.versionNumber}`,
-        value: version.versionNumber,
-      })),
-    ];
-  });
+  public readonly options = computed<SheetVersionOption[]>(() => [
+    { label: 'Changes: off', value: null },
+    ...this.store.versions().map((version) => ({
+      label: `Changes since ${versionLabel(version.versionNumber)}`,
+      value: version.versionNumber,
+    })),
+  ]);
 
   public readonly selected = computed(() => this.store.changesSince());
 
-  public readonly hasVersions = computed(() => (this.store.sheet()?.versions.length ?? 0) > 0);
+  public readonly hasVersions = computed(() => this.store.versions().length > 0);
 
   private readonly store = inject(SheetStore);
 

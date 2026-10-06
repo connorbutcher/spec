@@ -1,9 +1,9 @@
 <p-tabs class="sheet-switcher" [value]="currentId()" [scrollable]="true">
   <p-tablist>
-    @for (sheetType of sheetTypes(); track sheetType.id) {
-      <p-tab [value]="sheetType.id" [routerLink]="link(sheetType)">
-        <i class="pi" [class]="icon(sheetType)" aria-hidden="true"></i>
-        {{ sheetType.name }}
+    @for (tab of tabs(); track tab.id) {
+      <p-tab [value]="tab.id" [routerLink]="tab.link">
+        <i class="pi" [class]="tab.icon" aria-hidden="true"></i>
+        {{ tab.name }}
       </p-tab>
     }
   </p-tablist>

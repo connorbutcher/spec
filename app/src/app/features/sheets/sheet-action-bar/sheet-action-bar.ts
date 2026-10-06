@@ -5,14 +5,16 @@ import { ButtonModule } from 'primeng/button';
 import { SheetRow } from '../models/sheet-row.model';
 import { SheetSection } from '../models/sheet-section.model';
 import { SheetTable } from '../models/sheet-table.model';
+import { confirmRemoval } from '../sheet-confirm.util';
 import { sectionAncestors, sectionSiblings } from '../sheet-index.util';
 import { sectionLabel } from '../sheet-labels.util';
 import { otherUsersLock } from '../sheet-lock.util';
 import { SheetStore } from '../sheet.store';
 
 /**
- * The actions for what is selected in a table: where it is, the sections' and rows' own move and
- * remove actions (adding lives on the group that takes the new item). It sits above the grid so it works the same however the table is laid out.
+ * The actions for what is selected in a table: where it is, and the section's and row's own move and
+ * remove actions (adding lives on the group that takes the new item). It sits above the grid, so it
+ * works the same however the table is laid out.
  */
 @Component({
   selector: 'app-sheet-action-bar',
@@ -112,8 +114,11 @@ export class SheetActionBar {
     if (section === null) {
       return;
     }
-    this.confirm(event, `Remove ${sectionLabel(section)}? Its rows and sections go too.`, () =>
-      this.store.removeSection(section.id),
+    confirmRemoval(
+      this.confirmation,
+      event,
+      `Remove ${sectionLabel(section)}? Its rows and sections go too.`,
+      () => this.store.removeSection(section.id),
     );
   }
 
@@ -127,19 +132,9 @@ export class SheetActionBar {
   public askRemoveRow(event: Event): void {
     const row = this.row();
     if (row !== null) {
-      this.confirm(event, 'Remove this row?', () => this.store.removeRow(row.id));
+      confirmRemoval(this.confirmation, event, 'Remove this row?', () =>
+        this.store.removeRow(row.id),
+      );
     }
-  }
-
-  private confirm(event: Event, message: string, accept: () => Promise<void>): void {
-    this.confirmation.confirm({
-      target: event.currentTarget as EventTarget,
-      message,
-      acceptLabel: 'Remove',
-      rejectLabel: 'Cancel',
-      acceptButtonProps: { size: 'small', severity: 'danger' },
-      rejectButtonProps: { severity: 'secondary', size: 'small', outlined: true },
-      accept: () => void accept(),
-    });
   }
 }

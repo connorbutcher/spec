@@ -13,5 +13,4 @@ export interface SheetIndex {
   sectionParent: ReadonlyMap<number, number | null>;
   sectionTable: ReadonlyMap<number, number>;
   rowSection: ReadonlyMap<number, number>;
-  cellRow: ReadonlyMap<number, number>;
 }

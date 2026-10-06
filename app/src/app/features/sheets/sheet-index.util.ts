@@ -16,7 +16,6 @@ export function buildSheetIndex(sheet: Sheet | null): SheetIndex {
     sectionParent: new Map<number, number | null>(),
     sectionTable: new Map<number, number>(),
     rowSection: new Map<number, number>(),
-    cellRow: new Map<number, number>(),
   } satisfies SheetIndex;
 
   const addSection = (section: SheetSection, tableId: number, parentId: number | null): void => {
@@ -28,7 +27,6 @@ export function buildSheetIndex(sheet: Sheet | null): SheetIndex {
       index.rowSection.set(row.id, section.id);
       for (const cell of row.cells) {
         index.cells.set(cell.id, cell);
-        index.cellRow.set(cell.id, row.id);
       }
     }
     for (const child of section.sections) {
@@ -54,14 +52,12 @@ export function cellsById(sheet: Sheet, cellIds: number[]): Set<object> {
   return new Set(cellIds.map((id) => cells.get(id)).filter((cell) => cell !== undefined));
 }
 
-/** The ids of every section in the sheet, for spotting the one that was just added. */
-export function sectionIds(index: SheetIndex): Set<number> {
-  return new Set(index.sections.keys());
-}
-
-/** The ids of every row in the sheet, for spotting the one that was just added. */
-export function rowIds(index: SheetIndex): Set<number> {
-  return new Set(index.rows.keys());
+/** The first id in `after` that `before` doesn't have: the item a change just added. */
+export function addedId(
+  before: ReadonlyMap<number, unknown>,
+  after: ReadonlyMap<number, unknown>,
+): number | undefined {
+  return [...after.keys()].find((id) => !before.has(id));
 }
 
 /** The section's ancestors from the top level down to (not including) the section itself. */

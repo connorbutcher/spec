@@ -79,12 +79,6 @@ export class SheetsApi {
     return firstValueFrom(this.http.delete<Sheet>(`/api/sheet-column-blocks/${columnBlockId}`));
   }
 
-  public addRow(sectionId: number, templateRowId: number): Promise<Sheet> {
-    return firstValueFrom(
-      this.http.post<Sheet>(`/api/sheet-sections/${sectionId}/rows`, { templateRowId }),
-    );
-  }
-
   public saveValues(rowId: number, values: CellValueRequest[]): Promise<Sheet> {
     return firstValueFrom(this.http.put<Sheet>(`/api/sheet-rows/${rowId}/values`, { values }));
   }

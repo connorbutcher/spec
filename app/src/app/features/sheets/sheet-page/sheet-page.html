@@ -16,7 +16,7 @@
         />
       </header>
 
-      @if (sheet(); as sheet) {
+      @if (sheet()) {
         <app-sheet-toolbar />
       }
 
@@ -50,19 +50,7 @@
             <app-empty-state icon="pi-table" title="No tables yet" [message]="emptyMessage()" />
           }
         } @else if (hasSheetError()) {
-          <app-empty-state
-            icon="pi-exclamation-circle"
-            title="Couldn't load the sheet"
-            message="Check the API is running, then try again."
-          >
-            <p-button
-              label="Try again"
-              icon="pi pi-refresh"
-              size="small"
-              [outlined]="true"
-              (onClick)="retry()"
-            />
-          </app-empty-state>
+          <app-sheet-load-error (retry)="retry()" />
         } @else if (isLoadingSheet()) {
           <p-skeleton height="8rem" />
         }
@@ -73,25 +61,13 @@
       <app-empty-state
         icon="pi-search"
         title="Sheet not available"
-        [message]="'This sheet type isn\'t available to ' + phase.code + '.'"
+        [message]="unavailableMessage()"
       />
     </div>
   }
 } @else if (hasPhasesError()) {
   <div class="app-card state">
-    <app-empty-state
-      icon="pi-exclamation-circle"
-      title="Couldn't load the sheet"
-      message="Check the API is running, then try again."
-    >
-      <p-button
-        label="Try again"
-        icon="pi pi-refresh"
-        size="small"
-        [outlined]="true"
-        (onClick)="retry()"
-      />
-    </app-empty-state>
+    <app-sheet-load-error (retry)="retry()" />
   </div>
 } @else if (!isLoadingPhases()) {
   <div class="app-card state">

@@ -1,0 +1,13 @@
+<app-empty-state
+  icon="pi-exclamation-circle"
+  title="Couldn't load the sheet"
+  message="Check the API is running, then try again."
+>
+  <p-button
+    label="Try again"
+    icon="pi pi-refresh"
+    size="small"
+    [outlined]="true"
+    (onClick)="retry.emit()"
+  />
+</app-empty-state>

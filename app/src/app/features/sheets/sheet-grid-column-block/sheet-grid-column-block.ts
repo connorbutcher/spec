@@ -6,6 +6,7 @@ import { SheetColumnBlock } from '../models/sheet-column-block.model';
 import { SheetTable } from '../models/sheet-table.model';
 import { SheetChange } from '../models/sheet-change.model';
 import { SheetChangeTag } from '../sheet-change-tag/sheet-change-tag';
+import { confirmRemoval } from '../sheet-confirm.util';
 import { otherUsersLock } from '../sheet-lock.util';
 import { SheetStore } from '../sheet.store';
 
@@ -73,14 +74,11 @@ export class SheetGridColumnBlock {
     if (block === null) {
       return;
     }
-    this.confirmation.confirm({
-      target: event.currentTarget as EventTarget,
-      message: `Remove this ${block.name}? Its cells in every row go too.`,
-      acceptLabel: 'Remove',
-      rejectLabel: 'Cancel',
-      acceptButtonProps: { size: 'small', severity: 'danger' },
-      rejectButtonProps: { severity: 'secondary', size: 'small', outlined: true },
-      accept: () => void this.store.removeColumnBlock(block.id),
-    });
+    confirmRemoval(
+      this.confirmation,
+      event,
+      `Remove this ${block.name}? Its cells in every row go too.`,
+      () => this.store.removeColumnBlock(block.id),
+    );
   }
 }

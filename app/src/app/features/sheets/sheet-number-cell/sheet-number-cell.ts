@@ -2,12 +2,10 @@ import { Component, computed, input, linkedSignal, output } from '@angular/core'
 import { FormsModule } from '@angular/forms';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { CellConfiguration } from '../../templates/models/cell-configuration';
+import { CELL_INPUT_STYLE } from '../cell-input-style';
 import { valueRequest } from '../cell-value.util';
 import { CellValueRequest } from '../models/cell-value-request.model';
 import { SheetCell } from '../models/sheet-cell.model';
-
-/** Keeps the number's own alignment and makes the PrimeNG input fill the cell. */
-const INPUT_STYLE = { height: '100%', 'text-align': 'inherit' };
 
 /**
  * The editor for a number cell: a PrimeNG number box that fills the whole cell, set up with the cell's
@@ -35,7 +33,7 @@ export class SheetNumberCell {
 
   public readonly number = linkedSignal<number | null>(() => this.cell().numberValue);
 
-  public readonly inputStyle = INPUT_STYLE;
+  public readonly inputStyle = CELL_INPUT_STYLE;
 
   public readonly settings = computed(() => {
     const configuration = this.configuration();

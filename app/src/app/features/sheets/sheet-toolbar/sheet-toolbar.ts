@@ -4,6 +4,7 @@ import { ButtonModule } from 'primeng/button';
 import { MenuModule } from 'primeng/menu';
 import { TagModule } from 'primeng/tag';
 import { SheetComparePicker } from '../sheet-compare-picker/sheet-compare-picker';
+import { momentLabel } from '../sheet-labels.util';
 import { SheetPublish } from '../sheet-publish/sheet-publish';
 import { SheetVersionPicker } from '../sheet-version-picker/sheet-version-picker';
 import { SheetStore } from '../sheet.store';
@@ -29,8 +30,6 @@ import { SheetStore } from '../sheet.store';
 export class SheetToolbar {
   public readonly canEdit = computed(() => this.store.canEdit());
 
-  public readonly changeCount = computed(() => this.store.sheet()?.myDraftCount ?? 0);
-
   public readonly isBusy = computed(() => this.store.isBusy());
 
   public readonly templateMenu = computed<MenuItem[]>(() =>
@@ -42,21 +41,16 @@ export class SheetToolbar {
 
   public readonly hasTemplates = computed(() => this.templateMenu().length > 0);
 
-  /** What a past view is called, for the read-only notice. */
-  public readonly pastLabel = computed(() => {
+  /** The read-only notice for a past view, naming the version or moment being looked at. */
+  public readonly readOnlyLabel = computed(() => {
     const sheet = this.store.sheet();
     if (sheet === null || sheet.isLive) {
       return null;
     }
     if (sheet.viewedVersionNumber !== null) {
-      return `Version ${sheet.viewedVersionNumber}`;
+      return `Read-only: Version ${sheet.viewedVersionNumber}`;
     }
-    return sheet.viewedAsOfUtc
-      ? new Date(sheet.viewedAsOfUtc).toLocaleString(undefined, {
-          dateStyle: 'medium',
-          timeStyle: 'short',
-        })
-      : null;
+    return sheet.viewedAsOfUtc ? `Read-only: ${momentLabel(sheet.viewedAsOfUtc)}` : null;
   });
 
   private readonly store = inject(SheetStore);

@@ -7,8 +7,8 @@ import { AddableSection } from '../models/addable-section.model';
 import { SheetStore } from '../sheet.store';
 
 /**
- * The one add button for a place that can grow: a table or a group section, listing the section types it takes and, for a horizontal table, its
- * column blocks. When a single thing can be
+ * The one add button for a place that can grow: a table or a group section. It offers the section
+ * types the place takes and, for a horizontal table, its column blocks. When a single thing can be
  * added the button adds it; when there is a choice it opens a menu of what can go here. Sections at
  * their template maximum are shown but can't be picked.
  */

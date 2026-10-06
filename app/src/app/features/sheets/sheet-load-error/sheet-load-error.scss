@@ -1,0 +1,4 @@
+// Adds no box of its own: the message is laid out by whatever holds it.
+:host {
+  display: contents;
+}

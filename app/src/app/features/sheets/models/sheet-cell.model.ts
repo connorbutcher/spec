@@ -1,11 +1,10 @@
 import { TemplateCell } from '../../templates/models/template-cell.model';
+import { SheetChange } from './sheet-change.model';
 
 /**
  * A cell on a sheet. `template` is the layout it was built from (its own `id` is the template cell's),
  * and only the value field that matches the cell's kind is ever set.
  */
-import { SheetChange } from './sheet-change.model';
-
 export interface SheetCell {
   id: number;
   publicId: string;

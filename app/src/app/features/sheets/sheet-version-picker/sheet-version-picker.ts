@@ -4,6 +4,7 @@ import { ButtonModule } from 'primeng/button';
 import { DatePickerModule } from 'primeng/datepicker';
 import { SelectModule } from 'primeng/select';
 import { SheetVersionOption } from '../models/sheet-version-option.model';
+import { momentLabel, versionLabel } from '../sheet-labels.util';
 import { SheetStore } from '../sheet.store';
 
 /** Marks the "custom date" entry, which only appears while a date is being viewed. */
@@ -21,16 +22,14 @@ const DATE_OPTION = -1;
 })
 export class SheetVersionPicker {
   public readonly options = computed<SheetVersionOption[]>(() => {
-    const versions = [...(this.store.sheet()?.versions ?? [])].sort(
-      (a, b) => b.versionNumber - a.versionNumber,
-    );
     const options: SheetVersionOption[] = [{ label: 'Latest (live)', value: null }];
     if (this.store.view().asOf) {
       options.push({ label: 'Date and time', value: DATE_OPTION });
     }
-    for (const version of versions) {
+    for (const version of this.store.versions()) {
+      const published = momentLabel(version.publishedAtUtc);
       options.push({
-        label: `v${version.versionNumber} · ${formatMoment(version.publishedAtUtc)} · ${version.publishedByName}`,
+        label: `${versionLabel(version.versionNumber)} · ${published} · ${version.publishedByName}`,
         value: version.versionNumber,
       });
     }
@@ -49,7 +48,7 @@ export class SheetVersionPicker {
 
   public readonly isLive = computed(() => this.store.sheet()?.isLive ?? true);
 
-  public readonly hasVersions = computed(() => (this.store.sheet()?.versions.length ?? 0) > 0);
+  public readonly hasVersions = computed(() => this.store.versions().length > 0);
 
   /** A date can't be picked from the future. */
   public readonly today = new Date();
@@ -70,8 +69,4 @@ export class SheetVersionPicker {
   public backToLive(): void {
     this.store.setView({});
   }
-}
-
-function formatMoment(utc: string): string {
-  return new Date(utc).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
 }

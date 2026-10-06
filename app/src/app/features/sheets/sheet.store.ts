@@ -10,21 +10,13 @@ import { CellValueRequest } from './models/cell-value-request.model';
 import { SheetChange } from './models/sheet-change.model';
 import { SheetIndex } from './models/sheet-index.model';
 import { SheetSelection } from './models/sheet-selection.model';
+import { SheetTarget } from './models/sheet-target.model';
+import { SheetVersionSummary } from './models/sheet-version-summary.model';
 import { SheetView } from './models/sheet-view.model';
 import { Sheet } from './models/sheet.model';
-import {
-  buildSheetIndex,
-  cellsById,
-  rowIds,
-  sectionIds,
-  sectionSiblings,
-} from './sheet-index.util';
+import { addedId, buildSheetIndex, cellsById, sectionSiblings } from './sheet-index.util';
+import { sheetUrl } from './sheet-url.util';
 import { SheetsApi } from './sheets-api';
-
-interface SheetTarget {
-  phaseId: number;
-  sheetTypeId: number;
-}
 
 /**
  * State for the sheet screen: the sheet being looked at (a resource, live or at a version or date), the
@@ -62,6 +54,11 @@ export class SheetStore {
   public readonly canEdit = computed(() => this.sheet()?.isLive === true);
 
   public readonly index = computed<SheetIndex>(() => buildSheetIndex(this.sheet()));
+
+  /** The sheet's published versions, newest first. */
+  public readonly versions = computed<SheetVersionSummary[]>(() =>
+    [...(this.sheet()?.versions ?? [])].sort((a, b) => b.versionNumber - a.versionNumber),
+  );
 
   public readonly cellTypes = computed<ReadonlyMap<number, CellType>>(
     () =>
@@ -112,16 +109,7 @@ export class SheetStore {
 
   private readonly sheetResource = httpResource<Sheet>(() => {
     const target = this.target();
-    if (target === null) {
-      return undefined;
-    }
-    const view = this.view();
-    const query = view.version
-      ? `?version=${view.version}`
-      : view.asOf
-        ? `?asOf=${encodeURIComponent(view.asOf)}`
-        : '';
-    return `/api/phases/${target.phaseId}/sheets/${target.sheetTypeId}${query}`;
+    return target === null ? undefined : sheetUrl(target, this.view());
   });
 
   private readonly cellTypesResource = httpResource<CellType[]>(() => '/api/cell-types');
@@ -173,11 +161,11 @@ export class SheetStore {
     if (sheetId === undefined) {
       return;
     }
-    const before = new Set(this.index().tables.keys());
+    const before = this.index().tables;
     const sheet = await this.run(() => this.api.addTable(sheetId, tableTemplateId));
-    const added = sheet?.tables.find((table) => !before.has(table.id));
-    if (added) {
-      this.rawSelection.set({ tableId: added.id, sectionId: null, rowId: null });
+    const added = sheet ? addedId(before, this.index().tables) : undefined;
+    if (added !== undefined) {
+      this.rawSelection.set({ tableId: added, sectionId: null, rowId: null });
     }
   }
 
@@ -199,16 +187,13 @@ export class SheetStore {
     templateSectionId: number,
     parentSheetSectionId: number | null,
   ): Promise<void> {
-    const before = sectionIds(this.index());
+    const before = this.index().sections;
     const sheet = await this.run(() =>
       this.api.addSection(tableId, templateSectionId, parentSheetSectionId),
     );
-    if (sheet) {
-      const after = buildSheetIndex(sheet);
-      const added = [...after.sections.keys()].find((id) => !before.has(id));
-      if (added !== undefined) {
-        this.rawSelection.set({ tableId, sectionId: added, rowId: null });
-      }
+    const added = sheet ? addedId(before, this.index().sections) : undefined;
+    if (added !== undefined) {
+      this.rawSelection.set({ tableId, sectionId: added, rowId: null });
     }
   }
 
@@ -244,16 +229,6 @@ export class SheetStore {
 
   public async removeColumnBlock(columnBlockId: number): Promise<void> {
     await this.run(() => this.api.removeColumnBlock(columnBlockId));
-  }
-
-  public async addRow(sectionId: number, templateRowId: number): Promise<void> {
-    const tableId = this.index().sectionTable.get(sectionId);
-    const before = rowIds(this.index());
-    const sheet = await this.run(() => this.api.addRow(sectionId, templateRowId));
-    if (sheet && tableId !== undefined) {
-      const added = [...buildSheetIndex(sheet).rows.keys()].find((id) => !before.has(id));
-      this.rawSelection.set({ tableId, sectionId, rowId: added ?? null });
-    }
   }
 
   public async saveValues(rowId: number, values: CellValueRequest[]): Promise<void> {
