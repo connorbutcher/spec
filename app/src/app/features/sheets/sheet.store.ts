@@ -86,6 +86,12 @@ export class SheetStore {
     return selection;
   });
 
+  /**
+   * The cell whose control is on screen. Every other cell that can be edited shows its plain value
+   * until it is focused, so a sheet doesn't build a control for each of its cells.
+   */
+  public readonly editingCellId = signal<number | null>(null);
+
   /** The reason the last change failed, until it's dismissed or another change is made. */
   public readonly error = signal<string | null>(null);
 
@@ -121,6 +127,12 @@ export class SheetStore {
   public setView(view: SheetView): void {
     this.view.set(view);
     this.rawSelection.set(null);
+    this.editingCellId.set(null);
+  }
+
+  /** Puts a cell's control on screen, in place of whichever cell had one. */
+  public edit(cellId: number): void {
+    this.editingCellId.set(cellId);
   }
 
   public setChangesSince(version: number | null): void {

@@ -7,10 +7,58 @@
   overflow-wrap: anywhere;
 }
 
-// The caption of an empty value cell that can't be edited.
+// The caption of an empty value cell.
 .hint {
   color: #9ca3af;
   font-size: 0.75rem;
   font-style: normal;
   font-weight: 400;
+}
+
+// Standing in for the cell's control: the text sits where the control's own text would, with the
+// same padding, on one line, so nothing moves when the control takes its place.
+:host(.fills-cell) {
+  .value,
+  .hint {
+    align-self: stretch;
+    padding: 0.25rem 0.5rem;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+
+  // PrimeNG's small controls set their own text, whatever the cell's style says.
+  .value {
+    color: var(--p-inputtext-color);
+    font-size: 0.75rem;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 1.5;
+  }
+
+  // The control's placeholder.
+  .hint {
+    color: var(--p-inputtext-placeholder-color);
+    line-height: 1.5;
+  }
+}
+
+// A text box takes the cell's own text style, and so does its placeholder apart from the colour.
+:host(.fills-cell.styled-by-cell) {
+  .value,
+  .hint {
+    font: inherit;
+  }
+
+  .value {
+    color: inherit;
+  }
+}
+
+// A multi-line text cell shows every line, as its text area does.
+:host(.fills-cell.multiline) {
+  .value,
+  .hint {
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+  }
 }

@@ -1,7 +1,7 @@
 <div class="content" [style]="contentStyle()">
   @if (displayOnly()) {
     <span class="text">{{ caption() }}</span>
-  } @else if (editable(); as editable) {
+  } @else if (showsEditor() && editable(); as editable) {
     <app-sheet-cell-editor
       [cell]="editable.cell"
       [cellType]="editable.cellType"
@@ -16,6 +16,7 @@
       [cellType]="cellType()"
       [configuration]="configuration()"
       [hint]="hint()"
+      [fillsCell]="isEditable()"
     />
   }
 

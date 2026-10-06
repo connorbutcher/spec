@@ -105,6 +105,19 @@ describe('SheetStore', () => {
     expect(store.selection()).toBeNull();
   });
 
+  it('has one cell in its control at a time, and none after the view changes', async () => {
+    store.edit(11);
+    store.edit(12);
+    expect(store.editingCellId()).toBe(12);
+
+    store.setView({ version: 1 });
+    expect(store.editingCellId()).toBeNull();
+
+    await settle();
+    http.expectOne(`${SHEET_URL}?version=1`).flush({ ...sheet, isLive: false });
+    await settle();
+  });
+
   it('selects a row together with its section and table', () => {
     const section = sheet.tables[0].sections[0];
 

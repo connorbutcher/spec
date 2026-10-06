@@ -74,6 +74,12 @@ user action ─► component ─► store method ─► SheetsApi ─► whole l
 - **Editing rules** live in `SheetGridCell.editable`: the sheet is live, the cell takes a value, and
   nobody else holds the row's lock. Editors keep what is being typed in a `linkedSignal` seeded from
   the cell, and emit `changed` only when the value really differs.
+- **One editor at a time.** A cell that can be edited shows its plain value (`sheet-cell-value`) and
+  is a tab stop. Pressing on it or tabbing to it makes it `store.editingCellId()`, which swaps in its
+  editor and moves focus into it; the cell that had the editor goes back to its plain value. This is
+  what keeps opening a sheet fast: a PrimeNG control per cell was about 85% of the time to open one.
+  The plain value is styled to sit exactly where the control's text sits (`sheet-cell-value.scss`), so
+  nothing moves on the swap. Checkboxes are the exception and always show their control.
 
 ## Add a cell kind
 
@@ -87,10 +93,13 @@ user action ─► component ─► store method ─► SheetsApi ─► whole l
 4. Create `sheet-<kind>-cell/` with `.ts`, `.html` and `.scss`. Copy the shape of `sheet-number-cell`:
    inputs `cell`, `label` (and `configuration` if it has settings), outputs `started` and `changed`,
    a `linkedSignal` for the draft value, a PrimeNG control, and `@include field.cell-field` on `:host`.
+   The cell moves focus into the first `input`, `textarea` or `[role="combobox"]` it finds in the
+   editor, so the control must have one.
 5. Add its `@case` to `sheet-cell-editor.html` and its import to `sheet-cell-editor.ts`. That is the
    only place a kind is mapped to an editor.
-6. If it doesn't read well as text when read-only (as a checkbox doesn't), add a branch to
-   `sheet-cell-value`.
+6. Check its plain value lines up with its control: open a sheet, click into the cell and back out,
+   and nothing should shift. If it doesn't read well as text (as a checkbox doesn't), add a branch to
+   `sheet-cell-value`, or keep its control always on screen in `SheetGridCell.showsEditor`.
 
 ## Add an add, move or remove action
 

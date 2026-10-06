@@ -1,4 +1,12 @@
-import { Component, computed, inject, input } from '@angular/core';
+import {
+  afterNextRender,
+  Component,
+  computed,
+  ElementRef,
+  inject,
+  Injector,
+  input,
+} from '@angular/core';
 import { effectiveConfiguration, effectiveStyle } from '../../templates/cell-settings.util';
 import { cellStyleCss } from '../../templates/cell-style-css.util';
 import { isDisplayOnly } from '../../templates/models/cell-kinds';
@@ -26,11 +34,12 @@ const FLEX_ALIGNMENT: Readonly<Record<string, string>> = {
 
 /**
  * A cell on the sheet grid, placed by the template layout. It behaves like a table cell: heading and
- * group cells show their caption; a value cell holds a control for its kind that fills the whole cell,
- * so the user can click in and type. Moving into a control only selects the row; the row is locked to
- * the user, and held until they publish, by the first change that makes a real difference to what is
- * published. A row locked by someone else, or a past version, shows plain values instead, with a lock
- * mark on the row's first cell.
+ * group cells show their caption; a value cell shows its value, and swaps it for a control of its kind,
+ * filling the whole cell, when the user clicks or tabs into it. Only one cell holds a control at a
+ * time, so opening a sheet doesn't build one per cell. Moving into a control only selects the row; the
+ * row is locked to the user, and held until they publish, by the first change that makes a real
+ * difference to what is published. A row locked by someone else, or a past version, only ever shows
+ * plain values, with a lock mark on the row's first cell.
  *
  * This component decides what the cell is and where it sits; the editor, the plain value and the
  * marks over the cell are each their own component.
@@ -49,7 +58,9 @@ const FLEX_ALIGNMENT: Readonly<Record<string, string>> = {
     '[class.display-only]': 'displayOnly()',
     '[class.editable]': 'isEditable()',
     '[attr.data-tone]': 'tone()',
-    '[attr.tabindex]': 'isEditable() ? null : 0',
+    '[attr.tabindex]': 'showsEditor() ? null : 0',
+    '(pointerdown)': 'startEditing(true)',
+    '(focus)': 'startEditing(false)',
     '(click)': 'select($event)',
     '(keydown.enter)': 'select($event)',
   },
@@ -100,6 +111,18 @@ export class SheetGridCell {
   });
 
   public readonly isEditable = computed(() => this.editable() !== null);
+
+  /**
+   * Whether the cell's control is on screen: the cell can be edited and is the one the user is in.
+   * A checkbox is always its control, because the click that reaches it has to tick it.
+   */
+  public readonly showsEditor = computed(() => {
+    const editable = this.editable();
+    return (
+      editable !== null &&
+      (editable.cellType.kind === 'Checkbox' || this.store.editingCellId() === editable.cell.id)
+    );
+  });
 
   /** The cell's fill, from where its section sits. A background set in the cell's own style takes precedence. */
   public readonly tone = computed<SectionTone>(() =>
@@ -152,6 +175,8 @@ export class SheetGridCell {
   );
 
   private readonly store = inject(SheetStore);
+  private readonly element = inject<ElementRef<HTMLElement>>(ElementRef);
+  private readonly injector = inject(Injector);
 
   private readonly styleCss = computed<Record<string, string>>(() => {
     const cellType = this.cellType();
@@ -164,6 +189,19 @@ export class SheetGridCell {
   private readonly isFirstInRow = computed(
     () => this.row()?.cells[0]?.id === this.layout().cell.id,
   );
+
+  /**
+   * The user pressed on the cell or tabbed to it: put its control on screen and move into it, as if
+   * the control had been there all along. A press also opens a dropdown, as pressing one would.
+   */
+  public startEditing(byPointer: boolean): void {
+    const editable = this.editable();
+    if (editable === null || this.showsEditor()) {
+      return;
+    }
+    this.store.edit(editable.cell.id);
+    afterNextRender(() => this.enterEditor(byPointer), { injector: this.injector });
+  }
 
   public select(event: Event): void {
     event.stopPropagation();
@@ -179,6 +217,21 @@ export class SheetGridCell {
     const row = this.row();
     if (row !== null) {
       void this.store.saveValues(row.id, [request]);
+    }
+  }
+
+  private enterEditor(byPointer: boolean): void {
+    const host = this.element.nativeElement;
+    const control = host.querySelector<HTMLElement>('input, textarea, [role="combobox"]');
+    control?.focus();
+    if (control instanceof HTMLInputElement || control instanceof HTMLTextAreaElement) {
+      // The control writes its value into the box just after it renders, which would drop the
+      // selection, so select once that has happened. The value is selected as it is when tabbing
+      // into any box: typing replaces it.
+      setTimeout(() => control.select());
+    }
+    if (byPointer) {
+      host.querySelector<HTMLElement>('.p-select')?.click();
     }
   }
 }
