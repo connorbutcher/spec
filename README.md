@@ -15,7 +15,7 @@ app/                          Angular 22 UI (PrimeNG)
 database/                     SQL database project mirroring the migrated schema, one script per object (see database/README.md)
 ```
 
-Project references flow one way: `Api -> Application -> Data -> Domain`, with `Contracts` referenced by `Api` and `Application`.
+Project references flow one way: `Api -> Application -> Data -> Domain`, with `Contracts` referenced by `Api` and `Application`. How the API is put together, and how to add an endpoint, entity or migration, is in [api/README.md](api/README.md).
 
 ## Conventions
 
