@@ -156,7 +156,7 @@ internal sealed class SheetViewBuilder
             childSections,
             AddableSectionsUnder(template.TableTemplateVersionId, template.Id, children),
             isHeader ? [] : AddableRows(template.Id),
-            snapshot.Changes.Sections.GetValueOrDefault(section.Id));
+            ChangeOf(snapshot.Changes.Sections, section.Id));
     }
 
     private SheetRowDto BuildRow(SheetRow row, bool inHeader)
@@ -169,7 +169,7 @@ internal sealed class SheetViewBuilder
             .Where(cell => cell.SheetColumnBlockId is not { } blockId || !hiddenColumnBlockIds.Contains(blockId))
             .OrderBy(cell => cell.TemplateCell.Column)
             .ThenBy(cell => cell.Id)
-            .Select(cell => BuildCell(cell, values?.GetValueOrDefault(cell.Id), snapshot.Changes.Cells.GetValueOrDefault(cell.Id)))
+            .Select(cell => BuildCell(cell, values?.GetValueOrDefault(cell.Id), ChangeOf(snapshot.Changes.Cells, cell.Id)))
             .ToList();
 
         return new SheetRowDto(
@@ -181,7 +181,7 @@ internal sealed class SheetViewBuilder
             IsPending(resolution),
             !inHeader,
             cells,
-            snapshot.Changes.Rows.GetValueOrDefault(row.Id));
+            ChangeOf(snapshot.Changes.Rows, row.Id));
     }
 
     private static SheetCellDto BuildCell(SheetCell cell, CellValueBag? value, SheetChangeDto? change)
@@ -238,7 +238,7 @@ internal sealed class SheetViewBuilder
                     LockOf(resolution),
                     IsPending(resolution),
                     copies > template.MinInstances,
-                    snapshot.Changes.ColumnBlocks.GetValueOrDefault(block.Id));
+                    ChangeOf(snapshot.Changes.ColumnBlocks, block.Id));
             })
             .ToList();
     }
@@ -306,6 +306,22 @@ internal sealed class SheetViewBuilder
         return caption ?? $"Row {position}";
     }
 
+    /// <summary>When and by whom an item last changed, or null if it never has.</summary>
+    private SheetChangeDto? ChangeOf(Dictionary<int, SheetChange> changes, int itemId)
+    {
+        if (!changes.TryGetValue(itemId, out var change))
+        {
+            return null;
+        }
+
+        return new SheetChangeDto(change.VersionNumber, change.AtUtc, UserName(change.AuthorUserId));
+    }
+
+    private string UserName(int userId)
+    {
+        return snapshot.UserNames.GetValueOrDefault(userId, "Unknown user");
+    }
+
     private SheetLockDto? LockOf<TRevision>(RevisionResolution<TRevision> resolution)
         where TRevision : class, ISheetRevision
     {
@@ -314,8 +330,7 @@ internal sealed class SheetViewBuilder
             return null;
         }
 
-        var name = snapshot.UserNames.GetValueOrDefault(draft.AuthorUserId, "Unknown user");
-        return new SheetLockDto(draft.AuthorUserId, name, draft.AuthorUserId == currentUserId);
+        return new SheetLockDto(draft.AuthorUserId, UserName(draft.AuthorUserId), draft.AuthorUserId == currentUserId);
     }
 
     /// <summary>

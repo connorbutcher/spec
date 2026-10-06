@@ -1,112 +1,73 @@
+using System.Globalization;
 using Microsoft.EntityFrameworkCore;
-using PUSpecSheet.Contracts.Sheets;
 using PUSpecSheet.Data;
 using PUSpecSheet.Domain.Sheets;
 
 namespace PUSpecSheet.Application.Sheets;
 
 /// <summary>
-/// Works out <see cref="SheetChangeHistory"/> by walking each item's published revisions in order and
-/// noting where a value, position or existence differs from the revision before it.
+/// Reads what <see cref="SheetChangeHistoryCalculator"/> needs: every published revision of the sheet's
+/// rows, sections and column blocks up to the moment viewed, and the values of those row revisions. The
+/// live view's history is kept until the sheet's next version (see <see cref="SheetChangeHistoryCache"/>).
 /// </summary>
-public sealed class SheetChangeHistoryLoader(PuSpecSheetDbContext db, RowValueStore valueStore)
+public sealed class SheetChangeHistoryLoader(PuSpecSheetDbContext db, RowValueStore valueStore, SheetChangeHistoryCache cache)
 {
     public async Task<SheetChangeHistory> LoadAsync(
         SheetSnapshot sheet,
         DateTime? moment,
         CancellationToken cancellationToken)
     {
-        var versionNumbers = sheet.Versions.ToDictionary(version => version.Id, version => version.VersionNumber);
-        var sheetId = sheet.Sheet.Id;
+        // Changes come from published revisions, and those only exist once a version has been published.
+        if (sheet.Versions.Count == 0)
+        {
+            return SheetChangeHistory.Empty;
+        }
+
+        if (moment is not null)
+        {
+            return await BuildAsync(sheet, moment, cancellationToken);
+        }
+
+        var key = string.Create(CultureInfo.InvariantCulture, $"{sheet.Sheet.Id}:{sheet.Versions[^1].Id}");
+        if (cache.TryGet(key, out var kept))
+        {
+            return kept;
+        }
+
+        var history = await BuildAsync(sheet, moment, cancellationToken);
+        cache.Set(key, history, history.Count);
+        return history;
+    }
+
+    private async Task<SheetChangeHistory> BuildAsync(SheetSnapshot sheet, DateTime? moment, CancellationToken cancellationToken)
+    {
+        // Found through the items' ids, like the sheet's own revisions (see SheetSnapshotLoader).
+        var rowIds = sheet.Rows.Select(row => row.Id).ToList();
+        var sectionIds = sheet.Sections.Select(section => section.Id).ToList();
+        var columnBlockIds = sheet.ColumnBlocks.Select(block => block.Id).ToList();
 
         var rowRevisions = await Published(
-                db.SheetRowRevisions.Where(revision => revision.SheetRow.SheetSection.SheetTable.SheetId == sheetId),
+                db.SheetRowRevisions.Where(revision => rowIds.Contains(revision.SheetRowId)),
                 moment)
             .ToListAsync(cancellationToken);
         var sectionRevisions = await Published(
-                db.SheetSectionRevisions.Where(revision => revision.SheetSection.SheetTable.SheetId == sheetId),
+                db.SheetSectionRevisions.Where(revision => sectionIds.Contains(revision.SheetSectionId)),
                 moment)
             .ToListAsync(cancellationToken);
-        var blockRevisions = await Published(
-                db.SheetColumnBlockRevisions.Where(revision => revision.SheetColumnBlock.SheetTable.SheetId == sheetId),
+        var columnBlockRevisions = await Published(
+                db.SheetColumnBlockRevisions.Where(revision => columnBlockIds.Contains(revision.SheetColumnBlockId)),
                 moment)
             .ToListAsync(cancellationToken);
         var values = await valueStore.LoadAsync(rowRevisions.Select(revision => revision.Id).ToList(), cancellationToken);
 
-        var history = new SheetChangeHistory();
-        var rowSections = sheet.Rows.ToDictionary(row => row.Id, row => row.SheetSectionId);
-        var sectionParents = sheet.Sections.ToDictionary(section => section.Id, section => section.ParentSheetSectionId);
-
-        SheetChangeDto? Change(ISheetRevision revision)
-        {
-            if (revision.SheetVersionId is not { } versionId
-                || revision.PublishedAtUtc is not { } at
-                || !versionNumbers.TryGetValue(versionId, out var number))
-            {
-                return null;
-            }
-
-            return new SheetChangeDto(
-                number,
-                DateTime.SpecifyKind(at, DateTimeKind.Utc),
-                sheet.UserNames.GetValueOrDefault(revision.AuthorUserId, "Unknown user"));
-        }
-
-        foreach (var group in rowRevisions.GroupBy(revision => revision.SheetRowId))
-        {
-            SheetRowRevision? previous = null;
-            foreach (var revision in group.OrderBy(candidate => candidate.RevisionNumber))
-            {
-                if (Change(revision) is { } change)
-                {
-                    var current = values.GetValueOrDefault(revision.Id) ?? [];
-                    var before = previous is null ? [] : values.GetValueOrDefault(previous.Id) ?? [];
-                    var cellsChanged = false;
-                    foreach (var cellId in current.Keys.Union(before.Keys))
-                    {
-                        if (!Same(current.GetValueOrDefault(cellId), before.GetValueOrDefault(cellId)))
-                        {
-                            history.Cells[cellId] = change;
-                            cellsChanged = true;
-                        }
-                    }
-
-                    if (cellsChanged || previous is null)
-                    {
-                        history.Rows[group.Key] = change;
-                    }
-
-                    var restructured = previous is null
-                        || revision.IsDeleted != previous.IsDeleted
-                        || revision.DisplayOrder != previous.DisplayOrder;
-                    if (restructured && rowSections.TryGetValue(group.Key, out var sectionId))
-                    {
-                        history.Sections[sectionId] = change;
-                    }
-                }
-
-                previous = revision;
-            }
-        }
-
-        foreach (var revision in sectionRevisions.OrderBy(candidate => candidate.PublishedAtUtc))
-        {
-            if (sectionParents.GetValueOrDefault(revision.SheetSectionId) is { } parentId
-                && Change(revision) is { } change)
-            {
-                history.Sections[parentId] = change;
-            }
-        }
-
-        foreach (var revision in blockRevisions.OrderBy(candidate => candidate.PublishedAtUtc))
-        {
-            if (Change(revision) is { } change)
-            {
-                history.ColumnBlocks[revision.SheetColumnBlockId] = change;
-            }
-        }
-
-        return history;
+        return SheetChangeHistoryCalculator.Calculate(
+            rowRevisions,
+            sectionRevisions,
+            columnBlockRevisions,
+            values,
+            sheet.Versions.ToDictionary(version => version.Id, version => version.VersionNumber),
+            sheet.Rows.ToDictionary(row => row.Id, row => row.SheetSectionId),
+            sheet.Sections.ToDictionary(section => section.Id, section => section.ParentSheetSectionId));
     }
 
     private static IQueryable<TRevision> Published<TRevision>(IQueryable<TRevision> query, DateTime? moment)
@@ -116,14 +77,5 @@ public sealed class SheetChangeHistoryLoader(PuSpecSheetDbContext db, RowValueSt
             .AsNoTracking()
             .Where(revision => revision.Status == RevisionStatus.Published
                 && (moment == null || revision.PublishedAtUtc <= moment));
-    }
-
-    private static bool Same(CellValueBag? left, CellValueBag? right)
-    {
-        return left?.Text == right?.Text
-            && left?.Number == right?.Number
-            && left?.Date == right?.Date
-            && left?.Boolean == right?.Boolean
-            && left?.OptionId == right?.OptionId;
     }
 }
