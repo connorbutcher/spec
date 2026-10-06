@@ -17,6 +17,13 @@ internal static class SheetRevisionQueryExtensions
         return revisions.Where(revision => revision.Status == RevisionStatus.Published && revision.SupersededAtUtc == null);
     }
 
+    /// <summary>The drafts one user holds.</summary>
+    public static IQueryable<TRevision> DraftsOf<TRevision>(this IQueryable<TRevision> revisions, int userId)
+        where TRevision : class, ISheetRevision
+    {
+        return revisions.Where(revision => revision.Status == RevisionStatus.Draft && revision.AuthorUserId == userId);
+    }
+
     /// <summary>Each item's current published revision and its draft, whoever holds it.</summary>
     public static IQueryable<TRevision> CurrentAndDrafts<TRevision>(this IQueryable<TRevision> revisions)
         where TRevision : class, ISheetRevision
@@ -30,6 +37,6 @@ internal static class SheetRevisionQueryExtensions
         where TRevision : class, ISheetRevision
     {
         return revisions.Current()
-            .Concat(revisions.Where(revision => revision.Status == RevisionStatus.Draft && revision.AuthorUserId == userId));
+            .Concat(revisions.DraftsOf(userId));
     }
 }

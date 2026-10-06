@@ -22,33 +22,31 @@ public sealed class DraftSweeper(
     {
         var me = currentUser.UserId;
 
-        // Only an item with an earlier revision has something to return to.
-        var rowIds = await db.SheetRowRevisions
-            .Where(revision => revision.SheetRow.SheetSection.SheetTable.SheetId == sheetId
-                && revision.Status == RevisionStatus.Draft && revision.AuthorUserId == me && revision.RevisionNumber > 1)
+        var rowIds = await HavingAnEarlierRevision(db.RowRevisionsOf(sheetId).DraftsOf(me))
             .Select(revision => revision.SheetRowId)
             .ToListAsync(cancellationToken);
         await rows.ReleaseUnchangedAsync(rowIds, cancellationToken);
 
-        var sectionIds = await db.SheetSectionRevisions
-            .Where(revision => revision.SheetSection.SheetTable.SheetId == sheetId
-                && revision.Status == RevisionStatus.Draft && revision.AuthorUserId == me && revision.RevisionNumber > 1)
+        var sectionIds = await HavingAnEarlierRevision(db.SectionRevisionsOf(sheetId).DraftsOf(me))
             .Select(revision => revision.SheetSectionId)
             .ToListAsync(cancellationToken);
         await sections.ReleaseUnchangedAsync(sectionIds, cancellationToken);
 
-        var tableIds = await db.SheetTableRevisions
-            .Where(revision => revision.SheetTable.SheetId == sheetId
-                && revision.Status == RevisionStatus.Draft && revision.AuthorUserId == me && revision.RevisionNumber > 1)
+        var tableIds = await HavingAnEarlierRevision(db.TableRevisionsOf(sheetId).DraftsOf(me))
             .Select(revision => revision.SheetTableId)
             .ToListAsync(cancellationToken);
         await tables.ReleaseUnchangedAsync(tableIds, cancellationToken);
 
-        var blockIds = await db.SheetColumnBlockRevisions
-            .Where(revision => revision.SheetColumnBlock.SheetTable.SheetId == sheetId
-                && revision.Status == RevisionStatus.Draft && revision.AuthorUserId == me && revision.RevisionNumber > 1)
+        var columnBlockIds = await HavingAnEarlierRevision(db.ColumnBlockRevisionsOf(sheetId).DraftsOf(me))
             .Select(revision => revision.SheetColumnBlockId)
             .ToListAsync(cancellationToken);
-        await columnBlocks.ReleaseUnchangedAsync(blockIds, cancellationToken);
+        await columnBlocks.ReleaseUnchangedAsync(columnBlockIds, cancellationToken);
+    }
+
+    /// <summary>Only an item with an earlier revision has something to return to.</summary>
+    private static IQueryable<TRevision> HavingAnEarlierRevision<TRevision>(IQueryable<TRevision> drafts)
+        where TRevision : class, ISheetRevision
+    {
+        return drafts.Where(revision => revision.RevisionNumber > 1);
     }
 }
