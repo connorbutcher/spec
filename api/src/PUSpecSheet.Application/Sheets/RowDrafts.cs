@@ -10,20 +10,35 @@ public sealed class RowDrafts(PuSpecSheetDbContext db, ICurrentUser currentUser,
 {
     protected override string Subject => "This row";
 
-    protected override IQueryable<SheetRowRevision> CurrentAndDrafts(int itemId)
+    protected override IQueryable<SheetRowRevision> CurrentAndDrafts(IReadOnlyCollection<int> itemIds)
     {
-        return Db.SheetRowRevisions.Where(revision => revision.SheetRowId == itemId && revision.SupersededAtUtc == null);
+        return Db.SheetRowRevisions.Where(revision => itemIds.Contains(revision.SheetRowId) && revision.SupersededAtUtc == null);
     }
 
-    protected override async Task<bool> IsUnchangedAsync(SheetRowRevision draft, SheetRowRevision current, CancellationToken cancellationToken)
+    protected override int ItemIdOf(SheetRowRevision revision)
     {
-        if (!SheetRevisionComparer.SameStructure(draft, current))
+        return revision.SheetRowId;
+    }
+
+    /// <summary>A row is unchanged when its place and existence are, and every cell holds what is published.</summary>
+    protected override async Task<HashSet<SheetRowRevision>> UnchangedAsync(
+        IReadOnlyList<(SheetRowRevision Draft, SheetRowRevision Current)> pairs,
+        CancellationToken cancellationToken)
+    {
+        var sameStructure = pairs
+            .Where(pair => SheetRevisionComparer.SameStructure(pair.Draft, pair.Current))
+            .ToList();
+        if (sameStructure.Count == 0)
         {
-            return false;
+            return [];
         }
 
-        var values = await valueStore.LoadAsync([draft.Id, current.Id], cancellationToken);
-        return CellValuesComparer.Same(values.GetValueOrDefault(draft.Id), values.GetValueOrDefault(current.Id));
+        var revisionIds = sameStructure.SelectMany(pair => new[] { pair.Draft.Id, pair.Current.Id }).ToList();
+        var values = await valueStore.LoadAsync(revisionIds, cancellationToken);
+        return sameStructure
+            .Where(pair => CellValuesComparer.Same(values.GetValueOrDefault(pair.Draft.Id), values.GetValueOrDefault(pair.Current.Id)))
+            .Select(pair => pair.Draft)
+            .ToHashSet();
     }
 
     protected override async Task<int> LastRevisionNumberAsync(int itemId, CancellationToken cancellationToken)

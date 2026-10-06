@@ -10,16 +10,26 @@ public sealed class TableDrafts(PuSpecSheetDbContext db, ICurrentUser currentUse
 {
     protected override string Subject => "This table";
 
-    protected override IQueryable<SheetTableRevision> CurrentAndDrafts(int itemId)
+    protected override IQueryable<SheetTableRevision> CurrentAndDrafts(IReadOnlyCollection<int> itemIds)
     {
-        return Db.SheetTableRevisions.Where(revision => revision.SheetTableId == itemId && revision.SupersededAtUtc == null);
+        return Db.SheetTableRevisions.Where(revision => itemIds.Contains(revision.SheetTableId) && revision.SupersededAtUtc == null);
     }
 
-    protected override Task<bool> IsUnchangedAsync(SheetTableRevision draft, SheetTableRevision current, CancellationToken cancellationToken)
+    protected override int ItemIdOf(SheetTableRevision revision)
     {
-        return Task.FromResult(
-            SheetRevisionComparer.SameStructure(draft, current)
-            && SheetRevisionComparer.SameText(draft.Title, current.Title));
+        return revision.SheetTableId;
+    }
+
+    /// <summary>A table is unchanged when its place, existence and title are.</summary>
+    protected override Task<HashSet<SheetTableRevision>> UnchangedAsync(
+        IReadOnlyList<(SheetTableRevision Draft, SheetTableRevision Current)> pairs,
+        CancellationToken cancellationToken)
+    {
+        return Task.FromResult(pairs
+            .Where(pair => SheetRevisionComparer.SameStructure(pair.Draft, pair.Current)
+                && SheetRevisionComparer.SameText(pair.Draft.Title, pair.Current.Title))
+            .Select(pair => pair.Draft)
+            .ToHashSet());
     }
 
     protected override async Task<int> LastRevisionNumberAsync(int itemId, CancellationToken cancellationToken)

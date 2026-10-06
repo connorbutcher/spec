@@ -19,8 +19,11 @@ public abstract class DraftGateway<TRevision>(PuSpecSheetDbContext db, ICurrentU
     /// <summary>Said in the lock message, e.g. "This row".</summary>
     protected abstract string Subject { get; }
 
-    /// <summary>The item's current published revision and any drafts, tracked.</summary>
-    protected abstract IQueryable<TRevision> CurrentAndDrafts(int itemId);
+    /// <summary>The current published revision and any drafts of the given items, tracked.</summary>
+    protected abstract IQueryable<TRevision> CurrentAndDrafts(IReadOnlyCollection<int> itemIds);
+
+    /// <summary>The item a revision belongs to.</summary>
+    protected abstract int ItemIdOf(TRevision revision);
 
     protected abstract Task<int> LastRevisionNumberAsync(int itemId, CancellationToken cancellationToken);
 
@@ -28,12 +31,18 @@ public abstract class DraftGateway<TRevision>(PuSpecSheetDbContext db, ICurrentU
     protected abstract void Add(TRevision revision, int itemId);
 
     /// <summary>
-    /// Whether a draft makes no net difference to the published revision it started from, so it needn't be kept:
-    /// the same place in the order and the same existence. Revision types with more to compare add to this.
+    /// The drafts that make no net difference to the published revision they started from, so they needn't be
+    /// kept: the same place in the order and the same existence. Revision types with more to compare add to
+    /// this. It takes every pair at once so a type that has to read more (a row's values) reads it in one go.
     /// </summary>
-    protected virtual Task<bool> IsUnchangedAsync(TRevision draft, TRevision current, CancellationToken cancellationToken)
+    protected virtual Task<HashSet<TRevision>> UnchangedAsync(
+        IReadOnlyList<(TRevision Draft, TRevision Current)> pairs,
+        CancellationToken cancellationToken)
     {
-        return Task.FromResult(SheetRevisionComparer.SameStructure(draft, current));
+        return Task.FromResult(pairs
+            .Where(pair => SheetRevisionComparer.SameStructure(pair.Draft, pair.Current))
+            .Select(pair => pair.Draft)
+            .ToHashSet());
     }
 
     /// <summary>
@@ -41,23 +50,26 @@ public abstract class DraftGateway<TRevision>(PuSpecSheetDbContext db, ICurrentU
     /// value typed back, an item moved back to where it was, a title restored). Nothing is left to publish.
     /// An item that has never been published has no original to return to, so it is left alone.
     /// </summary>
-    /// <returns>True when a draft was dropped.</returns>
-    public async Task<bool> ReleaseIfUnchangedAsync(int itemId, CancellationToken cancellationToken)
+    public Task ReleaseIfUnchangedAsync(int itemId, CancellationToken cancellationToken)
     {
-        var state = await LoadAsync(itemId, cancellationToken);
-        if (state.Draft is not { } draft || state.Current is not { } current || draft.AuthorUserId != currentUser.UserId)
+        return ReleaseUnchangedAsync([itemId], cancellationToken);
+    }
+
+    /// <summary>
+    /// <see cref="ReleaseIfUnchangedAsync"/> for many items at once: one read of their revisions and one save,
+    /// however many there are.
+    /// </summary>
+    public async Task ReleaseUnchangedAsync(IReadOnlyCollection<int> itemIds, CancellationToken cancellationToken)
+    {
+        var states = await LoadManyAsync(itemIds, cancellationToken);
+        var unchanged = await UnchangedAsync(MyDraftsOnPublishedItems(states.Values), cancellationToken);
+        if (unchanged.Count == 0)
         {
-            return false;
+            return;
         }
 
-        if (!await IsUnchangedAsync(draft, current, cancellationToken))
-        {
-            return false;
-        }
-
-        db.Remove(draft);
+        db.RemoveRange(unchanged);
         await db.SaveSheetChangesAsync(cancellationToken);
-        return true;
     }
 
     /// <summary>
@@ -69,17 +81,12 @@ public abstract class DraftGateway<TRevision>(PuSpecSheetDbContext db, ICurrentU
     public async Task ReleaseRestoredOrderAsync(IReadOnlyCollection<int> siblingIds, CancellationToken cancellationToken)
     {
         var me = currentUser.UserId;
-        var states = new List<(int Id, DraftState<TRevision> State)>();
-        foreach (var id in siblingIds)
-        {
-            states.Add((id, await LoadAsync(id, cancellationToken)));
-        }
-
+        var states = await LoadManyAsync(siblingIds, cancellationToken);
         var items = states
             .Select(entry =>
             {
-                var shown = entry.State.Draft is { } draft && draft.AuthorUserId == me ? draft : entry.State.Current;
-                return (entry.Id, entry.State.Current?.DisplayOrder, shown?.DisplayOrder ?? 0, shown?.IsDeleted ?? true);
+                var shown = entry.Value.Draft is { } draft && draft.AuthorUserId == me ? draft : entry.Value.Current;
+                return (entry.Key, entry.Value.Current?.DisplayOrder, shown?.DisplayOrder ?? 0, shown?.IsDeleted ?? true);
             })
             .ToList();
         if (!OrderRestoration.IsRestored(items))
@@ -87,46 +94,58 @@ public abstract class DraftGateway<TRevision>(PuSpecSheetDbContext db, ICurrentU
             return;
         }
 
-        var released = false;
-        foreach (var (_, state) in states)
-        {
-            if (state.Draft is not { } draft || state.Current is not { } current || draft.AuthorUserId != me
-                || draft.DisplayOrder == current.DisplayOrder)
-            {
-                continue;
-            }
+        var moved = MyDraftsOnPublishedItems(states.Values)
+            .Where(pair => pair.Draft.DisplayOrder != pair.Current.DisplayOrder)
+            .ToList();
 
-            var movedBack = draft.DisplayOrder;
+        // Each goes back to its published number to see whether anything else still differs; the ones that do
+        // differ keep the number they were moved to.
+        var movedTo = moved.ToDictionary(pair => pair.Draft, pair => pair.Draft.DisplayOrder);
+        foreach (var (draft, current) in moved)
+        {
             draft.DisplayOrder = current.DisplayOrder;
-            if (await IsUnchangedAsync(draft, current, cancellationToken))
-            {
-                db.Remove(draft);
-                released = true;
-            }
-            else
-            {
-                draft.DisplayOrder = movedBack;
-            }
         }
 
-        if (released)
+        var unchanged = await UnchangedAsync(moved, cancellationToken);
+        foreach (var (draft, _) in moved.Where(pair => !unchanged.Contains(pair.Draft)))
         {
+            draft.DisplayOrder = movedTo[draft];
+        }
+
+        if (unchanged.Count > 0)
+        {
+            db.RemoveRange(unchanged);
             await db.SaveSheetChangesAsync(cancellationToken);
         }
     }
 
     public async Task<DraftState<TRevision>> LoadAsync(int itemId, CancellationToken cancellationToken)
     {
-        var revisions = await CurrentAndDrafts(itemId).ToListAsync(cancellationToken);
-        var draft = revisions.FirstOrDefault(revision => revision.Status == RevisionStatus.Draft);
-        var current = revisions.FirstOrDefault(revision => revision.Status == RevisionStatus.Published);
+        var states = await LoadManyAsync([itemId], cancellationToken);
+        return states.GetValueOrDefault(itemId) ?? throw new NotFoundException($"{Subject} was not found.");
+    }
 
-        if (draft is null && current is null)
+    /// <summary>
+    /// The current revision and draft of each of the given items, in one query. An item with neither (it
+    /// doesn't exist) is left out.
+    /// </summary>
+    public async Task<IReadOnlyDictionary<int, DraftState<TRevision>>> LoadManyAsync(
+        IReadOnlyCollection<int> itemIds,
+        CancellationToken cancellationToken)
+    {
+        if (itemIds.Count == 0)
         {
-            throw new NotFoundException($"{Subject} was not found.");
+            return new Dictionary<int, DraftState<TRevision>>();
         }
 
-        return new DraftState<TRevision>(current, draft);
+        var revisions = await CurrentAndDrafts(itemIds).ToListAsync(cancellationToken);
+        return revisions
+            .GroupBy(ItemIdOf)
+            .ToDictionary(
+                item => item.Key,
+                item => new DraftState<TRevision>(
+                    item.FirstOrDefault(revision => revision.Status == RevisionStatus.Published),
+                    item.FirstOrDefault(revision => revision.Status == RevisionStatus.Draft)));
     }
 
     /// <summary>The viewer's draft on the item, starting one from the current revision if they don't have one yet.</summary>
@@ -169,6 +188,16 @@ public abstract class DraftGateway<TRevision>(PuSpecSheetDbContext db, ICurrentU
         {
             await ThrowLockedAsync(draft.AuthorUserId, cancellationToken);
         }
+    }
+
+    /// <summary>The viewer's drafts on items that have a published revision to compare them with.</summary>
+    private List<(TRevision Draft, TRevision Current)> MyDraftsOnPublishedItems(IEnumerable<DraftState<TRevision>> states)
+    {
+        var me = currentUser.UserId;
+        return states
+            .Where(state => state.Draft is not null && state.Current is not null && state.Draft.AuthorUserId == me)
+            .Select(state => (state.Draft!, state.Current!))
+            .ToList();
     }
 
     private async Task ThrowLockedAsync(int authorUserId, CancellationToken cancellationToken)

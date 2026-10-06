@@ -10,9 +10,14 @@ public sealed class ColumnBlockDrafts(PuSpecSheetDbContext db, ICurrentUser curr
 {
     protected override string Subject => "This column block";
 
-    protected override IQueryable<SheetColumnBlockRevision> CurrentAndDrafts(int itemId)
+    protected override IQueryable<SheetColumnBlockRevision> CurrentAndDrafts(IReadOnlyCollection<int> itemIds)
     {
-        return Db.SheetColumnBlockRevisions.Where(revision => revision.SheetColumnBlockId == itemId && revision.SupersededAtUtc == null);
+        return Db.SheetColumnBlockRevisions.Where(revision => itemIds.Contains(revision.SheetColumnBlockId) && revision.SupersededAtUtc == null);
+    }
+
+    protected override int ItemIdOf(SheetColumnBlockRevision revision)
+    {
+        return revision.SheetColumnBlockId;
     }
 
     protected override async Task<int> LastRevisionNumberAsync(int itemId, CancellationToken cancellationToken)

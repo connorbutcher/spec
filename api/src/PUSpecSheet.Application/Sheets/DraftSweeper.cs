@@ -28,39 +28,27 @@ public sealed class DraftSweeper(
                 && revision.Status == RevisionStatus.Draft && revision.AuthorUserId == me && revision.RevisionNumber > 1)
             .Select(revision => revision.SheetRowId)
             .ToListAsync(cancellationToken);
-        foreach (var id in rowIds)
-        {
-            await rows.ReleaseIfUnchangedAsync(id, cancellationToken);
-        }
+        await rows.ReleaseUnchangedAsync(rowIds, cancellationToken);
 
         var sectionIds = await db.SheetSectionRevisions
             .Where(revision => revision.SheetSection.SheetTable.SheetId == sheetId
                 && revision.Status == RevisionStatus.Draft && revision.AuthorUserId == me && revision.RevisionNumber > 1)
             .Select(revision => revision.SheetSectionId)
             .ToListAsync(cancellationToken);
-        foreach (var id in sectionIds)
-        {
-            await sections.ReleaseIfUnchangedAsync(id, cancellationToken);
-        }
+        await sections.ReleaseUnchangedAsync(sectionIds, cancellationToken);
 
         var tableIds = await db.SheetTableRevisions
             .Where(revision => revision.SheetTable.SheetId == sheetId
                 && revision.Status == RevisionStatus.Draft && revision.AuthorUserId == me && revision.RevisionNumber > 1)
             .Select(revision => revision.SheetTableId)
             .ToListAsync(cancellationToken);
-        foreach (var id in tableIds)
-        {
-            await tables.ReleaseIfUnchangedAsync(id, cancellationToken);
-        }
+        await tables.ReleaseUnchangedAsync(tableIds, cancellationToken);
 
         var blockIds = await db.SheetColumnBlockRevisions
             .Where(revision => revision.SheetColumnBlock.SheetTable.SheetId == sheetId
                 && revision.Status == RevisionStatus.Draft && revision.AuthorUserId == me && revision.RevisionNumber > 1)
             .Select(revision => revision.SheetColumnBlockId)
             .ToListAsync(cancellationToken);
-        foreach (var id in blockIds)
-        {
-            await columnBlocks.ReleaseIfUnchangedAsync(id, cancellationToken);
-        }
+        await columnBlocks.ReleaseUnchangedAsync(blockIds, cancellationToken);
     }
 }

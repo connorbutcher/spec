@@ -10,9 +10,14 @@ public sealed class SectionDrafts(PuSpecSheetDbContext db, ICurrentUser currentU
 {
     protected override string Subject => "This section";
 
-    protected override IQueryable<SheetSectionRevision> CurrentAndDrafts(int itemId)
+    protected override IQueryable<SheetSectionRevision> CurrentAndDrafts(IReadOnlyCollection<int> itemIds)
     {
-        return Db.SheetSectionRevisions.Where(revision => revision.SheetSectionId == itemId && revision.SupersededAtUtc == null);
+        return Db.SheetSectionRevisions.Where(revision => itemIds.Contains(revision.SheetSectionId) && revision.SupersededAtUtc == null);
+    }
+
+    protected override int ItemIdOf(SheetSectionRevision revision)
+    {
+        return revision.SheetSectionId;
     }
 
     protected override async Task<int> LastRevisionNumberAsync(int itemId, CancellationToken cancellationToken)
