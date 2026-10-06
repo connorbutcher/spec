@@ -11,7 +11,7 @@
 }
 
 @if (sheetSection(); as section) {
-  @if (canAdd() || changeLabel()) {
+  @if (canAdd() || change()) {
     <div class="add" (click)="$event.stopPropagation()">
       @if (canAdd()) {
         <app-sheet-add-menu
@@ -21,13 +21,8 @@
           [iconOnly]="true"
         />
       }
-      @if (changeLabel(); as label) {
-        <p-tag
-          [value]="'v' + section.lastChange?.versionNumber"
-          severity="secondary"
-          [pTooltip]="label"
-          tooltipPosition="right"
-        />
+      @if (change(); as change) {
+        <app-sheet-change-tag [change]="change" />
       }
     </div>
   }

@@ -1,5 +1,6 @@
 import { SheetChange } from './models/sheet-change.model';
 import { SheetSection } from './models/sheet-section.model';
+import { SheetTable } from './models/sheet-table.model';
 
 /**
  * A name for one section copy: its template name, plus the first text typed into it if there is any,
@@ -16,5 +17,20 @@ export function sectionLabel(section: SheetSection): string {
 /** "v3 · 12 Sep 2026 · A. Smith": which publish changed something, when and by whom. */
 export function changeLabel(change: SheetChange): string {
   const when = new Date(change.atUtc).toLocaleDateString(undefined, { dateStyle: 'medium' });
-  return `v${change.versionNumber} · ${when} · ${change.userName}`;
+  return `${versionLabel(change.versionNumber)} · ${when} · ${change.userName}`;
+}
+
+/** "v3": how a published version is written wherever it is shown. */
+export function versionLabel(versionNumber: number): string {
+  return `v${versionNumber}`;
+}
+
+/** A UTC moment as the viewer's local date and time, e.g. "12 Sep 2026, 14:05". */
+export function momentLabel(utc: string): string {
+  return new Date(utc).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+}
+
+/** What a table is called: the title typed for it, or its template's name until it has one. */
+export function tableLabel(table: SheetTable): string {
+  return table.title || table.templateName;
 }

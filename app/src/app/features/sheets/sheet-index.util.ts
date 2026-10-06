@@ -1,3 +1,4 @@
+import { SectionTone } from './models/section-tone';
 import { SheetCell } from './models/sheet-cell.model';
 import { SheetIndex } from './models/sheet-index.model';
 import { SheetRow } from './models/sheet-row.model';
@@ -86,4 +87,27 @@ export function sectionSiblings(index: SheetIndex, sectionId: number): SheetSect
   }
   const table = index.tables.get(index.sectionTable.get(sectionId) ?? -1);
   return table?.sections ?? [];
+}
+
+/** Whether a section is a group: it holds other sections, or can. The header never is. */
+export function isGroupSection(section: SheetSection): boolean {
+  return (
+    section.role !== 'Header' && (section.sections.length > 0 || section.addableSections.length > 0)
+  );
+}
+
+/** The tone of a row's cells, from the section the row is in. Deeper groups are lighter. */
+export function sectionTone(index: SheetIndex, rowId: number): SectionTone {
+  const section = index.sections.get(index.rowSection.get(rowId) ?? -1);
+  if (section === undefined) {
+    return 'plain';
+  }
+  if (section.role === 'Header') {
+    return 'header';
+  }
+  if (!isGroupSection(section)) {
+    return 'plain';
+  }
+  const depth = Math.min(sectionAncestors(index, section.id).length, 2) as 0 | 1 | 2;
+  return `group-${depth}`;
 }

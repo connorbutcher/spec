@@ -1,0 +1,45 @@
+@switch (editor()) {
+  @case ('Text') {
+    <app-sheet-text-cell
+      [cell]="cell()"
+      [configuration]="configuration()"
+      [label]="label()"
+      (started)="started.emit()"
+      (changed)="changed.emit($event)"
+    />
+  }
+  @case ('Number') {
+    <app-sheet-number-cell
+      [cell]="cell()"
+      [configuration]="configuration()"
+      [label]="label()"
+      (started)="started.emit()"
+      (changed)="changed.emit($event)"
+    />
+  }
+  @case ('Date') {
+    <app-sheet-date-cell
+      [cell]="cell()"
+      [label]="label()"
+      (started)="started.emit()"
+      (changed)="changed.emit($event)"
+    />
+  }
+  @case ('Checkbox') {
+    <app-sheet-checkbox-cell
+      [cell]="cell()"
+      [label]="label()"
+      (started)="started.emit()"
+      (changed)="changed.emit($event)"
+    />
+  }
+  @case ('Dropdown') {
+    <app-sheet-dropdown-cell
+      [cell]="cell()"
+      [cellType]="cellType()"
+      [label]="label()"
+      (started)="started.emit()"
+      (changed)="changed.emit($event)"
+    />
+  }
+}

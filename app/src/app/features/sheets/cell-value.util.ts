@@ -1,4 +1,6 @@
+import { CellConfiguration } from '../templates/models/cell-configuration';
 import { CellKind } from '../templates/models/cell-kind';
+import { CellType } from '../templates/models/cell-type.model';
 import { CellValueRequest } from './models/cell-value-request.model';
 import { SheetCell } from './models/sheet-cell.model';
 
@@ -49,4 +51,48 @@ export function valueRequest(
     }
   }
   return request;
+}
+
+/** What a value cell shows as plain text when it isn't a control. Empty when it has no value, and for a checkbox. */
+export function displayValue(
+  cell: SheetCell,
+  cellType: CellType,
+  configuration: CellConfiguration,
+): string {
+  switch (cellType.kind) {
+    case 'Text': {
+      return cell.textValue ?? '';
+    }
+    case 'Number': {
+      return configuration.kind === 'Number'
+        ? formatNumber(cell.numberValue, configuration.decimalPlaces, configuration.unit)
+        : formatNumber(cell.numberValue, null, null);
+    }
+    case 'Date': {
+      return cell.dateValue ?? '';
+    }
+    case 'TextDropdown':
+    case 'NumberDropdown': {
+      return cellType.options.find((option) => option.id === cell.optionId)?.value ?? '';
+    }
+    default: {
+      return '';
+    }
+  }
+}
+
+/** A number to its cell's decimal places, followed by its unit: "12.50 Nm". */
+function formatNumber(
+  value: number | null,
+  decimalPlaces: number | null | undefined,
+  unit: string | null | undefined,
+): string {
+  if (value === null) {
+    return '';
+  }
+  const text =
+    decimalPlaces === null || decimalPlaces === undefined
+      ? String(value)
+      : value.toFixed(decimalPlaces);
+  return unit ? `${text} ${unit}` : text;
 }

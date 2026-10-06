@@ -1,0 +1,16 @@
+// Adds no box of its own: what it shows is laid out and styled by the cell.
+:host {
+  display: contents;
+}
+
+.value {
+  overflow-wrap: anywhere;
+}
+
+// The caption of an empty value cell that can't be edited.
+.hint {
+  color: #9ca3af;
+  font-size: 0.75rem;
+  font-style: normal;
+  font-weight: 400;
+}

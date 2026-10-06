@@ -1,99 +1,29 @@
 <div class="content" [style]="contentStyle()">
   @if (displayOnly()) {
     <span class="text">{{ caption() }}</span>
-  } @else if (isEditable() && cell(); as cell) {
-    @if (cellType(); as type) {
-      @if (configuration(); as configuration) {
-        @switch (type.kind) {
-          @case ('Text') {
-            <app-sheet-text-cell
-              [cell]="cell"
-              [configuration]="configuration"
-              [label]="hint()"
-              (started)="beginEditing()"
-              (changed)="save($event)"
-            />
-          }
-          @case ('Number') {
-            <app-sheet-number-cell
-              [cell]="cell"
-              [configuration]="configuration"
-              [label]="hint()"
-              (started)="beginEditing()"
-              (changed)="save($event)"
-            />
-          }
-          @case ('Date') {
-            <app-sheet-date-cell
-              [cell]="cell"
-              [label]="hint()"
-              (started)="beginEditing()"
-              (changed)="save($event)"
-            />
-          }
-          @case ('Checkbox') {
-            <app-sheet-checkbox-cell
-              [cell]="cell"
-              [label]="hint()"
-              (started)="beginEditing()"
-              (changed)="save($event)"
-            />
-          }
-          @case ('TextDropdown') {
-            <app-sheet-dropdown-cell
-              [cell]="cell"
-              [cellType]="type"
-              [label]="hint()"
-              (started)="beginEditing()"
-              (changed)="save($event)"
-            />
-          }
-          @case ('NumberDropdown') {
-            <app-sheet-dropdown-cell
-              [cell]="cell"
-              [cellType]="type"
-              [label]="hint()"
-              (started)="beginEditing()"
-              (changed)="save($event)"
-            />
-          }
-        }
-      }
-    }
-  } @else if (isCheckbox()) {
-    <i
-      class="pi"
-      [class.pi-check-square]="isChecked()"
-      [class.pi-stop]="!isChecked()"
-      [attr.aria-label]="isChecked() ? 'Ticked' : 'Not ticked'"
-    ></i>
-  } @else if (display()) {
-    <span class="value">{{ display() }}</span>
+  } @else if (editable(); as editable) {
+    <app-sheet-cell-editor
+      [cell]="editable.cell"
+      [cellType]="editable.cellType"
+      [configuration]="editable.configuration"
+      [label]="hint()"
+      (started)="selectRow()"
+      (changed)="save($event)"
+    />
   } @else {
-    <span class="hint">{{ hint() }}</span>
+    <app-sheet-cell-value
+      [cell]="cell()"
+      [cellType]="cellType()"
+      [configuration]="configuration()"
+      [hint]="hint()"
+    />
   }
 
-  @if (rowChange(); as change) {
-    <span class="row-mark" [pTooltip]="change.label" tooltipPosition="right"></span>
-    <span class="row-version">{{ change.version }}</span>
-  }
-
-  @if (cellChange(); as label) {
-    <span
-      class="cell-mark"
-      [pTooltip]="label"
-      tooltipPosition="left"
-      [attr.aria-label]="'Changed in ' + label"
-    ></span>
-  }
-
-  @if (showsLock()) {
-    <i
-      class="pi lock"
-      [class.pi-lock]="lockedByOther()"
-      [pTooltip]="lockLabel()"
-      tooltipPosition="left"
-      [attr.aria-label]="lockLabel()"
-    ></i>
+  @if (hasMarks()) {
+    <app-sheet-cell-marks
+      [rowChange]="rowChange()"
+      [cellChange]="cellChange()"
+      [lockedBy]="lockedBy()"
+    />
   }
 </div>

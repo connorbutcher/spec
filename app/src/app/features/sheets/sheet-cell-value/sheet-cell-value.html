@@ -1,0 +1,12 @@
+@if (isCheckbox()) {
+  <i
+    class="pi"
+    [class.pi-check-square]="isChecked()"
+    [class.pi-stop]="!isChecked()"
+    [attr.aria-label]="isChecked() ? 'Ticked' : 'Not ticked'"
+  ></i>
+} @else if (text()) {
+  <span class="value">{{ text() }}</span>
+} @else {
+  <span class="hint">{{ hint() }}</span>
+}

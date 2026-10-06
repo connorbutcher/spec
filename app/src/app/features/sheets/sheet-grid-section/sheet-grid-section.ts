@@ -1,12 +1,10 @@
 import { Component, computed, inject, input } from '@angular/core';
-import { TagModule } from 'primeng/tag';
-import { TooltipModule } from 'primeng/tooltip';
-import { GridStyle } from '../../templates/models/grid-style';
 import { SectionLayout } from '../../templates/models/section-layout.model';
 import { SheetAddMenu } from '../sheet-add-menu/sheet-add-menu';
 import { SheetGridCell } from '../sheet-grid-cell/sheet-grid-cell';
-import { changeLabel } from '../sheet-labels.util';
-import { sectionAncestors } from '../sheet-index.util';
+import { SheetChange } from '../models/sheet-change.model';
+import { SheetChangeTag } from '../sheet-change-tag/sheet-change-tag';
+import { isGroupSection, sectionAncestors } from '../sheet-index.util';
 import { SheetStore } from '../sheet.store';
 
 /**
@@ -16,11 +14,11 @@ import { SheetStore } from '../sheet.store';
  */
 @Component({
   selector: 'app-sheet-grid-section',
-  imports: [SheetAddMenu, SheetGridCell, TagModule, TooltipModule],
+  imports: [SheetAddMenu, SheetChangeTag, SheetGridCell],
   templateUrl: './sheet-grid-section.html',
   styleUrl: './sheet-grid-section.scss',
   host: {
-    '[style]': 'hostStyle()',
+    '[style]': 'layout().style',
     '[class.selected]': 'isSelected()',
     '[class.group]': 'isGroup()',
     '[class.nested]': 'isNested()',
@@ -47,11 +45,7 @@ export class SheetGridSection {
   /** A group holds other sections; it gets a bar and boundary around it and everything inside. */
   public readonly isGroup = computed(() => {
     const section = this.sheetSection();
-    return (
-      section !== null &&
-      section.role !== 'Header' &&
-      (section.sections.length > 0 || section.addableSections.length > 0)
-    );
+    return section !== null && isGroupSection(section);
   });
 
   public readonly isNested = computed(
@@ -64,17 +58,12 @@ export class SheetGridSection {
     return this.store.canEdit() && section !== null && section.addableSections.length > 0;
   });
 
-  /** What changed directly in this section after the compared version, as "v3 · 12 Sep 2026 · A. Smith". */
-  public readonly changeLabel = computed(() => {
-    const change = this.sheetSection()?.lastChange ?? null;
-    return this.store.isMarked(change) && change !== null ? changeLabel(change) : null;
-  });
+  /** What changed directly in this section, if that was after the compared version. */
+  public readonly change = computed<SheetChange | null>(() =>
+    this.store.markedChange(this.sheetSection()?.lastChange),
+  );
 
   private readonly store = inject(SheetStore);
-
-  public hostStyle(): GridStyle {
-    return this.layout().style;
-  }
 
   public select(event: Event): void {
     event.stopPropagation();

@@ -55,7 +55,6 @@
   background-color: #f1f5f9;
 }
 
-// The cell holding the control the user is typing in.
 // The one focus indicator: a single inset line on the cell that holds the control being typed in.
 :host(:focus-within) {
   z-index: 3;
@@ -82,62 +81,6 @@
   padding: 0;
 }
 
-.text,
-.value {
+.text {
   overflow-wrap: anywhere;
-}
-
-// The caption of an empty value cell that can't be edited.
-.hint {
-  color: #9ca3af;
-  font-size: 0.75rem;
-  font-style: normal;
-  font-weight: 400;
-}
-
-.lock {
-  position: absolute;
-  top: 3px;
-  right: 4px;
-  z-index: 1;
-  color: #6b7280;
-  font-size: 0.65rem;
-  pointer-events: none;
-}
-
-// A cell changed since the compared version: a small grey triangle in its top-right corner.
-.cell-mark {
-  position: absolute;
-  top: 0;
-  right: 0;
-  z-index: 2;
-  width: 0;
-  height: 0;
-  border-top: 9px solid #64748b;
-  border-left: 9px solid transparent;
-  cursor: help;
-}
-
-// A row changed: a thin bar down the left edge of its first cell, with the version written small below.
-.row-mark {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  z-index: 2;
-  display: flex;
-  width: 3px;
-  background: #64748b;
-  cursor: help;
-}
-
-.row-version {
-  position: absolute;
-  bottom: 0;
-  left: 5px;
-  z-index: 2;
-  color: #64748b;
-  font-size: 0.55rem;
-  line-height: 1;
-  pointer-events: none;
 }

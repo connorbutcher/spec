@@ -1,0 +1,4 @@
+// Adds no box of its own: the editor inside is laid out by the cell, as if it were placed there directly.
+:host {
+  display: contents;
+}

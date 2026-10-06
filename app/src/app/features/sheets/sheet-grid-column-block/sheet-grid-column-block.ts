@@ -1,13 +1,12 @@
 import { Component, computed, inject, input } from '@angular/core';
 import { ConfirmationService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
-import { TagModule } from 'primeng/tag';
-import { TooltipModule } from 'primeng/tooltip';
 import { ColumnBlockLayout } from '../../templates/models/column-block-layout.model';
-import { GridStyle } from '../../templates/models/grid-style';
 import { SheetColumnBlock } from '../models/sheet-column-block.model';
 import { SheetTable } from '../models/sheet-table.model';
-import { changeLabel } from '../sheet-labels.util';
+import { SheetChange } from '../models/sheet-change.model';
+import { SheetChangeTag } from '../sheet-change-tag/sheet-change-tag';
+import { otherUsersLock } from '../sheet-lock.util';
 import { SheetStore } from '../sheet.store';
 
 /**
@@ -17,11 +16,11 @@ import { SheetStore } from '../sheet.store';
  */
 @Component({
   selector: 'app-sheet-grid-column-block',
-  imports: [ButtonModule, TagModule, TooltipModule],
+  imports: [ButtonModule, SheetChangeTag],
   templateUrl: './sheet-grid-column-block.html',
   styleUrl: './sheet-grid-column-block.scss',
   host: {
-    '[style]': 'hostStyle()',
+    '[style]': 'layout().style',
   },
 })
 export class SheetGridColumnBlock {
@@ -35,8 +34,7 @@ export class SheetGridColumnBlock {
 
   public readonly canEdit = computed(() => {
     const block = this.block();
-    const lock = block?.lock ?? null;
-    return this.store.canEdit() && block !== null && (lock === null || lock.isMine);
+    return this.store.canEdit() && block !== null && otherUsersLock(block.lock) === null;
   });
 
   public readonly position = computed(() =>
@@ -52,19 +50,19 @@ export class SheetGridColumnBlock {
 
   public readonly canRemove = computed(() => this.block()?.canRemove === true);
 
-  public readonly changeLabel = computed(() => {
-    const change = this.block()?.lastChange ?? null;
-    return this.store.isMarked(change) && change !== null ? changeLabel(change) : null;
-  });
+  /** What last added or moved the block, if that was after the compared version. */
+  public readonly change = computed<SheetChange | null>(() =>
+    this.store.markedChange(this.block()?.lastChange),
+  );
+
+  public readonly controlsLabel = computed(
+    () => `${this.block()?.name ?? 'Column'} column controls`,
+  );
 
   public readonly isBusy = computed(() => this.store.isBusy());
 
   private readonly store = inject(SheetStore);
   private readonly confirmation = inject(ConfirmationService);
-
-  public hostStyle(): GridStyle {
-    return this.layout().style;
-  }
 
   public move(step: -1 | 1): void {
     void this.store.moveColumnBlock(this.table().id, this.layout().block.id, step);

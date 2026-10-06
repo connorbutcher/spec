@@ -1,0 +1,22 @@
+@if (rowDetail(); as detail) {
+  <span class="row-mark" [pTooltip]="detail" tooltipPosition="right"></span>
+  <span class="row-version">{{ rowVersion() }}</span>
+}
+
+@if (cellDetail(); as detail) {
+  <span
+    class="cell-mark"
+    [pTooltip]="detail"
+    tooltipPosition="left"
+    [attr.aria-label]="'Changed in ' + detail"
+  ></span>
+}
+
+@if (lockLabel(); as label) {
+  <i
+    class="pi pi-lock lock"
+    [pTooltip]="label"
+    tooltipPosition="left"
+    [attr.aria-label]="label"
+  ></i>
+}

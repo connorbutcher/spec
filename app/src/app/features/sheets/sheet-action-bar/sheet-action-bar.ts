@@ -7,6 +7,7 @@ import { SheetSection } from '../models/sheet-section.model';
 import { SheetTable } from '../models/sheet-table.model';
 import { sectionAncestors, sectionSiblings } from '../sheet-index.util';
 import { sectionLabel } from '../sheet-labels.util';
+import { otherUsersLock } from '../sheet-lock.util';
 import { SheetStore } from '../sheet.store';
 
 /**
@@ -92,10 +93,7 @@ export class SheetActionBar {
     );
   });
 
-  public readonly lockedByOther = computed(() => {
-    const lock = this.row()?.lock;
-    return lock !== null && lock !== undefined && !lock.isMine;
-  });
+  public readonly lockedByOther = computed(() => otherUsersLock(this.row()?.lock) !== null);
 
   public readonly isBusy = computed(() => this.store.isBusy());
 

@@ -1,0 +1,4 @@
+// Adds no box of its own: the tag sits in its parent's row of controls.
+:host {
+  display: contents;
+}

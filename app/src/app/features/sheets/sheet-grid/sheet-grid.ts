@@ -3,6 +3,7 @@ import { reuseUnchanged } from '../../../shared/reuse-unchanged.util';
 import { TemplateLayout } from '../../templates/models/template-layout.model';
 import { SheetGridColumnBlock } from '../sheet-grid-column-block/sheet-grid-column-block';
 import { SheetGridSection } from '../sheet-grid-section/sheet-grid-section';
+import { tableLabel } from '../sheet-labels.util';
 import { layoutSheetTable } from '../sheet-layout.util';
 import { SheetTable } from '../models/sheet-table.model';
 
@@ -25,5 +26,5 @@ export class SheetGrid {
     computation: (table, previous) => reuseUnchanged(previous?.value, layoutSheetTable(table)),
   });
 
-  public readonly label = computed(() => this.table().title || this.table().templateName);
+  public readonly label = computed(() => tableLabel(this.table()));
 }

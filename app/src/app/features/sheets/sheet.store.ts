@@ -139,10 +139,10 @@ export class SheetStore {
     this.changesSince.set(version);
   }
 
-  /** Whether a change happened after the version being compared against. */
-  public isMarked(change: SheetChange | null): boolean {
+  /** The change, if it happened after the version being compared against and so is to be marked. */
+  public markedChange(change: SheetChange | null | undefined): SheetChange | null {
     const base = this.changesSince();
-    return base !== null && change !== null && change.versionNumber > base;
+    return base !== null && change && change.versionNumber > base ? change : null;
   }
 
   public dismissError(): void {

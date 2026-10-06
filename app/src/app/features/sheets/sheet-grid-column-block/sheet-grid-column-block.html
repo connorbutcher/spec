@@ -1,16 +1,7 @@
-@if (canEdit() || changeLabel()) {
-  <div
-    class="controls"
-    role="group"
-    [attr.aria-label]="(block()?.name ?? 'Column') + ' column controls'"
-  >
-    @if (changeLabel(); as label) {
-      <p-tag
-        [value]="'v' + block()?.lastChange?.versionNumber"
-        severity="secondary"
-        [pTooltip]="label"
-        tooltipPosition="bottom"
-      />
+@if (canEdit() || change()) {
+  <div class="controls" role="group" [attr.aria-label]="controlsLabel()">
+    @if (change(); as change) {
+      <app-sheet-change-tag [change]="change" tooltipPosition="bottom" />
     }
     @if (canEdit()) {
       <p-button

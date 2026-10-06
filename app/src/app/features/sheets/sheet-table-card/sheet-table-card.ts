@@ -8,6 +8,8 @@ import { SheetTable } from '../models/sheet-table.model';
 import { SheetActionBar } from '../sheet-action-bar/sheet-action-bar';
 import { SheetAddMenu } from '../sheet-add-menu/sheet-add-menu';
 import { SheetGrid } from '../sheet-grid/sheet-grid';
+import { tableLabel } from '../sheet-labels.util';
+import { otherUsersLock } from '../sheet-lock.util';
 import { SheetStore } from '../sheet.store';
 
 /**
@@ -31,20 +33,16 @@ import { SheetStore } from '../sheet.store';
 export class SheetTableCard {
   public readonly table = input.required<SheetTable>();
 
-  public readonly label = computed(() => this.table().title || this.table().templateName);
+  public readonly label = computed(() => tableLabel(this.table()));
 
   public readonly canEdit = computed(() => this.store.canEdit());
 
   /** The title and position can be changed unless someone else has a change to them in progress. */
   public readonly canEditTable = computed(
-    () =>
-      this.store.canEdit() && (this.table().lock === null || this.table().lock?.isMine === true),
+    () => this.store.canEdit() && otherUsersLock(this.table().lock) === null,
   );
 
-  public readonly lockedBy = computed(() => {
-    const lock = this.table().lock;
-    return lock !== null && !lock.isMine ? lock.userName : null;
-  });
+  public readonly lockedBy = computed(() => otherUsersLock(this.table().lock)?.userName ?? null);
 
   public readonly isBusy = computed(() => this.store.isBusy());
 
