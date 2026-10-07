@@ -8,7 +8,8 @@ import { SheetCell } from '../models/sheet-cell.model';
 
 /**
  * The editor for a date cell: a PrimeNG date picker that fills the whole cell. A date can be typed
- * (`yyyy-mm-dd`) or picked, and is saved when it's picked, cleared, or focus leaves the box.
+ * (`yyyy-mm-dd`) or picked, and is saved when it's picked, cleared, or focus leaves the box. Text that
+ * isn't a whole date is never saved: leaving the box puts the saved date back.
  */
 @Component({
   selector: 'app-sheet-date-cell',
@@ -31,6 +32,16 @@ export class SheetDateCell {
 
   public pick(value: Date | null): void {
     this.date.set(value);
+    this.commit();
+  }
+
+  /** Focus left the box. Emptying it clears the date; leaving half a date in it changes nothing. */
+  public leave(event: Event): void {
+    const typed = event.target instanceof HTMLInputElement ? event.target.value.trim() : '';
+    if (this.date() === null && typed !== '') {
+      this.date.set(fromDateValue(this.cell().dateValue));
+      return;
+    }
     this.commit();
   }
 

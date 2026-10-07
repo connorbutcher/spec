@@ -11,7 +11,7 @@
   [ngModel]="date()"
   (ngModelChange)="date.set($event)"
   (onFocus)="started.emit()"
-  (onBlur)="commit()"
+  (onBlur)="leave($event)"
   (onSelect)="pick($event)"
   (onClear)="pick(null)"
 />
