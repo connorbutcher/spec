@@ -20,6 +20,7 @@ function sheetWithTable(): Sheet {
     viewedAsOfUtc: null,
     latestVersionNumber: null,
     myDraftCount: 0,
+    otherDrafts: [],
     versions: [],
     tables: [fixtureTable()],
     availableTemplates: [],

@@ -17,4 +17,11 @@ public sealed record SheetDto(
     int MyDraftCount,
     IReadOnlyList<SheetVersionSummaryDto> Versions,
     IReadOnlyList<SheetTableDto> Tables,
-    IReadOnlyList<AvailableTemplateDto> AvailableTemplates);
+    IReadOnlyList<AvailableTemplateDto> AvailableTemplates)
+{
+    /// <summary>
+    /// Other people's unpublished changes on the sheet, by person. Publishing everything takes these as
+    /// well as the viewer's own. Empty for a past view.
+    /// </summary>
+    public IReadOnlyList<SheetDraftSummaryDto> OtherDrafts { get; init; } = [];
+}

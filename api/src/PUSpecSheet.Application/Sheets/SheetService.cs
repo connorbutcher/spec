@@ -46,7 +46,7 @@ public sealed class SheetService(
 
     public async Task<SheetDto> PublishAsync(int sheetId, PublishSheetRequest request, CancellationToken cancellationToken)
     {
-        await publisher.PublishAsync(sheetId, request.Note, cancellationToken);
+        await publisher.PublishAsync(sheetId, request.Note, request.Scope, cancellationToken);
         return await reader.ReadLiveAsync(sheetId, cancellationToken);
     }
 

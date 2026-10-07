@@ -7,6 +7,7 @@ import { reuseUnchanged } from '../../shared/reuse-unchanged.util';
 import { apiErrorMessage } from '../templates/api-error-message';
 import { CellType } from '../templates/models/cell-type.model';
 import { CellValueRequest } from './models/cell-value-request.model';
+import { PublishScope } from './models/publish-scope';
 import { SheetChange } from './models/sheet-change.model';
 import { SheetIndex } from './models/sheet-index.model';
 import { SheetSelection } from './models/sheet-selection.model';
@@ -284,12 +285,12 @@ export class SheetStore {
     }
   }
 
-  public async publish(note: string | null): Promise<boolean> {
+  public async publish(note: string | null, scope: PublishScope = 'Mine'): Promise<boolean> {
     const sheetId = this.sheet()?.id;
     if (sheetId === undefined) {
       return false;
     }
-    return (await this.run(() => this.api.publish(sheetId, note))) !== null;
+    return (await this.run(() => this.api.publish(sheetId, note, scope))) !== null;
   }
 
   /**

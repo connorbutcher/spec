@@ -12,7 +12,10 @@ public interface ISheetService
 
     Task<SheetDto> GetAsync(int sheetId, SheetViewPoint view, CancellationToken cancellationToken);
 
-    /// <summary>Publishes all of the current user's drafts on the sheet as its next version.</summary>
+    /// <summary>
+    /// Publishes drafts on the sheet as its next version: the current user's own, or everyone's when the
+    /// request asks for <see cref="PublishScope.All"/>.
+    /// </summary>
     Task<SheetDto> PublishAsync(int sheetId, PublishSheetRequest request, CancellationToken cancellationToken);
 
     /// <summary>Throws away all of the current user's drafts on the sheet, releasing their locks.</summary>

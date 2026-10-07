@@ -1,0 +1,22 @@
+<div class="publish-scope" role="radiogroup" aria-label="What to publish">
+  @for (option of options(); track option.scope) {
+    <div class="choice" [class.unavailable]="option.disabled">
+      <p-radiobutton
+        name="publish-scope"
+        size="small"
+        [inputId]="'publish-scope-' + option.scope"
+        [value]="option.scope"
+        [disabled]="option.disabled"
+        [ngModel]="scope()"
+        (ngModelChange)="scopeChange.emit($event)"
+        [ngModelOptions]="{ standalone: true }"
+      />
+      <label [for]="'publish-scope-' + option.scope">
+        {{ option.label }} ({{ option.count }})
+        @if (option.detail; as detail) {
+          <small>{{ detail }}</small>
+        }
+      </label>
+    </div>
+  }
+</div>

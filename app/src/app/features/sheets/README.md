@@ -18,7 +18,8 @@ sheets/
   sheet-toolbar/            Version picker, compare picker, refresh, add table, publish.
     sheet-version-picker/     Live, a published version, or a date and time (past views are read-only).
     sheet-compare-picker/     "Changes since vN": turns the changed-in marks on.
-    sheet-publish/            Publish button with its note popover.
+    sheet-publish/            Publish button with its popover: what to publish, and a note.
+      sheet-publish-scope/      The choice between my own changes and everything pending, with counts.
   sheet-load-error/         "Couldn't load the sheet" with a retry.
 
   sheet-table-card/         One table: title, add menu, remove, the action bar and the grid.

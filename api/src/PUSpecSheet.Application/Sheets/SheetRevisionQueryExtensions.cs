@@ -1,3 +1,4 @@
+using PUSpecSheet.Contracts.Sheets;
 using PUSpecSheet.Domain.Sheets;
 
 namespace PUSpecSheet.Application.Sheets;
@@ -17,6 +18,20 @@ internal static class SheetRevisionQueryExtensions
         return revisions.Where(revision => revision.Status == RevisionStatus.Published && revision.SupersededAtUtc == null);
     }
 
+    /// <summary>Every draft, whoever holds it.</summary>
+    public static IQueryable<TRevision> Drafts<TRevision>(this IQueryable<TRevision> revisions)
+        where TRevision : class, ISheetRevision
+    {
+        return revisions.Where(revision => revision.Status == RevisionStatus.Draft);
+    }
+
+    /// <summary>The drafts a publish takes: the publisher's own, or everyone's.</summary>
+    public static IQueryable<TRevision> DraftsIn<TRevision>(this IQueryable<TRevision> revisions, PublishScope scope, int publisherUserId)
+        where TRevision : class, ISheetRevision
+    {
+        return scope == PublishScope.All ? revisions.Drafts() : revisions.DraftsOf(publisherUserId);
+    }
+
     /// <summary>The drafts one user holds.</summary>
     public static IQueryable<TRevision> DraftsOf<TRevision>(this IQueryable<TRevision> revisions, int userId)
         where TRevision : class, ISheetRevision
@@ -29,7 +44,7 @@ internal static class SheetRevisionQueryExtensions
         where TRevision : class, ISheetRevision
     {
         return revisions.Current()
-            .Concat(revisions.Where(revision => revision.Status == RevisionStatus.Draft));
+            .Concat(revisions.Drafts());
     }
 
     /// <summary>What a user sees of each item: its current published revision and their own draft of it.</summary>

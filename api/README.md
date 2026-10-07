@@ -37,7 +37,7 @@ Every method that touches the database is `async` and takes the request's `Cance
 A sheet item (table, section, row, column block) is an identity row plus revisions. Three ideas explain most of the code:
 
 - **A draft is a lock.** Changing an item starts a draft revision owned by the user. The database allows one draft per item, so nobody else can change it until the author publishes or discards. `DraftGateway<TRevision>` (one subclass per item kind) loads an item's current revision and draft and starts drafts.
-- **Publishing makes a version.** `SheetPublisher` turns the user's drafts into published revisions under a new `SheetVersion`, and closes the revisions they replace at the same instant. A published revision is never edited again.
+- **Publishing makes a version.** `SheetPublisher` turns drafts into published revisions under a new `SheetVersion`, and closes the revisions they replace at the same instant. A published revision is never edited again. The request's `PublishScope` says whose drafts: the publisher's own (`Mine`, the default) or every draft on the sheet (`All`). A draft published for someone else keeps its author, so the change stays in their name while the version is in the publisher's, and their lock goes with it; a draft of theirs that changes nothing is dropped, not published.
 - **Any moment can be read back.** A revision is in force from `PublishedAtUtc` until `SupersededAtUtc`, so "version 3" or "as of last Tuesday" is a range check.
 
 Reading goes `SheetReader` -> `SheetSnapshotLoader` (the queries) -> `SheetViewBuilder` (the tree the screen shows). Every edit returns the refreshed sheet through the same path.

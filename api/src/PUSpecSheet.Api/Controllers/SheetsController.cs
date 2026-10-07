@@ -77,15 +77,19 @@ public sealed class SheetsController(ISheetService sheets, ISheetTableService ta
         return Ok(result);
     }
 
-    /// <summary>Publish your drafts</summary>
+    /// <summary>Publish drafts</summary>
     /// <remarks>
-    /// Publishes all of your drafts on the sheet as its next version, with an optional note, and releases your locks. Other people's drafts are untouched.
+    /// Publishes drafts on the sheet as its next version, with an optional note, and releases their locks.
+    /// With <c>scope</c> <c>Mine</c> (the default) only your own drafts are published and other people's are untouched.
+    /// With <c>All</c> every draft on the sheet at that moment is published, whoever made it: each change stays
+    /// attributed to the person who made it, the version is attributed to you, and their locks are released.
     /// </remarks>
     /// <param name="id">The sheet's id.</param>
-    /// <param name="request">An optional note describing the version.</param>
+    /// <param name="request">An optional note describing the version, and whose drafts to publish.</param>
     /// <param name="cancellationToken">Cancels the request.</param>
     /// <response code="200">The refreshed live view of the sheet.</response>
-    /// <response code="400">You have nothing to publish, or required cells are still empty.</response>
+    /// <response code="400">There is nothing to publish, or required cells are still empty.</response>
+    /// <response code="409">Someone changed one of the drafts, or published, at the same moment.</response>
     [HttpPost("api/sheets/{id:int}/publish")]
     [Authorize(Policy = PermissionKeys.SheetsPublish)]
     public async Task<ActionResult<SheetDto>> Publish(int id, PublishSheetRequest request, CancellationToken cancellationToken)

@@ -71,6 +71,7 @@ internal sealed class SheetViewBuilder
             .ToList();
 
         var isLive = snapshot.AsOfUtc is null;
+        var drafts = Drafts().ToList();
         return new SheetDto(
             snapshot.Sheet.Id,
             snapshot.Sheet.PublicId,
@@ -80,10 +81,13 @@ internal sealed class SheetViewBuilder
             snapshot.ViewedVersionNumber,
             snapshot.AsOfUtc is { } moment ? Utc(moment) : null,
             versions.Count == 0 ? null : versions[^1].VersionNumber,
-            CountMyDrafts(),
+            DraftSummaries.CountOf(drafts, currentUserId),
             versions,
             tables,
-            templates);
+            templates)
+        {
+            OtherDrafts = DraftSummaries.OfOthers(drafts, currentUserId, UserName),
+        };
     }
 
     private SheetTableDto BuildTable(SheetTable table)
@@ -343,12 +347,14 @@ internal sealed class SheetViewBuilder
         return resolution.Shown is { Status: RevisionStatus.Draft, RevisionNumber: 1 };
     }
 
-    private int CountMyDrafts()
+    /// <summary>Every draft on the sheet, whoever holds it. A past view has none.</summary>
+    private IEnumerable<ISheetRevision> Drafts()
     {
-        return snapshot.TableRevisions.Values.Count(resolution => resolution.Draft?.AuthorUserId == currentUserId)
-            + snapshot.SectionRevisions.Values.Count(resolution => resolution.Draft?.AuthorUserId == currentUserId)
-            + snapshot.RowRevisions.Values.Count(resolution => resolution.Draft?.AuthorUserId == currentUserId)
-            + snapshot.ColumnBlockRevisions.Values.Count(resolution => resolution.Draft?.AuthorUserId == currentUserId);
+        return snapshot.TableRevisions.Values.Select(resolution => (ISheetRevision?)resolution.Draft)
+            .Concat(snapshot.SectionRevisions.Values.Select(resolution => resolution.Draft))
+            .Concat(snapshot.RowRevisions.Values.Select(resolution => resolution.Draft))
+            .Concat(snapshot.ColumnBlockRevisions.Values.Select(resolution => resolution.Draft))
+            .OfType<ISheetRevision>();
     }
 
     private static DateTime Utc(DateTime value)

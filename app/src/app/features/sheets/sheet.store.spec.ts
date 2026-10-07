@@ -21,6 +21,7 @@ function fixtureSheet(): Sheet {
     viewedAsOfUtc: null,
     latestVersionNumber: 2,
     myDraftCount: 0,
+    otherDrafts: [],
     versions: [
       {
         versionNumber: 1,
@@ -250,6 +251,22 @@ describe('SheetStore', () => {
 
     store.dismissError();
     expect(store.error()).toBeNull();
+  });
+
+  it('publishes my own changes, or everything on the sheet when asked', async () => {
+    const mine = store.publish('First cut');
+    await settle();
+    const first = http.expectOne(`/api/sheets/${sheet.id}/publish`);
+    expect(first.request.body).toEqual({ note: 'First cut', scope: 'Mine' });
+    first.flush(fromServer(sheet));
+    expect(await mine).toBe(true);
+
+    const everything = store.publish(null, 'All');
+    await settle();
+    const second = http.expectOne(`/api/sheets/${sheet.id}/publish`);
+    expect(second.request.body).toEqual({ note: null, scope: 'All' });
+    second.flush(fromServer(sheet));
+    expect(await everything).toBe(true);
   });
 
   it('selects what was just added', async () => {

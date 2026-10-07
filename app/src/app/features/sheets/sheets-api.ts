@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Service } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { CellValueRequest } from './models/cell-value-request.model';
+import { PublishScope } from './models/publish-scope';
 import { Sheet } from './models/sheet.model';
 
 /**
@@ -18,8 +19,8 @@ export class SheetsApi {
     );
   }
 
-  public publish(sheetId: number, note: string | null): Promise<Sheet> {
-    return firstValueFrom(this.http.post<Sheet>(`/api/sheets/${sheetId}/publish`, { note }));
+  public publish(sheetId: number, note: string | null, scope: PublishScope): Promise<Sheet> {
+    return firstValueFrom(this.http.post<Sheet>(`/api/sheets/${sheetId}/publish`, { note, scope }));
   }
 
   public setTableTitle(tableId: number, title: string | null): Promise<Sheet> {

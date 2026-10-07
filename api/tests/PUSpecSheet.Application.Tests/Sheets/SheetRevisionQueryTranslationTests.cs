@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Application.Sheets;
+using PUSpecSheet.Contracts.Sheets;
 using PUSpecSheet.Data;
 
 namespace PUSpecSheet.Application.Tests.Sheets;
@@ -48,6 +49,23 @@ public sealed class SheetRevisionQueryTranslationTests : IDisposable
 
         Assert.Contains("[Status] = 1 AND [s].[SupersededAtUtc] IS NULL", sql);
         Assert.DoesNotContain("UNION", sql);
+    }
+
+    [Fact]
+    public void DraftsInAPublishOfMyOwn_AreOnlyMine()
+    {
+        var sql = db.SheetRowRevisions.DraftsIn(PublishScope.Mine, 42).ToQueryString();
+
+        Assert.Contains("[Status] = 0 AND [s].[AuthorUserId] = @userId", sql);
+    }
+
+    [Fact]
+    public void DraftsInAPublishOfEverything_AreEveryonesDrafts_AndNothingPublished()
+    {
+        var sql = db.SheetRowRevisions.DraftsIn(PublishScope.All, 42).ToQueryString();
+
+        Assert.Contains("[Status] = 0", sql);
+        Assert.DoesNotContain("AuthorUserId] =", sql);
     }
 
     [Theory]

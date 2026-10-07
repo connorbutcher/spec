@@ -1,0 +1,28 @@
+.publish-scope {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.choice {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+
+  label {
+    font-size: 0.8rem;
+    line-height: 1.25;
+    cursor: pointer;
+  }
+
+  small {
+    display: block;
+    color: var(--p-text-muted-color);
+    font-size: 0.75rem;
+  }
+
+  &.unavailable label {
+    color: var(--p-text-muted-color);
+    cursor: default;
+  }
+}

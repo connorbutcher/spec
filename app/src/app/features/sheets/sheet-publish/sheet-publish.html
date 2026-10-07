@@ -2,12 +2,18 @@
   [label]="label()"
   icon="pi pi-upload"
   size="small"
-  [disabled]="changeCount() === 0 || isBusy()"
+  [disabled]="!hasChanges() || isBusy()"
   (onClick)="popover.toggle($event)"
 />
 <p-popover #popover appendTo="body">
   <form class="publish-form" (submit)="$event.preventDefault()">
-    <label for="publish-note">Note for this version (optional)</label>
+    <span class="heading">What to publish</span>
+    <app-sheet-publish-scope
+      [options]="options()"
+      [scope]="scope()"
+      (scopeChange)="chooseScope($event)"
+    />
+    <label class="heading" for="publish-note">Note for this version (optional)</label>
     <textarea
       pTextarea
       pSize="small"
@@ -27,10 +33,10 @@
         (onClick)="popover.hide()"
       />
       <p-button
-        [label]="label()"
+        [label]="confirmLabel()"
         icon="pi pi-upload"
         size="small"
-        [disabled]="isBusy()"
+        [disabled]="!hasChanges() || isBusy()"
         (onClick)="publish(popover)"
       />
     </div>

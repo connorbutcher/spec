@@ -54,6 +54,7 @@ describe('SheetGridCell', () => {
       viewedAsOfUtc: null,
       latestVersionNumber: null,
       myDraftCount: 0,
+      otherDrafts: [],
       versions: [],
       tables: [table],
       availableTemplates: [],

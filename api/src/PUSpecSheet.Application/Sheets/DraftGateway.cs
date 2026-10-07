@@ -59,10 +59,21 @@ public abstract class DraftGateway<TRevision>(PuSpecSheetDbContext db, ICurrentU
     /// <see cref="ReleaseIfUnchangedAsync"/> for many items at once: one read of their revisions and one save,
     /// however many there are.
     /// </summary>
-    public async Task ReleaseUnchangedAsync(IReadOnlyCollection<int> itemIds, CancellationToken cancellationToken)
+    public Task ReleaseUnchangedAsync(IReadOnlyCollection<int> itemIds, CancellationToken cancellationToken)
+    {
+        return ReleaseUnchangedAsync(itemIds, everyone: false, cancellationToken);
+    }
+
+    /// <summary>
+    /// <see cref="ReleaseUnchangedAsync(IReadOnlyCollection{int}, CancellationToken)"/>, taking other people's
+    /// drafts as well when <paramref name="everyone"/> is set. That is for publishing everything on a sheet,
+    /// where a draft that changes nothing must not become a revision whoever left it.
+    /// </summary>
+    public async Task ReleaseUnchangedAsync(IReadOnlyCollection<int> itemIds, bool everyone, CancellationToken cancellationToken)
     {
         var states = await LoadManyAsync(itemIds, cancellationToken);
-        var unchanged = await UnchangedAsync(MyDraftsOnPublishedItems(states.Values), cancellationToken);
+        var drafts = everyone ? DraftsOnPublishedItems(states.Values) : MyDraftsOnPublishedItems(states.Values);
+        var unchanged = await UnchangedAsync(drafts, cancellationToken);
         if (unchanged.Count == 0)
         {
             return;
@@ -194,8 +205,14 @@ public abstract class DraftGateway<TRevision>(PuSpecSheetDbContext db, ICurrentU
     private List<(TRevision Draft, TRevision Current)> MyDraftsOnPublishedItems(IEnumerable<DraftState<TRevision>> states)
     {
         var me = currentUser.UserId;
+        return DraftsOnPublishedItems(states.Where(state => state.Draft?.AuthorUserId == me));
+    }
+
+    /// <summary>Anyone's drafts on items that have a published revision to compare them with.</summary>
+    private static List<(TRevision Draft, TRevision Current)> DraftsOnPublishedItems(IEnumerable<DraftState<TRevision>> states)
+    {
         return states
-            .Where(state => state.Draft is not null && state.Current is not null && state.Draft.AuthorUserId == me)
+            .Where(state => state.Draft is not null && state.Current is not null)
             .Select(state => (state.Draft!, state.Current!))
             .ToList();
     }
