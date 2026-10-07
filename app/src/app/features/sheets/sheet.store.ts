@@ -15,7 +15,7 @@ import { SheetVersionSummary } from './models/sheet-version-summary.model';
 import { SheetView } from './models/sheet-view.model';
 import { Sheet } from './models/sheet.model';
 import { addedId, buildSheetIndex, cellsById, sectionSiblings } from './sheet-index.util';
-import { sheetUrl } from './sheet-url.util';
+import { sheetTarget, sheetUrl } from './sheet-url.util';
 import { SheetsApi } from './sheets-api';
 
 /**
@@ -43,12 +43,23 @@ export class SheetStore {
     computation: () => null,
   });
 
+  /**
+   * The open sheet, once its cell types have arrived too: without them no cell knows what it is, so
+   * the sheet isn't shown until both are in.
+   */
   public readonly sheet = computed<Sheet | null>(() =>
-    this.sheetResource.hasValue() ? this.sheetResource.value() : null,
+    this.sheetResource.hasValue() && this.cellTypesResource.hasValue()
+      ? this.sheetResource.value()
+      : null,
   );
 
-  public readonly isLoading = computed(() => this.sheetResource.isLoading());
-  public readonly hasError = computed(() => this.sheetResource.status() === 'error');
+  public readonly isLoading = computed(
+    () => this.sheetResource.isLoading() || this.cellTypesResource.isLoading(),
+  );
+
+  public readonly hasError = computed(
+    () => this.sheetResource.status() === 'error' || this.cellTypesResource.status() === 'error',
+  );
 
   /** Only the live view can be changed; a version or date is read-only. */
   public readonly canEdit = computed(() => this.sheet()?.isLive === true);
@@ -105,10 +116,7 @@ export class SheetStore {
 
   private readonly target = toSignal(
     this.route.paramMap.pipe(
-      map((params) => ({
-        phaseId: Number(params.get('phaseId')),
-        sheetTypeId: Number(params.get('sheetTypeId')),
-      })),
+      map((params) => sheetTarget(params.get('phaseId'), params.get('sheetTypeId'))),
     ),
     { initialValue: null },
   );
@@ -122,6 +130,9 @@ export class SheetStore {
 
   public reload(): void {
     this.sheetResource.reload();
+    if (this.cellTypesResource.status() === 'error') {
+      this.cellTypesResource.reload();
+    }
   }
 
   public setView(view: SheetView): void {

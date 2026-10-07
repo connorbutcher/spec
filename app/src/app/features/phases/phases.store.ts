@@ -1,10 +1,11 @@
 import { httpResource } from '@angular/common/http';
 import { computed, inject, Service } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { ActivatedRouteSnapshot, NavigationEnd, Router } from '@angular/router';
+import { NavigationEnd, Router } from '@angular/router';
 import { TreeNode } from 'primeng/api';
 import { filter } from 'rxjs';
 import { Phase } from '../../core/models/phase.model';
+import { findRouteParam } from '../../core/route-param.util';
 import { SheetType } from '../../core/models/sheet-type.model';
 import { buildPhaseTree, indexTreeNodes, phaseAncestors } from './phase-tree.util';
 
@@ -109,16 +110,4 @@ export class PhasesStore {
     const selected = new Set(phase.sheetTypeIds);
     return this.sheetTypes().filter((sheetType) => selected.has(sheetType.id));
   }
-}
-
-function findRouteParam(route: ActivatedRouteSnapshot, name: string): string | null {
-  let current: ActivatedRouteSnapshot | null = route;
-  while (current) {
-    const value = current.paramMap.get(name);
-    if (value !== null) {
-      return value;
-    }
-    current = current.firstChild;
-  }
-  return null;
 }

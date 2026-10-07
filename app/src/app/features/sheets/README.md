@@ -83,6 +83,16 @@ user action ─► component ─► store method ─► SheetsApi ─► whole l
   The plain value is styled to sit exactly where the control's text sits (`sheet-cell-value.scss`), so
   nothing moves on the swap. Checkboxes are the exception and always show their control.
 
+## Keyboard and screen readers
+
+- The grid is `role="grid"`; a top-level section is a `rowgroup`, each row a `row` (an element with
+  `display: contents`, there only for the role), each cell a `gridcell`, and a caption in the header a
+  `columnheader`. Keep cells inside a row element.
+- Tab moves from cell to cell and opens each cell's editor. Enter on a cell that has no editor selects
+  its row. The breadcrumb in the action bar selects the row's section and the sections around it.
+- Everything that can be done by dragging also has buttons (tables, sections, rows, column blocks).
+- A mark drawn over a cell is `role="img"` with an `aria-label` saying what it means.
+
 ## Add a cell kind
 
 1. Agree the API side first (the `CellKind` name, its configuration, how the value is stored). This
@@ -109,7 +119,7 @@ user action ─► component ─► store method ─► SheetsApi ─► whole l
 2. `SheetStore`: a method that calls `this.run(() => this.api.…)`. To select what was added, compare
    the index before and after with `addedId`. Add a test to `sheet.store.spec.ts`.
 3. The control, always a PrimeNG button disabled while `store.isBusy()`:
-   - **Add**: a choice in `SheetAddMenu.choices`. What can be added, and whether it is at its maximum,
+   - **Add**: a choice in `SheetAddMenu.sectionChoices` or `columnChoices`. What can be added, and whether it is at its maximum,
      comes from the API's `addable…` lists (`canAdd`), not from rules in the UI.
    - **Move or remove of the selection**: a button in `SheetActionBar`, enabled from a `computed`.
    - **Move or remove of one item with its own controls** (a table, a column block): in that

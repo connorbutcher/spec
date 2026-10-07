@@ -32,9 +32,11 @@
         maxlength="200"
         aria-label="Table title"
         [placeholder]="table().templateName"
-        [value]="table().title ?? ''"
-        (change)="rename(titleInput)"
+        [ngModel]="title()"
+        (ngModelChange)="title.set($event)"
+        (blur)="rename()"
         (keydown.enter)="titleInput.blur()"
+        (keydown.escape)="revertTitle()"
         (click)="$event.stopPropagation()"
       />
     } @else {

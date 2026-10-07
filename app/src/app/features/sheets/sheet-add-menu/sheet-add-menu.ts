@@ -2,6 +2,7 @@ import { Component, computed, inject, input, viewChild } from '@angular/core';
 import { MenuItem } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { Menu, MenuModule } from 'primeng/menu';
+import { AddChoice } from '../models/add-choice.model';
 import { AddableColumnBlock } from '../models/addable-column-block.model';
 import { AddableSection } from '../models/addable-section.model';
 import { SheetStore } from '../sheet.store';
@@ -32,46 +33,52 @@ export class SheetAddMenu {
   /** The column blocks the table can take, for a horizontal table; only offered when adding to the table. */
   public readonly columnBlocks = input<AddableColumnBlock[]>([]);
 
-  public readonly choices = computed<MenuItem[]>(() => {
-    const sectionId = this.sectionId();
-    const sections: MenuItem[] = this.sections().map((addable) => ({
+  public readonly sectionChoices = computed<AddChoice[]>(() =>
+    this.sections().map((addable) => ({
       label: addable.name,
       icon: 'pi pi-table',
       disabled: !addable.canAdd,
-      command: () =>
-        void this.store.addSection(this.tableId(), addable.templateSectionId, sectionId),
-    }));
-    const blocks: MenuItem[] =
-      sectionId === null
-        ? this.columnBlocks().map((addable) => ({
-            label: addable.name,
-            icon: 'pi pi-arrows-h',
-            disabled: !addable.canAdd,
-            command: () =>
-              void this.store.addColumnBlock(this.tableId(), addable.templateColumnBlockId),
-          }))
-        : [];
-    if (sections.length > 0 && blocks.length > 0) {
-      return [
-        { label: 'Row group', items: sections },
-        { label: 'Column', items: blocks },
-      ];
-    }
-    return [...sections, ...blocks];
-  });
+      add: () =>
+        void this.store.addSection(this.tableId(), addable.templateSectionId, this.sectionId()),
+    })),
+  );
+
+  public readonly columnChoices = computed<AddChoice[]>(() =>
+    this.sectionId() === null
+      ? this.columnBlocks().map((addable) => ({
+          label: addable.name,
+          icon: 'pi pi-arrows-h',
+          disabled: !addable.canAdd,
+          add: () => void this.store.addColumnBlock(this.tableId(), addable.templateColumnBlockId),
+        }))
+      : [],
+  );
+
+  public readonly hasChoices = computed(
+    () => this.sectionChoices().length + this.columnChoices().length > 0,
+  );
 
   /** The only thing that can be added here, when there's no choice to make. */
-  public readonly only = computed<MenuItem | null>(() => {
-    const choices = this.choices();
-    return choices.length === 1 && choices[0].items === undefined ? choices[0] : null;
+  public readonly only = computed<AddChoice | null>(() => {
+    const choices = [...this.sectionChoices(), ...this.columnChoices()];
+    return choices.length === 1 ? choices[0] : null;
+  });
+
+  /** The choices as a menu, under a heading each when there are both sections and columns to add. */
+  public readonly menuItems = computed<MenuItem[]>(() => {
+    const sections = this.sectionChoices().map(toMenuItem);
+    const columns = this.columnChoices().map(toMenuItem);
+    return sections.length > 0 && columns.length > 0
+      ? [
+          { label: 'Row group', items: sections },
+          { label: 'Column', items: columns },
+        ]
+      : [...sections, ...columns];
   });
 
   public readonly label = computed(() => {
     const only = this.only();
-    if (only === null) {
-      return 'Add';
-    }
-    return `Add ${only.label?.toLowerCase()}`;
+    return only === null ? 'Add' : `Add ${only.label.toLowerCase()}`;
   });
 
   public readonly isBusy = computed(() => this.store.isBusy());
@@ -83,9 +90,18 @@ export class SheetAddMenu {
     event.stopPropagation();
     const only = this.only();
     if (only !== null) {
-      only.command?.({ originalEvent: event, item: only });
+      only.add();
     } else {
       this.menu()?.toggle(event);
     }
   }
+}
+
+function toMenuItem(choice: AddChoice): MenuItem {
+  return {
+    label: choice.label,
+    icon: choice.icon,
+    disabled: choice.disabled,
+    command: choice.add,
+  };
 }

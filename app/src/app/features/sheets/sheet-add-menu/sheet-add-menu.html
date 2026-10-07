@@ -1,4 +1,4 @@
-@if (choices().length > 0) {
+@if (hasChoices()) {
   <p-button
     [label]="iconOnly() ? undefined : label()"
     [ariaLabel]="label()"
@@ -11,6 +11,6 @@
     (onClick)="add($event)"
   />
   @if (only() === null) {
-    <p-menu [popup]="true" [model]="choices()" appendTo="body" />
+    <p-menu [popup]="true" [model]="menuItems()" appendTo="body" />
   }
 }

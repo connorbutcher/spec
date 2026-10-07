@@ -16,7 +16,7 @@ import { UpdateTemplateCellOverridesRequest } from './models/update-template-cel
 import { UpdateTemplateCellRequest } from './models/update-template-cell-request.model';
 import { UpdateTemplateColumnBlockRequest } from './models/update-template-column-block-request.model';
 import { UpdateTemplateSectionRequest } from './models/update-template-section-request.model';
-import { findRouteParam } from './route-param.util';
+import { findRouteParam } from '../../core/route-param.util';
 import { addedIds, buildTemplateIndex } from './template-index.util';
 import { layoutTemplate } from './template-layout.util';
 import { TemplatesApi } from './templates-api';

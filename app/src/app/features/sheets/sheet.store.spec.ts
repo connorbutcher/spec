@@ -93,6 +93,39 @@ describe('SheetStore', () => {
     expect(store.versions().map((version) => version.versionNumber)).toEqual([2, 1]);
   });
 
+  it('shows no sheet without its cell types, and retries them with the sheet', async () => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        SheetStore,
+        {
+          provide: ActivatedRoute,
+          useValue: { paramMap: of(convertToParamMap({ phaseId: '1', sheetTypeId: '2' })) },
+        },
+      ],
+    });
+    store = TestBed.inject(SheetStore);
+    http = TestBed.inject(HttpTestingController);
+    await settle();
+    http.expectOne('/api/cell-types').flush(null, { status: 500, statusText: 'Server Error' });
+    http.expectOne(SHEET_URL).flush(sheet);
+    await settle();
+
+    expect(store.sheet()).toBeNull();
+    expect(store.hasError()).toBe(true);
+
+    store.reload();
+    await settle();
+    http.expectOne('/api/cell-types').flush([]);
+    http.expectOne(SHEET_URL).flush(sheet);
+    await settle();
+
+    expect(store.sheet()).toEqual(sheet);
+    expect(store.hasError()).toBe(false);
+  });
+
   it('reads a past version when one is chosen, and clears the selection', async () => {
     store.selectRow(sheet.tables[0].sections[0].rows[0].id);
 

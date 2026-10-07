@@ -1,4 +1,17 @@
-import { sheetUrl } from './sheet-url.util';
+import { sheetTarget, sheetUrl } from './sheet-url.util';
+
+describe('sheetTarget', () => {
+  it('reads both ids from the route', () => {
+    expect(sheetTarget('3', '2')).toEqual({ phaseId: 3, sheetTypeId: 2 });
+  });
+
+  it('is nothing when an id is missing or is not a whole number above zero', () => {
+    expect(sheetTarget(null, '2')).toBeNull();
+    expect(sheetTarget('abc', '2')).toBeNull();
+    expect(sheetTarget('3', '0')).toBeNull();
+    expect(sheetTarget('3', '1.5')).toBeNull();
+  });
+});
 
 describe('sheetUrl', () => {
   const target = { phaseId: 3, sheetTypeId: 2 };

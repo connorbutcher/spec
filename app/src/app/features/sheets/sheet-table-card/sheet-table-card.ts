@@ -1,5 +1,6 @@
 import { CdkDragHandle } from '@angular/cdk/drag-drop';
-import { Component, computed, inject, input } from '@angular/core';
+import { Component, computed, inject, input, linkedSignal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { ConfirmationService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
@@ -23,6 +24,7 @@ import { SheetStore } from '../sheet.store';
   imports: [
     ButtonModule,
     CdkDragHandle,
+    FormsModule,
     InputTextModule,
     SheetActionBar,
     SheetAddMenu,
@@ -36,6 +38,9 @@ export class SheetTableCard {
   public readonly table = input.required<SheetTable>();
 
   public readonly label = computed(() => tableLabel(this.table()));
+
+  /** The title as it is being typed. It is saved when focus leaves the box; Escape puts the saved one back. */
+  public readonly title = linkedSignal(() => this.table().title ?? '');
 
   public readonly canEdit = computed(() => this.store.canEdit());
 
@@ -67,11 +72,17 @@ export class SheetTableCard {
     this.store.select({ tableId: this.table().id, sectionId: null, rowId: null });
   }
 
-  public rename(input: HTMLInputElement): void {
-    const title = input.value.trim();
-    if (title !== (this.table().title ?? '')) {
-      void this.store.setTableTitle(this.table().id, title === '' ? null : title);
+  public rename(): void {
+    const title = this.title().trim();
+    if (title === (this.table().title ?? '')) {
+      this.revertTitle();
+      return;
     }
+    void this.store.setTableTitle(this.table().id, title === '' ? null : title);
+  }
+
+  public revertTitle(): void {
+    this.title.set(this.table().title ?? '');
   }
 
   public move(step: -1 | 1): void {
