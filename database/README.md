@@ -2,7 +2,7 @@
 
 A SQL database project (SDK-style, `Microsoft.Build.Sql`) that maps the whole `PUSpecSheet` schema as one script per object. It is a readable, buildable mirror of the database that the EF Core migrations in `api/src/PUSpecSheet.Data` create. **The migrations stay the source of truth**: nothing deploys from this project, and the scripts are generated, never edited by hand.
 
-Last compared against migration `20261007190739_AddEditingPermissions`: no differences.
+Last compared against migration `20261007192715_AddCheckConstraints`: no differences.
 
 ## Layout
 
@@ -53,7 +53,7 @@ The project also opens in Visual Studio (SSDT) and in the SQL Database Projects 
 
 ## Schema overview
 
-32 tables in two schemas, 56 foreign keys, 81 indexes (14 filtered), 15 check constraints, 1 computed column. Every table has an `int` identity `Id` primary key unless noted.
+32 tables in two schemas, 56 foreign keys, 76 indexes (14 filtered), 27 check constraints, 1 computed column. Every table has an `int` identity `Id` primary key unless noted.
 
 ### Phases and sheet types
 
@@ -94,7 +94,7 @@ All four revision tables share one shape: `RevisionNumber`, `Status` (0 draft, 1
 
 ### Values (`values` schema)
 
-One table per value kind, each keyed by row revision and cell with a unique index on (`SheetRowRevisionId`, `SheetCellId`). Deleting a row revision cascades to its values.
+One table per value kind. Each has the composite primary key (`SheetRowRevisionId`, `SheetCellId`) and no `Id`: a value is only ever found by its revision and cell, and the table is stored in that order. Deleting a row revision cascades to its values.
 
 | Table | Value |
 | --- | --- |

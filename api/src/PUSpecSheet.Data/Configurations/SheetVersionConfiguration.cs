@@ -8,7 +8,10 @@ public sealed class SheetVersionConfiguration : IEntityTypeConfiguration<SheetVe
 {
     public void Configure(EntityTypeBuilder<SheetVersion> builder)
     {
-        builder.ToTable("SheetVersions");
+        builder.ToTable("SheetVersions", table =>
+        {
+            table.HasCheckConstraint("CK_SheetVersions_VersionNumber", "[VersionNumber] >= 1");
+        });
 
         builder.HasKey(version => version.Id);
 

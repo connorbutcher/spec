@@ -9,6 +9,7 @@ CREATE TABLE [dbo].[TemplateColumnBlocks] (
     [StickyColumnCount]      INT            DEFAULT ((0)) NOT NULL,
     CONSTRAINT [PK_TemplateColumnBlocks] PRIMARY KEY CLUSTERED ([Id] ASC),
     CONSTRAINT [CK_TemplateColumnBlocks_Instances] CHECK ([MinInstances]>=(0) AND [InitialInstances]>=[MinInstances] AND ([MaxInstances] IS NULL OR [MaxInstances]>=(1) AND [MaxInstances]>=[InitialInstances])),
+    CONSTRAINT [CK_TemplateColumnBlocks_StickyColumnCount] CHECK ([StickyColumnCount]>=(0)),
     CONSTRAINT [FK_TemplateColumnBlocks_TableTemplateVersions_TableTemplateVersionId] FOREIGN KEY ([TableTemplateVersionId]) REFERENCES [dbo].[TableTemplateVersions] ([Id]) ON DELETE CASCADE
 );
 

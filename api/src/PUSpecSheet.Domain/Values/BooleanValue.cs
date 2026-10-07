@@ -5,8 +5,6 @@ namespace PUSpecSheet.Domain.Values;
 /// <summary>The value of a checkbox cell.</summary>
 public class BooleanValue : ICellValue
 {
-    public int Id { get; set; }
-
     public int SheetRowRevisionId { get; set; }
 
     public SheetRowRevision SheetRowRevision { get; set; } = null!;

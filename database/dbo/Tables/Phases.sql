@@ -5,6 +5,7 @@ CREATE TABLE [dbo].[Phases] (
     [DisplayOrder]  INT            NOT NULL,
     [ParentPhaseId] INT            NULL,
     CONSTRAINT [PK_Phases] PRIMARY KEY CLUSTERED ([Id] ASC),
+    CONSTRAINT [CK_Phases_NotItsOwnParent] CHECK ([ParentPhaseId]<>[Id]),
     CONSTRAINT [FK_Phases_Phases_ParentPhaseId] FOREIGN KEY ([ParentPhaseId]) REFERENCES [dbo].[Phases] ([Id])
 );
 

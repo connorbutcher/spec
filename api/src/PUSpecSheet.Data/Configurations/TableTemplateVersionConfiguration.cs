@@ -11,6 +11,7 @@ public sealed class TableTemplateVersionConfiguration : IEntityTypeConfiguration
         builder.ToTable("TableTemplateVersions", table =>
         {
             table.HasCheckConstraint("CK_TableTemplateVersions_VersionNumber", "[VersionNumber] >= 1");
+            table.HasCheckConstraint("CK_TableTemplateVersions_StickyColumnCount", "[StickyColumnCount] >= 0");
         });
 
         builder.HasKey(version => version.Id);

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PUSpecSheet.Data;
 
@@ -11,9 +12,11 @@ using PUSpecSheet.Data;
 namespace PUSpecSheet.Data.Migrations
 {
     [DbContext(typeof(PuSpecSheetDbContext))]
-    partial class PuSpecSheetDbContextModelSnapshot : ModelSnapshot
+    [Migration("20261007192648_KeyValuesByRevisionAndCell")]
+    partial class KeyValuesByRevisionAndCell
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -210,10 +213,7 @@ namespace PUSpecSheet.Data.Migrations
 
                     b.HasIndex("ParentPhaseId");
 
-                    b.ToTable("Phases", null, t =>
-                        {
-                            t.HasCheckConstraint("CK_Phases_NotItsOwnParent", "[ParentPhaseId] <> [Id]");
-                        });
+                    b.ToTable("Phases", (string)null);
                 });
 
             modelBuilder.Entity("PUSpecSheet.Domain.Phases.PhaseSheetType", b =>
@@ -487,10 +487,6 @@ namespace PUSpecSheet.Data.Migrations
                         {
                             t.HasCheckConstraint("CK_SheetColumnBlockRevisions_PublishedAt", "([Status] = 0 AND [PublishedAtUtc] IS NULL) OR ([Status] = 1 AND [PublishedAtUtc] IS NOT NULL)");
 
-                            t.HasCheckConstraint("CK_SheetColumnBlockRevisions_RevisionNumber", "[RevisionNumber] >= 1");
-
-                            t.HasCheckConstraint("CK_SheetColumnBlockRevisions_Status", "[Status] IN (0, 1)");
-
                             t.HasCheckConstraint("CK_SheetColumnBlockRevisions_SupersededAt", "[SupersededAtUtc] IS NULL OR ([Status] = 1 AND [SupersededAtUtc] >= [PublishedAtUtc])");
                         });
                 });
@@ -608,10 +604,6 @@ namespace PUSpecSheet.Data.Migrations
                     b.ToTable("SheetRowRevisions", null, t =>
                         {
                             t.HasCheckConstraint("CK_SheetRowRevisions_PublishedAt", "([Status] = 0 AND [PublishedAtUtc] IS NULL) OR ([Status] = 1 AND [PublishedAtUtc] IS NOT NULL)");
-
-                            t.HasCheckConstraint("CK_SheetRowRevisions_RevisionNumber", "[RevisionNumber] >= 1");
-
-                            t.HasCheckConstraint("CK_SheetRowRevisions_Status", "[Status] IN (0, 1)");
 
                             t.HasCheckConstraint("CK_SheetRowRevisions_SupersededAt", "[SupersededAtUtc] IS NULL OR ([Status] = 1 AND [SupersededAtUtc] >= [PublishedAtUtc])");
                         });
@@ -736,10 +728,6 @@ namespace PUSpecSheet.Data.Migrations
                         {
                             t.HasCheckConstraint("CK_SheetSectionRevisions_PublishedAt", "([Status] = 0 AND [PublishedAtUtc] IS NULL) OR ([Status] = 1 AND [PublishedAtUtc] IS NOT NULL)");
 
-                            t.HasCheckConstraint("CK_SheetSectionRevisions_RevisionNumber", "[RevisionNumber] >= 1");
-
-                            t.HasCheckConstraint("CK_SheetSectionRevisions_Status", "[Status] IN (0, 1)");
-
                             t.HasCheckConstraint("CK_SheetSectionRevisions_SupersededAt", "[SupersededAtUtc] IS NULL OR ([Status] = 1 AND [SupersededAtUtc] >= [PublishedAtUtc])");
                         });
                 });
@@ -862,10 +850,6 @@ namespace PUSpecSheet.Data.Migrations
                         {
                             t.HasCheckConstraint("CK_SheetTableRevisions_PublishedAt", "([Status] = 0 AND [PublishedAtUtc] IS NULL) OR ([Status] = 1 AND [PublishedAtUtc] IS NOT NULL)");
 
-                            t.HasCheckConstraint("CK_SheetTableRevisions_RevisionNumber", "[RevisionNumber] >= 1");
-
-                            t.HasCheckConstraint("CK_SheetTableRevisions_Status", "[Status] IN (0, 1)");
-
                             t.HasCheckConstraint("CK_SheetTableRevisions_SupersededAt", "[SupersededAtUtc] IS NULL OR ([Status] = 1 AND [SupersededAtUtc] >= [PublishedAtUtc])");
                         });
                 });
@@ -903,10 +887,7 @@ namespace PUSpecSheet.Data.Migrations
                     b.HasIndex("SheetId", "VersionNumber")
                         .IsUnique();
 
-                    b.ToTable("SheetVersions", null, t =>
-                        {
-                            t.HasCheckConstraint("CK_SheetVersions_VersionNumber", "[VersionNumber] >= 1");
-                        });
+                    b.ToTable("SheetVersions", (string)null);
                 });
 
             modelBuilder.Entity("PUSpecSheet.Domain.Templates.TableTemplate", b =>
@@ -972,8 +953,6 @@ namespace PUSpecSheet.Data.Migrations
 
                     b.ToTable("TableTemplateVersions", null, t =>
                         {
-                            t.HasCheckConstraint("CK_TableTemplateVersions_StickyColumnCount", "[StickyColumnCount] >= 0");
-
                             t.HasCheckConstraint("CK_TableTemplateVersions_VersionNumber", "[VersionNumber] >= 1");
                         });
                 });
@@ -1087,8 +1066,6 @@ namespace PUSpecSheet.Data.Migrations
                     b.ToTable("TemplateColumnBlocks", null, t =>
                         {
                             t.HasCheckConstraint("CK_TemplateColumnBlocks_Instances", "[MinInstances] >= 0 AND [InitialInstances] >= [MinInstances] AND ([MaxInstances] IS NULL OR ([MaxInstances] >= 1 AND [MaxInstances] >= [InitialInstances]))");
-
-                            t.HasCheckConstraint("CK_TemplateColumnBlocks_StickyColumnCount", "[StickyColumnCount] >= 0");
                         });
                 });
 

@@ -6,8 +6,6 @@ namespace PUSpecSheet.Domain.Values;
 /// <summary>The value of a dropdown cell: one of its cell type's options.</summary>
 public class OptionValue : ICellValue
 {
-    public int Id { get; set; }
-
     public int SheetRowRevisionId { get; set; }
 
     public SheetRowRevision SheetRowRevision { get; set; } = null!;

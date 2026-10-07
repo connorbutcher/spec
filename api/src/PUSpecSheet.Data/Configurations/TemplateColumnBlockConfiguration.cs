@@ -15,6 +15,8 @@ public sealed class TemplateColumnBlockConfiguration : IEntityTypeConfiguration<
                 "CK_TemplateColumnBlocks_Instances",
                 "[MinInstances] >= 0 AND [InitialInstances] >= [MinInstances]"
                 + " AND ([MaxInstances] IS NULL OR ([MaxInstances] >= 1 AND [MaxInstances] >= [InitialInstances]))");
+
+            table.HasCheckConstraint("CK_TemplateColumnBlocks_StickyColumnCount", "[StickyColumnCount] >= 0");
         });
 
         builder.HasKey(block => block.Id);

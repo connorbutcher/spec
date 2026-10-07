@@ -14,6 +14,8 @@ CREATE TABLE [dbo].[SheetRowRevisions] (
     [SupersededAtUtc] DATETIME2 (7) NULL,
     CONSTRAINT [PK_SheetRowRevisions] PRIMARY KEY CLUSTERED ([Id] ASC),
     CONSTRAINT [CK_SheetRowRevisions_PublishedAt] CHECK ([Status]=(0) AND [PublishedAtUtc] IS NULL OR [Status]=(1) AND [PublishedAtUtc] IS NOT NULL),
+    CONSTRAINT [CK_SheetRowRevisions_RevisionNumber] CHECK ([RevisionNumber]>=(1)),
+    CONSTRAINT [CK_SheetRowRevisions_Status] CHECK ([Status]=(1) OR [Status]=(0)),
     CONSTRAINT [CK_SheetRowRevisions_SupersededAt] CHECK ([SupersededAtUtc] IS NULL OR [Status]=(1) AND [SupersededAtUtc]>=[PublishedAtUtc]),
     CONSTRAINT [FK_SheetRowRevisions_SheetRows_SheetRowId] FOREIGN KEY ([SheetRowId]) REFERENCES [dbo].[SheetRows] ([Id]) ON DELETE CASCADE,
     CONSTRAINT [FK_SheetRowRevisions_SheetVersions_SheetVersionId] FOREIGN KEY ([SheetVersionId]) REFERENCES [dbo].[SheetVersions] ([Id]),
@@ -29,20 +31,20 @@ CREATE NONCLUSTERED INDEX [IX_SheetRowRevisions_AuthorUserId_Status]
 
 GO
 
-CREATE UNIQUE NONCLUSTERED INDEX [UX_SheetRowRevisions_OneDraftPerRow]
-    ON [dbo].[SheetRowRevisions]([SheetRowId] ASC) WHERE ([Status]=(0));
-
-
-GO
-
 CREATE UNIQUE NONCLUSTERED INDEX [UX_SheetRowRevisions_OneCurrentPerRow]
     ON [dbo].[SheetRowRevisions]([SheetRowId] ASC) WHERE ([Status]=(1) AND [SupersededAtUtc] IS NULL);
 
 
 GO
 
-CREATE UNIQUE NONCLUSTERED INDEX [IX_SheetRowRevisions_SheetRowId_RevisionNumber]
-    ON [dbo].[SheetRowRevisions]([SheetRowId] ASC, [RevisionNumber] ASC);
+CREATE UNIQUE NONCLUSTERED INDEX [UX_SheetRowRevisions_OneDraftPerRow]
+    ON [dbo].[SheetRowRevisions]([SheetRowId] ASC) WHERE ([Status]=(0));
+
+
+GO
+
+CREATE NONCLUSTERED INDEX [IX_SheetRowRevisions_SheetVersionId]
+    ON [dbo].[SheetRowRevisions]([SheetVersionId] ASC);
 
 
 GO
@@ -54,8 +56,8 @@ CREATE NONCLUSTERED INDEX [IX_SheetRowRevisions_Published]
 
 GO
 
-CREATE NONCLUSTERED INDEX [IX_SheetRowRevisions_SheetVersionId]
-    ON [dbo].[SheetRowRevisions]([SheetVersionId] ASC);
+CREATE UNIQUE NONCLUSTERED INDEX [IX_SheetRowRevisions_SheetRowId_RevisionNumber]
+    ON [dbo].[SheetRowRevisions]([SheetRowId] ASC, [RevisionNumber] ASC);
 
 
 GO

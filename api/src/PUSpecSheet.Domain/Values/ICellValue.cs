@@ -8,8 +8,6 @@ namespace PUSpecSheet.Domain.Values;
 /// </summary>
 public interface ICellValue
 {
-    int Id { get; set; }
-
     int SheetRowRevisionId { get; set; }
 
     SheetRowRevision SheetRowRevision { get; set; }

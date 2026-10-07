@@ -6,7 +6,7 @@ namespace PUSpecSheet.Data.Configurations.Values;
 
 /// <summary>
 /// The mapping every typed value table shares: it lives in the "values" schema, belongs to a row
-/// revision (removed with it) and a sheet cell, and holds one value per revision and cell.
+/// revision (removed with it) and a sheet cell, and holds one value per revision and cell, which is its key.
 /// </summary>
 public abstract class CellValueConfiguration<TValue> : IEntityTypeConfiguration<TValue>
     where TValue : class, ICellValue
@@ -15,10 +15,9 @@ public abstract class CellValueConfiguration<TValue> : IEntityTypeConfiguration<
     {
         builder.ToTable(TableName, DatabaseSchemas.Values);
 
-        builder.HasKey(value => value.Id);
-
-        builder.HasIndex(value => new { value.SheetRowRevisionId, value.SheetCellId })
-            .IsUnique();
+        // A value is only ever found by its revision and cell, so that pair is the key and the table is
+        // stored in that order: a revision's values sit together and are read without a second lookup.
+        builder.HasKey(value => new { value.SheetRowRevisionId, value.SheetCellId });
 
         // Revisions and cells both sit under the row, so only the revision side cascades; the values
         // are always gone (with their revision) by the time the row's cells are removed.

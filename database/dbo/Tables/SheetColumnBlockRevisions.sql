@@ -14,6 +14,8 @@ CREATE TABLE [dbo].[SheetColumnBlockRevisions] (
     [SheetVersionId]     INT           NULL,
     CONSTRAINT [PK_SheetColumnBlockRevisions] PRIMARY KEY CLUSTERED ([Id] ASC),
     CONSTRAINT [CK_SheetColumnBlockRevisions_PublishedAt] CHECK ([Status]=(0) AND [PublishedAtUtc] IS NULL OR [Status]=(1) AND [PublishedAtUtc] IS NOT NULL),
+    CONSTRAINT [CK_SheetColumnBlockRevisions_RevisionNumber] CHECK ([RevisionNumber]>=(1)),
+    CONSTRAINT [CK_SheetColumnBlockRevisions_Status] CHECK ([Status]=(1) OR [Status]=(0)),
     CONSTRAINT [CK_SheetColumnBlockRevisions_SupersededAt] CHECK ([SupersededAtUtc] IS NULL OR [Status]=(1) AND [SupersededAtUtc]>=[PublishedAtUtc]),
     CONSTRAINT [FK_SheetColumnBlockRevisions_SheetColumnBlocks_SheetColumnBlockId] FOREIGN KEY ([SheetColumnBlockId]) REFERENCES [dbo].[SheetColumnBlocks] ([Id]) ON DELETE CASCADE,
     CONSTRAINT [FK_SheetColumnBlockRevisions_SheetVersions_SheetVersionId] FOREIGN KEY ([SheetVersionId]) REFERENCES [dbo].[SheetVersions] ([Id]),
@@ -23,20 +25,21 @@ CREATE TABLE [dbo].[SheetColumnBlockRevisions] (
 
 GO
 
-CREATE UNIQUE NONCLUSTERED INDEX [IX_SheetColumnBlockRevisions_SheetColumnBlockId_RevisionNumber]
-    ON [dbo].[SheetColumnBlockRevisions]([SheetColumnBlockId] ASC, [RevisionNumber] ASC);
-
-
-GO
-
-CREATE NONCLUSTERED INDEX [IX_SheetColumnBlockRevisions_AuthorUserId_Status]
-    ON [dbo].[SheetColumnBlockRevisions]([AuthorUserId] ASC, [Status] ASC);
+CREATE NONCLUSTERED INDEX [IX_SheetColumnBlockRevisions_Published]
+    ON [dbo].[SheetColumnBlockRevisions]([SheetColumnBlockId] ASC, [PublishedAtUtc] ASC)
+    INCLUDE([SupersededAtUtc]) WHERE ([Status]=(1));
 
 
 GO
 
 CREATE UNIQUE NONCLUSTERED INDEX [UX_SheetColumnBlockRevisions_OneDraftPerBlock]
     ON [dbo].[SheetColumnBlockRevisions]([SheetColumnBlockId] ASC) WHERE ([Status]=(0));
+
+
+GO
+
+CREATE UNIQUE NONCLUSTERED INDEX [IX_SheetColumnBlockRevisions_SheetColumnBlockId_RevisionNumber]
+    ON [dbo].[SheetColumnBlockRevisions]([SheetColumnBlockId] ASC, [RevisionNumber] ASC);
 
 
 GO
@@ -53,9 +56,8 @@ CREATE UNIQUE NONCLUSTERED INDEX [UX_SheetColumnBlockRevisions_OneCurrentPerBloc
 
 GO
 
-CREATE NONCLUSTERED INDEX [IX_SheetColumnBlockRevisions_Published]
-    ON [dbo].[SheetColumnBlockRevisions]([SheetColumnBlockId] ASC, [PublishedAtUtc] ASC)
-    INCLUDE([SupersededAtUtc]) WHERE ([Status]=(1));
+CREATE NONCLUSTERED INDEX [IX_SheetColumnBlockRevisions_AuthorUserId_Status]
+    ON [dbo].[SheetColumnBlockRevisions]([AuthorUserId] ASC, [Status] ASC);
 
 
 GO

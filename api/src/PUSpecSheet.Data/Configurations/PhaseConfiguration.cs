@@ -8,7 +8,11 @@ public sealed class PhaseConfiguration : IEntityTypeConfiguration<Phase>
 {
     public void Configure(EntityTypeBuilder<Phase> builder)
     {
-        builder.ToTable("Phases");
+        builder.ToTable("Phases", table =>
+        {
+            // Longer loops (a phase under its own child) are refused by the service when a phase is moved.
+            table.HasCheckConstraint("CK_Phases_NotItsOwnParent", "[ParentPhaseId] <> [Id]");
+        });
 
         builder.HasKey(phase => phase.Id);
 

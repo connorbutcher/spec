@@ -10,6 +10,12 @@ public sealed class SheetColumnBlockRevisionConfiguration : IEntityTypeConfigura
     {
         builder.ToTable("SheetColumnBlockRevisions", table =>
         {
+            // Draft or published, nothing else: the queries for live revisions rely on there being only two.
+            table.HasCheckConstraint("CK_SheetColumnBlockRevisions_Status", "[Status] IN (0, 1)");
+
+            // An item's first revision is number 1.
+            table.HasCheckConstraint("CK_SheetColumnBlockRevisions_RevisionNumber", "[RevisionNumber] >= 1");
+
             // A published revision always has a publish time; a draft never does.
             table.HasCheckConstraint(
                 "CK_SheetColumnBlockRevisions_PublishedAt",
