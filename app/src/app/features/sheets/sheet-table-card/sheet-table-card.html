@@ -5,8 +5,7 @@
         <i
           cdkDragHandle
           class="pi pi-bars handle"
-          role="button"
-          aria-label="Drag to reorder the table"
+          aria-hidden="true"
           (click)="$event.stopPropagation()"
         ></i>
       }
@@ -55,6 +54,24 @@
             [sections]="table().addableSections"
             [columnBlocks]="table().addableColumnBlocks"
             [iconOnly]="true"
+          />
+          <p-button
+            icon="pi pi-arrow-up"
+            size="small"
+            severity="secondary"
+            [text]="true"
+            [disabled]="!canMoveUp() || isBusy()"
+            ariaLabel="Move the table up"
+            (onClick)="move(-1)"
+          />
+          <p-button
+            icon="pi pi-arrow-down"
+            size="small"
+            severity="secondary"
+            [text]="true"
+            [disabled]="!canMoveDown() || isBusy()"
+            ariaLabel="Move the table down"
+            (onClick)="move(1)"
           />
           <p-button
             icon="pi pi-trash"

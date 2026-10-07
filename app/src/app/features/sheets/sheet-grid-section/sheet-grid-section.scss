@@ -7,6 +7,11 @@
   gap: 0;
 }
 
+// A row exists for assistive technology only: its cells are placed by the section's grid.
+.row {
+  display: contents;
+}
+
 :host(.selected)::after {
   content: '';
   position: absolute;

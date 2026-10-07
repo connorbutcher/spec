@@ -15,7 +15,8 @@ import { SheetStore } from '../sheet.store';
 
 /**
  * One table on the sheet: its title (typed in by the user), the sections that can be added to it, its
- * own move and remove actions, the actions for the current selection, and the grid itself.
+ * own move and remove actions, the actions for the current selection, and the grid itself. A table can
+ * be moved by dragging its handle or with its up and down buttons, which are the keyboard's way.
  */
 @Component({
   selector: 'app-sheet-table-card',
@@ -47,6 +48,18 @@ export class SheetTableCard {
 
   public readonly isBusy = computed(() => this.store.isBusy());
 
+  /** Where the table sits among the sheet's tables, counted from 0. */
+  public readonly position = computed(() =>
+    (this.store.sheet()?.tables ?? []).findIndex((table) => table.id === this.table().id),
+  );
+
+  public readonly canMoveUp = computed(() => this.position() > 0);
+
+  public readonly canMoveDown = computed(() => {
+    const position = this.position();
+    return position >= 0 && position < (this.store.sheet()?.tables.length ?? 0) - 1;
+  });
+
   private readonly store = inject(SheetStore);
   private readonly confirmation = inject(ConfirmationService);
 
@@ -59,6 +72,10 @@ export class SheetTableCard {
     if (title !== (this.table().title ?? '')) {
       void this.store.setTableTitle(this.table().id, title === '' ? null : title);
     }
+  }
+
+  public move(step: -1 | 1): void {
+    void this.store.moveTableTo(this.table().id, this.position() + step);
   }
 
   public askRemove(event: Event): void {

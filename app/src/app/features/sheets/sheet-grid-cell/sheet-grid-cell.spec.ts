@@ -185,5 +185,6 @@ describe('SheetGridCell', () => {
     await settle();
 
     expect(box()).toBeNull();
+    expect(host().getAttribute('tabindex')).toBeNull();
   });
 });

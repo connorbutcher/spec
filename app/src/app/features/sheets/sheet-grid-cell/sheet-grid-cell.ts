@@ -50,7 +50,7 @@ const FLEX_ALIGNMENT: Readonly<Record<string, string>> = {
   templateUrl: './sheet-grid-cell.html',
   styleUrl: './sheet-grid-cell.scss',
   host: {
-    role: 'gridcell',
+    '[attr.role]': 'role()',
     '[style]': 'hostStyle()',
     '[class.selected]': 'isSelected()',
     '[class.mine]': 'isMine()',
@@ -58,7 +58,7 @@ const FLEX_ALIGNMENT: Readonly<Record<string, string>> = {
     '[class.display-only]': 'displayOnly()',
     '[class.editable]': 'isEditable()',
     '[attr.data-tone]': 'tone()',
-    '[attr.tabindex]': 'showsEditor() ? null : 0',
+    '[attr.tabindex]': 'tabIndex()',
     '(pointerdown)': 'startEditing(true)',
     '(focus)': 'startEditing(false)',
     '(click)': 'select($event)',
@@ -127,6 +127,19 @@ export class SheetGridCell {
   /** The cell's fill, from where its section sits. A background set in the cell's own style takes precedence. */
   public readonly tone = computed<SectionTone>(() =>
     sectionTone(this.store.index(), this.layout().rowId),
+  );
+
+  /** A caption in the header names its column; every other cell is an ordinary cell. */
+  public readonly role = computed(() =>
+    this.displayOnly() && this.tone() === 'header' ? 'columnheader' : 'gridcell',
+  );
+
+  /**
+   * A cell is a tab stop so it can be moved into, or its row selected with Enter. Not while its control
+   * is on screen (the control is the stop), and not in a read-only view, where neither can happen.
+   */
+  public readonly tabIndex = computed(() =>
+    this.showsEditor() || !this.store.canEdit() ? null : 0,
   );
 
   /** The grid placement plus the cell's background, which fills the whole grid area. */

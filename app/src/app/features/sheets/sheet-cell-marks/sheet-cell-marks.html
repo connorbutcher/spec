@@ -1,11 +1,18 @@
 @if (rowDetail(); as detail) {
-  <span class="row-mark" [pTooltip]="detail" tooltipPosition="right"></span>
-  <span class="row-version">{{ rowVersion() }}</span>
+  <span
+    class="row-mark"
+    role="img"
+    [pTooltip]="detail"
+    tooltipPosition="right"
+    [attr.aria-label]="'Row changed in ' + detail"
+  ></span>
+  <span class="row-version" aria-hidden="true">{{ rowVersion() }}</span>
 }
 
 @if (cellDetail(); as detail) {
   <span
     class="cell-mark"
+    role="img"
     [pTooltip]="detail"
     tooltipPosition="left"
     [attr.aria-label]="'Changed in ' + detail"
@@ -15,6 +22,7 @@
 @if (lockLabel(); as label) {
   <i
     class="pi pi-lock lock"
+    role="img"
     [pTooltip]="label"
     tooltipPosition="left"
     [attr.aria-label]="label"

@@ -1,6 +1,7 @@
 @if (isCheckbox()) {
   <i
     class="pi"
+    role="img"
     [class.pi-check-square]="isChecked()"
     [class.pi-stop]="!isChecked()"
     [attr.aria-label]="isChecked() ? 'Ticked' : 'Not ticked'"

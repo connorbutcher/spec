@@ -1,5 +1,9 @@
-@for (cell of layout().cells; track cell.cell.id) {
-  <app-sheet-grid-cell [layout]="cell" />
+@for (row of rows(); track row.rowId) {
+  <div class="row" role="row">
+    @for (cell of row.cells; track cell.cell.id) {
+      <app-sheet-grid-cell [layout]="cell" />
+    }
+  </div>
 }
 
 @for (child of layout().children; track child.section.id) {
