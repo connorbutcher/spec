@@ -49,6 +49,18 @@ Two things to keep when adding queries here:
 
 Cell values live in the `values` schema, one table per kind (text, numeric, date, boolean, option), keyed by row revision and cell. `RowValueStore` is the only class that reads or writes them for the editing screens.
 
+## Multi-user editing
+
+Several people can have a sheet open and edit it at once. A row's checkout is still its draft revision in the database; nothing about who holds a row lives in memory. On top of that, `Sheets/Collaboration` and the SignalR hub in `Api/Collaboration` add three things:
+
+- **Presence.** A browser keeps one connection to `SheetHub` (`/hubs/sheets`) and calls `JoinSheet` for the sheet it has open. `SheetPresenceTracker` holds connections by sheet in memory and everyone on the sheet is told when the list changes.
+- **Live checkouts.** Every action that changes a sheet already answers with the refreshed `SheetDto`. `SheetChangedFilter` looks at that answer and, when something other people can see has changed (who a row is checked out to, or the latest version; see `SheetLockSignature`), tells the sheet's group to read it again. The hub sends no sheet data, because each person sees a different view. A new editing endpoint needs nothing extra as long as it returns `SheetDto`.
+- **Takeovers.** `RowTakeoverService` lets someone ask for a row that is checked out to another person (`RowTakeoversController`). The holder approves or denies; a request nobody answers within `RowTakeover:ResponseSeconds` (60) is granted by `RowTakeoverExpiryWorker`, and it is granted straight away when the holder doesn't have the sheet open. Granting moves the row's draft to the requester as it stands, so the holder's unpublished changes go with it. Waiting requests are in memory (`RowTakeoverStore`): they last a minute and only matter to connected people.
+
+The hub takes who a connection is from its signed-in user (`ClaimsPrincipalExtensions.FindUserId`), and `ICurrentUser` reads the same claim, so replacing the developer sign-in with real authentication changes neither. All of this state is per process: running more than one API instance would need a SignalR backplane and a shared store for presence and waiting requests.
+
+To try it before sign-in exists, Development seeds two more users (`engineer2`, `engineer3`) and lets a request name the user it runs as (`DeveloperSignIn:AllowUserSwitching`): open the app in a second tab with `?developerUser=engineer2`.
+
 ## Published API
 
 `Published` reads only published revisions, by public identifier (the GUIDs), never by database id. What a version held never changes, so answers are cached in memory (`PublishedSheetCache`, `PublishedRowsCache`) and served with ETags; `PublishedSheetHttpCache` holds the HTTP side. Its queries project straight to small records (`Published...Record`) and the `...Assembler` classes, which are pure, build the response. The field names and routes of this API are a contract with other applications: change them only on purpose.

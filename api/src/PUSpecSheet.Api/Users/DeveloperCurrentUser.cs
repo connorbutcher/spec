@@ -4,10 +4,11 @@ using PUSpecSheet.Domain.Users;
 namespace PUSpecSheet.Api.Users;
 
 /// <summary>
-/// Runs every request as the seeded developer user until sign-in is added; real authentication
-/// replaces this single registration with a claims-backed implementation.
+/// The user the request was signed in as, read from its claims. Until sign-in is added that is the seeded
+/// developer user (see <see cref="DeveloperAuthenticationHandler"/>), who is also who work outside a
+/// request runs as, such as seeding at start-up. Real authentication only has to issue the same claim.
 /// </summary>
-public sealed class DeveloperCurrentUser : ICurrentUser
+public sealed class DeveloperCurrentUser(IHttpContextAccessor httpContext) : ICurrentUser
 {
-    public int UserId => WellKnownUsers.DeveloperId;
+    public int UserId => httpContext.HttpContext?.User.FindUserId() ?? WellKnownUsers.DeveloperId;
 }

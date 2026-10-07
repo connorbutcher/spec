@@ -15,8 +15,10 @@ public static class PuSpecSheetAuthorizationExtensions
     public static IServiceCollection AddPuSpecSheetAuthorization(this IServiceCollection services)
     {
         // Until sign-in is added, every request runs as the seeded developer user. Real sign-in replaces
-        // these two registrations: an authentication scheme, and an ICurrentUser that reads its claims.
+        // the authentication scheme; ICurrentUser already reads whichever user the scheme signed in.
         services.AddScoped<ICurrentUser, DeveloperCurrentUser>();
+        services.AddOptions<DeveloperAuthenticationOptions>(DeveloperAuthenticationHandler.SchemeName)
+            .BindConfiguration(DeveloperAuthenticationOptions.SectionName);
         services.AddAuthentication(DeveloperAuthenticationHandler.SchemeName)
             .AddScheme<DeveloperAuthenticationOptions, DeveloperAuthenticationHandler>(DeveloperAuthenticationHandler.SchemeName, null);
 

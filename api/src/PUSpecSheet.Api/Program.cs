@@ -2,6 +2,7 @@ using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Api.ApiDocumentation;
 using PUSpecSheet.Api.Authorization;
+using PUSpecSheet.Api.Collaboration;
 using PUSpecSheet.Api.Compression;
 using PUSpecSheet.Api.Cors;
 using PUSpecSheet.Api.ExceptionHandling;
@@ -34,6 +35,9 @@ builder.Services.AddPuSpecSheetResponseCompression(builder.Configuration);
 builder.Services.AddPuSpecSheetData(connectionString);
 builder.Services.AddPuSpecSheetApplication();
 
+// Multi-user editing: who has each sheet open, live checkouts and takeover requests, over SignalR.
+builder.Services.AddPuSpecSheetCollaboration(builder.Configuration);
+
 // Who a request runs as (the seeded developer user until sign-in is added) and a policy per permission.
 builder.Services.AddPuSpecSheetAuthorization();
 
@@ -46,6 +50,7 @@ if (app.Environment.IsDevelopment())
     var db = scope.ServiceProvider.GetRequiredService<PuSpecSheetDbContext>();
     await db.Database.MigrateAsync();
     await DevelopmentDataSeeder.SeedAsync(db);
+    await DevelopmentUserSeeder.SeedAsync(db);
     await scope.ServiceProvider.GetRequiredService<DemoDataSeeder>().SeedAsync();
 
     app.MapPuSpecSheetApiDocumentation();
@@ -68,6 +73,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapPuSpecSheetCollaboration();
 app.MapHealthChecks("/api/health").AllowAnonymous();
 
 await app.RunAsync();

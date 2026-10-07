@@ -36,7 +36,7 @@ dotnet run --project api/src/PUSpecSheet.Api --launch-profile http
 cd app && npm start
 ```
 
-The UI runs on http://localhost:4200 and proxies `/api` to the API on http://localhost:5047. The header shows whether `/api/health` (which includes a database check) is reachable.
+The UI runs on http://localhost:4200 and proxies `/api` and `/hubs` (the SignalR connection for multi-user editing) to the API on http://localhost:5047. To see two people on one sheet before sign-in exists, open a second tab at the same address with `?developerUser=engineer2` added (see [api/README.md](api/README.md#multi-user-editing)). The header shows whether `/api/health` (which includes a database check) is reachable.
 
 ## API documentation
 
