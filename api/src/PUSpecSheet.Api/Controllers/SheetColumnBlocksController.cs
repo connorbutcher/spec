@@ -1,8 +1,10 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PUSpecSheet.Api.ApiDocumentation;
 using PUSpecSheet.Application.Sheets;
 using PUSpecSheet.Contracts.Common;
 using PUSpecSheet.Contracts.Sheets;
+using PUSpecSheet.Domain.Users;
 
 namespace PUSpecSheet.Api.Controllers;
 
@@ -10,6 +12,7 @@ namespace PUSpecSheet.Api.Controllers;
 [ApiController]
 [Tags(ApiTags.SheetColumnBlocks)]
 [Route("api")]
+[Authorize(Policy = PermissionKeys.SheetsEdit)]
 public sealed class SheetColumnBlocksController(ISheetColumnBlockService columnBlocks) : ControllerBase
 {
     /// <summary>Add a column block to a table</summary>

@@ -59,8 +59,8 @@ Cell values live in the `values` schema, one table per kind (text, numeric, date
 
 1. Add the request/response records to `Contracts/<Feature>`, one per file, with data annotations for required fields, lengths and ranges.
 2. Add the method to the service interface and implement it.
-3. Add the action to the controller with XML comments (`<summary>`, `<remarks>`, `<param>`, `<response>` for each status it can return). 400, 404 and 409 are documented for every action by `ProblemResponsesConvention`; add `[ProducesResponseType]` only for anything else.
-4. If the action needs a permission, add `[Authorize(Policy = PermissionKeys.X)]`. A new permission is a constant in `PermissionKeys` (add it to `All`) and a seeded row in `PermissionConfiguration`, which needs a migration.
+3. Add the action to the controller with XML comments (`<summary>`, `<remarks>`, `<param>`, `<response>` for each status it can return). 400, 403, 404 and 409 are documented where they apply by `ProblemResponsesConvention`; add `[ProducesResponseType]` only for anything else.
+4. Decide who may call it. An action that changes anything takes `[Authorize(Policy = PermissionKeys.X)]` (on the controller when every action shares it); `EndpointPermissionTests` fails if one is missing. A read needs nothing more: the fallback policy already requires a signed-in user. Only the published API is `[AllowAnonymous]`. A new permission is a constant in `PermissionKeys` (add it to `All`) and a seeded row in `PermissionConfiguration`, which needs a migration.
 
 **Add a feature**: a folder in `Application` with `I<Feature>Service` and its implementation, registered in `ApplicationServiceCollectionExtensions` (or the feature's own `Add...` extension, as `Sheets` and `Published` do); a controller with `[Tags(ApiTags.X)]`, with the tag added to `ApiTags` and `ApiTagCatalog`.
 

@@ -36,6 +36,30 @@ public sealed class PermissionConfiguration : IEntityTypeConfiguration<Permissio
                 Id = 2,
                 Key = PermissionKeys.SheetTypesManage,
                 Description = "Add sheet types.",
+            },
+            new Permission
+            {
+                Id = 3,
+                Key = PermissionKeys.TemplatesManage,
+                Description = "Create, change and delete table templates and everything in them.",
+            },
+            new Permission
+            {
+                Id = 4,
+                Key = PermissionKeys.CellTypesManage,
+                Description = "Create, change and delete cell types.",
+            },
+            new Permission
+            {
+                Id = 5,
+                Key = PermissionKeys.SheetsEdit,
+                Description = "Change a sheet: its tables, sections, rows, column blocks and cell values.",
+            },
+            new Permission
+            {
+                Id = 6,
+                Key = PermissionKeys.SheetsPublish,
+                Description = "Publish a sheet's drafts as its next version.",
             });
     }
 }

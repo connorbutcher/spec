@@ -68,6 +68,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-app.MapHealthChecks("/api/health");
+app.MapHealthChecks("/api/health").AllowAnonymous();
 
 await app.RunAsync();

@@ -16,6 +16,7 @@ public sealed class ProblemResponseDescriptionsTransformer : IOpenApiOperationTr
     private static readonly Dictionary<int, string> Defaults = new()
     {
         [StatusCodes.Status400BadRequest] = "The request isn't valid. `detail` or `errors` says why.",
+        [StatusCodes.Status403Forbidden] = "The current user lacks the permission this needs. `detail` names it.",
         [StatusCodes.Status404NotFound] = "Nothing exists at this address, or something the request refers to doesn't exist.",
         [StatusCodes.Status409Conflict] =
             "The change conflicts with the current state: the item is being edited by someone else, is in use, "

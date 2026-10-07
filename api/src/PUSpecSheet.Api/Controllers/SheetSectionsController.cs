@@ -1,8 +1,10 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PUSpecSheet.Api.ApiDocumentation;
 using PUSpecSheet.Application.Sheets;
 using PUSpecSheet.Contracts.Common;
 using PUSpecSheet.Contracts.Sheets;
+using PUSpecSheet.Domain.Users;
 
 namespace PUSpecSheet.Api.Controllers;
 
@@ -10,6 +12,7 @@ namespace PUSpecSheet.Api.Controllers;
 [ApiController]
 [Tags(ApiTags.SheetSections)]
 [Route("api/sheet-sections")]
+[Authorize(Policy = PermissionKeys.SheetsEdit)]
 public sealed class SheetSectionsController(ISheetSectionService sections, ISheetRowService rows) : ControllerBase
 {
     /// <summary>Move a section</summary>

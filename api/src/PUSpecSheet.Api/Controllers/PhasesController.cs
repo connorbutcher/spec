@@ -52,7 +52,6 @@ public sealed class PhasesController(IPhaseService phases) : ControllerBase
     /// <response code="409">Another phase already has this code.</response>
     [HttpPost]
     [Authorize(Policy = PermissionKeys.PhasesManage)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden, ProblemResponseDescriptionsTransformer.ContentType)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound, ProblemResponseDescriptionsTransformer.ContentType)]
     public async Task<ActionResult<PhaseDto>> Create(CreatePhaseRequest request, CancellationToken cancellationToken)
     {
@@ -76,7 +75,6 @@ public sealed class PhasesController(IPhaseService phases) : ControllerBase
     /// <response code="404">The phase or the parent phase doesn't exist.</response>
     [HttpPost("{id:int}/move")]
     [Authorize(Policy = PermissionKeys.PhasesManage)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden, ProblemResponseDescriptionsTransformer.ContentType)]
     public async Task<ActionResult<IReadOnlyList<PhaseDto>>> Move(int id, MovePhaseRequest request, CancellationToken cancellationToken)
     {
         var result = await phases.MoveAsync(id, request, cancellationToken);
@@ -98,7 +96,6 @@ public sealed class PhasesController(IPhaseService phases) : ControllerBase
     /// <response code="409">A sheet type being removed has a sheet with tables on this phase.</response>
     [HttpPut("{id:int}/sheet-types")]
     [Authorize(Policy = PermissionKeys.PhasesManage)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden, ProblemResponseDescriptionsTransformer.ContentType)]
     public async Task<ActionResult<PhaseDto>> SetSheetTypes(
         int id,
         SetPhaseSheetTypesRequest request,

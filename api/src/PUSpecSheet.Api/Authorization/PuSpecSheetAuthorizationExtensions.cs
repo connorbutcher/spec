@@ -24,7 +24,10 @@ public static class PuSpecSheetAuthorizationExtensions
         services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
         services.AddSingleton<IAuthorizationMiddlewareResultHandler, PermissionDeniedResultHandler>();
 
-        var authorization = services.AddAuthorizationBuilder();
+        // An endpoint that names no policy still needs a signed-in user. The ones meant to be open say so
+        // with [AllowAnonymous]: the published API other systems read, the health check and the API documentation.
+        var authorization = services.AddAuthorizationBuilder()
+            .SetFallbackPolicy(new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build());
         foreach (var permission in PermissionKeys.All)
         {
             authorization.AddPolicy(permission, policy => policy.AddRequirements(new PermissionRequirement(permission)));

@@ -37,7 +37,6 @@ public sealed class SheetTypesController(ISheetTypeService sheetTypes) : Control
     /// <response code="409">Another sheet type already has this name.</response>
     [HttpPost]
     [Authorize(Policy = PermissionKeys.SheetTypesManage)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden, ProblemResponseDescriptionsTransformer.ContentType)]
     public async Task<ActionResult<SheetTypeDto>> Create(CreateSheetTypeRequest request, CancellationToken cancellationToken)
     {
         var result = await sheetTypes.CreateAsync(request, cancellationToken);

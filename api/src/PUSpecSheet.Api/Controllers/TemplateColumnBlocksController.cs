@@ -1,8 +1,10 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PUSpecSheet.Api.ApiDocumentation;
 using PUSpecSheet.Application.Templates;
 using PUSpecSheet.Contracts.Common;
 using PUSpecSheet.Contracts.Templates;
+using PUSpecSheet.Domain.Users;
 
 namespace PUSpecSheet.Api.Controllers;
 
@@ -10,6 +12,7 @@ namespace PUSpecSheet.Api.Controllers;
 [ApiController]
 [Tags(ApiTags.TemplateColumnBlocks)]
 [Route("api/template-column-blocks")]
+[Authorize(Policy = PermissionKeys.TemplatesManage)]
 public sealed class TemplateColumnBlocksController(ITemplateColumnBlockService blocks) : ControllerBase
 {
     /// <summary>Add a column block</summary>

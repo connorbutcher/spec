@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PUSpecSheet.Api.ApiDocumentation;
 using PUSpecSheet.Api.Published;
@@ -14,6 +15,7 @@ namespace PUSpecSheet.Api.Controllers;
 [ApiController]
 [Tags(ApiTags.PublishedSheets)]
 [Route("api/published/sheets")]
+[AllowAnonymous]
 public sealed class PublishedSheetsController(IPublishedSheetQueryService sheets) : ControllerBase
 {
     /// <summary>Find a sheet</summary>

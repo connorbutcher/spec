@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ActionConstraints;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
@@ -8,8 +9,8 @@ namespace PUSpecSheet.Api.ApiDocumentation;
 
 /// <summary>
 /// Declares the problem details responses the exception handler produces, so controllers only carry
-/// their happy path: 400 where a request can be invalid, 404 where the address names something, and 409
-/// where a change can conflict with the current state. It only affects the documentation.
+/// their happy path: 400 where a request can be invalid, 403 where a permission is asked for, 404 where the
+/// address names something, and 409 where a change can conflict with the current state. It only affects the documentation.
 /// </summary>
 public sealed class ProblemResponsesConvention : IActionModelConvention
 {
@@ -41,6 +42,11 @@ public sealed class ProblemResponsesConvention : IActionModelConvention
             AddProblem(action, declared, StatusCodes.Status400BadRequest);
         }
 
+        if (NeedsPermission(action))
+        {
+            AddProblem(action, declared, StatusCodes.Status403Forbidden);
+        }
+
         if (namesSomething || isPublished)
         {
             AddProblem(action, declared, StatusCodes.Status404NotFound);
@@ -58,6 +64,15 @@ public sealed class ProblemResponsesConvention : IActionModelConvention
         {
             action.Filters.Add(new ProducesResponseTypeAttribute(typeof(ProblemDetails), status, ProblemResponseDescriptionsTransformer.ContentType));
         }
+    }
+
+    /// <summary>Whether the action, or its whole controller, asks for a permission policy.</summary>
+    private static bool NeedsPermission(ActionModel action)
+    {
+        return action.Attributes
+            .Concat(action.Controller.Attributes)
+            .OfType<AuthorizeAttribute>()
+            .Any(authorize => !string.IsNullOrEmpty(authorize.Policy));
     }
 
     private static bool IsRead(ActionModel action)

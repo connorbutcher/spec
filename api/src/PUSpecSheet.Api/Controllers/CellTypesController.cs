@@ -1,7 +1,9 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PUSpecSheet.Api.ApiDocumentation;
 using PUSpecSheet.Application.CellTypes;
 using PUSpecSheet.Contracts.CellTypes;
+using PUSpecSheet.Domain.Users;
 
 namespace PUSpecSheet.Api.Controllers;
 
@@ -34,6 +36,7 @@ public sealed class CellTypesController(ICellTypeService cellTypes) : Controller
     /// <response code="200">The new cell type.</response>
     /// <response code="409">Another cell type already has this name.</response>
     [HttpPost]
+    [Authorize(Policy = PermissionKeys.CellTypesManage)]
     public async Task<ActionResult<CellTypeDto>> Create(SaveCellTypeRequest request, CancellationToken cancellationToken)
     {
         var result = await cellTypes.CreateAsync(request, cancellationToken);
@@ -51,6 +54,7 @@ public sealed class CellTypesController(ICellTypeService cellTypes) : Controller
     /// <response code="404">No cell type has this id.</response>
     /// <response code="409">Another cell type has this name, or the change doesn't fit the cells that use it.</response>
     [HttpPut("{id:int}")]
+    [Authorize(Policy = PermissionKeys.CellTypesManage)]
     public async Task<ActionResult<CellTypeDto>> Update(
         int id,
         SaveCellTypeRequest request,
@@ -70,6 +74,7 @@ public sealed class CellTypesController(ICellTypeService cellTypes) : Controller
     /// <response code="404">No cell type has this id.</response>
     /// <response code="409">Template cells still use this cell type.</response>
     [HttpDelete("{id:int}")]
+    [Authorize(Policy = PermissionKeys.CellTypesManage)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken)
     {

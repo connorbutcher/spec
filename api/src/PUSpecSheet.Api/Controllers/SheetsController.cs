@@ -1,7 +1,9 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PUSpecSheet.Api.ApiDocumentation;
 using PUSpecSheet.Application.Sheets;
 using PUSpecSheet.Contracts.Sheets;
+using PUSpecSheet.Domain.Users;
 
 namespace PUSpecSheet.Api.Controllers;
 
@@ -68,6 +70,7 @@ public sealed class SheetsController(ISheetService sheets, ISheetTableService ta
     /// <param name="cancellationToken">Cancels the request.</param>
     /// <response code="200">The refreshed live view of the sheet.</response>
     [HttpPost("api/sheets/{id:int}/tables")]
+    [Authorize(Policy = PermissionKeys.SheetsEdit)]
     public async Task<ActionResult<SheetDto>> AddTable(int id, AddSheetTableRequest request, CancellationToken cancellationToken)
     {
         var result = await tables.AddAsync(id, request, cancellationToken);
@@ -84,6 +87,7 @@ public sealed class SheetsController(ISheetService sheets, ISheetTableService ta
     /// <response code="200">The refreshed live view of the sheet.</response>
     /// <response code="400">You have nothing to publish, or required cells are still empty.</response>
     [HttpPost("api/sheets/{id:int}/publish")]
+    [Authorize(Policy = PermissionKeys.SheetsPublish)]
     public async Task<ActionResult<SheetDto>> Publish(int id, PublishSheetRequest request, CancellationToken cancellationToken)
     {
         var result = await sheets.PublishAsync(id, request, cancellationToken);
@@ -98,6 +102,7 @@ public sealed class SheetsController(ISheetService sheets, ISheetTableService ta
     /// <param name="cancellationToken">Cancels the request.</param>
     /// <response code="200">The refreshed live view of the sheet.</response>
     [HttpDelete("api/sheets/{id:int}/drafts")]
+    [Authorize(Policy = PermissionKeys.SheetsEdit)]
     public async Task<ActionResult<SheetDto>> DiscardDrafts(int id, CancellationToken cancellationToken)
     {
         var result = await sheets.DiscardDraftsAsync(id, cancellationToken);

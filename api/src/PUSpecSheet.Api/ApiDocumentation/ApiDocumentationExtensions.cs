@@ -47,7 +47,7 @@ public static class ApiDocumentationExtensions
 
     public static WebApplication MapPuSpecSheetApiDocumentation(this WebApplication app)
     {
-        app.MapOpenApi();
+        app.MapOpenApi().AllowAnonymous();
         app.UseSwaggerUI(options =>
         {
             // Swagger UI only draws the page: the document it shows is the one mapped above.

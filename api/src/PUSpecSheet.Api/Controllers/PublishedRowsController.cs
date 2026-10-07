@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Net.Http.Headers;
 using PUSpecSheet.Api.ApiDocumentation;
@@ -15,6 +16,7 @@ namespace PUSpecSheet.Api.Controllers;
 [ApiController]
 [Tags(ApiTags.PublishedSheets)]
 [Route("api/published/sheets/{sheetPublicId:guid}/versions")]
+[AllowAnonymous]
 public sealed class PublishedRowsController(IPublishedSheetQueryService sheets, IPublishedRowsService rows) : ControllerBase
 {
     /// <summary>Read rows by identifier at a version</summary>

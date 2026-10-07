@@ -1,7 +1,9 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PUSpecSheet.Api.ApiDocumentation;
 using PUSpecSheet.Application.Templates;
 using PUSpecSheet.Contracts.Templates;
+using PUSpecSheet.Domain.Users;
 
 namespace PUSpecSheet.Api.Controllers;
 
@@ -53,6 +55,7 @@ public sealed class TableTemplatesController(ITableTemplateService templates) : 
     /// <param name="cancellationToken">Cancels the request.</param>
     /// <response code="200">The template at its new version.</response>
     [HttpPost("{id:int}/versions")]
+    [Authorize(Policy = PermissionKeys.TemplatesManage)]
     public async Task<ActionResult<TableTemplateDto>> CreateVersion(int id, CancellationToken cancellationToken)
     {
         var result = await templates.CreateVersionAsync(id, cancellationToken);
@@ -68,6 +71,7 @@ public sealed class TableTemplatesController(ITableTemplateService templates) : 
     /// <response code="201">The new template. <c>Location</c> is its address.</response>
     /// <response code="409">The sheet type already has a template with this name.</response>
     [HttpPost]
+    [Authorize(Policy = PermissionKeys.TemplatesManage)]
     [ProducesResponseType<TableTemplateDto>(StatusCodes.Status201Created)]
     public async Task<ActionResult<TableTemplateDto>> Create(
         CreateTableTemplateRequest request,
@@ -86,6 +90,7 @@ public sealed class TableTemplatesController(ITableTemplateService templates) : 
     /// <param name="cancellationToken">Cancels the request.</param>
     /// <response code="200">The updated template.</response>
     [HttpPut("{id:int}")]
+    [Authorize(Policy = PermissionKeys.TemplatesManage)]
     public async Task<ActionResult<TableTemplateDto>> Update(
         int id,
         UpdateTableTemplateRequest request,
@@ -104,6 +109,7 @@ public sealed class TableTemplatesController(ITableTemplateService templates) : 
     /// <response code="204">The template was deleted.</response>
     /// <response code="409">A sheet has a table built from this template.</response>
     [HttpDelete("{id:int}")]
+    [Authorize(Policy = PermissionKeys.TemplatesManage)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken)
     {

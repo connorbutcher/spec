@@ -1,7 +1,9 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PUSpecSheet.Api.ApiDocumentation;
 using PUSpecSheet.Application.Templates;
 using PUSpecSheet.Contracts.Templates;
+using PUSpecSheet.Domain.Users;
 
 namespace PUSpecSheet.Api.Controllers;
 
@@ -9,6 +11,7 @@ namespace PUSpecSheet.Api.Controllers;
 [ApiController]
 [Tags(ApiTags.TemplateCells)]
 [Route("api/template-cells/{id:int}/overrides")]
+[Authorize(Policy = PermissionKeys.TemplatesManage)]
 public sealed class TemplateCellOverridesController(ITemplateCellOverrideService overrides) : ControllerBase
 {
     /// <summary>Set a cell's overrides</summary>

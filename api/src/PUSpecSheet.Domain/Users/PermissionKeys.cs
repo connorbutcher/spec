@@ -13,5 +13,25 @@ public static class PermissionKeys
     /// <summary>Add sheet types.</summary>
     public const string SheetTypesManage = "sheetTypes.manage";
 
-    public static IReadOnlyList<string> All { get; } = [PhasesManage, SheetTypesManage];
+    /// <summary>Create, change and delete table templates and everything in them.</summary>
+    public const string TemplatesManage = "templates.manage";
+
+    /// <summary>Create, change and delete cell types.</summary>
+    public const string CellTypesManage = "cellTypes.manage";
+
+    /// <summary>Change a sheet: its tables, sections, rows, column blocks and cell values. Changes stay drafts.</summary>
+    public const string SheetsEdit = "sheets.edit";
+
+    /// <summary>Publish a sheet's drafts as its next version.</summary>
+    public const string SheetsPublish = "sheets.publish";
+
+    public static IReadOnlyList<string> All { get; } =
+    [
+        PhasesManage,
+        SheetTypesManage,
+        TemplatesManage,
+        CellTypesManage,
+        SheetsEdit,
+        SheetsPublish,
+    ];
 }

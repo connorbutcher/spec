@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Net.Http.Headers;
 using PUSpecSheet.Api.ApiDocumentation;
@@ -14,6 +15,7 @@ namespace PUSpecSheet.Api.Controllers;
 [ApiController]
 [Tags(ApiTags.PublishedSheets)]
 [Route("api/published")]
+[AllowAnonymous]
 public sealed class PublishedLookupController(IPublishedLookupService lookup) : ControllerBase
 {
     /// <summary>Look a value up on every sheet</summary>
