@@ -1,0 +1,11 @@
+:host {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0 12px 6px;
+
+  &.empty {
+    display: none;
+  }
+}

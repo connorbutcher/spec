@@ -1,0 +1,15 @@
+:host {
+  display: inline-flex;
+
+  --p-avatar-width: 1.5rem;
+  --p-avatar-height: 1.5rem;
+  --p-avatar-font-size: 0.65rem;
+  --p-avatar-background: #e2e8f0;
+  --p-avatar-color: #334155;
+}
+
+// The viewer's own avatar is outlined, so they can tell themselves from the others at a glance.
+.me {
+  outline: 1px solid #475569;
+  outline-offset: 1px;
+}

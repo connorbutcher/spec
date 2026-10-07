@@ -1,0 +1,26 @@
+<p-message severity="warn" size="small" icon="pi pi-user-edit">
+  <div class="request">
+    <span class="text">
+      <strong>{{ takeover().requesterName }}</strong> is asking to take over {{ rowName() }} that is
+      checked out to you. Unanswered, it is handed over in {{ secondsLeft() }}s, with your
+      unpublished changes in it.
+    </span>
+    <span class="buttons">
+      <p-button
+        label="Show row"
+        size="small"
+        severity="secondary"
+        [text]="true"
+        (onClick)="showRow()"
+      />
+      <p-button
+        label="Keep it"
+        size="small"
+        severity="secondary"
+        [outlined]="true"
+        (onClick)="keep()"
+      />
+      <p-button label="Hand over" size="small" (onClick)="handOver()" />
+    </span>
+  </div>
+</p-message>

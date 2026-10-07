@@ -9,6 +9,7 @@ import { confirmRemoval } from '../sheet-confirm.util';
 import { sectionAncestors, sectionSiblings } from '../sheet-index.util';
 import { sectionLabel } from '../sheet-labels.util';
 import { otherUsersLock } from '../sheet-lock.util';
+import { SheetTakeoverButton } from '../sheet-takeover-button/sheet-takeover-button';
 import { SheetStore } from '../sheet.store';
 
 /**
@@ -18,7 +19,7 @@ import { SheetStore } from '../sheet.store';
  */
 @Component({
   selector: 'app-sheet-action-bar',
-  imports: [BreadcrumbModule, ButtonModule],
+  imports: [BreadcrumbModule, ButtonModule, SheetTakeoverButton],
   templateUrl: './sheet-action-bar.html',
   styleUrl: './sheet-action-bar.scss',
 })
@@ -96,6 +97,8 @@ export class SheetActionBar {
   });
 
   public readonly lockedByOther = computed(() => otherUsersLock(this.row()?.lock) !== null);
+
+  public readonly canEdit = computed(() => this.store.canEdit());
 
   public readonly isBusy = computed(() => this.store.isBusy());
 

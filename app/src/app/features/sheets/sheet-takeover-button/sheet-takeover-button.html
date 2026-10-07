@@ -1,0 +1,24 @@
+@if (waiting(); as takeover) {
+  <span class="waiting" aria-live="polite">
+    Asked {{ takeover.holderName }} · yours in {{ secondsLeft() }}s if unanswered
+  </span>
+  <p-button
+    label="Withdraw"
+    size="small"
+    severity="secondary"
+    [text]="true"
+    (onClick)="withdraw(takeover)"
+  />
+} @else {
+  <p-button
+    label="Request takeover"
+    icon="pi pi-user-edit"
+    size="small"
+    severity="secondary"
+    [outlined]="true"
+    [disabled]="isSending()"
+    pTooltip="Ask for this row. It comes to you with their unpublished changes in it."
+    tooltipPosition="bottom"
+    (onClick)="request()"
+  />
+}

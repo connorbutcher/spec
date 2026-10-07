@@ -303,6 +303,43 @@ describe('SheetStore', () => {
     });
   });
 
+  it("refreshes after someone else's change, keeping everything that did not change", async () => {
+    const before = store.sheet()!;
+    const header = before.tables[0].sections[0];
+    const lockedRow = before.tables[0].sections[1].rows[0];
+
+    store.refresh();
+    await settle();
+    http.expectOne(SHEET_URL).flush(
+      fromServer(sheet, (copy) => {
+        copy.tables[0].sections[1].rows[0].lock = { userId: 2, userName: 'B', isMine: false };
+      }),
+    );
+    await settle();
+
+    const after = store.sheet()!;
+    expect(after.tables[0].sections[1].rows[0].lock?.userName).toBe('B');
+    expect(after.tables[0].sections[1].rows[0].cells[0]).toBe(lockedRow.cells[0]);
+    expect(after.tables[0].sections[0]).toBe(header);
+  });
+
+  it("waits for the user's own change before refreshing, and skips it if another is in flight", async () => {
+    const row = sheet.tables[0].sections[1].rows[0];
+
+    const saving = store.saveValues(row.id, [{ sheetCellId: row.cells[0].id, text: 'new' }]);
+    store.refresh();
+    await settle();
+
+    // Only the save is out: the refresh has not been sent alongside it.
+    http.expectOne(`/api/sheet-rows/${row.id}/values`).flush(fromServer(sheet));
+    await saving;
+    await settle();
+    http.expectOne(SHEET_URL).flush(fromServer(sheet));
+    await settle();
+
+    expect(store.sheet()).toEqual(sheet);
+  });
+
   it('marks only changes made after the version being compared against', () => {
     const change = { versionNumber: 2, atUtc: '2026-09-02T09:00:00Z', userName: 'A' };
 

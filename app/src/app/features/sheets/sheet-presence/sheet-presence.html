@@ -1,0 +1,19 @@
+<div class="presence" role="group" aria-label="People with this sheet open">
+  @if (offlineLabel(); as label) {
+    <p-tag
+      [value]="label"
+      icon="pi pi-exclamation-triangle"
+      severity="warn"
+      [rounded]="true"
+      pTooltip="Rows other people check out won't show until the connection is back. Refresh to see the latest."
+      tooltipPosition="bottom"
+    />
+  }
+  @for (user of users(); track user.userId) {
+    <app-sheet-presence-badge
+      [user]="user"
+      [isMe]="user.userId === viewerId()"
+      [checkedOutRows]="checkedOutRows().get(user.userId) ?? 0"
+    />
+  }
+</div>

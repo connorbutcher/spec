@@ -1,0 +1,15 @@
+<p-overlaybadge
+  [value]="checkedOutRows()"
+  [badgeDisabled]="checkedOutRows() === 0"
+  severity="secondary"
+  badgeSize="small"
+>
+  <p-avatar
+    shape="circle"
+    [label]="initials()"
+    [class.me]="isMe()"
+    [pTooltip]="description()"
+    tooltipPosition="bottom"
+    [attr.aria-label]="description()"
+  />
+</p-overlaybadge>

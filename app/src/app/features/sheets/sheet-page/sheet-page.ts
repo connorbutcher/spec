@@ -1,18 +1,22 @@
 import { CdkDrag, CdkDragDrop, CdkDropList } from '@angular/cdk/drag-drop';
 import { Component, computed, inject, input } from '@angular/core';
-import { ConfirmationService } from 'primeng/api';
+import { ConfirmationService, MessageService } from 'primeng/api';
 import { ConfirmPopupModule } from 'primeng/confirmpopup';
 import { MessageModule } from 'primeng/message';
 import { SkeletonModule } from 'primeng/skeleton';
+import { ToastModule } from 'primeng/toast';
 import { Phase } from '../../../core/models/phase.model';
 import { SheetType } from '../../../core/models/sheet-type.model';
 import { Breadcrumb } from '../../../shared/components/breadcrumb/breadcrumb';
 import { BreadcrumbItem } from '../../../shared/components/breadcrumb/breadcrumb-item.model';
 import { EmptyState } from '../../../shared/components/empty-state/empty-state';
 import { PhasesStore } from '../../phases/phases.store';
+import { SheetHub } from '../sheet-hub';
+import { SheetLiveStore } from '../sheet-live.store';
 import { SheetLoadError } from '../sheet-load-error/sheet-load-error';
 import { SheetSwitcher } from '../sheet-switcher/sheet-switcher';
 import { SheetTableCard } from '../sheet-table-card/sheet-table-card';
+import { SheetTakeoverRequests } from '../sheet-takeover-requests/sheet-takeover-requests';
 import { SheetToolbar } from '../sheet-toolbar/sheet-toolbar';
 import { SheetStore } from '../sheet.store';
 
@@ -20,7 +24,8 @@ import { SheetStore } from '../sheet.store';
  * One PU Spec Sheet for a phase (`/phases/:phaseId/sheets/:sheetTypeId`), full width. Users build it up
  * from the sheet type's table templates: adding tables, then sections and rows within them, and filling
  * in the cells. Each table, section and row is locked to its editor until they publish, and each
- * publish is a numbered version that can be viewed again by number or date.
+ * publish is a numbered version that can be viewed again by number or date. Several people can work on
+ * a sheet at once: `SheetLiveStore` shows who is there and keeps their checkouts up to date.
  */
 @Component({
   selector: 'app-sheet-page',
@@ -34,10 +39,12 @@ import { SheetStore } from '../sheet.store';
     SheetLoadError,
     SheetSwitcher,
     SheetTableCard,
+    SheetTakeoverRequests,
     SheetToolbar,
     SkeletonModule,
+    ToastModule,
   ],
-  providers: [ConfirmationService, SheetStore],
+  providers: [ConfirmationService, MessageService, SheetHub, SheetLiveStore, SheetStore],
   templateUrl: './sheet-page.html',
   styleUrl: './sheet-page.scss',
 })

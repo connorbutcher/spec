@@ -42,6 +42,9 @@
               <i class="pi pi-lock" aria-hidden="true"></i>
               Being edited by {{ row.lock.userName }}
             </span>
+            @if (canEdit()) {
+              <app-sheet-takeover-button [row]="row" />
+            }
           }
           @if (row.canRemove && hasSeveralRows()) {
             <p-button

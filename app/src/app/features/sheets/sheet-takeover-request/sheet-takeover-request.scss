@@ -1,0 +1,20 @@
+:host {
+  display: block;
+}
+
+.request {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+}
+
+.text {
+  flex: 1 1 20rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.buttons {
+  display: inline-flex;
+  gap: 4px;
+}

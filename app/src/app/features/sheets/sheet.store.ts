@@ -1,5 +1,5 @@
 import { httpResource } from '@angular/common/http';
-import { computed, inject, Injectable, linkedSignal, signal } from '@angular/core';
+import { computed, inject, Injectable, linkedSignal, signal, untracked } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { map } from 'rxjs';
@@ -122,10 +122,16 @@ export class SheetStore {
     { initialValue: null },
   );
 
-  private readonly sheetResource = httpResource<Sheet>(() => {
-    const target = this.target();
-    return target === null ? undefined : sheetUrl(target, this.view());
-  });
+  /** Set by `refresh` for the read it starts: that read keeps the objects of everything that didn't change. */
+  private keepUnchangedOnNextRead = false;
+
+  private readonly sheetResource = httpResource<Sheet>(
+    () => {
+      const target = this.target();
+      return target === null ? undefined : sheetUrl(target, this.view());
+    },
+    { parse: (body) => this.received(body as Sheet) },
+  );
 
   private readonly cellTypesResource = httpResource<CellType[]>(() => '/api/cell-types');
 
@@ -134,6 +140,21 @@ export class SheetStore {
     if (this.cellTypesResource.status() === 'error') {
       this.cellTypesResource.reload();
     }
+  }
+
+  /**
+   * Someone else changed the sheet (a row checked out or released, a version published): reads it again
+   * without disturbing the user. It waits for the user's own changes in flight, and is skipped if another
+   * has started by then, as that change brings the whole sheet back anyway. Everything that didn't change
+   * keeps its object, so a cell being typed into keeps what was typed.
+   */
+  public refresh(): void {
+    void this.tail.then(() => {
+      if (this.inFlight() === 0 && this.sheet() !== null) {
+        this.keepUnchangedOnNextRead = true;
+        this.sheetResource.reload();
+      }
+    });
   }
 
   public setView(view: SheetView): void {
@@ -291,6 +312,16 @@ export class SheetStore {
       return false;
     }
     return (await this.run(() => this.api.publish(sheetId, note, scope))) !== null;
+  }
+
+  /** A sheet as it arrives from a read. Only a quiet `refresh` keeps the open copy's unchanged objects. */
+  private received(sheet: Sheet): Sheet {
+    const keep = this.keepUnchangedOnNextRead;
+    this.keepUnchangedOnNextRead = false;
+    const open = untracked(() =>
+      this.sheetResource.hasValue() ? this.sheetResource.value() : null,
+    );
+    return keep && open?.id === sheet.id ? reuseUnchanged(open, sheet) : sheet;
   }
 
   /**
