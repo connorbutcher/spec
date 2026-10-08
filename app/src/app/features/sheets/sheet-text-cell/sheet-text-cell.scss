@@ -1,9 +1,3 @@
-@use '../cell-field' as field;
-
-:host {
-  @include field.cell-field;
-}
-
 // The box fills the cell and takes its alignment from the cell's style.
 input[pInputText],
 textarea[pTextarea] {

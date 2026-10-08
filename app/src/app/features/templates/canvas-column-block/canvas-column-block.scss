@@ -1,5 +1,3 @@
-@use 'mixins' as mx;
-
 // A frame over the block's columns that never catches the pointer, so the cells below stay clickable.
 :host {
   position: relative;
@@ -10,7 +8,8 @@
 }
 
 :host(.selected) {
-  @include mx.selection-outline;
+  outline: 2px solid var(--app-navy);
+  outline-offset: -2px;
 }
 
 .name {

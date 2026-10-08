@@ -7,8 +7,8 @@
   [style]="{ width: '26rem' }"
   (onShow)="reset()"
 >
-  <div class="fields">
-    <div class="field">
+  <div class="app-fields">
+    <div class="app-field">
       <label for="add-phase-code">Code</label>
       <input
         pInputText
@@ -24,7 +24,7 @@
       />
     </div>
 
-    <div class="field">
+    <div class="app-field">
       <label for="add-phase-description">Description (optional)</label>
       <input
         pInputText
@@ -39,7 +39,7 @@
       />
     </div>
 
-    <div class="field">
+    <div class="app-field">
       <label for="add-phase-parent">Parent phase</label>
       <p-select
         inputId="add-phase-parent"
@@ -57,7 +57,7 @@
       />
     </div>
 
-    <div class="field">
+    <div class="app-field">
       <label for="add-phase-sheet-types">Sheet types</label>
       <p-multiselect
         inputId="add-phase-sheet-types"
@@ -73,7 +73,7 @@
         appendTo="body"
         [fluid]="true"
       />
-      <p class="note">Not inherited from the parent. You can change them afterwards.</p>
+      <p class="app-field-note">Not inherited from the parent. You can change them afterwards.</p>
     </div>
 
     @if (error(); as error) {

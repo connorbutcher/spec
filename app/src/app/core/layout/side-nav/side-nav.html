@@ -1,6 +1,6 @@
 <nav class="side-nav" aria-label="Main">
   <div class="main">
-    <p-menu class="nav-menu" [model]="mainItems">
+    <p-menu class="app-bare-menu nav-menu" [model]="mainItems">
       <ng-template #item let-item>
         <app-side-nav-link [item]="navItem(item)" [collapsed]="collapsed()" />
         @if (navItem(item).path === '/phases' && inPhases()) {
@@ -9,7 +9,7 @@
       </ng-template>
     </p-menu>
   </div>
-  <p-menu class="nav-menu footer" [model]="footerItems">
+  <p-menu class="app-bare-menu nav-menu footer" [model]="footerItems">
     <ng-template #item let-item>
       <app-side-nav-link [item]="navItem(item)" [collapsed]="collapsed()" />
     </ng-template>

@@ -14,10 +14,10 @@
 } @else if (store.phases().length === 0) {
   <p class="note">No phases yet.</p>
 } @else if (collapsed()) {
-  <p-menu class="codes" [model]="codes()" aria-label="Phases" />
+  <p-menu class="app-bare-menu codes" [model]="codes()" aria-label="Phases" />
 } @else {
   <p-tree
-    class="phase-tree"
+    class="app-compact-tree phase-tree"
     [value]="store.tree()"
     selectionMode="single"
     [selection]="store.selectedTreeNode()"

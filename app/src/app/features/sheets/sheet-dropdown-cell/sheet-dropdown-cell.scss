@@ -1,10 +1,4 @@
-@use '../cell-field' as field;
-@use 'mixins' as mx;
-
-:host {
-  @include field.cell-field;
-}
-
 p-select {
-  @include mx.flex-fill;
+  flex: 1;
+  min-width: 0;
 }

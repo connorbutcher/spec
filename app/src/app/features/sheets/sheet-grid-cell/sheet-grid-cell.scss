@@ -1,5 +1,3 @@
-@use 'mixins' as mx;
-
 // Same hairline borders as the template preview, so a sheet looks like its template. Background, text
 // colour, weight, italics and alignment come from the cell's effective style (inline).
 :host {
@@ -7,12 +5,14 @@
   display: flex;
   min-width: 0;
   min-height: var(--app-cell-min-height);
-  @include mx.cell-hairline(var(--app-grid-line));
+  border-right: 1px solid var(--app-grid-line);
+  border-bottom: 1px solid var(--app-grid-line);
   background: var(--app-surface);
   cursor: default;
 
   &:focus-visible {
-    @include mx.selection-outline;
+    outline: 2px solid var(--app-navy);
+    outline-offset: -2px;
     z-index: 3;
   }
 }
@@ -58,7 +58,8 @@
 // The one focus indicator: a single inset line on the cell that holds the control being typed in.
 :host(:focus-within) {
   z-index: 3;
-  @include mx.selection-outline(1px);
+  outline: 1px solid var(--app-navy);
+  outline-offset: -1px;
 }
 
 .content {

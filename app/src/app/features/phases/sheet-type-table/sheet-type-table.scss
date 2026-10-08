@@ -1,8 +1,4 @@
-@use 'mixins' as mx;
-
 .sheet-table {
-  @include mx.compact-table;
-
   .narrow {
     width: 6rem;
   }
@@ -29,7 +25,8 @@
     }
 
     &:focus-visible {
-      @include mx.focus-ring;
+      outline: 2px solid var(--app-navy);
+      outline-offset: 1px;
     }
   }
 }

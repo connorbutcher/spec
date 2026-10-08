@@ -7,8 +7,8 @@
   [style]="{ width: '22rem' }"
   (onShow)="reset()"
 >
-  <div class="fields">
-    <div class="field">
+  <div class="app-fields">
+    <div class="app-field">
       <label for="add-sheet-type-name">Name</label>
       <input
         pInputText
@@ -22,7 +22,7 @@
         (ngModelChange)="name.set($event)"
         (keydown.enter)="add()"
       />
-      <p class="note">No phase has it until you tick it for a phase on the Phases tab.</p>
+      <p class="app-field-note">No phase has it until you tick it for a phase on the Phases tab.</p>
     </div>
 
     @if (error(); as error) {

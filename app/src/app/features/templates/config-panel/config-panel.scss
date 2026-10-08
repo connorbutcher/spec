@@ -1,12 +1,14 @@
-@use 'mixins' as mx;
-
 :host {
-  @include mx.fill-height;
+  display: block;
+  height: 100%;
   min-height: 0;
 }
 
 .config-panel {
-  @include mx.column-fill;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
 
   .panel-head {
     display: flex;

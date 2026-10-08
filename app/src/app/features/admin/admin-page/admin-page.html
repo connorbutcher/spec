@@ -13,7 +13,7 @@
       <p-button label="Try again" size="small" [outlined]="true" (onClick)="retry()" />
     </app-empty-state>
   } @else if (user()) {
-    <p-tabs class="tabs" [value]="tab()" (valueChange)="tab.set($event)">
+    <p-tabs class="app-compact-tabs tabs" [value]="tab()" (valueChange)="tab.set($event)">
       <p-tablist>
         <p-tab value="phases">Phases</p-tab>
         <p-tab value="sheet-types">Sheet types</p-tab>

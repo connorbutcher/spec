@@ -1,6 +1,6 @@
 @if (template(); as template) {
-  <div class="fields">
-    <div class="field">
+  <div class="app-fields">
+    <div class="app-field">
       <label for="template-name">Name</label>
       <input
         #nameInput
@@ -14,8 +14,8 @@
       />
     </div>
 
-    <div class="field">
-      <span class="label" id="template-orientation-label">Orientation</span>
+    <div class="app-field">
+      <span class="app-field-label" id="template-orientation-label">Orientation</span>
       <p-selectbutton
         [options]="orientations"
         optionLabel="label"
@@ -30,7 +30,7 @@
     </div>
 
     @if (isHorizontal()) {
-      <div class="field">
+      <div class="app-field">
         <app-sticky-columns-field
           id="template-sticky"
           label="Sticky columns"
@@ -42,13 +42,13 @@
       </div>
     }
 
-    <h3 class="group-title">Header and sections</h3>
+    <h3 class="app-group-title">Header and sections</h3>
     <app-panel-link-list
       [items]="sections()"
       emptyText="No sections yet."
       ariaLabel="Header and sections"
     />
-    <div class="actions">
+    <div class="app-actions">
       <p-button
         icon="pi pi-plus"
         label="Add section"
@@ -60,13 +60,13 @@
     </div>
 
     @if (isHorizontal()) {
-      <h3 class="group-title">Column blocks</h3>
+      <h3 class="app-group-title">Column blocks</h3>
       <app-panel-link-list
         [items]="columnBlocks()"
         emptyText="No column blocks yet."
         ariaLabel="Column blocks"
       />
-      <div class="actions">
+      <div class="app-actions">
         <p-button
           icon="pi pi-plus"
           label="Add column block"
@@ -76,12 +76,12 @@
           (onClick)="addColumnBlock()"
         />
       </div>
-      <p class="note">
+      <p class="app-field-note">
         People add copies of each block across the sheet. Every row has cells in every copy.
       </p>
     }
 
-    <div class="danger-zone">
+    <div class="app-danger-zone">
       <app-confirm-delete-button
         label="Delete table"
         warning="Every version, with its sections, rows and cells, goes too."

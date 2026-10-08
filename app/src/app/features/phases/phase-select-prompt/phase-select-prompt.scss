@@ -1,5 +1,4 @@
-@use 'mixins' as mx;
-
 :host {
-  @include mx.fill-height;
+  display: block;
+  height: 100%;
 }

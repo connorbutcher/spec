@@ -1,6 +1,6 @@
 @if (entry(); as entry) {
-  <div class="fields">
-    <div class="field">
+  <div class="app-fields">
+    <div class="app-field">
       <label for="section-name">{{ noun() }} name</label>
       <input
         #nameInput
@@ -16,11 +16,11 @@
     </div>
 
     @if (isHeader()) {
-      <p class="note">Always one, and always first.</p>
+      <p class="app-field-note">Always one, and always first.</p>
     } @else {
       @if (!isTopLevel()) {
-        <div class="field">
-          <span class="label">Order in its section</span>
+        <div class="app-field">
+          <span class="app-field-label">Order in its section</span>
           <app-move-buttons
             noun="sub-section"
             [position]="position()"
@@ -31,9 +31,9 @@
         </div>
       }
 
-      <h3 class="group-title">Added on the sheet</h3>
-      <div class="inline">
-        <div class="field">
+      <h3 class="app-group-title">Added on the sheet</h3>
+      <div class="app-field-row">
+        <div class="app-field">
           <label for="section-min">Fewest</label>
           <app-number-field
             inputId="section-min"
@@ -44,7 +44,7 @@
             (committed)="setCount('minInstances', $event)"
           />
         </div>
-        <div class="field">
+        <div class="app-field">
           <label for="section-initial">Starts with</label>
           <app-number-field
             inputId="section-initial"
@@ -55,7 +55,7 @@
             (committed)="setCount('initialInstances', $event)"
           />
         </div>
-        <div class="field">
+        <div class="app-field">
           <label for="section-max">Most</label>
           <app-number-field
             inputId="section-max"
@@ -71,9 +71,9 @@
       </div>
     }
 
-    <h3 class="group-title">Rows</h3>
+    <h3 class="app-group-title">Rows</h3>
     <app-panel-link-list [items]="rows()" emptyText="No rows yet." ariaLabel="Rows" />
-    <div class="actions">
+    <div class="app-actions">
       <p-button
         icon="pi pi-plus"
         label="Add row"
@@ -85,13 +85,13 @@
     </div>
 
     @if (!isHeader()) {
-      <h3 class="group-title">Sub-sections</h3>
+      <h3 class="app-group-title">Sub-sections</h3>
       <app-panel-link-list
         [items]="childSections()"
         emptyText="No sub-sections yet."
         ariaLabel="Sub-sections"
       />
-      <div class="actions">
+      <div class="app-actions">
         <p-button
           icon="pi pi-plus"
           label="Add sub-section"
@@ -102,7 +102,7 @@
         />
       </div>
 
-      <div class="danger-zone">
+      <div class="app-danger-zone">
         <app-confirm-delete-button
           [label]="'Delete ' + noun().toLowerCase()"
           [warning]="deleteWarning()"

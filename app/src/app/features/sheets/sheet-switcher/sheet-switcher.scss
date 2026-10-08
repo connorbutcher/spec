@@ -1,9 +1,5 @@
-@use 'mixins' as mx;
-
 // Compact tabs sitting on the header's bottom border.
 .sheet-switcher {
-  @include mx.compact-tabs;
-
   --p-tabs-tablist-border-width: 0;
 
   .pi {

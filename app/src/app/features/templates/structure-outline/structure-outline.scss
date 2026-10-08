@@ -1,5 +1,3 @@
-@use 'mixins' as mx;
-
 :host {
   display: flex;
   flex-direction: column;
@@ -9,8 +7,6 @@
 
 // A plain indented list in greys; the accent colour only marks the selected node.
 .tree {
-  @include mx.compact-tree;
-
   // A little more room than the default compact row, for the add button at the end of each node.
   --p-tree-node-padding: 0.2rem 0.4rem;
   --p-tree-border-color: transparent;
@@ -33,7 +29,9 @@
   min-width: 0;
 
   .name {
-    @include mx.truncate;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   // The "+" only appears on the node you're pointing at or have selected.

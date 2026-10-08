@@ -1,5 +1,3 @@
-@use 'mixins' as mx;
-
 :host {
   display: block;
   padding: var(--app-space-1) 0 var(--app-space-3);
@@ -9,8 +7,6 @@
 
 // The PrimeNG tree restyled for the dark rail: transparent, light text, quiet hover and selection.
 .phase-tree {
-  @include mx.compact-tree;
-
   --p-tree-background: transparent;
   --p-tree-color: var(--app-on-dark-text);
   --p-tree-node-color: var(--app-on-dark-text);
@@ -37,8 +33,6 @@
 
 // Collapsed: the phases as a column of small codes.
 .codes {
-  @include mx.bare-menu;
-
   --p-menu-list-gap: 1px;
   --p-menu-item-padding: var(--app-space-1) 0;
   --p-menu-item-color: var(--app-on-dark-muted);

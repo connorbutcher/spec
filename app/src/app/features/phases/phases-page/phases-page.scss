@@ -1,7 +1,6 @@
-@use 'mixins' as mx;
-
 :host {
-  @include mx.fill-height;
+  display: block;
+  height: 100%;
 }
 
 // The selected phase fills the whole width; its card scrolls its own content.

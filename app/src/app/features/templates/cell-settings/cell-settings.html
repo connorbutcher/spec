@@ -1,6 +1,6 @@
 @if (entry(); as entry) {
-  <div class="fields">
-    <p class="note">
+  <div class="app-fields">
+    <p class="app-field-note">
       @if (blockName(); as blockName) {
         {{ blockName }} column {{ entry.cell.column }} of
       } @else {
@@ -16,7 +16,7 @@
       in {{ entry.row.section.name }}
     </p>
 
-    <div class="field">
+    <div class="app-field">
       <label for="cell-type">Cell type</label>
       <div class="type-row">
         <p-select
@@ -53,7 +53,7 @@
       </span>
     </div>
 
-    <div class="field">
+    <div class="app-field">
       <label for="cell-caption">{{ isDisplayOnly() ? 'Text' : 'Caption' }}</label>
       <input
         #captionInput
@@ -70,7 +70,7 @@
     </div>
 
     @if (!isDisplayOnly()) {
-      <div class="check">
+      <div class="app-check">
         <p-checkbox
           inputId="cell-required"
           [binary]="true"
@@ -84,7 +84,7 @@
     }
 
     @if (kind().kind === 'Text') {
-      <div class="field">
+      <div class="app-field">
         <label for="cell-lookup-key">Lookup key</label>
         <input
           #lookupKeyInput
@@ -104,9 +104,9 @@
       </div>
     }
 
-    <h3 class="group-title">Placement</h3>
-    <div class="inline">
-      <div class="field">
+    <h3 class="app-group-title">Placement</h3>
+    <div class="app-field-row">
+      <div class="app-field">
         <label for="cell-column">Column</label>
         <app-number-field
           inputId="cell-column"
@@ -117,7 +117,7 @@
           (committed)="setPlacement('column', $event)"
         />
       </div>
-      <div class="field">
+      <div class="app-field">
         <label for="cell-column-span">Col span</label>
         <app-number-field
           inputId="cell-column-span"
@@ -128,7 +128,7 @@
           (committed)="setPlacement('columnSpan', $event)"
         />
       </div>
-      <div class="field">
+      <div class="app-field">
         <label for="cell-row-span">Row span</label>
         <app-number-field
           inputId="cell-row-span"
@@ -143,7 +143,7 @@
 
     @if (cellType(); as cellType) {
       @if (configurationFields().length > 0) {
-        <h3 class="group-title">{{ kind().label }} settings</h3>
+        <h3 class="app-group-title">{{ kind().label }} settings</h3>
         <app-settings-editor
           idPrefix="cell-config"
           [fields]="configurationFields()"
@@ -155,7 +155,7 @@
         />
       }
 
-      <h3 class="group-title">Style</h3>
+      <h3 class="app-group-title">Style</h3>
       <app-settings-editor
         idPrefix="cell-style"
         [fields]="styleFields"
@@ -166,7 +166,7 @@
         (changed)="setStyleOverride($event)"
       />
       <div class="override-note">
-        <span class="note">Unmarked values come from {{ cellType.name }}.</span>
+        <span class="app-field-note">Unmarked values come from {{ cellType.name }}.</span>
         @if (hasOverrides()) {
           <p-button
             label="Reset all"
@@ -181,7 +181,7 @@
       </div>
     }
 
-    <div class="danger-zone">
+    <div class="app-danger-zone">
       <app-confirm-delete-button
         label="Delete cell"
         [disabled]="isSaving() || !canEdit()"

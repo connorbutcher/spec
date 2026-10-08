@@ -1,7 +1,11 @@
-// What every cell editor shares: it fills its whole cell like a bare <td> control. PrimeNG form
+// What every sheet cell editor shares: it fills its whole cell like a bare <td> control. PrimeNG form
 // controls take their look from design tokens, so setting them here removes the border, background
 // and rounding; the focus indicator is drawn once, by the cell itself, so a focused cell never shows two lines.
-@mixin cell-field {
+// A new kind of cell editor is added to this list.
+app-sheet-text-cell,
+app-sheet-number-cell,
+app-sheet-date-cell,
+app-sheet-dropdown-cell {
   display: flex;
   flex: 1 1 auto;
   align-self: stretch;
@@ -28,15 +32,15 @@
   --p-select-focus-border-color: transparent;
   --p-select-focus-ring-width: 0;
   --p-select-focus-ring-shadow: none;
+  --p-select-border-radius: 0;
+  --p-select-shadow: none;
+  --p-select-padding-x: var(--app-space-4);
+  --p-select-padding-y: var(--app-space-2);
+  --p-select-font-size: var(--app-font-size-base);
 
   --p-checkbox-focus-ring-width: 0;
   --p-checkbox-focus-ring-shadow: none;
 
   --p-datepicker-focus-ring-width: 0;
   --p-datepicker-focus-ring-shadow: none;
-  --p-select-border-radius: 0;
-  --p-select-shadow: none;
-  --p-select-padding-x: var(--app-space-4);
-  --p-select-padding-y: var(--app-space-2);
-  --p-select-font-size: var(--app-font-size-base);
 }

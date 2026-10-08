@@ -1,4 +1,4 @@
-<p-tabs class="sheet-switcher" [value]="currentId()" [scrollable]="true">
+<p-tabs class="app-compact-tabs sheet-switcher" [value]="currentId()" [scrollable]="true">
   <p-tablist>
     @for (tab of tabs(); track tab.id) {
       <p-tab [value]="tab.id" [routerLink]="tab.link">

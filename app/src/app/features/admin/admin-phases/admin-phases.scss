@@ -1,7 +1,6 @@
-@use 'mixins' as mx;
-
 :host {
-  @include mx.fill-height;
+  display: block;
+  height: 100%;
 }
 
 // Two columns that each scroll their own content.

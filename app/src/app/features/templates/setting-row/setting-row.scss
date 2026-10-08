@@ -1,5 +1,3 @@
-@use 'mixins' as mx;
-
 // Label, control and reset button on one compact line.
 :host {
   display: grid;
@@ -31,5 +29,3 @@ label {
   color: var(--app-text-ghost);
   font-size: var(--app-font-size-xs);
 }
-
-@include mx.small-icon-buttons('app-setting-row');

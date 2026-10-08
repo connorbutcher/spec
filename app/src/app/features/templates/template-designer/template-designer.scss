@@ -1,11 +1,13 @@
-@use 'mixins' as mx;
-
 :host {
-  @include mx.fill-height;
+  display: block;
+  height: 100%;
 }
 
 .designer {
-  @include mx.column-fill;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
 
   .workspace {
     display: flex;
@@ -22,7 +24,8 @@
   }
 
   .canvas-scroll {
-    @include mx.flex-fill;
+    flex: 1;
+    min-width: 0;
     min-height: 0;
     overflow: auto;
     padding: var(--app-space-6);

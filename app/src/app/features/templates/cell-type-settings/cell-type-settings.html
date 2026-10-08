@@ -1,6 +1,6 @@
 @if (cellType(); as cellType) {
-  <div class="fields">
-    <div class="field">
+  <div class="app-fields">
+    <div class="app-field">
       <label for="cell-type-name">Name</label>
       <input
         #nameInput
@@ -14,7 +14,7 @@
       />
     </div>
 
-    <div class="field">
+    <div class="app-field">
       <label for="cell-type-kind">Kind</label>
       <p-select
         inputId="cell-type-kind"
@@ -38,7 +38,7 @@
       <span class="hint">{{ kind().description }}</span>
     </div>
 
-    <div class="field">
+    <div class="app-field">
       <label for="cell-type-description">Description</label>
       <textarea
         #descriptionInput
@@ -53,7 +53,7 @@
       ></textarea>
     </div>
 
-    <h3 class="group-title">{{ kind().label }} settings</h3>
+    <h3 class="app-group-title">{{ kind().label }} settings</h3>
     @if (configurationFields().length > 0) {
       <app-settings-editor
         idPrefix="cell-type-config"
@@ -63,12 +63,12 @@
         (changed)="setConfiguration($event)"
       />
     } @else if (!hasOptions()) {
-      <p class="note">{{ kind().label }} cells have no extra settings.</p>
+      <p class="app-field-note">{{ kind().label }} cells have no extra settings.</p>
     }
 
     @if (hasOptions()) {
-      <div class="field">
-        <span class="label">Options</span>
+      <div class="app-field">
+        <span class="app-field-label">Options</span>
         <app-cell-type-options-editor
           [options]="cellType.options"
           [disabled]="isSaving()"
@@ -80,7 +80,7 @@
       </div>
     }
 
-    <h3 class="group-title">Style</h3>
+    <h3 class="app-group-title">Style</h3>
     <app-settings-editor
       idPrefix="cell-type-style"
       [fields]="styleFields"
@@ -88,10 +88,10 @@
       [disabled]="isSaving()"
       (changed)="setStyle($event)"
     />
-    <p class="note">These are the defaults. Each cell can override them.</p>
+    <p class="app-field-note">These are the defaults. Each cell can override them.</p>
 
-    <div class="danger-zone">
-      <p class="note">{{ usage() }}</p>
+    <div class="app-danger-zone danger-zone">
+      <p class="app-field-note">{{ usage() }}</p>
       <app-confirm-delete-button
         label="Delete cell type"
         [disabled]="isSaving() || cellType.usageCount > 0"

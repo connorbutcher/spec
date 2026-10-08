@@ -5,9 +5,9 @@
   }
 </header>
 
-<div class="fields">
-  <div class="field">
-    <span class="label" id="phase-sheet-types-label"
+<div class="app-fields">
+  <div class="app-field">
+    <span class="app-field-label" id="phase-sheet-types-label"
       >Sheet types available to {{ phase().code }}</span
     >
     <p-listbox
@@ -28,14 +28,14 @@
   </div>
 
   @if (!canManage()) {
-    <p class="note">You need the phases.manage permission to change this.</p>
+    <p class="app-field-note">You need the phases.manage permission to change this.</p>
   }
 
   @if (error(); as error) {
     <p-message severity="error" size="small" icon="pi pi-exclamation-circle">{{ error }}</p-message>
   }
 
-  <div class="actions">
+  <div class="app-actions">
     <p-button
       label="Save"
       icon="pi pi-check"

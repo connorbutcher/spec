@@ -1,6 +1,1 @@
-@use 'mixins' as mx;
-
-// Compact: no card padding or background, small type.
-.breadcrumb {
-  @include mx.bare-breadcrumb;
-}
+// Styled by the shared `app-bare-breadcrumb` class in src/styles/_primeng.scss.

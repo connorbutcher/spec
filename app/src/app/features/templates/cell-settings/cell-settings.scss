@@ -1,10 +1,5 @@
-@use 'panel-form';
-@use 'mixins' as mx;
-
 :host {
   display: block;
-
-  @include panel-form.controls();
 }
 
 .type-row {
@@ -12,7 +7,8 @@
   gap: var(--app-space-2);
 
   p-select {
-    @include mx.flex-fill;
+    flex: 1;
+    min-width: 0;
   }
 }
 

@@ -1,6 +1,6 @@
 @if (entry(); as entry) {
-  <div class="fields">
-    <div class="field">
+  <div class="app-fields">
+    <div class="app-field">
       <label for="column-block-name">Column block name</label>
       <input
         #nameInput
@@ -15,8 +15,8 @@
       />
     </div>
 
-    <div class="field">
-      <span class="label">Order, left to right</span>
+    <div class="app-field">
+      <span class="app-field-label">Order, left to right</span>
       <app-move-buttons
         noun="column block"
         [position]="entry.number"
@@ -26,7 +26,7 @@
       />
     </div>
 
-    <div class="field">
+    <div class="app-field">
       <app-sticky-columns-field
         id="column-block-sticky"
         label="Sticky columns"
@@ -37,9 +37,9 @@
       />
     </div>
 
-    <h3 class="group-title">Added on the sheet</h3>
-    <div class="inline">
-      <div class="field">
+    <h3 class="app-group-title">Added on the sheet</h3>
+    <div class="app-field-row">
+      <div class="app-field">
         <label for="column-block-min">Fewest</label>
         <app-number-field
           inputId="column-block-min"
@@ -50,7 +50,7 @@
           (committed)="setCount('minInstances', $event)"
         />
       </div>
-      <div class="field">
+      <div class="app-field">
         <label for="column-block-initial">Starts with</label>
         <app-number-field
           inputId="column-block-initial"
@@ -61,7 +61,7 @@
           (committed)="setCount('initialInstances', $event)"
         />
       </div>
-      <div class="field">
+      <div class="app-field">
         <label for="column-block-max">Most</label>
         <app-number-field
           inputId="column-block-max"
@@ -76,14 +76,14 @@
       </div>
     </div>
 
-    <h3 class="group-title">Cells</h3>
-    <p class="note">{{ cellSummary() }}</p>
-    <p class="note">
+    <h3 class="app-group-title">Cells</h3>
+    <p class="app-field-note">{{ cellSummary() }}</p>
+    <p class="app-field-note">
       Each row has its own cells for this block, and every copy on a sheet runs through every row.
       Add or change them from a row, or right-click a cell in the block.
     </p>
 
-    <div class="danger-zone">
+    <div class="app-danger-zone">
       <app-confirm-delete-button
         label="Delete column block"
         warning="Its cells in every row go too."

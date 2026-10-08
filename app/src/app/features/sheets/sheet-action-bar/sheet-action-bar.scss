@@ -1,5 +1,3 @@
-@use 'mixins' as mx;
-
 :host {
   display: block;
   // Always reserves its height so the grid does not jump when the first selection shows the bar.
@@ -44,6 +42,8 @@
 }
 
 .hint {
-  @include mx.note(var(--app-font-size-md));
+  margin: 0;
+  color: var(--app-text-muted);
+  font-size: var(--app-font-size-md);
   padding: var(--app-space-4);
 }

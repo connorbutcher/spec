@@ -1,9 +1,9 @@
 @if (entry(); as entry) {
-  <div class="fields">
-    <p class="note">Row {{ entry.number }} of {{ entry.section.name }}</p>
+  <div class="app-fields">
+    <p class="app-field-note">Row {{ entry.number }} of {{ entry.section.name }}</p>
 
-    <div class="field">
-      <span class="label">Position</span>
+    <div class="app-field">
+      <span class="app-field-label">Position</span>
       <app-move-buttons
         noun="row"
         [position]="entry.number"
@@ -13,13 +13,13 @@
       />
     </div>
 
-    <h3 class="group-title">Cells</h3>
+    <h3 class="app-group-title">Cells</h3>
     <app-panel-link-list
       [items]="cells()"
       emptyText="No cells in this row yet."
       ariaLabel="Cells"
     />
-    <div class="actions">
+    <div class="app-actions">
       <p-button
         icon="pi pi-plus"
         label="Add cell"
@@ -39,9 +39,11 @@
         />
       }
     </div>
-    <p class="note">New cells go after the last cell in the row, or in the column block.</p>
+    <p class="app-field-note">
+      New cells go after the last cell in the row, or in the column block.
+    </p>
 
-    <div class="danger-zone">
+    <div class="app-danger-zone">
       <app-confirm-delete-button
         label="Delete row"
         warning="Its cells go too."

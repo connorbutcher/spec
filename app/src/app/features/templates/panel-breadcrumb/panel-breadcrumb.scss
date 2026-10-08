@@ -1,8 +1,4 @@
-@use 'mixins' as mx;
-
 .crumbs {
-  @include mx.bare-breadcrumb;
-
   ::ng-deep .current .p-breadcrumb-item-label {
     color: var(--app-text);
     font-weight: var(--app-font-weight-semibold);

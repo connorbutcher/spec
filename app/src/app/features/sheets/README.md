@@ -132,7 +132,7 @@ user action ─► component ─► store method ─► SheetsApi ─► whole l
    needs a new field, add it to `CellValueRequest` and `SheetCell`.
 4. Create `sheet-<kind>-cell/` with `.ts`, `.html` and `.scss`. Copy the shape of `sheet-number-cell`:
    inputs `cell`, `label` (and `configuration` if it has settings), outputs `started` and `changed`,
-   a `linkedSignal` for the draft value, a PrimeNG control, and `@include field.cell-field` on `:host`.
+   a `linkedSignal` for the draft value, a PrimeNG control, and its element name added to the list in `src/styles/_cell-field.scss`.
    The cell moves focus into the first `input`, `textarea` or `[role="combobox"]` it finds in the
    editor, so the control must have one.
 5. Add its `@case` to `sheet-cell-editor.html` and its import to `sheet-cell-editor.ts`. That is the
