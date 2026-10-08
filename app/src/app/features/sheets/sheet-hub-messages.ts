@@ -5,10 +5,13 @@
 export const SHEET_HUB = {
   /** Where the hub is served. The dev proxy forwards it to the API. */
   url: '/hubs/sheets',
-  /** The call the browser makes. Joining another sheet leaves the one before. */
+  /** Calls the browser makes. Joining another sheet leaves the one before, and so does entering another row. */
   joinSheet: 'JoinSheet',
+  checkOutRow: 'CheckOutRow',
+  releaseRow: 'ReleaseRow',
   /** Messages the server sends. */
   presenceChanged: 'PresenceChanged',
+  checkoutsChanged: 'CheckoutsChanged',
   sheetChanged: 'SheetChanged',
   takeoverChanged: 'TakeoverChanged',
 } as const;

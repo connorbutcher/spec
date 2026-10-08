@@ -12,6 +12,11 @@ public sealed class SignalRSheetLiveNotifier(IHubContext<SheetHub, ISheetHubClie
         return hub.Clients.Group(SheetGroups.Sheet(sheetId)).PresenceChanged(users);
     }
 
+    public Task CheckoutsChangedAsync(int sheetId, IReadOnlyList<RowCheckoutDto> checkouts, CancellationToken cancellationToken)
+    {
+        return hub.Clients.Group(SheetGroups.Sheet(sheetId)).CheckoutsChanged(checkouts);
+    }
+
     public Task SheetChangedAsync(int sheetId, string? exceptConnectionId, CancellationToken cancellationToken)
     {
         var group = SheetGroups.Sheet(sheetId);

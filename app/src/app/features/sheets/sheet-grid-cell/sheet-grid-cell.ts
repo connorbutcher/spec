@@ -36,10 +36,11 @@ const FLEX_ALIGNMENT: Readonly<Record<string, string>> = {
  * A cell on the sheet grid, placed by the template layout. It behaves like a table cell: heading and
  * group cells show their caption; a value cell shows its value, and swaps it for a control of its kind,
  * filling the whole cell, when the user clicks or tabs into it, and back again as soon as they click
- * or tab away. Only one cell holds a control at a time, so opening a sheet doesn't build one per cell. Moving into a control only selects the row; the
- * row is locked to the user, and held until they publish, by the first change that makes a real
- * difference to what is published. A row locked by someone else, or a past version, only ever shows
- * plain values, with a lock mark on the row's first cell.
+ * or tab away. Only one cell holds a control at a time, so opening a sheet doesn't build one per cell.
+ * Moving into a control checks the row out to the user for as long as they stay in it, without saving
+ * anything (`SheetLiveStore` does this from `store.editingCellId`); the first change that makes a real
+ * difference to what is published is what keeps it theirs until they publish. A row checked out to
+ * someone else, or a past version, only ever shows plain values, with a lock mark on the row's first cell.
  *
  * This component decides what the cell is and where it sits; the editor, the plain value and the
  * marks over the cell are each their own component.
@@ -229,7 +230,7 @@ export class SheetGridCell {
     this.selectRow();
   }
 
-  /** Also called when the user moves into the cell's control. Nothing is locked or changed until they change a value. */
+  /** Also called when the user moves into the cell's control. Nothing is saved until they change a value. */
   public selectRow(): void {
     this.store.selectRow(this.layout().rowId);
   }

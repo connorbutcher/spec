@@ -7,11 +7,11 @@ using PUSpecSheet.Contracts.Sheets.Collaboration;
 namespace PUSpecSheet.Api.Collaboration;
 
 /// <summary>
-/// The live connection a browser keeps while it has a sheet open. It only says which sheet a connection
-/// is looking at; everything that changes a sheet or a checkout goes through the HTTP API, which then
-/// tells the connections here. Who a connection is comes from the signed-in user it was opened by.
+/// The live connection a browser keeps while it has a sheet open. It says which sheet a connection is
+/// looking at and which row its user is in; everything that changes a sheet goes through the HTTP API,
+/// which then tells the connections here. Who a connection is comes from the signed-in user it was opened by.
 /// </summary>
-public sealed class SheetHub(ISheetPresenceService presence) : Hub<ISheetHubClient>
+public sealed class SheetHub(ISheetPresenceService presence, ILiveRowCheckoutService rowCheckouts) : Hub<ISheetHubClient>
 {
     /// <summary>Starts watching a sheet, in place of any sheet this connection was watching.</summary>
     public async Task<SheetLiveStateDto> JoinSheet(int sheetId)
@@ -45,6 +45,28 @@ public sealed class SheetHub(ISheetPresenceService presence) : Hub<ISheetHubClie
 
         await Groups.RemoveFromGroupAsync(Context.ConnectionId, SheetGroups.Sheet(left.SheetId), Context.ConnectionAborted);
         await Groups.RemoveFromGroupAsync(Context.ConnectionId, SheetGroups.User(left.SheetId, left.UserId), Context.ConnectionAborted);
+    }
+
+    /// <summary>
+    /// The user clicked into a row: it is theirs until they leave it, though nothing is saved. Entering
+    /// another row leaves this one. Refused, with the reason, when someone else has the row.
+    /// </summary>
+    public async Task CheckOutRow(int rowId)
+    {
+        try
+        {
+            await rowCheckouts.CheckOutAsync(Context.ConnectionId, rowId, Context.ConnectionAborted);
+        }
+        catch (Exception refusal) when (refusal is NotFoundException or ConflictException or InvalidRequestException)
+        {
+            throw new HubException(refusal.Message);
+        }
+    }
+
+    /// <summary>The user left the row they were in. If they changed it, the sheet already shows it as theirs.</summary>
+    public Task ReleaseRow()
+    {
+        return rowCheckouts.ReleaseAsync(Context.ConnectionId, Context.ConnectionAborted);
     }
 
     public override async Task OnDisconnectedAsync(Exception? exception)

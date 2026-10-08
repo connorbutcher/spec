@@ -25,6 +25,8 @@ sheets/
   sheet-live.store.ts       Who has the sheet open, and hearing that it changed. Provided by SheetPage.
   sheet-hub.ts              The SignalR connection behind it; the only file that knows SignalR. Reconnects by itself.
   sheet-hub-messages.ts     The message names shared with the API hub.
+  row-checkout.store.ts     Rows people are in but have not changed, as the server lists them. Provided by SheetPage.
+  row-checkout.util.ts      Shows those rows as locked in the sheet; finds a cell's row; reads a hub refusal.
   row-takeover.store.ts     Takeover requests the viewer made or has to answer. Provided by SheetPage.
   row-takeovers-api.ts      Ask for a row, hand it over, keep it, withdraw.
   row-takeover.util.ts      The countdown, and adding to and removing from the list of requests.
@@ -83,6 +85,12 @@ user action ─► component ─► store method ─► SheetsApi ─► whole l
   layout. Signals, inputs and `@for` items compare by identity, so only what changed re-renders. Keep
   this in mind: never mutate a sheet object, and don't put a fresh object or array in a hot `computed`
   unless it really changed.
+- **Clicking into a row checks it out** without saving anything. `SheetLiveStore` watches
+  `store.editingCellId()` and tells the server which row the viewer is in; it lets go a moment after
+  they leave, so moving between cells of one row doesn't drop it. The server lists who is in which
+  row over the live connection (`RowCheckoutStore`), and `SheetStore.sheet` gives each of those rows
+  its `lock` (`withRowCheckouts`), so every component treats it like a row someone has changed. With
+  no live connection, nothing is checked out on click and a row still locks on its first change.
 - **Other people's changes** arrive as a nudge, not as data: the server says "this sheet changed" over
   the live connection (`SheetHub` → `SheetLiveStore`), and `SheetLiveStore` calls `store.refresh()`, which reads the sheet again after
   the user's own writes have landed and keeps unchanged objects, so a cell being typed into is not

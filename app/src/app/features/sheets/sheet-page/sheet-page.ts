@@ -11,6 +11,7 @@ import { Breadcrumb } from '../../../shared/components/breadcrumb/breadcrumb';
 import { BreadcrumbItem } from '../../../shared/components/breadcrumb/breadcrumb-item.model';
 import { EmptyState } from '../../../shared/components/empty-state/empty-state';
 import { PhasesStore } from '../../phases/phases.store';
+import { RowCheckoutStore } from '../row-checkout.store';
 import { RowTakeoverStore } from '../row-takeover.store';
 import { SheetHub } from '../sheet-hub';
 import { SheetLiveStore } from '../sheet-live.store';
@@ -48,6 +49,7 @@ import { SheetStore } from '../sheet.store';
   providers: [
     ConfirmationService,
     MessageService,
+    RowCheckoutStore,
     RowTakeoverStore,
     SheetHub,
     SheetLiveStore,

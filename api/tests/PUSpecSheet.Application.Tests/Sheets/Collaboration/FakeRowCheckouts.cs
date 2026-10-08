@@ -2,25 +2,28 @@ using PUSpecSheet.Application.Sheets.Collaboration;
 
 namespace PUSpecSheet.Application.Tests.Sheets.Collaboration;
 
-/// <summary>Row checkouts held in a dictionary, standing in for the draft revisions in the database.</summary>
+/// <summary>
+/// Row checkouts held in a dictionary, standing in for the draft revisions in the database. Every
+/// checkout here counts as a draft; <see cref="CheckOut"/> makes one with no changes in it.
+/// </summary>
 internal sealed class FakeRowCheckouts : IRowCheckouts
 {
     private readonly Dictionary<int, RowCheckout> checkedOut = [];
-    private readonly HashSet<int> rows = [];
+    private readonly Dictionary<int, int> sheetByRow = [];
 
     public int? HolderOf(int rowId)
     {
         return checkedOut.GetValueOrDefault(rowId)?.HolderUserId;
     }
 
-    public void AddRow(int rowId)
+    public void AddRow(int rowId, int sheetId = 1)
     {
-        rows.Add(rowId);
+        sheetByRow[rowId] = sheetId;
     }
 
     public void CheckOut(int rowId, int sheetId, int holderUserId)
     {
-        rows.Add(rowId);
+        sheetByRow[rowId] = sheetId;
         checkedOut[rowId] = new RowCheckout(sheetId, holderUserId, HasChanges: false);
     }
 
@@ -40,9 +43,14 @@ internal sealed class FakeRowCheckouts : IRowCheckouts
         return Task.FromResult(checkedOut.GetValueOrDefault(rowId));
     }
 
-    public Task<bool> RowExistsAsync(int rowId, CancellationToken cancellationToken)
+    public Task<RowCheckout?> FindDraftAsync(int rowId, CancellationToken cancellationToken)
     {
-        return Task.FromResult(rows.Contains(rowId));
+        return FindAsync(rowId, cancellationToken);
+    }
+
+    public Task<int?> SheetOfAsync(int rowId, CancellationToken cancellationToken)
+    {
+        return Task.FromResult(sheetByRow.TryGetValue(rowId, out var sheetId) ? sheetId : (int?)null);
     }
 
     public Task<bool> TransferAsync(int rowId, int fromUserId, int toUserId, CancellationToken cancellationToken)

@@ -12,6 +12,9 @@ internal sealed class RecordingSheetLiveNotifier : ISheetLiveNotifier
     /// <summary>The sheets everyone was told to read again.</summary>
     public List<int> ChangedSheets { get; } = [];
 
+    /// <summary>Each list of live checkouts sent, in order, as "row:user" pairs.</summary>
+    public List<string> Checkouts { get; } = [];
+
     public Task PresenceChangedAsync(int sheetId, IReadOnlyList<SheetPresenceUserDto> users, CancellationToken cancellationToken)
     {
         return Task.CompletedTask;
@@ -20,6 +23,12 @@ internal sealed class RecordingSheetLiveNotifier : ISheetLiveNotifier
     public Task SheetChangedAsync(int sheetId, string? exceptConnectionId, CancellationToken cancellationToken)
     {
         ChangedSheets.Add(sheetId);
+        return Task.CompletedTask;
+    }
+
+    public Task CheckoutsChangedAsync(int sheetId, IReadOnlyList<RowCheckoutDto> checkouts, CancellationToken cancellationToken)
+    {
+        Checkouts.Add(string.Join(',', checkouts.Select(checkout => $"{checkout.RowId}:{checkout.UserId}")));
         return Task.CompletedTask;
     }
 

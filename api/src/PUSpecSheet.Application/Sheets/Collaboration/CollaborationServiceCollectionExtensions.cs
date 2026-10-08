@@ -15,10 +15,13 @@ public static class CollaborationServiceCollectionExtensions
         services.AddSingleton(takeoverOptions);
         services.AddSingleton<SheetPresenceTracker>();
         services.AddSingleton<RowTakeoverStore>();
+        services.AddSingleton<LiveRowCheckoutTracker>();
         services.AddSingleton<SheetChangeAnnouncer>();
 
         services.AddScoped<ISheetPresenceService, SheetPresenceService>();
         services.AddScoped<IRowCheckouts, RowCheckouts>();
+        services.AddScoped<ILiveRowCheckoutService, LiveRowCheckoutService>();
+        services.AddScoped<LiveRowCheckoutGuard>();
         services.AddScoped<RowTakeoverCloser>();
         services.AddScoped<IRowTakeoverService, RowTakeoverService>();
         services.AddScoped<IRowTakeoverSettler, RowTakeoverSettler>();

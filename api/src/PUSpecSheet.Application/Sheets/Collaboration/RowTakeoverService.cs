@@ -86,7 +86,7 @@ public sealed class RowTakeoverService(
         var checkout = await checkouts.FindAsync(rowId, cancellationToken);
         if (checkout is null)
         {
-            if (!await checkouts.RowExistsAsync(rowId, cancellationToken))
+            if (await checkouts.SheetOfAsync(rowId, cancellationToken) is null)
             {
                 throw new NotFoundException($"Row {rowId} was not found.");
             }

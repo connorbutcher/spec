@@ -8,6 +8,9 @@ public interface ISheetHubClient
     /// <summary>Who has the sheet open now.</summary>
     Task PresenceChanged(IReadOnlyList<SheetPresenceUserDto> users);
 
+    /// <summary>Which rows people are in without having changed them yet. Replaces the list before.</summary>
+    Task CheckoutsChanged(IReadOnlyList<RowCheckoutDto> checkouts);
+
     /// <summary>A row was checked out or released, or a version was published: read the sheet again.</summary>
     Task SheetChanged();
 

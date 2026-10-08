@@ -17,6 +17,9 @@ public interface ISheetLiveNotifier
     /// </summary>
     Task SheetChangedAsync(int sheetId, string? exceptConnectionId, CancellationToken cancellationToken);
 
+    /// <summary>Tells everyone on the sheet which rows people are in without having changed them yet.</summary>
+    Task CheckoutsChangedAsync(int sheetId, IReadOnlyList<RowCheckoutDto> checkouts, CancellationToken cancellationToken);
+
     /// <summary>Tells the requester and the holder of a takeover request where it has got to.</summary>
     Task TakeoverChangedAsync(RowTakeoverDto takeover, CancellationToken cancellationToken);
 }

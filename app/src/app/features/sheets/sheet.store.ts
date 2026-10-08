@@ -7,6 +7,7 @@ import { reuseUnchanged } from '../../shared/reuse-unchanged.util';
 import { apiErrorMessage } from '../templates/api-error-message';
 import { CellType } from '../templates/models/cell-type.model';
 import { CellValueRequest } from './models/cell-value-request.model';
+import { SheetLock } from './models/sheet-lock.model';
 import { PublishScope } from './models/publish-scope';
 import { SheetChange } from './models/sheet-change.model';
 import { SheetIndex } from './models/sheet-index.model';
@@ -15,6 +16,8 @@ import { SheetTarget } from './models/sheet-target.model';
 import { SheetVersionSummary } from './models/sheet-version-summary.model';
 import { SheetView } from './models/sheet-view.model';
 import { Sheet } from './models/sheet.model';
+import { RowCheckoutStore } from './row-checkout.store';
+import { withRowCheckouts } from './row-checkout.util';
 import { addedId, buildSheetIndex, cellsById, sectionSiblings } from './sheet-index.util';
 import { sheetTarget, sheetUrl } from './sheet-url.util';
 import { SheetsApi } from './sheets-api';
@@ -30,6 +33,8 @@ import { SheetsApi } from './sheets-api';
  * A refreshed sheet keeps the objects of everything that did not change (see `reuseUnchanged`), so a
  * change only re-renders the tables, rows and cells it touched.
  */
+const NOBODY: ReadonlyMap<number, SheetLock> = new Map();
+
 @Injectable()
 export class SheetStore {
   /** Which moment of the sheet is shown. Goes back to live whenever a different sheet is opened. */
@@ -47,12 +52,15 @@ export class SheetStore {
   /**
    * The open sheet, once its cell types have arrived too: without them no cell knows what it is, so
    * the sheet isn't shown until both are in.
+   *
+   * A row someone has clicked into, but not changed, is theirs without anything being saved, so the
+   * server's sheet doesn't show it. Those rows are given their lock here (see `RowCheckoutStore`), and
+   * everything downstream treats them like any other locked row.
    */
-  public readonly sheet = computed<Sheet | null>(() =>
-    this.sheetResource.hasValue() && this.cellTypesResource.hasValue()
-      ? this.sheetResource.value()
-      : null,
-  );
+  public readonly sheet = computed<Sheet | null>(() => {
+    const loaded = this.loadedSheet();
+    return loaded === null ? null : withRowCheckouts(loaded, this.rowCheckouts?.locks() ?? NOBODY);
+  });
 
   public readonly isLoading = computed(
     () => this.sheetResource.isLoading() || this.cellTypesResource.isLoading(),
@@ -110,6 +118,8 @@ export class SheetStore {
   public readonly isBusy = computed(() => this.inFlight() > 0);
 
   private readonly api = inject(SheetsApi);
+  /** Absent where the sheet is shown without its live side, as in tests of the store alone. */
+  private readonly rowCheckouts = inject(RowCheckoutStore, { optional: true });
   private readonly route = inject(ActivatedRoute);
   private readonly rawSelection = signal<SheetSelection | null>(null);
   private readonly inFlight = signal(0);
@@ -134,6 +144,13 @@ export class SheetStore {
   );
 
   private readonly cellTypesResource = httpResource<CellType[]>(() => '/api/cell-types');
+
+  /** The sheet as the server sent it, before the rows people are in are marked. */
+  private readonly loadedSheet = computed<Sheet | null>(() =>
+    this.sheetResource.hasValue() && this.cellTypesResource.hasValue()
+      ? this.sheetResource.value()
+      : null,
+  );
 
   public reload(): void {
     this.sheetResource.reload();

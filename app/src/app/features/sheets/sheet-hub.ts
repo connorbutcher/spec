@@ -37,6 +37,7 @@ export class SheetHub {
       .build();
 
     connection.on(SHEET_HUB.presenceChanged, handlers.presenceChanged);
+    connection.on(SHEET_HUB.checkoutsChanged, handlers.checkoutsChanged);
     connection.on(SHEET_HUB.sheetChanged, handlers.sheetChanged);
     connection.on(SHEET_HUB.takeoverChanged, handlers.takeoverChanged);
     connection.onreconnecting(() => this.setState('reconnecting'));
@@ -50,6 +51,19 @@ export class SheetHub {
   /** Tells the server which sheet this tab is looking at, and gets back who else is. */
   public join(sheetId: number): Promise<SheetLiveState> {
     return this.started().invoke<SheetLiveState>(SHEET_HUB.joinSheet, sheetId);
+  }
+
+  /**
+   * The user clicked into a row: it is theirs until they leave it. Rejects, with the server's reason,
+   * when someone else has the row.
+   */
+  public checkOut(rowId: number): Promise<void> {
+    return this.started().invoke(SHEET_HUB.checkOutRow, rowId);
+  }
+
+  /** The user left the row they were in. */
+  public release(): Promise<void> {
+    return this.started().invoke(SHEET_HUB.releaseRow);
   }
 
   public async stop(): Promise<void> {

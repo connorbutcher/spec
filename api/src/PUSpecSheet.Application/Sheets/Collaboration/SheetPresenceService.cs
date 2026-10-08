@@ -9,6 +9,8 @@ public sealed class SheetPresenceService(
     PuSpecSheetDbContext db,
     SheetPresenceTracker tracker,
     RowTakeoverStore takeovers,
+    LiveRowCheckoutTracker checkouts,
+    ILiveRowCheckoutService rowCheckouts,
     ISheetLiveNotifier notifier) : ISheetPresenceService
 {
     public async Task<SheetLiveStateDto> JoinAsync(string connectionId, int sheetId, int userId, CancellationToken cancellationToken)
@@ -28,11 +30,14 @@ public sealed class SheetPresenceService(
         var users = tracker.UsersOn(sheetId);
         await notifier.PresenceChangedAsync(sheetId, users, cancellationToken);
 
-        return new SheetLiveStateDto(users, takeovers.Involving(sheetId, userId));
+        return new SheetLiveStateDto(users, checkouts.OnSheet(sheetId), takeovers.Involving(sheetId, userId));
     }
 
     public async Task<SheetConnection?> LeaveAsync(string connectionId, CancellationToken cancellationToken)
     {
+        // A tab that has gone is no longer in any row.
+        await rowCheckouts.ReleaseAsync(connectionId, cancellationToken);
+
         var left = tracker.Leave(connectionId);
         if (left is not null)
         {

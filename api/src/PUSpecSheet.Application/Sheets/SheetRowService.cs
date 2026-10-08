@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Application.Common;
+using PUSpecSheet.Application.Sheets.Collaboration;
 using PUSpecSheet.Application.Users;
 using PUSpecSheet.Contracts.Common;
 using PUSpecSheet.Contracts.Sheets;
@@ -12,6 +13,7 @@ namespace PUSpecSheet.Application.Sheets;
 public sealed class SheetRowService(
     PuSpecSheetDbContext db,
     RowDrafts drafts,
+    LiveRowCheckoutGuard liveCheckouts,
     RowValueStore valueStore,
     SheetInstantiator instantiator,
     ISheetCellFiller filler,
@@ -138,6 +140,7 @@ public sealed class SheetRowService(
         }
 
         var sheetId = row.SheetSection.SheetTable.SheetId;
+        liveCheckouts.EnsureNotHeldByOthers(rowId);
         var state = await drafts.LoadAsync(rowId, cancellationToken);
         await drafts.EnsureNotLockedByOthersAsync(state, cancellationToken);
 
@@ -183,6 +186,9 @@ public sealed class SheetRowService(
     /// </summary>
     private async Task<SheetRowRevision> StartDraftAsync(int rowId, CancellationToken cancellationToken)
     {
+        // Someone who has only clicked into the row holds it too, though they have no draft yet.
+        liveCheckouts.EnsureNotHeldByOthers(rowId);
+
         var state = await drafts.LoadAsync(rowId, cancellationToken);
         var (draft, created) = await drafts.EnsureMineAsync(rowId, state, cancellationToken);
         if (!created)

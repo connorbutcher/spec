@@ -43,6 +43,32 @@ public sealed class SheetPresenceTracker
         }
     }
 
+    /// <summary>What a connection has open, or null when it has nothing open.</summary>
+    public SheetConnection? Find(string connectionId)
+    {
+        lock (gate)
+        {
+            return connections.GetValueOrDefault(connectionId);
+        }
+    }
+
+    /// <summary>One of a person's connections to a sheet, or null when they don't have it open.</summary>
+    public (string ConnectionId, SheetConnection Connection)? FindConnectionOf(int sheetId, int userId)
+    {
+        lock (gate)
+        {
+            foreach (var (connectionId, connection) in connections)
+            {
+                if (connection.SheetId == sheetId && connection.UserId == userId)
+                {
+                    return (connectionId, connection);
+                }
+            }
+
+            return null;
+        }
+    }
+
     /// <summary>The people who have the sheet open, by name.</summary>
     public IReadOnlyList<SheetPresenceUserDto> UsersOn(int sheetId)
     {
