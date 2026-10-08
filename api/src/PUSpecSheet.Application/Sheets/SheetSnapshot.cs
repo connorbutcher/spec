@@ -1,3 +1,4 @@
+using PUSpecSheet.Domain.CellTypes;
 using PUSpecSheet.Domain.Sheets;
 using PUSpecSheet.Domain.Templates;
 
@@ -46,6 +47,9 @@ public sealed class SheetSnapshot
 
     /// <summary>Every row, with cells, of those template sections.</summary>
     public required IReadOnlyList<TemplateRow> TemplateRows { get; init; }
+
+    /// <summary>Every cell type with its options, by id: what a cell's value reads as when another cell links to it.</summary>
+    public required IReadOnlyDictionary<int, CellType> CellTypes { get; init; }
 
     public required IReadOnlyList<TableTemplate> AvailableTemplates { get; init; }
 

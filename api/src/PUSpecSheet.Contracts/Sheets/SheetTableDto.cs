@@ -21,4 +21,8 @@ public sealed record SheetTableDto(
     IReadOnlyList<SheetSectionDto> Sections,
     IReadOnlyList<AddableSectionDto> AddableSections,
     IReadOnlyList<SheetColumnBlockDto> ColumnBlocks,
-    IReadOnlyList<AddableColumnBlockDto> AddableColumnBlocks);
+    IReadOnlyList<AddableColumnBlockDto> AddableColumnBlocks)
+{
+    /// <summary>The table's columns a linked dropdown on the sheet can take its choices from.</summary>
+    public IReadOnlyList<SheetLinkableColumnDto> LinkableColumns { get; init; } = [];
+}

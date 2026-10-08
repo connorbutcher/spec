@@ -1,4 +1,5 @@
 using PUSpecSheet.Contracts.Templates;
+using PUSpecSheet.Domain.CellTypes.InstanceSettings;
 
 namespace PUSpecSheet.Contracts.Sheets;
 
@@ -16,4 +17,11 @@ public sealed record SheetCellDto(
     bool? BooleanValue,
     int? OptionId,
     int? SheetColumnBlockId,
-    SheetChangeDto? LastChange);
+    SheetChangeDto? LastChange)
+{
+    /// <summary>
+    /// The settings chosen for this cell on the sheet, for a kind that has them (where a linked dropdown
+    /// takes its choices from, for example); null when nothing has been chosen.
+    /// </summary>
+    public CellInstanceSettings? Settings { get; init; }
+}

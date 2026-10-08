@@ -113,6 +113,7 @@ internal static class SheetChangeHistoryCalculator
             && left?.Number == right?.Number
             && left?.Date == right?.Date
             && left?.Boolean == right?.Boolean
-            && left?.OptionId == right?.OptionId;
+            && left?.OptionId == right?.OptionId
+            && left?.Settings == right?.Settings;
     }
 }

@@ -15,6 +15,7 @@ public sealed class SheetSectionService(
     LiveSectionQuery liveSections,
     SheetInstantiator instantiator,
     ISheetCellFiller filler,
+    NewRowSettings newRowSettings,
     SheetReader reader,
     ICurrentUser currentUser) : ISheetSectionService
 {
@@ -64,6 +65,7 @@ public sealed class SheetSectionService(
         db.SheetSections.Add(section);
         await db.SaveSheetChangesAsync(cancellationToken);
         await filler.FillAsync(tableId, cancellationToken);
+        await newRowSettings.InheritAsync(section, cancellationToken);
         return await reader.ReadLiveAsync(table.SheetId, cancellationToken);
     }
 

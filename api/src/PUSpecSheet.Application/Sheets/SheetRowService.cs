@@ -1,11 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Application.Common;
 using PUSpecSheet.Application.Sheets.Collaboration;
+using PUSpecSheet.Application.Sheets.Linking;
 using PUSpecSheet.Application.Users;
 using PUSpecSheet.Contracts.Common;
 using PUSpecSheet.Contracts.Sheets;
 using PUSpecSheet.Data;
-using PUSpecSheet.Domain.Sheets;
 using PUSpecSheet.Domain.Templates;
 
 namespace PUSpecSheet.Application.Sheets;
@@ -14,7 +14,10 @@ public sealed class SheetRowService(
     PuSpecSheetDbContext db,
     RowDrafts drafts,
     LiveRowCheckoutGuard liveCheckouts,
+    RowDraftStarter draftStarter,
     RowValueStore valueStore,
+    LinkedDropdownValueRule linkedValues,
+    NewRowSettings newRowSettings,
     SheetInstantiator instantiator,
     ISheetCellFiller filler,
     SheetReader reader,
@@ -46,6 +49,7 @@ public sealed class SheetRowService(
         db.SheetRows.Add(row);
         await db.SaveSheetChangesAsync(cancellationToken);
         await filler.FillAsync(section.SheetTableId, cancellationToken);
+        await newRowSettings.InheritAsync(section.SheetTableId, [row.Id], cancellationToken);
         return await reader.ReadLiveAsync(section.SheetTable.SheetId, cancellationToken);
     }
 
@@ -54,7 +58,7 @@ public sealed class SheetRowService(
         var sheetId = await SheetIdOfAsync(rowId, cancellationToken);
 
         await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
-        await StartDraftAsync(rowId, cancellationToken);
+        await draftStarter.StartAsync(rowId, cancellationToken);
         await transaction.CommitAsync(cancellationToken);
         return await reader.ReadLiveAsync(sheetId, cancellationToken);
     }
@@ -85,8 +89,10 @@ public sealed class SheetRowService(
             CellValueValidator.Validate(cell.TemplateCell, value);
         }
 
+        await linkedValues.EnsureChoicesAsync(row.SheetSection.SheetTable.SheetId, cellsById, request.Values, cancellationToken);
+
         await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
-        var draft = await StartDraftAsync(rowId, cancellationToken);
+        var draft = await draftStarter.StartAsync(rowId, cancellationToken);
         var changes = request.Values
             .Select(value => new CellValueChange(
                 value.SheetCellId,
@@ -112,7 +118,7 @@ public sealed class SheetRowService(
         var order = OrderGaps.PlaceAt(siblingOrders, request.DisplayOrder, published);
 
         await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
-        var draft = await StartDraftAsync(rowId, cancellationToken);
+        var draft = await draftStarter.StartAsync(rowId, cancellationToken);
         draft.DisplayOrder = order;
         await db.SaveSheetChangesAsync(cancellationToken);
         await drafts.ReleaseIfUnchangedAsync(rowId, cancellationToken);
@@ -178,32 +184,6 @@ public sealed class SheetRowService(
         }
 
         return await reader.ReadLiveAsync(sheetId, cancellationToken);
-    }
-
-    /// <summary>
-    /// The user's draft on the row. A newly started draft is saved straight away and given a copy of the
-    /// published values, so editing carries on from what's published.
-    /// </summary>
-    private async Task<SheetRowRevision> StartDraftAsync(int rowId, CancellationToken cancellationToken)
-    {
-        // Someone who has only clicked into the row holds it too, though they have no draft yet.
-        liveCheckouts.EnsureNotHeldByOthers(rowId);
-
-        var state = await drafts.LoadAsync(rowId, cancellationToken);
-        var (draft, created) = await drafts.EnsureMineAsync(rowId, state, cancellationToken);
-        if (!created)
-        {
-            return draft;
-        }
-
-        await db.SaveSheetChangesAsync(cancellationToken);
-        if (state.Current is { } current)
-        {
-            await valueStore.CopyAsync(current.Id, draft.Id, cancellationToken);
-            await db.SaveSheetChangesAsync(cancellationToken);
-        }
-
-        return draft;
     }
 
     private async Task<int> SheetIdOfAsync(int rowId, CancellationToken cancellationToken)

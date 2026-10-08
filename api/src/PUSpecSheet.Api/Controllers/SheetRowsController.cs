@@ -13,7 +13,7 @@ namespace PUSpecSheet.Api.Controllers;
 [Tags(ApiTags.SheetRows)]
 [Route("api/sheet-rows")]
 [Authorize(Policy = PermissionKeys.SheetsEdit)]
-public sealed class SheetRowsController(ISheetRowService rows) : ControllerBase
+public sealed class SheetRowsController(ISheetRowService rows, ISheetCellSettingsService cellSettings) : ControllerBase
 {
     /// <summary>Lock a row</summary>
     /// <remarks>
@@ -34,7 +34,7 @@ public sealed class SheetRowsController(ISheetRowService rows) : ControllerBase
     /// <remarks>
     /// Sets or clears cell values in the row, which locks it to you until you publish or discard. For each
     /// cell, set the field that matches its kind: <c>text</c>, <c>number</c>, <c>date</c>, <c>boolean</c>, or
-    /// <c>optionId</c> for a dropdown. Leaving them all unset clears the cell. Cells not listed are unchanged.
+    /// <c>optionId</c> for a dropdown (a linked dropdown takes the chosen <c>text</c>). Leaving them all unset clears the cell. Cells not listed are unchanged.
     /// </remarks>
     /// <param name="id">The sheet row's id.</param>
     /// <param name="request">The cells to change and their new values.</param>
@@ -46,6 +46,28 @@ public sealed class SheetRowsController(ISheetRowService rows) : ControllerBase
     public async Task<ActionResult<SheetDto>> SaveValues(int id, SaveRowValuesRequest request, CancellationToken cancellationToken)
     {
         var result = await rows.SaveValuesAsync(id, request, cancellationToken);
+        return Ok(result);
+    }
+
+    /// <summary>Save the settings chosen for a row's cells</summary>
+    /// <remarks>
+    /// Some kinds of cell have settings that are chosen on the sheet, not in the template. A linked dropdown
+    /// is the first: <c>{ "kind": "LinkedDropdown", "sourceSheetTableId": 12, "sourceTemplateCellId": 34 }</c>
+    /// points it at a column of another table on the sheet (a table's <c>linkableColumns</c> lists the
+    /// columns it offers), and its choices are then the values in that column. Sending <c>null</c> clears a
+    /// cell's settings. A cell whose settings change loses its value. Like saving values, this locks the row
+    /// to you until you publish or discard, and the settings are published and versioned with the row.
+    /// </remarks>
+    /// <param name="id">The sheet row's id.</param>
+    /// <param name="request">The cells to change and their new settings.</param>
+    /// <param name="cancellationToken">Cancels the request.</param>
+    /// <response code="200">The refreshed live view of the sheet.</response>
+    /// <response code="400">The cell's kind has no settings, they are for another kind, or what they point at isn't on the sheet.</response>
+    /// <response code="409">The row is locked by someone else.</response>
+    [HttpPut("{id:int}/cell-settings")]
+    public async Task<ActionResult<SheetDto>> SaveCellSettings(int id, SaveRowCellSettingsRequest request, CancellationToken cancellationToken)
+    {
+        var result = await cellSettings.SaveAsync(id, request, cancellationToken);
         return Ok(result);
     }
 

@@ -12,6 +12,8 @@ public sealed partial class DemoDataSeeder(
     DemoLimitsSheetSeeder sheetSeeder,
     DemoPartsGridTemplateSeeder partsTemplateSeeder,
     DemoPartsGridSheetSeeder partsSheetSeeder,
+    DemoPartUsageTemplateSeeder partUsageTemplateSeeder,
+    DemoPartUsageSheetSeeder partUsageSheetSeeder,
     ILogger<DemoDataSeeder> logger)
 {
     public async Task SeedAsync(CancellationToken cancellationToken = default)
@@ -22,6 +24,8 @@ public sealed partial class DemoDataSeeder(
             await sheetSeeder.SeedAsync(cancellationToken);
             await partsTemplateSeeder.SeedAsync(cancellationToken);
             await partsSheetSeeder.SeedAsync(cancellationToken);
+            await partUsageTemplateSeeder.SeedAsync(cancellationToken);
+            await partUsageSheetSeeder.SeedAsync(cancellationToken);
         }
         catch (Exception exception)
         {

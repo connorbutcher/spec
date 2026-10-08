@@ -24,4 +24,7 @@ public sealed record SheetDto(
     /// well as the viewer's own. Empty for a past view.
     /// </summary>
     public IReadOnlyList<SheetDraftSummaryDto> OtherDrafts { get; init; } = [];
+
+    /// <summary>The choices of every column a linked dropdown on the sheet is pointed at.</summary>
+    public IReadOnlyList<SheetLinkedSourceDto> LinkedSources { get; init; } = [];
 }

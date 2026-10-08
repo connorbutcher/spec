@@ -3,7 +3,7 @@ namespace PUSpecSheet.Application.Sheets;
 /// <summary>
 /// Compares the cell values of two row revisions the way a person would: a cell with no value, an empty text
 /// and an unticked box are all "nothing", text ignores surrounding spaces, and numbers are equal when their
-/// values are, however they were written.
+/// values are, however they were written. The settings chosen for a cell on the sheet count too.
 /// </summary>
 public static class CellValuesComparer
 {
@@ -32,6 +32,7 @@ public static class CellValuesComparer
             && left?.Number == right?.Number
             && left?.Date == right?.Date
             && (left?.Boolean ?? false) == (right?.Boolean ?? false)
-            && left?.OptionId == right?.OptionId;
+            && left?.OptionId == right?.OptionId
+            && left?.Settings == right?.Settings;
     }
 }

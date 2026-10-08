@@ -1,4 +1,5 @@
 using PUSpecSheet.Application.Sheets;
+using PUSpecSheet.Domain.CellTypes.InstanceSettings;
 
 namespace PUSpecSheet.Application.Tests.Sheets;
 
@@ -86,5 +87,19 @@ public sealed class CellValuesComparerTests
     {
         Assert.True(CellValuesComparer.Same(null, Values()));
         Assert.True(CellValuesComparer.Same(null, null));
+    }
+
+    [Fact]
+    public void ADifferentSettingChosenOnTheSheet_IsAChange()
+    {
+        var partNumbers = new LinkedDropdownInstanceSettings { SourceSheetTableId = 2, SourceTemplateCellId = 15 };
+        var left = Values((1, new CellValueBag { Text = "P-1001", Settings = partNumbers }));
+        var same = Values((1, new CellValueBag { Text = "P-1001", Settings = partNumbers with { } }));
+        var elsewhere = Values((1, new CellValueBag { Text = "P-1001", Settings = partNumbers with { SourceTemplateCellId = 16 } }));
+        var cleared = Values((1, new CellValueBag { Text = "P-1001" }));
+
+        Assert.True(CellValuesComparer.Same(left, same));
+        Assert.False(CellValuesComparer.Same(left, elsewhere));
+        Assert.False(CellValuesComparer.Same(left, cleared));
     }
 }

@@ -2,11 +2,13 @@ using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Contracts.Sheets;
 using PUSpecSheet.Data;
 using PUSpecSheet.Domain.CellTypes;
+using PUSpecSheet.Domain.CellTypes.InstanceSettings;
 using PUSpecSheet.Domain.Values;
 
 namespace PUSpecSheet.Application.Sheets;
 
-/// <summary>Reads and writes cell values, which live in one typed table per cell kind in the "values" schema.</summary>
+/// <summary>Reads and writes cell values, which live in one typed table per cell kind in the "values" schema, and the
+/// settings chosen for cells on the sheet, which live beside them.</summary>
 public sealed class RowValueStore(PuSpecSheetDbContext db)
 {
     /// <summary>Every value of the given row revisions, by revision id and then sheet cell id.</summary>
@@ -45,6 +47,11 @@ public sealed class RowValueStore(PuSpecSheetDbContext db)
             BagFor(result, value).OptionId = value.CellTypeOptionId;
         }
 
+        foreach (var value in await db.CellSettings.AsNoTracking().Where(v => revisionIds.Contains(v.SheetRowRevisionId)).ToListAsync(cancellationToken))
+        {
+            BagFor(result, value).Settings = value.Settings;
+        }
+
         return result;
     }
 
@@ -75,6 +82,11 @@ public sealed class RowValueStore(PuSpecSheetDbContext db)
         {
             db.OptionValues.Add(new OptionValue { SheetRowRevisionId = toRevisionId, SheetCellId = value.SheetCellId, CellTypeOptionId = value.CellTypeOptionId });
         }
+
+        foreach (var value in await db.CellSettings.AsNoTracking().Where(v => v.SheetRowRevisionId == fromRevisionId).ToListAsync(cancellationToken))
+        {
+            db.CellSettings.Add(new CellSettingsValue { SheetRowRevisionId = toRevisionId, SheetCellId = value.SheetCellId, Settings = value.Settings });
+        }
     }
 
     /// <summary>
@@ -87,7 +99,7 @@ public sealed class RowValueStore(PuSpecSheetDbContext db)
         await ApplyAsync(
             db.TextValues,
             revisionId,
-            Of(changes, CellKind.Text),
+            Of(changes, CellKind.Text, CellKind.LinkedDropdown),
             request => !string.IsNullOrEmpty(request.Text),
             (value, request) => value.Value = request.Text!,
             cancellationToken);
@@ -119,6 +131,42 @@ public sealed class RowValueStore(PuSpecSheetDbContext db)
             request => request.OptionId is not null,
             (value, request) => value.CellTypeOptionId = request.OptionId!.Value,
             cancellationToken);
+    }
+
+    /// <summary>
+    /// Sets, replaces or clears the settings chosen on the sheet for cells of a draft row revision. Settings
+    /// with nothing set are stored as no record at all, so "nothing chosen" always compares the same.
+    /// </summary>
+    public async Task SetSettingsAsync(
+        int revisionId,
+        IReadOnlyDictionary<int, CellInstanceSettings?> settingsByCell,
+        CancellationToken cancellationToken)
+    {
+        var cellIds = settingsByCell.Keys.ToList();
+        var existing = await db.CellSettings
+            .Where(value => value.SheetRowRevisionId == revisionId && cellIds.Contains(value.SheetCellId))
+            .ToDictionaryAsync(value => value.SheetCellId, cancellationToken);
+        foreach (var (cellId, settings) in settingsByCell)
+        {
+            var value = existing.GetValueOrDefault(cellId);
+            if (settings is null || settings.IsEmpty)
+            {
+                if (value is not null)
+                {
+                    db.CellSettings.Remove(value);
+                }
+
+                continue;
+            }
+
+            if (value is null)
+            {
+                value = new CellSettingsValue { SheetRowRevisionId = revisionId, SheetCellId = cellId };
+                db.CellSettings.Add(value);
+            }
+
+            value.Settings = settings;
+        }
     }
 
     /// <summary>The changes for cells of the given kinds, one per cell: a cell's last change wins.</summary>

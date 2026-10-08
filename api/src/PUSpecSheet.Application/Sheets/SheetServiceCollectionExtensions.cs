@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using PUSpecSheet.Application.Sheets.Demo;
+using PUSpecSheet.Application.Sheets.Linking;
 
 namespace PUSpecSheet.Application.Sheets;
 
@@ -19,6 +20,9 @@ public static class SheetServiceCollectionExtensions
         services.AddScoped<TableDrafts>();
         services.AddScoped<SectionDrafts>();
         services.AddScoped<RowDrafts>();
+        services.AddScoped<RowDraftStarter>();
+        services.AddScoped<NewRowSettings>();
+        services.AddScoped<LinkedDropdownValueRule>();
         services.AddScoped<ColumnBlockDrafts>();
         services.AddScoped<DraftSweeper>();
         services.AddScoped<SheetPublisher>();
@@ -28,12 +32,15 @@ public static class SheetServiceCollectionExtensions
         services.AddScoped<ISheetTableService, SheetTableService>();
         services.AddScoped<ISheetSectionService, SheetSectionService>();
         services.AddScoped<ISheetRowService, SheetRowService>();
+        services.AddScoped<ISheetCellSettingsService, SheetCellSettingsService>();
         services.AddScoped<ISheetColumnBlockService, SheetColumnBlockService>();
 
         services.AddScoped<DemoLimitsTemplateSeeder>();
         services.AddScoped<DemoLimitsSheetSeeder>();
         services.AddScoped<DemoPartsGridTemplateSeeder>();
         services.AddScoped<DemoPartsGridSheetSeeder>();
+        services.AddScoped<DemoPartUsageTemplateSeeder>();
+        services.AddScoped<DemoPartUsageSheetSeeder>();
         services.AddScoped<DemoDataSeeder>();
 
         return services;

@@ -29,7 +29,7 @@ public sealed class PublishedKindValueReader(PuSpecSheetDbContext db)
 
         var revisionIds = wholeSheet ? null : valueCells.Select(cell => cell.RowRevisionId).Distinct().ToList();
 
-        if (CellsOf(valueCells, wholeSheet, out var textIds, CellKind.Text))
+        if (CellsOf(valueCells, wholeSheet, out var textIds, CellKind.Text, CellKind.LinkedDropdown))
         {
             var texts = await PublishedValueReader.Scope(db.TextValues, version, revisionIds, textIds)
                 .Select(value => new { value.SheetCellId, value.Value })

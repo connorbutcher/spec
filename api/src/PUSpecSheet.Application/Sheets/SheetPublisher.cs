@@ -130,7 +130,7 @@ public sealed class SheetPublisher(
         var values = await valueStore.LoadAsync(live.Select(draft => draft.Id).ToList(), cancellationToken);
         var revisionByRow = live.ToDictionary(draft => draft.SheetRowId, draft => draft.Id);
         var emptyRowIds = cells
-            .Where(cell => !(values.GetValueOrDefault(revisionByRow[cell.SheetRowId])?.ContainsKey(cell.Id) ?? false))
+            .Where(cell => !(values.GetValueOrDefault(revisionByRow[cell.SheetRowId])?.GetValueOrDefault(cell.Id)?.HasValue ?? false))
             .Select(cell => cell.SheetRowId)
             .ToList();
         if (emptyRowIds.Count == 0)

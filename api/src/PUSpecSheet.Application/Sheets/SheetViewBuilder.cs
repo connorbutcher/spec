@@ -1,3 +1,4 @@
+using PUSpecSheet.Application.Sheets.Linking;
 using PUSpecSheet.Contracts.Sheets;
 using PUSpecSheet.Contracts.Templates;
 using PUSpecSheet.Domain.Sheets;
@@ -18,11 +19,16 @@ internal sealed class SheetViewBuilder
     private readonly Dictionary<int, List<SheetSection>> childrenByParent;
     private readonly Dictionary<int, List<SheetRow>> rowsBySection;
     private readonly HashSet<int> hiddenColumnBlockIds;
+    private readonly Dictionary<int, int> tableBySection;
+    private readonly Dictionary<int, List<SheetLinkableColumnDto>> linkableColumnsByVersion = [];
+    private readonly LinkedOptionCollector linkedOptions;
 
     public SheetViewBuilder(SheetSnapshot snapshot, int currentUserId)
     {
         this.snapshot = snapshot;
         this.currentUserId = currentUserId;
+        tableBySection = snapshot.Sections.ToDictionary(section => section.Id, section => section.SheetTableId);
+        linkedOptions = new LinkedOptionCollector(snapshot.Values.Values.SelectMany(cells => cells.Values));
 
         var visibleSections = snapshot.Sections
             .Where(section => RevisionResolver.IsVisible(snapshot.SectionRevisions.GetValueOrDefault(section.Id)))
@@ -87,6 +93,9 @@ internal sealed class SheetViewBuilder
             templates)
         {
             OtherDrafts = DraftSummaries.OfOthers(drafts, currentUserId, UserName),
+
+            // Gathered while the tables above were built, so they hold exactly what the viewer can see.
+            LinkedSources = linkedOptions.Build(),
         };
     }
 
@@ -120,7 +129,23 @@ internal sealed class SheetViewBuilder
             sections,
             AddableSectionsUnder(version.Id, null, topLevel),
             blocks,
-            AddableColumnBlocksFor(version.Id, blocks));
+            AddableColumnBlocksFor(version.Id, blocks))
+        {
+            LinkableColumns = LinkableColumnsOf(version.Id),
+        };
+    }
+
+    /// <summary>The columns of a template version that can be linked to, worked out once per version.</summary>
+    private List<SheetLinkableColumnDto> LinkableColumnsOf(int versionId)
+    {
+        if (!linkableColumnsByVersion.TryGetValue(versionId, out var columns))
+        {
+            var sections = snapshot.TemplateSections.Where(section => section.TableTemplateVersionId == versionId).ToList();
+            columns = LinkableColumns.For(sections, snapshot.TemplateRows, snapshot.CellTypes);
+            linkableColumnsByVersion[versionId] = columns;
+        }
+
+        return columns;
     }
 
     private SheetSectionDto BuildSection(SheetSection section, IReadOnlyList<SheetSection> siblings)
@@ -168,12 +193,18 @@ internal sealed class SheetViewBuilder
         var resolution = snapshot.RowRevisions[row.Id];
         var shown = resolution.Shown!;
         var values = snapshot.Values.GetValueOrDefault(shown.Id);
+        var tableId = tableBySection[row.SheetSectionId];
 
         var cells = row.Cells
             .Where(cell => cell.SheetColumnBlockId is not { } blockId || !hiddenColumnBlockIds.Contains(blockId))
             .OrderBy(cell => cell.TemplateCell.Column)
             .ThenBy(cell => cell.Id)
-            .Select(cell => BuildCell(cell, values?.GetValueOrDefault(cell.Id), ChangeOf(snapshot.Changes.Cells, cell.Id)))
+            .Select(cell =>
+            {
+                var value = values?.GetValueOrDefault(cell.Id);
+                OfferToLinkedDropdowns(tableId, cell, value);
+                return BuildCell(cell, value, ChangeOf(snapshot.Changes.Cells, cell.Id));
+            })
             .ToList();
 
         return new SheetRowDto(
@@ -211,7 +242,21 @@ internal sealed class SheetViewBuilder
             value?.Boolean,
             value?.OptionId,
             cell.SheetColumnBlockId,
-            change);
+            change)
+        {
+            Settings = value?.Settings,
+        };
+    }
+
+    /// <summary>Adds a visible cell's value to the choices of its column, when a linked dropdown is pointed at it.</summary>
+    private void OfferToLinkedDropdowns(int tableId, SheetCell cell, CellValueBag? value)
+    {
+        if (linkedOptions.Wants(tableId, cell.TemplateCellId)
+            && snapshot.CellTypes.TryGetValue(cell.TemplateCell.CellTypeId, out var cellType)
+            && LinkedOptionText.Of(value, cellType) is { } text)
+        {
+            linkedOptions.Add(tableId, cell.TemplateCellId, text);
+        }
     }
 
     private List<SheetColumnBlockDto> BuildColumnBlocks(SheetTable table)

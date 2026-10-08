@@ -114,6 +114,11 @@ public sealed class SheetSnapshotLoader(PuSpecSheetDbContext db, RowValueStore v
             .Where(row => versionIds.Contains(row.TemplateSection.TableTemplateVersionId))
             .ToListAsync(cancellationToken);
 
+        var cellTypes = await db.CellTypes
+            .AsNoTracking()
+            .Include(cellType => cellType.Options)
+            .ToDictionaryAsync(cellType => cellType.Id, cancellationToken);
+
         var availableTemplates = await db.TableTemplates
             .AsNoTracking()
             .Where(template => template.SheetTypeId == sheet.SheetTypeId)
@@ -151,6 +156,7 @@ public sealed class SheetSnapshotLoader(PuSpecSheetDbContext db, RowValueStore v
             TemplateSections = templateSections,
             TemplateColumnBlocks = templateColumnBlocks,
             TemplateRows = templateRows,
+            CellTypes = cellTypes,
             AvailableTemplates = availableTemplates,
             LatestTemplateVersions = latestVersions,
         };
