@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Service } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
+import { CellSettingsRequest } from './models/cell-settings-request.model';
 import { CellValueRequest } from './models/cell-value-request.model';
 import { PublishScope } from './models/publish-scope';
 import { Sheet } from './models/sheet.model';
@@ -84,7 +85,15 @@ export class SheetsApi {
     return firstValueFrom(this.http.put<Sheet>(`/api/sheet-rows/${rowId}/values`, { values }));
   }
 
+  /** Sets or clears the settings chosen on the sheet for cells of a row. A cell whose settings change loses its value. */
+  public saveCellSettings(rowId: number, settings: CellSettingsRequest[]): Promise<Sheet> {
+    return firstValueFrom(
+      this.http.put<Sheet>(`/api/sheet-rows/${rowId}/cell-settings`, { settings }),
+    );
+  }
+
   public moveRow(rowId: number, position: number): Promise<Sheet> {
+
     return firstValueFrom(
       this.http.post<Sheet>(`/api/sheet-rows/${rowId}/move`, { displayOrder: position }),
     );

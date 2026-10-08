@@ -21,6 +21,7 @@ function fixtureSheet(): Sheet {
     versions: [],
     tables: [fixtureTable()],
     availableTemplates: [],
+    linkedSources: [],
   };
 }
 

@@ -5,8 +5,8 @@ import { changeLabel, versionLabel } from '../sheet-labels.util';
 
 /**
  * The small marks drawn over a cell: a bar and version for a row that changed since the compared
- * version, a corner triangle for a cell whose value changed, and a lock for a row someone else is
- * editing. Each explains itself in a tooltip.
+ * version, a corner triangle for a cell whose value changed, a lock for a row someone else is editing,
+ * and a warning sign for a cell that needs attention. Each explains itself in a tooltip.
  */
 @Component({
   selector: 'app-sheet-cell-marks',
@@ -21,6 +21,8 @@ export class SheetCellMarks {
   public readonly cellChange = input<SheetChange | null>(null);
   /** Who is editing the cell's row, on the row's first cell only. */
   public readonly lockedBy = input<string | null>(null);
+  /** Something about the cell that needs a person's attention, in words. */
+  public readonly warning = input<string | null>(null);
 
   public readonly rowVersion = computed(() => {
     const change = this.rowChange();

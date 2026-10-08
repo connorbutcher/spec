@@ -24,6 +24,7 @@ function sheetWithTable(): Sheet {
     versions: [],
     tables: [fixtureTable()],
     availableTemplates: [],
+    linkedSources: [],
   };
 }
 

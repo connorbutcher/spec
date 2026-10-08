@@ -43,6 +43,8 @@ const CONFIGURATION_FIELDS: Readonly<Record<CellKind, readonly SettingField[]>> 
   Checkbox: [],
   TextDropdown: [],
   NumberDropdown: [DECIMAL_PLACES, UNIT],
+  LinkedDropdown: [],
+
 };
 
 /** The style settings every kind has, in the order they're shown. */

@@ -2,3 +2,11 @@
 :host {
   display: contents;
 }
+
+// With a settings button, the editor and the button share the cell side by side.
+:host(.has-settings) {
+  display: flex;
+  flex: 1 1 auto;
+  align-self: stretch;
+  min-width: 0;
+}

@@ -1,0 +1,21 @@
+<p-button
+  icon="pi pi-link"
+  size="small"
+  severity="secondary"
+  tooltipPosition="left"
+  [text]="true"
+  [ariaLabel]="title()"
+  [pTooltip]="title()"
+  (onClick)="popover.toggle($event)"
+/>
+<p-popover #popover appendTo="body">
+  @switch (kind()) {
+    @case ('LinkedDropdown') {
+      <app-sheet-linked-source-form
+        [settings]="linkedDropdown()"
+        (applied)="save($event, popover)"
+        (cancelled)="popover.hide()"
+      />
+    }
+  }
+</p-popover>

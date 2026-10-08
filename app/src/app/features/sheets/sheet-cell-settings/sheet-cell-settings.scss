@@ -1,0 +1,9 @@
+// The button sits at the right edge of the cell, beside the cell's control, and adds no height to it.
+:host {
+  display: flex;
+  flex: none;
+  align-items: center;
+
+  --p-button-sm-padding-y: 0;
+  --p-button-sm-icon-only-width: 1.5rem;
+}

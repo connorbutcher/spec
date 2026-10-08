@@ -7,8 +7,10 @@
       [cellType]="editable.cellType"
       [configuration]="editable.configuration"
       [label]="hint()"
+      [linkedChoices]="linkedChoices()"
       (started)="selectRow()"
       (changed)="save($event)"
+      (settingsChanged)="saveSettings($event)"
       (left)="stopEditing()"
     />
   } @else {
@@ -26,6 +28,7 @@
       [rowChange]="rowChange()"
       [cellChange]="cellChange()"
       [lockedBy]="lockedBy()"
+      [warning]="warning()"
     />
   }
 </div>

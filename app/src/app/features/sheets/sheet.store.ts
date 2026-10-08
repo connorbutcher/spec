@@ -6,7 +6,9 @@ import { map } from 'rxjs';
 import { reuseUnchanged } from '../../shared/reuse-unchanged.util';
 import { apiErrorMessage } from '../templates/api-error-message';
 import { CellType } from '../templates/models/cell-type.model';
+import { CellSettingsRequest } from './models/cell-settings-request.model';
 import { CellValueRequest } from './models/cell-value-request.model';
+
 import { SheetLock } from './models/sheet-lock.model';
 import { PublishScope } from './models/publish-scope';
 import { SheetChange } from './models/sheet-change.model';
@@ -307,7 +309,15 @@ export class SheetStore {
     );
   }
 
+  public async saveCellSettings(rowId: number, settings: CellSettingsRequest[]): Promise<void> {
+    await this.run(
+      () => this.api.saveCellSettings(rowId, settings),
+      settings.map((entry) => entry.sheetCellId),
+    );
+  }
+
   public async moveRow(rowId: number, step: -1 | 1): Promise<void> {
+
     const index = this.index();
     const section = index.sections.get(index.rowSection.get(rowId) ?? -1);
     const position = (section?.rows.findIndex((row) => row.id === rowId) ?? 0) + 1 + step;

@@ -1,4 +1,5 @@
 import { TemplateCell } from '../../templates/models/template-cell.model';
+import { CellInstanceSettings } from './cell-instance-settings';
 import { SheetChange } from './sheet-change.model';
 
 /**
@@ -15,6 +16,9 @@ export interface SheetCell {
   dateValue: string | null;
   booleanValue: boolean | null;
   optionId: number | null;
+  /** The settings chosen for this cell on the sheet, for a kind that has them; null when nothing is chosen. */
+  settings: CellInstanceSettings | null;
+
   /** The column block copy the cell belongs to, or null for the row's own cells. */
   sheetColumnBlockId: number | null;
   /** The publish that last changed this value. */

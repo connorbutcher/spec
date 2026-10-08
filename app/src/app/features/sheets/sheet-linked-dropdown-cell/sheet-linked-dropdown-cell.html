@@ -1,0 +1,15 @@
+<p-select
+  size="small"
+  [fluid]="true"
+  appendTo="body"
+  [options]="options()"
+  [showClear]="true"
+  [filter]="hasFilter()"
+  [disabled]="!isReady()"
+  [placeholder]="placeholder()"
+  [ariaLabel]="label() || 'Linked choice'"
+  emptyMessage="That column has no values yet"
+  [ngModel]="value()"
+  (onFocus)="started.emit()"
+  (onChange)="choose($event.value ?? null)"
+/>

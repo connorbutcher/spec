@@ -19,6 +19,16 @@
   ></span>
 }
 
+@if (warning(); as message) {
+  <i
+    class="pi pi-exclamation-triangle warning"
+    role="img"
+    [pTooltip]="message"
+    tooltipPosition="left"
+    [attr.aria-label]="message"
+  ></i>
+}
+
 @if (lockLabel(); as label) {
   <i
     class="pi pi-lock lock"

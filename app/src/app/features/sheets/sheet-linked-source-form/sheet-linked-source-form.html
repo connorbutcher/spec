@@ -1,0 +1,58 @@
+<form class="app-fields source-form" (submit)="$event.preventDefault()">
+  <div class="app-field">
+    <label for="linked-source-table">Take the choices from table</label>
+    <p-select
+      size="small"
+      inputId="linked-source-table"
+      appendTo="body"
+      optionLabel="label"
+      optionValue="id"
+      placeholder="Choose a table"
+      emptyMessage="No table on this sheet has a column to link to"
+      [fluid]="true"
+      [options]="tables()"
+      [ngModel]="tableId()"
+      (ngModelChange)="tableId.set($event)"
+      [ngModelOptions]="{ standalone: true }"
+    />
+  </div>
+  <div class="app-field">
+    <label for="linked-source-column">Column</label>
+    <p-select
+      size="small"
+      inputId="linked-source-column"
+      appendTo="body"
+      optionLabel="label"
+      optionValue="templateCellId"
+      placeholder="Choose a column"
+      [fluid]="true"
+      [disabled]="tableId() === null"
+      [options]="columns()"
+      [ngModel]="templateCellId()"
+      (ngModelChange)="templateCellId.set($event)"
+      [ngModelOptions]="{ standalone: true }"
+    />
+  </div>
+  <p class="app-field-note">
+    The cell offers every value in that column. Pointing it somewhere else clears what was chosen.
+  </p>
+  <div class="buttons">
+    <p-button
+      label="Clear"
+      size="small"
+      severity="secondary"
+      [text]="true"
+      [disabled]="!hasSettings()"
+      (onClick)="applied.emit(null)"
+    />
+    <span class="spacer"></span>
+    <p-button
+      label="Cancel"
+      size="small"
+      severity="secondary"
+      [outlined]="true"
+      (onClick)="cancelled.emit()"
+    />
+    <p-button label="Apply" size="small" [disabled]="!canApply()" (onClick)="apply()" />
+  </div>
+</form>

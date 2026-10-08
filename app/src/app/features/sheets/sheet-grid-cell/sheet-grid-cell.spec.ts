@@ -58,6 +58,7 @@ describe('SheetGridCell', () => {
       versions: [],
       tables: [table],
       availableTemplates: [],
+      linkedSources: [],
     };
     change(sheet, row);
 

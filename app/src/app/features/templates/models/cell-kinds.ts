@@ -36,6 +36,12 @@ export const CELL_KINDS: readonly CellKindInfo[] = [
     icon: 'pi-sort-numeric-down',
     description: 'One choice from a list of numbers.',
   },
+  {
+    kind: 'LinkedDropdown',
+    label: 'Linked dropdown',
+    icon: 'pi-link',
+    description: 'One choice from a column of another table, picked on the sheet.',
+  },
 ];
 
 /** Display details for a cell kind. */
@@ -48,7 +54,16 @@ export function isDisplayOnly(kind: CellKind | undefined): boolean {
   return kind === 'Heading' || kind === 'Group';
 }
 
+/**
+ * Whether cells of this kind have settings that are chosen on the sheet, cell by cell, and not in the
+ * template. Matches the API's `CellInstanceSettingsCatalog`.
+ */
+export function hasInstanceSettings(kind: CellKind | undefined): boolean {
+  return kind === 'LinkedDropdown';
+}
+
 /** Whether cells of this kind pick one of the cell type's options. */
+
 export function isDropdown(kind: CellKind | undefined): boolean {
   return kind === 'TextDropdown' || kind === 'NumberDropdown';
 }

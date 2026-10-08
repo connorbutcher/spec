@@ -2,6 +2,7 @@ import { CheckboxCellConfiguration } from './checkbox-cell-configuration.model';
 import { DateCellConfiguration } from './date-cell-configuration.model';
 import { GroupCellConfiguration } from './group-cell-configuration.model';
 import { HeadingCellConfiguration } from './heading-cell-configuration.model';
+import { LinkedDropdownCellConfiguration } from './linked-dropdown-cell-configuration.model';
 import { NumberCellConfiguration } from './number-cell-configuration.model';
 import { NumberDropdownCellConfiguration } from './number-dropdown-cell-configuration.model';
 import { TextCellConfiguration } from './text-cell-configuration.model';
@@ -19,4 +20,6 @@ export type CellConfiguration =
   | DateCellConfiguration
   | CheckboxCellConfiguration
   | TextDropdownCellConfiguration
-  | NumberDropdownCellConfiguration;
+  | NumberDropdownCellConfiguration
+  | LinkedDropdownCellConfiguration;
+

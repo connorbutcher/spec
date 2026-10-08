@@ -1,5 +1,6 @@
 import { AvailableTemplate } from './available-template.model';
 import { SheetDraftSummary } from './sheet-draft-summary.model';
+import { SheetLinkedSource } from './sheet-linked-source.model';
 import { SheetTable } from './sheet-table.model';
 import { SheetVersionSummary } from './sheet-version-summary.model';
 
@@ -22,4 +23,7 @@ export interface Sheet {
   versions: SheetVersionSummary[];
   tables: SheetTable[];
   availableTemplates: AvailableTemplate[];
+  /** The choices of every column a linked dropdown on the sheet is pointed at. */
+  linkedSources: SheetLinkedSource[];
+
 }

@@ -23,6 +23,7 @@ function cell(values: Partial<SheetCell> = {}): SheetCell {
     dateValue: null,
     booleanValue: null,
     optionId: null,
+    settings: null,
     sheetColumnBlockId: null,
     lastChange: null,
     ...values,
@@ -62,6 +63,10 @@ describe('valueRequest', () => {
     expect(valueRequest(cell(), 'Number', 1.5)).toEqual({ sheetCellId: 7, number: 1.5 });
     expect(valueRequest(cell(), 'Checkbox', true)).toEqual({ sheetCellId: 7, boolean: true });
     expect(valueRequest(cell(), 'TextDropdown', 3)).toEqual({ sheetCellId: 7, optionId: 3 });
+    expect(valueRequest(cell(), 'LinkedDropdown', 'P-1001')).toEqual({
+      sheetCellId: 7,
+      text: 'P-1001',
+    });
     expect(valueRequest(cell(), 'Date', new Date(2026, 5, 2))).toEqual({
       sheetCellId: 7,
       date: '2026-06-02',
@@ -108,6 +113,14 @@ describe('displayValue', () => {
 
     expect(displayValue(cell({ optionId: 5 }), dropdown, { kind: 'TextDropdown' })).toBe('Alloy');
     expect(displayValue(cell({ optionId: 9 }), dropdown, { kind: 'TextDropdown' })).toBe('');
+  });
+
+  it('shows the text chosen in a linked dropdown, which is stored as it was picked', () => {
+    const linked = cellType({ kind: 'LinkedDropdown' });
+
+    expect(displayValue(cell({ textValue: 'P-1001' }), linked, { kind: 'LinkedDropdown' })).toBe(
+      'P-1001',
+    );
   });
 
   it('shows nothing for an empty cell, or for a kind that has no text', () => {

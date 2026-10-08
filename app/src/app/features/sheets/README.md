@@ -48,14 +48,18 @@ sheets/
   sheet-grid-cell/          One cell: decides whether it is a caption, an editor or a plain value.
     sheet-cell-editor/        Picks the editor for the cell's kind.
       sheet-text-cell/ sheet-number-cell/ sheet-date-cell/ sheet-checkbox-cell/ sheet-dropdown-cell/
+      sheet-linked-dropdown-cell/   A dropdown of the values in a column of another table.
+      sheet-cell-settings/      The button and popover for a kind's settings chosen on the sheet.
+        sheet-linked-source-form/   The table and column a linked dropdown reads.
     sheet-cell-value/         The read-only value.
-    sheet-cell-marks/         Row-changed bar, cell-changed corner, lock icon.
+    sheet-cell-marks/         Row-changed bar, cell-changed corner, lock icon, warning sign.
   sheet-change-tag/         The "vN" tag on a changed section or column block.
 
   sheet-index.util.ts       Lookups by id (tables, sections, rows, cells) and tree questions.
   sheet-layout.util.ts      Turns a SheetTable into grid placements, reusing the template layout.
   sheet-sticky.util.ts      Pinned columns for horizontal tables.
   cell-value.util.ts        Cell value ⇄ request, and value → display text.
+  linked-dropdown.util.ts   What a linked dropdown offers, and what is wrong with it when something is.
   sheet-labels.util.ts      Every label written in more than one place.
   sheet-lock.util.ts        "Is someone else editing this?"
   sheet-confirm.util.ts     The remove confirmation popup.
@@ -140,6 +144,21 @@ user action ─► component ─► store method ─► SheetsApi ─► whole l
 6. Check its plain value lines up with its control: open a sheet, click into the cell and back out,
    and nothing should shift. If it doesn't read well as text (as a checkbox doesn't), add a branch to
    `sheet-cell-value`, or keep its control always on screen in `SheetGridCell.showsEditor`.
+
+## Settings chosen on the sheet
+
+A kind can have settings that are chosen cell by cell on the sheet (`cell.settings`, see
+`models/cell-instance-settings.ts`). They are saved with `store.saveCellSettings`, belong to the row's
+draft like a value, and the API clears the cell's value when they change. A linked dropdown's are the
+table and column it reads: `table.linkableColumns` lists what each table offers, and
+`sheet.linkedSources` holds the values of every column in use. `linkedChoices` puts the two together
+for one cell, and says when the cell has no column (`unset`) or its column has gone (`missing`). A value
+that is no longer in its column is kept and flagged, never changed.
+
+To give another kind settings: follow "Cell settings chosen on the sheet" in the
+[root README](../../../../../README.md#cell-settings-chosen-on-the-sheet). On this side it is an
+interface joined into `cell-instance-settings.ts`, the kind added to `hasInstanceSettings`, a form
+component, and a `@case` in `sheet-cell-settings.html`.
 
 ## Add an add, move or remove action
 

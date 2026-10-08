@@ -28,7 +28,8 @@ export function valueRequest(
 ): CellValueRequest {
   const request: CellValueRequest = { sheetCellId: cell.id };
   switch (kind) {
-    case 'Text': {
+    case 'Text':
+    case 'LinkedDropdown': {
       request.text = typeof value === 'string' ? value : null;
       break;
     }
@@ -60,8 +61,10 @@ export function displayValue(
   configuration: CellConfiguration,
 ): string {
   switch (cellType.kind) {
-    case 'Text': {
+    case 'Text':
+    case 'LinkedDropdown': {
       return cell.textValue ?? '';
+
     }
     case 'Number': {
       return configuration.kind === 'Number'

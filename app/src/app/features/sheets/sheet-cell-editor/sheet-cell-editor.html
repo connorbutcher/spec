@@ -33,6 +33,17 @@
       (changed)="changed.emit($event)"
     />
   }
+  @case ('LinkedDropdown') {
+    @if (linkedChoices(); as choices) {
+      <app-sheet-linked-dropdown-cell
+        [cell]="cell()"
+        [choices]="choices"
+        [label]="label()"
+        (started)="started.emit()"
+        (changed)="changed.emit($event)"
+      />
+    }
+  }
   @case ('Dropdown') {
     <app-sheet-dropdown-cell
       [cell]="cell()"
@@ -42,4 +53,12 @@
       (changed)="changed.emit($event)"
     />
   }
+}
+
+@if (hasSettings()) {
+  <app-sheet-cell-settings
+    [cell]="cell()"
+    [cellType]="cellType()"
+    (changed)="settingsChanged.emit($event)"
+  />
 }

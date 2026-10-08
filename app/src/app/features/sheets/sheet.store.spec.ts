@@ -40,6 +40,7 @@ function fixtureSheet(): Sheet {
     ],
     tables: [fixtureTable()],
     availableTemplates: [],
+    linkedSources: [],
   };
 }
 
@@ -191,6 +192,34 @@ describe('SheetStore', () => {
     expect(after[1]).not.toBe(header);
     expect(after[1].rows[0].cells[0].textValue).toBe('new');
     expect(after[1].rows[0].cells[1]).toBe(row.cells[1]);
+  });
+
+  it('saves the settings chosen for a cell on the sheet, and takes the cell the server sends back', async () => {
+    const row = sheet.tables[0].sections[1].rows[0];
+    const cell = row.cells[0];
+    const settings = {
+      kind: 'LinkedDropdown' as const,
+      sourceSheetTableId: 1,
+      sourceTemplateCellId: 15,
+    };
+
+    const saving = store.saveCellSettings(row.id, [{ sheetCellId: cell.id, settings }]);
+    await settle();
+    const request = http.expectOne(`/api/sheet-rows/${row.id}/cell-settings`);
+    expect(request.request.method).toBe('PUT');
+    expect(request.request.body).toEqual({ settings: [{ sheetCellId: cell.id, settings }] });
+    request.flush(
+      fromServer(sheet, (copy) => {
+        copy.tables[0].sections[1].rows[0].cells[0].settings = settings;
+        copy.linkedSources = [{ sheetTableId: 1, templateCellId: 15, options: ['P-1001'] }];
+      }),
+    );
+    await saving;
+
+    const after = store.sheet();
+    expect(after?.tables[0].sections[1].rows[0].cells[0].settings).toEqual(settings);
+    expect(after?.tables[0].sections[1].rows[0].cells[1]).toBe(row.cells[1]);
+    expect(after?.linkedSources[0].options).toEqual(['P-1001']);
   });
 
   it('replaces a saved cell even when the server sends back the value it had', async () => {

@@ -28,6 +28,7 @@ export function fixtureCell(column: number, columnSpan = 1): SheetCell {
     dateValue: null,
     booleanValue: null,
     optionId: null,
+    settings: null,
     sheetColumnBlockId: null,
     lastChange: null,
   };
@@ -101,5 +102,7 @@ export function fixtureTable(): SheetTable {
     addableSections: [],
     columnBlocks: [],
     addableColumnBlocks: [],
+    linkableColumns: [],
+
   };
 }

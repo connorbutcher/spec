@@ -13,6 +13,18 @@
   pointer-events: none;
 }
 
+// A cell that needs attention: a small sign at its right edge, clear of the corner marks.
+.warning {
+  position: absolute;
+  top: 50%;
+  right: var(--app-space-3);
+  z-index: 2;
+  color: var(--app-grid-warning);
+  font-size: var(--app-font-size-md);
+  transform: translateY(-50%);
+  cursor: help;
+}
+
 // A cell changed since the compared version: a small grey triangle in its top-right corner.
 .cell-mark {
   position: absolute;

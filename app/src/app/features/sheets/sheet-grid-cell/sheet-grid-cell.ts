@@ -13,8 +13,16 @@ import { isDisplayOnly } from '../../templates/models/cell-kinds';
 import { CellLayout } from '../../templates/models/cell-layout.model';
 import { CellType } from '../../templates/models/cell-type.model';
 import { GridStyle } from '../../templates/models/grid-style';
+import {
+  linkedChoices,
+  linkedHint,
+  linkedWarning,
+  sameLinkedChoices,
+} from '../linked-dropdown.util';
+import { CellSettingsRequest } from '../models/cell-settings-request.model';
 import { CellValueRequest } from '../models/cell-value-request.model';
 import { EditableCell } from '../models/editable-cell.model';
+import { LinkedChoices } from '../models/linked-choices.model';
 import { SectionTone } from '../models/section-tone';
 import { SheetCell } from '../models/sheet-cell.model';
 import { SheetChange } from '../models/sheet-change.model';
@@ -164,10 +172,43 @@ export class SheetGridCell {
 
   public readonly caption = computed(() => this.layout().cell.caption ?? '');
 
-  /** The caption doubles as the hint inside an empty control, marked if the cell is required. */
-  public readonly hint = computed(() =>
-    this.layout().cell.isRequired && this.caption() ? `${this.caption()} *` : this.caption(),
+  /**
+   * For a linked dropdown: what the column it is pointed at offers, worked out from the cell's settings
+   * and the sheet. Null for every other kind.
+   */
+  public readonly linkedChoices = computed<LinkedChoices | null>(
+    () => {
+      const cell = this.cell();
+      return cell !== null && this.cellType()?.kind === 'LinkedDropdown'
+        ? linkedChoices(this.store.sheet(), this.store.index(), cell.settings)
+        : null;
+    },
+    { equal: sameLinkedChoices },
   );
+
+  /**
+   * The caption doubles as the hint inside an empty control, marked if the cell is required. A linked
+   * dropdown with no column to read says that instead.
+   */
+  public readonly hint = computed(() => {
+    const choices = this.linkedChoices();
+    const unlinked = choices === null ? null : linkedHint(choices);
+    if (unlinked !== null) {
+      return unlinked;
+    }
+    return this.layout().cell.isRequired && this.caption() ? `${this.caption()} *` : this.caption();
+  });
+
+  /**
+   * What needs attention in the cell, while it shows its plain value: a linked dropdown whose column has
+   * gone, or whose value is no longer one of the column's.
+   */
+  public readonly warning = computed<string | null>(() => {
+    const choices = this.linkedChoices();
+    return choices === null || this.showsEditor()
+      ? null
+      : linkedWarning(choices, this.cell()?.textValue ?? null);
+  });
 
   /** The cell's value changed after the version being compared against. */
   public readonly cellChange = computed<SheetChange | null>(() =>
@@ -185,7 +226,11 @@ export class SheetGridCell {
   );
 
   public readonly hasMarks = computed(
-    () => this.cellChange() !== null || this.rowChange() !== null || this.lockedBy() !== null,
+    () =>
+      this.cellChange() !== null ||
+      this.rowChange() !== null ||
+      this.lockedBy() !== null ||
+      this.warning() !== null,
   );
 
   private readonly store = inject(SheetStore);
@@ -242,6 +287,14 @@ export class SheetGridCell {
     }
   }
 
+  /** The settings chosen for the cell on the sheet are part of its row, and saved like a value. */
+  public saveSettings(request: CellSettingsRequest): void {
+    const row = this.row();
+    if (row !== null) {
+      void this.store.saveCellSettings(row.id, [request]);
+    }
+  }
+
   private enterEditor(byPointer: boolean): void {
     const host = this.element.nativeElement;
     const control = host.querySelector<HTMLElement>('input, textarea, [role="combobox"]');
@@ -253,7 +306,11 @@ export class SheetGridCell {
       setTimeout(() => control.select());
     }
     if (byPointer) {
-      host.querySelector<HTMLElement>('.p-select')?.click();
+      host.querySelector<HTMLElement>('.p-select:not(.p-disabled)')?.click();
+    }
+    if (!host.contains(document.activeElement)) {
+      // A control that is switched off can't take focus; the button beside it can.
+      host.querySelector<HTMLElement>('button')?.focus();
     }
   }
 }

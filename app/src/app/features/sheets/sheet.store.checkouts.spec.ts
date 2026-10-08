@@ -39,6 +39,7 @@ describe('SheetStore with row checkouts', () => {
       versions: [],
       tables: [fixtureTable()],
       availableTemplates: [],
+      linkedSources: [],
     };
     TestBed.configureTestingModule({
       providers: [

@@ -49,6 +49,8 @@ Two things to keep when adding queries here:
 
 Cell values live in the `values` schema, one table per kind (text, numeric, date, boolean, option), keyed by row revision and cell. `RowValueStore` is the only class that reads or writes them for the editing screens.
 
+Settings chosen for a cell on the sheet (`CellInstanceSettings`, such as the table and column a linked dropdown reads) live beside the values in `values.CellSettings`, with the same key, and travel with them through `RowValueStore` and `CellValueBag`. That is all it takes for them to follow every draft, publish and history rule above. `SheetCellSettingsService` saves them, and `RowDraftStarter` is the one place a row's draft is started, for values and settings alike. How the linked dropdown works, and how to add another setting or give another kind settings, is in the [root README](../README.md#cell-settings-chosen-on-the-sheet).
+
 ## Multi-user editing
 
 Several people can have a sheet open and edit it at once. A row belongs to someone in one of two ways:

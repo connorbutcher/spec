@@ -1,0 +1,13 @@
+.source-form {
+  width: 20rem;
+}
+
+.buttons {
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-3);
+}
+
+.spacer {
+  flex: 1;
+}
