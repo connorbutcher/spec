@@ -66,7 +66,11 @@
   --p-menu-background: transparent;
   --p-menu-border-color: transparent;
   --p-menu-list-padding: 0;
-  --p-menu-min-width: 0;
+
+  // PrimeNG fixes the menu's minimum width in its own CSS, which would overflow the collapsed rail.
+  .p-menu {
+    min-width: 0;
+  }
 }
 
 /* The small square icon buttons inside a compact row of settings. */

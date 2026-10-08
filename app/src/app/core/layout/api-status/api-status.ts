@@ -1,16 +1,22 @@
 import { httpResource } from '@angular/common/http';
-import { Component, computed } from '@angular/core';
+import { Component, computed, input } from '@angular/core';
 import { TagModule } from 'primeng/tag';
+import { TooltipModule } from 'primeng/tooltip';
 import { ApiHealthState } from './api-health-state';
 
-/** Shows whether the API (and, through its health check, the database) is reachable. */
+/**
+ * Shows whether the API (and, through its health check, the database) is reachable. Compact shows only
+ * the icon, with the wording in a tooltip.
+ */
 @Component({
   selector: 'app-api-status',
-  imports: [TagModule],
+  imports: [TagModule, TooltipModule],
   templateUrl: './api-status.html',
   styleUrl: './api-status.scss',
 })
 export class ApiStatus {
+  public readonly compact = input(false);
+
   public readonly status = computed<ApiHealthState>(() => {
     if (this.health.isLoading()) {
       return 'checking';

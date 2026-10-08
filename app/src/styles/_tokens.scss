@@ -1,7 +1,7 @@
 // Design tokens: the one place colours, spacing, type sizes and fixed sizes are defined. Components
 // read them as CSS custom properties, so nothing needs importing to use one.
 :root {
-  // Brand. The navy is the only accent: the header, the rail and the selection outline.
+  // Brand. The navy is the only accent: the rail and the selection outline.
   --app-navy: #152a55;
   --app-navy-dark: #101f3f;
 
@@ -38,7 +38,7 @@
   --app-grid-row-theirs: #faf6ee;
   --app-grid-mark: #64748b;
 
-  // On the navy header and rail.
+  // On the navy rail.
   --app-on-dark: #fff;
   --app-on-dark-text: #cbd5e1;
   --app-on-dark-muted: #94a3b8;
@@ -84,7 +84,7 @@
 
   // Shape and fixed sizes.
   --app-radius: 0.25rem;
-  --app-header-height: 2.5rem;
+  --app-nav-banner-height: 2rem;
   --app-nav-width: 13.5rem;
   --app-nav-width-collapsed: 3rem;
   --app-cell-min-height: 1.875rem;

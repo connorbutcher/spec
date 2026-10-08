@@ -1,0 +1,61 @@
+:host {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--app-space-2);
+  min-height: var(--app-nav-banner-height);
+  margin-bottom: var(--app-space-3);
+  padding-bottom: var(--app-space-3);
+  border-bottom: 1px solid var(--app-on-dark-line);
+
+  // The toggle is a PrimeNG text button on the dark rail, so it uses light text.
+  --p-button-text-contrast-color: var(--app-on-dark-muted);
+  --p-button-text-contrast-hover-background: var(--app-on-dark-hover);
+  --p-button-text-contrast-active-background: var(--app-on-dark-selected);
+  --p-button-icon-only-width: var(--app-row-min-height);
+  --p-button-padding-y: 0;
+
+  // Collapsed: the icon over the toggle, each centred in the narrow rail.
+  &.collapsed {
+    flex-direction: column;
+    justify-content: flex-start;
+
+    .brand {
+      flex: 0 0 auto;
+      justify-content: center;
+      width: 100%;
+      padding: 0;
+    }
+  }
+}
+
+.brand {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: var(--app-space-5);
+  min-width: 0;
+  height: var(--app-row-min-height);
+  padding: 0 var(--app-space-5);
+  border-radius: var(--app-radius);
+  color: var(--app-on-dark);
+  font-size: var(--app-font-size-xl);
+  font-weight: var(--app-font-weight-semibold);
+  text-decoration: none;
+
+  .pi {
+    flex: 0 0 auto;
+    width: 1rem;
+    font-size: var(--app-font-size-xl);
+    text-align: center;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--app-on-dark-focus);
+    outline-offset: 1px;
+  }
+}
+
+:host ::ng-deep .nav-toggle {
+  height: var(--app-row-min-height);
+}

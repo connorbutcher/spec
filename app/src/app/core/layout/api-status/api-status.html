@@ -1,7 +1,11 @@
 <p-tag
-  [value]="label()"
+  [value]="compact() ? undefined : label()"
   [icon]="'pi ' + icon()"
   [severity]="severity()"
   [rounded]="true"
   role="status"
+  [attr.aria-label]="label()"
+  [pTooltip]="label()"
+  tooltipPosition="right"
+  [tooltipDisabled]="!compact()"
 />

@@ -1,0 +1,21 @@
+<a
+  class="brand"
+  routerLink="/"
+  [pTooltip]="appName"
+  tooltipPosition="right"
+  [tooltipDisabled]="!collapsed()"
+>
+  <i class="pi pi-file-edit" aria-hidden="true"></i>
+  <span class="name app-truncate" [class.visually-hidden]="collapsed()">{{ appName }}</span>
+</a>
+<p-button
+  [icon]="collapsed() ? 'pi pi-angle-double-right' : 'pi pi-angle-double-left'"
+  [text]="true"
+  severity="contrast"
+  styleClass="nav-toggle"
+  [ariaLabel]="collapsed() ? 'Expand navigation' : 'Collapse navigation'"
+  [attr.aria-expanded]="!collapsed()"
+  [pTooltip]="collapsed() ? 'Expand navigation' : 'Collapse navigation'"
+  tooltipPosition="right"
+  (onClick)="toggle()"
+/>

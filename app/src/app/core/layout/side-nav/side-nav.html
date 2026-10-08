@@ -1,5 +1,6 @@
 <nav class="side-nav" aria-label="Main">
   <div class="main">
+    <app-side-nav-banner />
     <p-menu class="app-bare-menu nav-menu" [model]="mainItems">
       <ng-template #item let-item>
         <app-side-nav-link [item]="navItem(item)" [collapsed]="collapsed()" />
@@ -9,9 +10,12 @@
       </ng-template>
     </p-menu>
   </div>
-  <p-menu class="app-bare-menu nav-menu footer" [model]="footerItems">
-    <ng-template #item let-item>
-      <app-side-nav-link [item]="navItem(item)" [collapsed]="collapsed()" />
-    </ng-template>
-  </p-menu>
+  <div class="footer">
+    <p-menu class="app-bare-menu nav-menu" [model]="footerItems">
+      <ng-template #item let-item>
+        <app-side-nav-link [item]="navItem(item)" [collapsed]="collapsed()" />
+      </ng-template>
+    </p-menu>
+    <app-api-status class="status" [compact]="collapsed()" />
+  </div>
 </nav>

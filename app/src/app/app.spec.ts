@@ -17,12 +17,12 @@ describe('App', () => {
     expect(fixture.componentInstance).toBeTruthy();
   });
 
-  it('should render the header brand and side nav', () => {
+  it('should render the app name and side nav', () => {
     const fixture = TestBed.createComponent(App);
-    // Not whenStable(): the header's pending health-check request would keep it waiting.
+    // Not whenStable(): the nav's pending health-check request would keep it waiting.
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('.brand')?.textContent).toContain('PU Spec Sheet');
+    expect(compiled.querySelector('app-side-nav .brand')?.textContent).toContain('PU Spec Sheet');
     const navLabels = Array.from(compiled.querySelectorAll('.side-nav-link .label')).map((el) =>
       el.textContent?.trim(),
     );
