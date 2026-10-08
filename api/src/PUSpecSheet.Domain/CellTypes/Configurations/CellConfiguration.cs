@@ -16,6 +16,7 @@ namespace PUSpecSheet.Domain.CellTypes.Configurations;
 [JsonDerivedType(typeof(CheckboxCellConfiguration), nameof(CellKind.Checkbox))]
 [JsonDerivedType(typeof(TextDropdownCellConfiguration), nameof(CellKind.TextDropdown))]
 [JsonDerivedType(typeof(NumberDropdownCellConfiguration), nameof(CellKind.NumberDropdown))]
+[JsonDerivedType(typeof(LinkedDropdownCellConfiguration), nameof(CellKind.LinkedDropdown))]
 public abstract record CellConfiguration
 {
     /// <summary>The kind these settings belong to. Written to JSON as the type discriminator.</summary>

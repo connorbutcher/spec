@@ -64,4 +64,7 @@ public class SheetRowRevision : ISheetRevision
     public ICollection<BooleanValue> BooleanValues { get; set; } = [];
 
     public ICollection<OptionValue> OptionValues { get; set; } = [];
+
+    /// <summary>The settings chosen on the sheet for the revision's cells, kept beside their values.</summary>
+    public ICollection<CellSettingsValue> CellSettings { get; set; } = [];
 }

@@ -2,7 +2,7 @@
 
 A SQL database project (SDK-style, `Microsoft.Build.Sql`) that maps the whole `PUSpecSheet` schema as one script per object. It is a readable, buildable mirror of the database that the EF Core migrations in `api/src/PUSpecSheet.Data` create. **The migrations stay the source of truth**: nothing deploys from this project, and the scripts are generated, never edited by hand.
 
-Last compared against migration `20261007192715_AddCheckConstraints`: no differences.
+Last compared against migration `20261008185916_AddCellInstanceSettings`: no differences.
 
 ## Layout
 
@@ -53,7 +53,7 @@ The project also opens in Visual Studio (SSDT) and in the SQL Database Projects 
 
 ## Schema overview
 
-32 tables in two schemas, 56 foreign keys, 76 indexes (14 filtered), 27 check constraints, 1 computed column. Every table has an `int` identity `Id` primary key unless noted.
+33 tables in two schemas, 58 foreign keys, 77 indexes (14 filtered), 27 check constraints, 1 computed column. Every table has an `int` identity `Id` primary key unless noted.
 
 ### Phases and sheet types
 
@@ -103,6 +103,7 @@ One table per value kind. Each has the composite primary key (`SheetRowRevisionI
 | `values.DateValues` | Date value. |
 | `values.BooleanValues` | Boolean value. |
 | `values.OptionValues` | Reference to a `dbo.CellTypeOptions` row. |
+| `values.CellSettings` | The settings chosen on the sheet for a cell (which table a linked dropdown reads, for example), as JSON whose `kind` names the cell kind. Same key as the value tables, so they are versioned with the row. |
 
 ### Users, roles and permissions
 

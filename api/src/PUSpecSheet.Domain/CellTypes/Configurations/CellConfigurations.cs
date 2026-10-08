@@ -15,6 +15,7 @@ public static class CellConfigurations
             CellKind.Checkbox => new CheckboxCellConfiguration(),
             CellKind.TextDropdown => new TextDropdownCellConfiguration(),
             CellKind.NumberDropdown => new NumberDropdownCellConfiguration(),
+            CellKind.LinkedDropdown => new LinkedDropdownCellConfiguration(),
             _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "Unknown cell kind."),
         };
     }

@@ -8,6 +8,12 @@ public static class CellKindExtensions
         return kind is not (CellKind.Heading or CellKind.Group);
     }
 
+    /// <summary>Whether cells of this kind keep their value as text in the text value table.</summary>
+    public static bool StoresText(this CellKind kind)
+    {
+        return kind is CellKind.Text or CellKind.LinkedDropdown;
+    }
+
     /// <summary>Whether cells of this kind pick one of the cell type's options.</summary>
     public static bool IsDropdown(this CellKind kind)
     {
