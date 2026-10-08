@@ -5,11 +5,11 @@
 
 .lock {
   position: absolute;
-  top: 3px;
-  right: 4px;
+  top: 0.1875rem;
+  right: var(--app-space-2);
   z-index: 1;
-  color: #6b7280;
-  font-size: 0.65rem;
+  color: var(--app-text-muted);
+  font-size: var(--app-font-size-xs);
   pointer-events: none;
 }
 
@@ -21,7 +21,7 @@
   z-index: 2;
   width: 0;
   height: 0;
-  border-top: 9px solid #64748b;
+  border-top: 9px solid var(--app-grid-mark);
   border-left: 9px solid transparent;
   cursor: help;
 }
@@ -35,17 +35,17 @@
   z-index: 2;
   display: flex;
   width: 3px;
-  background: #64748b;
+  background: var(--app-grid-mark);
   cursor: help;
 }
 
 .row-version {
   position: absolute;
   bottom: 0;
-  left: 5px;
+  left: 0.3125rem;
   z-index: 2;
-  color: #64748b;
-  font-size: 0.55rem;
+  color: var(--app-grid-mark);
+  font-size: var(--app-font-size-3xs);
   line-height: 1;
   pointer-events: none;
 }

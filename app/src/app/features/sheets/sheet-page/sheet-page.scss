@@ -1,69 +1,64 @@
+@use 'mixins' as mx;
+
 :host {
-  display: block;
-  height: 100%;
+  @include mx.fill-height;
 }
 
 // Full-width, full-height card: the header and tools stay put and the tables scroll beneath them.
 .sheet-page {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  min-height: 0;
+  @include mx.column-fill;
 
   .sheet-head {
     flex: 0 0 auto;
-    padding: 8px 12px 0;
-    border-bottom: 1px solid var(--app-card-border);
+    padding: var(--app-space-4) var(--app-space-6) 0;
+    border-bottom: 1px solid var(--app-border);
   }
 
   .title {
     display: flex;
     flex-direction: column;
-    gap: 2px;
-    padding-bottom: 6px;
+    gap: var(--app-space-1);
+    padding-bottom: var(--app-space-3);
     min-width: 0;
 
     h1 {
       margin: 0;
-      font-size: 1.05rem;
-      font-weight: 600;
-      color: #0f172a;
+      font-size: var(--app-font-size-title);
+      font-weight: var(--app-font-weight-semibold);
+      color: var(--app-text-strong);
     }
 
     .phase-code {
-      margin-right: 4px;
+      margin-right: var(--app-space-2);
       font-family: var(--app-font-mono);
-      color: #475569;
+      color: var(--app-text-secondary);
     }
   }
 
   .error {
     flex: 0 0 auto;
-    padding: 0 12px 6px;
+    padding: 0 var(--app-space-6) var(--app-space-3);
   }
 
   .sheet-body {
     display: flex;
     flex: 1;
     flex-direction: column;
-    gap: 8px;
+    gap: var(--app-space-4);
     min-height: 0;
     overflow: auto;
-    padding: 8px 0 12px;
+    padding: var(--app-space-4) 0 var(--app-space-6);
   }
 }
 
 .state {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
+  @include mx.center-fill;
 }
 
 .tables {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--app-space-4);
 }
 
 // While a table is dragged, its old place fades and the dragged copy floats above the page.
@@ -72,7 +67,7 @@
 }
 
 .cdk-drag-preview {
-  box-shadow: 0 4px 14px rgb(15 23 42 / 18%);
+  box-shadow: var(--app-shadow-raised);
 }
 
 .cdk-drag-animating {

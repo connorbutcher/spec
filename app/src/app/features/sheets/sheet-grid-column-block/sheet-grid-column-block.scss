@@ -13,8 +13,8 @@
   float: right;
   display: flex;
   align-items: center;
-  gap: 2px;
-  margin: 2px 4px 0 0;
+  gap: var(--app-space-1);
+  margin: var(--app-space-1) var(--app-space-2) 0 0;
   opacity: 0.45;
   pointer-events: auto;
   transition: opacity 120ms;

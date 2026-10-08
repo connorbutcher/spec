@@ -2,8 +2,8 @@
   display: flex;
   flex: 0 0 auto;
   flex-direction: column;
-  gap: 4px;
-  padding: 0 12px 6px;
+  gap: var(--app-space-2);
+  padding: 0 var(--app-space-6) var(--app-space-3);
 
   &.empty {
     display: none;

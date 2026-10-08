@@ -1,19 +1,19 @@
 :host {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--app-space-3);
 }
 
 .options {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 0.1875rem;
   margin: 0;
   padding: 0;
   list-style: none;
 
   .none {
-    color: #94a3b8;
-    font-size: 0.75rem;
+    color: var(--app-text-faint);
+    font-size: var(--app-font-size-md);
   }
 }

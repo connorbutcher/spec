@@ -1,12 +1,13 @@
+@use 'mixins' as mx;
+
 // Compact tabs sitting on the header's bottom border.
 .sheet-switcher {
-  --p-tabs-tab-padding: 0.35rem 0.75rem;
-  --p-tabs-tab-font-weight: 500;
+  @include mx.compact-tabs;
+
   --p-tabs-tablist-border-width: 0;
-  font-size: 0.8rem;
 
   .pi {
-    margin-right: 6px;
-    font-size: 0.75rem;
+    margin-right: var(--app-space-3);
+    font-size: var(--app-font-size-md);
   }
 }

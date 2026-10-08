@@ -8,7 +8,7 @@
       <p-button label="Try again" size="small" [outlined]="true" (onClick)="retry()" />
     </app-empty-state>
   } @else if (isLoading()) {
-    <p class="loading">Loading table…</p>
+    <p class="app-note loading">Loading table…</p>
   } @else {
     @if (template(); as template) {
       <app-designer-toolbar [template]="template" />

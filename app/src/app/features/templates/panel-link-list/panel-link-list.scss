@@ -1,43 +1,42 @@
+@use 'mixins' as mx;
+
 .links {
   --p-listbox-list-padding: 0;
   --p-listbox-list-gap: 0;
-  --p-listbox-option-padding: 0.25rem 0.4rem;
+  --p-listbox-option-padding: var(--app-space-2) 0.4rem;
   --p-listbox-option-border-radius: 0;
-  --p-listbox-empty-message-padding: 0.25rem 0.4rem;
-  font-size: 0.8rem;
+  --p-listbox-empty-message-padding: var(--app-space-2) 0.4rem;
+  font-size: var(--app-font-size-base);
 }
 
 .link {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--app-space-3);
   width: 100%;
   min-width: 0;
 
   .pi {
-    font-size: 0.7rem;
-    color: #64748b;
+    font-size: var(--app-font-size-sm);
+    color: var(--app-text-muted);
   }
 
   .label {
-    flex: 1;
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    @include mx.flex-fill;
+    @include mx.truncate;
   }
 
   .meta {
-    color: #94a3b8;
-    font-size: 0.72rem;
+    color: var(--app-text-faint);
+    font-size: var(--app-font-size-sm);
   }
 
   .chevron {
-    font-size: 0.6rem;
-    color: #cbd5e1;
+    font-size: var(--app-font-size-2xs);
+    color: var(--app-text-ghost);
   }
 
   &.muted .label {
-    color: #94a3b8;
+    color: var(--app-text-faint);
   }
 }

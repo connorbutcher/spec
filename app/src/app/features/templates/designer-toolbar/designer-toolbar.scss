@@ -2,22 +2,22 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 10px;
-  padding: 6px 10px;
-  border-bottom: 1px solid #e5e7eb;
-  font-size: 0.8rem;
+  gap: var(--app-space-5);
+  padding: var(--app-space-3) var(--app-space-5);
+  border-bottom: 1px solid var(--app-border);
+  font-size: var(--app-font-size-base);
 
   .name {
-    margin-right: 4px;
-    color: #111827;
-    font-size: 0.9rem;
-    font-weight: 600;
+    margin-right: var(--app-space-2);
+    color: var(--app-text-strong);
+    font-size: var(--app-font-size-xl);
+    font-weight: var(--app-font-weight-semibold);
   }
 
   .readonly,
   .status {
-    color: #6b7280;
-    font-size: 0.75rem;
+    color: var(--app-text-muted);
+    font-size: var(--app-font-size-md);
   }
 
   .status {

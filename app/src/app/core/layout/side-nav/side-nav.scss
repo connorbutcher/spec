@@ -1,12 +1,14 @@
+@use 'mixins' as mx;
+
 :host {
   display: block;
   flex: 0 0 auto;
-  width: 216px;
+  width: var(--app-nav-width);
   background: var(--app-navy-dark);
   transition: width 0.15s ease;
 
   &.collapsed {
-    width: 48px;
+    width: var(--app-nav-width-collapsed);
   }
 }
 
@@ -16,7 +18,7 @@
   flex-direction: column;
   justify-content: space-between;
   height: 100%;
-  padding: 6px;
+  padding: var(--app-space-3);
 }
 
 .main {
@@ -25,16 +27,14 @@
 
 // PrimeNG menus restyled for the dark rail: no card, and the links draw their own states.
 .nav-menu {
-  --p-menu-background: transparent;
-  --p-menu-border-color: transparent;
-  --p-menu-list-padding: 0;
-  --p-menu-list-gap: 2px;
+  @include mx.bare-menu;
+
+  --p-menu-list-gap: var(--app-space-1);
   --p-menu-item-padding: 0;
   --p-menu-item-focus-background: transparent;
-  --p-menu-min-width: 0;
 
   &.footer {
-    padding-top: 6px;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: var(--app-space-3);
+    border-top: 1px solid var(--app-on-dark-line);
   }
 }

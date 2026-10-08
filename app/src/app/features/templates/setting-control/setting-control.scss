@@ -8,5 +8,5 @@ input {
 }
 
 ::ng-deep app-setting-control .p-selectbutton .p-togglebutton {
-  padding: 2px 8px;
+  padding: var(--app-space-1) var(--app-space-4);
 }

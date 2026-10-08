@@ -1,31 +1,33 @@
+@use 'mixins' as mx;
+
 :host {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--app-space-3);
   min-width: 0;
-  min-height: 26px;
+  min-height: 1.625rem;
 }
 
 .hex {
-  font-family: ui-monospace, monospace;
-  font-size: 0.75rem;
+  font-size: var(--app-font-size-md);
 
   &.unset {
-    color: #94a3b8;
+    color: var(--app-text-faint);
   }
 }
 
 ::ng-deep app-color-field .p-colorpicker-preview {
-  width: 20px;
-  height: 20px;
+  width: 1.25rem;
+  height: 1.25rem;
 }
 
 // With no colour set, show an empty swatch rather than the picker's default red.
 ::ng-deep app-color-field .unset .p-colorpicker-preview {
-  background: repeating-linear-gradient(45deg, #fff 0 3px, #e2e8f0 3px 6px) !important;
+  background: repeating-linear-gradient(
+    45deg,
+    var(--app-surface) 0 3px,
+    var(--app-border) 3px 6px
+  ) !important;
 }
 
-::ng-deep app-color-field .p-button.p-button-icon-only {
-  width: 22px;
-  height: 22px;
-}
+@include mx.small-icon-buttons('app-color-field');

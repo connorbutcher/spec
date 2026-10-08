@@ -4,8 +4,8 @@
   display: grid;
   gap: 0;
   width: 100%;
-  border-top: 1px solid #e5e7eb;
-  border-left: 1px solid #e5e7eb;
-  background: #fff;
-  font-size: 0.8rem;
+  border-top: 1px solid var(--app-border);
+  border-left: 1px solid var(--app-border);
+  background: var(--app-surface);
+  font-size: var(--app-font-size-base);
 }

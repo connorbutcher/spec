@@ -1,6 +1,6 @@
 <aside class="app-card list-panel" aria-labelledby="template-list-heading">
   <header class="panel-head">
-    <h2 id="template-list-heading">Tables by sheet</h2>
+    <h2 id="template-list-heading" class="app-eyebrow">Tables by sheet</h2>
   </header>
 
   <div class="panel-body">
@@ -13,7 +13,7 @@
         <p-button label="Try again" size="small" [outlined]="true" (onClick)="retry()" />
       </app-empty-state>
     } @else if (isLoading()) {
-      <p class="loading">Loading…</p>
+      <p class="app-note loading">Loading…</p>
     } @else {
       <p-listbox
         class="templates"

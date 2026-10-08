@@ -3,13 +3,13 @@
 
   --p-avatar-width: 1.5rem;
   --p-avatar-height: 1.5rem;
-  --p-avatar-font-size: 0.65rem;
-  --p-avatar-background: #e2e8f0;
-  --p-avatar-color: #334155;
+  --p-avatar-font-size: var(--app-font-size-xs);
+  --p-avatar-background: var(--app-border);
+  --p-avatar-color: var(--app-text-emphasis);
 }
 
 // The viewer's own avatar is outlined, so they can tell themselves from the others at a glance.
 .me {
-  outline: 1px solid #475569;
+  outline: 1px solid var(--app-text-secondary);
   outline-offset: 1px;
 }

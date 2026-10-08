@@ -1,29 +1,30 @@
+@use 'mixins' as mx;
+
 // A frame over the block's columns that never catches the pointer, so the cells below stay clickable.
 :host {
   position: relative;
   z-index: 5;
-  outline: 1px dashed #9ca3af;
+  outline: 1px dashed var(--app-text-faint);
   outline-offset: -1px;
   pointer-events: none;
 }
 
 :host(.selected) {
-  outline: 2px solid var(--app-navy);
-  outline-offset: -2px;
+  @include mx.selection-outline;
 }
 
 .name {
   position: absolute;
   top: -1px;
   right: -1px;
-  padding: 0 4px;
-  background: #f3f4f6;
-  color: #6b7280;
-  font-size: 0.65rem;
-  line-height: 14px;
+  padding: 0 var(--app-space-2);
+  background: var(--app-surface-hover);
+  color: var(--app-text-muted);
+  font-size: var(--app-font-size-xs);
+  line-height: 0.875rem;
 }
 
 :host(.selected) .name {
   background: var(--app-navy);
-  color: #fff;
+  color: var(--app-on-dark);
 }

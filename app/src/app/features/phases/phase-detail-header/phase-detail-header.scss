@@ -3,24 +3,24 @@
     display: flex;
     flex-wrap: wrap;
     align-items: baseline;
-    gap: 8px;
+    gap: var(--app-space-4);
   }
 
   h1 {
     margin: 0;
     font-family: var(--app-font-mono);
-    font-size: 1.1rem;
-    color: #0f172a;
+    font-size: var(--app-font-size-title);
+    color: var(--app-text-strong);
   }
 
   .placement {
-    color: #64748b;
-    font-size: 0.75rem;
+    color: var(--app-text-muted);
+    font-size: var(--app-font-size-md);
   }
 
   .description {
-    margin: 2px 0 0;
-    color: #475569;
-    font-size: 0.8rem;
+    margin: var(--app-space-1) 0 0;
+    color: var(--app-text-secondary);
+    font-size: var(--app-font-size-base);
   }
 }

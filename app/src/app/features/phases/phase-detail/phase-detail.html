@@ -7,14 +7,14 @@
 
     <section class="detail-body" aria-labelledby="sheet-types-heading">
       <div class="section-title">
-        <h2 id="sheet-types-heading">PU Spec Sheets</h2>
+        <h2 id="sheet-types-heading" class="app-eyebrow">PU Spec Sheets</h2>
         <p-badge [value]="sheetTypes().length" severity="secondary" />
       </div>
       <app-sheet-type-table [sheetTypes]="sheetTypes()" [phase]="phase" />
     </section>
   </article>
 } @else if (!isLoading() && !hasError()) {
-  <div class="app-card not-found">
+  <div class="app-card app-center-fill">
     <app-empty-state
       icon="pi-search"
       title="Phase not found"

@@ -1,0 +1,14 @@
+html,
+body {
+  height: 100%;
+  margin: 0;
+  background: var(--app-page-bg);
+  color: var(--app-text);
+  font-family: var(--app-font-sans);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}

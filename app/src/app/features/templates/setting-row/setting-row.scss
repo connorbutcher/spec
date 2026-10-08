@@ -1,11 +1,13 @@
+@use 'mixins' as mx;
+
 // Label, control and reset button on one compact line.
 :host {
   display: grid;
-  grid-template-columns: 84px minmax(0, 1fr) auto;
+  grid-template-columns: 5.25rem minmax(0, 1fr) auto;
   align-items: center;
-  gap: 6px;
-  min-height: 28px;
-  padding-left: 6px;
+  gap: var(--app-space-3);
+  min-height: 1.75rem;
+  padding-left: var(--app-space-3);
   border-left: 2px solid transparent;
 }
 
@@ -18,19 +20,16 @@
 }
 
 label {
-  color: #475569;
-  font-size: 0.75rem;
+  color: var(--app-text-secondary);
+  font-size: var(--app-font-size-md);
 }
 
 .inherited {
   display: inline-flex;
   justify-content: center;
-  width: 22px;
-  color: #cbd5e1;
-  font-size: 0.65rem;
+  width: var(--app-icon-button-size);
+  color: var(--app-text-ghost);
+  font-size: var(--app-font-size-xs);
 }
 
-::ng-deep app-setting-row .p-button.p-button-icon-only {
-  width: 22px;
-  height: 22px;
-}
+@include mx.small-icon-buttons('app-setting-row');

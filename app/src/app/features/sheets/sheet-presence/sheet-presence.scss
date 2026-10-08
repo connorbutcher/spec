@@ -1,6 +1,6 @@
 .presence {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding-right: 6px;
+  gap: var(--app-space-3);
+  padding-right: var(--app-space-3);
 }

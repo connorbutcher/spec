@@ -8,7 +8,7 @@
   [disabled]="disabled()"
   (onHide)="commit()"
 />
-<span class="hex" [class.unset]="!value()">{{ value() ?? 'None' }}</span>
+<span class="app-mono hex" [class.unset]="!value()">{{ value() ?? 'None' }}</span>
 @if (value()) {
   <p-button
     icon="pi pi-times"

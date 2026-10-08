@@ -1,6 +1,7 @@
+@use 'mixins' as mx;
+
 :host {
-  display: block;
-  height: 100%;
+  @include mx.fill-height;
 }
 
 // Two columns that each scroll their own content.
@@ -13,7 +14,7 @@
   .tree {
     min-height: 0;
     overflow: auto;
-    border-right: 1px solid var(--app-card-border);
+    border-right: 1px solid var(--app-border);
   }
 
   .detail {
@@ -27,7 +28,7 @@
 
     .tree {
       border-right: 0;
-      border-bottom: 1px solid var(--app-card-border);
+      border-bottom: 1px solid var(--app-border);
     }
   }
 }

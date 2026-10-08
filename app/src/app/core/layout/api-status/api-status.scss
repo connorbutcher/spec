@@ -1,4 +1,4 @@
 :host {
-  --p-tag-font-size: 0.72rem;
-  --p-tag-padding: 0.2rem 0.5rem;
+  --p-tag-font-size: var(--app-font-size-sm);
+  --p-tag-padding: 0.2rem var(--app-space-4);
 }

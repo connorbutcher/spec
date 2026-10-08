@@ -1,11 +1,11 @@
 .move {
   display: inline-flex;
   align-items: center;
-  gap: 2px;
+  gap: var(--app-space-1);
 
   .position {
-    margin-right: 4px;
-    color: #64748b;
-    font-size: 0.75rem;
+    margin-right: var(--app-space-2);
+    color: var(--app-text-muted);
+    font-size: var(--app-font-size-md);
   }
 }

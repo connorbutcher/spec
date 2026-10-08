@@ -1,10 +1,8 @@
+@use 'mixins' as mx;
+
 // An invisible subgrid in both directions: it only positions its rows and cells.
 :host {
-  position: relative;
-  display: grid;
-  grid-template-columns: subgrid;
-  grid-template-rows: subgrid;
-  gap: 0;
+  @include mx.subgrid;
 }
 
 // A row exists for assistive technology only: its cells are placed by the section's grid.
@@ -13,36 +11,30 @@
 }
 
 :host(.selected)::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: 4;
-  outline: 2px solid var(--app-navy);
-  outline-offset: -2px;
-  pointer-events: none;
+  @include mx.overlay(4);
+  @include mx.selection-outline;
 }
 
 // A section with nothing in it yet.
 .empty {
   display: flex;
   align-items: center;
-  min-height: 32px;
-  padding: 0 8px;
-  border-right: 1px solid #d5dbe3;
-  border-bottom: 1px solid #d5dbe3;
-  color: #9ca3af;
-  font-size: 0.75rem;
+  min-height: var(--app-row-min-height);
+  padding: 0 var(--app-space-4);
+  @include mx.cell-hairline(var(--app-grid-line));
+  color: var(--app-text-faint);
+  font-size: var(--app-font-size-md);
 }
 
 // The group's add button sits inline at the right end of its heading row.
 .add {
   position: absolute;
-  top: 2px;
-  right: 4px;
+  top: var(--app-space-1);
+  right: var(--app-space-2);
   z-index: 5;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: var(--app-space-2);
 }
 
 // A group is marked by a single rule down its left edge, so no second line is added around it.
@@ -54,10 +46,10 @@
   left: 0;
   z-index: 1;
   width: 2px;
-  background: #94a3b8;
+  background: var(--app-border-strong);
   pointer-events: none;
 }
 
 :host(.group.nested)::before {
-  background: #cbd5e1;
+  background: var(--app-border-soft);
 }

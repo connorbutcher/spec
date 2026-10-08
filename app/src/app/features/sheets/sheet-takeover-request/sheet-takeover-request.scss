@@ -6,7 +6,7 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 4px 12px;
+  gap: var(--app-space-2) var(--app-space-6);
 }
 
 .text {
@@ -16,5 +16,5 @@
 
 .buttons {
   display: inline-flex;
-  gap: 4px;
+  gap: var(--app-space-2);
 }

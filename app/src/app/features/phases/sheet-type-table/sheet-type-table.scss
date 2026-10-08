@@ -1,21 +1,7 @@
+@use 'mixins' as mx;
+
 .sheet-table {
-  --p-datatable-header-cell-padding: 0.3rem 0.5rem;
-  --p-datatable-body-cell-padding: 0.3rem 0.5rem;
-  font-size: 0.8rem;
-
-  th {
-    font-size: 0.72rem;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    color: #475569;
-  }
-
-  .num {
-    width: 2.5rem;
-    color: #94a3b8;
-    font-family: var(--app-font-mono);
-    text-align: right;
-  }
+  @include mx.compact-table;
 
   .narrow {
     width: 6rem;
@@ -25,21 +11,17 @@
     width: 10rem;
   }
 
-  .muted {
-    color: #94a3b8;
-  }
-
   .sheet-link {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--app-space-3);
     color: var(--app-navy);
-    font-weight: 500;
+    font-weight: var(--app-font-weight-medium);
     text-decoration: none;
 
     .pi {
-      font-size: 0.8rem;
-      color: #64748b;
+      font-size: var(--app-font-size-base);
+      color: var(--app-text-muted);
     }
 
     &:hover {
@@ -47,15 +29,11 @@
     }
 
     &:focus-visible {
-      outline: 2px solid var(--app-navy);
-      outline-offset: 1px;
+      @include mx.focus-ring;
     }
   }
 }
 
 .none {
-  margin: 0;
-  padding: 4px 0;
-  color: #64748b;
-  font-size: 0.8rem;
+  padding: var(--app-space-2) 0;
 }

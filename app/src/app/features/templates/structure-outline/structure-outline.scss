@@ -1,25 +1,27 @@
+@use 'mixins' as mx;
+
 :host {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--app-space-2);
   min-height: 0;
 }
 
 // A plain indented list in greys; the accent colour only marks the selected node.
 .tree {
-  --p-tree-padding: 0;
-  --p-tree-gap: 1px;
+  @include mx.compact-tree;
+
+  // A little more room than the default compact row, for the add button at the end of each node.
   --p-tree-node-padding: 0.2rem 0.4rem;
-  --p-tree-node-border-radius: 3px;
   --p-tree-border-color: transparent;
   --p-tree-background: transparent;
-  --p-tree-node-color: #111827;
-  --p-tree-node-hover-background: #f3f4f6;
-  --p-tree-node-hover-color: #111827;
-  --p-tree-node-selected-background: #eef1f7;
+  --p-tree-node-color: var(--app-text-strong);
+  --p-tree-node-hover-background: var(--app-surface-hover);
+  --p-tree-node-hover-color: var(--app-text-strong);
+  --p-tree-node-selected-background: var(--app-surface-selected);
   --p-tree-node-selected-color: var(--app-navy);
-  --p-tree-node-toggle-button-color: #9ca3af;
-  font-size: 0.8rem;
+  --p-tree-node-toggle-button-color: var(--app-text-faint);
+  font-size: var(--app-font-size-base);
 }
 
 .node {
@@ -27,13 +29,11 @@
   flex: 1;
   align-items: center;
   justify-content: space-between;
-  gap: 6px;
+  gap: var(--app-space-3);
   min-width: 0;
 
   .name {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    @include mx.truncate;
   }
 
   // The "+" only appears on the node you're pointing at or have selected.
@@ -51,11 +51,11 @@
 
 .add-section {
   align-self: flex-start;
-  margin-left: 4px;
+  margin-left: var(--app-space-2);
 
   ::ng-deep .p-button {
-    color: #6b7280;
-    font-size: 0.78rem;
+    color: var(--app-text-muted);
+    font-size: var(--app-font-size-base);
   }
 }
 
@@ -67,9 +67,9 @@
 
 // The column block group is a quiet label, not something to select.
 :host ::ng-deep .p-tree-node.group > .p-tree-node-content {
-  color: #6b7280;
+  color: var(--app-text-muted);
   cursor: default;
-  font-size: 0.72rem;
+  font-size: var(--app-font-size-sm);
   text-transform: uppercase;
   letter-spacing: 0.03em;
 }

@@ -1,4 +1,4 @@
-@use '../styles/panel-form';
+@use 'panel-form';
 
 :host {
   display: block;
@@ -9,11 +9,11 @@
 .kind-option {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--app-space-3);
 
   .pi {
-    font-size: 0.7rem;
-    color: #64748b;
+    font-size: var(--app-font-size-sm);
+    color: var(--app-text-muted);
   }
 }
 
@@ -26,5 +26,5 @@ textarea {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 6px;
+  gap: var(--app-space-3);
 }

@@ -9,10 +9,10 @@
 
 // The caption of an empty value cell.
 .hint {
-  color: #9ca3af;
-  font-size: 0.75rem;
+  color: var(--app-text-faint);
+  font-size: var(--app-font-size-md);
   font-style: normal;
-  font-weight: 400;
+  font-weight: var(--app-font-weight-normal);
 }
 
 // Standing in for the cell's control: the text sits where the control's own text would, with the
@@ -21,7 +21,7 @@
   .value,
   .hint {
     align-self: stretch;
-    padding: 0.25rem 0.5rem;
+    padding: var(--app-space-2) var(--app-space-4);
     overflow: hidden;
     white-space: nowrap;
   }
@@ -29,16 +29,16 @@
   // PrimeNG's small controls set their own text, whatever the cell's style says.
   .value {
     color: var(--p-inputtext-color);
-    font-size: 0.75rem;
+    font-size: var(--app-font-size-md);
     font-style: normal;
-    font-weight: 400;
-    line-height: 1.5;
+    font-weight: var(--app-font-weight-normal);
+    line-height: var(--app-line-height-control);
   }
 
   // The control's placeholder.
   .hint {
     color: var(--p-inputtext-placeholder-color);
-    line-height: 1.5;
+    line-height: var(--app-line-height-control);
   }
 }
 

@@ -1,0 +1,93 @@
+// Design tokens: the one place colours, spacing, type sizes and fixed sizes are defined. Components
+// read them as CSS custom properties, so nothing needs importing to use one.
+:root {
+  // Brand. The navy is the only accent: the header, the rail and the selection outline.
+  --app-navy: #152a55;
+  --app-navy-dark: #101f3f;
+
+  // Text, darkest to lightest.
+  --app-text-strong: #0f172a;
+  --app-text: #1f2937;
+  --app-text-emphasis: #334155;
+  --app-text-secondary: #475569;
+  --app-text-muted: #64748b;
+  --app-text-faint: #94a3b8;
+  --app-text-ghost: #cbd5e1;
+
+  // Surfaces.
+  --app-page-bg: #f1f4f9;
+  --app-surface: #fff;
+  --app-surface-subtle: #f8fafc;
+  --app-surface-hover: #f1f5f9;
+  --app-surface-selected: #eef1f7;
+  --app-hover-wash: rgb(17 24 39 / 5%);
+
+  // Lines.
+  --app-border: #e2e8f0;
+  --app-border-strong: #94a3b8;
+  --app-border-soft: #cbd5e1;
+
+  // The sheet grid: its hairlines, and the muted blue-greys that tell a header from a group from data.
+  --app-grid-line: #d5dbe3;
+  --app-grid-edge: #b8c2d0;
+  --app-grid-header: #dfe6ef;
+  --app-grid-group-0: #eaeff6;
+  --app-grid-group-1: #f0f4f9;
+  --app-grid-group-2: #f5f7fb;
+  --app-grid-row-mine: #f3f7fd;
+  --app-grid-row-theirs: #faf6ee;
+  --app-grid-mark: #64748b;
+
+  // On the navy header and rail.
+  --app-on-dark: #fff;
+  --app-on-dark-text: #cbd5e1;
+  --app-on-dark-muted: #94a3b8;
+  --app-on-dark-hover: rgb(255 255 255 / 8%);
+  --app-on-dark-selected: rgb(255 255 255 / 16%);
+  --app-on-dark-line: rgb(255 255 255 / 10%);
+  --app-on-dark-focus: #adc3e5;
+
+  --app-shadow-raised: 0 4px 14px rgb(15 23 42 / 18%);
+
+  // Spacing, in steps of 0.125rem (2px at the default root size). Use for gaps, padding and margins.
+  --app-space-1: 0.125rem;
+  --app-space-2: 0.25rem;
+  --app-space-3: 0.375rem;
+  --app-space-4: 0.5rem;
+  --app-space-5: 0.625rem;
+  --app-space-6: 0.75rem;
+  --app-space-12: 1.5rem;
+
+  // Type.
+  --app-font-sans:
+    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --app-font-mono: ui-monospace, 'SF Mono', 'Cascadia Code', 'Roboto Mono', Consolas, monospace;
+
+  --app-font-size-3xs: 0.55rem;
+  --app-font-size-2xs: 0.6rem;
+  --app-font-size-xs: 0.65rem;
+  --app-font-size-sm: 0.7rem;
+  --app-font-size-md: 0.75rem;
+  --app-font-size-base: 0.8rem;
+  --app-font-size-lg: 0.85rem;
+  --app-font-size-xl: 0.9rem;
+  --app-font-size-title: 1.05rem;
+  --app-font-size-display: 1.35rem;
+
+  --app-font-weight-normal: 400;
+  --app-font-weight-medium: 500;
+  --app-font-weight-semibold: 600;
+  --app-font-weight-bold: 700;
+
+  --app-line-height-tight: 1.25;
+  --app-line-height-control: 1.5;
+
+  // Shape and fixed sizes.
+  --app-radius: 0.25rem;
+  --app-header-height: 2.5rem;
+  --app-nav-width: 13.5rem;
+  --app-nav-width-collapsed: 3rem;
+  --app-cell-min-height: 1.875rem;
+  --app-row-min-height: 2rem;
+  --app-icon-button-size: 1.375rem;
+}

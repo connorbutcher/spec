@@ -1,0 +1,7 @@
+// Overrides of PrimeNG's own markup that apply everywhere.
+
+/* Let custom tree node templates fill the row so trailing badges sit on the right. */
+.p-tree .p-tree-node-label {
+  flex: 1;
+  min-width: 0;
+}

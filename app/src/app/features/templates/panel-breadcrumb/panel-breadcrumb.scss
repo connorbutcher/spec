@@ -1,13 +1,10 @@
+@use 'mixins' as mx;
+
 .crumbs {
-  --p-breadcrumb-padding: 0;
-  --p-breadcrumb-gap: 0.25rem;
-  --p-breadcrumb-item-color: #475569;
-  --p-breadcrumb-item-hover-color: var(--app-navy);
-  --p-breadcrumb-separator-color: #94a3b8;
-  font-size: 0.72rem;
+  @include mx.bare-breadcrumb;
 
   ::ng-deep .current .p-breadcrumb-item-label {
-    color: #1f2937;
-    font-weight: 600;
+    color: var(--app-text);
+    font-weight: var(--app-font-weight-semibold);
   }
 }

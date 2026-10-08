@@ -1,16 +1,16 @@
 :host {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  margin-left: 6px;
+  gap: var(--app-space-3);
+  margin-left: var(--app-space-3);
 }
 
 // The countdown while a request waits, or the reason the row can't be asked for.
 .note {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  color: #6b7280;
-  font-size: 0.8rem;
+  gap: var(--app-space-3);
+  color: var(--app-text-muted);
+  font-size: var(--app-font-size-base);
   font-variant-numeric: tabular-nums;
 }

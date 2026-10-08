@@ -1,0 +1,161 @@
+// Shared building blocks for component styles. Use from a component with `@use 'mixins' as mx;`
+// (the styles folder is on the Sass include path). Values come from the tokens in `_tokens.scss`.
+
+// One line of text, cut off with an ellipsis.
+@mixin truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// A small uppercase heading over a list or a section.
+@mixin eyebrow {
+  margin: 0;
+  color: var(--app-text-secondary);
+  font-size: var(--app-font-size-sm);
+  font-weight: var(--app-font-weight-bold);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+// A quiet line of explanatory text.
+@mixin note($size: var(--app-font-size-base)) {
+  margin: 0;
+  color: var(--app-text-muted);
+  font-size: $size;
+}
+
+// A host that fills the height it is given.
+@mixin fill-height {
+  display: block;
+  height: 100%;
+}
+
+// A full-height column whose children decide which of them scrolls.
+@mixin column-fill {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+// Content centred in a full-height box, such as an empty state.
+@mixin center-fill {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+// A child that takes the remaining room in a flex row and may shrink below its content.
+@mixin flex-fill {
+  flex: 1;
+  min-width: 0;
+}
+
+// The navy outline drawn inside a selected cell, section or block, so it never moves its neighbours.
+@mixin selection-outline($width: 2px) {
+  outline: $width solid var(--app-navy);
+  outline-offset: -$width;
+}
+
+// The keyboard focus ring of a link or other control the app draws itself.
+@mixin focus-ring($color: var(--app-navy)) {
+  outline: 2px solid $color;
+  outline-offset: 1px;
+}
+
+// The hairline on the right and bottom of a grid cell; the grid itself draws the top and left.
+@mixin cell-hairline($color: var(--app-border)) {
+  border-right: 1px solid $color;
+  border-bottom: 1px solid $color;
+}
+
+// An invisible subgrid in both directions: it only positions its rows and cells.
+@mixin subgrid {
+  position: relative;
+  display: grid;
+  grid-template-columns: subgrid;
+  grid-template-rows: subgrid;
+  gap: 0;
+}
+
+// A pseudo-element covering its positioned parent that never catches the pointer.
+@mixin overlay($z-index) {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: $z-index;
+  pointer-events: none;
+}
+
+// PrimeNG tree, tightened: no outer padding, thin rows, a small indent.
+@mixin compact-tree {
+  --p-tree-padding: 0;
+  --p-tree-gap: 1px;
+  --p-tree-node-padding: var(--app-space-1) var(--app-space-3);
+  --p-tree-node-border-radius: var(--app-radius);
+  --p-tree-indent: var(--app-space-6);
+}
+
+// PrimeNG table, tightened, with small uppercase column headings. `.num` is a right-aligned number
+// column and `.muted` a quiet value.
+@mixin compact-table {
+  --p-datatable-header-cell-padding: 0.3rem var(--app-space-4);
+  --p-datatable-body-cell-padding: 0.3rem var(--app-space-4);
+  font-size: var(--app-font-size-base);
+
+  th {
+    color: var(--app-text-secondary);
+    font-size: var(--app-font-size-sm);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .num {
+    width: 2.5rem;
+    color: var(--app-text-faint);
+    font-family: var(--app-font-mono);
+    text-align: right;
+  }
+
+  .muted {
+    color: var(--app-text-faint);
+  }
+}
+
+// PrimeNG breadcrumb with no card around it, in small quiet type.
+@mixin bare-breadcrumb {
+  --p-breadcrumb-padding: 0;
+  --p-breadcrumb-background: transparent;
+  --p-breadcrumb-gap: var(--app-space-2);
+  --p-breadcrumb-item-color: var(--app-text-secondary);
+  --p-breadcrumb-item-icon-color: var(--app-text-faint);
+  --p-breadcrumb-item-hover-color: var(--app-navy);
+  --p-breadcrumb-separator-color: var(--app-text-faint);
+  font-size: var(--app-font-size-sm);
+}
+
+// PrimeNG tabs, tightened.
+@mixin compact-tabs($padding-y: 0.35rem) {
+  --p-tabs-tab-padding: #{$padding-y} var(--app-space-6);
+  --p-tabs-tab-font-weight: var(--app-font-weight-medium);
+  font-size: var(--app-font-size-base);
+}
+
+// PrimeNG menu with no card of its own, for the dark rail.
+@mixin bare-menu {
+  --p-menu-background: transparent;
+  --p-menu-border-color: transparent;
+  --p-menu-list-padding: 0;
+  --p-menu-min-width: 0;
+}
+
+// The small square icon buttons used inside a compact row of settings. `$host` is the component's
+// element selector, which keeps the rule to that component.
+@mixin small-icon-buttons($host) {
+  ::ng-deep #{$host} .p-button.p-button-icon-only {
+    width: var(--app-icon-button-size);
+    height: var(--app-icon-button-size);
+  }
+}

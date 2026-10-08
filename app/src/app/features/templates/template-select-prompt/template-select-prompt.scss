@@ -1,11 +1,5 @@
-:host {
-  display: block;
-  height: 100%;
-}
+@use 'mixins' as mx;
 
-.prompt {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
+:host {
+  @include mx.fill-height;
 }

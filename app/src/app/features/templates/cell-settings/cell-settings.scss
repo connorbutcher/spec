@@ -1,4 +1,5 @@
-@use '../styles/panel-form';
+@use 'panel-form';
+@use 'mixins' as mx;
 
 :host {
   display: block;
@@ -8,37 +9,36 @@
 
 .type-row {
   display: flex;
-  gap: 4px;
+  gap: var(--app-space-2);
 
   p-select {
-    flex: 1;
-    min-width: 0;
+    @include mx.flex-fill;
   }
 }
 
 .type-option {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--app-space-3);
 
   .pi {
-    font-size: 0.7rem;
-    color: #64748b;
+    font-size: var(--app-font-size-sm);
+    color: var(--app-text-muted);
   }
 }
 
 .hint .pi {
-  font-size: 0.6rem;
+  font-size: var(--app-font-size-2xs);
 }
 
 ::ng-deep .inline-link.p-button {
   padding: 0;
-  font-size: 0.75rem;
+  font-size: var(--app-font-size-md);
 }
 
 .override-note {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 6px;
+  gap: var(--app-space-3);
 }

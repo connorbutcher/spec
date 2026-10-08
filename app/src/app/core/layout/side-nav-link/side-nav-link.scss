@@ -1,35 +1,36 @@
+@use 'mixins' as mx;
+
 .side-nav-link {
   display: flex;
   align-items: center;
-  gap: 10px;
-  height: 32px;
-  padding: 0 10px;
-  border-radius: 4px;
-  color: #cbd5e1;
-  font-size: 0.85rem;
-  font-weight: 500;
+  gap: var(--app-space-5);
+  height: var(--app-row-min-height);
+  padding: 0 var(--app-space-5);
+  border-radius: var(--app-radius);
+  color: var(--app-on-dark-text);
+  font-size: var(--app-font-size-lg);
+  font-weight: var(--app-font-weight-medium);
   text-decoration: none;
   white-space: nowrap;
 
   .pi {
     flex: 0 0 auto;
-    width: 16px;
-    font-size: 0.9rem;
+    width: 1rem;
+    font-size: var(--app-font-size-xl);
     text-align: center;
   }
 
   &:hover {
-    background: rgba(255, 255, 255, 0.08);
-    color: #fff;
+    background: var(--app-on-dark-hover);
+    color: var(--app-on-dark);
   }
 
   &:focus-visible {
-    outline: 2px solid #adc3e5;
-    outline-offset: 1px;
+    @include mx.focus-ring(var(--app-on-dark-focus));
   }
 
   &.active {
-    background: rgba(255, 255, 255, 0.14);
-    color: #fff;
+    background: var(--app-on-dark-selected);
+    color: var(--app-on-dark);
   }
 }

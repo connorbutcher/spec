@@ -1,49 +1,49 @@
+@use 'mixins' as mx;
+
 :host {
   display: block;
   // Always reserves its height so the grid does not jump when the first selection shows the bar.
-  min-height: 34px;
-  border-bottom: 1px solid var(--app-card-border);
-  background: #f8fafc;
+  min-height: 2.125rem;
+  border-bottom: 1px solid var(--app-border);
+  background: var(--app-surface-subtle);
 }
 
 .action-bar {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 4px 12px;
-  padding: 4px 8px;
+  gap: var(--app-space-2) var(--app-space-6);
+  padding: var(--app-space-2) var(--app-space-4);
 }
 
 .path {
   --p-breadcrumb-padding: 0;
   --p-breadcrumb-background: transparent;
-  --p-breadcrumb-gap: 0.25rem;
-  font-size: 0.75rem;
+  --p-breadcrumb-gap: var(--app-space-2);
+  font-size: var(--app-font-size-md);
 }
 
 .group {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 2px;
+  gap: var(--app-space-1);
 
   & + & {
-    padding-left: 12px;
-    border-left: 1px solid var(--app-card-border);
+    padding-left: var(--app-space-6);
+    border-left: 1px solid var(--app-border);
   }
 }
 
 .locked {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  color: #6b7280;
-  font-size: 0.8rem;
+  gap: var(--app-space-3);
+  color: var(--app-text-muted);
+  font-size: var(--app-font-size-base);
 }
 
 .hint {
-  margin: 0;
-  padding: 8px;
-  color: #6b7280;
-  font-size: 0.75rem;
+  @include mx.note(var(--app-font-size-md));
+  padding: var(--app-space-4);
 }

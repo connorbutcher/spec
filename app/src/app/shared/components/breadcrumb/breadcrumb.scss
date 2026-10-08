@@ -1,11 +1,6 @@
+@use 'mixins' as mx;
+
 // Compact: no card padding or background, small type.
 .breadcrumb {
-  --p-breadcrumb-padding: 0;
-  --p-breadcrumb-background: transparent;
-  --p-breadcrumb-gap: 0.25rem;
-  --p-breadcrumb-item-icon-color: #94a3b8;
-  --p-breadcrumb-separator-color: #94a3b8;
-  --p-breadcrumb-item-color: #475569;
-  --p-breadcrumb-item-hover-color: var(--app-navy);
-  font-size: 0.72rem;
+  @include mx.bare-breadcrumb;
 }

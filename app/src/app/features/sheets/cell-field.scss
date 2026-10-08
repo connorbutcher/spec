@@ -17,9 +17,9 @@
   --p-inputtext-focus-ring-shadow: none;
   --p-inputtext-border-radius: 0;
   --p-inputtext-shadow: none;
-  --p-inputtext-padding-x: 0.5rem;
-  --p-inputtext-padding-y: 0.25rem;
-  --p-inputtext-font-size: 0.8rem;
+  --p-inputtext-padding-x: var(--app-space-4);
+  --p-inputtext-padding-y: var(--app-space-2);
+  --p-inputtext-font-size: var(--app-font-size-base);
 
   --p-select-background: transparent;
   --p-select-disabled-background: transparent;
@@ -36,7 +36,7 @@
   --p-datepicker-focus-ring-shadow: none;
   --p-select-border-radius: 0;
   --p-select-shadow: none;
-  --p-select-padding-x: 0.5rem;
-  --p-select-padding-y: 0.25rem;
-  --p-select-font-size: 0.8rem;
+  --p-select-padding-x: var(--app-space-4);
+  --p-select-padding-y: var(--app-space-2);
+  --p-select-font-size: var(--app-font-size-base);
 }

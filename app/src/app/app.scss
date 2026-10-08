@@ -1,3 +1,5 @@
+@use 'mixins' as mx;
+
 :host {
   display: flex;
   flex-direction: column;
@@ -11,8 +13,7 @@
 }
 
 .app-main {
-  flex: 1;
-  min-width: 0;
+  @include mx.flex-fill;
   overflow: auto;
-  padding: 8px;
+  padding: var(--app-space-4);
 }

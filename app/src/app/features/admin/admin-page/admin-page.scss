@@ -1,14 +1,12 @@
+@use 'mixins' as mx;
+
 :host {
-  display: block;
-  height: 100%;
+  @include mx.fill-height;
 }
 
 // A full-height card: the title and tabs stay put and each tab scrolls its own content.
 .admin-page {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  min-height: 0;
+  @include mx.column-fill;
 }
 
 .page-head {
@@ -16,31 +14,30 @@
   flex: 0 0 auto;
   align-items: baseline;
   justify-content: space-between;
-  gap: 12px;
-  padding: 8px 12px 4px;
+  gap: var(--app-space-6);
+  padding: var(--app-space-4) var(--app-space-6) var(--app-space-2);
 
   h1 {
     margin: 0;
-    font-size: 0.95rem;
-    font-weight: 600;
-    color: #111827;
+    font-size: var(--app-font-size-xl);
+    font-weight: var(--app-font-weight-semibold);
+    color: var(--app-text-strong);
   }
 
   .who {
-    color: #64748b;
-    font-size: 0.75rem;
+    color: var(--app-text-muted);
+    font-size: var(--app-font-size-md);
   }
 }
 
 .tabs {
-  --p-tabs-tab-padding: 0.4rem 0.75rem;
-  --p-tabs-tab-font-weight: 500;
+  @include mx.compact-tabs;
+
   --p-tabs-tabpanel-padding: 0;
   display: flex;
   flex: 1;
   flex-direction: column;
   min-height: 0;
-  font-size: 0.8rem;
 
   p-tabpanels {
     flex: 1;
@@ -50,8 +47,5 @@
 }
 
 .loading {
-  margin: 0;
-  padding: 8px 12px;
-  color: #64748b;
-  font-size: 0.8rem;
+  padding: var(--app-space-4) var(--app-space-6);
 }
