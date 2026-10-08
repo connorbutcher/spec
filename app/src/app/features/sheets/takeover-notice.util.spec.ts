@@ -37,6 +37,16 @@ describe('takeoverNotice', () => {
     );
   });
 
+  it('tells the requester when the holder changed the row first', () => {
+    const notice = takeoverNotice(takeover('KeptForChanges'), REQUESTER);
+
+    expect(notice?.severity).toBe('warn');
+    expect(notice?.detail).toBe(
+      'Developer has changed the row, so it stays with them until they publish.',
+    );
+    expect(takeoverNotice(takeover('KeptForChanges'), HOLDER)).toBeNull();
+  });
+
   it('says nothing to the person who answered or withdrew', () => {
     expect(takeoverNotice(takeover('Approved'), HOLDER)).toBeNull();
     expect(takeoverNotice(takeover('Denied'), HOLDER)).toBeNull();

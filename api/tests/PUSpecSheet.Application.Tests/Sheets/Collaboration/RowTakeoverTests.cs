@@ -6,7 +6,8 @@ namespace PUSpecSheet.Application.Tests.Sheets.Collaboration;
 
 /// <summary>
 /// The takeover rules end to end, with the database and the browsers replaced by fakes: row 10 on sheet 1
-/// is checked out to the holder, who has the sheet open, and the requester asks for it.
+/// is checked out to the holder, who has the sheet open and has not changed it, and the requester asks
+/// for it.
 /// </summary>
 public sealed class RowTakeoverTests
 {
@@ -30,7 +31,7 @@ public sealed class RowTakeoverTests
     {
         var closer = new RowTakeoverCloser(checkouts, notifier);
         service = new RowTakeoverService(checkouts, currentUser, store, presence, closer, notifier, options, clock);
-        settler = new RowTakeoverSettler(checkouts, store, closer, clock);
+        settler = new RowTakeoverSettler(store, closer, clock);
 
         checkouts.CheckOut(Row, Sheet, Holder);
         presence.Join("holder-tab", new SheetConnection(Sheet, Holder, "User 1"));
@@ -92,6 +93,95 @@ public sealed class RowTakeoverTests
 
         currentUser.UserId = Holder;
         await Assert.ThrowsAsync<InvalidRequestException>(() => service.RequestAsync(Row, CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task ARowWithUnpublishedChanges_CannotBeAskedFor()
+    {
+        checkouts.Change(Row);
+
+        var refused = await Assert.ThrowsAsync<ConflictException>(() => service.RequestAsync(Row, CancellationToken.None));
+
+        Assert.Contains("User 1 has unpublished changes on this row", refused.Message, StringComparison.Ordinal);
+        Assert.Null(store.ForRow(Row));
+        Assert.Empty(notifier.Takeovers);
+    }
+
+    [Fact]
+    public async Task ARowWithUnpublishedChanges_CannotBeTakenEvenWhenItsHolderIsAway()
+    {
+        checkouts.Change(Row);
+        presence.Leave("holder-tab");
+
+        await Assert.ThrowsAsync<ConflictException>(() => service.RequestAsync(Row, CancellationToken.None));
+
+        Assert.Equal(Holder, checkouts.HolderOf(Row));
+    }
+
+    [Fact]
+    public async Task Availability_GivesTheSameAnswerAsAsking()
+    {
+        Assert.Equal(new RowTakeoverAvailabilityDto(true, null), await service.GetAvailabilityAsync(Row, CancellationToken.None));
+
+        checkouts.Change(Row);
+        var changed = await service.GetAvailabilityAsync(Row, CancellationToken.None);
+        Assert.False(changed.IsAvailable);
+        Assert.Contains("unpublished changes", changed.Reason, StringComparison.Ordinal);
+
+        currentUser.UserId = Holder;
+        Assert.False((await service.GetAvailabilityAsync(Row, CancellationToken.None)).IsAvailable);
+
+        await Assert.ThrowsAsync<NotFoundException>(() => service.GetAvailabilityAsync(99, CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task Availability_SaysWhenSomeoneElseHasAlreadyAsked_ButNotToTheOneWhoDid()
+    {
+        await service.RequestAsync(Row, CancellationToken.None);
+        Assert.True((await service.GetAvailabilityAsync(Row, CancellationToken.None)).IsAvailable);
+
+        currentUser.UserId = Bystander;
+        var taken = await service.GetAvailabilityAsync(Row, CancellationToken.None);
+
+        Assert.False(taken.IsAvailable);
+        Assert.Contains("User 2 has already asked", taken.Reason, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task ChangingARowWhileARequestWaits_KeepsItWithTheHolder()
+    {
+        await service.RequestAsync(Row, CancellationToken.None);
+
+        checkouts.Change(Row);
+        await settler.CloseBlockedAsync(Sheet, CancellationToken.None);
+
+        Assert.Equal(RowTakeoverStatus.KeptForChanges, notifier.Takeovers[^1]);
+        Assert.Null(store.ForRow(Row));
+        Assert.Equal(Holder, checkouts.HolderOf(Row));
+    }
+
+    [Fact]
+    public async Task ARowChangedSinceItWasAskedFor_IsNotHandedOver_ByApprovalOrByTimeout()
+    {
+        var approvedLate = await service.RequestAsync(Row, CancellationToken.None);
+        checkouts.Change(Row);
+
+        currentUser.UserId = Holder;
+        var closed = await service.ApproveAsync(approvedLate.Id, CancellationToken.None);
+        Assert.Equal(RowTakeoverStatus.KeptForChanges, closed.Status);
+        Assert.Equal(Holder, checkouts.HolderOf(Row));
+
+        // The same through the timeout: a second row, asked for while unchanged and changed before time ran out.
+        checkouts.CheckOut(11, Sheet, Holder);
+        currentUser.UserId = Requester;
+        await service.RequestAsync(11, CancellationToken.None);
+        checkouts.Change(11);
+        clock.Advance(TimeSpan.FromSeconds(60));
+        await settler.GrantOverdueAsync(CancellationToken.None);
+
+        Assert.Equal(RowTakeoverStatus.KeptForChanges, notifier.Takeovers[^1]);
+        Assert.Equal(Holder, checkouts.HolderOf(11));
+        Assert.Empty(notifier.ChangedSheets);
     }
 
     [Fact]
@@ -169,7 +259,7 @@ public sealed class RowTakeoverTests
         await service.RequestAsync(Row, CancellationToken.None);
 
         checkouts.Release(Row);
-        await settler.ReleaseSettledAsync(Sheet, CancellationToken.None);
+        await settler.CloseBlockedAsync(Sheet, CancellationToken.None);
 
         Assert.Equal(RowTakeoverStatus.Released, notifier.Takeovers[^1]);
         Assert.Null(store.ForRow(Row));
@@ -180,7 +270,7 @@ public sealed class RowTakeoverTests
     {
         await service.RequestAsync(Row, CancellationToken.None);
 
-        await settler.ReleaseSettledAsync(Sheet, CancellationToken.None);
+        await settler.CloseBlockedAsync(Sheet, CancellationToken.None);
 
         Assert.NotNull(store.ForRow(Row));
     }

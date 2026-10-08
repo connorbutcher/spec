@@ -8,7 +8,8 @@ import { SheetStore } from '../sheet.store';
 
 /**
  * Someone is asking for a row that is checked out to the viewer. The viewer hands it over or keeps it;
- * left unanswered, it is handed over when the countdown ends.
+ * left unanswered, it is handed over when the countdown ends. Changing the row in the meantime keeps it
+ * (the server closes the request).
  */
 @Component({
   selector: 'app-sheet-takeover-request',

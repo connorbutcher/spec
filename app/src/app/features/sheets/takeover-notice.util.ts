@@ -1,8 +1,6 @@
 import { RowTakeover } from './models/row-takeover.model';
 import { TakeoverNotice } from './models/takeover-notice.model';
 
-const CHANGES_WENT_TOO = 'Your unpublished changes to it went with it.';
-
 /**
  * What to tell the viewer when a takeover request they are part of is settled, or null when they
  * already know (they answered it themselves) or it doesn't concern them.
@@ -34,6 +32,14 @@ function requesterNotice(takeover: RowTakeover): TakeoverNotice | null {
         sticky: false,
       };
     }
+    case 'KeptForChanges': {
+      return {
+        severity: 'warn',
+        summary: 'Takeover not possible',
+        detail: `${holder} has changed the row, so it stays with them until they publish.`,
+        sticky: false,
+      };
+    }
     case 'Released': {
       return {
         severity: 'info',
@@ -55,7 +61,7 @@ function holderNotice(takeover: RowTakeover): TakeoverNotice | null {
       return {
         severity: 'warn',
         summary: 'Row taken over',
-        detail: `${requester} took over a row you had checked out, as the request went unanswered. ${CHANGES_WENT_TOO}`,
+        detail: `${requester} took over a row you had checked out, as the request went unanswered.`,
         sticky: true,
       };
     }
@@ -63,7 +69,7 @@ function holderNotice(takeover: RowTakeover): TakeoverNotice | null {
       return {
         severity: 'warn',
         summary: 'Row taken over',
-        detail: `${requester} took over a row you had checked out. ${CHANGES_WENT_TOO}`,
+        detail: `${requester} took over a row you had checked out.`,
         sticky: true,
       };
     }
@@ -85,7 +91,7 @@ function granted(reason: string): TakeoverNotice {
   return {
     severity: 'success',
     summary: 'Row checked out to you',
-    detail: `${reason} The row is now yours, with their unpublished changes in it.`,
+    detail: `${reason} The row is now yours to edit.`,
     sticky: false,
   };
 }

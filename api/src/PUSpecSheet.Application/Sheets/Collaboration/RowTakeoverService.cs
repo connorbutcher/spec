@@ -17,17 +17,29 @@ public sealed class RowTakeoverService(
     private const string NoLongerOpen = "That request is no longer open.";
     private const string UnknownUser = "Another user";
 
+    public async Task<RowTakeoverAvailabilityDto> GetAvailabilityAsync(int rowId, CancellationToken cancellationToken)
+    {
+        // Asking the same question the request itself asks is what keeps the two from ever disagreeing.
+        try
+        {
+            await CheckoutToAskForAsync(rowId, currentUser.UserId, cancellationToken);
+            return new RowTakeoverAvailabilityDto(true, null);
+        }
+        catch (Exception refusal) when (refusal is ConflictException or InvalidRequestException)
+        {
+            return new RowTakeoverAvailabilityDto(false, refusal.Message);
+        }
+    }
+
     public async Task<RowTakeoverDto> RequestAsync(int rowId, CancellationToken cancellationToken)
     {
         var me = currentUser.UserId;
         var checkout = await CheckoutToAskForAsync(rowId, me, cancellationToken);
 
-        if (store.ForRow(rowId) is { } waiting)
+        // Asking again for a row already asked for is the same request, not a second one.
+        if (store.ForRow(rowId) is { } mine)
         {
-            // Asking again for a row already asked for is the same request, not a second one.
-            return waiting.RequesterUserId == me
-                ? waiting
-                : throw new ConflictException($"{waiting.RequesterName} has already asked to take over this row.");
+            return mine;
         }
 
         var takeover = await NewRequestAsync(rowId, checkout, me, cancellationToken);
@@ -65,7 +77,10 @@ public sealed class RowTakeoverService(
         return await closer.CloseAsync(takeover, RowTakeoverStatus.Cancelled, cancellationToken);
     }
 
-    /// <summary>The row's checkout, once it is established that the user may ask for it.</summary>
+    /// <summary>
+    /// The row's checkout, once it is established that the user may ask for it. Every reason a request is
+    /// refused is here, so the availability check and the request can't disagree.
+    /// </summary>
     private async Task<RowCheckout> CheckoutToAskForAsync(int rowId, int userId, CancellationToken cancellationToken)
     {
         var checkout = await checkouts.FindAsync(rowId, cancellationToken);
@@ -82,6 +97,19 @@ public sealed class RowTakeoverService(
         if (checkout.HolderUserId == userId)
         {
             throw new InvalidRequestException("This row is already checked out to you.");
+        }
+
+        // A row someone has changed stays theirs until they publish: handing it on would hand on their work.
+        if (checkout.HasChanges)
+        {
+            var names = await checkouts.DisplayNamesAsync([checkout.HolderUserId], cancellationToken);
+            var holder = names.GetValueOrDefault(checkout.HolderUserId, UnknownUser);
+            throw new ConflictException($"{holder} has unpublished changes on this row. It can be taken over once they publish or discard them.");
+        }
+
+        if (store.ForRow(rowId) is { } waiting && waiting.RequesterUserId != userId)
+        {
+            throw new ConflictException($"{waiting.RequesterName} has already asked to take over this row.");
         }
 
         return checkout;

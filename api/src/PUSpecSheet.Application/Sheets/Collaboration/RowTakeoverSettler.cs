@@ -3,7 +3,6 @@ using PUSpecSheet.Contracts.Sheets.Collaboration;
 namespace PUSpecSheet.Application.Sheets.Collaboration;
 
 public sealed class RowTakeoverSettler(
-    IRowCheckouts checkouts,
     RowTakeoverStore store,
     RowTakeoverCloser closer,
     TimeProvider clock) : IRowTakeoverSettler
@@ -19,22 +18,15 @@ public sealed class RowTakeoverSettler(
         }
     }
 
-    public async Task ReleaseSettledAsync(int sheetId, CancellationToken cancellationToken)
+    public async Task CloseBlockedAsync(int sheetId, CancellationToken cancellationToken)
     {
-        // Nearly always empty, and then this costs no query.
-        var waiting = store.OnSheet(sheetId);
-        if (waiting.Count == 0)
+        // Nearly always empty, and then this costs no query. When not, it is a request or two.
+        foreach (var takeover in store.OnSheet(sheetId))
         {
-            return;
-        }
-
-        var holders = await checkouts.HoldersAsync(waiting.Select(takeover => takeover.RowId).ToList(), cancellationToken);
-        foreach (var takeover in waiting)
-        {
-            var stillHeld = holders.TryGetValue(takeover.RowId, out var holder) && holder == takeover.HolderUserId;
-            if (!stillHeld && store.TryRemove(takeover))
+            var obstacle = await closer.ObstacleAsync(takeover, cancellationToken);
+            if (obstacle is not null && store.TryRemove(takeover))
             {
-                await closer.CloseAsync(takeover, RowTakeoverStatus.Released, cancellationToken);
+                await closer.CloseAsync(takeover, obstacle.Value, cancellationToken);
             }
         }
     }

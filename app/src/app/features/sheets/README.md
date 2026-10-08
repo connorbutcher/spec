@@ -32,7 +32,8 @@ sheets/
   sheet-presence.util.ts    Viewer first, rows checked out per person, initials, the tooltip text.
   sheet-presence/           Who has the sheet open, in the toolbar, and a warning when live updates are off.
     sheet-presence-badge/     One person: initials, and how many rows they have checked out.
-  sheet-takeover-button/    "Request takeover" for a row someone else has, in the action bar.
+  sheet-takeover-button/    "Request takeover" for a row someone else has, in the action bar. Asks the API whether
+                            the row can be asked for, and shows the reason instead when it can't (unpublished changes).
   sheet-takeover-requests/  Requests for the viewer's rows, under the toolbar.
     sheet-takeover-request/   One request: hand over, keep, or let the countdown hand it over.
 

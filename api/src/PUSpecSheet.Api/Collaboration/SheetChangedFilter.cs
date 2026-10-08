@@ -39,7 +39,7 @@ public sealed partial class SheetChangedFilter(SheetChangeAnnouncer announcer, I
         try
         {
             var settler = context.HttpContext.RequestServices.GetRequiredService<IRowTakeoverSettler>();
-            await settler.ReleaseSettledAsync(sheet.Id, CancellationToken.None);
+            await settler.CloseBlockedAsync(sheet.Id, CancellationToken.None);
             await announcer.AnnounceAsync(sheet, request.Headers[ConnectionHeader].FirstOrDefault(), CancellationToken.None);
         }
         catch (Exception exception) when (exception is not OperationCanceledException)

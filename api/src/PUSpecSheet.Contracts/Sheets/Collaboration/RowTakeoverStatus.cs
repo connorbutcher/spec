@@ -23,4 +23,7 @@ public enum RowTakeoverStatus
 
     /// <summary>The row stopped being checked out to them (published or discarded) before the request was answered.</summary>
     Released,
+
+    /// <summary>They changed the row before the request was settled, so it stays with them until they publish.</summary>
+    KeptForChanges,
 }

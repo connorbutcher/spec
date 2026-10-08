@@ -1,5 +1,5 @@
 @if (waiting(); as takeover) {
-  <span class="waiting" aria-live="polite">
+  <span class="note" aria-live="polite">
     Asked {{ takeover.holderName }} · yours in {{ secondsLeft() }}s if unanswered
   </span>
   <p-button
@@ -9,6 +9,11 @@
     [text]="true"
     (onClick)="withdraw(takeover)"
   />
+} @else if (blockedReason(); as reason) {
+  <span class="note" role="note">
+    <i class="pi pi-ban" aria-hidden="true"></i>
+    {{ reason }}
+  </span>
 } @else {
   <p-button
     label="Request takeover"
@@ -16,8 +21,8 @@
     size="small"
     severity="secondary"
     [outlined]="true"
-    [disabled]="isSending()"
-    pTooltip="Ask for this row. It comes to you with their unpublished changes in it."
+    [disabled]="!canRequest()"
+    pTooltip="Ask for this row. Only a row they haven't changed yet can be handed over."
     tooltipPosition="bottom"
     (onClick)="request()"
   />

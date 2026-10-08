@@ -12,12 +12,9 @@ public interface IRowCheckouts
 
     Task<bool> RowExistsAsync(int rowId, CancellationToken cancellationToken);
 
-    /// <summary>The holder of each of the given rows that is checked out, by row id.</summary>
-    Task<IReadOnlyDictionary<int, int>> HoldersAsync(IReadOnlyCollection<int> rowIds, CancellationToken cancellationToken);
-
     /// <summary>
-    /// Moves the row's draft from one user to another as it stands, unpublished changes included. False
-    /// when the first user no longer holds it, in which case nothing changes.
+    /// Moves the row's draft from one user to another. False when the first user no longer holds it, in
+    /// which case nothing changes. Callers only move a draft that has no changes in it.
     /// </summary>
     Task<bool> TransferAsync(int rowId, int fromUserId, int toUserId, CancellationToken cancellationToken);
 

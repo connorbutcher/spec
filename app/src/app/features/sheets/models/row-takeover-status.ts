@@ -6,4 +6,5 @@ export type RowTakeoverStatus =
   | 'Cancelled'
   | 'GrantedOnTimeout'
   | 'GrantedHolderAway'
-  | 'Released';
+  | 'Released'
+  | 'KeptForChanges';

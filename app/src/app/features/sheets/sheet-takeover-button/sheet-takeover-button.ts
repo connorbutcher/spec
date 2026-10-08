@@ -1,6 +1,8 @@
-import { Component, computed, inject, input, signal } from '@angular/core';
+import { httpResource } from '@angular/common/http';
+import { Component, computed, effect, inject, input, signal, untracked } from '@angular/core';
 import { ButtonModule } from 'primeng/button';
 import { TooltipModule } from 'primeng/tooltip';
+import { RowTakeoverAvailability } from '../models/row-takeover-availability.model';
 import { RowTakeover } from '../models/row-takeover.model';
 import { SheetRow } from '../models/sheet-row.model';
 import { RowTakeoverStore } from '../row-takeover.store';
@@ -8,6 +10,10 @@ import { RowTakeoverStore } from '../row-takeover.store';
 /**
  * For a row checked out to someone else: asks them to hand it over. While the request waits it shows
  * how long until it is granted unanswered, and lets the viewer withdraw it.
+ *
+ * A row its holder has changed can't be taken over until they publish, and only the server can see
+ * someone else's unpublished changes, so the button asks the server whether it applies and shows the
+ * reason in its place when it doesn't.
  */
 @Component({
   selector: 'app-sheet-takeover-button',
@@ -28,9 +34,38 @@ export class SheetTakeoverButton {
     return waiting === null ? 0 : this.takeovers.secondsLeft(waiting);
   });
 
+  /** Why the row can't be asked for, or null when it can or the answer isn't in yet. */
+  public readonly blockedReason = computed<string | null>(() => {
+    const availability = this.availability.hasValue() ? this.availability.value() : null;
+    return availability !== null && !availability.isAvailable ? availability.reason : null;
+  });
+
+  /** Nothing can be asked for until the server has said the row can be. */
+  public readonly canRequest = computed(
+    () =>
+      this.availability.hasValue() && this.availability.value().isAvailable && !this.isSending(),
+  );
+
   public readonly isSending = signal(false);
 
   private readonly takeovers = inject(RowTakeoverStore);
+
+  private readonly availability = httpResource<RowTakeoverAvailability>(
+    () => `/api/sheet-rows/${this.row().id}/takeover-availability`,
+  );
+
+  constructor() {
+    // The row is a new object whenever anything about it changes (who holds it, a publish), and its
+    // availability may have changed with it. A different row is already re-read by the resource itself.
+    let lastRow: SheetRow | null = null;
+    effect(() => {
+      const row = this.row();
+      if (lastRow !== null && lastRow.id === row.id) {
+        untracked(() => this.availability.reload());
+      }
+      lastRow = row;
+    });
+  }
 
   public async request(): Promise<void> {
     this.isSending.set(true);
@@ -38,6 +73,8 @@ export class SheetTakeoverButton {
       await this.takeovers.request(this.row().id);
     } finally {
       this.isSending.set(false);
+      // A refusal usually means the row changed under the viewer; show the current reason.
+      this.availability.reload();
     }
   }
 

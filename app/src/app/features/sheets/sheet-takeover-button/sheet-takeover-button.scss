@@ -5,7 +5,11 @@
   margin-left: 6px;
 }
 
-.waiting {
+// The countdown while a request waits, or the reason the row can't be asked for.
+.note {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   color: #6b7280;
   font-size: 0.8rem;
   font-variant-numeric: tabular-nums;

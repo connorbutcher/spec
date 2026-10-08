@@ -21,7 +21,13 @@ internal sealed class FakeRowCheckouts : IRowCheckouts
     public void CheckOut(int rowId, int sheetId, int holderUserId)
     {
         rows.Add(rowId);
-        checkedOut[rowId] = new RowCheckout(sheetId, holderUserId);
+        checkedOut[rowId] = new RowCheckout(sheetId, holderUserId, HasChanges: false);
+    }
+
+    /// <summary>The holder types something into the row.</summary>
+    public void Change(int rowId)
+    {
+        checkedOut[rowId] = checkedOut[rowId] with { HasChanges = true };
     }
 
     public void Release(int rowId)
@@ -37,14 +43,6 @@ internal sealed class FakeRowCheckouts : IRowCheckouts
     public Task<bool> RowExistsAsync(int rowId, CancellationToken cancellationToken)
     {
         return Task.FromResult(rows.Contains(rowId));
-    }
-
-    public Task<IReadOnlyDictionary<int, int>> HoldersAsync(IReadOnlyCollection<int> rowIds, CancellationToken cancellationToken)
-    {
-        IReadOnlyDictionary<int, int> holders = checkedOut
-            .Where(entry => rowIds.Contains(entry.Key))
-            .ToDictionary(entry => entry.Key, entry => entry.Value.HolderUserId);
-        return Task.FromResult(holders);
     }
 
     public Task<bool> TransferAsync(int rowId, int fromUserId, int toUserId, CancellationToken cancellationToken)
