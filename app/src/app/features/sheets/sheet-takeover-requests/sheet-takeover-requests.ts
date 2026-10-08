@@ -1,5 +1,5 @@
 import { Component, computed, inject } from '@angular/core';
-import { SheetLiveStore } from '../sheet-live.store';
+import { RowTakeoverStore } from '../row-takeover.store';
 import { SheetTakeoverRequest } from '../sheet-takeover-request/sheet-takeover-request';
 
 /** The takeover requests waiting for the viewer's answer, oldest first. Takes no room when there are none. */
@@ -11,7 +11,7 @@ import { SheetTakeoverRequest } from '../sheet-takeover-request/sheet-takeover-r
   host: { '[class.empty]': 'requests().length === 0' },
 })
 export class SheetTakeoverRequests {
-  public readonly requests = computed(() => this.live.incoming());
+  public readonly requests = computed(() => this.takeovers.incoming());
 
-  private readonly live = inject(SheetLiveStore);
+  private readonly takeovers = inject(RowTakeoverStore);
 }

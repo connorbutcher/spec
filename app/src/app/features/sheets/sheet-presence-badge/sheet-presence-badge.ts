@@ -3,6 +3,7 @@ import { AvatarModule } from 'primeng/avatar';
 import { OverlayBadgeModule } from 'primeng/overlaybadge';
 import { TooltipModule } from 'primeng/tooltip';
 import { SheetPresenceUser } from '../models/sheet-presence-user.model';
+import { initials, presenceDescription } from '../sheet-presence.util';
 
 /**
  * One person who has the sheet open: their initials, with the number of rows checked out to them as a
@@ -20,25 +21,9 @@ export class SheetPresenceBadge {
   /** How many rows the viewer can see checked out to this person. */
   public readonly checkedOutRows = input(0);
 
-  public readonly initials = computed(() =>
-    this.user()
-      .displayName.split(/\s+/)
-      .filter((word) => word !== '')
-      .slice(0, 2)
-      .map((word) => word[0].toUpperCase())
-      .join(''),
-  );
+  public readonly initials = computed(() => initials(this.user().displayName));
 
-  public readonly description = computed(() => {
-    const user = this.user();
-    const rows = this.checkedOutRows();
-    const parts = [this.isMe() ? `${user.displayName} (you)` : user.displayName];
-    if (rows > 0) {
-      parts.push(`${rows} ${rows === 1 ? 'row' : 'rows'} checked out`);
-    }
-    if (user.connectionCount > 1) {
-      parts.push(`${user.connectionCount} tabs`);
-    }
-    return parts.join(' · ');
-  });
+  public readonly description = computed(() =>
+    presenceDescription(this.user(), this.isMe(), this.checkedOutRows()),
+  );
 }

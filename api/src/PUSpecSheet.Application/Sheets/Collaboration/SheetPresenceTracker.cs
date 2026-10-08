@@ -10,14 +10,27 @@ namespace PUSpecSheet.Application.Sheets.Collaboration;
 public sealed class SheetPresenceTracker
 {
     private readonly Lock gate = new();
+
+    /// <summary>Every connection, to find what one had open when it leaves.</summary>
     private readonly Dictionary<string, SheetConnection> connections = new(StringComparer.Ordinal);
+
+    /// <summary>The same connections by sheet, so asking about one sheet doesn't read the others.</summary>
+    private readonly Dictionary<int, List<SheetConnection>> bySheet = [];
 
     /// <summary>Records that a connection has a sheet open. A connection has one sheet open at a time.</summary>
     public void Join(string connectionId, SheetConnection connection)
     {
         lock (gate)
         {
+            Remove(connectionId);
             connections[connectionId] = connection;
+            if (!bySheet.TryGetValue(connection.SheetId, out var onSheet))
+            {
+                onSheet = [];
+                bySheet[connection.SheetId] = onSheet;
+            }
+
+            onSheet.Add(connection);
         }
     }
 
@@ -26,7 +39,7 @@ public sealed class SheetPresenceTracker
     {
         lock (gate)
         {
-            return connections.Remove(connectionId, out var connection) ? connection : null;
+            return Remove(connectionId);
         }
     }
 
@@ -35,8 +48,12 @@ public sealed class SheetPresenceTracker
     {
         lock (gate)
         {
-            return connections.Values
-                .Where(connection => connection.SheetId == sheetId)
+            if (!bySheet.TryGetValue(sheetId, out var onSheet))
+            {
+                return [];
+            }
+
+            return onSheet
                 .GroupBy(connection => connection.UserId)
                 .Select(user => new SheetPresenceUserDto(user.Key, user.First().DisplayName, user.Count()))
                 .OrderBy(user => user.DisplayName, StringComparer.OrdinalIgnoreCase)
@@ -49,7 +66,28 @@ public sealed class SheetPresenceTracker
     {
         lock (gate)
         {
-            return connections.Values.Any(connection => connection.SheetId == sheetId && connection.UserId == userId);
+            return bySheet.TryGetValue(sheetId, out var onSheet)
+                && onSheet.Exists(connection => connection.UserId == userId);
         }
+    }
+
+    /// <summary>Takes a connection out of both lookups. Call with the gate held.</summary>
+    private SheetConnection? Remove(string connectionId)
+    {
+        if (!connections.Remove(connectionId, out var connection))
+        {
+            return null;
+        }
+
+        var onSheet = bySheet[connection.SheetId];
+
+        // Two tabs of one person on one sheet are equal records; either one is the right one to drop.
+        onSheet.Remove(connection);
+        if (onSheet.Count == 0)
+        {
+            bySheet.Remove(connection.SheetId);
+        }
+
+        return connection;
     }
 }

@@ -18,7 +18,10 @@ public static class CollaborationServiceCollectionExtensions
         services.AddSingleton<SheetChangeAnnouncer>();
 
         services.AddScoped<ISheetPresenceService, SheetPresenceService>();
+        services.AddScoped<IRowCheckouts, RowCheckouts>();
+        services.AddScoped<RowTakeoverCloser>();
         services.AddScoped<IRowTakeoverService, RowTakeoverService>();
+        services.AddScoped<IRowTakeoverSettler, RowTakeoverSettler>();
 
         return services;
     }

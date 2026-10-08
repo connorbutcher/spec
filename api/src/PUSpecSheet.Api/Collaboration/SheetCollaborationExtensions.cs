@@ -24,7 +24,7 @@ public static class SheetCollaborationExtensions
         services.AddSingleton<ISheetLiveNotifier, SignalRSheetLiveNotifier>();
         services.AddHostedService<RowTakeoverExpiryWorker>();
 
-        services.AddScoped<SheetChangedFilter>();
+        services.AddSingleton<SheetChangedFilter>();
         services.Configure<MvcOptions>(options => options.Filters.AddService<SheetChangedFilter>());
 
         return services;

@@ -1,35 +1,18 @@
-import { provideHttpClient } from '@angular/common/http';
-import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ApplicationRef, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { MessageService } from 'primeng/api';
 import { CurrentUserStore } from '../../core/auth/current-user.store';
 import { RowTakeover } from './models/row-takeover.model';
 import { SheetConnectionState } from './models/sheet-connection-state';
 import { SheetHubHandlers } from './models/sheet-hub-handlers.model';
 import { SheetLiveState } from './models/sheet-live-state.model';
+import { fixtureTakeover } from './row-takeover.fixture';
+import { RowTakeoverStore } from './row-takeover.store';
 import { SheetHub } from './sheet-hub';
 import { SheetLiveStore } from './sheet-live.store';
 import { SheetStore } from './sheet.store';
 
 const ME = 1;
 const SHEET_ID = 5;
-
-function takeover(change: Partial<RowTakeover> = {}): RowTakeover {
-  return {
-    id: 'a',
-    sheetId: SHEET_ID,
-    rowId: 10,
-    requesterUserId: 2,
-    requesterName: 'Engineer Two',
-    holderUserId: ME,
-    holderName: 'Developer',
-    requestedAtUtc: '2026-10-07T12:00:00Z',
-    expiresAtUtc: '2026-10-07T12:01:00Z',
-    status: 'Pending',
-    ...change,
-  };
-}
 
 /** Stands in for the SignalR connection: the test plays the server. */
 class FakeSheetHub {
@@ -55,10 +38,9 @@ class FakeSheetHub {
 describe('SheetLiveStore', () => {
   let live: SheetLiveStore;
   let hub: FakeSheetHub;
-  let http: HttpTestingController;
   let refreshes: number;
-  let messages: MessageService;
-  const sheetError = signal<string | null>(null);
+  let resets: RowTakeover[][];
+  let applied: RowTakeover[];
 
   async function settle(): Promise<void> {
     TestBed.inject(ApplicationRef).tick();
@@ -69,50 +51,65 @@ describe('SheetLiveStore', () => {
   beforeEach(async () => {
     hub = new FakeSheetHub();
     refreshes = 0;
-    sheetError.set(null);
+    resets = [];
+    applied = [];
     TestBed.configureTestingModule({
       providers: [
-        provideHttpClient(),
-        provideHttpClientTesting(),
-        MessageService,
         SheetLiveStore,
         { provide: SheetHub, useValue: hub },
         {
           provide: SheetStore,
+          useValue: { sheet: signal({ id: SHEET_ID }), refresh: () => refreshes++ },
+        },
+        {
+          provide: RowTakeoverStore,
           useValue: {
-            sheet: signal({ id: SHEET_ID }),
-            error: sheetError,
-            refresh: () => refreshes++,
+            reset: (waiting: RowTakeover[]) => resets.push(waiting),
+            apply: (takeover: RowTakeover) => applied.push(takeover),
           },
         },
         { provide: CurrentUserStore, useValue: { user: signal({ id: ME }) } },
       ],
     });
     live = TestBed.inject(SheetLiveStore);
-    http = TestBed.inject(HttpTestingController);
-    messages = TestBed.inject(MessageService);
-    vi.spyOn(messages, 'add');
     await settle();
   });
 
   afterEach(() => {
-    http.verify();
     TestBed.resetTestingModule();
   });
 
   it('joins the open sheet once connected, and takes in who is there', async () => {
     expect(hub.joined).toEqual([]);
 
+    const waiting = fixtureTakeover();
     hub.onJoin = {
       users: [{ userId: ME, displayName: 'Developer', connectionCount: 1 }],
-      takeovers: [takeover()],
+      takeovers: [waiting],
     };
     hub.state.set('connected');
     await settle();
 
     expect(hub.joined).toEqual([SHEET_ID]);
     expect(live.users().map((user) => user.displayName)).toEqual(['Developer']);
-    expect(live.incoming().map((request) => request.id)).toEqual(['a']);
+    expect(resets.at(-1)).toEqual([waiting]);
+    expect(live.viewerId()).toBe(ME);
+  });
+
+  it('shows nobody while the connection is down', async () => {
+    hub.onJoin = {
+      users: [{ userId: ME, displayName: 'Developer', connectionCount: 1 }],
+      takeovers: [],
+    };
+    hub.state.set('connected');
+    await settle();
+
+    hub.state.set('reconnecting');
+    await settle();
+
+    expect(live.users()).toEqual([]);
+    expect(live.connectionState()).toBe('reconnecting');
+    expect(resets.at(-1)).toEqual([]);
   });
 
   it('joins again after a reconnection and catches up on the sheet', async () => {
@@ -135,68 +132,17 @@ describe('SheetLiveStore', () => {
     expect(refreshes).toBe(1);
   });
 
-  it('lists a request for a row of mine until it is settled, then says what happened', () => {
-    hub.handlers?.takeoverChanged(takeover());
-    expect(live.incoming()).toHaveLength(1);
-    expect(live.outgoingByRow().size).toBe(0);
+  it('takes in who is there as people come and go', () => {
+    hub.handlers?.presenceChanged([{ userId: 2, displayName: 'Engineer Two', connectionCount: 2 }]);
 
-    hub.handlers?.takeoverChanged(takeover({ status: 'GrantedOnTimeout' }));
-
-    expect(live.incoming()).toHaveLength(0);
-    expect(messages.add).toHaveBeenCalledWith(
-      expect.objectContaining({ severity: 'warn', summary: 'Row taken over', sticky: true }),
-    );
+    expect(live.users()).toEqual([{ userId: 2, displayName: 'Engineer Two', connectionCount: 2 }]);
   });
 
-  it('announces a settled request once, however many times it hears of it', async () => {
-    const mine = takeover({ requesterUserId: ME, holderUserId: 2, holderName: 'Engineer Two' });
+  it('hands takeover requests to the takeover store', () => {
+    const takeover = fixtureTakeover();
 
-    const asking = live.request(mine.rowId);
-    http.expectOne('/api/sheet-rows/10/takeover-requests').flush(mine);
-    await asking;
-    expect(live.outgoingByRow().get(10)?.id).toBe('a');
+    hub.handlers?.takeoverChanged(takeover);
 
-    hub.handlers?.takeoverChanged({ ...mine, status: 'Approved' });
-    hub.handlers?.takeoverChanged({ ...mine, status: 'Approved' });
-
-    expect(live.outgoingByRow().size).toBe(0);
-    expect(messages.add).toHaveBeenCalledTimes(1);
-  });
-
-  it('shows why a request could not be made', async () => {
-    const asking = live.request(10);
-    http
-      .expectOne('/api/sheet-rows/10/takeover-requests')
-      .flush(
-        { detail: 'Engineer Three has already asked to take over this row.' },
-        { status: 409, statusText: 'Conflict' },
-      );
-    await asking;
-
-    expect(sheetError()).toBe('Engineer Three has already asked to take over this row.');
-  });
-
-  it('drops a request that had already gone when it was answered', async () => {
-    hub.handlers?.takeoverChanged(takeover());
-
-    const answering = live.approve(live.incoming()[0]);
-    http
-      .expectOne('/api/row-takeovers/a/approve')
-      .flush(
-        { detail: 'That request is no longer open.' },
-        { status: 404, statusText: 'Not Found' },
-      );
-    await answering;
-
-    expect(live.incoming()).toHaveLength(0);
-  });
-
-  it('counts down to the moment an unanswered request is granted', () => {
-    live.now.set(Date.parse('2026-10-07T12:00:18.200Z'));
-
-    expect(live.secondsLeft(takeover())).toBe(42);
-
-    live.now.set(Date.parse('2026-10-07T12:02:00Z'));
-    expect(live.secondsLeft(takeover())).toBe(0);
+    expect(applied).toEqual([takeover]);
   });
 });

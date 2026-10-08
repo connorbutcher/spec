@@ -1,7 +1,14 @@
 import { fixtureCell, fixtureRow, fixtureSection, fixtureTable } from './sheet-structure.fixture';
-import { changeLabel, sectionLabel, tableLabel, versionLabel } from './sheet-labels.util';
+import { changeLabel, rowLabel, sectionLabel, tableLabel, versionLabel } from './sheet-labels.util';
 
 describe('sheet labels', () => {
+  it('names a row after the first text typed into it, if there is any', () => {
+    const named = fixtureRow([fixtureCell(1), { ...fixtureCell(2), textValue: 'Stem diameter' }]);
+
+    expect(rowLabel(named)).toBe('Stem diameter');
+    expect(rowLabel(fixtureRow([fixtureCell(1)]))).toBeNull();
+  });
+
   it('names a section after its template, plus the first text typed into it', () => {
     const empty = fixtureSection('Group', 'Addable', [fixtureRow([fixtureCell(1)])]);
     const named = fixtureSection('Group', 'Addable', [

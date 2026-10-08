@@ -22,9 +22,14 @@ sheets/
       sheet-publish-scope/      The choice between my own changes and everything pending, with counts.
   sheet-load-error/         "Couldn't load the sheet" with a retry.
 
-  sheet-live.store.ts       Multi-user state: who has the sheet open, takeover requests. Provided by SheetPage.
-  sheet-hub.ts              The SignalR connection behind it. Reconnects by itself for as long as the page is open.
+  sheet-live.store.ts       Who has the sheet open, and hearing that it changed. Provided by SheetPage.
+  sheet-hub.ts              The SignalR connection behind it; the only file that knows SignalR. Reconnects by itself.
+  sheet-hub-messages.ts     The message names shared with the API hub.
+  row-takeover.store.ts     Takeover requests the viewer made or has to answer. Provided by SheetPage.
   row-takeovers-api.ts      Ask for a row, hand it over, keep it, withdraw.
+  row-takeover.util.ts      The countdown, and adding to and removing from the list of requests.
+  takeover-notice.util.ts   What to tell each person when a request is settled.
+  sheet-presence.util.ts    Viewer first, rows checked out per person, initials, the tooltip text.
   sheet-presence/           Who has the sheet open, in the toolbar, and a warning when live updates are off.
     sheet-presence-badge/     One person: initials, and how many rows they have checked out.
   sheet-takeover-button/    "Request takeover" for a row someone else has, in the action bar.
@@ -78,7 +83,7 @@ user action ─► component ─► store method ─► SheetsApi ─► whole l
   this in mind: never mutate a sheet object, and don't put a fresh object or array in a hot `computed`
   unless it really changed.
 - **Other people's changes** arrive as a nudge, not as data: the server says "this sheet changed" over
-  the live connection and `SheetLiveStore` calls `store.refresh()`, which reads the sheet again after
+  the live connection (`SheetHub` → `SheetLiveStore`), and `SheetLiveStore` calls `store.refresh()`, which reads the sheet again after
   the user's own writes have landed and keeps unchanged objects, so a cell being typed into is not
   disturbed. Who a row is checked out to is only ever what the sheet says (`row.lock`).
 - **Components find their data by id.** A grid component gets a layout item as its input and looks

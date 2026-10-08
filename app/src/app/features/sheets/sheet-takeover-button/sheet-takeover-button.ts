@@ -3,7 +3,7 @@ import { ButtonModule } from 'primeng/button';
 import { TooltipModule } from 'primeng/tooltip';
 import { RowTakeover } from '../models/row-takeover.model';
 import { SheetRow } from '../models/sheet-row.model';
-import { SheetLiveStore } from '../sheet-live.store';
+import { RowTakeoverStore } from '../row-takeover.store';
 
 /**
  * For a row checked out to someone else: asks them to hand it over. While the request waits it shows
@@ -20,28 +20,28 @@ export class SheetTakeoverButton {
 
   /** The viewer's request for this row, while it waits for an answer. */
   public readonly waiting = computed<RowTakeover | null>(
-    () => this.live.outgoingByRow().get(this.row().id) ?? null,
+    () => this.takeovers.outgoingByRow().get(this.row().id) ?? null,
   );
 
   public readonly secondsLeft = computed(() => {
     const waiting = this.waiting();
-    return waiting === null ? 0 : this.live.secondsLeft(waiting);
+    return waiting === null ? 0 : this.takeovers.secondsLeft(waiting);
   });
 
   public readonly isSending = signal(false);
 
-  private readonly live = inject(SheetLiveStore);
+  private readonly takeovers = inject(RowTakeoverStore);
 
   public async request(): Promise<void> {
     this.isSending.set(true);
     try {
-      await this.live.request(this.row().id);
+      await this.takeovers.request(this.row().id);
     } finally {
       this.isSending.set(false);
     }
   }
 
   public withdraw(takeover: RowTakeover): void {
-    void this.live.cancel(takeover);
+    void this.takeovers.cancel(takeover);
   }
 }

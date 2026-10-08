@@ -4,9 +4,9 @@ using PUSpecSheet.Contracts.Sheets.Collaboration;
 namespace PUSpecSheet.Application.Sheets.Collaboration;
 
 /// <summary>
-/// Asking for, answering and settling requests to take over a row that is checked out to someone else.
-/// A takeover moves the row's draft to the requester as it stands, so the holder's unpublished changes go
-/// with it. The draft in the database stays the only record of who a row is checked out to.
+/// What people do with takeover requests: ask for a row that is checked out to someone else, answer a
+/// request for one of their own rows, or withdraw a request they made. A takeover moves the row's draft
+/// to the requester as it stands, so the holder's unpublished changes go with it.
 /// </summary>
 public interface IRowTakeoverService
 {
@@ -20,20 +20,17 @@ public interface IRowTakeoverService
     Task<RowTakeoverDto> RequestAsync(int rowId, CancellationToken cancellationToken);
 
     /// <summary>The holder hands the row over.</summary>
+    /// <exception cref="NotFoundException">The request is no longer open.</exception>
+    /// <exception cref="InvalidRequestException">The current user is not the holder.</exception>
     Task<RowTakeoverDto> ApproveAsync(Guid takeoverId, CancellationToken cancellationToken);
 
     /// <summary>The holder keeps the row.</summary>
+    /// <exception cref="NotFoundException">The request is no longer open.</exception>
+    /// <exception cref="InvalidRequestException">The current user is not the holder.</exception>
     Task<RowTakeoverDto> DenyAsync(Guid takeoverId, CancellationToken cancellationToken);
 
     /// <summary>The requester withdraws the request.</summary>
+    /// <exception cref="NotFoundException">The request is no longer open.</exception>
+    /// <exception cref="InvalidRequestException">The current user is not the requester.</exception>
     Task<RowTakeoverDto> CancelAsync(Guid takeoverId, CancellationToken cancellationToken);
-
-    /// <summary>Grants every request whose holder has not answered in time.</summary>
-    Task GrantOverdueAsync(CancellationToken cancellationToken);
-
-    /// <summary>
-    /// Closes the requests on a sheet whose row is no longer checked out to the holder, because they
-    /// published or discarded it while the request was waiting.
-    /// </summary>
-    Task ReleaseSettledAsync(int sheetId, CancellationToken cancellationToken);
 }

@@ -11,6 +11,7 @@ import { Breadcrumb } from '../../../shared/components/breadcrumb/breadcrumb';
 import { BreadcrumbItem } from '../../../shared/components/breadcrumb/breadcrumb-item.model';
 import { EmptyState } from '../../../shared/components/empty-state/empty-state';
 import { PhasesStore } from '../../phases/phases.store';
+import { RowTakeoverStore } from '../row-takeover.store';
 import { SheetHub } from '../sheet-hub';
 import { SheetLiveStore } from '../sheet-live.store';
 import { SheetLoadError } from '../sheet-load-error/sheet-load-error';
@@ -44,7 +45,14 @@ import { SheetStore } from '../sheet.store';
     SkeletonModule,
     ToastModule,
   ],
-  providers: [ConfirmationService, MessageService, SheetHub, SheetLiveStore, SheetStore],
+  providers: [
+    ConfirmationService,
+    MessageService,
+    RowTakeoverStore,
+    SheetHub,
+    SheetLiveStore,
+    SheetStore,
+  ],
   templateUrl: './sheet-page.html',
   styleUrl: './sheet-page.scss',
 })

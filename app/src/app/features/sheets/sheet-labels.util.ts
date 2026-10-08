@@ -1,4 +1,5 @@
 import { SheetChange } from './models/sheet-change.model';
+import { SheetRow } from './models/sheet-row.model';
 import { SheetSection } from './models/sheet-section.model';
 import { SheetTable } from './models/sheet-table.model';
 
@@ -12,6 +13,11 @@ export function sectionLabel(section: SheetSection): string {
     .map((cell) => cell.textValue)
     .find((text) => !!text);
   return firstText ? `${section.name} · ${firstText}` : section.name;
+}
+
+/** What to call a row when talking about it: the first text typed into it, or null when it has none. */
+export function rowLabel(row: SheetRow): string | null {
+  return row.cells.map((cell) => cell.textValue).find((text) => !!text) ?? null;
 }
 
 /** "v3 · 12 Sep 2026 · A. Smith": which publish changed something, when and by whom. */

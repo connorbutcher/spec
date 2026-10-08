@@ -4,6 +4,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { SheetPresenceUser } from '../models/sheet-presence-user.model';
 import { SheetLiveStore } from '../sheet-live.store';
 import { SheetPresenceBadge } from '../sheet-presence-badge/sheet-presence-badge';
+import { checkedOutRowCounts, viewerFirst } from '../sheet-presence.util';
 import { SheetStore } from '../sheet.store';
 
 /**
@@ -19,21 +20,14 @@ import { SheetStore } from '../sheet.store';
 export class SheetPresence {
   public readonly viewerId = computed(() => this.live.viewerId());
 
-  public readonly users = computed<SheetPresenceUser[]>(() => {
-    const me = this.viewerId();
-    return [...this.live.users()].sort((a, b) => Number(b.userId === me) - Number(a.userId === me));
-  });
+  public readonly users = computed<SheetPresenceUser[]>(() =>
+    viewerFirst(this.live.users(), this.viewerId()),
+  );
 
   /** Rows checked out, by the id of the user they are checked out to. */
-  public readonly checkedOutRows = computed<ReadonlyMap<number, number>>(() => {
-    const counts = new Map<number, number>();
-    for (const row of this.store.index().rows.values()) {
-      if (row.lock !== null) {
-        counts.set(row.lock.userId, (counts.get(row.lock.userId) ?? 0) + 1);
-      }
-    }
-    return counts;
-  });
+  public readonly checkedOutRows = computed(() =>
+    checkedOutRowCounts(this.store.index().rows.values()),
+  );
 
   /** Set while changes are not arriving live. */
   public readonly offlineLabel = computed(() => {

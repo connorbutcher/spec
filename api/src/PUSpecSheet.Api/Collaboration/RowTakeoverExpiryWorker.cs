@@ -27,7 +27,7 @@ public sealed partial class RowTakeoverExpiryWorker(
             try
             {
                 await using var scope = scopes.CreateAsyncScope();
-                await scope.ServiceProvider.GetRequiredService<IRowTakeoverService>().GrantOverdueAsync(stoppingToken);
+                await scope.ServiceProvider.GetRequiredService<IRowTakeoverSettler>().GrantOverdueAsync(stoppingToken);
             }
             catch (Exception exception) when (exception is not OperationCanceledException)
             {

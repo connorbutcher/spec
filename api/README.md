@@ -55,7 +55,18 @@ Several people can have a sheet open and edit it at once. A row's checkout is st
 
 - **Presence.** A browser keeps one connection to `SheetHub` (`/hubs/sheets`) and calls `JoinSheet` for the sheet it has open. `SheetPresenceTracker` holds connections by sheet in memory and everyone on the sheet is told when the list changes.
 - **Live checkouts.** Every action that changes a sheet already answers with the refreshed `SheetDto`. `SheetChangedFilter` looks at that answer and, when something other people can see has changed (who a row is checked out to, or the latest version; see `SheetLockSignature`), tells the sheet's group to read it again. The hub sends no sheet data, because each person sees a different view. A new editing endpoint needs nothing extra as long as it returns `SheetDto`.
-- **Takeovers.** `RowTakeoverService` lets someone ask for a row that is checked out to another person (`RowTakeoversController`). The holder approves or denies; a request nobody answers within `RowTakeover:ResponseSeconds` (60) is granted by `RowTakeoverExpiryWorker`, and it is granted straight away when the holder doesn't have the sheet open. Granting moves the row's draft to the requester as it stands, so the holder's unpublished changes go with it. Waiting requests are in memory (`RowTakeoverStore`): they last a minute and only matter to connected people.
+- **Takeovers.** Someone can ask for a row that is checked out to another person (`RowTakeoversController`). The holder approves or denies; a request nobody answers within `RowTakeover:ResponseSeconds` (60) is granted, and it is granted straight away when the holder doesn't have the sheet open. Granting moves the row's draft to the requester as it stands, so the holder's unpublished changes go with it. Waiting requests are in memory (`RowTakeoverStore`): they last a minute and only matter to connected people.
+
+The takeover code is four small classes, so each rule has one place:
+
+| Class | Its one job |
+| --- | --- |
+| `RowTakeoverService` | What people do: ask, approve, deny, withdraw. Checks who is allowed to. |
+| `RowTakeoverSettler` | What nobody does: grants requests that ran out of time (called by `RowTakeoverExpiryWorker`) and closes ones whose row was released (called by `SheetChangedFilter`). |
+| `RowTakeoverCloser` | Ends a request, whichever way it ends: hands the row over if it should, and tells the two people. |
+| `RowCheckouts` (`IRowCheckouts`) | The only database access: who holds a row, and moving its draft. `RowTakeoverTests` swaps it for a fake, so the rules are tested without a database. |
+
+A request is always taken out of `RowTakeoverStore` before it is settled; that is what stops an answer and the timeout both settling it. To add a way for a request to end, add a `RowTakeoverStatus`, call `RowTakeoverCloser` from the service or the settler, and add its wording to `takeover-notice.util.ts` in the UI.
 
 The hub takes who a connection is from its signed-in user (`ClaimsPrincipalExtensions.FindUserId`), and `ICurrentUser` reads the same claim, so replacing the developer sign-in with real authentication changes neither. All of this state is per process: running more than one API instance would need a SignalR backplane and a shared store for presence and waiting requests.
 

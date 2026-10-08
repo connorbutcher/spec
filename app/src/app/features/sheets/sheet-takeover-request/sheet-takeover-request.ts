@@ -2,7 +2,8 @@ import { Component, computed, inject, input } from '@angular/core';
 import { ButtonModule } from 'primeng/button';
 import { MessageModule } from 'primeng/message';
 import { RowTakeover } from '../models/row-takeover.model';
-import { SheetLiveStore } from '../sheet-live.store';
+import { RowTakeoverStore } from '../row-takeover.store';
+import { rowLabel } from '../sheet-labels.util';
 import { SheetStore } from '../sheet.store';
 
 /**
@@ -18,16 +19,16 @@ import { SheetStore } from '../sheet.store';
 export class SheetTakeoverRequest {
   public readonly takeover = input.required<RowTakeover>();
 
-  public readonly secondsLeft = computed(() => this.live.secondsLeft(this.takeover()));
+  public readonly secondsLeft = computed(() => this.takeovers.secondsLeft(this.takeover()));
 
   /** The row by the first text typed into it, so the viewer knows which one is meant. */
   public readonly rowName = computed(() => {
     const row = this.store.index().rows.get(this.takeover().rowId);
-    const text = row?.cells.map((cell) => cell.textValue).find((value) => !!value);
-    return text ? `the row "${text}"` : 'a row';
+    const label = row ? rowLabel(row) : null;
+    return label ? `the row "${label}"` : 'a row';
   });
 
-  private readonly live = inject(SheetLiveStore);
+  private readonly takeovers = inject(RowTakeoverStore);
   private readonly store = inject(SheetStore);
 
   public showRow(): void {
@@ -35,10 +36,10 @@ export class SheetTakeoverRequest {
   }
 
   public handOver(): void {
-    void this.live.approve(this.takeover());
+    void this.takeovers.approve(this.takeover());
   }
 
   public keep(): void {
-    void this.live.deny(this.takeover());
+    void this.takeovers.deny(this.takeover());
   }
 }
