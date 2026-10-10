@@ -2,10 +2,14 @@ import { Component, computed, inject, input } from '@angular/core';
 import { SectionLayout } from '../../templates/models/section-layout.model';
 import { SheetAddMenu } from '../sheet-add-menu/sheet-add-menu';
 import { SheetGridCell } from '../sheet-grid-cell/sheet-grid-cell';
+import { CellLayout } from '../../templates/models/cell-layout.model';
 import { RowLayout } from '../models/row-layout.model';
 import { SheetChange } from '../models/sheet-change.model';
 import { SheetChangeTag } from '../sheet-change-tag/sheet-change-tag';
 import { isGroupSection, sectionAncestors } from '../sheet-index.util';
+import { SheetRowStatusCell } from '../sheet-row-status-cell/sheet-row-status-cell';
+import { rowStatusStyle, statusHeadingStyle } from '../sheet-status-column.util';
+import { SheetStatusHeading } from '../sheet-status-heading/sheet-status-heading';
 import { SheetStore } from '../sheet.store';
 
 /**
@@ -18,7 +22,7 @@ import { SheetStore } from '../sheet.store';
  */
 @Component({
   selector: 'app-sheet-grid-section',
-  imports: [SheetAddMenu, SheetChangeTag, SheetGridCell],
+  imports: [SheetAddMenu, SheetChangeTag, SheetGridCell, SheetRowStatusCell, SheetStatusHeading],
   templateUrl: './sheet-grid-section.html',
   styleUrl: './sheet-grid-section.scss',
   host: {
@@ -33,16 +37,24 @@ import { SheetStore } from '../sheet.store';
 export class SheetGridSection {
   public readonly layout = input.required<SectionLayout>();
 
-  /** The section's cells gathered into their rows. */
+  /** Where the status column's heading sits, in the header section. */
+  public readonly headingStyle = statusHeadingStyle();
+
+  /** The section's rows, each with its cells and the place of its status in the status column. */
   public readonly rows = computed<RowLayout[]>(() => {
-    const rows = new Map<number, RowLayout>();
+    const cells = new Map<number, CellLayout[]>();
     for (const cell of this.layout().cells) {
-      const row = rows.get(cell.rowId) ?? { rowId: cell.rowId, cells: [] };
-      row.cells.push(cell);
-      rows.set(cell.rowId, row);
+      cells.set(cell.rowId, [...(cells.get(cell.rowId) ?? []), cell]);
     }
-    return [...rows.values()];
+    return this.layout().section.rows.map((row, index) => ({
+      rowId: row.id,
+      cells: cells.get(row.id) ?? [],
+      statusStyle: rowStatusStyle(index),
+    }));
   });
+
+  /** The header's rows are captions, not data: the status column shows its heading beside them. */
+  public readonly isHeader = computed(() => this.layout().section.role === 'Header');
 
   public readonly role = computed(() => (this.isNested() ? 'none' : 'rowgroup'));
 

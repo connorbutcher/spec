@@ -39,6 +39,13 @@
   --app-grid-mark: #64748b;
   --app-grid-warning: #b45309;
 
+  // An item's state, coloured by whose it is: the viewer's, someone else's, waiting for an approver,
+  // or in the publish that is running.
+  --app-status-mine: #2f5fa3;
+  --app-status-theirs: #92600f;
+  --app-status-approval: #6d4fb3;
+  --app-status-publishing: #0f766e;
+
   // On the navy rail.
   --app-on-dark: #fff;
   --app-on-dark-text: #cbd5e1;

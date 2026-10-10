@@ -1,6 +1,7 @@
 import { PublishScopeOption } from './models/publish-scope-option.model';
 import { PublishScope } from './models/publish-scope';
 import { SheetDraftSummary } from './models/sheet-draft-summary.model';
+import { draftCountLabel } from './sheet-labels.util';
 
 /** How many changes other people have waiting on the sheet. */
 export function otherDraftCount(others: readonly SheetDraftSummary[]): number {
@@ -14,6 +15,20 @@ export function otherDraftsLabel(others: readonly SheetDraftSummary[]): string {
     return parts.join('');
   }
   return `${parts.slice(0, -1).join(', ')} and ${parts[parts.length - 1]}`;
+}
+
+/**
+ * "3 drafts by A. Smith", or "4 drafts by others: 3 by A. Smith and 1 by B. Jones": what other people
+ * have waiting on the sheet, in one line. Null when nobody else has anything waiting.
+ */
+export function otherDraftsSummary(others: readonly SheetDraftSummary[]): string | null {
+  if (others.length === 0) {
+    return null;
+  }
+  const total = draftCountLabel(otherDraftCount(others));
+  return others.length === 1
+    ? `${total} by ${others[0].userName}`
+    : `${total} by others: ${otherDraftsLabel(others)}`;
 }
 
 /**

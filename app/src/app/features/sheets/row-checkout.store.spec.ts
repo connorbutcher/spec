@@ -26,8 +26,18 @@ describe('RowCheckoutStore', () => {
       { rowId: 11, userId: 2, userName: 'Engineer Two' },
     ]);
 
-    expect(store.locks().get(10)).toEqual({ userId: 1, userName: 'Developer', isMine: true });
-    expect(store.locks().get(11)).toEqual({ userId: 2, userName: 'Engineer Two', isMine: false });
+    expect(store.locks().get(10)).toEqual({
+      userId: 1,
+      userName: 'Developer',
+      isMine: true,
+      isCheckout: true,
+    });
+    expect(store.locks().get(11)).toEqual({
+      userId: 2,
+      userName: 'Engineer Two',
+      isMine: false,
+      isCheckout: true,
+    });
   });
 
   it('replaces the list each time the server sends one', () => {

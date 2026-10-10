@@ -1,0 +1,10 @@
+// Pinned at the table's left edge, over the cells that scroll under it. The darker rule on its right
+// sets the column apart from the data.
+:host {
+  position: sticky;
+  left: 0;
+  z-index: 4;
+  align-items: center;
+  padding: 0 var(--app-space-3);
+  border-right-color: var(--app-grid-edge);
+}

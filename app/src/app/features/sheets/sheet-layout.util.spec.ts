@@ -15,10 +15,10 @@ describe('layoutSheetTable', () => {
     expect(layout.sections[1].style['grid-row']).toBe('2 / span 2');
   });
 
-  it('places a spanning cell across all five columns', () => {
+  it('places a spanning cell across all five columns, after the status column', () => {
     const layout = layoutSheetTable(fixtureTable());
     const groupCell = layout.sections[1].cells[0];
-    expect(groupCell.style['grid-column']).toBe('1 / span 5');
+    expect(groupCell.style['grid-column']).toBe('2 / span 5');
   });
 
   it('keeps the sheet ids on what it lays out, so cells can be matched back', () => {

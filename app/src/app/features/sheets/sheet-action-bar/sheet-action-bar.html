@@ -35,48 +35,44 @@
     </div>
 
     @if (row(); as row) {
-      @if (hasSeveralRows() || lockedByOther()) {
-        <div class="group" role="group" aria-label="Row">
-          @if (lockedByOther() && row.lock) {
-            <span class="locked">
-              <i class="pi pi-lock" aria-hidden="true"></i>
-              Being edited by {{ row.lock.userName }}
-            </span>
-            @if (canEdit()) {
-              <app-sheet-takeover-button [row]="row" />
-            }
-          }
-          @if (row.canRemove && hasSeveralRows()) {
-            <p-button
-              icon="pi pi-arrow-up"
-              size="small"
-              severity="secondary"
-              [text]="true"
-              [disabled]="!canMoveRowUp() || isBusy() || lockedByOther()"
-              ariaLabel="Move the row up"
-              (onClick)="moveRow(-1)"
-            />
-            <p-button
-              icon="pi pi-arrow-down"
-              size="small"
-              severity="secondary"
-              [text]="true"
-              [disabled]="!canMoveRowDown() || isBusy() || lockedByOther()"
-              ariaLabel="Move the row down"
-              (onClick)="moveRow(1)"
-            />
-            <p-button
-              icon="pi pi-trash"
-              size="small"
-              severity="secondary"
-              [text]="true"
-              [disabled]="isBusy() || lockedByOther()"
-              ariaLabel="Remove the row"
-              (onClick)="askRemoveRow($event)"
-            />
-          }
-        </div>
-      }
+      <div class="group" role="group" aria-label="Row">
+        @if (rowStatus(); as status) {
+          <span class="row-label">Row</span>
+          <app-sheet-status [status]="status" />
+        }
+        @if (lockedByOther() && canEdit()) {
+          <app-sheet-takeover-button [row]="row" />
+        }
+        @if (row.canRemove && hasSeveralRows()) {
+          <p-button
+            icon="pi pi-arrow-up"
+            size="small"
+            severity="secondary"
+            [text]="true"
+            [disabled]="!canMoveRowUp() || isBusy() || lockedByOther()"
+            ariaLabel="Move the row up"
+            (onClick)="moveRow(-1)"
+          />
+          <p-button
+            icon="pi pi-arrow-down"
+            size="small"
+            severity="secondary"
+            [text]="true"
+            [disabled]="!canMoveRowDown() || isBusy() || lockedByOther()"
+            ariaLabel="Move the row down"
+            (onClick)="moveRow(1)"
+          />
+          <p-button
+            icon="pi pi-trash"
+            size="small"
+            severity="secondary"
+            [text]="true"
+            [disabled]="isBusy() || lockedByOther()"
+            ariaLabel="Remove the row"
+            (onClick)="askRemoveRow($event)"
+          />
+        }
+      </div>
     }
   </div>
 } @else {

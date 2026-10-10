@@ -50,7 +50,7 @@ const FLEX_ALIGNMENT: Readonly<Record<string, string>> = {
  * Moving into a control checks the row out to the user for as long as they stay in it, without saving
  * anything (`SheetLiveStore` does this from `store.editingCellId`); the first change that makes a real
  * difference to what is published is what keeps it theirs until they publish. A row checked out to
- * someone else, or a past version, only ever shows plain values, with a lock mark on the row's first cell.
+ * someone else, or a past version, only ever shows plain values; the status column says who has the row.
  *
  * This component decides what the cell is and where it sits; the editor, the plain value and the
  * marks over the cell are each their own component.
@@ -61,6 +61,7 @@ const FLEX_ALIGNMENT: Readonly<Record<string, string>> = {
   templateUrl: './sheet-grid-cell.html',
   styleUrl: './sheet-grid-cell.scss',
   host: {
+    class: 'app-grid-cell',
     '[attr.role]': 'role()',
     '[style]': 'hostStyle()',
     '[class.selected]': 'isSelected()',
@@ -228,23 +229,7 @@ export class SheetGridCell {
     this.store.markedChange(this.cell()?.lastChange),
   );
 
-  /** On the row's first cell: the row changed after the version being compared against. */
-  public readonly rowChange = computed<SheetChange | null>(() =>
-    this.isFirstInRow() ? this.store.markedChange(this.row()?.lastChange) : null,
-  );
-
-  /** On the row's first cell: who else is editing the row. Your own rows are only tinted. */
-  public readonly lockedBy = computed<string | null>(() =>
-    this.isFirstInRow() ? (otherUsersLock(this.row()?.lock)?.userName ?? null) : null,
-  );
-
-  public readonly hasMarks = computed(
-    () =>
-      this.cellChange() !== null ||
-      this.rowChange() !== null ||
-      this.lockedBy() !== null ||
-      this.warning() !== null,
-  );
+  public readonly hasMarks = computed(() => this.cellChange() !== null || this.warning() !== null);
 
   private readonly store = inject(SheetStore);
   private readonly element = inject<ElementRef<HTMLElement>>(ElementRef);
@@ -256,11 +241,6 @@ export class SheetGridCell {
       ? cellStyleCss(effectiveStyle(cellType.style, this.layout().cell.styleOverride))
       : {};
   });
-
-  /** Row-level marks are drawn once, on the row's first cell. */
-  private readonly isFirstInRow = computed(
-    () => this.row()?.cells[0]?.id === this.layout().cell.id,
-  );
 
   /**
    * The user pressed on the cell or tabbed to it: put its control on screen and move into it, as if

@@ -1,57 +1,14 @@
-// Same hairline borders as the template preview, so a sheet looks like its template. Background, text
-// colour, weight, italics and alignment come from the cell's effective style (inline).
-:host {
-  position: relative;
-  display: flex;
-  min-width: 0;
-  min-height: var(--app-cell-min-height);
-  border-right: 1px solid var(--app-grid-line);
-  border-bottom: 1px solid var(--app-grid-line);
-  background: var(--app-surface);
-  cursor: default;
-
-  &:focus-visible {
-    outline: 2px solid var(--app-navy);
-    outline-offset: -2px;
-    z-index: 3;
-  }
-}
-
-// Muted blue-greys by role and depth: the header is the darkest, groups step lighter the deeper they
-// are, and data cells stay white. The header also gets a heavier rule beneath it.
-:host([data-tone='header']) {
-  background-color: var(--app-grid-header);
-  border-bottom-color: var(--app-border-strong);
-}
-
-:host([data-tone='group-0']) {
-  background-color: var(--app-grid-group-0);
-}
-
-:host([data-tone='group-1']) {
-  background-color: var(--app-grid-group-1);
-}
-
-:host([data-tone='group-2']) {
-  background-color: var(--app-grid-group-2);
-}
-
-// The row the user is editing, and a row someone else is editing, are tinted quietly.
-:host(.mine:not(.display-only)) {
-  background-color: var(--app-grid-row-mine);
-}
-
-:host(.theirs:not(.display-only)) {
-  background-color: var(--app-grid-row-theirs);
+// Borders, the fill for where the cell's section sits, and the tints of a row someone has or that is
+// selected come from the shared `app-grid-cell` class (styles/_grid-cell.scss). Text colour, weight,
+// italics and alignment come from the cell's effective style (inline).
+:host(:focus-visible) {
+  outline: 2px solid var(--app-navy);
+  outline-offset: -2px;
+  z-index: 3;
 }
 
 // A cell that can be typed into hints at it when the pointer is over it.
 :host(.editable:hover:not(:focus-within)) {
-  background-color: var(--app-surface-hover);
-}
-
-// The selected row is tinted, not outlined, so selecting never adds a line to the cell borders.
-:host(.selected:not(.display-only)) {
   background-color: var(--app-surface-hover);
 }
 

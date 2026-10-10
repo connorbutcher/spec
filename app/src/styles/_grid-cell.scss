@@ -1,0 +1,65 @@
+// What every cell of a sheet grid shares, whichever component draws it: a data cell, a row's status or
+// the status column's heading. Put `app-grid-cell` on the cell's host element, with `data-tone` for
+// where its section sits and `mine`, `theirs` or `selected` for its row.
+
+/* Same hairline borders as the template preview, so a sheet looks like its template. */
+.app-grid-cell {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  min-height: var(--app-cell-min-height);
+  border-right: 1px solid var(--app-grid-line);
+  border-bottom: 1px solid var(--app-grid-line);
+  background: var(--app-surface);
+  cursor: default;
+}
+
+/* Muted blue-greys by role and depth: the header is the darkest, groups step lighter the deeper they
+   are, and data cells stay white. The header also gets a heavier rule beneath it. */
+.app-grid-cell[data-tone='header'] {
+  background-color: var(--app-grid-header);
+  border-bottom-color: var(--app-border-strong);
+}
+
+.app-grid-cell[data-tone='group-0'] {
+  background-color: var(--app-grid-group-0);
+}
+
+.app-grid-cell[data-tone='group-1'] {
+  background-color: var(--app-grid-group-1);
+}
+
+.app-grid-cell[data-tone='group-2'] {
+  background-color: var(--app-grid-group-2);
+}
+
+/* A row the viewer has, and a row someone else has, are tinted quietly. */
+.app-grid-cell.mine:not(.display-only) {
+  background-color: var(--app-grid-row-mine);
+}
+
+.app-grid-cell.theirs:not(.display-only) {
+  background-color: var(--app-grid-row-theirs);
+}
+
+/* The selected row is tinted, not outlined, so selecting never adds a line to the cell borders. */
+.app-grid-cell.selected:not(.display-only) {
+  background-color: var(--app-surface-hover);
+}
+
+/* A state's colour says whose it is. Put `app-status-tone` and `data-tone` on the state's text and icon. */
+.app-status-tone[data-tone='mine'] {
+  color: var(--app-status-mine);
+}
+
+.app-status-tone[data-tone='theirs'] {
+  color: var(--app-status-theirs);
+}
+
+.app-status-tone[data-tone='approval'] {
+  color: var(--app-status-approval);
+}
+
+.app-status-tone[data-tone='publishing'] {
+  color: var(--app-status-publishing);
+}

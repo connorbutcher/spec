@@ -1,5 +1,10 @@
 @for (row of rows(); track row.rowId) {
   <div class="row" role="row">
+    @if (!isHeader()) {
+      <app-sheet-row-status-cell [rowId]="row.rowId" [style]="row.statusStyle" />
+    } @else if ($first) {
+      <app-sheet-status-heading [style]="headingStyle" />
+    }
     @for (cell of row.cells; track cell.cell.id) {
       <app-sheet-grid-cell [layout]="cell" />
     }

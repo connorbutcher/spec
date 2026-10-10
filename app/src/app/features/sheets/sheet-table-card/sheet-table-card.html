@@ -10,17 +10,7 @@
         ></i>
       }
       <span class="meta">{{ table().templateName }} · v{{ table().templateVersionNumber }}</span>
-      @if (table().isPending) {
-        <p-tag value="New" severity="secondary" [rounded]="true" />
-      }
-      @if (lockedBy(); as user) {
-        <p-tag
-          [value]="'Being edited by ' + user"
-          icon="pi pi-lock"
-          severity="warn"
-          [rounded]="true"
-        />
-      }
+      <app-sheet-status [status]="status()" />
     </div>
 
     @if (canEditTable()) {

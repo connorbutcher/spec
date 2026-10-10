@@ -4,7 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { ConfirmationService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
-import { TagModule } from 'primeng/tag';
+import { itemStatus } from '../item-status.util';
+import { ItemStatus } from '../models/item-status.model';
 import { SheetTable } from '../models/sheet-table.model';
 import { SheetActionBar } from '../sheet-action-bar/sheet-action-bar';
 import { SheetAddMenu } from '../sheet-add-menu/sheet-add-menu';
@@ -12,6 +13,7 @@ import { confirmRemoval } from '../sheet-confirm.util';
 import { SheetGrid } from '../sheet-grid/sheet-grid';
 import { tableLabel } from '../sheet-labels.util';
 import { otherUsersLock } from '../sheet-lock.util';
+import { SheetStatus } from '../sheet-status/sheet-status';
 import { SheetStore } from '../sheet.store';
 
 /**
@@ -29,7 +31,7 @@ import { SheetStore } from '../sheet.store';
     SheetActionBar,
     SheetAddMenu,
     SheetGrid,
-    TagModule,
+    SheetStatus,
   ],
   templateUrl: './sheet-table-card.html',
   styleUrl: './sheet-table-card.scss',
@@ -49,7 +51,10 @@ export class SheetTableCard {
     () => this.store.canEdit() && otherUsersLock(this.table().lock) === null,
   );
 
-  public readonly lockedBy = computed(() => otherUsersLock(this.table().lock)?.userName ?? null);
+  /** New, a draft and whose, or being published: where the table itself stands, beside its template's name. */
+  public readonly status = computed<ItemStatus>(() =>
+    itemStatus(this.table(), this.store.publishing()),
+  );
 
   public readonly isBusy = computed(() => this.store.isBusy());
 

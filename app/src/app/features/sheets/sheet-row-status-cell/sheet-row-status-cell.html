@@ -1,0 +1,8 @@
+@if (status(); as status) {
+  <app-sheet-status
+    [status]="status"
+    [changed]="changed()"
+    [pTooltip]="detail()"
+    tooltipPosition="right"
+  />
+}

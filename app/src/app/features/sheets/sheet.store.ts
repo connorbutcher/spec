@@ -119,6 +119,9 @@ export class SheetStore {
 
   public readonly isBusy = computed(() => this.inFlight() > 0);
 
+  /** What the publish that is running was asked to take; null when none is running. */
+  public readonly publishing = signal<PublishScope | null>(null);
+
   private readonly api = inject(SheetsApi);
   /** Absent where the sheet is shown without its live side, as in tests of the store alone. */
   private readonly rowCheckouts = inject(RowCheckoutStore, { optional: true });
@@ -338,7 +341,21 @@ export class SheetStore {
     if (sheetId === undefined) {
       return false;
     }
-    return (await this.run(() => this.api.publish(sheetId, note, scope))) !== null;
+    return (await this.run(() => this.publishNow(sheetId, note, scope))) !== null;
+  }
+
+  /** Publishes, with `publishing` saying what is going out for exactly as long as the call takes. */
+  private async publishNow(
+    sheetId: number,
+    note: string | null,
+    scope: PublishScope,
+  ): Promise<Sheet> {
+    this.publishing.set(scope);
+    try {
+      return await this.api.publish(sheetId, note, scope);
+    } finally {
+      this.publishing.set(null);
+    }
   }
 
   /** A sheet as it arrives from a read. Only a quiet `refresh` keeps the open copy's unchanged objects. */

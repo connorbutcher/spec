@@ -8,6 +8,10 @@
 
   <span class="spacer"></span>
 
+  @if (canEdit()) {
+    <app-sheet-status-summary />
+  }
+
   <app-sheet-presence />
 
   <p-button

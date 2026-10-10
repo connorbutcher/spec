@@ -19,7 +19,12 @@ export class RowCheckoutStore {
     return new Map(
       this.checkouts().map((checkout) => [
         checkout.rowId,
-        { userId: checkout.userId, userName: checkout.userName, isMine: checkout.userId === me },
+        {
+          userId: checkout.userId,
+          userName: checkout.userName,
+          isMine: checkout.userId === me,
+          isCheckout: true,
+        },
       ]),
     );
   });

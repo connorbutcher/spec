@@ -15,11 +15,12 @@ sheets/
 
   sheet-page/               The route component. Header, toolbar, the list of tables (drag to reorder).
   sheet-switcher/           Tabs for the phase's other sheets.
-  sheet-toolbar/            Version picker, compare picker, refresh, add table, publish.
+  sheet-toolbar/            Version picker, compare picker, what is waiting, refresh, add table, publish.
     sheet-version-picker/     Live, a published version, or a date and time (past views are read-only).
     sheet-compare-picker/     "Changes since vN": turns the changed-in marks on.
     sheet-publish/            Publish button with its popover: what to publish, and a note.
       sheet-publish-scope/      The choice between my own changes and everything pending, with counts.
+    sheet-status-summary/     "2 drafts by you", "3 drafts by A. Smith": what is waiting on the whole sheet.
   sheet-load-error/         "Couldn't load the sheet" with a retry.
 
   sheet-live.store.ts       Who has the sheet open, and hearing that it changed. Provided by SheetPage.
@@ -43,7 +44,9 @@ sheets/
   sheet-action-bar/         Move and remove for the selected section and row.
   sheet-add-menu/           The one add button for a table or a group section.
   sheet-grid/               The table as one CSS grid. Computes the layout.
-  sheet-grid-section/       A section: an invisible subgrid holding its cells and child sections.
+  sheet-grid-section/       A section: an invisible subgrid holding its rows' status and cells, and child sections.
+    sheet-row-status-cell/    A row's cell in the status column: its version, state and who has it.
+    sheet-status-heading/     The status column's heading, in the header section.
   sheet-grid-column-block/  Controls for one copy of a column block on a horizontal table.
   sheet-grid-cell/          One cell: decides whether it is a caption, an editor or a plain value.
     sheet-cell-editor/        Picks the editor for the cell's kind.
@@ -53,12 +56,15 @@ sheets/
         sheet-linked-source-form/   The table and column a linked dropdown reads.
     sheet-cell-value/         The read-only value.
     sheet-linked-row/         Under a linked dropdown's value: the rest of the row it was picked from.
-    sheet-cell-marks/         Row-changed bar, cell-changed corner, lock icon, warning sign.
+    sheet-cell-marks/         Cell-changed corner, warning sign.
+  sheet-status/             Version, state and who, written the one way for a row, the selected row and a table.
   sheet-change-tag/         The "vN" tag on a changed section or column block.
 
   sheet-index.util.ts       Lookups by id (tables, sections, rows, cells) and tree questions.
   sheet-layout.util.ts      Turns a SheetTable into grid placements, reusing the template layout.
   sheet-sticky.util.ts      Pinned columns for horizontal tables.
+  sheet-status-column.util.ts  Adds the status column in front of a laid-out table.
+  item-status.util.ts       An item's status from its lock, pending flag and last change; its words, icon and colour.
   cell-value.util.ts        Cell value ⇄ request, and value → display text.
   linked-dropdown.util.ts   What a linked dropdown offers, and what is wrong with it when something is.
   sheet-labels.util.ts      Every label written in more than one place.
@@ -94,8 +100,8 @@ user action ─► component ─► store method ─► SheetsApi ─► whole l
   `store.editingCellId()` and tells the server which row the viewer is in; it lets go a moment after
   they leave, so moving between cells of one row doesn't drop it. The server lists who is in which
   row over the live connection (`RowCheckoutStore`), and `SheetStore.sheet` gives each of those rows
-  its `lock` (`withRowCheckouts`), so every component treats it like a row someone has changed. With
-  no live connection, nothing is checked out on click and a row still locks on its first change.
+  its `lock` (`withRowCheckouts`), so every component treats it like a row someone has changed; only
+  the status shown tells the two apart (`lock.isCheckout`). With no live connection, nothing is checked out on click and a row still locks on its first change.
 - **Other people's changes** arrive as a nudge, not as data: the server says "this sheet changed" over
   the live connection (`SheetHub` → `SheetLiveStore`), and `SheetLiveStore` calls `store.refresh()`, which reads the sheet again after
   the user's own writes have landed and keeps unchanged objects, so a cell being typed into is not
@@ -116,6 +122,44 @@ user action ─► component ─► store method ─► SheetsApi ─► whole l
   The plain value is styled to sit exactly where the control's text sits (`sheet-cell-value.scss`), so
   nothing moves on the swap. Checkboxes are the exception and always show their control.
 
+## Status: version, who has it, and publishing
+
+Every table, whatever its template or orientation, shows the same thing about each row in the same
+place: the **status column**, a fixed first column that stays pinned while the table scrolls sideways.
+
+- **Version**: the publish that last changed the row (`row.lastChange`), as `v7`, or a `New` tag for a
+  row that has never been published (`row.isPending`). With "Changes since vN" on, the version of a row
+  that changed after vN is bold; changed cells keep their grey corner.
+- **State**: exactly one of the values of `ItemState`, worked out by `itemStatus` in `item-status.util.ts`:
+
+  | State | When | Shown as |
+  | --- | --- | --- |
+  | `Published` | nobody holds the row (`lock` is null) | the version alone |
+  | `CheckedOut` | someone is in the row and has changed nothing (`lock.isCheckout`, set by `RowCheckoutStore`) | circle, "Checked out · name" |
+  | `Draft` | a change is saved (a lock that came with the sheet) | pencil, "Draft · name" |
+  | `Publishing` | a draft the running publish is taking (`store.publishing()`) | upload, "Publishing" |
+  | `ForApproval` | never yet: reserved for an approval step | clock, "For approval · name" |
+
+- **Colour** says whose it is, never the state by itself: `--app-status-mine`, `--app-status-theirs`,
+  `--app-status-approval`, `--app-status-publishing`, applied with the global `app-status-tone` class
+  and a `data-tone`. The icon and the words carry the state, so nothing depends on colour or a tooltip.
+
+`SheetStatus` is the only component that writes a status. It is given an `ItemStatus` and is used by the
+status column (`SheetRowStatusCell`), the action bar (the selected row, in full) and the table header (a
+table that is new or has a draft). To show the status of anything else that has a `lock` and `isPending`
+(a section, a column block), pass it to `itemStatus` and hand the result to `SheetStatus`.
+
+The column itself is added by `addStatusColumn` after the template layout has placed everything: one
+fixed track in front, every placed cell and column block moved one column right, pinned columns moved
+along by its width. `SheetGridSection` puts a `SheetRowStatusCell` in each row, and the heading in the
+header section. Cells of every kind share the global `app-grid-cell` class (`src/styles/_grid-cell.scss`)
+for borders, section tone and row tint, so a status cell looks like the rest of its row.
+
+**Adding approval later**: the API needs a third revision status and a submission record (a migration)
+and a `sheets.approve` permission. On this side, give `SheetLock` (or the row) what says a draft has been
+submitted, return `ForApproval` for it from `stateOf`, and the column, action bar and colours already
+show it.
+
 ## Keyboard and screen readers
 
 - The grid is `role="grid"`; a top-level section is a `rowgroup`, each row a `row` (an element with
@@ -125,6 +169,8 @@ user action ─► component ─► store method ─► SheetsApi ─► whole l
   its row. The breadcrumb in the action bar selects the row's section and the sections around it.
 - Everything that can be done by dragging also has buttons (tables, sections, rows, column blocks).
 - A mark drawn over a cell is `role="img"` with an `aria-label` saying what it means.
+- A row's status cell is a `gridcell` labelled "Status: v7 · Draft · A. Smith"; the column's heading is a
+  `columnheader`.
 
 ## Add a cell kind
 

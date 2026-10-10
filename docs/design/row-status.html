@@ -1,0 +1,288 @@
+<title>Row Status Options</title>
+<style>
+  /* Layout: one reading column of notes; each option is a full-width mock of the sheet in the app's own look. */
+  :root {
+    --bg: #f1f4f9;
+    --panel: #ffffff;
+    --fg: #1f2937;
+    --fg-strong: #0f172a;
+    --fg-muted: #5b6b82;
+    --line: #d5dbe3;
+    --accent: #152a55;
+    --pick: #e7edf7;
+    --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    --mono: ui-monospace, 'Cascadia Code', 'Roboto Mono', Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme='light']) {
+      --bg: #10151f; --panel: #171e2b; --fg: #d3dae6; --fg-strong: #f1f4f9; --fg-muted: #93a1b8;
+      --line: #2b3547; --accent: #adc3e5; --pick: #1f2a3d; color-scheme: dark;
+    }
+  }
+  :root[data-theme='dark'] {
+    --bg: #10151f; --panel: #171e2b; --fg: #d3dae6; --fg-strong: #f1f4f9; --fg-muted: #93a1b8;
+    --line: #2b3547; --accent: #adc3e5; --pick: #1f2a3d; color-scheme: dark;
+  }
+
+  body { background: var(--bg); color: var(--fg); font-family: var(--font); font-size: 14px; line-height: 1.5; }
+  .page { max-width: 62rem; margin: 0 auto; padding-inline: 16px; padding-block: 1.5rem 3rem; display: flex; flex-direction: column; gap: 1.75rem; }
+  h1 { font-size: 1.35rem; margin: 0; color: var(--fg-strong); text-wrap: balance; }
+  h2 { font-size: 1.05rem; margin: 0; color: var(--fg-strong); }
+  h3 { font-size: 0.9rem; margin: 0; color: var(--fg-strong); }
+  p { margin: 0; max-width: 65ch; }
+  section { display: flex; flex-direction: column; gap: 0.6rem; min-width: 0; }
+  .lede { color: var(--fg-muted); }
+  .tag { display: inline-block; font-size: 0.7rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--accent); background: var(--pick); padding: 0.1rem 0.4rem; border-radius: 0.25rem; vertical-align: middle; margin-left: 0.4rem; }
+  .scroll { overflow-x: auto; min-width: 0; }
+  table.plain { border-collapse: collapse; font-size: 0.82rem; min-width: 34rem; width: 100%; }
+  table.plain th, table.plain td { text-align: left; padding: 0.3rem 0.6rem 0.3rem 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+  table.plain th { color: var(--fg-muted); font-weight: 600; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; }
+  .pros { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: 0.25rem 1.5rem; font-size: 0.85rem; }
+  .pros div { min-width: 0; }
+  .pros b { color: var(--fg-strong); }
+  ul { margin: 0; padding-left: 1.1rem; max-width: 68ch; }
+  li { margin-block: 0.15rem; }
+  code { font-family: var(--mono); font-size: 0.85em; }
+
+  /* The mock: the app's own light look, with the app's token values. It keeps that look in both themes. */
+  .mock {
+    --m-navy: #152a55; --m-text: #1f2937; --m-muted: #64748b; --m-faint: #94a3b8; --m-surface: #fff;
+    --m-line: #d5dbe3; --m-edge: #b8c2d0; --m-header: #dfe6ef; --m-group: #eaeff6; --m-bar: #f8fafc;
+    --m-mine: #f3f7fd; --m-theirs: #faf6ee; --m-appr: #f5f2fb; --m-pub: #eef7f5;
+    --s-mine: #3b6fb6; --s-theirs: #b7791f; --s-appr: #7c5cbf; --s-pub: #0f766e;
+    background: #f1f4f9; color: var(--m-text); border: 1px solid var(--m-edge); border-radius: 0.25rem;
+    padding: 0.5rem; display: flex; flex-direction: column; gap: 0.5rem; font-size: 12.8px; line-height: 1.25;
+    color-scheme: light; min-width: 0;
+  }
+  .mock .bar { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 0.6rem; background: var(--m-surface); border: 1px solid var(--m-line); border-radius: 0.25rem; padding: 0.25rem 0.5rem; }
+  .mock .bar .lbl { color: var(--m-muted); font-size: 11px; }
+  .mock .pill { display: inline-flex; align-items: center; gap: 0.25rem; border: 1px solid var(--m-line); border-radius: 0.25rem; padding: 0.05rem 0.35rem; font-size: 11.5px; background: var(--m-bar); white-space: nowrap; }
+  .mock .btn { border: 1px solid var(--m-edge); border-radius: 0.25rem; padding: 0.1rem 0.45rem; font-size: 11.5px; background: var(--m-surface); white-space: nowrap; }
+  .mock .btn.primary { background: var(--m-navy); border-color: var(--m-navy); color: #fff; }
+  .mock .spacer { flex: 1; }
+  .mock .card { background: var(--m-surface); border: 1px solid var(--m-line); border-radius: 0.25rem; min-width: 0; }
+  .mock .card > .head { display: flex; gap: 0.5rem; align-items: baseline; padding: 0.25rem 0.5rem; border-bottom: 1px solid var(--m-line); }
+  .mock .card > .head b { font-size: 13px; }
+  .mock .card > .head span { color: var(--m-muted); font-size: 11px; }
+  .mock .sel { display: flex; flex-wrap: wrap; gap: 0.3rem 0.6rem; align-items: center; padding: 0.2rem 0.5rem; border-bottom: 1px solid var(--m-line); background: var(--m-bar); font-size: 11.5px; color: var(--m-muted); }
+  .mock .sel strong { color: var(--m-text); font-weight: 600; }
+  .mock table.g { border-collapse: collapse; width: 100%; min-width: 36rem; font-variant-numeric: tabular-nums; }
+  .mock table.g th, .mock table.g td { border-right: 1px solid var(--m-line); border-bottom: 1px solid var(--m-line); padding: 0.2rem 0.5rem; height: 30px; text-align: left; position: relative; white-space: nowrap; }
+  .mock table.g th { background: var(--m-header); font-weight: 600; border-bottom-color: var(--m-faint); }
+  .mock table.g th.blk { background: var(--m-group); text-align: center; }
+  .mock table.g td.n { text-align: right; }
+  .mock tr.mine td { background: var(--m-mine); }
+  .mock tr.theirs td { background: var(--m-theirs); }
+  .mock tr.appr td { background: var(--m-appr); }
+  .mock tr.pub td { background: var(--m-pub); }
+  .mock .ver { font-family: var(--mono); font-size: 11px; color: var(--m-muted); }
+  .mock .new { font-size: 10.5px; font-weight: 600; color: var(--m-muted); border: 1px solid var(--m-edge); border-radius: 0.2rem; padding: 0 0.2rem; }
+  .mock svg.i { width: 12px; height: 12px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+  .mock .c-mine { color: var(--s-mine); } .mock .c-theirs { color: var(--s-theirs); }
+  .mock .c-appr { color: var(--s-appr); } .mock .c-pub { color: var(--s-pub); }
+  .mock .state { display: inline-flex; align-items: center; gap: 0.25rem; font-size: 11.5px; }
+  .mock .state .who { color: var(--m-text); }
+  .mock .tri::after { content: ''; position: absolute; top: 0; right: 0; border-top: 8px solid var(--m-muted); border-left: 8px solid transparent; }
+
+  /* Option A: a status column. */
+  .mock td.st, .mock th.st { width: 1%; }
+  .mock td.st { padding-left: 0.4rem; }
+  .mock td.st .in { display: flex; align-items: center; gap: 0.45rem; }
+  .mock td.st .ver, .mock td.st .new { min-width: 1.6rem; }
+
+  /* Options B and C: a stripe down the row's left edge. Solid = changed, dashed = only checked out. */
+  .mock td.edge::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--stripe, transparent); }
+  .mock td.edge.dash::before { background: repeating-linear-gradient(to bottom, var(--stripe) 0 4px, transparent 4px 7px); }
+  .mock td.cap { height: 38px; }
+  .mock td.cap .line { display: flex; align-items: center; gap: 0.3rem; font-size: 10px; color: var(--m-muted); margin-top: 1px; }
+  .mock td.cap .line .ver { font-size: 10px; }
+  .mock td.ic .in { display: flex; align-items: center; gap: 0.35rem; }
+  .mock .panel table { border-collapse: collapse; width: 100%; min-width: 34rem; font-size: 11.5px; }
+  .mock .panel td, .mock .panel th { padding: 0.2rem 0.5rem; border-bottom: 1px solid var(--m-line); text-align: left; white-space: nowrap; }
+  .mock .panel th { color: var(--m-muted); font-weight: 600; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .legend { display: flex; flex-wrap: wrap; gap: 0.3rem 1rem; font-size: 11.5px; }
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-out" viewBox="0 0 12 12"><circle cx="6" cy="6" r="3.5"/></symbol>
+  <symbol id="i-draft" viewBox="0 0 12 12"><path d="M2 10l.8-3L8 1.8 10.2 4 5 9.2z"/></symbol>
+  <symbol id="i-appr" viewBox="0 0 12 12"><circle cx="6" cy="6" r="4.5"/><path d="M6 3.5V6l1.8 1.2"/></symbol>
+  <symbol id="i-pub" viewBox="0 0 12 12"><path d="M6 10.5V2.5M3 5.5l3-3 3 3"/></symbol>
+</svg>
+
+<div class="page">
+  <section>
+    <h1>One status for every row, on every table</h1>
+    <p class="lede">Three ways to show a row's version, who has it, and where it is on the way to being published. The same component would be used on vertical and horizontal tables, for limits, parts and anything else built from a template.</p>
+  </section>
+
+  <section>
+    <h2>What a row can say</h2>
+    <p>Every row carries two facts. Its <b>version</b> is the publish that last changed it (<code>v7</code>), or <b>New</b> if it has never been published. Its <b>state</b> is exactly one of the five below. Colour says whose it is, the icon says what state, and the words say both, so nothing depends on colour or a tooltip.</p>
+    <div class="scroll">
+      <table class="plain">
+        <thead><tr><th>State</th><th>Means</th><th>Who can edit</th><th>Exists today</th></tr></thead>
+        <tbody>
+          <tr><td>Published</td><td>Nothing waiting. Only the version is shown.</td><td>Anyone with edit rights</td><td>Yes</td></tr>
+          <tr><td>Checked out · name</td><td>Someone is in the row and has changed nothing. Clears when they leave.</td><td>That person; others can request takeover</td><td>Yes (live connection)</td></tr>
+          <tr><td>Draft · name</td><td>Unpublished changes, saved.</td><td>That person only</td><td>Yes</td></tr>
+          <tr><td>For approval · name</td><td>Submitted and waiting for an approver. Frozen until approved or sent back.</td><td>Nobody</td><td>No, new</td></tr>
+          <tr><td>Publishing</td><td>In the publish that is running right now. Seconds at most.</td><td>Nobody</td><td>Partly (the sheet is busy, rows are not marked)</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Sent back by an approver is not a sixth state: the row returns to Draft with the approver's reason shown in the action bar. Tables, sections and column blocks use the same five states in their headers.</p>
+  </section>
+
+  <section>
+    <h2>The same in all three options</h2>
+    <ul>
+      <li><b>Toolbar summary.</b> Counts for the whole sheet, each a filter: drafts (yours and others'), awaiting approval. This answers "what would this publish take".</li>
+      <li><b>Action bar sentence.</b> Selecting a row spells its status out in full, with the actions that apply (request takeover, discard, approve).</li>
+      <li><b>Changed cells.</b> The grey corner on a cell changed since the compared version stays as it is.</li>
+      <li><b>Colour rule.</b> Blue is yours, amber is someone else's, purple is waiting for approval, green is publishing.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Option A: a status column <span class="tag">Recommended</span></h2>
+    <p>Every table gets one narrow pinned column at the left. It reads the same on any table because it never depends on what the first data cell happens to be.</p>
+    <div id="optA"></div>
+    <div class="pros">
+      <div><b>For.</b> Version, state and name are readable at a glance for every row. Identical on vertical and horizontal tables. Data cells carry no row marks at all.</div>
+      <div><b>Against.</b> Costs about 9rem of width on every table. It can collapse to icon and initials on narrow screens.</div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Option B: a caption inside the first cell</h2>
+    <p>Closest to today. The left-edge bar takes the state's colour, and the small version text under the first cell grows into a full status line.</p>
+    <div id="optB"></div>
+    <div class="pros">
+      <div><b>For.</b> No extra column. Smallest change from what exists.</div>
+      <div><b>Against.</b> Every row gets about a quarter taller. The line is small (10px) and is clipped when the first column is narrow, which on a horizontal table it often is.</div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Option C: an edge stripe and a pending list</h2>
+    <p>The grid shows only a coloured stripe and an icon. Names and versions live in a list of everything pending on the sheet, above the tables, and in the action bar for the selected row.</p>
+    <div id="optC"></div>
+    <div class="pros">
+      <div><b>For.</b> The quietest grid. The list is a natural place to review and approve from.</div>
+      <div><b>Against.</b> In the grid you cannot see who has a row or what version it is on without selecting it or looking it up in the list. Rows at rest show no version.</div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Recommendation</h2>
+    <p>Option A, plus the pending list from option C as the body of the publish dialog, so "what is being published" is a list of rows and not just a count. The status column is the only choice that works unchanged on every table shape, and it keeps the status out of the data.</p>
+  </section>
+
+  <section>
+    <h2>What approval would need</h2>
+    <p>Nothing here exists yet, so "For approval" would stay unused until it is built. The smallest version:</p>
+    <ul>
+      <li><b>Data.</b> A third revision status, Submitted, beside Draft and Published, and a submission record (sheet, who submitted and when, note, decision, who decided and when, reason). One database migration.</li>
+      <li><b>Permission.</b> A new <code>sheets.approve</code>. People with <code>sheets.publish</code> submit; people with <code>sheets.approve</code> approve or send back. Approving creates the numbered version exactly as publishing does today.</li>
+      <li><b>Rules to settle.</b> Whether approval is required on every sheet or switched on per sheet type, and whether someone may approve their own changes (suggested: no).</li>
+      <li><b>Screens.</b> Publish becomes "Submit for approval" where approval is on; approvers get a review list with Approve and Send back.</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+  (function () {
+    var LABEL = { out: 'Checked out', draft: 'Draft', appr: 'For approval', pub: 'Publishing' };
+    // name, values, version (null = new), state, who, mine, changed cell index
+    var limits = {
+      title: 'Limits', meta: 'Limits table · v3', cols: ['Parameter', 'Min', 'Nom', 'Max', 'Unit'],
+      rows: [
+        ['Oil pressure, idle', ['1.2', '1.8', '2.5', 'bar'], 7, null],
+        ['Oil pressure, rated', ['3.5', '4.4', '5.5', 'bar'], 9, 'draft', 'You', true, 2],
+        ['Coolant outlet temp', ['78', '88', '96', '°C'], 4, 'out', 'A. Smith', false],
+        ['Exhaust gas temp', ['', '540', '620', '°C'], 7, 'draft', 'B. Jones', false],
+        ['Boost pressure', ['1.9', '2.3', '2.6', 'bar'], 8, 'appr', 'C. Patel', false, 3],
+        ['Fuel rail pressure', ['1400', '1800', '2000', 'bar'], null, 'draft', 'You', true],
+        ['Crankcase pressure', ['-5', '0', '8', 'mbar'], 2, 'pub', 'You', true]
+      ]
+    };
+    var parts = {
+      title: 'Parts', meta: 'Parts table · v2 · horizontal', cols: ['Part', 'Part no.', 'Rev', 'Part no.', 'Rev'],
+      blocks: ['Supplier A', 'Supplier B'],
+      rows: [
+        ['Fuel injector', ['FI-20418', 'C', 'X-88120', 'B'], 6, null],
+        ['Turbocharger', ['TC-7731', 'F', 'X-90455', 'A'], 9, 'out', 'You', true],
+        ['Oil filter', ['OF-1102', 'A', 'X-10077', 'D'], 3, 'draft', 'A. Smith', false, 2]
+      ]
+    };
+
+    function tone(r) { return r[3] === 'appr' ? 'appr' : r[3] === 'pub' ? 'pub' : r[5] ? 'mine' : 'theirs'; }
+    function icon(state) { return '<svg class="i"><use href="#i-' + state + '"/></svg>'; }
+    function ver(r) { return r[2] === null ? '<span class="new">New</span>' : '<span class="ver">v' + r[2] + '</span>'; }
+    function state(r, short) {
+      if (!r[3]) { return ''; }
+      var who = r[3] === 'pub' ? '' : ' · <span class="who">' + r[4] + '</span>';
+      return '<span class="state c-' + tone(r) + '">' + icon(r[3]) + (short ? '' : LABEL[r[3]] + who) + '</span>';
+    }
+    function rowClass(r) { return r[3] && r[3] !== 'out' ? ' class="' + tone(r) + '"' : ''; }
+    function cells(r, numeric) {
+      return r[1].map(function (v, i) {
+        var cls = [numeric && i < 3 ? 'n' : '', r[6] === i + 1 ? 'tri' : ''].join(' ').trim();
+        return '<td' + (cls ? ' class="' + cls + '"' : '') + '>' + v + '</td>';
+      }).join('');
+    }
+    function head(t, withStatus) {
+      var h = '';
+      if (t.blocks) {
+        h += '<tr>' + (withStatus ? '<th class="st"></th>' : '') + '<th></th>' +
+          t.blocks.map(function (b) { return '<th class="blk" colspan="2">' + b + '</th>'; }).join('') + '</tr>';
+      }
+      return h + '<tr>' + (withStatus ? '<th class="st">Status</th>' : '') +
+        t.cols.map(function (c) { return '<th>' + c + '</th>'; }).join('') + '</tr>';
+    }
+    function first(r, opt) {
+      if (opt === 'A') { return '<td>' + r[0] + '</td>'; }
+      var stripe = r[3] ? ' style="--stripe:var(--s-' + tone(r) + ')"' : '';
+      var dash = r[3] === 'out' ? ' dash' : '';
+      if (opt === 'B') {
+        return '<td class="edge cap' + dash + '"' + stripe + '>' + r[0] + '<div class="line">' + ver(r) + state(r) + '</div></td>';
+      }
+      return '<td class="edge ic' + dash + '"' + stripe + '><div class="in">' + state(r, true) + '<span>' + r[0] + '</span></div></td>';
+    }
+    function table(t, opt) {
+      var body = t.rows.map(function (r) {
+        var st = opt === 'A' ? '<td class="st"><div class="in">' + ver(r) + state(r) + '</div></td>' : '';
+        return '<tr' + rowClass(r) + '>' + st + first(r, opt) + cells(r, !t.blocks) + '</tr>';
+      }).join('');
+      return '<div class="card"><div class="head"><b>' + t.title + '</b><span>' + t.meta + '</span></div>' +
+        (t === limits ? '<div class="sel"><span>Limits › Pressures ›</span><strong>Boost pressure</strong><span class="ver">v8</span>' +
+          '<span class="state c-appr">' + icon('appr') + 'For approval · submitted by C. Patel, 10 Oct 14:05</span>' +
+          '<span class="spacer"></span><span class="btn">Send back</span><span class="btn primary">Approve</span></div>' : '') +
+        '<div class="scroll"><table class="g"><thead>' + head(t, opt === 'A') + '</thead><tbody>' + body + '</tbody></table></div></div>';
+    }
+    function toolbar() {
+      return '<div class="bar"><span class="pill">Live · v9</span><span class="pill">Changes since v6</span><span class="spacer"></span>' +
+        '<span class="lbl">On this sheet</span>' +
+        '<span class="pill c-mine">' + icon('draft') + '2 drafts by you</span>' +
+        '<span class="pill c-theirs">' + icon('draft') + '2 drafts by others</span>' +
+        '<span class="pill c-appr">' + icon('appr') + '1 for approval</span>' +
+        '<span class="btn primary">Publish (2)</span></div>';
+    }
+    function panel() {
+      var rows = limits.rows.concat(parts.rows).filter(function (r) { return r[3]; }).map(function (r) {
+        var t = limits.rows.indexOf(r) >= 0 ? 'Limits' : 'Parts';
+        return '<tr><td>' + t + '</td><td>' + r[0] + '</td><td>' + state(r) + '</td><td>' + ver(r) + '</td></tr>';
+      }).join('');
+      return '<div class="card panel"><div class="head"><b>Pending on this sheet</b><span>8 rows</span></div><div class="scroll"><table>' +
+        '<thead><tr><th>Table</th><th>Row</th><th>State</th><th>Last published</th></tr></thead><tbody>' + rows + '</tbody></table></div></div>';
+    }
+    function render(id, opt) {
+      document.getElementById(id).innerHTML = '<div class="mock">' + toolbar() + (opt === 'C' ? panel() : '') +
+        table(limits, opt) + table(parts, opt) + '</div>';
+    }
+    render('optA', 'A');
+    render('optB', 'B');
+    render('optC', 'C');
+  })();
+</script>

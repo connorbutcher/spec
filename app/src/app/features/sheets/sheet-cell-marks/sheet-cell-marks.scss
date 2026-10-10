@@ -3,16 +3,6 @@
   display: contents;
 }
 
-.lock {
-  position: absolute;
-  top: 0.1875rem;
-  right: var(--app-space-2);
-  z-index: 1;
-  color: var(--app-text-muted);
-  font-size: var(--app-font-size-xs);
-  pointer-events: none;
-}
-
 // A cell that needs attention: a small sign at its right edge, clear of the corner marks.
 .warning {
   position: absolute;
@@ -36,28 +26,4 @@
   border-top: 9px solid var(--app-grid-mark);
   border-left: 9px solid transparent;
   cursor: help;
-}
-
-// A row changed: a thin bar down the left edge of its first cell, with the version written small below.
-.row-mark {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  z-index: 2;
-  display: flex;
-  width: 3px;
-  background: var(--app-grid-mark);
-  cursor: help;
-}
-
-.row-version {
-  position: absolute;
-  bottom: 0;
-  left: 0.3125rem;
-  z-index: 2;
-  color: var(--app-grid-mark);
-  font-size: var(--app-font-size-3xs);
-  line-height: 1;
-  pointer-events: none;
 }

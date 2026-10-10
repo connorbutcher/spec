@@ -1,0 +1,12 @@
+@if (status().isNew) {
+  <p-tag value="New" severity="secondary" />
+} @else if (version(); as version) {
+  <span class="version app-mono" [class.changed]="changed()">{{ version }}</span>
+}
+
+@if (text(); as text) {
+  <span class="app-status-tone state" [attr.data-tone]="tone()">
+    <i [class]="icon()" aria-hidden="true"></i>
+    <span class="app-truncate">{{ text }}</span>
+  </span>
+}

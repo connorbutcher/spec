@@ -6,10 +6,12 @@ import { layoutTemplate, planColumns } from '../templates/template-layout.util';
 import { SheetColumnBlock } from './models/sheet-column-block.model';
 import { SheetSection } from './models/sheet-section.model';
 import { SheetTable } from './models/sheet-table.model';
+import { addStatusColumn } from './sheet-status-column.util';
 import { applySticky, stickyColumnLefts, stickyColumnSizes } from './sheet-sticky.util';
 
 /**
- * Lays a sheet table out with the template layout util, so it looks exactly like the template. The
+ * Lays a sheet table out with the template layout util, so it looks exactly like the template, with the
+ * sheet's own status column added in front (`addStatusColumn`). The
  * table's section copies, rows and cells are handed over as a template, with each item's id being the
  * sheet item's own, so what the layout places can be matched back to the sheet.
  */
@@ -37,6 +39,9 @@ export function layoutSheetTable(table: SheetTable): TemplateLayout {
     layout.style['grid-template-columns'] = stickyColumnSizes(plan, lefts);
     applySticky(layout, lefts);
   }
+
+  // Every sheet table gets the status column in front, whatever its template looks like.
+  addStatusColumn(layout);
   return layout;
 }
 

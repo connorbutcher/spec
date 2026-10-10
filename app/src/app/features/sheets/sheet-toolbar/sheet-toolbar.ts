@@ -7,6 +7,7 @@ import { SheetComparePicker } from '../sheet-compare-picker/sheet-compare-picker
 import { momentLabel } from '../sheet-labels.util';
 import { SheetPresence } from '../sheet-presence/sheet-presence';
 import { SheetPublish } from '../sheet-publish/sheet-publish';
+import { SheetStatusSummary } from '../sheet-status-summary/sheet-status-summary';
 import { SheetVersionPicker } from '../sheet-version-picker/sheet-version-picker';
 import { SheetStore } from '../sheet.store';
 
@@ -23,6 +24,7 @@ import { SheetStore } from '../sheet.store';
     SheetComparePicker,
     SheetPresence,
     SheetPublish,
+    SheetStatusSummary,
     SheetVersionPicker,
     TagModule,
   ],

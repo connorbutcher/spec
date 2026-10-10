@@ -73,7 +73,7 @@ describe('SheetStore with row checkouts', () => {
 
     checkouts.set([{ rowId: row.id, userId: 2, userName: 'Engineer Two' }]);
 
-    const lock = { userId: 2, userName: 'Engineer Two', isMine: false };
+    const lock = { userId: 2, userName: 'Engineer Two', isMine: false, isCheckout: true };
     expect(store.sheet()?.tables[0].sections[1].rows[0].lock).toEqual(lock);
     expect(store.index().rows.get(row.id)?.lock).toEqual(lock);
   });

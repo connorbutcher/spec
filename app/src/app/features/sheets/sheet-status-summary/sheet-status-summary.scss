@@ -1,0 +1,17 @@
+:host {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--app-space-2) var(--app-space-6);
+  font-size: var(--app-font-size-md);
+}
+
+.count {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--app-space-2);
+
+  i {
+    font-size: var(--app-font-size-sm);
+  }
+}

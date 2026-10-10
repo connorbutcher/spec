@@ -31,6 +31,11 @@ export function versionLabel(versionNumber: number): string {
   return `v${versionNumber}`;
 }
 
+/** "1 draft" or "3 drafts": a number of unpublished changes. */
+export function draftCountLabel(count: number): string {
+  return `${count} ${count === 1 ? 'draft' : 'drafts'}`;
+}
+
 /** A UTC moment as the viewer's local date and time, e.g. "12 Sep 2026, 14:05". */
 export function momentLabel(utc: string): string {
   return new Date(utc).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });

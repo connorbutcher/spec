@@ -29,9 +29,7 @@
 
   @if (hasMarks()) {
     <app-sheet-cell-marks
-      [rowChange]="rowChange()"
       [cellChange]="cellChange()"
-      [lockedBy]="lockedBy()"
       [warning]="warning()"
     />
   }

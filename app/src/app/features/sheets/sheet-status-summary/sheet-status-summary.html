@@ -1,0 +1,13 @@
+@if (mine(); as mine) {
+  <span class="app-status-tone count" data-tone="mine">
+    <i [class]="icon" aria-hidden="true"></i>
+    {{ mine }}
+  </span>
+}
+
+@if (theirs(); as theirs) {
+  <span class="app-status-tone count" data-tone="theirs">
+    <i [class]="icon" aria-hidden="true"></i>
+    {{ theirs }}
+  </span>
+}

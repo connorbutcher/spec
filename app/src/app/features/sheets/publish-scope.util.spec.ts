@@ -3,6 +3,7 @@ import {
   effectivePublishScope,
   otherDraftCount,
   otherDraftsLabel,
+  otherDraftsSummary,
   publishScopeOptions,
 } from './publish-scope.util';
 
@@ -20,6 +21,12 @@ describe('publish scope', () => {
     expect(otherDraftsLabel([asha])).toBe('3 by Asha');
     expect(otherDraftsLabel([asha, ben])).toBe('3 by Asha and 1 by Ben');
     expect(otherDraftsLabel([asha, ben, cara])).toBe('3 by Asha, 1 by Ben and 2 by Cara');
+  });
+
+  it('sums up what other people have waiting in one line', () => {
+    expect(otherDraftsSummary([])).toBeNull();
+    expect(otherDraftsSummary([ben])).toBe('1 draft by Ben');
+    expect(otherDraftsSummary([asha, ben])).toBe('4 drafts by others: 3 by Asha and 1 by Ben');
   });
 
   it('counts each choice: my own, and mine with everyone else’s', () => {

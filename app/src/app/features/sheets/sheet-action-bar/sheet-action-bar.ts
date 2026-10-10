@@ -2,6 +2,8 @@ import { Component, computed, inject, input } from '@angular/core';
 import { ConfirmationService, MenuItem } from 'primeng/api';
 import { BreadcrumbModule } from 'primeng/breadcrumb';
 import { ButtonModule } from 'primeng/button';
+import { itemStatus } from '../item-status.util';
+import { ItemStatus } from '../models/item-status.model';
 import { SheetRow } from '../models/sheet-row.model';
 import { SheetSection } from '../models/sheet-section.model';
 import { SheetTable } from '../models/sheet-table.model';
@@ -9,17 +11,19 @@ import { confirmRemoval } from '../sheet-confirm.util';
 import { sectionAncestors, sectionSiblings } from '../sheet-index.util';
 import { sectionLabel } from '../sheet-labels.util';
 import { otherUsersLock } from '../sheet-lock.util';
+import { SheetStatus } from '../sheet-status/sheet-status';
 import { SheetTakeoverButton } from '../sheet-takeover-button/sheet-takeover-button';
 import { SheetStore } from '../sheet.store';
 
 /**
- * The actions for what is selected in a table: where it is, and the section's and row's own move and
+ * The actions for what is selected in a table: where it is, where the selected row stands (its version,
+ * state and who has it), and the section's and row's own move and
  * remove actions (adding lives on the group that takes the new item). It sits above the grid, so it
  * works the same however the table is laid out.
  */
 @Component({
   selector: 'app-sheet-action-bar',
-  imports: [BreadcrumbModule, ButtonModule, SheetTakeoverButton],
+  imports: [BreadcrumbModule, ButtonModule, SheetStatus, SheetTakeoverButton],
   templateUrl: './sheet-action-bar.html',
   styleUrl: './sheet-action-bar.scss',
 })
@@ -94,6 +98,12 @@ export class SheetActionBar {
       row.canRemove &&
       section.rows.indexOf(row) < section.rows.length - 1
     );
+  });
+
+  /** Where the selected row stands, written as it is in the status column but never cut short. */
+  public readonly rowStatus = computed<ItemStatus | null>(() => {
+    const row = this.row();
+    return row === null ? null : itemStatus(row, this.store.publishing());
   });
 
   public readonly lockedByOther = computed(() => otherUsersLock(this.row()?.lock) !== null);
