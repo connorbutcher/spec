@@ -2,6 +2,7 @@ import {
   linkedChoices,
   linkedHint,
   linkedOptions,
+  linkedRowValues,
   linkedWarning,
   sameLinkedChoices,
 } from './linked-dropdown.util';
@@ -34,7 +35,7 @@ function sheetWithParts(options: string[] | null = ['P-1001', 'P-1002']): Sheet 
     linkedSources:
       options === null
         ? []
-        : [{ sheetTableId: table.id, templateCellId: PART_NUMBER, options }],
+        : [{ sheetTableId: table.id, templateCellId: PART_NUMBER, options, rows: [] }],
   };
 }
 
@@ -92,6 +93,34 @@ describe('linkedChoices', () => {
     expect(sameLinkedChoices(first, afterAChange)).toBe(false);
     expect(sameLinkedChoices(first, null)).toBe(false);
     expect(sameLinkedChoices(null, null)).toBe(true);
+  });
+});
+
+describe('linkedRowValues', () => {
+  function sheetWithRows(): Sheet {
+    const sheet = sheetWithParts();
+    sheet.linkedSources[0].rows = [
+      { option: 'P-1001', sheetRowId: 7, values: [{ label: 'Min', value: '81.98' }] },
+    ];
+    return sheet;
+  }
+
+  it('gives the other values of the row the value was picked from', () => {
+    const settings = { ...pointedAt(1, PART_NUMBER), includeRowValues: true };
+
+    expect(linkedRowValues(sheetWithRows(), settings, 'P-1001')).toEqual([
+      { label: 'Min', value: '81.98' },
+    ]);
+  });
+
+  it('gives nothing when the cell is not set to show the row, is empty, or its value has gone', () => {
+    const sheet = sheetWithRows();
+    const settings = { ...pointedAt(1, PART_NUMBER), includeRowValues: true };
+
+    expect(linkedRowValues(sheet, pointedAt(1, PART_NUMBER), 'P-1001')).toBeNull();
+    expect(linkedRowValues(sheet, settings, null)).toBeNull();
+    expect(linkedRowValues(sheet, settings, 'P-0999')).toBeNull();
+    expect(linkedRowValues(sheet, null, 'P-1001')).toBeNull();
   });
 });
 

@@ -27,5 +27,4 @@ export interface SheetTable {
   addableColumnBlocks: AddableColumnBlock[];
   /** The table's columns a linked dropdown on the sheet can take its choices from. */
   linkableColumns: SheetLinkableColumn[];
-
 }

@@ -1,0 +1,23 @@
+// A quiet strip under the cell's own value, lined up with it.
+:host {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--app-space-1) var(--app-space-5);
+  padding: 0 var(--app-space-4) var(--app-space-2);
+  color: var(--app-text-secondary);
+  font-size: var(--app-font-size-sm);
+  font-style: normal;
+  font-weight: var(--app-font-weight-normal);
+  line-height: var(--app-line-height-tight);
+}
+
+.item {
+  display: inline-flex;
+  gap: var(--app-space-2);
+  white-space: nowrap;
+}
+
+.label,
+.none {
+  color: var(--app-text-faint);
+}

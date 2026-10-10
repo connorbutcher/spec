@@ -17,7 +17,8 @@ public static class PublishedRowsAssembler
         PublishedStructure structure,
         IReadOnlyList<PublishedLookupCellRecord> cells,
         IReadOnlyList<PublishedLookupCellRecord> headerCells,
-        IReadOnlyDictionary<int, object> values)
+        IReadOnlyDictionary<int, object> values,
+        IReadOnlyDictionary<int, Guid>? linkedRows = null)
     {
         var sections = structure.Sections.ToDictionary(section => section.Id);
         var sectionOrder = PublishedLookupAssembler.SectionOrder(sections.Values);
@@ -74,7 +75,10 @@ public static class PublishedRowsAssembler
                 }
             }
 
-            rows[first.RowPublicId] = new PublishedRowValuesDto(sections[first.SectionId].Name, own, columns);
+            rows[first.RowPublicId] = new PublishedRowValuesDto(sections[first.SectionId].Name, own, columns)
+            {
+                LinkedRows = PublishedLinkedRows.Of(valueCells, values, linkedRows),
+            };
         }
 
         var missing = selection.Rows.Where(id => !rows.ContainsKey(id)).Order().ToList();

@@ -69,6 +69,29 @@ public sealed class PublishedQueryTranslationTests : IDisposable
     }
 
     [Fact]
+    public void ALinkedColumn_IsFoundByItsTableAndTemplateCell_AtTheVersion()
+    {
+        var sql = new PublishedLookupCellReader(db).QueryColumn(Version, 4, 15).ToQueryString();
+
+        Assert.Contains("[TemplateCellId] = ", sql);
+        Assert.Contains("[SheetTableId] = ", sql);
+        Assert.Contains("[IsDeleted] = CAST(0 AS bit)", sql);
+    }
+
+    [Fact]
+    public void LinkedCellSettings_AreReadForTheCellsNamed_OrForTheSheetAtTheVersion()
+    {
+        var reader = new PublishedLinkedRowReader(db, new PublishedLookupCellReader(db), new PublishedKindValueReader(db));
+
+        var some = reader.Settings(Version, [(11, 101), (11, 102)]).ToQueryString();
+        var all = reader.Settings(Version, null).ToQueryString();
+
+        Assert.Contains("[values].[CellSettings]", some);
+        Assert.DoesNotContain("[SheetRowRevisions]", some);
+        Assert.Contains("[SupersededAtUtc] IS NULL OR", all);
+    }
+
+    [Fact]
     public void Captions_AreOnlyReadWhenAskedFor()
     {
         var sql = new PublishedCellReader(db).Query(Version, null, true)!.ToQueryString();

@@ -18,6 +18,39 @@ internal static class LinkableColumns
         IReadOnlyCollection<TemplateRow> rows,
         IReadOnlyDictionary<int, CellType> cellTypes)
     {
+        var columns = Columns(sections, rows, cellTypes);
+
+        // Two columns that would read the same are told apart by their section.
+        var repeated = columns
+            .GroupBy(column => column.Label, StringComparer.OrdinalIgnoreCase)
+            .Where(group => group.Count() > 1)
+            .Select(group => group.Key)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        return columns
+            .Select(column => new SheetLinkableColumnDto(
+                column.Cell.Id,
+                repeated.Contains(column.Label) ? $"{column.Label} ({column.Section})" : column.Label))
+            .ToList();
+    }
+
+    /// <summary>
+    /// What each linkable column is called within its own row, by template cell: the same names as
+    /// <see cref="For"/> gives, without the section that tells two of them apart, since a row is in one section.
+    /// </summary>
+    public static Dictionary<int, string> LabelsInARow(
+        IReadOnlyCollection<TemplateSection> sections,
+        IReadOnlyCollection<TemplateRow> rows,
+        IReadOnlyDictionary<int, CellType> cellTypes)
+    {
+        return Columns(sections, rows, cellTypes).ToDictionary(column => column.Cell.Id, column => column.Label);
+    }
+
+    private static List<(TemplateCell Cell, string Label, string Section)> Columns(
+        IReadOnlyCollection<TemplateSection> sections,
+        IReadOnlyCollection<TemplateRow> rows,
+        IReadOnlyDictionary<int, CellType> cellTypes)
+    {
         var sectionsById = sections.ToDictionary(section => section.Id);
         var ordered = rows
             .Where(row => sectionsById.ContainsKey(row.TemplateSectionId))
@@ -44,18 +77,7 @@ internal static class LinkableColumns
             }
         }
 
-        // Two columns that would read the same are told apart by their section.
-        var repeated = columns
-            .GroupBy(column => column.Label, StringComparer.OrdinalIgnoreCase)
-            .Where(group => group.Count() > 1)
-            .Select(group => group.Key)
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
-
-        return columns
-            .Select(column => new SheetLinkableColumnDto(
-                column.Cell.Id,
-                repeated.Contains(column.Label) ? $"{column.Label} ({column.Section})" : column.Label))
-            .ToList();
+        return columns;
     }
 
     /// <summary>The header's heading text over each column, by column block and column.</summary>

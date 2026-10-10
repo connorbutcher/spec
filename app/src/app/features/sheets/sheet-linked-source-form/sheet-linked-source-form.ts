@@ -1,6 +1,7 @@
 import { Component, computed, inject, input, linkedSignal, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
+import { CheckboxModule } from 'primeng/checkbox';
 import { SelectModule } from 'primeng/select';
 import { LinkedDropdownInstanceSettings } from '../models/linked-dropdown-instance-settings.model';
 import { tableLabel } from '../sheet-labels.util';
@@ -8,11 +9,12 @@ import { SheetStore } from '../sheet.store';
 
 /**
  * Where a linked dropdown cell takes its choices from: a table on the sheet, then one of the columns that
- * table offers. Nothing is saved until Apply; Clear leaves the cell with no column at all.
+ * table offers, and whether the cell also shows the rest of the row its choice comes from. Nothing is
+ * saved until Apply; Clear leaves the cell with no column at all.
  */
 @Component({
   selector: 'app-sheet-linked-source-form',
-  imports: [ButtonModule, FormsModule, SelectModule],
+  imports: [ButtonModule, CheckboxModule, FormsModule, SelectModule],
   templateUrl: './sheet-linked-source-form.html',
   styleUrl: './sheet-linked-source-form.scss',
 })
@@ -41,6 +43,9 @@ export class SheetLinkedSourceForm {
     },
   });
 
+  /** Whether the cell also shows the other values of the row its choice was picked from. */
+  public readonly includeRowValues = linkedSignal(() => this.settings()?.includeRowValues === true);
+
   /** Every table on the sheet that has a column to offer. */
   public readonly tables = computed(() =>
     [...this.store.index().tables.values()]
@@ -52,14 +57,15 @@ export class SheetLinkedSourceForm {
 
   public readonly hasSettings = computed(() => this.settings() !== null);
 
-  /** Both parts are chosen and they differ from what the cell already has. */
+  /** A table and column are chosen, and something differs from what the cell already has. */
   public readonly canApply = computed(() => {
     const settings = this.settings();
     return (
       this.tableId() !== null &&
       this.templateCellId() !== null &&
       (settings?.sourceSheetTableId !== this.tableId() ||
-        settings.sourceTemplateCellId !== this.templateCellId())
+        settings.sourceTemplateCellId !== this.templateCellId() ||
+        (settings.includeRowValues === true) !== this.includeRowValues())
     );
   });
 
@@ -71,6 +77,7 @@ export class SheetLinkedSourceForm {
         kind: 'LinkedDropdown',
         sourceSheetTableId: this.tableId(),
         sourceTemplateCellId: this.templateCellId(),
+        includeRowValues: this.includeRowValues() ? true : null,
       });
     }
   }

@@ -11,7 +11,7 @@ public interface ISheetCellSettingsService
 {
     /// <summary>
     /// Sets or clears the settings of cells in the row, locking it to the current user. A cell whose
-    /// settings really change loses its value, which was chosen under the old ones.
+    /// settings now offer different choices loses its value, which was chosen from the old ones.
     /// </summary>
     Task<SheetDto> SaveAsync(int rowId, SaveRowCellSettingsRequest request, CancellationToken cancellationToken);
 }

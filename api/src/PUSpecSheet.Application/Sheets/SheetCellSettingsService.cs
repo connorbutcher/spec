@@ -40,7 +40,7 @@ public sealed class SheetCellSettingsService(
             }
 
             CellInstanceSettingsValidator.Validate(NameOf(cell), cell.TemplateCell.CellType.Kind, entry.Settings, sheet);
-            wanted[entry.SheetCellId] = entry.Settings is { IsEmpty: false } ? entry.Settings : null;
+            wanted[entry.SheetCellId] = entry.Settings is { IsEmpty: false } ? entry.Settings.Normalise() : null;
         }
 
         await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
@@ -52,8 +52,10 @@ public sealed class SheetCellSettingsService(
             .ToDictionary(entry => entry.Key, entry => entry.Value);
         await valueStore.SetSettingsAsync(draft.Id, changed, cancellationToken);
 
-        // A value was chosen under the old settings, so it goes with them.
-        var cleared = changed.Keys
+        // A value chosen from other choices goes with them. One whose choices are the same stays.
+        var cleared = changed
+            .Where(entry => entry.Value is null || !entry.Value.OffersSameChoicesAs(held.GetValueOrDefault(entry.Key)?.Settings))
+            .Select(entry => entry.Key)
             .Select(cellId => new CellValueChange(
                 cellId,
                 cellsById[cellId].TemplateCell.CellType.Kind,

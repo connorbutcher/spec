@@ -33,8 +33,20 @@
       [ngModelOptions]="{ standalone: true }"
     />
   </div>
+  <div class="app-check">
+    <p-checkbox
+      inputId="linked-source-row"
+      [binary]="true"
+      [ngModel]="includeRowValues()"
+      (ngModelChange)="includeRowValues.set($event)"
+      [ngModelOptions]="{ standalone: true }"
+    />
+    <label for="linked-source-row">Also show the rest of the picked row</label>
+  </div>
   <p class="app-field-note">
-    The cell offers every value in that column. Pointing it somewhere else clears what was chosen.
+    The cell offers every value in that column. With the rest of the row shown, its other values
+    appear under the choice and follow the source row. Pointing the cell at another column clears
+    what was chosen.
   </p>
   <div class="buttons">
     <p-button

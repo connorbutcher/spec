@@ -11,6 +11,7 @@ public sealed class PublishedSheetQueryService(
     PublishedStructureReader structureReader,
     PublishedCellReader cellReader,
     PublishedValueReader valueReader,
+    PublishedLinkedRowReader linkedRowReader,
     PublishedSheetCache cache) : IPublishedSheetQueryService
 {
     public async Task<PublishedSheetReferenceDto> FindAsync(string phaseCode, int sheetTypeId, CancellationToken cancellationToken)
@@ -68,7 +69,13 @@ public sealed class PublishedSheetQueryService(
         var cells = await cellReader.ReadAsync(version, scope, selection.IncludeLabels, cancellationToken);
         var values = await valueReader.ReadAsync(version, selection.IsEverything ? null : cells, cancellationToken);
 
-        var sheet = PublishedSheetAssembler.Assemble(version, selection, structure, cells, values);
+        var linkedRows = await linkedRowReader.ReadAsync(
+            version,
+            structure,
+            selection.IsEverything ? null : cells.Select(cell => (cell.RowRevisionId, cell.CellId)).ToList(),
+            values,
+            cancellationToken);
+        var sheet = PublishedSheetAssembler.Assemble(version, selection, structure, cells, values, linkedRows);
         cache.Set(key, sheet, cells.Count);
         return sheet;
     }

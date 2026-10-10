@@ -25,5 +25,4 @@ export interface Sheet {
   availableTemplates: AvailableTemplate[];
   /** The choices of every column a linked dropdown on the sheet is pointed at. */
   linkedSources: SheetLinkedSource[];
-
 }

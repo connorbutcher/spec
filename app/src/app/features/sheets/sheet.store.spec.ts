@@ -211,7 +211,9 @@ describe('SheetStore', () => {
     request.flush(
       fromServer(sheet, (copy) => {
         copy.tables[0].sections[1].rows[0].cells[0].settings = settings;
-        copy.linkedSources = [{ sheetTableId: 1, templateCellId: 15, options: ['P-1001'] }];
+        copy.linkedSources = [
+          { sheetTableId: 1, templateCellId: 15, options: ['P-1001'], rows: [] },
+        ];
       }),
     );
     await saving;

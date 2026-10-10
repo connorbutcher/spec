@@ -22,6 +22,8 @@ internal sealed class SheetViewBuilder
     private readonly Dictionary<int, int> tableBySection;
     private readonly Dictionary<int, List<SheetLinkableColumnDto>> linkableColumnsByVersion = [];
     private readonly LinkedOptionCollector linkedOptions;
+    private readonly Dictionary<int, Dictionary<int, string>> rowLabelsByVersion = [];
+    private LinkedRowValues? linkedRowValues;
 
     public SheetViewBuilder(SheetSnapshot snapshot, int currentUserId)
     {
@@ -195,8 +197,15 @@ internal sealed class SheetViewBuilder
         var values = snapshot.Values.GetValueOrDefault(shown.Id);
         var tableId = tableBySection[row.SheetSectionId];
 
-        var cells = row.Cells
+        var onSheet = row.Cells
             .Where(cell => cell.SheetColumnBlockId is not { } blockId || !hiddenColumnBlockIds.Contains(blockId))
+            .ToList();
+        if (linkedOptions.WantsRowsOf(tableId))
+        {
+            OfferRowToLinkedDropdowns(tableId, row, onSheet);
+        }
+
+        var cells = onSheet
             .OrderBy(cell => cell.TemplateCell.Column)
             .ThenBy(cell => cell.Id)
             .Select(cell =>
@@ -256,6 +265,38 @@ internal sealed class SheetViewBuilder
             && LinkedOptionText.Of(value, cellType) is { } text)
         {
             linkedOptions.Add(tableId, cell.TemplateCellId, text);
+        }
+    }
+
+    /// <summary>
+    /// Adds a visible row as the row behind a choice, for each of its cells whose column a linked dropdown
+    /// wants rows from. The row's values are everything else in it.
+    /// </summary>
+    private void OfferRowToLinkedDropdowns(int tableId, SheetRow row, List<SheetCell> cells)
+    {
+        var sources = cells.Where(cell => linkedOptions.WantsRows(tableId, cell.TemplateCellId)).ToList();
+        if (sources.Count == 0)
+        {
+            return;
+        }
+
+        var versionId = snapshot.Tables.First(table => table.Id == tableId).TableTemplateVersionId;
+        if (!rowLabelsByVersion.TryGetValue(versionId, out var labels))
+        {
+            var sections = snapshot.TemplateSections.Where(section => section.TableTemplateVersionId == versionId).ToList();
+            labels = LinkableColumns.LabelsInARow(sections, snapshot.TemplateRows, snapshot.CellTypes);
+            rowLabelsByVersion[versionId] = labels;
+        }
+
+        linkedRowValues ??= new LinkedRowValues(snapshot);
+        var values = linkedRowValues.Of(row, cells, labels);
+        foreach (var source in sources)
+        {
+            if (values.FirstOrDefault(entry => entry.SheetCellId == source.Id).Value is { } picked)
+            {
+                var others = values.Where(entry => entry.SheetCellId != source.Id).Select(entry => entry.Value).ToList();
+                linkedOptions.AddRow(tableId, source.TemplateCellId, new SheetLinkedRowDto(picked.Value, row.Id, others));
+            }
         }
     }
 

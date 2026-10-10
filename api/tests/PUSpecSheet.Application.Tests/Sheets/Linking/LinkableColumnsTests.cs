@@ -74,6 +74,22 @@ public sealed class LinkableColumnsTests
     }
 
     [Fact]
+    public void WithinARow_AColumnGoesByItsPlainName()
+    {
+        var rows = new[]
+        {
+            Row(1, Header, Cell(10, Heading, 1, caption: "Part number")),
+            Row(2, Parts, Cell(20, Text, 1)),
+            Row(3, Spares, Cell(30, Text, 1)),
+        };
+
+        var labels = LinkableColumns.LabelsInARow([Header, Parts, Spares], rows, CellTypes);
+
+        Assert.Equal("Part number", labels[20]);
+        Assert.Equal("Part number", labels[30]);
+    }
+
+    [Fact]
     public void AHeading_NamesOnlyTheColumnsOfItsOwnColumnBlock()
     {
         var rows = new[]

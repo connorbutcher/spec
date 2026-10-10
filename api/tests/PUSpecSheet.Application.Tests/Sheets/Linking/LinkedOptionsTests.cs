@@ -1,5 +1,6 @@
 using PUSpecSheet.Application.Sheets;
 using PUSpecSheet.Application.Sheets.Linking;
+using PUSpecSheet.Contracts.Sheets;
 using PUSpecSheet.Domain.CellTypes;
 using PUSpecSheet.Domain.CellTypes.InstanceSettings;
 
@@ -36,6 +37,31 @@ public sealed class LinkedOptionsTests
         collector.Add(2, 15, "P-1002");
 
         Assert.Equal(["P-1002", "P-1001"], collector.Build().Single().Options);
+    }
+
+    [Fact]
+    public void RowsAreOnlyGathered_ForColumnsACellWantsRowsFrom()
+    {
+        var withRows = new CellValueBag
+        {
+            Settings = new LinkedDropdownInstanceSettings { SourceSheetTableId = 2, SourceTemplateCellId = 18, IncludeRowValues = true },
+        };
+        var collector = new LinkedOptionCollector([LinkedToPartNumbers, withRows]);
+
+        Assert.True(collector.WantsRowsOf(2));
+        Assert.True(collector.WantsRows(2, 18));
+        Assert.False(collector.WantsRows(2, 15));
+        Assert.False(collector.WantsRowsOf(3));
+
+        collector.AddRow(2, 15, new SheetLinkedRowDto("P-1001", 1, []));
+        collector.AddRow(2, 18, new SheetLinkedRowDto("Bore (mm)", 10, [new SheetLinkedValueDto("P-1001 Min", "81.98")]));
+        collector.AddRow(2, 18, new SheetLinkedRowDto("Bore (mm)", 11, []));
+
+        var sources = collector.Build();
+        Assert.Empty(sources.Single(source => source.TemplateCellId == 15).Rows);
+        var row = Assert.Single(sources.Single(source => source.TemplateCellId == 18).Rows);
+        Assert.Equal(10, row.SheetRowId);
+        Assert.Equal("81.98", row.Values.Single().Value);
     }
 
     [Fact]

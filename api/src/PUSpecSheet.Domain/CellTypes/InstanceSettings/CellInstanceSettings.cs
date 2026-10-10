@@ -21,6 +21,24 @@ public abstract record CellInstanceSettings
     public bool IsEmpty => this == CellInstanceSettingsCatalog.CreateEmpty(Kind);
 
     /// <summary>
+    /// These settings as they are stored: anything that means "not set" written the one way, so two
+    /// settings that do the same thing are equal.
+    /// </summary>
+    public virtual CellInstanceSettings Normalise()
+    {
+        return this;
+    }
+
+    /// <summary>
+    /// Whether a value chosen under <paramref name="other"/> still stands under these settings. When it
+    /// doesn't, changing from one to the other clears the cell. Any difference counts unless a kind says otherwise.
+    /// </summary>
+    public virtual bool OffersSameChoicesAs(CellInstanceSettings? other)
+    {
+        return this == other;
+    }
+
+    /// <summary>
     /// The kind each derived type is for. A method rather than an overridden property, so the
     /// <see cref="JsonIgnoreAttribute"/> on <see cref="Kind"/> keeps it from clashing with the discriminator.
     /// </summary>

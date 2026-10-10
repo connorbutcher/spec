@@ -1,6 +1,7 @@
 import { CellInstanceSettings } from './models/cell-instance-settings';
 import { LinkedChoices } from './models/linked-choices.model';
 import { SheetIndex } from './models/sheet-index.model';
+import { SheetLinkedValue } from './models/sheet-linked-value.model';
 import { Sheet } from './models/sheet.model';
 import { tableLabel } from './sheet-labels.util';
 
@@ -20,18 +21,41 @@ export function linkedChoices(
     return UNSET;
   }
   const table = index.tables.get(tableId);
-  const column = table?.linkableColumns.find((candidate) => candidate.templateCellId === templateCellId);
+  const column = table?.linkableColumns.find(
+    (candidate) => candidate.templateCellId === templateCellId,
+  );
   if (table === undefined || column === undefined) {
     return MISSING;
   }
   const source = sheet?.linkedSources.find(
-    (candidate) => candidate.sheetTableId === tableId && candidate.templateCellId === templateCellId,
+    (candidate) =>
+      candidate.sheetTableId === tableId && candidate.templateCellId === templateCellId,
   );
   return {
     status: 'ready',
     source: `${tableLabel(table)} › ${column.label}`,
     options: source?.options ?? NO_OPTIONS,
   };
+}
+
+/**
+ * The other values of the row a linked dropdown's value was picked from, for a cell set to show them.
+ * Null when the cell isn't set to, has no value, or its value is no longer in the column.
+ */
+export function linkedRowValues(
+  sheet: Sheet | null,
+  settings: CellInstanceSettings | null,
+  value: string | null,
+): readonly SheetLinkedValue[] | null {
+  if (sheet === null || settings?.includeRowValues !== true || !value) {
+    return null;
+  }
+  const source = sheet.linkedSources.find(
+    (candidate) =>
+      candidate.sheetTableId === settings.sourceSheetTableId &&
+      candidate.templateCellId === settings.sourceTemplateCellId,
+  );
+  return source?.rows.find((row) => row.option === value)?.values ?? null;
 }
 
 /** Whether two answers from `linkedChoices` say the same thing, so a cell that reads one needn't redraw. */

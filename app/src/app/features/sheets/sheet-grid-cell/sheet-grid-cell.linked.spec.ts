@@ -5,6 +5,7 @@ import { ActivatedRoute, convertToParamMap } from '@angular/router';
 import { of } from 'rxjs';
 import { CellLayout } from '../../templates/models/cell-layout.model';
 import { CellType } from '../../templates/models/cell-type.model';
+import { LinkedDropdownInstanceSettings } from '../models/linked-dropdown-instance-settings.model';
 import { SheetCell } from '../models/sheet-cell.model';
 import { Sheet } from '../models/sheet.model';
 import { layoutSheetTable } from '../sheet-layout.util';
@@ -59,7 +60,21 @@ describe('SheetGridCell, for a linked dropdown', () => {
       tables: [table],
       availableTemplates: [],
       linkedSources: [
-        { sheetTableId: table.id, templateCellId: PART_NUMBER, options: ['P-1001', 'P-1002'] },
+        {
+          sheetTableId: table.id,
+          templateCellId: PART_NUMBER,
+          options: ['P-1001', 'P-1002'],
+          rows: [
+            {
+              option: 'P-1002',
+              sheetRowId: 77,
+              values: [
+                { label: 'Min', value: '81.99' },
+                { label: 'Max', value: '82.03' },
+              ],
+            },
+          ],
+        },
       ],
     };
     change(cell, sheet);
@@ -117,6 +132,31 @@ describe('SheetGridCell, for a linked dropdown', () => {
     expect(host().querySelector('.warning')).toBeNull();
   });
 
+  it('shows the rest of the picked row under its value when it is set to', async () => {
+    await render((cell) => {
+      pointAtPartNumbers(cell);
+      (cell.settings as LinkedDropdownInstanceSettings).includeRowValues = true;
+      cell.textValue = 'P-1002';
+    });
+
+    const items = [...host().querySelectorAll('app-sheet-linked-row .item')];
+    const text = (item: Element, part: string): string | undefined =>
+      item.querySelector(part)?.textContent?.trim();
+    expect(items.map((item) => [text(item, '.label'), text(item, '.value')])).toEqual([
+      ['Min', '81.99'],
+      ['Max', '82.03'],
+    ]);
+  });
+
+  it('shows only its value when it is not set to show the row', async () => {
+    await render((cell) => {
+      pointAtPartNumbers(cell);
+      cell.textValue = 'P-1002';
+    });
+
+    expect(host().querySelector('app-sheet-linked-row')).toBeNull();
+  });
+
   it('keeps a value its column no longer has, and flags it', async () => {
     await render((cell) => {
       pointAtPartNumbers(cell);
@@ -154,7 +194,11 @@ describe('SheetGridCell, for a linked dropdown', () => {
 
     fixture.componentInstance.saveSettings({
       sheetCellId: cell.id,
-      settings: { kind: 'LinkedDropdown', sourceSheetTableId: 1, sourceTemplateCellId: PART_NUMBER },
+      settings: {
+        kind: 'LinkedDropdown',
+        sourceSheetTableId: 1,
+        sourceTemplateCellId: PART_NUMBER,
+      },
     });
     await settle();
 

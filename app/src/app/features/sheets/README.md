@@ -52,6 +52,7 @@ sheets/
       sheet-cell-settings/      The button and popover for a kind's settings chosen on the sheet.
         sheet-linked-source-form/   The table and column a linked dropdown reads.
     sheet-cell-value/         The read-only value.
+    sheet-linked-row/         Under a linked dropdown's value: the rest of the row it was picked from.
     sheet-cell-marks/         Row-changed bar, cell-changed corner, lock icon, warning sign.
   sheet-change-tag/         The "vN" tag on a changed section or column block.
 
@@ -149,11 +150,13 @@ user action ─► component ─► store method ─► SheetsApi ─► whole l
 
 A kind can have settings that are chosen cell by cell on the sheet (`cell.settings`, see
 `models/cell-instance-settings.ts`). They are saved with `store.saveCellSettings`, belong to the row's
-draft like a value, and the API clears the cell's value when they change. A linked dropdown's are the
+draft like a value, and the API clears the cell's value when they change what it can choose from. A linked dropdown's are the
 table and column it reads: `table.linkableColumns` lists what each table offers, and
 `sheet.linkedSources` holds the values of every column in use. `linkedChoices` puts the two together
 for one cell, and says when the cell has no column (`unset`) or its column has gone (`missing`). A value
-that is no longer in its column is kept and flagged, never changed.
+that is no longer in its column is kept and flagged, never changed. A cell with `includeRowValues`
+also shows the rest of the row its value was picked from (`linkedRowValues`, from
+`linkedSources[].rows`), which follows the source row and is not stored with the cell.
 
 To give another kind settings: follow "Cell settings chosen on the sheet" in the
 [root README](../../../../../README.md#cell-settings-chosen-on-the-sheet). On this side it is an
