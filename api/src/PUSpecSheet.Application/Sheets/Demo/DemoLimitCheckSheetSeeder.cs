@@ -10,8 +10,9 @@ namespace PUSpecSheet.Application.Sheets.Demo;
 /// template with the same services the API uses. Each row's first cell is a linked dropdown pointed at the
 /// descriptions of the sheet's "Piston parts" limits and set to give the picked row's other values, so
 /// picking "Bore (mm)" shows every part's Min and Max beside it. The result is published as the sheet's
-/// next version. A sheet without the parts table, one that has ever had a "Limit checks" table, and one
-/// where the seeding user has unpublished changes (which the publish would take with it) are left alone.
+/// next version, unless the seeding user has unpublished changes of their own on the sheet: a publish would
+/// take those with it, so the table is then left as one more unpublished change for them to publish. A
+/// sheet without the parts table, and one that has ever had a "Limit checks" table, are left alone.
 /// </summary>
 public sealed class DemoLimitCheckSheetSeeder(
     PuSpecSheetDbContext db,
@@ -64,7 +65,7 @@ public sealed class DemoLimitCheckSheetSeeder(
         var sheet = await sheets.GetAsync(sheetId.Value, SheetViewPoint.Live, cancellationToken);
         var parts = sheet.Tables.FirstOrDefault(table => table.TemplateName == DemoPartsGridTemplateSeeder.TemplateName);
         var limits = parts?.Sections.Where(section => section.Name == DemoPartsGridTemplateSeeder.LimitsName).ToList() ?? [];
-        if (parts is null || limits.Count == 0 || sheet.MyDraftCount > 0)
+        if (parts is null || limits.Count == 0)
         {
             return;
         }
@@ -79,32 +80,36 @@ public sealed class DemoLimitCheckSheetSeeder(
             return;
         }
 
+        var source = new LinkedDropdownInstanceSettings
+        {
+            SourceSheetTableId = parts.Id,
+            SourceTemplateCellId = descriptions[0].Template.Id,
+            IncludeRowValues = true,
+        };
+        var dto = await tables.AddAsync(sheet.Id, new AddSheetTableRequest(templateId.Value), cancellationToken);
+        var tableId = Checked(dto).Id;
         try
         {
-            var source = new LinkedDropdownInstanceSettings
+            await BuildAsync(dto, source, descriptions.Select(cell => cell.TextValue!).ToList(), cancellationToken);
+            if (sheet.MyDraftCount == 0)
             {
-                SourceSheetTableId = parts.Id,
-                SourceTemplateCellId = descriptions[0].Template.Id,
-                IncludeRowValues = true,
-            };
-            await BuildAsync(sheet.Id, templateId.Value, source, descriptions.Select(cell => cell.TextValue!).ToList(), cancellationToken);
+                await sheets.PublishAsync(sheet.Id, new PublishSheetRequest("Sample limit checks"), cancellationToken);
+            }
         }
         catch
         {
-            // Don't leave half a sample table behind as drafts. The user had none of their own on the sheet.
-            await sheets.DiscardDraftsAsync(sheet.Id, CancellationToken.None);
+            // Don't leave half a sample table behind. Only the table goes: the user's own changes stay.
+            await tables.RemoveAsync(tableId, CancellationToken.None);
             throw;
         }
     }
 
     private async Task BuildAsync(
-        int sheetId,
-        int templateId,
+        SheetDto dto,
         LinkedDropdownInstanceSettings source,
         List<string> limits,
         CancellationToken cancellationToken)
     {
-        var dto = await tables.AddAsync(sheetId, new AddSheetTableRequest(templateId), cancellationToken);
         var tableId = Checked(dto).Id;
         await tables.SetTitleAsync(tableId, new UpdateSheetTableRequest("Limits to check"), cancellationToken);
         var checkTemplateId = Checked(dto).AddableSections.Single(section => section.Name == DemoLimitCheckTemplateSeeder.CheckName).TemplateSectionId;
@@ -132,8 +137,6 @@ public sealed class DemoLimitCheckSheetSeeder(
                 ]),
                 cancellationToken);
         }
-
-        await sheets.PublishAsync(sheetId, new PublishSheetRequest("Sample limit checks"), cancellationToken);
     }
 
     private static SheetTableDto Checked(SheetDto dto)
