@@ -19,7 +19,7 @@ public sealed class CellInstanceSettingsTests
 
         var json = JsonSerializer.Serialize(settings, Options);
 
-        Assert.Equal("""{"kind":"LinkedDropdown","sourceSheetTableId":4,"sourceTemplateCellId":15,"includeRowValues":null}""", json);
+        Assert.Equal("""{"kind":"LinkedDropdown","sourceSheetTableId":4,"sourceTemplateCellId":15,"sourceSheetRowId":null}""", json);
     }
 
     [Fact]
@@ -33,41 +33,23 @@ public sealed class CellInstanceSettingsTests
     }
 
     [Fact]
-    public void SettingsStoredBeforeAProperty_ReadWithItNotSet()
+    public void ALinkedDropdown_HasASource_WithATableAndEitherAColumnOrARow()
+    {
+        Assert.True(new LinkedDropdownInstanceSettings { SourceSheetTableId = 4, SourceTemplateCellId = 15 }.HasSource);
+        Assert.True(new LinkedDropdownInstanceSettings { SourceSheetTableId = 4, SourceSheetRowId = 70 }.HasSource);
+        Assert.False(new LinkedDropdownInstanceSettings { SourceSheetTableId = 4 }.HasSource);
+        Assert.False(new LinkedDropdownInstanceSettings { SourceSheetRowId = 70 }.HasSource);
+        Assert.False(new LinkedDropdownInstanceSettings { SourceSheetTableId = 4, SourceTemplateCellId = 15, SourceSheetRowId = 70 }.HasSource);
+    }
+
+    [Fact]
+    public void SettingsStoredWithAPropertyThatNoLongerExists_StillRead()
     {
         var settings = JsonSerializer.Deserialize<CellInstanceSettings>(
-            """{"kind":"LinkedDropdown","sourceSheetTableId":4,"sourceTemplateCellId":15}""",
+            """{"kind":"LinkedDropdown","sourceSheetTableId":4,"sourceTemplateCellId":15,"includeRowValues":true}""",
             Options);
 
-        var linked = Assert.IsType<LinkedDropdownInstanceSettings>(settings);
-        Assert.Null(linked.IncludeRowValues);
-        Assert.False(linked.ShowsRowValues);
-    }
-
-    [Fact]
-    public void SwitchedOff_IsStoredAsNotSet_SoItEqualsSettingsThatNeverHadIt()
-    {
-        var plain = new LinkedDropdownInstanceSettings { SourceSheetTableId = 4, SourceTemplateCellId = 15 };
-
-        Assert.Equal(plain, (plain with { IncludeRowValues = false }).Normalise());
-        Assert.NotEqual(plain, (plain with { IncludeRowValues = true }).Normalise());
-    }
-
-    [Fact]
-    public void ShowingTheRow_NeedsAColumnToPickFrom()
-    {
-        Assert.True(new LinkedDropdownInstanceSettings { SourceSheetTableId = 4, SourceTemplateCellId = 15, IncludeRowValues = true }.ShowsRowValues);
-        Assert.False(new LinkedDropdownInstanceSettings { SourceSheetTableId = 4, IncludeRowValues = true }.ShowsRowValues);
-    }
-
-    [Fact]
-    public void TheChoicesStayTheSame_WhileTheColumnDoes()
-    {
-        var plain = new LinkedDropdownInstanceSettings { SourceSheetTableId = 4, SourceTemplateCellId = 15 };
-
-        Assert.True((plain with { IncludeRowValues = true }).OffersSameChoicesAs(plain));
-        Assert.False((plain with { SourceTemplateCellId = 16 }).OffersSameChoicesAs(plain));
-        Assert.False(plain.OffersSameChoicesAs(null));
+        Assert.Equal(new LinkedDropdownInstanceSettings { SourceSheetTableId = 4, SourceTemplateCellId = 15 }, settings);
     }
 
     [Fact]

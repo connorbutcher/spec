@@ -1,13 +1,11 @@
-import { SheetLinkedRow } from './sheet-linked-row.model';
-
 /**
- * The choices one column gives the linked dropdowns pointed at it: the values it holds, top to bottom,
- * without repeats. Only columns some cell is linked to are sent.
+ * The choices one source gives the linked dropdowns pointed at it, without repeats. A source is a column
+ * of a table (`templateCellId` is set: the values it holds, top to bottom) or a row of it (`sheetRowId` is
+ * set: the values in the row after the one that names it). Only sources some cell is linked to are sent.
  */
 export interface SheetLinkedSource {
   sheetTableId: number;
-  templateCellId: number;
+  templateCellId: number | null;
+  sheetRowId: number | null;
   options: string[];
-  /** The row behind each choice, when a cell linked to this column also shows its choice's row; empty otherwise. */
-  rows: SheetLinkedRow[];
 }

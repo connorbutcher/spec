@@ -5,7 +5,6 @@ import { ActivatedRoute, convertToParamMap } from '@angular/router';
 import { of } from 'rxjs';
 import { CellLayout } from '../../templates/models/cell-layout.model';
 import { CellType } from '../../templates/models/cell-type.model';
-import { LinkedDropdownInstanceSettings } from '../models/linked-dropdown-instance-settings.model';
 import { SheetCell } from '../models/sheet-cell.model';
 import { Sheet } from '../models/sheet.model';
 import { layoutSheetTable } from '../sheet-layout.util';
@@ -26,6 +25,7 @@ const LINKED_TYPE: CellType = {
 };
 
 const PART_NUMBER = 15;
+const PIN_OFFSET_ROW = 70;
 
 describe('SheetGridCell, for a linked dropdown', () => {
   let fixture: ComponentFixture<SheetGridCell>;
@@ -43,6 +43,7 @@ describe('SheetGridCell, for a linked dropdown', () => {
     const table = fixtureTable();
     table.title = 'Piston parts';
     table.linkableColumns = [{ templateCellId: PART_NUMBER, label: 'Part number' }];
+    table.linkableRows = [{ sheetRowId: PIN_OFFSET_ROW, label: 'Pin offset (mm)' }];
     const header = table.sections.find((section) => section.role === 'Header');
     const cell = header?.rows[0].cells[0] as SheetCell;
     const sheet: Sheet = {
@@ -63,17 +64,14 @@ describe('SheetGridCell, for a linked dropdown', () => {
         {
           sheetTableId: table.id,
           templateCellId: PART_NUMBER,
+          sheetRowId: null,
           options: ['P-1001', 'P-1002'],
-          rows: [
-            {
-              option: 'P-1002',
-              sheetRowId: 77,
-              values: [
-                { label: 'Min', value: '81.99' },
-                { label: 'Max', value: '82.03' },
-              ],
-            },
-          ],
+        },
+        {
+          sheetTableId: table.id,
+          templateCellId: null,
+          sheetRowId: PIN_OFFSET_ROW,
+          options: ['0.8', '0.85'],
         },
       ],
     };
@@ -132,29 +130,21 @@ describe('SheetGridCell, for a linked dropdown', () => {
     expect(host().querySelector('.warning')).toBeNull();
   });
 
-  it('shows the rest of the picked row under its value when it is set to', async () => {
+  it('pointed at a row, shows a value of that row and flags one the row no longer has', async () => {
     await render((cell) => {
-      pointAtPartNumbers(cell);
-      (cell.settings as LinkedDropdownInstanceSettings).includeRowValues = true;
-      cell.textValue = 'P-1002';
+      cell.settings = {
+        kind: 'LinkedDropdown',
+        sourceSheetTableId: 1,
+        sourceTemplateCellId: null,
+        sourceSheetRowId: PIN_OFFSET_ROW,
+      };
+      cell.textValue = '0.9';
     });
 
-    const items = [...host().querySelectorAll('app-sheet-linked-row .item')];
-    const text = (item: Element, part: string): string | undefined =>
-      item.querySelector(part)?.textContent?.trim();
-    expect(items.map((item) => [text(item, '.label'), text(item, '.value')])).toEqual([
-      ['Min', '81.99'],
-      ['Max', '82.03'],
-    ]);
-  });
-
-  it('shows only its value when it is not set to show the row', async () => {
-    await render((cell) => {
-      pointAtPartNumbers(cell);
-      cell.textValue = 'P-1002';
-    });
-
-    expect(host().querySelector('app-sheet-linked-row')).toBeNull();
+    expect(host().textContent?.trim()).toBe('0.9');
+    expect(host().querySelector('.warning')?.getAttribute('aria-label')).toContain(
+      '"0.9" is no longer in Piston parts › Pin offset (mm)',
+    );
   });
 
   it('keeps a value its column no longer has, and flags it', async () => {

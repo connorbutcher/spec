@@ -25,4 +25,7 @@ public sealed record SheetTableDto(
 {
     /// <summary>The table's columns a linked dropdown on the sheet can take its choices from.</summary>
     public IReadOnlyList<SheetLinkableColumnDto> LinkableColumns { get; init; } = [];
+
+    /// <summary>The table's rows a linked dropdown on the sheet can take its choices from, top to bottom.</summary>
+    public IReadOnlyList<SheetLinkableRowDto> LinkableRows { get; init; } = [];
 }

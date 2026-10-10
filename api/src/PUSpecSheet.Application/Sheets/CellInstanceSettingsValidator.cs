@@ -43,14 +43,19 @@ internal static class CellInstanceSettingsValidator
 
     private static void CheckLinkedDropdown(string name, LinkedDropdownInstanceSettings settings, SheetDto sheet)
     {
-        if (settings.SourceSheetTableId is null || settings.SourceTemplateCellId is null)
+        if (settings.SourceTemplateCellId is not null && settings.SourceSheetRowId is not null)
         {
-            throw new InvalidRequestException($"Choose both a table and a column for '{name}'.");
+            throw new InvalidRequestException($"'{name}' takes its choices from a column or from a row, not both.");
+        }
+
+        if (!settings.HasSource)
+        {
+            throw new InvalidRequestException($"Choose a table, and a column or a row of it, for '{name}'.");
         }
 
         if (!SheetLinks.SourceExists(sheet, settings))
         {
-            throw new InvalidRequestException($"The table or column chosen for '{name}' isn't on this sheet.");
+            throw new InvalidRequestException($"The table, column or row chosen for '{name}' isn't on this sheet.");
         }
     }
 }

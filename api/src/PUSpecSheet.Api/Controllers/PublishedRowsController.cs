@@ -212,10 +212,7 @@ public sealed class PublishedRowsController(IPublishedSheetQueryService sheets, 
             rowPublicId,
             row.Section,
             row.Values,
-            row.Columns)
-        {
-            LinkedRows = row.LinkedRows,
-        });
+            row.Columns));
     }
 
     /// <summary>Sets the caching headers, and says whether the caller already holds this answer.</summary>

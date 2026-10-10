@@ -1,14 +1,12 @@
 /**
- * Where a linked dropdown cell takes its choices from: one column of another table on the same sheet.
- * The column is named by the template cell its cells were built from.
+ * Where a linked dropdown cell takes its choices from, in another table on the same sheet: either one
+ * column of it (named by the template cell its cells were built from), giving the values that column
+ * holds in every row, or one row of it, giving every value in that row. One of the two is set.
  */
 export interface LinkedDropdownInstanceSettings {
   kind: 'LinkedDropdown';
   sourceSheetTableId: number | null;
   sourceTemplateCellId: number | null;
-  /**
-   * True when the cell also shows the other values of the row its choice was picked from. They are read
-   * from that row each time, never stored with this cell. Null or absent when off.
-   */
-  includeRowValues?: boolean | null;
+  /** For a row source. Null or absent for a column source. */
+  sourceSheetRowId?: number | null;
 }

@@ -38,7 +38,7 @@ public sealed class LinkedDropdownValueRule(SheetReader reader)
             var name = string.IsNullOrWhiteSpace(template.Caption) ? template.CellType.Name : template.Caption;
             var settings = SheetLinks.FindCell(sheet, value.SheetCellId)?.Settings as LinkedDropdownInstanceSettings;
             var options = SheetLinks.OptionsOf(sheet, settings)
-                ?? throw new InvalidRequestException($"Choose the table and column '{name}' takes its choices from first.");
+                ?? throw new InvalidRequestException($"Choose where '{name}' takes its choices from first.");
             if (!options.Contains(value.Text!.Trim(), StringComparer.Ordinal))
             {
                 throw new InvalidRequestException($"That isn't one of the choices for '{name}'.");

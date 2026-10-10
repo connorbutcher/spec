@@ -8,7 +8,7 @@
       optionLabel="label"
       optionValue="id"
       placeholder="Choose a table"
-      emptyMessage="No table on this sheet has a column to link to"
+      emptyMessage="No table on this sheet has anything to link to"
       [fluid]="true"
       [options]="tables()"
       [ngModel]="tableId()"
@@ -17,37 +17,63 @@
     />
   </div>
   <div class="app-field">
-    <label for="linked-source-column">Column</label>
-    <p-select
+    <span class="app-field-label" id="linked-source-part">The choices are the values in</span>
+    <p-selectbutton
       size="small"
-      inputId="linked-source-column"
-      appendTo="body"
       optionLabel="label"
-      optionValue="templateCellId"
-      placeholder="Choose a column"
-      [fluid]="true"
-      [disabled]="tableId() === null"
-      [options]="columns()"
-      [ngModel]="templateCellId()"
-      (ngModelChange)="templateCellId.set($event)"
+      optionValue="value"
+      ariaLabelledBy="linked-source-part"
+      [allowEmpty]="false"
+      [options]="parts"
+      [ngModel]="part()"
+      (ngModelChange)="part.set($event)"
       [ngModelOptions]="{ standalone: true }"
     />
   </div>
-  <div class="app-check">
-    <p-checkbox
-      inputId="linked-source-row"
-      [binary]="true"
-      [ngModel]="includeRowValues()"
-      (ngModelChange)="includeRowValues.set($event)"
-      [ngModelOptions]="{ standalone: true }"
-    />
-    <label for="linked-source-row">Also show the rest of the picked row</label>
-  </div>
-  <p class="app-field-note">
-    The cell offers every value in that column. With the rest of the row shown, its other values
-    appear under the choice and follow the source row. Pointing the cell at another column clears
-    what was chosen.
-  </p>
+  @if (part() === 'column') {
+    <div class="app-field">
+      <label for="linked-source-column">Column</label>
+      <p-select
+        size="small"
+        inputId="linked-source-column"
+        appendTo="body"
+        optionLabel="label"
+        optionValue="templateCellId"
+        placeholder="Choose a column"
+        [fluid]="true"
+        [disabled]="tableId() === null"
+        [options]="columns()"
+        [ngModel]="templateCellId()"
+        (ngModelChange)="templateCellId.set($event)"
+        [ngModelOptions]="{ standalone: true }"
+      />
+    </div>
+    <p class="app-field-note">The cell offers that column's value from every row of the table.</p>
+  } @else {
+    <div class="app-field">
+      <label for="linked-source-row">Row</label>
+      <p-select
+        size="small"
+        inputId="linked-source-row"
+        appendTo="body"
+        optionLabel="label"
+        optionValue="sheetRowId"
+        placeholder="Choose a row"
+        emptyMessage="That table has no rows with values yet"
+        [fluid]="true"
+        [filter]="hasRowFilter()"
+        [disabled]="tableId() === null"
+        [options]="rows()"
+        [ngModel]="rowId()"
+        (ngModelChange)="rowId.set($event)"
+        [ngModelOptions]="{ standalone: true }"
+      />
+    </div>
+    <p class="app-field-note">
+      A row is named by its first value. The cell offers every other value in that row.
+    </p>
+  }
+  <p class="app-field-note">Pointing the cell somewhere else clears what was chosen.</p>
   <div class="buttons">
     <p-button
       label="Clear"

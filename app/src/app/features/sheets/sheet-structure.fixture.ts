@@ -103,6 +103,7 @@ export function fixtureTable(): SheetTable {
     columnBlocks: [],
     addableColumnBlocks: [],
     linkableColumns: [],
+    linkableRows: [],
 
   };
 }

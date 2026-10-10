@@ -1,7 +1,6 @@
 import { CellInstanceSettings } from './models/cell-instance-settings';
 import { LinkedChoices } from './models/linked-choices.model';
 import { SheetIndex } from './models/sheet-index.model';
-import { SheetLinkedValue } from './models/sheet-linked-value.model';
 import { Sheet } from './models/sheet.model';
 import { tableLabel } from './sheet-labels.util';
 
@@ -17,45 +16,29 @@ export function linkedChoices(
 ): LinkedChoices {
   const tableId = settings?.sourceSheetTableId ?? null;
   const templateCellId = settings?.sourceTemplateCellId ?? null;
-  if (tableId === null || templateCellId === null) {
+  const rowId = settings?.sourceSheetRowId ?? null;
+  if (tableId === null || (templateCellId === null) === (rowId === null)) {
     return UNSET;
   }
   const table = index.tables.get(tableId);
-  const column = table?.linkableColumns.find(
-    (candidate) => candidate.templateCellId === templateCellId,
-  );
-  if (table === undefined || column === undefined) {
+  const part =
+    rowId === null
+      ? table?.linkableColumns.find((candidate) => candidate.templateCellId === templateCellId)
+      : table?.linkableRows.find((candidate) => candidate.sheetRowId === rowId);
+  if (table === undefined || part === undefined) {
     return MISSING;
   }
   const source = sheet?.linkedSources.find(
     (candidate) =>
-      candidate.sheetTableId === tableId && candidate.templateCellId === templateCellId,
+      candidate.sheetTableId === tableId &&
+      candidate.templateCellId === templateCellId &&
+      candidate.sheetRowId === rowId,
   );
   return {
     status: 'ready',
-    source: `${tableLabel(table)} › ${column.label}`,
+    source: `${tableLabel(table)} › ${part.label}`,
     options: source?.options ?? NO_OPTIONS,
   };
-}
-
-/**
- * The other values of the row a linked dropdown's value was picked from, for a cell set to show them.
- * Null when the cell isn't set to, has no value, or its value is no longer in the column.
- */
-export function linkedRowValues(
-  sheet: Sheet | null,
-  settings: CellInstanceSettings | null,
-  value: string | null,
-): readonly SheetLinkedValue[] | null {
-  if (sheet === null || settings?.includeRowValues !== true || !value) {
-    return null;
-  }
-  const source = sheet.linkedSources.find(
-    (candidate) =>
-      candidate.sheetTableId === settings.sourceSheetTableId &&
-      candidate.templateCellId === settings.sourceTemplateCellId,
-  );
-  return source?.rows.find((row) => row.option === value)?.values ?? null;
 }
 
 /** Whether two answers from `linkedChoices` say the same thing, so a cell that reads one needn't redraw. */
@@ -76,7 +59,7 @@ export function sameLinkedChoices(a: LinkedChoices | null, b: LinkedChoices | nu
  */
 export function linkedWarning(choices: LinkedChoices, value: string | null): string | null {
   if (choices.status === 'missing') {
-    return 'The table or column this cell takes its choices from is no longer on the sheet. Choose another.';
+    return 'What this cell takes its choices from is no longer on the sheet. Choose another source.';
   }
   if (choices.status === 'ready' && value && !choices.options.includes(value)) {
     return `"${value}" is no longer in ${choices.source}. It stays as it is until someone picks again.`;

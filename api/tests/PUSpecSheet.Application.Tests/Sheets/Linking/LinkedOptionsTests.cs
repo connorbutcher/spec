@@ -1,7 +1,7 @@
 using PUSpecSheet.Application.Sheets;
 using PUSpecSheet.Application.Sheets.Linking;
-using PUSpecSheet.Contracts.Sheets;
 using PUSpecSheet.Domain.CellTypes;
+using PUSpecSheet.Domain.CellTypes.Configurations;
 using PUSpecSheet.Domain.CellTypes.InstanceSettings;
 
 namespace PUSpecSheet.Application.Tests.Sheets.Linking;
@@ -24,7 +24,7 @@ public sealed class LinkedOptionsTests
         Assert.False(collector.Wants(3, 15));
 
         collector.Add(2, 16, "ignored");
-        Assert.Equal([(2, 15)], collector.Build().Select(source => (source.SheetTableId, source.TemplateCellId)));
+        Assert.Equal([(2, (int?)15)], collector.Build().Select(source => (source.SheetTableId, source.TemplateCellId)));
     }
 
     [Fact]
@@ -40,28 +40,36 @@ public sealed class LinkedOptionsTests
     }
 
     [Fact]
-    public void RowsAreOnlyGathered_ForColumnsACellWantsRowsFrom()
+    public void ARowSomethingIsLinkedTo_GivesItsValues_WithoutRepeats()
     {
-        var withRows = new CellValueBag
+        var linkedToRow = new CellValueBag
         {
-            Settings = new LinkedDropdownInstanceSettings { SourceSheetTableId = 2, SourceTemplateCellId = 18, IncludeRowValues = true },
+            Settings = new LinkedDropdownInstanceSettings { SourceSheetTableId = 2, SourceSheetRowId = 70 },
         };
-        var collector = new LinkedOptionCollector([LinkedToPartNumbers, withRows]);
+        var collector = new LinkedOptionCollector([LinkedToPartNumbers, linkedToRow]);
 
-        Assert.True(collector.WantsRowsOf(2));
-        Assert.True(collector.WantsRows(2, 18));
-        Assert.False(collector.WantsRows(2, 15));
-        Assert.False(collector.WantsRowsOf(3));
+        Assert.True(collector.WantsRow(2, 70));
+        Assert.False(collector.WantsRow(2, 71));
+        Assert.False(collector.WantsRow(3, 70));
 
-        collector.AddRow(2, 15, new SheetLinkedRowDto("P-1001", 1, []));
-        collector.AddRow(2, 18, new SheetLinkedRowDto("Bore (mm)", 10, [new SheetLinkedValueDto("P-1001 Min", "81.98")]));
-        collector.AddRow(2, 18, new SheetLinkedRowDto("Bore (mm)", 11, []));
+        collector.AddToRow(2, 70, "0.8");
+        collector.AddToRow(2, 70, "0.85");
+        collector.AddToRow(2, 70, "0.8");
+        collector.AddToRow(2, 71, "ignored");
 
-        var sources = collector.Build();
-        Assert.Empty(sources.Single(source => source.TemplateCellId == 15).Rows);
-        var row = Assert.Single(sources.Single(source => source.TemplateCellId == 18).Rows);
-        Assert.Equal(10, row.SheetRowId);
-        Assert.Equal("81.98", row.Values.Single().Value);
+        var row = collector.Build().Single(source => source.SheetRowId == 70);
+        Assert.Null(row.TemplateCellId);
+        Assert.Equal(["0.8", "0.85"], row.Options);
+    }
+
+    [Fact]
+    public void TheFirstValueOfARow_NamesIt_AndTheRestAreItsChoices()
+    {
+        string[] values = ["Pin offset (mm)", "0.8", "0.85"];
+
+        Assert.Equal("Pin offset (mm)", LinkedRowValues.NameOf(values));
+        Assert.Equal(["0.8", "0.85"], LinkedRowValues.ChoicesOf(values));
+        Assert.Null(LinkedRowValues.NameOf([]));
     }
 
     [Fact]
@@ -87,9 +95,19 @@ public sealed class LinkedOptionsTests
 
         Assert.Equal("P-1001", LinkedOptionText.Of(new CellValueBag { Text = " P-1001 " }, Type(CellKind.Text)));
         Assert.Equal("P-1001", LinkedOptionText.Of(new CellValueBag { Text = "P-1001" }, Type(CellKind.LinkedDropdown)));
-        Assert.Equal("12.5", LinkedOptionText.Of(new CellValueBag { Number = 12.5000000000m }, Type(CellKind.Number)));
+        Assert.Equal("12.5", LinkedOptionText.Of(new CellValueBag { Number = 12.5000000000m }, new CellType { Kind = CellKind.Number, Configuration = new NumberCellConfiguration() }));
         Assert.Equal("2026-10-08", LinkedOptionText.Of(new CellValueBag { Date = new DateOnly(2026, 10, 8) }, Type(CellKind.Date)));
         Assert.Equal("Pass", LinkedOptionText.Of(new CellValueBag { OptionId = 7 }, dropdown));
+    }
+
+    [Fact]
+    public void ANumber_ReadsToItsCellsDecimalPlaces_AsItDoesOnTheSheet()
+    {
+        var twoPlaces = new CellType { Kind = CellKind.Number, Configuration = new NumberCellConfiguration { DecimalPlaces = 2 } };
+
+        Assert.Equal("0.80", LinkedOptionText.Of(new CellValueBag { Number = 0.8m }, twoPlaces));
+        Assert.Equal("82.00", LinkedOptionText.Of(new CellValueBag { Number = 82m }, twoPlaces));
+        Assert.Equal("6", LinkedOptionText.Of(new CellValueBag { Number = 6m }, twoPlaces, new NumberCellConfiguration { DecimalPlaces = 0 }));
     }
 
     [Fact]

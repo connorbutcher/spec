@@ -51,11 +51,10 @@ sheets/
   sheet-grid-cell/          One cell: decides whether it is a caption, an editor or a plain value.
     sheet-cell-editor/        Picks the editor for the cell's kind.
       sheet-text-cell/ sheet-number-cell/ sheet-date-cell/ sheet-checkbox-cell/ sheet-dropdown-cell/
-      sheet-linked-dropdown-cell/   A dropdown of the values in a column of another table.
+      sheet-linked-dropdown-cell/   A dropdown of the values in a column, or a row, of another table.
       sheet-cell-settings/      The button and popover for a kind's settings chosen on the sheet.
-        sheet-linked-source-form/   The table and column a linked dropdown reads.
+        sheet-linked-source-form/   The table, and the column or row of it, a linked dropdown reads.
     sheet-cell-value/         The read-only value.
-    sheet-linked-row/         Under a linked dropdown's value: the rest of the row it was picked from.
     sheet-cell-marks/         Cell-changed corner, warning sign.
   sheet-status/             Version, state and who, written the one way for a row, the selected row and a table.
   sheet-change-tag/         The "vN" tag on a changed section or column block.
@@ -196,13 +195,12 @@ show it.
 
 A kind can have settings that are chosen cell by cell on the sheet (`cell.settings`, see
 `models/cell-instance-settings.ts`). They are saved with `store.saveCellSettings`, belong to the row's
-draft like a value, and the API clears the cell's value when they change what it can choose from. A linked dropdown's are the
-table and column it reads: `table.linkableColumns` lists what each table offers, and
-`sheet.linkedSources` holds the values of every column in use. `linkedChoices` puts the two together
-for one cell, and says when the cell has no column (`unset`) or its column has gone (`missing`). A value
-that is no longer in its column is kept and flagged, never changed. A cell with `includeRowValues`
-also shows the rest of the row its value was picked from (`linkedRowValues`, from
-`linkedSources[].rows`), which follows the source row and is not stored with the cell.
+draft like a value, and the API clears the cell's value when they change. A linked dropdown's are the
+table it reads and either a column or a row of it: `table.linkableColumns` and `table.linkableRows` list
+what each table offers, and `sheet.linkedSources` holds the values of every column and row in use.
+`linkedChoices` puts them together for one cell, and says when the cell has no source (`unset`) or its
+source has gone (`missing`). A value that is no longer among the choices is kept and flagged, never
+changed.
 
 To give another kind settings: follow "Cell settings chosen on the sheet" in the
 [root README](../../../../../README.md#cell-settings-chosen-on-the-sheet). On this side it is an

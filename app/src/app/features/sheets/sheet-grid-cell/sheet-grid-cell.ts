@@ -16,7 +16,6 @@ import { GridStyle } from '../../templates/models/grid-style';
 import {
   linkedChoices,
   linkedHint,
-  linkedRowValues,
   linkedWarning,
   sameLinkedChoices,
 } from '../linked-dropdown.util';
@@ -31,7 +30,6 @@ import { SheetRow } from '../models/sheet-row.model';
 import { SheetCellEditor } from '../sheet-cell-editor/sheet-cell-editor';
 import { SheetCellMarks } from '../sheet-cell-marks/sheet-cell-marks';
 import { SheetCellValue } from '../sheet-cell-value/sheet-cell-value';
-import { SheetLinkedRow } from '../sheet-linked-row/sheet-linked-row';
 import { sectionTone } from '../sheet-index.util';
 import { otherUsersLock } from '../sheet-lock.util';
 import { SheetStore } from '../sheet.store';
@@ -57,7 +55,7 @@ const FLEX_ALIGNMENT: Readonly<Record<string, string>> = {
  */
 @Component({
   selector: 'app-sheet-grid-cell',
-  imports: [SheetCellEditor, SheetCellMarks, SheetCellValue, SheetLinkedRow],
+  imports: [SheetCellEditor, SheetCellMarks, SheetCellValue],
   templateUrl: './sheet-grid-cell.html',
   styleUrl: './sheet-grid-cell.scss',
   host: {
@@ -200,17 +198,6 @@ export class SheetGridCell {
       return unlinked;
     }
     return this.layout().cell.isRequired && this.caption() ? `${this.caption()} *` : this.caption();
-  });
-
-  /**
-   * For a linked dropdown set to show them: the other values of the row its value was picked from, read
-   * from that row as the sheet has it now. Null for every other cell.
-   */
-  public readonly linkedRow = computed(() => {
-    const cell = this.cell();
-    return cell === null || this.linkedChoices() === null
-      ? null
-      : linkedRowValues(this.store.sheet(), cell.settings, cell.textValue);
   });
 
   /**

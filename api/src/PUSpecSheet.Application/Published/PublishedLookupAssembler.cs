@@ -52,8 +52,7 @@ public static class PublishedLookupAssembler
         ResolvedSheetVersion version,
         PublishedStructure structure,
         IReadOnlyList<PublishedLookupCellRecord> cells,
-        IReadOnlyDictionary<int, object> values,
-        IReadOnlyDictionary<int, Guid>? linkedRows = null)
+        IReadOnlyDictionary<int, object> values)
     {
         var table = structure.Tables.First(candidate => candidate.Id == hit.TableId);
         var sections = structure.Sections
@@ -123,10 +122,7 @@ public static class PublishedLookupAssembler
                 }
             }
 
-            rows[first.RowPublicId] = new PublishedRowValuesDto(sections[first.SectionId].Name, own, columns)
-            {
-                LinkedRows = PublishedLinkedRows.Of(valueCells, values, linkedRows),
-            };
+            rows[first.RowPublicId] = new PublishedRowValuesDto(sections[first.SectionId].Name, own, columns);
         }
 
         return new PublishedLookupMatchDto(

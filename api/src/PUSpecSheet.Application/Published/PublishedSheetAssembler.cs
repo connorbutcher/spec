@@ -13,8 +13,7 @@ public static class PublishedSheetAssembler
         PublishedSheetSelection selection,
         PublishedStructure structure,
         IReadOnlyList<PublishedCellRecord> cells,
-        IReadOnlyDictionary<int, object> values,
-        IReadOnlyDictionary<int, Guid>? linkedRows = null)
+        IReadOnlyDictionary<int, object> values)
     {
         var shown = cells.Where(structure.Shows).ToList();
         var missing = Missing(selection, structure, shown);
@@ -33,7 +32,7 @@ public static class PublishedSheetAssembler
             return new PublishedSheetDto(version.SheetPublicId, version.VersionNumber, version.PublishedAtUtc, null, flat, missing);
         }
 
-        var tables = Tables(selection, structure, shown, values, linkedRows);
+        var tables = Tables(selection, structure, shown, values);
         return new PublishedSheetDto(version.SheetPublicId, version.VersionNumber, version.PublishedAtUtc, tables, null, missing);
     }
 
@@ -41,8 +40,7 @@ public static class PublishedSheetAssembler
         PublishedSheetSelection selection,
         PublishedStructure structure,
         List<PublishedCellRecord> shown,
-        IReadOnlyDictionary<int, object> values,
-        IReadOnlyDictionary<int, Guid>? linkedRows)
+        IReadOnlyDictionary<int, object> values)
     {
         var blockOrder = structure.ColumnBlocks
             .OrderBy(block => block.DisplayOrder)
@@ -54,7 +52,7 @@ public static class PublishedSheetAssembler
             .Select(row => new
             {
                 First = row.First(),
-                Dto = new PublishedRowDto(row.First().RowPublicId, Cells(row, selection, structure, blockOrder, values, linkedRows)),
+                Dto = new PublishedRowDto(row.First().RowPublicId, Cells(row, selection, structure, blockOrder, values)),
             })
             .Where(row => row.Dto.Cells.Count > 0)
             .OrderBy(row => row.First.RowOrder)
@@ -125,8 +123,7 @@ public static class PublishedSheetAssembler
         PublishedSheetSelection selection,
         PublishedStructure structure,
         Dictionary<int, int> blockOrder,
-        IReadOnlyDictionary<int, object> values,
-        IReadOnlyDictionary<int, Guid>? linkedRows)
+        IReadOnlyDictionary<int, object> values)
     {
         var result = new List<PublishedCellDto>();
 
@@ -143,10 +140,7 @@ public static class PublishedSheetAssembler
             }
 
             var column = cell.ColumnBlockId is { } blockId ? structure.ColumnBlock(blockId)?.PublicId : null;
-            result.Add(new PublishedCellDto(cell.CellPublicId, value, column, selection.IncludeLabels ? cell.Caption : null)
-            {
-                LinkedRow = linkedRows is not null && linkedRows.TryGetValue(cell.CellId, out var linkedRow) ? linkedRow : null,
-            });
+            result.Add(new PublishedCellDto(cell.CellPublicId, value, column, selection.IncludeLabels ? cell.Caption : null));
         }
 
         return result;

@@ -3,40 +3,24 @@ using System.Text.Json.Serialization;
 namespace PUSpecSheet.Domain.CellTypes.InstanceSettings;
 
 /// <summary>
-/// Where a linked dropdown cell takes its choices from: one column of another table on the same sheet.
-/// The choices are the values that column holds in every row of that table.
+/// Where a linked dropdown cell takes its choices from, in another table on the same sheet: either one
+/// column of it, giving the values that column holds in every row, or one row of it, giving every value
+/// in that row. Exactly one of <see cref="SourceTemplateCellId"/> and <see cref="SourceSheetRowId"/> is set.
 /// </summary>
 public sealed record LinkedDropdownInstanceSettings : CellInstanceSettings
 {
     /// <summary>The sheet table the choices come from.</summary>
     public int? SourceSheetTableId { get; init; }
 
-    /// <summary>The column of that table: the template cell its cells were built from.</summary>
+    /// <summary>For a column: the template cell that column's cells were built from.</summary>
     public int? SourceTemplateCellId { get; init; }
 
-    /// <summary>
-    /// True when the cell also gives the rest of the row its choice was picked from: every other value in
-    /// that row of the source table. They are read from the source row each time, never stored with this
-    /// cell. Null, not false, when off.
-    /// </summary>
-    public bool? IncludeRowValues { get; init; }
+    /// <summary>For a row: the row of the table whose values are the choices.</summary>
+    public int? SourceSheetRowId { get; init; }
 
-    /// <summary>Whether a choice also brings the other values of the row it came from.</summary>
+    /// <summary>Whether a table and one of a column or a row are chosen, so there is something to read.</summary>
     [JsonIgnore]
-    public bool ShowsRowValues => IncludeRowValues == true && SourceSheetTableId is not null && SourceTemplateCellId is not null;
-
-    public override CellInstanceSettings Normalise()
-    {
-        return IncludeRowValues == false ? this with { IncludeRowValues = null } : this;
-    }
-
-    /// <summary>The choices are the same while the cell reads the same column, whatever else is switched on.</summary>
-    public override bool OffersSameChoicesAs(CellInstanceSettings? other)
-    {
-        return other is LinkedDropdownInstanceSettings linked
-            && linked.SourceSheetTableId == SourceSheetTableId
-            && linked.SourceTemplateCellId == SourceTemplateCellId;
-    }
+    public bool HasSource => SourceSheetTableId is not null && (SourceTemplateCellId is null) != (SourceSheetRowId is null);
 
     protected override CellKind GetKind()
     {

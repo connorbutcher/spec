@@ -23,10 +23,6 @@
     />
   }
 
-  @if (linkedRow(); as values) {
-    <app-sheet-linked-row [values]="values" />
-  }
-
   @if (hasMarks()) {
     <app-sheet-cell-marks
       [cellChange]="cellChange()"

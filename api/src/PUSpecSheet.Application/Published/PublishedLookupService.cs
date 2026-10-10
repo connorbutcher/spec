@@ -11,8 +11,7 @@ public sealed class PublishedLookupService(
     PublishedLookupHitReader hitReader,
     PublishedStructureReader structureReader,
     PublishedLookupCellReader cellReader,
-    PublishedKindValueReader valueReader,
-    PublishedLinkedRowReader linkedRowReader) : IPublishedLookupService
+    PublishedKindValueReader valueReader) : IPublishedLookupService
 {
     public async Task<PublishedLookupResolution> ResolveAsync(
         PublishedLookupCriteria criteria,
@@ -77,8 +76,7 @@ public sealed class PublishedLookupService(
             var cells = await cellReader.Query(version, hit, sectionIds).ToListAsync(cancellationToken);
             var values = await valueReader.ReadAsync(version, cells, wholeSheet: false, cancellationToken);
 
-            var linkedRows = await linkedRowReader.ReadAsync(version, structure, PublishedLinkedRowReader.LinkedCells(cells), values, cancellationToken);
-            matches.Add(PublishedLookupAssembler.Assemble(hit, version, structure, cells, values, linkedRows));
+            matches.Add(PublishedLookupAssembler.Assemble(hit, version, structure, cells, values));
         }
 
         return new PublishedLookupDto(resolution.Criteria.Key, resolution.Criteria.Value, matches);

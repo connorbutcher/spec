@@ -1,8 +1,0 @@
-@for (item of values(); track $index) {
-  <span class="item" role="listitem">
-    <span class="label">{{ item.label }}</span>
-    <span class="value">{{ item.value }}</span>
-  </span>
-} @empty {
-  <span class="none" role="listitem">That row has no other values</span>
-}

@@ -7,12 +7,16 @@ namespace PUSpecSheet.Application.Sheets.Demo;
 
 /// <summary>
 /// Adds a "Limits to check" table to the V6 and A3 Parts sheets, built from the sample "Limit checks"
-/// template with the same services the API uses. Each row's first cell is a linked dropdown pointed at the
-/// descriptions of the sheet's "Piston parts" limits and set to give the picked row's other values, so
-/// picking "Bore (mm)" shows every part's Min and Max beside it. The result is published as the sheet's
-/// next version, unless the seeding user has unpublished changes of their own on the sheet: a publish would
-/// take those with it, so the table is then left as one more unpublished change for them to publish. A
-/// sheet without the parts table, and one that has ever had a "Limit checks" table, are left alone.
+/// template with the same services the API uses. Each row's first cell is a linked dropdown pointed at one
+/// row of the sheet's "Piston parts" table, such as "Bore (mm)", so it offers every value in that row, with
+/// one of them chosen. A table added by an earlier version of this sample, whose cells were pointed at the
+/// column of descriptions, has them pointed at the matching rows instead.
+/// <para>
+/// What it does is published as the sheet's next version, unless the seeding user has unpublished changes
+/// of their own on the sheet: a publish would take those with it, so the sample is then left as more
+/// unpublished changes for them to publish. A sheet without the parts table is left alone, and so is one
+/// whose "Limit checks" table has been removed.
+/// </para>
 /// </summary>
 public sealed class DemoLimitCheckSheetSeeder(
     PuSpecSheetDbContext db,
@@ -24,11 +28,11 @@ public sealed class DemoLimitCheckSheetSeeder(
 {
     private static readonly string[] PhaseCodes = ["V6", "A3"];
 
-    // Which of the sheet's limits (counted from the first) and who checks it.
-    private static readonly (int Limit, string CheckedBy)[] Checks =
+    // Which of the sheet's limit rows (by what it is called) and who checks it.
+    private static readonly (string Limit, string CheckedBy)[] Checks =
     [
-        (0, "Metrology"),
-        (8, "Goods inwards"),
+        ("Bore (mm)", "Metrology"),
+        ("Weight (g)", "Goods inwards"),
     ];
 
     public async Task SeedAsync(CancellationToken cancellationToken)
@@ -56,44 +60,54 @@ public sealed class DemoLimitCheckSheetSeeder(
             return;
         }
 
-        // Even a table that was later removed counts: the sample is only ever added once.
-        if (await db.SheetTables.AnyAsync(table => table.SheetId == sheetId && table.TableTemplateVersion.TableTemplateId == templateId, cancellationToken))
-        {
-            return;
-        }
-
         var sheet = await sheets.GetAsync(sheetId.Value, SheetViewPoint.Live, cancellationToken);
         var parts = sheet.Tables.FirstOrDefault(table => table.TemplateName == DemoPartsGridTemplateSeeder.TemplateName);
-        var limits = parts?.Sections.Where(section => section.Name == DemoPartsGridTemplateSeeder.LimitsName).ToList() ?? [];
-        if (parts is null || limits.Count == 0)
+        if (parts is null || parts.LinkableRows.Count == 0)
         {
             return;
         }
 
-        // The description is the limit rows' own first cell; its column is found from one of them.
-        var descriptions = limits
-            .Select(section => section.Rows[0].Cells.First(cell => cell.SheetColumnBlockId is null))
-            .Where(cell => !string.IsNullOrWhiteSpace(cell.TextValue))
-            .ToList();
-        if (descriptions.Count == 0 || parts.LinkableColumns.All(column => column.TemplateCellId != descriptions[0].Template.Id))
+        var hadOwnChanges = sheet.MyDraftCount > 0;
+        var existing = sheet.Tables.FirstOrDefault(table => table.TemplateName == DemoLimitCheckTemplateSeeder.TemplateName);
+        bool changed;
+        if (existing is not null)
         {
+            changed = await PointAtRowsAsync(existing, parts, cancellationToken);
+        }
+        else if (await db.SheetTables.AnyAsync(table => table.SheetId == sheetId && table.TableTemplateVersion.TableTemplateId == templateId, cancellationToken))
+        {
+            // It was there once and has been removed: the sample is only ever added once.
             return;
         }
-
-        var source = new LinkedDropdownInstanceSettings
+        else
         {
-            SourceSheetTableId = parts.Id,
-            SourceTemplateCellId = descriptions[0].Template.Id,
-            IncludeRowValues = true,
-        };
-        var dto = await tables.AddAsync(sheet.Id, new AddSheetTableRequest(templateId.Value), cancellationToken);
+            await AddAsync(sheet.Id, templateId.Value, parts, cancellationToken);
+            changed = true;
+        }
+
+        if (changed && !hadOwnChanges)
+        {
+            await sheets.PublishAsync(sheet.Id, new PublishSheetRequest("Sample limit checks pick from a row"), cancellationToken);
+        }
+    }
+
+    private async Task AddAsync(int sheetId, int templateId, SheetTableDto parts, CancellationToken cancellationToken)
+    {
+        var dto = await tables.AddAsync(sheetId, new AddSheetTableRequest(templateId), cancellationToken);
         var tableId = Checked(dto).Id;
         try
         {
-            await BuildAsync(dto, source, descriptions.Select(cell => cell.TextValue!).ToList(), cancellationToken);
-            if (sheet.MyDraftCount == 0)
+            await tables.SetTitleAsync(tableId, new UpdateSheetTableRequest("Limits to check"), cancellationToken);
+            var checkTemplateId = Checked(dto).AddableSections.Single(section => section.Name == DemoLimitCheckTemplateSeeder.CheckName).TemplateSectionId;
+            foreach (var (limit, checkedBy) in Checks)
             {
-                await sheets.PublishAsync(sheet.Id, new PublishSheetRequest("Sample limit checks"), cancellationToken);
+                dto = await sections.AddAsync(tableId, new AddSheetSectionRequest(checkTemplateId, null), cancellationToken);
+                var row = Checked(dto).Sections[^1].Rows[0];
+                await PointAtRowAsync(row, parts, limit, cancellationToken);
+                await rows.SaveValuesAsync(
+                    row.Id,
+                    new SaveRowValuesRequest([new CellValueRequest(row.Cells[1].Id, checkedBy, null, null, null, null)]),
+                    cancellationToken);
             }
         }
         catch
@@ -104,39 +118,53 @@ public sealed class DemoLimitCheckSheetSeeder(
         }
     }
 
-    private async Task BuildAsync(
-        SheetDto dto,
-        LinkedDropdownInstanceSettings source,
-        List<string> limits,
-        CancellationToken cancellationToken)
+    /// <summary>
+    /// Points the cells of an existing sample table that still read the column of descriptions at the row
+    /// each had picked. Cells someone has since pointed elsewhere, or emptied, are left as they are.
+    /// </summary>
+    private async Task<bool> PointAtRowsAsync(SheetTableDto table, SheetTableDto parts, CancellationToken cancellationToken)
     {
-        var tableId = Checked(dto).Id;
-        await tables.SetTitleAsync(tableId, new UpdateSheetTableRequest("Limits to check"), cancellationToken);
-        var checkTemplateId = Checked(dto).AddableSections.Single(section => section.Name == DemoLimitCheckTemplateSeeder.CheckName).TemplateSectionId;
-
-        foreach (var (limit, checkedBy) in Checks)
+        var changed = false;
+        foreach (var row in table.Sections.Where(section => section.Name == DemoLimitCheckTemplateSeeder.CheckName).SelectMany(section => section.Rows))
         {
-            dto = await sections.AddAsync(tableId, new AddSheetSectionRequest(checkTemplateId, null), cancellationToken);
-            var row = Checked(dto).Sections[^1].Rows[0];
-
-            // The first row is pointed at the descriptions; the rows added after it start with the same choice.
-            if (row.Cells[0].Settings is null)
+            var cell = row.Cells[0];
+            if (cell.Settings is LinkedDropdownInstanceSettings { SourceTemplateCellId: not null } && !string.IsNullOrWhiteSpace(cell.TextValue))
             {
-                await cellSettings.SaveAsync(
-                    row.Id,
-                    new SaveRowCellSettingsRequest([new CellSettingsRequest(row.Cells[0].Id, source)]),
-                    cancellationToken);
+                changed |= await PointAtRowAsync(row, parts, cell.TextValue, cancellationToken);
             }
+        }
 
+        return changed;
+    }
+
+    /// <summary>
+    /// Points a row's first cell at the parts row called <paramref name="limit"/> and picks one of that
+    /// row's values. Does nothing when the parts table has no such row.
+    /// </summary>
+    private async Task<bool> PointAtRowAsync(SheetRowDto row, SheetTableDto parts, string limit, CancellationToken cancellationToken)
+    {
+        var source = parts.LinkableRows.FirstOrDefault(candidate => candidate.Label == limit);
+        if (source is null)
+        {
+            return false;
+        }
+
+        var settings = new LinkedDropdownInstanceSettings { SourceSheetTableId = parts.Id, SourceSheetRowId = source.SheetRowId };
+        var dto = await cellSettings.SaveAsync(
+            row.Id,
+            new SaveRowCellSettingsRequest([new CellSettingsRequest(row.Cells[0].Id, settings)]),
+            cancellationToken);
+        var choices = dto.LinkedSources.FirstOrDefault(candidate => candidate.SheetRowId == source.SheetRowId)?.Options ?? [];
+        if (choices.Count > 0)
+        {
+            // The second value is the first part's Max, which reads better as a limit than its Min.
             await rows.SaveValuesAsync(
                 row.Id,
-                new SaveRowValuesRequest(
-                [
-                    new CellValueRequest(row.Cells[0].Id, limits[Math.Min(limit, limits.Count - 1)], null, null, null, null),
-                    new CellValueRequest(row.Cells[1].Id, checkedBy, null, null, null, null),
-                ]),
+                new SaveRowValuesRequest([new CellValueRequest(row.Cells[0].Id, choices[Math.Min(1, choices.Count - 1)], null, null, null, null)]),
                 cancellationToken);
         }
+
+        return true;
     }
 
     private static SheetTableDto Checked(SheetDto dto)

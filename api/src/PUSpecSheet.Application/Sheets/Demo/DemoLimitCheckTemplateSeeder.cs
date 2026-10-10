@@ -7,8 +7,8 @@ namespace PUSpecSheet.Application.Sheets.Demo;
 
 /// <summary>
 /// Adds the "Limit checks" sample template to the Parts sheet type: a vertical table of rows people add,
-/// each a limit picked from a linked dropdown and who checks it. On the sheet the dropdown is pointed at a
-/// column of descriptions and set to give the picked row's other values too. It uses the linked dropdown
+/// each a limit value picked from a linked dropdown and who checks it. On the sheet the dropdown is pointed at a
+/// row of another table, such as "Bore (mm)", and offers the values in that row. It uses the linked dropdown
 /// cell type the "Part usage" sample adds, and does nothing without it or if the template already exists.
 /// </summary>
 public sealed class DemoLimitCheckTemplateSeeder(PuSpecSheetDbContext db)

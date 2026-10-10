@@ -5,18 +5,25 @@ namespace PUSpecSheet.Application.Sheets.Linking;
 
 /// <summary>
 /// Questions about linked dropdowns asked of a sheet as its viewer sees it, so a save is checked against
-/// exactly the tables, columns and choices the screen offered.
+/// exactly the tables, columns, rows and choices the screen offered.
 /// </summary>
 internal static class SheetLinks
 {
-    /// <summary>Whether the table and column are on the sheet and can be linked to.</summary>
+    /// <summary>Whether the table, and the column or row of it, are on the sheet and can be linked to.</summary>
     public static bool SourceExists(SheetDto sheet, LinkedDropdownInstanceSettings settings)
     {
-        return sheet.Tables.Any(table => table.Id == settings.SourceSheetTableId
-            && table.LinkableColumns.Any(column => column.TemplateCellId == settings.SourceTemplateCellId));
+        var table = sheet.Tables.FirstOrDefault(candidate => candidate.Id == settings.SourceSheetTableId);
+        if (table is null || !settings.HasSource)
+        {
+            return false;
+        }
+
+        return settings.SourceSheetRowId is { } rowId
+            ? table.LinkableRows.Any(row => row.SheetRowId == rowId)
+            : table.LinkableColumns.Any(column => column.TemplateCellId == settings.SourceTemplateCellId);
     }
 
-    /// <summary>The choices the settings give, or null when their table or column isn't on the sheet.</summary>
+    /// <summary>The choices the settings give, or null when what they point at isn't on the sheet.</summary>
     public static IReadOnlyList<string>? OptionsOf(SheetDto sheet, LinkedDropdownInstanceSettings? settings)
     {
         if (settings is null || !SourceExists(sheet, settings))
@@ -26,7 +33,8 @@ internal static class SheetLinks
 
         return sheet.LinkedSources
             .FirstOrDefault(source => source.SheetTableId == settings.SourceSheetTableId
-                && source.TemplateCellId == settings.SourceTemplateCellId)
+                && source.TemplateCellId == settings.SourceTemplateCellId
+                && source.SheetRowId == settings.SourceSheetRowId)
             ?.Options ?? [];
     }
 

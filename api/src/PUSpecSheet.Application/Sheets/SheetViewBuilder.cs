@@ -1,6 +1,7 @@
 using PUSpecSheet.Application.Sheets.Linking;
 using PUSpecSheet.Contracts.Sheets;
 using PUSpecSheet.Contracts.Templates;
+using PUSpecSheet.Domain.CellTypes;
 using PUSpecSheet.Domain.Sheets;
 using PUSpecSheet.Domain.Templates;
 
@@ -22,8 +23,8 @@ internal sealed class SheetViewBuilder
     private readonly Dictionary<int, int> tableBySection;
     private readonly Dictionary<int, List<SheetLinkableColumnDto>> linkableColumnsByVersion = [];
     private readonly LinkedOptionCollector linkedOptions;
-    private readonly Dictionary<int, Dictionary<int, string>> rowLabelsByVersion = [];
-    private LinkedRowValues? linkedRowValues;
+    private readonly Dictionary<int, int> columnBlockOrder;
+    private List<SheetLinkableRowDto> linkableRows = [];
 
     public SheetViewBuilder(SheetSnapshot snapshot, int currentUserId)
     {
@@ -31,6 +32,9 @@ internal sealed class SheetViewBuilder
         this.currentUserId = currentUserId;
         tableBySection = snapshot.Sections.ToDictionary(section => section.Id, section => section.SheetTableId);
         linkedOptions = new LinkedOptionCollector(snapshot.Values.Values.SelectMany(cells => cells.Values));
+        columnBlockOrder = snapshot.ColumnBlocks.ToDictionary(
+            block => block.Id,
+            block => snapshot.ColumnBlockRevisions.GetValueOrDefault(block.Id)?.Shown?.DisplayOrder ?? 0);
 
         var visibleSections = snapshot.Sections
             .Where(section => RevisionResolver.IsVisible(snapshot.SectionRevisions.GetValueOrDefault(section.Id)))
@@ -107,6 +111,8 @@ internal sealed class SheetViewBuilder
         var version = table.TableTemplateVersion;
         var topLevel = topLevelByTable.GetValueOrDefault(table.Id) ?? [];
 
+        // Filled as the table's rows are built just below, so it is in the order they appear.
+        linkableRows = [];
         var sections = topLevel
             .OrderBy(section => section.TemplateSection.Role == SectionRole.Header ? 0 : 1)
             .ThenBy(section => snapshot.SectionRevisions[section.Id].Shown!.DisplayOrder)
@@ -134,6 +140,7 @@ internal sealed class SheetViewBuilder
             AddableColumnBlocksFor(version.Id, blocks))
         {
             LinkableColumns = LinkableColumnsOf(version.Id),
+            LinkableRows = linkableRows,
         };
     }
 
@@ -200,10 +207,7 @@ internal sealed class SheetViewBuilder
         var onSheet = row.Cells
             .Where(cell => cell.SheetColumnBlockId is not { } blockId || !hiddenColumnBlockIds.Contains(blockId))
             .ToList();
-        if (linkedOptions.WantsRowsOf(tableId))
-        {
-            OfferRowToLinkedDropdowns(tableId, row, onSheet);
-        }
+        OfferRowToLinkedDropdowns(tableId, row, onSheet, values);
 
         var cells = onSheet
             .OrderBy(cell => cell.TemplateCell.Column)
@@ -262,40 +266,40 @@ internal sealed class SheetViewBuilder
     {
         if (linkedOptions.Wants(tableId, cell.TemplateCellId)
             && snapshot.CellTypes.TryGetValue(cell.TemplateCell.CellTypeId, out var cellType)
-            && LinkedOptionText.Of(value, cellType) is { } text)
+            && LinkedOptionText.Of(value, cellType, cell.TemplateCell.ConfigurationOverride) is { } text)
         {
             linkedOptions.Add(tableId, cell.TemplateCellId, text);
         }
     }
 
     /// <summary>
-    /// Adds a visible row as the row behind a choice, for each of its cells whose column a linked dropdown
-    /// wants rows from. The row's values are everything else in it.
+    /// Lists a visible row among the rows that can be linked to, under its name, and when a linked dropdown
+    /// is pointed at it adds its other values to that dropdown's choices. The values are read left to right:
+    /// the row's own cells, then each set of repeated columns.
     /// </summary>
-    private void OfferRowToLinkedDropdowns(int tableId, SheetRow row, List<SheetCell> cells)
+    private void OfferRowToLinkedDropdowns(int tableId, SheetRow row, List<SheetCell> cells, Dictionary<int, CellValueBag>? values)
     {
-        var sources = cells.Where(cell => linkedOptions.WantsRows(tableId, cell.TemplateCellId)).ToList();
-        if (sources.Count == 0)
+        var texts = cells
+            .OrderBy(cell => cell.SheetColumnBlockId is { } blockId ? 1 + columnBlockOrder.GetValueOrDefault(blockId) : 0)
+            .ThenBy(cell => cell.SheetColumnBlockId ?? 0)
+            .ThenBy(cell => cell.TemplateCell.Column)
+            .ThenBy(cell => cell.Id)
+            .Select(cell => snapshot.CellTypes.TryGetValue(cell.TemplateCell.CellTypeId, out var cellType) && cellType.Kind.CanBeLinkedTo()
+                ? LinkedOptionText.Of(values?.GetValueOrDefault(cell.Id), cellType, cell.TemplateCell.ConfigurationOverride)
+                : null)
+            .OfType<string>()
+            .ToList();
+        if (LinkedRowValues.NameOf(texts) is not { } name)
         {
             return;
         }
 
-        var versionId = snapshot.Tables.First(table => table.Id == tableId).TableTemplateVersionId;
-        if (!rowLabelsByVersion.TryGetValue(versionId, out var labels))
+        linkableRows.Add(new SheetLinkableRowDto(row.Id, name));
+        if (linkedOptions.WantsRow(tableId, row.Id))
         {
-            var sections = snapshot.TemplateSections.Where(section => section.TableTemplateVersionId == versionId).ToList();
-            labels = LinkableColumns.LabelsInARow(sections, snapshot.TemplateRows, snapshot.CellTypes);
-            rowLabelsByVersion[versionId] = labels;
-        }
-
-        linkedRowValues ??= new LinkedRowValues(snapshot);
-        var values = linkedRowValues.Of(row, cells, labels);
-        foreach (var source in sources)
-        {
-            if (values.FirstOrDefault(entry => entry.SheetCellId == source.Id).Value is { } picked)
+            foreach (var text in LinkedRowValues.ChoicesOf(texts))
             {
-                var others = values.Where(entry => entry.SheetCellId != source.Id).Select(entry => entry.Value).ToList();
-                linkedOptions.AddRow(tableId, source.TemplateCellId, new SheetLinkedRowDto(picked.Value, row.Id, others));
+                linkedOptions.AddToRow(tableId, row.Id, text);
             }
         }
     }

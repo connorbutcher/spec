@@ -14,7 +14,10 @@ public sealed class CellInstanceSettingsValidatorTests
     private static readonly LinkedDropdownInstanceSettings PartNumbers = new() { SourceSheetTableId = 2, SourceTemplateCellId = 15 };
 
     private static readonly SheetDto Sheet = SheetWith(
-        new SheetLinkedSourceDto(2, 15, ["P-1001", "P-1002"]));
+        new SheetLinkedSourceDto(2, 15, null, ["P-1001", "P-1002"]),
+        new SheetLinkedSourceDto(2, null, 70, ["0.8", "0.85"]));
+
+    private static readonly LinkedDropdownInstanceSettings PinOffsetRow = new() { SourceSheetTableId = 2, SourceSheetRowId = 70 };
 
     [Fact]
     public void AColumnOfATableOnTheSheet_CanBeLinkedTo()
@@ -39,8 +42,8 @@ public sealed class CellInstanceSettingsValidatorTests
     }
 
     [Theory]
-    [InlineData(2, null, "both a table and a column")]
-    [InlineData(null, 15, "both a table and a column")]
+    [InlineData(2, null, "a column or a row of it")]
+    [InlineData(null, 15, "a column or a row of it")]
     [InlineData(9, 15, "isn't on this sheet")]
     [InlineData(2, 99, "isn't on this sheet")]
     public void ALinkedDropdown_NeedsATableAndColumnThatAreOnTheSheet(int? tableId, int? templateCellId, string expected)
@@ -51,6 +54,33 @@ public sealed class CellInstanceSettingsValidatorTests
             () => CellInstanceSettingsValidator.Validate("Part", CellKind.LinkedDropdown, settings, Sheet));
 
         Assert.Contains(expected, problem.Message);
+    }
+
+    [Fact]
+    public void ARowOfATableOnTheSheet_CanBeLinkedTo_AndGivesThatRowsValues()
+    {
+        CellInstanceSettingsValidator.Validate("Limit", CellKind.LinkedDropdown, PinOffsetRow, Sheet);
+
+        Assert.Equal(["0.8", "0.85"], SheetLinks.OptionsOf(Sheet, PinOffsetRow));
+    }
+
+    [Fact]
+    public void ARowThatIsNotOnTheSheet_OrNotInThatTable_IsRefused()
+    {
+        var problem = Assert.Throws<InvalidRequestException>(
+            () => CellInstanceSettingsValidator.Validate("Limit", CellKind.LinkedDropdown, PinOffsetRow with { SourceSheetRowId = 71 }, Sheet));
+
+        Assert.Contains("isn't on this sheet", problem.Message);
+        Assert.Null(SheetLinks.OptionsOf(Sheet, PinOffsetRow with { SourceSheetTableId = 9 }));
+    }
+
+    [Fact]
+    public void AColumnAndARowTogether_AreRefused()
+    {
+        var problem = Assert.Throws<InvalidRequestException>(
+            () => CellInstanceSettingsValidator.Validate("Limit", CellKind.LinkedDropdown, PinOffsetRow with { SourceTemplateCellId = 15 }, Sheet));
+
+        Assert.Contains("a column or from a row, not both", problem.Message);
     }
 
     [Fact]
@@ -79,6 +109,7 @@ public sealed class CellInstanceSettingsValidatorTests
         var table = new SheetTableDto(2, Guid.Empty, 1, "Parts limits", 1, TemplateOrientation.Vertical, 0, null, 1, null, false, [], [], [], [])
         {
             LinkableColumns = [new SheetLinkableColumnDto(15, "Part number")],
+            LinkableRows = [new SheetLinkableRowDto(70, "Pin offset (mm)")],
         };
         return new SheetDto(1, Guid.Empty, 1, 1, true, null, null, null, 0, [], [table], [])
         {

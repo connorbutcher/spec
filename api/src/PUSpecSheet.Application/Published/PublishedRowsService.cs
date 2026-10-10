@@ -7,7 +7,6 @@ public sealed class PublishedRowsService(
     PublishedStructureReader structureReader,
     PublishedLookupCellReader cellReader,
     PublishedKindValueReader valueReader,
-    PublishedLinkedRowReader linkedRowReader,
     PublishedRowsCache cache) : IPublishedRowsService
 {
     public async Task<PublishedRowsDto> ReadAsync(ResolvedSheetVersion version, PublishedRowsSelection selection, CancellationToken cancellationToken)
@@ -26,8 +25,7 @@ public sealed class PublishedRowsService(
         {
             var all = await cellReader.QuerySheet(version).ToListAsync(cancellationToken);
             var allValues = await valueReader.ReadAsync(version, all, wholeSheet: true, cancellationToken);
-            var linkedRows = await linkedRowReader.ReadAsync(version, structure, null, allValues, cancellationToken);
-            rows = PublishedRowsAssembler.Assemble(version, selection, structure, all, all, allValues, linkedRows);
+            rows = PublishedRowsAssembler.Assemble(version, selection, structure, all, all, allValues);
             cellCount = all.Count;
         }
         else
@@ -39,8 +37,7 @@ public sealed class PublishedRowsService(
                 .DistinctBy(cell => cell.CellId)
                 .ToList();
             var values = await valueReader.ReadAsync(version, read, wholeSheet: false, cancellationToken);
-            var linkedRows = await linkedRowReader.ReadAsync(version, structure, PublishedLinkedRowReader.LinkedCells(cells), values, cancellationToken);
-            rows = PublishedRowsAssembler.Assemble(version, selection, structure, cells, headers, values, linkedRows);
+            rows = PublishedRowsAssembler.Assemble(version, selection, structure, cells, headers, values);
             cellCount = read.Count;
         }
 

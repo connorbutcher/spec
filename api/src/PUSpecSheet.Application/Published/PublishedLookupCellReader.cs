@@ -76,16 +76,6 @@ public sealed class PublishedLookupCellReader(PuSpecSheetDbContext db)
         return Project(cells, version.PublishedAtUtc);
     }
 
-    /// <summary>One column of one table: every cell built from a template cell, in the rows that were on the sheet.</summary>
-    public IQueryable<PublishedLookupCellRecord> QueryColumn(ResolvedSheetVersion version, int tableId, int templateCellId)
-    {
-        var cells = db.SheetCells
-            .AsNoTracking()
-            .Where(cell => cell.TemplateCellId == templateCellId && cell.SheetRow.SheetSection.SheetTableId == tableId);
-
-        return Project(cells, version.PublishedAtUtc);
-    }
-
     private static IQueryable<PublishedLookupCellRecord> Project(IQueryable<SheetCell> cells, DateTime moment)
     {
         return cells.SelectMany(

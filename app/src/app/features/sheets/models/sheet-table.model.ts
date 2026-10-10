@@ -3,6 +3,7 @@ import { AddableColumnBlock } from './addable-column-block.model';
 import { AddableSection } from './addable-section.model';
 import { SheetColumnBlock } from './sheet-column-block.model';
 import { SheetLinkableColumn } from './sheet-linkable-column.model';
+import { SheetLinkableRow } from './sheet-linkable-row.model';
 import { SheetLock } from './sheet-lock.model';
 import { SheetSection } from './sheet-section.model';
 
@@ -27,4 +28,6 @@ export interface SheetTable {
   addableColumnBlocks: AddableColumnBlock[];
   /** The table's columns a linked dropdown on the sheet can take its choices from. */
   linkableColumns: SheetLinkableColumn[];
+  /** The table's rows a linked dropdown on the sheet can take its choices from, top to bottom. */
+  linkableRows: SheetLinkableRow[];
 }

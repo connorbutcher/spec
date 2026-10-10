@@ -2,7 +2,6 @@ import {
   linkedChoices,
   linkedHint,
   linkedOptions,
-  linkedRowValues,
   linkedWarning,
   sameLinkedChoices,
 } from './linked-dropdown.util';
@@ -13,11 +12,13 @@ import { buildSheetIndex } from './sheet-index.util';
 import { fixtureTable } from './sheet-structure.fixture';
 
 const PART_NUMBER = 15;
+const PIN_OFFSET_ROW = 70;
 
 function sheetWithParts(options: string[] | null = ['P-1001', 'P-1002']): Sheet {
   const table = fixtureTable();
   table.title = 'Piston parts';
   table.linkableColumns = [{ templateCellId: PART_NUMBER, label: 'Part number' }];
+  table.linkableRows = [{ sheetRowId: PIN_OFFSET_ROW, label: 'Pin offset (mm)' }];
   return {
     id: 5,
     publicId: 'sheet-5',
@@ -35,7 +36,15 @@ function sheetWithParts(options: string[] | null = ['P-1001', 'P-1002']): Sheet 
     linkedSources:
       options === null
         ? []
-        : [{ sheetTableId: table.id, templateCellId: PART_NUMBER, options, rows: [] }],
+        : [
+            { sheetTableId: table.id, templateCellId: PART_NUMBER, sheetRowId: null, options },
+            {
+              sheetTableId: table.id,
+              templateCellId: null,
+              sheetRowId: PIN_OFFSET_ROW,
+              options: ['0.8', '0.85'],
+            },
+          ],
   };
 }
 
@@ -59,6 +68,29 @@ describe('linkedChoices', () => {
       source: 'Piston parts › Part number',
       options: ['P-1001', 'P-1002'],
     });
+  });
+
+  it('offers the values of the row the cell is pointed at, named by its table and the row', () => {
+    const sheet = sheetWithParts();
+    const settings = { ...pointedAt(1, null), sourceSheetRowId: PIN_OFFSET_ROW };
+
+    expect(choicesFor(sheet, settings)).toEqual({
+      status: 'ready',
+      source: 'Piston parts › Pin offset (mm)',
+      options: ['0.8', '0.85'],
+    });
+  });
+
+  it('is missing when the row it was pointed at is no longer on the sheet', () => {
+    const settings = { ...pointedAt(1, null), sourceSheetRowId: 71 };
+
+    expect(choicesFor(sheetWithParts(), settings).status).toBe('missing');
+  });
+
+  it('is unset when it is given both a column and a row', () => {
+    const settings = { ...pointedAt(1, PART_NUMBER), sourceSheetRowId: PIN_OFFSET_ROW };
+
+    expect(choicesFor(sheetWithParts(), settings).status).toBe('unset');
   });
 
   it('is unset until both a table and a column are chosen', () => {
@@ -93,34 +125,6 @@ describe('linkedChoices', () => {
     expect(sameLinkedChoices(first, afterAChange)).toBe(false);
     expect(sameLinkedChoices(first, null)).toBe(false);
     expect(sameLinkedChoices(null, null)).toBe(true);
-  });
-});
-
-describe('linkedRowValues', () => {
-  function sheetWithRows(): Sheet {
-    const sheet = sheetWithParts();
-    sheet.linkedSources[0].rows = [
-      { option: 'P-1001', sheetRowId: 7, values: [{ label: 'Min', value: '81.98' }] },
-    ];
-    return sheet;
-  }
-
-  it('gives the other values of the row the value was picked from', () => {
-    const settings = { ...pointedAt(1, PART_NUMBER), includeRowValues: true };
-
-    expect(linkedRowValues(sheetWithRows(), settings, 'P-1001')).toEqual([
-      { label: 'Min', value: '81.98' },
-    ]);
-  });
-
-  it('gives nothing when the cell is not set to show the row, is empty, or its value has gone', () => {
-    const sheet = sheetWithRows();
-    const settings = { ...pointedAt(1, PART_NUMBER), includeRowValues: true };
-
-    expect(linkedRowValues(sheet, pointedAt(1, PART_NUMBER), 'P-1001')).toBeNull();
-    expect(linkedRowValues(sheet, settings, null)).toBeNull();
-    expect(linkedRowValues(sheet, settings, 'P-0999')).toBeNull();
-    expect(linkedRowValues(sheet, null, 'P-1001')).toBeNull();
   });
 });
 

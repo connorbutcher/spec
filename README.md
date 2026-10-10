@@ -49,7 +49,7 @@ Endpoint text comes from the XML comments on the controller actions (`<summary>`
 Most of what a cell is comes from its template: its cell type, and that type's configuration and style with the cell's overrides. Some settings can only be chosen once the cell is on a sheet, because they point at something on that sheet. These are **instance settings**, and they work the same way for every kind that has them:
 
 - They are one JSON document per cell, `CellInstanceSettings`, whose `kind` names the cell kind (like `CellConfiguration`). It is stored in `values.CellSettings`, keyed by row revision and cell exactly like a value, so settings are part of the row: changing them starts the user's draft, they are published, discarded and put back with the row, they show in the change marks, and a past version shows the settings it had.
-- `PUT api/sheet-rows/{id}/cell-settings` saves them. A cell whose settings now offer different choices loses its value, which was chosen from the old ones (`CellInstanceSettings.OffersSameChoicesAs`). A new row starts with the settings of the row of the same kind added to its table before it.
+- `PUT api/sheet-rows/{id}/cell-settings` saves them. A cell whose settings change loses its value, which was chosen under the old ones. A new row starts with the settings of the row of the same kind added to its table before it.
 - In the UI, a kind that has them gets a button beside its editor (`sheet-cell-settings`) that opens that kind's form in a popover.
 
 The first kind to use them is the **linked dropdown** (`CellKind.LinkedDropdown`): each cell is pointed at a table on its sheet and one of that table's columns, and offers the values in that column. Its rules:
@@ -57,23 +57,22 @@ The first kind to use them is the **linked dropdown** (`CellKind.LinkedDropdown`
 | Rule | Where it lives |
 | --- | --- |
 | Which columns can be linked to (any value except a checkbox), and what each is called | `LinkableColumns`, sent as `table.linkableColumns` |
-| The choices are the column's values as the viewer sees them, top to bottom, without repeats | `LinkedOptionCollector`, filled by `SheetViewBuilder`, sent as `sheet.linkedSources` |
+| The choices are the column's values as the viewer sees them, top to bottom, without repeats | `LinkedOptionCollector`, filled by `SheetViewBuilder`, sent in `sheet.linkedSources` with `templateCellId` set |
 | A value must be one of the choices when it is saved | `LinkedDropdownValueRule` |
 | The value is stored as its text (`values.TextValues`), so the published API returns the text | `CellKindExtensions.StoresText`, `PublishedKindValueReader` |
 | A stored value never changes by itself. If its column's value is edited or removed, or the table is removed, the cell keeps what was picked and the sheet flags it until someone picks again | `linked-dropdown.util.ts` (`linkedWarning`) |
 
-A linked dropdown can also give **the rest of the row its choice was picked from** (`IncludeRowValues`, "Also show the rest of the picked row" in its form): point it at a column of descriptions, pick "Bore (mm)", and the cell shows that row's other values under the choice.
+The source can instead be **a row** of the table (`SourceSheetRowId` in place of `SourceTemplateCellId`): point the cell at "Pin offset (mm)" and it offers every value in that row. The form's "The choices are the values in" switch picks between a column and a row.
 
 | Rule | Where it lives |
 | --- | --- |
-| The row's values are read from the source row every time, never stored with the linked cell, so they follow the source and a past version shows what the row held then | `LinkedRowValues`, filled by `SheetViewBuilder`, sent as `linkedSources[].rows` |
-| Each value is labelled with its column, and in a table with repeated columns with the name at the top of its set ("P-1003 Min") | `LinkedRowValues`, `LinkableColumns.LabelsInARow` |
-| When several rows hold the picked value, it means the first of them, top to bottom | `LinkedOptionCollector.AddRow`, `PublishedLinkedRows.RowByOption` |
-| A value that is no longer in its column has no row: the cell keeps the value, is flagged, and shows no row values | `linkedRowValues` in `linked-dropdown.util.ts` |
-| Switching it on or off keeps the cell's value, because the choices are the same | `LinkedDropdownInstanceSettings.OffersSameChoicesAs` |
-| The published API still gives the picked text as the cell's value, and adds the identifier of the row it came from: `linkedRow` on a cell of a sheet, `linkedRows` (by picked value) on a row read by identifier or found by a lookup. The caller reads that row with the rows endpoint of the same sheet and version | `PublishedLinkedRowReader`, `PublishedLinkedRows` |
+| Which rows can be linked to: every row on the sheet that holds a value, named by its first value, left to right (its own cells, then each set of repeated columns) | `SheetViewBuilder.OfferRowToLinkedDropdowns`, `LinkedRowValues`, sent as `table.linkableRows` |
+| The choices are the row's other values, in that order, without repeats | `LinkedRowValues.ChoicesOf`, `LinkedOptionCollector.AddToRow`, sent in `sheet.linkedSources` with `sheetRowId` set |
+| A number reads as its cell shows it, to the cell's decimal places (0.80) | `LinkedOptionText` |
+| A source is a table with a column or a row, never both | `LinkedDropdownInstanceSettings.HasSource`, `CellInstanceSettingsValidator` |
+| Everything else is as for a column: the value must be a choice when saved, is stored as text, and is kept and flagged if the row's values change or the row is removed | the rules above |
 
-**To add a setting to a kind that already has them** (as `IncludeRowValues` was), add a nullable property to its settings record (`LinkedDropdownInstanceSettings`) and its TypeScript interface, check it in `CellInstanceSettingsValidator` if there is anything to check, and add its control to the kind's form. Say in `Normalise` how "off" is stored if it can be written two ways, and in `OffersSameChoicesAs` if changing it should keep the cell's value. There is no migration: the settings are JSON, and settings stored before the property existed read with it not set.
+**To add a setting to a kind that already has them** (as `SourceSheetRowId` was), add a nullable property to its settings record (`LinkedDropdownInstanceSettings`) and its TypeScript interface, check it in `CellInstanceSettingsValidator`, and add its control to the kind's form. There is no migration: the settings are JSON, settings stored before the property existed read with it not set, and a property that is later removed is ignored when old settings are read.
 
 **To give another kind settings**
 
