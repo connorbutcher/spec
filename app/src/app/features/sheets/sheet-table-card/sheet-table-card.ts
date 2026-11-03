@@ -8,6 +8,8 @@ import { SheetTable } from '../models/sheet-table.model';
 import { SheetGrid } from '../sheet-grid/sheet-grid';
 import { tableLabel } from '../sheet-labels.util';
 import { otherUsersLock } from '../sheet-lock.util';
+import { tableSearchKey } from '../sheet-search.util';
+import { SheetSearchStore } from '../sheet-search.store';
 import { SheetStatus } from '../sheet-status/sheet-status';
 import { SheetStore } from '../sheet.store';
 
@@ -46,7 +48,15 @@ export class SheetTableCard {
     return selection?.tableId === this.table().id && selection.sectionId === null;
   });
 
+  /** How the sheet's search knows the heading line (`SheetSearchStore`). */
+  public readonly searchKey = computed(() => tableSearchKey(this.table().id));
+
+  public readonly isSearchMatch = computed(() => this.search?.isMatch(this.searchKey()) === true);
+
+  public readonly isSearchActive = computed(() => this.search?.isActive(this.searchKey()) === true);
+
   private readonly store = inject(SheetStore);
+  private readonly search = inject(SheetSearchStore, { optional: true });
 
   public selectTable(): void {
     this.store.select({ tableId: this.table().id, sectionId: null, rowId: null });

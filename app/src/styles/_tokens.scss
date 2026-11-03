@@ -38,6 +38,10 @@
   --app-grid-row-theirs: #faf6ee;
   --app-grid-mark: #64748b;
   --app-grid-warning: #b45309;
+  // What the sheet's search found: every match, and the current one with its outline.
+  --app-search-match: #fbf1d0;
+  --app-search-active: #f3d37e;
+  --app-search-active-line: #a16207;
 
   // An item's state, coloured by whose it is: the viewer's, someone else's, waiting for an approver,
   // or in the publish that is running.

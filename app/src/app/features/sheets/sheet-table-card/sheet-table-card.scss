@@ -25,6 +25,16 @@
     box-shadow: inset 2px 0 0 var(--app-navy);
   }
 
+  // The sheet's search found the title or template here; the current match is marked more strongly.
+  &.search-match {
+    background: var(--app-search-match);
+  }
+
+  &.search-active {
+    background: var(--app-search-active);
+    box-shadow: inset 0 0 0 1px var(--app-search-active-line);
+  }
+
   .handle {
     color: var(--app-text-faint);
     cursor: grab;

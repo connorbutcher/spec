@@ -21,8 +21,12 @@ sheets/
       sheet-compare-picker/   "Changes since vN": turns the changed-in marks on.
     sheet-publish/            Publish button with its popover: what to publish, and a note.
       sheet-publish-scope/      The choice between my own changes and everything pending, with counts.
+    sheet-search/             The search box (Ctrl+F): "3 of 12"; Enter and Shift+Enter step through the matches.
     sheet-status-summary/     "2 drafts by you", "3 drafts by A. Smith": what is waiting on the whole sheet.
   sheet-load-error/         "Couldn't load the sheet" with a retry.
+
+  sheet-search.store.ts     The search: the query, every match in screen order, the current one. Provided by SheetPage.
+  sheet-search.util.ts      What each table heading and cell shows, as the search sees it.
 
   sheet-live.store.ts       Who has the sheet open, and hearing that it changed. Provided by SheetPage.
   sheet-hub.ts              The SignalR connection behind it; the only file that knows SignalR. Reconnects by itself.
@@ -161,6 +165,18 @@ for borders, section tone and row tint, so a status cell looks like the rest of 
 and a `sheets.approve` permission. On this side, give `SheetLock` (or the row) what says a draft has been
 submitted, return `ForApproval` for it from `stateOf`, and the column, context bar and colours already
 show it.
+
+## Search
+
+`SheetSearchStore` searches the sheet as it is loaded (the view on screen, live or past), ignoring case,
+for text inside what each thing shows: a table's title and template name, a heading or group cell's
+caption, and a value cell's value as `displayValue` writes it (a number to its decimal places with its
+unit, a dropdown's option text, a date). Empty cells, checkboxes and the status column have nothing to
+find. `searchTargets` walks each table's layout in the order `SheetGridSection` draws it, so "next" goes
+down the screen. Each grid cell and table heading carries `data-search-key` and reads `isMatch` and
+`isActive` for its `search-match` and `search-active` classes (colours `--app-search-*`); `SheetSearch`
+scrolls the current match into view. The current match stays put while it still matches, so a refresh
+or typing more of a word doesn't move it.
 
 ## Keyboard and screen readers
 

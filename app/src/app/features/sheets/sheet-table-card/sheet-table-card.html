@@ -1,5 +1,12 @@
 <section class="app-card table-card" [attr.aria-label]="label()">
-  <header class="table-head" [class.selected]="isSelected()" (click)="selectTable()">
+  <header
+    class="table-head"
+    [class.selected]="isSelected()"
+    [class.search-match]="isSearchMatch()"
+    [class.search-active]="isSearchActive()"
+    [attr.data-search-key]="searchKey()"
+    (click)="selectTable()"
+  >
     @if (canEditTable()) {
       <i
         cdkDragHandle

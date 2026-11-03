@@ -1,0 +1,50 @@
+<div class="sheet-search" role="search">
+  <p-iconfield>
+    <p-inputicon class="pi pi-search" />
+    <input
+      #box
+      pInputText
+      pSize="small"
+      type="text"
+      class="box"
+      placeholder="Search"
+      aria-label="Search the sheet"
+      title="Search the sheet (Ctrl+F)"
+      [value]="query()"
+      (input)="search(box.value)"
+      (keydown.enter)="go(1, $event)"
+      (keydown.shift.enter)="go(-1, $event)"
+      (keydown.escape)="leave(box)"
+    />
+  </p-iconfield>
+
+  @if (hasQuery()) {
+    <span class="count" aria-live="polite" [class.none]="!hasMatches()">{{ countLabel() }}</span>
+    <p-button
+      icon="pi pi-chevron-up"
+      size="small"
+      severity="secondary"
+      [text]="true"
+      ariaLabel="Previous match (Shift+Enter)"
+      [disabled]="!hasMatches()"
+      (onClick)="go(-1)"
+    />
+    <p-button
+      icon="pi pi-chevron-down"
+      size="small"
+      severity="secondary"
+      [text]="true"
+      ariaLabel="Next match (Enter)"
+      [disabled]="!hasMatches()"
+      (onClick)="go(1)"
+    />
+    <p-button
+      icon="pi pi-times"
+      size="small"
+      severity="secondary"
+      [text]="true"
+      ariaLabel="Clear search"
+      (onClick)="clear(box)"
+    />
+  }
+</div>

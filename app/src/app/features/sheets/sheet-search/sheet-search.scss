@@ -1,0 +1,30 @@
+:host {
+  flex: none;
+}
+
+// The box, then how many it found and the buttons to step through them, on the top line.
+.sheet-search {
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-1);
+}
+
+.box {
+  width: 10rem;
+  font-size: var(--app-font-size-md);
+}
+
+// "3 of 12": fixed figures so the buttons beside it don't shift while stepping.
+.count {
+  min-width: 4.5rem;
+  padding: 0 var(--app-space-2);
+  color: var(--app-text-secondary);
+  font-size: var(--app-font-size-md);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+
+  &.none {
+    color: var(--app-text-muted);
+  }
+}

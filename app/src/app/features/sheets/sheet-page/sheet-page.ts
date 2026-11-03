@@ -15,6 +15,7 @@ import { SheetContextBar } from '../sheet-context-bar/sheet-context-bar';
 import { SheetHub } from '../sheet-hub';
 import { SheetLiveStore } from '../sheet-live.store';
 import { SheetLoadError } from '../sheet-load-error/sheet-load-error';
+import { SheetSearchStore } from '../sheet-search.store';
 import { SheetSwitcher } from '../sheet-switcher/sheet-switcher';
 import { SheetTableCard } from '../sheet-table-card/sheet-table-card';
 import { SheetTakeoverRequests } from '../sheet-takeover-requests/sheet-takeover-requests';
@@ -52,6 +53,7 @@ import { SheetStore } from '../sheet.store';
     RowTakeoverStore,
     SheetHub,
     SheetLiveStore,
+    SheetSearchStore,
     SheetStore,
   ],
   templateUrl: './sheet-page.html',
