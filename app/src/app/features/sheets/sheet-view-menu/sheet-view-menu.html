@@ -1,0 +1,39 @@
+<p-button
+  [label]="label()"
+  icon="pi pi-chevron-down"
+  iconPos="right"
+  size="small"
+  severity="secondary"
+  [outlined]="true"
+  ariaLabel="Choose what to view"
+  (onClick)="popover.toggle($event)"
+/>
+@if (!isLive()) {
+  <p-button
+    label="Back to live"
+    icon="pi pi-history"
+    size="small"
+    severity="secondary"
+    [outlined]="true"
+    (onClick)="backToLive()"
+  />
+}
+<p-popover #popover appendTo="body">
+  <div class="view-form">
+    <span class="heading">Version</span>
+    <app-sheet-version-picker />
+    @if (hasVersions()) {
+      <span class="heading">Mark changes</span>
+      <app-sheet-compare-picker />
+    }
+    <p-button
+      class="reload"
+      label="Reload sheet"
+      icon="pi pi-refresh"
+      size="small"
+      severity="secondary"
+      [text]="true"
+      (onClick)="reload(popover)"
+    />
+  </div>
+</p-popover>

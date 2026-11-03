@@ -19,20 +19,8 @@
   <div class="empty" [style]="emptyStyle">Empty section</div>
 }
 
-@if (sheetSection(); as section) {
-  @if (canAdd() || change()) {
-    <div class="add" (click)="$event.stopPropagation()">
-      @if (canAdd()) {
-        <app-sheet-add-menu
-          [tableId]="tableId()"
-          [sectionId]="section.id"
-          [sections]="section.addableSections"
-          [iconOnly]="true"
-        />
-      }
-      @if (change(); as change) {
-        <app-sheet-change-tag [change]="change" />
-      }
-    </div>
-  }
+@if (change(); as change) {
+  <div class="change">
+    <app-sheet-change-tag [change]="change" />
+  </div>
 }

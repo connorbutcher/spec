@@ -1,5 +1,12 @@
 import { fixtureCell, fixtureRow, fixtureSection, fixtureTable } from './sheet-structure.fixture';
-import { changeLabel, rowLabel, sectionLabel, tableLabel, versionLabel } from './sheet-labels.util';
+import {
+  changeLabel,
+  rowLabel,
+  sectionLabel,
+  tableLabel,
+  versionLabel,
+  viewLabel,
+} from './sheet-labels.util';
 
 describe('sheet labels', () => {
   it('names a row after the first text typed into it, if there is any', () => {
@@ -28,6 +35,22 @@ describe('sheet labels', () => {
 
   it('writes a version as v and its number', () => {
     expect(versionLabel(3)).toBe('v3');
+  });
+
+  it('says what is being looked at, and what changes are marked since', () => {
+    const live = {
+      isLive: true,
+      latestVersionNumber: 9,
+      viewedVersionNumber: null,
+      viewedAsOfUtc: null,
+    };
+
+    expect(viewLabel(live, null)).toBe('Live · v9');
+    expect(viewLabel(live, 6)).toBe('Live · v9 · changes since v6');
+    expect(viewLabel({ ...live, latestVersionNumber: null }, null)).toBe('Live');
+    expect(viewLabel({ ...live, isLive: false, viewedVersionNumber: 6 }, null)).toBe(
+      'v6 · read-only',
+    );
   });
 
   it('says which version changed something, when and by whom', () => {

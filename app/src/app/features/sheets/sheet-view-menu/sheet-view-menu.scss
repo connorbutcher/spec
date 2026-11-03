@@ -1,0 +1,27 @@
+:host {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--app-space-3);
+}
+
+.view-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-2);
+  width: 19rem;
+
+  .heading {
+    color: var(--app-text-muted);
+    font-size: var(--app-font-size-md);
+    font-weight: var(--app-font-weight-semibold);
+
+    &:not(:first-child) {
+      margin-top: var(--app-space-2);
+    }
+  }
+
+  .reload {
+    align-self: flex-start;
+    margin-top: var(--app-space-2);
+  }
+}

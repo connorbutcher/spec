@@ -1,14 +1,11 @@
+// Stacked, each control as wide as the view menu that holds them.
 .version-picker {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--app-space-3);
+  flex-direction: column;
+  gap: var(--app-space-2);
 }
 
-p-select {
-  min-width: 15rem;
-}
-
+p-select,
 p-datepicker {
-  min-width: 11rem;
+  width: 100%;
 }

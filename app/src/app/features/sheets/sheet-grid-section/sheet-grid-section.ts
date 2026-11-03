@@ -1,6 +1,5 @@
 import { Component, computed, inject, input } from '@angular/core';
 import { SectionLayout } from '../../templates/models/section-layout.model';
-import { SheetAddMenu } from '../sheet-add-menu/sheet-add-menu';
 import { SheetGridCell } from '../sheet-grid-cell/sheet-grid-cell';
 import { CellLayout } from '../../templates/models/cell-layout.model';
 import { RowLayout } from '../models/row-layout.model';
@@ -22,7 +21,7 @@ import { SheetStore } from '../sheet.store';
  */
 @Component({
   selector: 'app-sheet-grid-section',
-  imports: [SheetAddMenu, SheetChangeTag, SheetGridCell, SheetRowStatusCell, SheetStatusHeading],
+  imports: [SheetChangeTag, SheetGridCell, SheetRowStatusCell, SheetStatusHeading],
   templateUrl: './sheet-grid-section.html',
   styleUrl: './sheet-grid-section.scss',
   host: {
@@ -68,10 +67,6 @@ export class SheetGridSection {
     () => this.store.index().sections.get(this.layout().section.id) ?? null,
   );
 
-  public readonly tableId = computed(
-    () => this.store.index().sectionTable.get(this.layout().section.id) ?? -1,
-  );
-
   /** A group holds other sections; it gets a bar and boundary around it and everything inside. */
   public readonly isGroup = computed(() => {
     const section = this.sheetSection();
@@ -81,12 +76,6 @@ export class SheetGridSection {
   public readonly isNested = computed(
     () => sectionAncestors(this.store.index(), this.layout().section.id).length > 0,
   );
-
-  /** Whether the group offers an add control: it can take sections and the sheet is live. */
-  public readonly canAdd = computed(() => {
-    const section = this.sheetSection();
-    return this.store.canEdit() && section !== null && section.addableSections.length > 0;
-  });
 
   /** What changed directly in this section, if that was after the compared version. */
   public readonly change = computed<SheetChange | null>(() =>

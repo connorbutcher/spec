@@ -13,11 +13,12 @@ sheets/
   sheets-api.ts             Write calls. Every one returns the whole live sheet.
   models/                   One interface or type per file. Sheet → SheetTable → SheetSection → SheetRow → SheetCell.
 
-  sheet-page/               The route component. Header, toolbar, the list of tables (drag to reorder).
-  sheet-switcher/           Tabs for the phase's other sheets.
-  sheet-toolbar/            Version picker, compare picker, what is waiting, refresh, add table, publish.
-    sheet-version-picker/     Live, a published version, or a date and time (past views are read-only).
-    sheet-compare-picker/     "Changes since vN": turns the changed-in marks on.
+  sheet-page/               The route component. The top line, the context bar, the list of tables (drag to reorder).
+  sheet-switcher/           Tabs for the phase's sheets, on the top line. The selected tab is the page's title.
+  sheet-toolbar/            The right of the top line: the view, what is waiting, who is here, publish.
+    sheet-view-menu/          One button saying what is shown ("Live · v9"); opens the pickers below and reload.
+      sheet-version-picker/   Live, a published version, or a date and time (past views are read-only).
+      sheet-compare-picker/   "Changes since vN": turns the changed-in marks on.
     sheet-publish/            Publish button with its popover: what to publish, and a note.
       sheet-publish-scope/      The choice between my own changes and everything pending, with counts.
     sheet-status-summary/     "2 drafts by you", "3 drafts by A. Smith": what is waiting on the whole sheet.
@@ -35,14 +36,16 @@ sheets/
   sheet-presence.util.ts    Viewer first, rows checked out per person, initials, the tooltip text.
   sheet-presence/           Who has the sheet open, in the toolbar, and a warning when live updates are off.
     sheet-presence-badge/     One person: initials, and how many rows they have checked out.
-  sheet-takeover-button/    "Request takeover" for a row someone else has, in the action bar. Asks the API whether
+  sheet-takeover-button/    "Request takeover" for a row someone else has, in the context bar. Asks the API whether
                             the row can be asked for, and shows the reason instead when it can't (unpublished changes).
-  sheet-takeover-requests/  Requests for the viewer's rows, under the toolbar.
+  sheet-takeover-requests/  Requests for the viewer's rows, under the context bar.
     sheet-takeover-request/   One request: hand over, keep, or let the countdown hand it over.
 
-  sheet-table-card/         One table: title, add menu, remove, the action bar and the grid.
-  sheet-action-bar/         Move and remove for the selected section and row.
-  sheet-add-menu/           The one add button for a table or a group section.
+  sheet-context-bar/        The one bar for the selection, above every table: its path, the row's status, the actions.
+    sheet-context-add/        The sheet's one add button: sections, column blocks and tables, by where the selection is.
+    sheet-context-actions/    Move up, move down and remove for the selected row, section or table.
+  sheet-action-target.util.ts  Which of those three the selection means, and what it can do where it stands.
+  sheet-table-card/         One table: a heading line (title, template, status) and the grid. Click the heading to select it.
   sheet-grid/               The table as one CSS grid. Computes the layout.
   sheet-grid-section/       A section: an invisible subgrid holding its rows' status and cells, and child sections.
     sheet-row-status-cell/    A row's cell in the status column: its version, state and who has it.
@@ -144,7 +147,7 @@ place: the **status column**, a fixed first column that stays pinned while the t
   and a `data-tone`. The icon and the words carry the state, so nothing depends on colour or a tooltip.
 
 `SheetStatus` is the only component that writes a status. It is given an `ItemStatus` and is used by the
-status column (`SheetRowStatusCell`), the action bar (the selected row, in full) and the table header (a
+status column (`SheetRowStatusCell`), the context bar (the selected row, in full) and the table header (a
 table that is new or has a draft). To show the status of anything else that has a `lock` and `isPending`
 (a section, a column block), pass it to `itemStatus` and hand the result to `SheetStatus`.
 
@@ -156,7 +159,7 @@ for borders, section tone and row tint, so a status cell looks like the rest of 
 
 **Adding approval later**: the API needs a third revision status and a submission record (a migration)
 and a `sheets.approve` permission. On this side, give `SheetLock` (or the row) what says a draft has been
-submitted, return `ForApproval` for it from `stateOf`, and the column, action bar and colours already
+submitted, return `ForApproval` for it from `stateOf`, and the column, context bar and colours already
 show it.
 
 ## Keyboard and screen readers
@@ -165,8 +168,9 @@ show it.
   `display: contents`, there only for the role), each cell a `gridcell`, and a caption in the header a
   `columnheader`. Keep cells inside a row element.
 - Tab moves from cell to cell and opens each cell's editor. Enter on a cell that has no editor selects
-  its row. The breadcrumb in the action bar selects the row's section and the sections around it.
-- Everything that can be done by dragging also has buttons (tables, sections, rows, column blocks).
+  its row. The path in the context bar selects the row's table, its section and the sections around it.
+- Everything that can be done by dragging also has buttons: select the table, section or row and use
+  Move up and Move down in the context bar. Column blocks have their own.
 - A mark drawn over a cell is `role="img"` with an `aria-label` saying what it means.
 - A row's status cell is a `gridcell` labelled "Status: v7 · Draft · A. Smith"; the column's heading is a
   `columnheader`.
@@ -213,10 +217,10 @@ component, and a `@case` in `sheet-cell-settings.html`.
 2. `SheetStore`: a method that calls `this.run(() => this.api.…)`. To select what was added, compare
    the index before and after with `addedId`. Add a test to `sheet.store.spec.ts`.
 3. The control, always a PrimeNG button disabled while `store.isBusy()`:
-   - **Add**: a choice in `SheetAddMenu.sectionChoices` or `columnChoices`. What can be added, and whether it is at its maximum,
+   - **Add**: an item in one of `SheetContextAdd`'s groups. What can be added, and whether it is at its maximum,
      comes from the API's `addable…` lists (`canAdd`), not from rules in the UI.
-   - **Move or remove of the selection**: a button in `SheetActionBar`, enabled from a `computed`.
-   - **Move or remove of one item with its own controls** (a table, a column block): in that
+   - **Move or remove of the selection**: a case in `SheetContextActions`, enabled by `sheetActionTarget`.
+   - **Move or remove of one item with its own controls** (a column block): in that
      component.
    - Confirm a removal with `confirmRemoval`; the page holds the single `p-confirmpopup`.
 

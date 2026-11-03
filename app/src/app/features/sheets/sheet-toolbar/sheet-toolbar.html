@@ -1,12 +1,5 @@
 <div class="sheet-toolbar" role="toolbar" aria-label="Sheet tools">
-  <app-sheet-version-picker />
-  <app-sheet-compare-picker />
-
-  @if (readOnlyLabel(); as label) {
-    <p-tag [value]="label" icon="pi pi-lock" severity="secondary" [rounded]="true" />
-  }
-
-  <span class="spacer"></span>
+  <app-sheet-view-menu />
 
   @if (canEdit()) {
     <app-sheet-status-summary />
@@ -14,27 +7,7 @@
 
   <app-sheet-presence />
 
-  <p-button
-    icon="pi pi-refresh"
-    size="small"
-    severity="secondary"
-    [text]="true"
-    ariaLabel="Refresh the sheet"
-    (onClick)="reload()"
-  />
-
   @if (canEdit()) {
-    <p-button
-      label="Add table"
-      icon="pi pi-plus"
-      size="small"
-      severity="secondary"
-      [outlined]="true"
-      [disabled]="!hasTemplates() || isBusy()"
-      (onClick)="tableMenu.toggle($event)"
-    />
-    <p-menu #tableMenu [popup]="true" [model]="templateMenu()" appendTo="body" />
-
     <app-sheet-publish />
   }
 </div>

@@ -34,15 +34,14 @@
   font-size: var(--app-font-size-md);
 }
 
-// The group's add button sits inline at the right end of its heading row.
-.add {
+// What changed in the section, at the right end of its first row.
+.change {
   position: absolute;
   top: var(--app-space-1);
   right: var(--app-space-2);
   z-index: 5;
   display: flex;
   align-items: center;
-  gap: var(--app-space-2);
 }
 
 // A group is marked by a single rule down its left edge, so no second line is added around it.

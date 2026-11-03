@@ -7,12 +7,11 @@ import { SkeletonModule } from 'primeng/skeleton';
 import { ToastModule } from 'primeng/toast';
 import { Phase } from '../../../core/models/phase.model';
 import { SheetType } from '../../../core/models/sheet-type.model';
-import { Breadcrumb } from '../../../shared/components/breadcrumb/breadcrumb';
-import { BreadcrumbItem } from '../../../shared/components/breadcrumb/breadcrumb-item.model';
 import { EmptyState } from '../../../shared/components/empty-state/empty-state';
 import { PhasesStore } from '../../phases/phases.store';
 import { RowCheckoutStore } from '../row-checkout.store';
 import { RowTakeoverStore } from '../row-takeover.store';
+import { SheetContextBar } from '../sheet-context-bar/sheet-context-bar';
 import { SheetHub } from '../sheet-hub';
 import { SheetLiveStore } from '../sheet-live.store';
 import { SheetLoadError } from '../sheet-load-error/sheet-load-error';
@@ -32,12 +31,12 @@ import { SheetStore } from '../sheet.store';
 @Component({
   selector: 'app-sheet-page',
   imports: [
-    Breadcrumb,
     CdkDrag,
     CdkDropList,
     ConfirmPopupModule,
     EmptyState,
     MessageModule,
+    SheetContextBar,
     SheetLoadError,
     SheetSwitcher,
     SheetTableCard,
@@ -78,22 +77,6 @@ export class SheetPage {
     this.phaseSheetTypes().find((sheetType) => sheetType.id === Number(this.sheetTypeId())),
   );
 
-  /** Phases › V6 › 01-A2 › Specification. */
-  public readonly breadcrumb = computed<BreadcrumbItem[]>(() => {
-    const phase = this.phase();
-    if (!phase) {
-      return [];
-    }
-    return [
-      { label: 'Phases', link: ['/phases'] },
-      ...this.phases
-        .ancestorsOf(phase.id)
-        .map((ancestor) => ({ label: ancestor.code, link: ['/phases', ancestor.id] })),
-      { label: phase.code, link: ['/phases', phase.id] },
-      { label: this.sheetType()?.name ?? '' },
-    ];
-  });
-
   public readonly sheet = computed(() => this.sheetStore.sheet());
   public readonly canEdit = computed(() => this.sheetStore.canEdit());
   public readonly error = computed(() => this.sheetStore.error());
@@ -107,7 +90,7 @@ export class SheetPage {
       return 'Nothing had been published at that point.';
     }
     return sheet.availableTemplates.length > 0
-      ? "Use Add table to start from one of this sheet type's templates."
+      ? "Use Add to start a table from one of this sheet type's templates."
       : 'There are no table templates for this sheet type yet. Create one under Templates.';
   });
 

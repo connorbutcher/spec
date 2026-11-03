@@ -1,6 +1,5 @@
 import { Component, computed, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ButtonModule } from 'primeng/button';
 import { DatePickerModule } from 'primeng/datepicker';
 import { SelectModule } from 'primeng/select';
 import { SheetVersionOption } from '../models/sheet-version-option.model';
@@ -16,7 +15,7 @@ const DATE_OPTION = -1;
  */
 @Component({
   selector: 'app-sheet-version-picker',
-  imports: [ButtonModule, DatePickerModule, FormsModule, SelectModule],
+  imports: [DatePickerModule, FormsModule, SelectModule],
   templateUrl: './sheet-version-picker.html',
   styleUrl: './sheet-version-picker.scss',
 })
@@ -46,8 +45,6 @@ export class SheetVersionPicker {
     return asOf ? new Date(asOf) : null;
   });
 
-  public readonly isLive = computed(() => this.store.sheet()?.isLive ?? true);
-
   public readonly hasVersions = computed(() => this.store.versions().length > 0);
 
   /** A date can't be picked from the future. */
@@ -64,9 +61,5 @@ export class SheetVersionPicker {
 
   public chooseDate(date: Date | null): void {
     this.store.setView(date === null ? {} : { asOf: date.toISOString() });
-  }
-
-  public backToLive(): void {
-    this.store.setView({});
   }
 }

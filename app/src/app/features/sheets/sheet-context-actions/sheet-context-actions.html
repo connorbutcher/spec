@@ -1,0 +1,27 @@
+<p-button
+  label="Move up"
+  icon="pi pi-arrow-up"
+  size="small"
+  severity="secondary"
+  [text]="true"
+  [disabled]="!target()?.canMoveUp || isBusy()"
+  (onClick)="move(-1)"
+/>
+<p-button
+  label="Move down"
+  icon="pi pi-arrow-down"
+  size="small"
+  severity="secondary"
+  [text]="true"
+  [disabled]="!target()?.canMoveDown || isBusy()"
+  (onClick)="move(1)"
+/>
+<p-button
+  [label]="removeLabel()"
+  icon="pi pi-trash"
+  size="small"
+  severity="secondary"
+  [text]="true"
+  [disabled]="!target()?.canRemove || isBusy()"
+  (onClick)="askRemove($event)"
+/>

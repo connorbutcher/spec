@@ -3,7 +3,6 @@
     size="small"
     optionLabel="label"
     optionValue="value"
-    appendTo="body"
     ariaLabel="Version"
     [options]="options()"
     [ngModel]="selected()"
@@ -13,7 +12,6 @@
   />
   <p-datepicker
     size="small"
-    appendTo="body"
     placeholder="As of date"
     dateFormat="yy-mm-dd"
     [showTime]="true"
@@ -28,14 +26,4 @@
     (onSelect)="chooseDate($event)"
     (onClear)="chooseDate(null)"
   />
-  @if (!isLive()) {
-    <p-button
-      label="Back to live"
-      icon="pi pi-history"
-      size="small"
-      severity="secondary"
-      [outlined]="true"
-      (onClick)="backToLive()"
-    />
-  }
 </div>

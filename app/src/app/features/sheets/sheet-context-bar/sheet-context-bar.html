@@ -1,0 +1,22 @@
+<div class="context-bar" role="toolbar" aria-label="Actions for the selection">
+  @if (hasSelection()) {
+    <p-breadcrumb class="path" [model]="path()" />
+    @if (row(); as row) {
+      @if (rowStatus(); as status) {
+        <app-sheet-status [status]="status" />
+      }
+      @if (lockedByOther() && canEdit()) {
+        <app-sheet-takeover-button [row]="row" />
+      }
+    }
+  } @else {
+    <span class="nothing">Nothing selected</span>
+  }
+
+  <span class="spacer"></span>
+
+  @if (canEdit()) {
+    <app-sheet-context-add />
+    <app-sheet-context-actions />
+  }
+</div>

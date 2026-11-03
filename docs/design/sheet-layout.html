@@ -1,0 +1,323 @@
+<title>Sheet Layout Options</title>
+<style>
+  /* Layout: one reading column of notes; each option is a full-width mock of the sheet in the app's own look. */
+  :root {
+    --bg: #f1f4f9;
+    --panel: #ffffff;
+    --fg: #1f2937;
+    --fg-strong: #0f172a;
+    --fg-muted: #5b6b82;
+    --line: #d5dbe3;
+    --accent: #152a55;
+    --pick: #e7edf7;
+    --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    --mono: ui-monospace, 'Cascadia Code', 'Roboto Mono', Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme='light']) {
+      --bg: #10151f; --panel: #171e2b; --fg: #d3dae6; --fg-strong: #f1f4f9; --fg-muted: #93a1b8;
+      --line: #2b3547; --accent: #adc3e5; --pick: #1f2a3d; color-scheme: dark;
+    }
+  }
+  :root[data-theme='dark'] {
+    --bg: #10151f; --panel: #171e2b; --fg: #d3dae6; --fg-strong: #f1f4f9; --fg-muted: #93a1b8;
+    --line: #2b3547; --accent: #adc3e5; --pick: #1f2a3d; color-scheme: dark;
+  }
+
+  body { background: var(--bg); color: var(--fg); font-family: var(--font); font-size: 14px; line-height: 1.5; }
+  .page { max-width: 66rem; margin: 0 auto; padding-inline: 16px; padding-block: 1.5rem 3rem; display: flex; flex-direction: column; gap: 1.75rem; }
+  h1 { font-size: 1.35rem; margin: 0; color: var(--fg-strong); text-wrap: balance; }
+  h2 { font-size: 1.05rem; margin: 0; color: var(--fg-strong); }
+  p { margin: 0; max-width: 68ch; }
+  section { display: flex; flex-direction: column; gap: 0.6rem; min-width: 0; }
+  .lede { color: var(--fg-muted); }
+  .tag { display: inline-block; font-size: 0.7rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--accent); background: var(--pick); padding: 0.1rem 0.4rem; border-radius: 0.25rem; vertical-align: middle; margin-left: 0.4rem; }
+  .scroll { overflow-x: auto; min-width: 0; }
+  table.plain { border-collapse: collapse; font-size: 0.82rem; min-width: 46rem; width: 100%; }
+  table.plain th, table.plain td { text-align: left; padding: 0.3rem 0.8rem 0.3rem 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+  table.plain th { color: var(--fg-muted); font-weight: 600; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; }
+  table.plain td:first-child { color: var(--fg-strong); font-weight: 600; white-space: nowrap; }
+  table.plain td.num { font-variant-numeric: tabular-nums; }
+  .pros { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: 0.25rem 1.5rem; font-size: 0.85rem; }
+  .pros div { min-width: 0; }
+  .pros b { color: var(--fg-strong); }
+  ul { margin: 0; padding-left: 1.1rem; max-width: 70ch; }
+  li { margin-block: 0.15rem; }
+  .cap { font-size: 0.78rem; color: var(--fg-muted); }
+
+  /* The mock: the app's own light look, with the app's token values. It keeps that look in both themes. */
+  .mock {
+    --m-navy: #152a55; --m-text: #1f2937; --m-muted: #64748b; --m-faint: #94a3b8; --m-surface: #fff;
+    --m-line: #d5dbe3; --m-edge: #b8c2d0; --m-header: #dfe6ef; --m-group: #eaeff6; --m-bar: #f8fafc;
+    --m-mine: #f3f7fd; --m-theirs: #faf6ee; --s-mine: #3b6fb6; --s-theirs: #b7791f; --m-pick: #dbe6f6;
+    background: var(--m-surface); color: var(--m-text); border: 1px solid var(--m-edge); border-radius: 0.25rem;
+    font-size: 12.8px; line-height: 1.25; color-scheme: light; min-width: 54rem; position: relative;
+  }
+  .mock .ln { display: flex; align-items: center; gap: 0.5rem; padding: 0.25rem 0.6rem; border-bottom: 1px solid var(--m-line); min-height: 30px; white-space: nowrap; }
+  .mock .ln.sub { background: var(--m-bar); }
+  .mock .ln.gap { background: #f1f4f9; min-height: 8px; padding: 0; }
+  .mock .muted { color: var(--m-muted); font-size: 11.5px; }
+  .mock .h1 { font-size: 15px; font-weight: 600; }
+  .mock .code { font-family: var(--mono); color: var(--m-muted); font-weight: 600; }
+  .mock .tabs { display: flex; gap: 0.9rem; align-self: stretch; margin-block: -0.25rem; }
+  .mock .tab { display: flex; align-items: center; color: var(--m-muted); border-bottom: 2px solid transparent; padding-inline: 0.1rem; }
+  .mock .tab.on { color: var(--m-navy); font-weight: 600; border-bottom-color: var(--m-navy); }
+  .mock .btn { border: 1px solid var(--m-edge); border-radius: 0.25rem; padding: 0.12rem 0.45rem; font-size: 11.5px; background: var(--m-surface); display: inline-flex; align-items: center; gap: 0.25rem; }
+  .mock .btn.primary { background: var(--m-navy); border-color: var(--m-navy); color: #fff; }
+  .mock .btn.txt { border-color: transparent; background: transparent; padding-inline: 0.3rem; }
+  .mock .btn.off { color: var(--m-faint); }
+  .mock .fld { border: 1px solid var(--m-edge); border-radius: 0.25rem; padding: 0.12rem 0.45rem; font-size: 11.5px; background: var(--m-surface); display: inline-flex; align-items: center; justify-content: space-between; gap: 0.6rem; min-width: 8.5rem; color: var(--m-muted); }
+  .mock .ic { color: var(--m-muted); display: inline-flex; padding: 0.15rem; }
+  .mock svg.i { width: 13px; height: 13px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
+  .mock .spacer { flex: 1; }
+  .mock .sep { align-self: stretch; border-left: 1px solid var(--m-line); margin-block: 0.1rem; }
+  .mock .av { width: 20px; height: 20px; border-radius: 50%; background: var(--m-group); border: 1px solid var(--m-edge); font-size: 9.5px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; }
+  .mock .cnt { display: inline-flex; align-items: center; gap: 0.2rem; font-size: 11.5px; font-variant-numeric: tabular-nums; }
+  .mock .c-mine { color: var(--s-mine); } .mock .c-theirs { color: var(--s-theirs); }
+  .mock .ver { font-family: var(--mono); font-size: 11px; color: var(--m-muted); }
+  .mock .state { display: inline-flex; align-items: center; gap: 0.25rem; font-size: 11.5px; }
+  .mock .big { flex: 2; text-align: center; font-size: 15px; font-weight: 700; }
+  .mock .side { flex: 1; display: flex; align-items: center; gap: 0.5rem; }
+  .mock .side.r { justify-content: flex-end; gap: 0.1rem; }
+  .mock .path b { font-weight: 600; }
+  .mock .path span { color: var(--m-muted); }
+  .mock table.g { border-collapse: collapse; width: 100%; font-size: 12.8px; font-variant-numeric: tabular-nums; }
+  .mock table.g th, .mock table.g td { border-right: 1px solid var(--m-line); border-bottom: 1px solid var(--m-line); padding: 0.2rem 0.5rem; height: 26px; text-align: left; white-space: nowrap; }
+  .mock table.g th { background: var(--m-header); font-weight: 600; border-bottom-color: var(--m-faint); }
+  .mock table.g td.grp { background: var(--m-group); font-weight: 600; }
+  .mock table.g td.grp .in { display: flex; align-items: center; gap: 0.4rem; }
+  .mock table.g td.n { text-align: right; }
+  .mock table.g td.st { width: 1%; }
+  .mock table.g td.st .in { display: flex; align-items: center; gap: 0.45rem; }
+  .mock tr.mine td { background: var(--m-mine); }
+  .mock tr.theirs td { background: var(--m-theirs); }
+  .mock tr.pick td { background: var(--m-pick); }
+  .mock .cols { display: flex; align-items: stretch; }
+  .mock .cols > .main { flex: 1; min-width: 0; }
+  .mock .cols > .aside { width: 15rem; border-left: 1px solid var(--m-line); background: var(--m-bar); display: flex; flex-direction: column; }
+  .mock .aside .blk { padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--m-line); display: flex; flex-direction: column; gap: 0.3rem; align-items: flex-start; }
+  .mock .aside .blk .fld { align-self: stretch; }
+  .mock .lbl { color: var(--m-muted); font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+  .mock .pop { border: 1px solid var(--m-edge); border-radius: 0.25rem; background: var(--m-surface); box-shadow: 0 4px 12px rgb(15 23 42 / 0.14); display: flex; flex-direction: column; font-size: 11.5px; }
+  .mock .pop.menu { position: absolute; padding-block: 0.2rem; min-width: 11rem; }
+  .mock .pop.menu span { padding: 0.22rem 0.7rem; }
+  .mock .pop.menu span.cut { border-top: 1px solid var(--m-line); margin-top: 0.2rem; padding-top: 0.35rem; }
+  .mock .pop.menu span.off { color: var(--m-faint); }
+  .mock .pop.view { margin: 0.35rem 0.6rem 0.5rem auto; width: 17rem; padding: 0.5rem 0.6rem; gap: 0.3rem; }
+  .mock .pop.view .fld { align-self: stretch; }
+  .mock .addrow { color: var(--m-muted); }
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="s-bars" viewBox="0 0 13 13"><path d="M2 3.5h9M2 6.5h9M2 9.5h9"/></symbol>
+  <symbol id="s-plus" viewBox="0 0 13 13"><path d="M6.5 2.5v8M2.5 6.5h8"/></symbol>
+  <symbol id="s-up" viewBox="0 0 13 13"><path d="M6.5 10.5v-8M3 6l3.5-3.5L10 6"/></symbol>
+  <symbol id="s-down" viewBox="0 0 13 13"><path d="M6.5 2.5v8M3 7l3.5 3.5L10 7"/></symbol>
+  <symbol id="s-bin" viewBox="0 0 13 13"><path d="M2.5 3.5h8M5 3.5v-1h3v1M3.5 3.5l.5 7h5l.5-7"/></symbol>
+  <symbol id="s-chev" viewBox="0 0 13 13"><path d="M3.5 5l3 3 3-3"/></symbol>
+  <symbol id="s-ref" viewBox="0 0 13 13"><path d="M10.5 6.5a4 4 0 1 1-1.2-2.8M10.5 2v2.2H8.3"/></symbol>
+  <symbol id="s-cal" viewBox="0 0 13 13"><rect x="2" y="3" width="9" height="8" rx="1"/><path d="M2 5.5h9M4.5 2v2M8.5 2v2"/></symbol>
+  <symbol id="s-pen" viewBox="0 0 13 13"><path d="M2.5 10.5l.8-3L8.5 2.3l2.2 2.2-5.2 5.2z"/></symbol>
+  <symbol id="s-pubi" viewBox="0 0 13 13"><path d="M6.5 9V2.5M4 5l2.5-2.5L9 5M2.5 10.5h8"/></symbol>
+  <symbol id="s-dots" viewBox="0 0 13 13"><path d="M3 6.5h.01M6.5 6.5h.01M10 6.5h.01" stroke-width="2"/></symbol>
+  <symbol id="s-side" viewBox="0 0 13 13"><rect x="2" y="2.5" width="9" height="8" rx="1"/><path d="M8 2.5v8"/></symbol>
+</svg>
+
+<div class="page">
+  <section>
+    <h1>A calmer sheet view</h1>
+    <p class="lede">Three ways to cut the controls stacked above and inside each table on the sheet screen, so the limits themselves start near the top and nothing competes with them. The row status column is left exactly as it is in every option.</p>
+  </section>
+
+  <section>
+    <h2>Today</h2>
+    <p>Four lines of controls sit above the first table, and every table adds two more before its first row. A table with a row selected shows ten icon-only buttons (three arrows-and-bin sets, an add, and refresh on the toolbar), and with no tooltips an icon alone has to carry the meaning.</p>
+    <div class="scroll"><div id="now"></div></div>
+  </section>
+
+  <section>
+    <h2>The top line, the same in all three options</h2>
+    <p>The page breadcrumb and the title repeat what the side navigation and the selected tab already say, so both go. The phase code stays as a prefix to the tabs. The version list, the as-of date, the compare list and refresh fold into one <b>View</b> button that always reads the current state, and opens a popover holding the same three controls. Publish stays the only filled button.</p>
+    <div class="scroll"><div id="top"></div></div>
+    <p class="cap">View popover shown open. Away from live, the button reads "v6 · read only" and a Back to live button appears beside it, replacing today's separate read-only tag.</p>
+  </section>
+
+  <section>
+    <h2>Option A: tidy in place</h2>
+    <p>Same structure as today, with each table reduced to one line. The title sits at the left at normal weight, the template name follows it, and the selection path and status move onto the right of that same line. Table, section and row actions become three labelled menus that appear only when they apply.</p>
+    <div class="scroll"><div id="optA"></div></div>
+    <div class="pros">
+      <div><b>For.</b> Smallest change. Actions stay next to the table they act on. Every action has a word beside it, so no icon guessing.</div>
+      <div><b>Against.</b> Every structural action is now two clicks. The header line gets busy on a narrow table when a long path, a status and three menus share it.</div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Option B: one context bar <span class="tag">Recommended</span></h2>
+    <p>One bar under the top line serves the whole sheet. It shows the path to whatever is selected, that item's status, and one set of labelled actions that act on it. Clicking a step in the path retargets the actions to the section or the table. With nothing selected it holds Add table. Tables keep only a title line and a drag handle.</p>
+    <div class="scroll"><div id="optB"></div></div>
+    <div class="pros">
+      <div><b>For.</b> Three sets of arrows and bins become one, always in the same place, always labelled, one click. Tables are nothing but a title and data. The bar stays put while tables scroll, and it is a natural home for the selected row's status sentence and takeover requests.</div>
+      <div><b>Against.</b> The actions are away from the row, up to a screen height on a tall monitor. You must select before you can act, which is already true for sections and rows today but is new for tables.</div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Option C: bare sheet, details on demand</h2>
+    <p>No bar at all. Structural actions live in a right-click menu on a row, a section heading or a table title, with a small menu button on the title line as the visible way in. A Details panel, closed by default, opens at the right with the selection's path and status, the view controls and who is on the sheet.</p>
+    <div class="scroll"><div id="optC"></div></div>
+    <div class="pros">
+      <div><b>For.</b> The most room for data: one line above the tables and one per table. Right-click acts exactly where you are looking.</div>
+      <div><b>Against.</b> Actions are hidden until you know to right-click, and right-click does not exist on a tablet. An open panel costs 15rem of width, which wide horizontal tables need.</div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Where each control goes</h2>
+    <div class="scroll">
+      <table class="plain">
+        <thead><tr><th>Control today</th><th>A: tidy in place</th><th>B: context bar</th><th>C: bare sheet</th></tr></thead>
+        <tbody>
+          <tr><td>Page breadcrumb</td><td colspan="3">Removed. The side navigation already shows the phase.</td></tr>
+          <tr><td>Page title</td><td colspan="3">Removed. The phase code sits before the tabs and the selected tab names the sheet.</td></tr>
+          <tr><td>Sheet tabs</td><td colspan="3">Stay, moved up onto the top line.</td></tr>
+          <tr><td>Version, as-of date, compare</td><td colspan="2">One View button and popover.</td><td>In the Details panel; the button on the top line still reads the state.</td></tr>
+          <tr><td>Read-only tag, Back to live</td><td colspan="3">Part of the View button's text; Back to live appears only away from live.</td></tr>
+          <tr><td>Refresh</td><td colspan="3">"Reload sheet" inside View. The sheet already updates over its live connection.</td></tr>
+          <tr><td>Draft counts, people</td><td colspan="3">Stay beside Publish, unchanged, for the row status work to build on.</td></tr>
+          <tr><td>Add table</td><td>A quiet line after the last table, where the new table will land.</td><td>In the context bar when nothing is selected.</td><td>A quiet line after the last table.</td></tr>
+          <tr><td>Publish</td><td colspan="3">Stays, the only filled button on the screen.</td></tr>
+          <tr><td>Table title</td><td colspan="3">Left-aligned on one line with the template name and version after it. Still click to rename.</td></tr>
+          <tr><td>Table add, move, remove</td><td>Table menu on the title line.</td><td>Context bar, when the table is selected.</td><td>Right-click, or the menu button on the title line.</td></tr>
+          <tr><td>Per-table path and hint line</td><td>Path moves onto the title line. Hint removed.</td><td>One path for the whole sheet in the bar. Hint removed.</td><td>Path in the Details panel. Hint removed.</td></tr>
+          <tr><td>Section and row move, remove</td><td>Section and Row menus on the title line.</td><td>Context bar.</td><td>Right-click.</td></tr>
+          <tr><td>Add inside a section</td><td>The plus on the section heading stays.</td><td>Add in the context bar.</td><td>Right-click.</td></tr>
+          <tr><td>Row status column</td><td colspan="3">Unchanged.</td></tr>
+          <tr><td>Lines above the first row</td><td class="num">2, was 6</td><td class="num">3, was 6</td><td class="num">2, was 6</td></tr>
+          <tr><td>Lines each further table adds</td><td class="num">1, was 2</td><td class="num">1, was 2</td><td class="num">1, was 2</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>Recommendation</h2>
+    <p>Option B. It removes the most repetition for the least hiding: every action is still visible, labelled and one click away, but there is one set of them and not one per table, section and row. It also gives the row status work a single fixed place for the selected row's full status and its actions. The right-click menu from option C can be added on top later as a shortcut without changing the layout.</p>
+    <p>All three use PrimeNG controls only (tabs, button, popover, select, date picker, menu, breadcrumb, context menu, drawer), keep single 1px borders, and need no tooltip to be understood.</p>
+  </section>
+</div>
+
+<script>
+  (function () {
+    function i(n) { return '<svg class="i"><use href="#s-' + n + '"/></svg>'; }
+    function ic(n) { return '<span class="ic">' + i(n) + '</span>'; }
+    function fld(t, n) { return '<span class="fld">' + t + i(n || 'chev') + '</span>'; }
+    function menuBtn(t) { return '<span class="btn">' + t + i('chev') + '</span>'; }
+    var counts = '<span class="cnt c-mine">' + i('pen') + '2</span><span class="cnt c-theirs">' + i('pen') + '1</span>';
+    var people = '<span class="av">CB</span><span class="av">AS</span>';
+    var publish = '<span class="btn primary">' + i('pubi') + 'Publish (2)</span>';
+    var tabs = '<span class="tabs"><span class="tab on">Specification</span><span class="tab">Parts</span><span class="tab">Torque Sheet</span></span>';
+    var mine = '<span class="state c-mine">' + i('pen') + 'Draft · You</span>';
+    var theirs = '<span class="state c-theirs">' + i('pen') + 'Draft · A. Smith</span>';
+
+    function top(extra) {
+      return '<div class="ln"><span class="code">A3</span>' + tabs + '<span class="spacer"></span>' +
+        menuBtn('Live · v9') + counts + people + (extra || '') + publish + '</div>';
+    }
+
+    function limits(plus) {
+      function grp(name) {
+        return '<tr><td class="grp" colspan="6"><div class="in">' + name + (plus ? ic('plus') : '') + '</div></td></tr>';
+      }
+      function row(cls, st, name, v) {
+        return '<tr' + (cls ? ' class="' + cls + '"' : '') + '><td class="st"><div class="in">' + st + '</div></td><td>' + name + '</td>' +
+          v.map(function (x, k) { return '<td' + (k < 3 ? ' class="n"' : '') + '>' + x + '</td>'; }).join('') + '</tr>';
+      }
+      return '<table class="g"><thead><tr><th>Status</th><th>Parameter</th><th>Min</th><th>Nom</th><th>Max</th><th>Unit</th></tr></thead><tbody>' +
+        grp('Pressures') +
+        row('', '<span class="ver">v7</span>', 'Oil pressure, idle', ['1.2', '1.8', '2.5', 'bar']) +
+        row('pick', '<span class="ver">v8</span>' + mine, 'Boost pressure', ['1.9', '2.3', '2.6', 'bar']) +
+        row('theirs', '<span class="ver">v7</span>' + theirs, 'Crankcase pressure', ['-5', '0', '8', 'mbar']) +
+        grp('Temperatures') +
+        row('', '<span class="ver">v4</span>', 'Coolant outlet temp', ['78', '88', '96', '°C']) +
+        '</tbody></table>';
+    }
+    function parts() {
+      return '<table class="g"><thead><tr><th>Status</th><th>Part</th><th>Part no.</th><th>Rev</th></tr></thead><tbody>' +
+        '<tr><td class="st"><span class="ver">v6</span></td><td>Fuel injector</td><td>FI-20418</td><td>C</td></tr></tbody></table>';
+    }
+    function title(name, meta, right) {
+      return '<div class="ln"><span class="ic">' + i('bars') + '</span><b>' + name + '</b><span class="muted">' + meta + '</span>' +
+        '<span class="spacer"></span>' + (right || '') + '</div>';
+    }
+    var gap = '<div class="ln gap"></div>';
+    var addTable = '<div class="ln addrow"><span class="btn txt">' + i('plus') + 'Add table</span></div>';
+    var set = ic('up') + ic('down') + ic('bin');
+
+    function now() {
+      function head(name, meta) {
+        return '<div class="ln"><span class="side"><span class="ic">' + i('bars') + '</span><span class="muted">' + meta + '</span></span>' +
+          '<span class="big">' + name + '</span><span class="side r">' + ic('plus') + set + '</span></div>';
+      }
+      return '<div class="mock">' +
+        '<div class="ln" style="border-bottom:0;min-height:22px;padding-bottom:0"><span class="muted">Phases › V6 › A3 › Specification</span></div>' +
+        '<div class="ln" style="border-bottom:0;min-height:24px"><span class="h1"><span class="code">A3</span> Specification</span></div>' +
+        '<div class="ln">' + tabs + '</div>' +
+        '<div class="ln">' + fld('Latest (live)') + fld('As of date', 'cal') + fld('No comparison') + '<span class="spacer"></span>' +
+          counts + people + ic('ref') + '<span class="btn">' + i('plus') + 'Add table</span>' + publish + '</div>' + gap +
+        head('Limits', 'Limits table · v3') +
+        '<div class="ln sub"><span class="path muted">Limits › Pressures › <b>Boost pressure</b></span><span class="sep"></span>' + set +
+          '<span class="sep"></span><span class="muted">Row</span><span class="ver">v8</span>' + mine + set + '</div>' +
+        limits(true) + gap +
+        head('Parts', 'Parts table · v2') +
+        '<div class="ln sub"><span class="muted">Click into a cell to edit it, or select a group or row for more actions.</span></div>' +
+        parts() + '</div>';
+    }
+
+    function topOnly() {
+      return '<div class="mock">' + top() +
+        '<div class="pop view"><span class="lbl">Version</span>' + fld('Latest (live) · v9') +
+        '<span class="lbl">As of</span>' + fld('Date and time', 'cal') +
+        '<span class="lbl">Mark changes since</span>' + fld('No comparison') +
+        '<span class="btn txt" style="align-self:flex-start;margin-top:0.2rem">' + i('ref') + 'Reload sheet</span></div></div>';
+    }
+
+    function optA() {
+      var sel = '<span class="path muted">Pressures › <b>Boost pressure</b></span><span class="ver">v8</span>' + mine +
+        '<span class="sep"></span>' + menuBtn('Row') + menuBtn('Section');
+      return '<div class="mock">' + top() + gap +
+        title('Limits', 'Limits table · v3', sel + menuBtn('Table')) + limits(true) +
+        '<div class="pop menu" style="right:9.1rem;top:4.1rem"><span>Move row up</span><span>Move row down</span><span class="cut">Remove row</span></div>' +
+        gap + title('Parts', 'Parts table · v2', menuBtn('Table')) + parts() + gap + addTable + '</div>';
+    }
+
+    function optB() {
+      var bar = '<div class="ln sub"><span class="path"><span>Limits › Pressures › </span><b>Boost pressure</b></span><span class="ver">v8</span>' + mine +
+        '<span class="spacer"></span><span class="btn txt">' + i('plus') + 'Add' + i('chev') + '</span>' +
+        '<span class="btn txt">' + i('up') + 'Move up</span><span class="btn txt">' + i('down') + 'Move down</span>' +
+        '<span class="btn txt">' + i('bin') + 'Remove</span></div>';
+      return '<div class="mock">' + top() + bar + gap +
+        title('Limits', 'Limits table · v3') + limits(false) + gap +
+        title('Parts', 'Parts table · v2') + parts() + '</div>';
+    }
+
+    function optC() {
+      var main = gap + title('Limits', 'Limits table · v3', ic('dots')) + limits(false) +
+        '<div class="pop menu" style="left:15rem;top:10rem"><span>Move row up</span><span>Move row down</span><span>Add row below</span>' +
+        '<span class="cut">Section: Pressures</span><span class="off">Table: Limits</span><span class="cut">Remove row</span></div>' +
+        gap + title('Parts', 'Parts table · v2', ic('dots')) + parts() + gap + addTable;
+      var aside = '<div class="blk"><span class="lbl">Selected</span><span class="path muted">Limits › Pressures</span><b>Boost pressure</b>' +
+        '<span><span class="ver">v8</span> ' + mine + '</span></div>' +
+        '<div class="blk"><span class="lbl">View</span>' + fld('Latest (live) · v9') + fld('As of date', 'cal') + fld('No comparison') + '</div>' +
+        '<div class="blk"><span class="lbl">On this sheet</span><span>' + people + '</span><span class="muted">2 drafts by you, 1 by others</span></div>';
+      return '<div class="mock">' + top('<span class="btn">' + i('side') + 'Details</span>') +
+        '<div class="cols"><div class="main">' + main + '</div><div class="aside">' + aside + '</div></div></div>';
+    }
+
+    document.getElementById('now').innerHTML = now();
+    document.getElementById('top').innerHTML = topOnly();
+    document.getElementById('optA').innerHTML = optA();
+    document.getElementById('optB').innerHTML = optB();
+    document.getElementById('optC').innerHTML = optC();
+  })();
+</script>

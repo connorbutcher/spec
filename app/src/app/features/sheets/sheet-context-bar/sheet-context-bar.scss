@@ -1,0 +1,33 @@
+:host {
+  display: block;
+  flex: 0 0 auto;
+  border-bottom: 1px solid var(--app-border);
+  background: var(--app-surface-subtle);
+}
+
+// One line of a fixed height, so nothing below moves when the selection changes.
+.context-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--app-space-2) var(--app-space-6);
+  min-height: 2.125rem;
+  padding: var(--app-space-1) var(--app-space-6);
+}
+
+.path {
+  --p-breadcrumb-padding: 0;
+  --p-breadcrumb-background: transparent;
+  --p-breadcrumb-gap: var(--app-space-2);
+  min-width: 0;
+  font-size: var(--app-font-size-md);
+}
+
+.nothing {
+  color: var(--app-text-muted);
+  font-size: var(--app-font-size-md);
+}
+
+.spacer {
+  flex: 1;
+}

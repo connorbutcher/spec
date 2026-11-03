@@ -1,19 +1,12 @@
 <section class="app-card table-card" [attr.aria-label]="label()">
-  <header class="table-head" (click)="selectTable()">
-    <div class="side left">
-      @if (canEditTable()) {
-        <i
-          cdkDragHandle
-          class="pi pi-bars handle"
-          aria-hidden="true"
-          (click)="$event.stopPropagation()"
-        ></i>
-      }
-      <span class="meta">{{ table().templateName }} · v{{ table().templateVersionNumber }}</span>
-      <app-sheet-status [status]="status()" />
-    </div>
-
+  <header class="table-head" [class.selected]="isSelected()" (click)="selectTable()">
     @if (canEditTable()) {
+      <i
+        cdkDragHandle
+        class="pi pi-bars handle"
+        aria-hidden="true"
+        (click)="$event.stopPropagation()"
+      ></i>
       <input
         #titleInput
         pInputText
@@ -27,61 +20,13 @@
         (blur)="rename()"
         (keydown.enter)="titleInput.blur()"
         (keydown.escape)="revertTitle()"
-        (click)="$event.stopPropagation()"
       />
     } @else {
       <h2 class="title title-text">{{ label() }}</h2>
     }
-
-    <div class="side right">
-      @if (canEditTable()) {
-        <div
-          class="actions"
-          role="group"
-          aria-label="Table actions"
-          (click)="$event.stopPropagation()"
-        >
-          <app-sheet-add-menu
-            [tableId]="table().id"
-            [sections]="table().addableSections"
-            [columnBlocks]="table().addableColumnBlocks"
-            [iconOnly]="true"
-          />
-          <p-button
-            icon="pi pi-arrow-up"
-            size="small"
-            severity="secondary"
-            [text]="true"
-            [disabled]="!canMoveUp() || isBusy()"
-            ariaLabel="Move the table up"
-            (onClick)="move(-1)"
-          />
-          <p-button
-            icon="pi pi-arrow-down"
-            size="small"
-            severity="secondary"
-            [text]="true"
-            [disabled]="!canMoveDown() || isBusy()"
-            ariaLabel="Move the table down"
-            (onClick)="move(1)"
-          />
-          <p-button
-            icon="pi pi-trash"
-            size="small"
-            severity="secondary"
-            [text]="true"
-            [disabled]="isBusy()"
-            ariaLabel="Remove the table"
-            (onClick)="askRemove($event)"
-          />
-        </div>
-      }
-    </div>
+    <span class="meta">{{ table().templateName }} · v{{ table().templateVersionNumber }}</span>
+    <app-sheet-status [status]="status()" />
   </header>
-
-  @if (canEdit()) {
-    <app-sheet-action-bar [table]="table()" />
-  }
 
   <div class="grid-scroll">
     <app-sheet-grid [table]="table()" />
