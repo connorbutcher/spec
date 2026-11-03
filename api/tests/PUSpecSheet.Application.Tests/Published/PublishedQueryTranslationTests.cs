@@ -108,21 +108,23 @@ public sealed class PublishedQueryTranslationTests : IDisposable
     }
 
     [Fact]
-    public void WholeSheetValues_AreFoundThroughTheRowRevisionsAtTheVersion()
+    public void WholeSheetValues_AreFoundByTheRevisionsTheCellQueryFound_InOneParameter()
     {
-        var sql = PublishedValueReader.Scope(db.NumericValues, Version, null, null)
+        var sql = PublishedValueReader.Scope(db.NumericValues, [11, 12, 13], null)
             .Select(value => new { value.SheetCellId, value.Value })
             .ToQueryString();
 
         Assert.Contains("[values].[NumericValues]", sql);
-        Assert.Contains("[SheetRowRevisions]", sql);
+        Assert.Contains("OPENJSON(@revisionIds)", sql);
+        Assert.DoesNotContain("[SheetRowRevisions]", sql);
+        Assert.DoesNotContain("JOIN", sql);
         Assert.StartsWith("SELECT [n].[SheetCellId], [n].[Value]", sql[sql.IndexOf("SELECT", StringComparison.Ordinal)..]);
     }
 
     [Fact]
     public void SelectedValues_AreFoundByRevisionAndCellWithNoJoins()
     {
-        var sql = PublishedValueReader.Scope(db.TextValues, Version, [11, 12], [101, 102])
+        var sql = PublishedValueReader.Scope(db.TextValues, [11, 12], [101, 102])
             .Select(value => new { value.SheetCellId, value.Value })
             .ToQueryString();
 
@@ -134,7 +136,7 @@ public sealed class PublishedQueryTranslationTests : IDisposable
     [Fact]
     public void OptionValues_BringTheOptionTextAndItsKind()
     {
-        var sql = PublishedValueReader.Scope(db.OptionValues, Version, [11], [101])
+        var sql = PublishedValueReader.Scope(db.OptionValues, [11], [101])
             .Select(value => new { value.SheetCellId, value.CellTypeOption.Value, value.CellTypeOption.CellType.Kind })
             .ToQueryString();
 

@@ -24,7 +24,7 @@ public sealed class PublishedRowsService(
         if (selection.IsEverything)
         {
             var all = await cellReader.QuerySheet(version).ToListAsync(cancellationToken);
-            var allValues = await valueReader.ReadAsync(version, all, wholeSheet: true, cancellationToken);
+            var allValues = await valueReader.ReadAsync(all, wholeSheet: true, cancellationToken);
             rows = PublishedRowsAssembler.Assemble(version, selection, structure, all, all, allValues);
             cellCount = all.Count;
         }
@@ -36,7 +36,7 @@ public sealed class PublishedRowsService(
                 .Concat(headers.Where(cell => cell.ColumnBlockId is not null))
                 .DistinctBy(cell => cell.CellId)
                 .ToList();
-            var values = await valueReader.ReadAsync(version, read, wholeSheet: false, cancellationToken);
+            var values = await valueReader.ReadAsync(read, wholeSheet: false, cancellationToken);
             rows = PublishedRowsAssembler.Assemble(version, selection, structure, cells, headers, values);
             cellCount = read.Count;
         }

@@ -11,7 +11,8 @@ public sealed class PublishedLookupService(
     PublishedLookupHitReader hitReader,
     PublishedStructureReader structureReader,
     PublishedLookupCellReader cellReader,
-    PublishedKindValueReader valueReader) : IPublishedLookupService
+    PublishedKindValueReader valueReader,
+    PublishedLookupCache cache) : IPublishedLookupService
 {
     public async Task<PublishedLookupResolution> ResolveAsync(
         PublishedLookupCriteria criteria,
@@ -54,8 +55,14 @@ public sealed class PublishedLookupService(
 
     public async Task<PublishedLookupDto> ReadAsync(PublishedLookupResolution resolution, CancellationToken cancellationToken)
     {
+        if (cache.TryGet(resolution.Key, out var cached))
+        {
+            return cached;
+        }
+
         var structures = new Dictionary<int, PublishedStructure>();
         var matches = new List<PublishedLookupMatchDto>();
+        var cellCount = 0;
 
         foreach (var hit in resolution.Hits)
         {
@@ -74,12 +81,15 @@ public sealed class PublishedLookupService(
 
             var sectionIds = PublishedLookupAssembler.ScopeSections(hit, structure);
             var cells = await cellReader.Query(version, hit, sectionIds).ToListAsync(cancellationToken);
-            var values = await valueReader.ReadAsync(version, cells, wholeSheet: false, cancellationToken);
+            var values = await valueReader.ReadAsync(cells, wholeSheet: false, cancellationToken);
+            cellCount += cells.Count;
 
             matches.Add(PublishedLookupAssembler.Assemble(hit, version, structure, cells, values));
         }
 
-        return new PublishedLookupDto(resolution.Criteria.Key, resolution.Criteria.Value, matches);
+        var answer = new PublishedLookupDto(resolution.Criteria.Key, resolution.Criteria.Value, matches);
+        cache.Set(resolution.Key, answer, cellCount);
+        return answer;
     }
 
     /// <summary>The newest version of each sheet a value was found on, published at or before the moment.</summary>

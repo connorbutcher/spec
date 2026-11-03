@@ -94,7 +94,7 @@ To try it before sign-in exists, Development seeds two more users (`engineer2`, 
 
 ## Published API
 
-`Published` reads only published revisions, by public identifier (the GUIDs), never by database id. What a version held never changes, so answers are cached in memory (`PublishedSheetCache`, `PublishedRowsCache`) and served with ETags; `PublishedSheetHttpCache` holds the HTTP side. Its queries project straight to small records (`Published...Record`) and the `...Assembler` classes, which are pure, build the response. The field names and routes of this API are a contract with other applications: change them only on purpose.
+`Published` reads only published revisions, by public identifier (the GUIDs), never by database id. What a version held never changes, so answers are cached in memory (`PublishedSheetCache`, `PublishedRowsCache`, `PublishedLookupCache`) and served with ETags; `PublishedSheetHttpCache` holds the HTTP side. Its queries project straight to small records (`Published...Record`) and the `...Assembler` classes, which are pure, build the response. The field names and routes of this API are a contract with other applications: change them only on purpose.
 
 ## How to
 

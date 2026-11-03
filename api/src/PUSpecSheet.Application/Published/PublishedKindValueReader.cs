@@ -10,12 +10,10 @@ namespace PUSpecSheet.Application.Published;
 /// </summary>
 public sealed class PublishedKindValueReader(PuSpecSheetDbContext db)
 {
-    /// <param name="version">The version to read.</param>
     /// <param name="cells">The cells to read values for.</param>
-    /// <param name="wholeSheet">True when the cells are every cell of the sheet, so the values are found through the sheet and not a long list of cells.</param>
+    /// <param name="wholeSheet">True when the cells are every cell of the sheet, so every value of their revisions is read and not a long list of cells.</param>
     /// <param name="cancellationToken">Stops the queries.</param>
     public async Task<Dictionary<int, object>> ReadAsync(
-        ResolvedSheetVersion version,
         IReadOnlyList<PublishedLookupCellRecord> cells,
         bool wholeSheet,
         CancellationToken cancellationToken)
@@ -27,11 +25,11 @@ public sealed class PublishedKindValueReader(PuSpecSheetDbContext db)
             return result;
         }
 
-        var revisionIds = wholeSheet ? null : valueCells.Select(cell => cell.RowRevisionId).Distinct().ToList();
+        var revisionIds = valueCells.Select(cell => cell.RowRevisionId).Distinct().ToList();
 
         if (CellsOf(valueCells, wholeSheet, out var textIds, CellKind.Text, CellKind.LinkedDropdown))
         {
-            var texts = await PublishedValueReader.Scope(db.TextValues, version, revisionIds, textIds)
+            var texts = await PublishedValueReader.Scope(db.TextValues, revisionIds, textIds)
                 .Select(value => new { value.SheetCellId, value.Value })
                 .ToListAsync(cancellationToken);
             foreach (var text in texts)
@@ -42,7 +40,7 @@ public sealed class PublishedKindValueReader(PuSpecSheetDbContext db)
 
         if (CellsOf(valueCells, wholeSheet, out var numberIds, CellKind.Number))
         {
-            var numbers = await PublishedValueReader.Scope(db.NumericValues, version, revisionIds, numberIds)
+            var numbers = await PublishedValueReader.Scope(db.NumericValues, revisionIds, numberIds)
                 .Select(value => new { value.SheetCellId, value.Value })
                 .ToListAsync(cancellationToken);
             foreach (var number in numbers)
@@ -53,7 +51,7 @@ public sealed class PublishedKindValueReader(PuSpecSheetDbContext db)
 
         if (CellsOf(valueCells, wholeSheet, out var dateIds, CellKind.Date))
         {
-            var dates = await PublishedValueReader.Scope(db.DateValues, version, revisionIds, dateIds)
+            var dates = await PublishedValueReader.Scope(db.DateValues, revisionIds, dateIds)
                 .Select(value => new { value.SheetCellId, value.Value })
                 .ToListAsync(cancellationToken);
             foreach (var date in dates)
@@ -64,7 +62,7 @@ public sealed class PublishedKindValueReader(PuSpecSheetDbContext db)
 
         if (CellsOf(valueCells, wholeSheet, out var booleanIds, CellKind.Checkbox))
         {
-            var booleans = await PublishedValueReader.Scope(db.BooleanValues, version, revisionIds, booleanIds)
+            var booleans = await PublishedValueReader.Scope(db.BooleanValues, revisionIds, booleanIds)
                 .Select(value => new { value.SheetCellId, value.Value })
                 .ToListAsync(cancellationToken);
             foreach (var boolean in booleans)
@@ -75,7 +73,7 @@ public sealed class PublishedKindValueReader(PuSpecSheetDbContext db)
 
         if (CellsOf(valueCells, wholeSheet, out var optionIds, CellKind.TextDropdown, CellKind.NumberDropdown))
         {
-            var options = await PublishedValueReader.Scope(db.OptionValues, version, revisionIds, optionIds)
+            var options = await PublishedValueReader.Scope(db.OptionValues, revisionIds, optionIds)
                 .Select(value => new { value.SheetCellId, value.CellTypeOption.Value, value.CellTypeOption.CellType.Kind })
                 .ToListAsync(cancellationToken);
             foreach (var option in options)
