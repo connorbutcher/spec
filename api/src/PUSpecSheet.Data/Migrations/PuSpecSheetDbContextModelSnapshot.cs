@@ -17,7 +17,7 @@ namespace PUSpecSheet.Data.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.10")
+                .HasAnnotation("ProductVersion", "10.0.14")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -446,6 +446,9 @@ namespace PUSpecSheet.Data.Migrations
                     b.Property<int>("SheetColumnBlockId")
                         .HasColumnType("int");
 
+                    b.Property<int>("SheetId")
+                        .HasColumnType("int");
+
                     b.Property<int?>("SheetVersionId")
                         .HasColumnType("int");
 
@@ -474,6 +477,16 @@ namespace PUSpecSheet.Data.Migrations
 
                     b.HasIndex("SheetColumnBlockId", "RevisionNumber")
                         .IsUnique();
+
+                    b.HasIndex("SheetId", "PublishedAtUtc")
+                        .HasDatabaseName("IX_SheetColumnBlockRevisions_SheetPublished")
+                        .HasFilter("[Status] = 1");
+
+                    SqlServerIndexBuilderExtensions.IncludeProperties(b.HasIndex("SheetId", "PublishedAtUtc"), new[] { "SupersededAtUtc", "IsDeleted", "DisplayOrder", "SheetColumnBlockId" });
+
+                    b.HasIndex("SheetId", "Status");
+
+                    SqlServerIndexBuilderExtensions.IncludeProperties(b.HasIndex("SheetId", "Status"), new[] { "SupersededAtUtc", "SheetColumnBlockId", "AuthorUserId" });
 
                     b.HasIndex(new[] { "SheetColumnBlockId" }, "UX_SheetColumnBlockRevisions_OneCurrentPerBlock")
                         .IsUnique()
@@ -565,6 +578,9 @@ namespace PUSpecSheet.Data.Migrations
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("rowversion");
 
+                    b.Property<int>("SheetId")
+                        .HasColumnType("int");
+
                     b.Property<int>("SheetRowId")
                         .HasColumnType("int");
 
@@ -587,6 +603,16 @@ namespace PUSpecSheet.Data.Migrations
                     b.HasIndex("SheetVersionId");
 
                     b.HasIndex("AuthorUserId", "Status");
+
+                    b.HasIndex("SheetId", "PublishedAtUtc")
+                        .HasDatabaseName("IX_SheetRowRevisions_SheetPublished")
+                        .HasFilter("[Status] = 1");
+
+                    SqlServerIndexBuilderExtensions.IncludeProperties(b.HasIndex("SheetId", "PublishedAtUtc"), new[] { "SupersededAtUtc", "IsDeleted", "DisplayOrder", "SheetRowId" });
+
+                    b.HasIndex("SheetId", "Status");
+
+                    SqlServerIndexBuilderExtensions.IncludeProperties(b.HasIndex("SheetId", "Status"), new[] { "SupersededAtUtc", "SheetRowId", "AuthorUserId" });
 
                     b.HasIndex("SheetRowId", "PublishedAtUtc")
                         .HasDatabaseName("IX_SheetRowRevisions_Published")
@@ -692,6 +718,9 @@ namespace PUSpecSheet.Data.Migrations
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("rowversion");
 
+                    b.Property<int>("SheetId")
+                        .HasColumnType("int");
+
                     b.Property<int>("SheetSectionId")
                         .HasColumnType("int");
 
@@ -714,6 +743,16 @@ namespace PUSpecSheet.Data.Migrations
                     b.HasIndex("SheetVersionId");
 
                     b.HasIndex("AuthorUserId", "Status");
+
+                    b.HasIndex("SheetId", "PublishedAtUtc")
+                        .HasDatabaseName("IX_SheetSectionRevisions_SheetPublished")
+                        .HasFilter("[Status] = 1");
+
+                    SqlServerIndexBuilderExtensions.IncludeProperties(b.HasIndex("SheetId", "PublishedAtUtc"), new[] { "SupersededAtUtc", "IsDeleted", "DisplayOrder", "SheetSectionId" });
+
+                    b.HasIndex("SheetId", "Status");
+
+                    SqlServerIndexBuilderExtensions.IncludeProperties(b.HasIndex("SheetId", "Status"), new[] { "SupersededAtUtc", "SheetSectionId", "AuthorUserId" });
 
                     b.HasIndex("SheetSectionId", "PublishedAtUtc")
                         .HasDatabaseName("IX_SheetSectionRevisions_Published")
@@ -814,6 +853,9 @@ namespace PUSpecSheet.Data.Migrations
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("rowversion");
 
+                    b.Property<int>("SheetId")
+                        .HasColumnType("int");
+
                     b.Property<int>("SheetTableId")
                         .HasColumnType("int");
 
@@ -840,6 +882,16 @@ namespace PUSpecSheet.Data.Migrations
                     b.HasIndex("SheetVersionId");
 
                     b.HasIndex("AuthorUserId", "Status");
+
+                    b.HasIndex("SheetId", "PublishedAtUtc")
+                        .HasDatabaseName("IX_SheetTableRevisions_SheetPublished")
+                        .HasFilter("[Status] = 1");
+
+                    SqlServerIndexBuilderExtensions.IncludeProperties(b.HasIndex("SheetId", "PublishedAtUtc"), new[] { "SupersededAtUtc", "IsDeleted", "DisplayOrder", "SheetTableId" });
+
+                    b.HasIndex("SheetId", "Status");
+
+                    SqlServerIndexBuilderExtensions.IncludeProperties(b.HasIndex("SheetId", "Status"), new[] { "SupersededAtUtc", "SheetTableId", "AuthorUserId" });
 
                     b.HasIndex("SheetTableId", "PublishedAtUtc")
                         .HasDatabaseName("IX_SheetTableRevisions_Published")
@@ -1592,6 +1644,12 @@ namespace PUSpecSheet.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("PUSpecSheet.Domain.Sheets.Sheet", null)
+                        .WithMany()
+                        .HasForeignKey("SheetId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
                     b.HasOne("PUSpecSheet.Domain.Sheets.SheetVersion", "SheetVersion")
                         .WithMany("ColumnBlockRevisions")
                         .HasForeignKey("SheetVersionId")
@@ -1629,6 +1687,12 @@ namespace PUSpecSheet.Data.Migrations
                         .WithMany()
                         .HasForeignKey("AuthorUserId")
                         .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("PUSpecSheet.Domain.Sheets.Sheet", null)
+                        .WithMany()
+                        .HasForeignKey("SheetId")
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("PUSpecSheet.Domain.Sheets.SheetRow", "SheetRow")
@@ -1683,6 +1747,12 @@ namespace PUSpecSheet.Data.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("PUSpecSheet.Domain.Sheets.Sheet", null)
+                        .WithMany()
+                        .HasForeignKey("SheetId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
                     b.HasOne("PUSpecSheet.Domain.Sheets.SheetSection", "SheetSection")
                         .WithMany("Revisions")
                         .HasForeignKey("SheetSectionId")
@@ -1726,6 +1796,12 @@ namespace PUSpecSheet.Data.Migrations
                         .WithMany()
                         .HasForeignKey("AuthorUserId")
                         .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("PUSpecSheet.Domain.Sheets.Sheet", null)
+                        .WithMany()
+                        .HasForeignKey("SheetId")
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("PUSpecSheet.Domain.Sheets.SheetTable", "SheetTable")

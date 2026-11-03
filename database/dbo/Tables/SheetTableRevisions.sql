@@ -13,11 +13,13 @@ CREATE TABLE [dbo].[SheetTableRevisions] (
     [DisplayOrder]    INT            DEFAULT ((0)) NOT NULL,
     [RowVersion]      ROWVERSION     NOT NULL,
     [SupersededAtUtc] DATETIME2 (7)  NULL,
+    [SheetId]         INT            NOT NULL,
     CONSTRAINT [PK_SheetTableRevisions] PRIMARY KEY CLUSTERED ([Id] ASC),
     CONSTRAINT [CK_SheetTableRevisions_PublishedAt] CHECK ([Status]=(0) AND [PublishedAtUtc] IS NULL OR [Status]=(1) AND [PublishedAtUtc] IS NOT NULL),
     CONSTRAINT [CK_SheetTableRevisions_RevisionNumber] CHECK ([RevisionNumber]>=(1)),
     CONSTRAINT [CK_SheetTableRevisions_Status] CHECK ([Status]=(1) OR [Status]=(0)),
     CONSTRAINT [CK_SheetTableRevisions_SupersededAt] CHECK ([SupersededAtUtc] IS NULL OR [Status]=(1) AND [SupersededAtUtc]>=[PublishedAtUtc]),
+    CONSTRAINT [FK_SheetTableRevisions_Sheets_SheetId] FOREIGN KEY ([SheetId]) REFERENCES [dbo].[Sheets] ([Id]),
     CONSTRAINT [FK_SheetTableRevisions_SheetTables_SheetTableId] FOREIGN KEY ([SheetTableId]) REFERENCES [dbo].[SheetTables] ([Id]) ON DELETE CASCADE,
     CONSTRAINT [FK_SheetTableRevisions_SheetVersions_SheetVersionId] FOREIGN KEY ([SheetVersionId]) REFERENCES [dbo].[SheetVersions] ([Id]),
     CONSTRAINT [FK_SheetTableRevisions_Users_AuthorUserId] FOREIGN KEY ([AuthorUserId]) REFERENCES [dbo].[Users] ([Id])
@@ -26,14 +28,21 @@ CREATE TABLE [dbo].[SheetTableRevisions] (
 
 GO
 
-CREATE NONCLUSTERED INDEX [IX_SheetTableRevisions_SheetVersionId]
-    ON [dbo].[SheetTableRevisions]([SheetVersionId] ASC);
+CREATE NONCLUSTERED INDEX [IX_SheetTableRevisions_SheetPublished]
+    ON [dbo].[SheetTableRevisions]([SheetId] ASC, [PublishedAtUtc] ASC)
+    INCLUDE([SupersededAtUtc], [IsDeleted], [DisplayOrder], [SheetTableId]) WHERE ([Status]=(1));
 
 
 GO
 
-CREATE UNIQUE NONCLUSTERED INDEX [UX_SheetTableRevisions_OneCurrentPerTable]
-    ON [dbo].[SheetTableRevisions]([SheetTableId] ASC) WHERE ([Status]=(1) AND [SupersededAtUtc] IS NULL);
+CREATE NONCLUSTERED INDEX [IX_SheetTableRevisions_AuthorUserId_Status]
+    ON [dbo].[SheetTableRevisions]([AuthorUserId] ASC, [Status] ASC);
+
+
+GO
+
+CREATE UNIQUE NONCLUSTERED INDEX [IX_SheetTableRevisions_SheetTableId_RevisionNumber]
+    ON [dbo].[SheetTableRevisions]([SheetTableId] ASC, [RevisionNumber] ASC);
 
 
 GO
@@ -51,14 +60,21 @@ CREATE UNIQUE NONCLUSTERED INDEX [UX_SheetTableRevisions_OneDraftPerTable]
 
 GO
 
-CREATE UNIQUE NONCLUSTERED INDEX [IX_SheetTableRevisions_SheetTableId_RevisionNumber]
-    ON [dbo].[SheetTableRevisions]([SheetTableId] ASC, [RevisionNumber] ASC);
+CREATE NONCLUSTERED INDEX [IX_SheetTableRevisions_SheetVersionId]
+    ON [dbo].[SheetTableRevisions]([SheetVersionId] ASC);
 
 
 GO
 
-CREATE NONCLUSTERED INDEX [IX_SheetTableRevisions_AuthorUserId_Status]
-    ON [dbo].[SheetTableRevisions]([AuthorUserId] ASC, [Status] ASC);
+CREATE NONCLUSTERED INDEX [IX_SheetTableRevisions_SheetId_Status]
+    ON [dbo].[SheetTableRevisions]([SheetId] ASC, [Status] ASC)
+    INCLUDE([SupersededAtUtc], [SheetTableId], [AuthorUserId]);
+
+
+GO
+
+CREATE UNIQUE NONCLUSTERED INDEX [UX_SheetTableRevisions_OneCurrentPerTable]
+    ON [dbo].[SheetTableRevisions]([SheetTableId] ASC) WHERE ([Status]=(1) AND [SupersededAtUtc] IS NULL);
 
 
 GO

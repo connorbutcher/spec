@@ -177,13 +177,17 @@ public abstract class DraftGateway<TRevision>(PuSpecSheetDbContext db, ICurrentU
             return (existing, false);
         }
 
+        // Every item gets its first revision when it is created, so with no draft there is always a current one.
+        var current = state.Current
+            ?? throw new InvalidOperationException($"{Subject} has no revision to start a draft from.");
         var now = DateTime.UtcNow;
         var draft = new TRevision
         {
+            SheetId = current.SheetId,
             RevisionNumber = await LastRevisionNumberAsync(itemId, cancellationToken) + 1,
             Status = RevisionStatus.Draft,
-            DisplayOrder = state.Current?.DisplayOrder ?? 0,
-            IsDeleted = state.Current?.IsDeleted ?? false,
+            DisplayOrder = current.DisplayOrder,
+            IsDeleted = current.IsDeleted,
             AuthorUserId = currentUser.UserId,
             CreatedAtUtc = now,
             UpdatedAtUtc = now,

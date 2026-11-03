@@ -39,7 +39,7 @@ public sealed class PublishedLookupCellReader(PuSpecSheetDbContext db)
                 || cell.SheetRow.SheetSection.TemplateSection.Role == SectionRole.Header);
         }
 
-        return Project(cells, version.PublishedAtUtc);
+        return Project(cells, version);
     }
 
     /// <summary>Every cell of the sheet's rows at the version, headings included.</summary>
@@ -50,7 +50,7 @@ public sealed class PublishedLookupCellReader(PuSpecSheetDbContext db)
             .AsNoTracking()
             .Where(cell => cell.SheetRow.SheetSection.SheetTable.SheetId == sheetId);
 
-        return Project(cells, version.PublishedAtUtc);
+        return Project(cells, version);
     }
 
     /// <summary>The cells of some rows of the sheet, found by the rows' public identifiers.</summary>
@@ -62,7 +62,7 @@ public sealed class PublishedLookupCellReader(PuSpecSheetDbContext db)
             .Where(cell => rowPublicIds.Contains(cell.SheetRow.PublicId)
                 && cell.SheetRow.SheetSection.SheetTable.SheetId == sheetId);
 
-        return Project(cells, version.PublishedAtUtc);
+        return Project(cells, version);
     }
 
     /// <summary>The cells of some tables' headers: their headings, and the cells that name each column block.</summary>
@@ -73,13 +73,17 @@ public sealed class PublishedLookupCellReader(PuSpecSheetDbContext db)
             .Where(cell => tableIds.Contains(cell.SheetRow.SheetSection.SheetTableId)
                 && cell.SheetRow.SheetSection.TemplateSection.Role == SectionRole.Header);
 
-        return Project(cells, version.PublishedAtUtc);
+        return Project(cells, version);
     }
 
-    private static IQueryable<PublishedLookupCellRecord> Project(IQueryable<SheetCell> cells, DateTime moment)
+    private static IQueryable<PublishedLookupCellRecord> Project(IQueryable<SheetCell> cells, ResolvedSheetVersion version)
     {
+        // The sheet on the revision lets SQL Server find the revisions through the (sheet, published) index.
+        var sheetId = version.SheetId;
+        var moment = version.PublishedAtUtc;
         return cells.SelectMany(
-            cell => cell.SheetRow.Revisions.Where(revision => revision.Status == RevisionStatus.Published
+            cell => cell.SheetRow.Revisions.Where(revision => revision.SheetId == sheetId
+                && revision.Status == RevisionStatus.Published
                 && revision.PublishedAtUtc <= moment
                 && (revision.SupersededAtUtc == null || revision.SupersededAtUtc > moment)
                 && !revision.IsDeleted),

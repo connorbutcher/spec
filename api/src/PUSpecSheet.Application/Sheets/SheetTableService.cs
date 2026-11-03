@@ -39,6 +39,7 @@ public sealed class SheetTableService(
         var table = new SheetTable { SheetId = sheetId, TableTemplateVersionId = version.Id };
         table.Revisions.Add(new SheetTableRevision
         {
+            SheetId = sheetId,
             RevisionNumber = 1,
             Status = RevisionStatus.Draft,
             DisplayOrder = OrderGaps.Next(orders),

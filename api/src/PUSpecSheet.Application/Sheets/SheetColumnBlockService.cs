@@ -43,7 +43,7 @@ public sealed class SheetColumnBlockService(
             throw new ConflictException($"'{template.Name}' can have at most {max}.");
         }
 
-        var block = instantiator.NewColumnBlock(table.Id, template, OrderGaps.Next(visible.Select(candidate => candidate.DisplayOrder)));
+        var block = instantiator.NewColumnBlock(table.Id, table.SheetId, template, OrderGaps.Next(visible.Select(candidate => candidate.DisplayOrder)));
         db.SheetColumnBlocks.Add(block);
         await db.SaveSheetChangesAsync(cancellationToken);
 

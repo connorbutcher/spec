@@ -9,6 +9,9 @@ public interface ISheetRevision
 {
     int Id { get; }
 
+    /// <summary>The sheet the item is on.</summary>
+    int SheetId { get; set; }
+
     int RevisionNumber { get; set; }
 
     RevisionStatus Status { get; set; }

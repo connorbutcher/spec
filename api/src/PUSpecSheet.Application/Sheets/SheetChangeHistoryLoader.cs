@@ -41,21 +41,19 @@ public sealed class SheetChangeHistoryLoader(PuSpecSheetDbContext db, RowValueSt
 
     private async Task<SheetChangeHistory> BuildAsync(SheetSnapshot sheet, DateTime? moment, CancellationToken cancellationToken)
     {
-        // Found through the items' ids, like the sheet's own revisions (see SheetSnapshotLoader).
-        var rowIds = sheet.Rows.Select(row => row.Id).ToList();
-        var sectionIds = sheet.Sections.Select(section => section.Id).ToList();
-        var columnBlockIds = sheet.ColumnBlocks.Select(block => block.Id).ToList();
+        // Found by the sheet they carry, like the sheet's own revisions (see SheetSnapshotLoader).
+        var sheetId = sheet.Sheet.Id;
 
         var rowRevisions = await Published(
-                db.SheetRowRevisions.Where(revision => rowIds.Contains(revision.SheetRowId)),
+                db.RowRevisionsOf(sheetId),
                 moment)
             .ToListAsync(cancellationToken);
         var sectionRevisions = await Published(
-                db.SheetSectionRevisions.Where(revision => sectionIds.Contains(revision.SheetSectionId)),
+                db.SectionRevisionsOf(sheetId),
                 moment)
             .ToListAsync(cancellationToken);
         var columnBlockRevisions = await Published(
-                db.SheetColumnBlockRevisions.Where(revision => columnBlockIds.Contains(revision.SheetColumnBlockId)),
+                db.ColumnBlockRevisionsOf(sheetId),
                 moment)
             .ToListAsync(cancellationToken);
         var values = await valueStore.LoadAsync(rowRevisions.Select(revision => revision.Id).ToList(), cancellationToken);

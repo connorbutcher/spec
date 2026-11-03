@@ -22,7 +22,7 @@ public sealed class PublishedStructureReader(PuSpecSheetDbContext db)
     {
         return db.SheetTableRevisions
             .AsNoTracking()
-            .Where(revision => revision.SheetTable.SheetId == version.SheetId)
+            .Where(revision => revision.SheetId == version.SheetId)
             .PublishedAt(version.PublishedAtUtc)
             .Select(revision => new PublishedTableRecord(
                 revision.SheetTableId,
@@ -36,7 +36,7 @@ public sealed class PublishedStructureReader(PuSpecSheetDbContext db)
     {
         return db.SheetSectionRevisions
             .AsNoTracking()
-            .Where(revision => revision.SheetSection.SheetTable.SheetId == version.SheetId)
+            .Where(revision => revision.SheetId == version.SheetId)
             .PublishedAt(version.PublishedAtUtc)
             .Select(revision => new PublishedSectionRecord(
                 revision.SheetSectionId,
@@ -52,7 +52,7 @@ public sealed class PublishedStructureReader(PuSpecSheetDbContext db)
     {
         return db.SheetColumnBlockRevisions
             .AsNoTracking()
-            .Where(revision => revision.SheetColumnBlock.SheetTable.SheetId == version.SheetId)
+            .Where(revision => revision.SheetId == version.SheetId)
             .PublishedAt(version.PublishedAtUtc)
             .Select(revision => new PublishedColumnBlockRecord(
                 revision.SheetColumnBlockId,

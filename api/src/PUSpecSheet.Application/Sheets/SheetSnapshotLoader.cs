@@ -54,16 +54,11 @@ public sealed class SheetSnapshotLoader(PuSpecSheetDbContext db, RowValueStore v
             .Where(block => block.SheetTable.SheetId == sheetId)
             .ToListAsync(cancellationToken);
 
-        // Revisions are found through their items' ids, which the revision indexes lead with, so the cost
-        // follows the size of this sheet rather than the number of revisions in the whole database.
-        var tableIds = tables.Select(table => table.Id).ToList();
-        var sectionIds = sections.Select(section => section.Id).ToList();
-        var rowIds = rows.Select(row => row.Id).ToList();
-        var columnBlockIds = columnBlocks.Select(block => block.Id).ToList();
-
+        // Revisions are found by the sheet they carry, which the (sheet, status) and (sheet, published)
+        // indexes lead with, so the cost follows the size of this sheet rather than the whole database.
         var tableRevisions = RevisionResolver.Resolve(
             await LoadRevisionsAsync(
-                db.SheetTableRevisions.Where(revision => tableIds.Contains(revision.SheetTableId)),
+                db.TableRevisionsOf(sheetId),
                 moment,
                 cancellationToken),
             revision => revision.SheetTableId,
@@ -71,7 +66,7 @@ public sealed class SheetSnapshotLoader(PuSpecSheetDbContext db, RowValueStore v
 
         var sectionRevisions = RevisionResolver.Resolve(
             await LoadRevisionsAsync(
-                db.SheetSectionRevisions.Where(revision => sectionIds.Contains(revision.SheetSectionId)),
+                db.SectionRevisionsOf(sheetId),
                 moment,
                 cancellationToken),
             revision => revision.SheetSectionId,
@@ -79,7 +74,7 @@ public sealed class SheetSnapshotLoader(PuSpecSheetDbContext db, RowValueStore v
 
         var rowRevisions = RevisionResolver.Resolve(
             await LoadRevisionsAsync(
-                db.SheetRowRevisions.Where(revision => rowIds.Contains(revision.SheetRowId)),
+                db.RowRevisionsOf(sheetId),
                 moment,
                 cancellationToken),
             revision => revision.SheetRowId,
@@ -87,7 +82,7 @@ public sealed class SheetSnapshotLoader(PuSpecSheetDbContext db, RowValueStore v
 
         var columnBlockRevisions = RevisionResolver.Resolve(
             await LoadRevisionsAsync(
-                db.SheetColumnBlockRevisions.Where(revision => columnBlockIds.Contains(revision.SheetColumnBlockId)),
+                db.ColumnBlockRevisionsOf(sheetId),
                 moment,
                 cancellationToken),
             revision => revision.SheetColumnBlockId,

@@ -43,10 +43,13 @@ public sealed class PublishedCellReader(PuSpecSheetDbContext db)
             cells = cells.Where(filter);
         }
 
+        // The sheet on the revision lets SQL Server find the revisions through the (sheet, published) index.
+        var sheetId = version.SheetId;
         var moment = version.PublishedAtUtc;
         return includeCaptions
             ? cells.SelectMany(
-                cell => cell.SheetRow.Revisions.Where(revision => revision.Status == RevisionStatus.Published
+                cell => cell.SheetRow.Revisions.Where(revision => revision.SheetId == sheetId
+                    && revision.Status == RevisionStatus.Published
                     && revision.PublishedAtUtc <= moment
                     && (revision.SupersededAtUtc == null || revision.SupersededAtUtc > moment)
                     && !revision.IsDeleted),
@@ -62,7 +65,8 @@ public sealed class PublishedCellReader(PuSpecSheetDbContext db)
                     cell.TemplateCell.Column,
                     cell.TemplateCell.Caption))
             : cells.SelectMany(
-                cell => cell.SheetRow.Revisions.Where(revision => revision.Status == RevisionStatus.Published
+                cell => cell.SheetRow.Revisions.Where(revision => revision.SheetId == sheetId
+                    && revision.Status == RevisionStatus.Published
                     && revision.PublishedAtUtc <= moment
                     && (revision.SupersededAtUtc == null || revision.SupersededAtUtc > moment)
                     && !revision.IsDeleted),

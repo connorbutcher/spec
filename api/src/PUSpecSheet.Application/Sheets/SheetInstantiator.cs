@@ -50,15 +50,15 @@ public sealed class SheetInstantiator(ICurrentUser currentUser)
             for (var copy = 0; copy < StartingCopies(template); copy++)
             {
                 order += OrderGaps.Spacing;
-                table.ColumnBlocks.Add(NewColumnBlock(0, template, order, table));
+                table.ColumnBlocks.Add(NewColumnBlock(0, table.SheetId, template, order, table));
             }
         }
     }
 
     /// <summary>A new copy of a template column block, as its author's first draft. Its cells are added by the cell filler.</summary>
-    public SheetColumnBlock NewColumnBlock(int tableId, TemplateColumnBlock template, int displayOrder)
+    public SheetColumnBlock NewColumnBlock(int tableId, int sheetId, TemplateColumnBlock template, int displayOrder)
     {
-        return NewColumnBlock(tableId, template, displayOrder, null);
+        return NewColumnBlock(tableId, sheetId, template, displayOrder, null);
     }
 
     /// <summary>A new copy of a template section, with its rows and its starting sub-sections.</summary>
@@ -67,6 +67,7 @@ public sealed class SheetInstantiator(ICurrentUser currentUser)
         var section = new SheetSection { SheetTable = table, TemplateSectionId = template.Id };
         section.Revisions.Add(new SheetSectionRevision
         {
+            SheetId = table.SheetId,
             RevisionNumber = 1,
             Status = RevisionStatus.Draft,
             DisplayOrder = displayOrder,
@@ -79,7 +80,7 @@ public sealed class SheetInstantiator(ICurrentUser currentUser)
         foreach (var templateRow in template.Rows.OrderBy(row => row.DisplayOrder).ThenBy(row => row.Id))
         {
             rowOrder += OrderGaps.Spacing;
-            var row = NewRow(templateRow, rowOrder);
+            var row = NewRow(templateRow, table.SheetId, rowOrder);
             row.SheetSection = section;
             section.Rows.Add(row);
         }
@@ -99,7 +100,7 @@ public sealed class SheetInstantiator(ICurrentUser currentUser)
         return section;
     }
 
-    private SheetColumnBlock NewColumnBlock(int tableId, TemplateColumnBlock template, int displayOrder, SheetTable? table)
+    private SheetColumnBlock NewColumnBlock(int tableId, int sheetId, TemplateColumnBlock template, int displayOrder, SheetTable? table)
     {
         var block = new SheetColumnBlock { TemplateColumnBlockId = template.Id };
         if (table is null)
@@ -113,6 +114,7 @@ public sealed class SheetInstantiator(ICurrentUser currentUser)
 
         block.Revisions.Add(new SheetColumnBlockRevision
         {
+            SheetId = sheetId,
             RevisionNumber = 1,
             Status = RevisionStatus.Draft,
             DisplayOrder = displayOrder,
@@ -128,7 +130,7 @@ public sealed class SheetInstantiator(ICurrentUser currentUser)
     /// column blocks are added by the cell filler, since they depend on how many copies the table has. The
     /// caller attaches the row to its section.
     /// </summary>
-    public SheetRow NewRow(TemplateRow templateRow, int displayOrder)
+    public SheetRow NewRow(TemplateRow templateRow, int sheetId, int displayOrder)
     {
         var row = new SheetRow { TemplateRowId = templateRow.Id };
         foreach (var templateCell in templateRow.Cells.Where(cell => cell.TemplateColumnBlockId is null).OrderBy(cell => cell.Column).ThenBy(cell => cell.Id))
@@ -138,6 +140,7 @@ public sealed class SheetInstantiator(ICurrentUser currentUser)
 
         row.Revisions.Add(new SheetRowRevision
         {
+            SheetId = sheetId,
             RevisionNumber = 1,
             Status = RevisionStatus.Draft,
             DisplayOrder = displayOrder,

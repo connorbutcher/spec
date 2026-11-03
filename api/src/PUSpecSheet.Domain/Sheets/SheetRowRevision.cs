@@ -16,6 +16,12 @@ public class SheetRowRevision : ISheetRevision
 
     public SheetRow SheetRow { get; set; } = null!;
 
+    /// <summary>
+    /// The sheet the item is on, copied onto every revision so that "this sheet at a moment" is one index
+    /// seek rather than a join through the item's parents. An item never moves to another sheet.
+    /// </summary>
+    public int SheetId { get; set; }
+
     /// <summary>1, 2, 3… within the row.</summary>
     public int RevisionNumber { get; set; }
 

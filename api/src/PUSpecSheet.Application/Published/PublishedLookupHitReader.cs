@@ -38,7 +38,7 @@ public sealed class PublishedLookupHitReader(PuSpecSheetDbContext db)
 
         if (sheetId is { } id)
         {
-            values = values.Where(text => text.SheetCell.SheetRow.SheetSection.SheetTable.SheetId == id);
+            values = values.Where(text => text.SheetRowRevision.SheetId == id);
         }
 
         if (criteria.PhaseCode is { } phaseCode)

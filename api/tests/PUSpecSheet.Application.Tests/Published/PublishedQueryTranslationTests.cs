@@ -52,6 +52,7 @@ public sealed class PublishedQueryTranslationTests : IDisposable
         foreach (var sql in new[] { tables, sections, blocks })
         {
             Assert.Contains("[SupersededAtUtc] IS NULL OR", sql);
+            Assert.Contains("[s].[SheetId] = @version_SheetId", sql);
             Assert.DoesNotContain("[RowVersion]", sql);
             Assert.DoesNotContain("[AuthorUserId]", sql);
         }
@@ -64,6 +65,7 @@ public sealed class PublishedQueryTranslationTests : IDisposable
 
         Assert.Contains("[SheetRowRevisions]", sql);
         Assert.Contains("[IsDeleted] = CAST(0 AS bit)", sql);
+        Assert.Contains("].[SheetId] = @sheetId", sql);
         Assert.DoesNotContain("[Caption]", sql);
         Assert.DoesNotContain("[CellTypes]", sql);
     }

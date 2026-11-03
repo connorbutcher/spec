@@ -53,6 +53,23 @@ public sealed class SheetColumnBlockRevisionConfiguration : IEntityTypeConfigura
 
         builder.HasIndex(revision => new { revision.AuthorUserId, revision.Status });
 
+        // "This sheet at a moment", for the published API and past views: one range seek on the sheet, whose
+        // cost follows this sheet's history rather than every sheet's.
+        builder.HasIndex(revision => new { revision.SheetId, revision.PublishedAtUtc })
+            .IncludeProperties(revision => new { revision.SupersededAtUtc, revision.IsDeleted, revision.DisplayOrder, revision.SheetColumnBlockId })
+            .HasFilter("[Status] = 1")
+            .HasDatabaseName("IX_SheetColumnBlockRevisions_SheetPublished");
+
+        // The live sheet: its items' current revisions (published, not superseded) and their drafts.
+        builder.HasIndex(revision => new { revision.SheetId, revision.Status })
+            .IncludeProperties(revision => new { revision.SupersededAtUtc, revision.SheetColumnBlockId, revision.AuthorUserId });
+
+        // Copied from the item's sheet. Items already reach the sheet through their parents, so this can't cascade as well.
+        builder.HasOne<Sheet>()
+            .WithMany()
+            .HasForeignKey(revision => revision.SheetId)
+            .OnDelete(DeleteBehavior.NoAction);
+
         builder.Property(revision => revision.Status)
             .HasConversion<int>();
 

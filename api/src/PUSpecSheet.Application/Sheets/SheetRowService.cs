@@ -43,7 +43,7 @@ public sealed class SheetRowService(
             ?? throw new InvalidRequestException("That row isn't part of this section's template.");
 
         var orders = await VisibleRowOrdersAsync(sectionId, excludingRowId: null, cancellationToken);
-        var row = instantiator.NewRow(templateRow, OrderGaps.Next(orders));
+        var row = instantiator.NewRow(templateRow, section.SheetTable.SheetId, OrderGaps.Next(orders));
         row.SheetSectionId = sectionId;
 
         db.SheetRows.Add(row);

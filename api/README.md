@@ -45,6 +45,7 @@ Reading goes `SheetReader` -> `SheetSnapshotLoader` (the queries) -> `SheetViewB
 Two things to keep when adding queries here:
 
 - Ask for live revisions with `Current()`, `CurrentAndDrafts()` or `VisibleTo(userId)` from `SheetRevisionQueryExtensions`, not `SupersededAtUtc == null`. They match the filtered unique indexes; the bare predicate reads every revision the items have ever had.
+- Find a sheet's revisions by the `SheetId` every revision carries (`TableRevisionsOf(sheetId)` and the others in `SheetScopeQueryExtensions`), not through the item's parents. The (sheet, status) and (sheet, published) indexes lead with it, so the cost follows the sheet's own history; the join through the parents reads every sheet's revisions. A new revision takes its sheet from the revision it follows (`DraftGateway`) or from the item's table (`SheetInstantiator`).
 - Load many items in one query. `DraftGateway.LoadManyAsync`, `ReleaseUnchangedAsync` and `RowValueStore.SetManyAsync` exist so nothing loops over items issuing a query each.
 
 Cell values live in the `values` schema, one table per kind (text, numeric, date, boolean, option), keyed by row revision and cell. `RowValueStore` is the only class that reads or writes them for the editing screens.

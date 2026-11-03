@@ -2,7 +2,7 @@
 
 A SQL database project (SDK-style, `Microsoft.Build.Sql`) that maps the whole `PUSpecSheet` schema as one script per object. It is a readable, buildable mirror of the database that the EF Core migrations in `api/src/PUSpecSheet.Data` create. **The migrations stay the source of truth**: nothing deploys from this project, and the scripts are generated, never edited by hand.
 
-Last compared against migration `20261008185916_AddCellInstanceSettings`: no differences.
+Last compared against migration `20261103193748_AddSheetIdToRevisions`: no differences.
 
 ## Layout
 
