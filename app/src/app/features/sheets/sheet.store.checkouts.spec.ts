@@ -9,6 +9,7 @@ import { Sheet } from './models/sheet.model';
 import { RowCheckoutStore } from './row-checkout.store';
 import { fixtureTable } from './sheet-structure.fixture';
 import { SheetStore } from './sheet.store';
+import { sheetResponse } from './sheet-response.fixture';
 
 const SHEET_URL = '/api/phases/1/sheets/2';
 
@@ -60,7 +61,7 @@ describe('SheetStore with row checkouts', () => {
 
     await settle();
     http.expectOne('/api/cell-types').flush([]);
-    http.expectOne(SHEET_URL).flush(sheet);
+    http.expectOne(SHEET_URL).flush(sheetResponse(sheet));
     await settle();
   });
 

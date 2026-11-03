@@ -1,3 +1,5 @@
+using PUSpecSheet.Contracts.Templates;
+
 namespace PUSpecSheet.Contracts.Sheets;
 
 /// <summary>
@@ -27,4 +29,10 @@ public sealed record SheetDto(
 
     /// <summary>The choices of every column a linked dropdown on the sheet is pointed at.</summary>
     public IReadOnlyList<SheetLinkedSourceDto> LinkedSources { get; init; } = [];
+
+    /// <summary>
+    /// The template cells the sheet's cells were built from, each once. A cell names its own by
+    /// <see cref="SheetCellDto.TemplateCellId"/>; many cells share one, so it isn't repeated on each.
+    /// </summary>
+    public IReadOnlyList<TemplateCellDto> TemplateCells { get; init; } = [];
 }

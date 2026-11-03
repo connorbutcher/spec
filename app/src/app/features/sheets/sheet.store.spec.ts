@@ -7,6 +7,8 @@ import { of } from 'rxjs';
 import { Sheet } from './models/sheet.model';
 import { fixtureTable } from './sheet-structure.fixture';
 import { SheetStore } from './sheet.store';
+import { SheetResponse } from './models/sheet-response.model';
+import { sheetResponse } from './sheet-response.fixture';
 
 const SHEET_URL = '/api/phases/1/sheets/2';
 
@@ -45,10 +47,10 @@ function fixtureSheet(): Sheet {
 }
 
 /** A copy as the API would send it back: equal data, all new objects. */
-function fromServer(sheet: Sheet, change: (copy: Sheet) => void = () => undefined): Sheet {
+function fromServer(sheet: Sheet, change: (copy: Sheet) => void = () => undefined): SheetResponse {
   const copy = structuredClone(sheet);
   change(copy);
-  return copy;
+  return sheetResponse(copy);
 }
 
 describe('SheetStore', () => {
@@ -81,7 +83,7 @@ describe('SheetStore', () => {
 
     await settle();
     http.expectOne('/api/cell-types').flush([]);
-    http.expectOne(SHEET_URL).flush(sheet);
+    http.expectOne(SHEET_URL).flush(sheetResponse(sheet));
     await settle();
   });
 
@@ -112,7 +114,7 @@ describe('SheetStore', () => {
     http = TestBed.inject(HttpTestingController);
     await settle();
     http.expectOne('/api/cell-types').flush(null, { status: 500, statusText: 'Server Error' });
-    http.expectOne(SHEET_URL).flush(sheet);
+    http.expectOne(SHEET_URL).flush(sheetResponse(sheet));
     await settle();
 
     expect(store.sheet()).toBeNull();
@@ -121,7 +123,7 @@ describe('SheetStore', () => {
     store.reload();
     await settle();
     http.expectOne('/api/cell-types').flush([]);
-    http.expectOne(SHEET_URL).flush(sheet);
+    http.expectOne(SHEET_URL).flush(sheetResponse(sheet));
     await settle();
 
     expect(store.sheet()).toEqual(sheet);
@@ -133,7 +135,7 @@ describe('SheetStore', () => {
 
     store.setView({ version: 1 });
     await settle();
-    http.expectOne(`${SHEET_URL}?version=1`).flush({ ...sheet, isLive: false });
+    http.expectOne(`${SHEET_URL}?version=1`).flush(sheetResponse({ ...sheet, isLive: false }));
     await settle();
 
     expect(store.canEdit()).toBe(false);
@@ -155,7 +157,7 @@ describe('SheetStore', () => {
     expect(store.editingCellId()).toBeNull();
 
     await settle();
-    http.expectOne(`${SHEET_URL}?version=1`).flush({ ...sheet, isLive: false });
+    http.expectOne(`${SHEET_URL}?version=1`).flush(sheetResponse({ ...sheet, isLive: false }));
     await settle();
   });
 
@@ -195,7 +197,8 @@ describe('SheetStore', () => {
   });
 
   it('saves the settings chosen for a cell on the sheet, and takes the cell the server sends back', async () => {
-    const row = sheet.tables[0].sections[1].rows[0];
+    const [, header] = store.sheet()?.tables[0].sections ?? [];
+    const row = header.rows[0];
     const cell = row.cells[0];
     const settings = {
       kind: 'LinkedDropdown' as const,
@@ -277,7 +280,7 @@ describe('SheetStore', () => {
     await settle();
 
     expect(store.error()).toBe('Someone else is editing this table.');
-    http.expectOne(SHEET_URL).flush(sheet);
+    http.expectOne(SHEET_URL).flush(sheetResponse(sheet));
     await settle();
 
     store.dismissError();

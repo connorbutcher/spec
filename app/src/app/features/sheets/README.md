@@ -11,6 +11,7 @@ Every folder sits directly in `sheets/`. An indented entry is used by the entry 
 sheets/
   sheet.store.ts            State for the open sheet. Provided by SheetPage, one per open sheet.
   sheets-api.ts             Write calls. Every one returns the whole live sheet.
+  sheet-response.util.ts    A sheet as it arrives: cells name their template cell, sent once in templateCells; gives each its template.
   models/                   One interface or type per file. Sheet → SheetTable → SheetSection → SheetRow → SheetCell.
 
   sheet-page/               The route component. The top line, the context bar, the list of tables (drag to reorder).

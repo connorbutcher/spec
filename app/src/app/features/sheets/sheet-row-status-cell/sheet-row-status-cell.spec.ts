@@ -8,6 +8,7 @@ import { Sheet } from '../models/sheet.model';
 import { fixtureTable } from '../sheet-structure.fixture';
 import { SheetStore } from '../sheet.store';
 import { SheetRowStatusCell } from './sheet-row-status-cell';
+import { sheetResponse } from '../sheet-response.fixture';
 
 describe('SheetRowStatusCell', () => {
   let fixture: ComponentFixture<SheetRowStatusCell>;
@@ -72,7 +73,7 @@ describe('SheetRowStatusCell', () => {
     fixture.componentRef.setInput('rowId', row.id);
     fixture.detectChanges();
     http.expectOne('/api/cell-types').flush([]);
-    http.expectOne('/api/phases/1/sheets/2').flush(sheet);
+    http.expectOne('/api/phases/1/sheets/2').flush(sheetResponse(sheet));
     await settle();
   }
 
@@ -138,7 +139,7 @@ describe('SheetRowStatusCell', () => {
 
     const published = structuredClone(sheet);
     published.tables[0].sections[0].sections[0].rows[0].lock = null;
-    http.expectOne('/api/sheets/5/publish').flush(published);
+    http.expectOne('/api/sheets/5/publish').flush(sheetResponse(published));
     await publishing;
     await settle();
     expect(store.publishing()).toBeNull();

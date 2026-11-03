@@ -72,7 +72,7 @@ public sealed class DemoPartUsageSheetSeeder(
         var partNumbers = parts.Sections
             .SelectMany(section => section.Rows)
             .SelectMany(row => row.Cells)
-            .Where(cell => cell.Template.Id == partNumberColumn.TemplateCellId && !string.IsNullOrWhiteSpace(cell.TextValue))
+            .Where(cell => cell.TemplateCellId == partNumberColumn.TemplateCellId && !string.IsNullOrWhiteSpace(cell.TextValue))
             .Select(cell => cell.TextValue!)
             .ToList();
         if (partNumbers.Count == 0)

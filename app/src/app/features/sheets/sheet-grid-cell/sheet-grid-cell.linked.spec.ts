@@ -11,6 +11,7 @@ import { layoutSheetTable } from '../sheet-layout.util';
 import { fixtureTable } from '../sheet-structure.fixture';
 import { SheetStore } from '../sheet.store';
 import { SheetGridCell } from './sheet-grid-cell';
+import { sheetResponse } from '../sheet-response.fixture';
 
 const LINKED_TYPE: CellType = {
   id: 1,
@@ -95,7 +96,7 @@ describe('SheetGridCell, for a linked dropdown', () => {
     fixture.componentRef.setInput('layout', layout);
     fixture.detectChanges();
     http.expectOne('/api/cell-types').flush([LINKED_TYPE]);
-    http.expectOne('/api/phases/1/sheets/2').flush(sheet);
+    http.expectOne('/api/phases/1/sheets/2').flush(sheetResponse(sheet));
     await settle();
     return cell;
   }

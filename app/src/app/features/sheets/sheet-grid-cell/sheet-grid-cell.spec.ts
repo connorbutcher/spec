@@ -11,6 +11,7 @@ import { layoutSheetTable } from '../sheet-layout.util';
 import { fixtureTable } from '../sheet-structure.fixture';
 import { SheetStore } from '../sheet.store';
 import { SheetGridCell } from './sheet-grid-cell';
+import { sheetResponse } from '../sheet-response.fixture';
 
 const TEXT_TYPE: CellType = {
   id: 1,
@@ -80,7 +81,7 @@ describe('SheetGridCell', () => {
     fixture.componentRef.setInput('layout', layout);
     fixture.detectChanges();
     http.expectOne('/api/cell-types').flush([TEXT_TYPE]);
-    http.expectOne('/api/phases/1/sheets/2').flush(sheet);
+    http.expectOne('/api/phases/1/sheets/2').flush(sheetResponse(sheet));
     await settle();
   }
 

@@ -26,6 +26,9 @@ internal sealed class SheetViewBuilder
     private readonly Dictionary<int, int> columnBlockOrder;
     private List<SheetLinkableRowDto> linkableRows = [];
 
+    /// <summary>The template cells the sheet's cells were built from, each sent once, by id.</summary>
+    private readonly Dictionary<int, TemplateCellDto> templateCells = [];
+
     public SheetViewBuilder(SheetSnapshot snapshot, int currentUserId)
     {
         this.snapshot = snapshot;
@@ -102,6 +105,9 @@ internal sealed class SheetViewBuilder
 
             // Gathered while the tables above were built, so they hold exactly what the viewer can see.
             LinkedSources = linkedOptions.Build(),
+
+            // Gathered with the cells, so it holds the template of every cell shown and nothing more.
+            TemplateCells = [.. templateCells.Values.OrderBy(templateCell => templateCell.Id)],
         };
     }
 
@@ -232,13 +238,12 @@ internal sealed class SheetViewBuilder
             ChangeOf(snapshot.Changes.Rows, row.Id));
     }
 
-    private static SheetCellDto BuildCell(SheetCell cell, CellValueBag? value, SheetChangeDto? change)
+    private SheetCellDto BuildCell(SheetCell cell, CellValueBag? value, SheetChangeDto? change)
     {
         var template = cell.TemplateCell;
-        return new SheetCellDto(
-            cell.Id,
-            cell.PublicId,
-            new TemplateCellDto(
+        if (!templateCells.ContainsKey(template.Id))
+        {
+            templateCells[template.Id] = new TemplateCellDto(
                 template.Id,
                 template.CellTypeId,
                 template.Column,
@@ -248,7 +253,13 @@ internal sealed class SheetViewBuilder
                 template.IsRequired,
                 template.ConfigurationOverride,
                 template.StyleOverride,
-                template.TemplateColumnBlockId),
+                template.TemplateColumnBlockId);
+        }
+
+        return new SheetCellDto(
+            cell.Id,
+            cell.PublicId,
+            template.Id,
             value?.Text,
             value?.Number,
             value?.Date,

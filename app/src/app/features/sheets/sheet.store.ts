@@ -17,10 +17,12 @@ import { SheetSelection } from './models/sheet-selection.model';
 import { SheetTarget } from './models/sheet-target.model';
 import { SheetVersionSummary } from './models/sheet-version-summary.model';
 import { SheetView } from './models/sheet-view.model';
+import { SheetResponse } from './models/sheet-response.model';
 import { Sheet } from './models/sheet.model';
 import { RowCheckoutStore } from './row-checkout.store';
 import { withRowCheckouts } from './row-checkout.util';
 import { addedId, buildSheetIndex, cellsById, sectionSiblings } from './sheet-index.util';
+import { withTemplateCells } from './sheet-response.util';
 import { sheetTarget, sheetUrl } from './sheet-url.util';
 import { SheetsApi } from './sheets-api';
 
@@ -145,7 +147,7 @@ export class SheetStore {
       const target = this.target();
       return target === null ? undefined : sheetUrl(target, this.view());
     },
-    { parse: (body) => this.received(body as Sheet) },
+    { parse: (body) => this.received(withTemplateCells(body as SheetResponse)) },
   );
 
   private readonly cellTypesResource = httpResource<CellType[]>(() => '/api/cell-types');
@@ -320,7 +322,6 @@ export class SheetStore {
   }
 
   public async moveRow(rowId: number, step: -1 | 1): Promise<void> {
-
     const index = this.index();
     const section = index.sections.get(index.rowSection.get(rowId) ?? -1);
     const position = (section?.rows.findIndex((row) => row.id === rowId) ?? 0) + 1 + step;

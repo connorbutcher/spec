@@ -1,16 +1,16 @@
-using PUSpecSheet.Contracts.Templates;
 using PUSpecSheet.Domain.CellTypes.InstanceSettings;
 
 namespace PUSpecSheet.Contracts.Sheets;
 
 /// <summary>
-/// A cell on a sheet: the layout it was built from (<see cref="Template"/>, whose own id is the template
-/// cell's) and its value. Only the value field that matches the cell's kind is ever set.
+/// A cell on a sheet: the template cell it was built from (<see cref="TemplateCellId"/>, found in the
+/// sheet's <see cref="SheetDto.TemplateCells"/>, which lists each one once) and its value. Only the value
+/// field that matches the cell's kind is ever set.
 /// </summary>
 public sealed record SheetCellDto(
     int Id,
     Guid PublicId,
-    TemplateCellDto Template,
+    int TemplateCellId,
     string? TextValue,
     decimal? NumberValue,
     DateOnly? DateValue,

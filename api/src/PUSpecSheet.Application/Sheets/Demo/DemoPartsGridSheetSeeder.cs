@@ -113,11 +113,11 @@ public sealed class DemoPartsGridSheetSeeder(
             dto = await sections.AddAsync(tableId, new AddSheetSectionRequest(templateSectionId, null), cancellationToken);
             var row = dto.Tables[0].Sections[^1].Rows[0];
             var requests = new List<CellValueRequest> { new(StubCell(row).Id, spec.Description, null, null, null, null) };
-            requests.AddRange(ValueRequests(dto.Tables[0], row, spec, from: 0, count: StartingParts));
+            requests.AddRange(ValueRequests(dto, dto.Tables[0], row, spec, from: 0, count: StartingParts));
             await rows.SaveValuesAsync(row.Id, new SaveRowValuesRequest(requests), cancellationToken);
         }
 
-        await SavePartNumbersAsync(dto.Tables[0], from: 0, count: StartingParts, cancellationToken);
+        await SavePartNumbersAsync(dto, dto.Tables[0], from: 0, count: StartingParts, cancellationToken);
         await sheets.PublishAsync(sheetId, new PublishSheetRequest("Sample parts"), cancellationToken);
 
         // Version 2: a fifth part. Every existing row gets its cells in the new columns.
@@ -128,22 +128,22 @@ public sealed class DemoPartsGridSheetSeeder(
         for (var index = 0; index < specSections.Count; index++)
         {
             var row = specSections[index].Rows[0];
-            var requests = ValueRequests(table, row, Rows[index], from: StartingParts, count: 1);
+            var requests = ValueRequests(dto, table, row, Rows[index], from: StartingParts, count: 1);
             await rows.SaveValuesAsync(row.Id, new SaveRowValuesRequest(requests), cancellationToken);
         }
 
-        await SavePartNumbersAsync(table, from: StartingParts, count: 1, cancellationToken);
+        await SavePartNumbersAsync(dto, table, from: StartingParts, count: 1, cancellationToken);
         await sheets.PublishAsync(sheetId, new PublishSheetRequest("Added a fifth part"), cancellationToken);
     }
 
     /// <summary>The part number of each part in the header's first row, for <paramref name="count"/> parts from <paramref name="from"/>.</summary>
-    private async Task SavePartNumbersAsync(SheetTableDto table, int from, int count, CancellationToken cancellationToken)
+    private async Task SavePartNumbersAsync(SheetDto sheet, SheetTableDto table, int from, int count, CancellationToken cancellationToken)
     {
         var header = table.Sections[0].Rows[0];
         var requests = new List<CellValueRequest>();
         for (var index = from; index < from + count; index++)
         {
-            var partNumber = BlockCells(header, table.ColumnBlocks[index].Id).First();
+            var partNumber = BlockCells(sheet, header, table.ColumnBlocks[index].Id).First();
             requests.Add(new CellValueRequest(partNumber.Id, PartNumbers[index], null, null, null, null));
         }
 
@@ -155,6 +155,7 @@ public sealed class DemoPartsGridSheetSeeder(
     /// cells, or a single value in its one cell.
     /// </summary>
     private static List<CellValueRequest> ValueRequests(
+        SheetDto sheet,
         SheetTableDto table,
         SheetRowDto row,
         (string Description, bool Single, decimal Base, decimal Step, decimal Spread) spec,
@@ -165,7 +166,7 @@ public sealed class DemoPartsGridSheetSeeder(
         for (var part = from; part < from + count; part++)
         {
             var centre = Math.Round(spec.Base + (spec.Step * part), 2);
-            var cells = BlockCells(row, table.ColumnBlocks[part].Id);
+            var cells = BlockCells(sheet, row, table.ColumnBlocks[part].Id);
             if (spec.Single)
             {
                 requests.Add(new CellValueRequest(cells[0].Id, null, centre, null, null, null));
@@ -185,11 +186,12 @@ public sealed class DemoPartsGridSheetSeeder(
     }
 
     /// <summary>A row's cells in one column block copy, left to right.</summary>
-    private static List<SheetCellDto> BlockCells(SheetRowDto row, int columnBlockId)
+    private static List<SheetCellDto> BlockCells(SheetDto sheet, SheetRowDto row, int columnBlockId)
     {
+        var columns = sheet.TemplateCells.ToDictionary(templateCell => templateCell.Id, templateCell => templateCell.Column);
         return row.Cells
             .Where(cell => cell.SheetColumnBlockId == columnBlockId)
-            .OrderBy(cell => cell.Template.Column)
+            .OrderBy(cell => columns[cell.TemplateCellId])
             .ToList();
     }
 }
