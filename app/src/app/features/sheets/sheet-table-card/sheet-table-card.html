@@ -2,9 +2,8 @@
   <header
     class="table-head"
     [class.selected]="isSelected()"
-    [class.search-match]="isSearchMatch()"
-    [class.search-active]="isSearchActive()"
-    [attr.data-search-key]="searchKey()"
+    appSheetAnchor="table"
+    [anchorId]="table().id"
     (click)="selectTable()"
   >
     @if (canEditTable()) {

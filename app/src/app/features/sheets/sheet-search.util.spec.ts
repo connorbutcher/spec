@@ -5,13 +5,8 @@ import { SheetCell } from './models/sheet-cell.model';
 import { SheetTable } from './models/sheet-table.model';
 import { Sheet } from './models/sheet.model';
 import { buildSheetIndex } from './sheet-index.util';
-import {
-  cellSearchKey,
-  matchCountLabel,
-  matchingKeys,
-  searchTargets,
-  tableSearchKey,
-} from './sheet-search.util';
+import { anchorKey } from './sheet-anchor.util';
+import { matchCountLabel, matchingKeys, searchTargets } from './sheet-search.util';
 import { fixtureTable } from './sheet-structure.fixture';
 
 function cellType(id: number, kind: CellKind, configuration: CellConfiguration): CellType {
@@ -84,17 +79,20 @@ describe('searchTargets and matchingKeys', () => {
   it('finds a table by its title or its template, ignoring case', () => {
     const { table } = filledTable();
 
-    expect(search(table, 'PISTON')).toEqual([tableSearchKey(table.id)]);
-    expect(search(table, 'limits table')).toEqual([tableSearchKey(table.id)]);
+    expect(search(table, 'PISTON')).toEqual([anchorKey('table', table.publicId)]);
+    expect(search(table, 'limits table')).toEqual([anchorKey('table', table.publicId)]);
   });
 
   it('finds cells by what they show: captions, text, numbers, option text and dates', () => {
     const { table, cells } = filledTable();
 
-    expect(search(table, 'bore')).toEqual([cellSearchKey(cells[0].id), cellSearchKey(cells[1].id)]);
-    expect(search(table, '12.50 mm')).toEqual([cellSearchKey(cells[2].id)]);
-    expect(search(table, 'forged')).toEqual([cellSearchKey(cells[3].id)]);
-    expect(search(table, '2026-11')).toEqual([cellSearchKey(cells[4].id)]);
+    expect(search(table, 'bore')).toEqual([
+      anchorKey('cell', cells[0].publicId),
+      anchorKey('cell', cells[1].publicId),
+    ]);
+    expect(search(table, '12.50 mm')).toEqual([anchorKey('cell', cells[2].publicId)]);
+    expect(search(table, 'forged')).toEqual([anchorKey('cell', cells[3].publicId)]);
+    expect(search(table, '2026-11')).toEqual([anchorKey('cell', cells[4].publicId)]);
   });
 
   it('finds nothing for an option id that is never shown, or for a blank query', () => {

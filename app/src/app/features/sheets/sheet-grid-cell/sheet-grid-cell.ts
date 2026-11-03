@@ -31,8 +31,6 @@ import { SheetCellEditor } from '../sheet-cell-editor/sheet-cell-editor';
 import { SheetCellMarks } from '../sheet-cell-marks/sheet-cell-marks';
 import { SheetCellValue } from '../sheet-cell-value/sheet-cell-value';
 import { sectionTone } from '../sheet-index.util';
-import { cellSearchKey } from '../sheet-search.util';
-import { SheetSearchStore } from '../sheet-search.store';
 import { otherUsersLock } from '../sheet-lock.util';
 import { SheetStore } from '../sheet.store';
 
@@ -71,9 +69,6 @@ const FLEX_ALIGNMENT: Readonly<Record<string, string>> = {
     '[class.editable]': 'isEditable()',
     '[attr.data-tone]': 'tone()',
     '[attr.tabindex]': 'tabIndex()',
-    '[attr.data-search-key]': 'searchKey()',
-    '[class.search-match]': 'isSearchMatch()',
-    '[class.search-active]': 'isSearchActive()',
     '(pointerdown)': 'startEditing(true)',
     '(focus)': 'startEditing(false)',
     '(click)': 'select($event)',
@@ -223,15 +218,7 @@ export class SheetGridCell {
 
   public readonly hasMarks = computed(() => this.cellChange() !== null || this.warning() !== null);
 
-  /** How the sheet's search knows this cell (`SheetSearchStore`). */
-  public readonly searchKey = computed(() => cellSearchKey(this.layout().cell.id));
-
-  public readonly isSearchMatch = computed(() => this.search?.isMatch(this.searchKey()) === true);
-
-  public readonly isSearchActive = computed(() => this.search?.isActive(this.searchKey()) === true);
-
   private readonly store = inject(SheetStore);
-  private readonly search = inject(SheetSearchStore, { optional: true });
   private readonly element = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly injector = inject(Injector);
 

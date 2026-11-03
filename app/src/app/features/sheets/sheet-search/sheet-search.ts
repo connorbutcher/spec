@@ -1,23 +1,24 @@
 import {
-  afterNextRender,
   Component,
   computed,
   effect,
   ElementRef,
   inject,
-  Injector,
+  untracked,
   viewChild,
 } from '@angular/core';
 import { ButtonModule } from 'primeng/button';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
+import { SheetAnchorService } from '../sheet-anchor.service';
 import { SheetSearchStore } from '../sheet-search.store';
 
 /**
  * The search box on the sheet's top line. It finds every table heading and cell that shows what is
  * typed, ignoring case, says which of them is the current one ("3 of 12"), and steps through them with
- * Enter and Shift+Enter or the arrows, scrolling the current one into view. Ctrl+F (Cmd+F) moves into it
+ * Enter and Shift+Enter or the arrows. The current one goes into the address's fragment, which selects
+ * it and scrolls it into view (`SheetAnchorService`), so the address links to it. Ctrl+F (Cmd+F) moves into it
  * in place of the browser's own find, and Escape clears it and leaves.
  */
 @Component({
@@ -37,15 +38,15 @@ export class SheetSearch {
   public readonly countLabel = computed(() => this.searchStore.countLabel());
 
   private readonly searchStore = inject(SheetSearchStore);
-  private readonly injector = inject(Injector);
+  private readonly anchors = inject(SheetAnchorService);
   private readonly box = viewChild.required<ElementRef<HTMLInputElement>>('box');
 
   constructor() {
-    // Whenever the current match changes (a new search, or stepping), bring it into view.
+    // Whenever the current match changes (a new search, or stepping), point the address at it.
     effect(() => {
       const key = this.searchStore.activeKey();
       if (key !== null) {
-        afterNextRender(() => reveal(key), { injector: this.injector });
+        untracked(() => this.anchors.show(key));
       }
     });
   }
@@ -60,7 +61,7 @@ export class SheetSearch {
     this.searchStore.step(step);
     const key = this.searchStore.activeKey();
     if (key !== null) {
-      reveal(key);
+      this.anchors.show(key);
     }
   }
 
@@ -80,11 +81,4 @@ export class SheetSearch {
     this.searchStore.clear();
     box.blur();
   }
-}
-
-/** Scrolls the element showing a match to the middle of the tables, sideways as well as down. */
-function reveal(key: string): void {
-  document
-    .querySelector(`[data-search-key="${key}"]`)
-    ?.scrollIntoView({ block: 'center', inline: 'center' });
 }

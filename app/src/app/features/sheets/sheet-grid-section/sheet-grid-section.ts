@@ -4,6 +4,7 @@ import { SheetGridCell } from '../sheet-grid-cell/sheet-grid-cell';
 import { CellLayout } from '../../templates/models/cell-layout.model';
 import { RowLayout } from '../models/row-layout.model';
 import { SheetChange } from '../models/sheet-change.model';
+import { SheetAnchor } from '../sheet-anchor.directive';
 import { SheetChangeTag } from '../sheet-change-tag/sheet-change-tag';
 import { isGroupSection, sectionAncestors } from '../sheet-index.util';
 import { SheetRowStatusCell } from '../sheet-row-status-cell/sheet-row-status-cell';
@@ -21,7 +22,7 @@ import { SheetStore } from '../sheet.store';
  */
 @Component({
   selector: 'app-sheet-grid-section',
-  imports: [SheetChangeTag, SheetGridCell, SheetRowStatusCell, SheetStatusHeading],
+  imports: [SheetAnchor, SheetChangeTag, SheetGridCell, SheetRowStatusCell, SheetStatusHeading],
   templateUrl: './sheet-grid-section.html',
   styleUrl: './sheet-grid-section.scss',
   host: {

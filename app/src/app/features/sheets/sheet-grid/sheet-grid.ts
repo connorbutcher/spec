@@ -2,6 +2,7 @@ import { Component, computed, input, linkedSignal } from '@angular/core';
 import { reuseUnchanged } from '../../../shared/reuse-unchanged.util';
 import { TemplateLayout } from '../../templates/models/template-layout.model';
 import { SheetGridColumnBlock } from '../sheet-grid-column-block/sheet-grid-column-block';
+import { SheetAnchor } from '../sheet-anchor.directive';
 import { SheetGridSection } from '../sheet-grid-section/sheet-grid-section';
 import { tableLabel } from '../sheet-labels.util';
 import { layoutSheetTable } from '../sheet-layout.util';
@@ -10,7 +11,7 @@ import { SheetTable } from '../models/sheet-table.model';
 /** One sheet table as a CSS grid, laid out with the template layout util so it matches its template. */
 @Component({
   selector: 'app-sheet-grid',
-  imports: [SheetGridColumnBlock, SheetGridSection],
+  imports: [SheetAnchor, SheetGridColumnBlock, SheetGridSection],
   templateUrl: './sheet-grid.html',
   styleUrl: './sheet-grid.scss',
 })

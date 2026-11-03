@@ -24,9 +24,6 @@
   }
 
   @if (hasMarks()) {
-    <app-sheet-cell-marks
-      [cellChange]="cellChange()"
-      [warning]="warning()"
-    />
+    <app-sheet-cell-marks [cellChange]="cellChange()" [warning]="warning()" />
   }
 </div>

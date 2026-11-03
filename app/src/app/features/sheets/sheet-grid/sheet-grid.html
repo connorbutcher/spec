@@ -1,6 +1,10 @@
 <div class="grid" role="grid" [attr.aria-label]="label()" [style]="layout().style">
   @for (section of layout().sections; track section.section.id) {
-    <app-sheet-grid-section [layout]="section" />
+    <app-sheet-grid-section
+      appSheetAnchor="section"
+      [anchorId]="section.section.id"
+      [layout]="section"
+    />
   }
   @for (block of layout().columnBlocks; track block.block.id) {
     <app-sheet-grid-column-block [layout]="block" [table]="table()" />

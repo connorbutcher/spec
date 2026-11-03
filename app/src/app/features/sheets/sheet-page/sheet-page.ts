@@ -11,6 +11,7 @@ import { EmptyState } from '../../../shared/components/empty-state/empty-state';
 import { PhasesStore } from '../../phases/phases.store';
 import { RowCheckoutStore } from '../row-checkout.store';
 import { RowTakeoverStore } from '../row-takeover.store';
+import { SheetAnchorService } from '../sheet-anchor.service';
 import { SheetContextBar } from '../sheet-context-bar/sheet-context-bar';
 import { SheetHub } from '../sheet-hub';
 import { SheetLiveStore } from '../sheet-live.store';
@@ -51,6 +52,7 @@ import { SheetStore } from '../sheet.store';
     MessageService,
     RowCheckoutStore,
     RowTakeoverStore,
+    SheetAnchorService,
     SheetHub,
     SheetLiveStore,
     SheetSearchStore,

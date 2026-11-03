@@ -27,6 +27,9 @@ sheets/
 
   sheet-search.store.ts     The search: the query, every match in screen order, the current one. Provided by SheetPage.
   sheet-search.util.ts      What each table heading and cell shows, as the search sees it.
+  sheet-anchor.service.ts   Links: the address's fragment ⇄ the selection, and scrolling to what it names. Provided by SheetPage.
+  sheet-anchor.directive.ts `appSheetAnchor`: makes an element a link target, and marks it as a search match.
+  sheet-anchor.util.ts      Reading and writing fragments, and public id ⇄ sheet id.
 
   sheet-live.store.ts       Who has the sheet open, and hearing that it changed. Provided by SheetPage.
   sheet-hub.ts              The SignalR connection behind it; the only file that knows SignalR. Reconnects by itself.
@@ -173,10 +176,22 @@ for text inside what each thing shows: a table's title and template name, a head
 caption, and a value cell's value as `displayValue` writes it (a number to its decimal places with its
 unit, a dropdown's option text, a date). Empty cells, checkboxes and the status column have nothing to
 find. `searchTargets` walks each table's layout in the order `SheetGridSection` draws it, so "next" goes
-down the screen. Each grid cell and table heading carries `data-search-key` and reads `isMatch` and
-`isActive` for its `search-match` and `search-active` classes (colours `--app-search-*`); `SheetSearch`
-scrolls the current match into view. The current match stays put while it still matches, so a refresh
-or typing more of a word doesn't move it.
+down the screen. Matches go by anchor key (below): the `appSheetAnchor` directive on each cell and
+table heading gives it the `search-match` and `search-active` classes (colours `--app-search-*`), and
+`SheetSearch` puts the current match in the address, which selects and scrolls to it. The current match
+stays put while it still matches, so a refresh or typing more of a word doesn't move it.
+
+## Links
+
+The address's fragment can name any table, section, row or cell: `#table-<publicId>`,
+`#section-…`, `#row-…`, `#cell-…`. Public ids stay the same from version to version, so a link still
+works after a publish and in a past view. `SheetAnchorService` reads the fragment; once the sheet has
+loaded it selects what it names (a cell selects its row) and scrolls to it when its element is on
+screen. Elements are found through the `appSheetAnchor` directive (`appSheetAnchor="row"
+[anchorId]="row.id"`), which registers them with the service by key; a row's anchor is its status cell,
+since the row element itself has no box. The other way round, whatever the user selects is written into
+the fragment (replacing the history entry, and without scrolling), so the address bar always links to
+the selection. A link to a cell is kept while its row stays selected.
 
 ## Keyboard and screen readers
 

@@ -4,21 +4,13 @@ import { CellLayout } from '../templates/models/cell-layout.model';
 import { CellType } from '../templates/models/cell-type.model';
 import { SectionLayout } from '../templates/models/section-layout.model';
 import { displayValue } from './cell-value.util';
+import { SheetCell } from './models/sheet-cell.model';
 import { SheetSearchTarget } from './models/sheet-search-target.model';
 import { SheetIndex } from './models/sheet-index.model';
 import { Sheet } from './models/sheet.model';
+import { anchorKey } from './sheet-anchor.util';
 import { tableLabel } from './sheet-labels.util';
 import { layoutSheetTable } from './sheet-layout.util';
-
-/** The `data-search-key` of a table's heading line. */
-export function tableSearchKey(tableId: number): string {
-  return `table:${tableId}`;
-}
-
-/** The `data-search-key` of a cell on the grid. */
-export function cellSearchKey(cellId: number): string {
-  return `cell:${cellId}`;
-}
 
 /**
  * Everything on the sheet a search can find, in the order it is on screen: each table's heading (its
@@ -34,7 +26,7 @@ export function searchTargets(
   const targets: SheetSearchTarget[] = [];
   for (const table of sheet?.tables ?? []) {
     targets.push({
-      key: tableSearchKey(table.id),
+      key: anchorKey('table', table.publicId),
       text: `${tableLabel(table)}\n${table.templateName}`.toLowerCase(),
     });
     for (const section of layoutSheetTable(table).sections) {
@@ -66,9 +58,10 @@ function addCells(
   targets: SheetSearchTarget[],
 ): void {
   for (const layout of section.cells) {
-    const text = cellText(layout, index, cellTypes);
-    if (text !== '') {
-      targets.push({ key: cellSearchKey(layout.cell.id), text: text.toLowerCase() });
+    const cell = index.cells.get(layout.cell.id);
+    const text = cell === undefined ? '' : cellText(layout, cell, cellTypes);
+    if (cell !== undefined && text !== '') {
+      targets.push({ key: anchorKey('cell', cell.publicId), text: text.toLowerCase() });
     }
   }
   for (const child of section.children) {
@@ -79,7 +72,7 @@ function addCells(
 /** What a grid cell shows: a heading's caption, or a value cell's value as text. */
 function cellText(
   layout: CellLayout,
-  index: SheetIndex,
+  cell: SheetCell,
   cellTypes: ReadonlyMap<number, CellType>,
 ): string {
   const cellType = cellTypes.get(layout.cell.cellTypeId);
@@ -89,12 +82,9 @@ function cellText(
   if (isDisplayOnly(cellType.kind)) {
     return layout.cell.caption ?? '';
   }
-  const cell = index.cells.get(layout.cell.id);
-  return cell === undefined
-    ? ''
-    : displayValue(
-        cell,
-        cellType,
-        effectiveConfiguration(cellType.configuration, layout.cell.configurationOverride),
-      );
+  return displayValue(
+    cell,
+    cellType,
+    effectiveConfiguration(cellType.configuration, layout.cell.configurationOverride),
+  );
 }

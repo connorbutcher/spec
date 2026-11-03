@@ -58,6 +58,11 @@
   box-shadow: inset 0 0 0 1px var(--app-search-active-line);
 }
 
+/* The cell a link points at (`#cell-...` in the address), until the address moves on. */
+app-sheet-grid-cell.app-grid-cell.anchor-target:not(.search-active) {
+  box-shadow: inset 0 0 0 1px var(--app-navy);
+}
+
 /* A state's colour says whose it is. Put `app-status-tone` and `data-tone` on the state's text and icon. */
 .app-status-tone[data-tone='mine'] {
   color: var(--app-status-mine);
