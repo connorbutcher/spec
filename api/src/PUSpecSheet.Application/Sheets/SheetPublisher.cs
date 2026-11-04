@@ -1,5 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Application.Common;
+using PUSpecSheet.Application.Sheets.Drafts;
+using PUSpecSheet.Application.Sheets.Revisions;
+using PUSpecSheet.Application.Sheets.Values;
 using PUSpecSheet.Application.Users;
 using PUSpecSheet.Contracts.Sheets;
 using PUSpecSheet.Data;

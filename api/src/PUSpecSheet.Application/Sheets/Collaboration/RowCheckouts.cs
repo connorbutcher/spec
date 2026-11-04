@@ -1,4 +1,7 @@
 using Microsoft.EntityFrameworkCore;
+using PUSpecSheet.Application.Sheets.Drafts;
+using PUSpecSheet.Application.Sheets.Revisions;
+using PUSpecSheet.Application.Sheets.Values;
 using PUSpecSheet.Data;
 using PUSpecSheet.Domain.Sheets;
 

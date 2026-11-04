@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using PUSpecSheet.Api.ApiDocumentation;
-using PUSpecSheet.Application.Sheets;
+using PUSpecSheet.Application.Sheets.Reading;
 using PUSpecSheet.Contracts.Sheets;
 
 namespace PUSpecSheet.Api.Controllers;
