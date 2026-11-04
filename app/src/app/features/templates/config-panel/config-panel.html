@@ -27,16 +27,12 @@
   </header>
 
   @if (error(); as error) {
-    <p-message
+    <app-error-message
       class="error"
-      severity="error"
-      size="small"
-      icon="pi pi-exclamation-circle"
+      [message]="error"
       [closable]="true"
-      (onClose)="dismissError()"
-    >
-      {{ error }}
-    </p-message>
+      (dismissed)="dismissError()"
+    />
   }
 
   <div class="panel-body">

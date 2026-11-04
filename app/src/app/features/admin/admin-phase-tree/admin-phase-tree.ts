@@ -1,10 +1,10 @@
 import { Component, computed, inject, input, output, signal } from '@angular/core';
 import { TreeDragDropService, TreeNode } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
-import { MessageModule } from 'primeng/message';
 import { TooltipModule } from 'primeng/tooltip';
 import { TreeModule, TreeNodeDropEvent, TreeNodeSelectEvent } from 'primeng/tree';
 import { Phase } from '../../../core/models/phase.model';
+import { ErrorMessage } from '../../../shared/components/error-message/error-message';
 import { PhaseTreeUtil } from '../../phases/phase-tree.util';
 import { PhasesStore } from '../../phases/phases.store';
 import { ApiErrorMessage } from '../../templates/api-error-message';
@@ -17,7 +17,7 @@ import { AdminUtil } from '../admin.util';
  */
 @Component({
   selector: 'app-admin-phase-tree',
-  imports: [ButtonModule, MessageModule, TooltipModule, TreeModule],
+  imports: [ButtonModule, ErrorMessage, TooltipModule, TreeModule],
   providers: [TreeDragDropService],
   templateUrl: './admin-phase-tree.html',
   styleUrl: './admin-phase-tree.scss',

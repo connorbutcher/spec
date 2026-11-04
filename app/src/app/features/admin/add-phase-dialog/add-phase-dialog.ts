@@ -3,11 +3,11 @@ import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
-import { MessageModule } from 'primeng/message';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { SelectModule } from 'primeng/select';
 import { Phase } from '../../../core/models/phase.model';
 import { SheetType } from '../../../core/models/sheet-type.model';
+import { ErrorMessage } from '../../../shared/components/error-message/error-message';
 import { PhasesStore } from '../../phases/phases.store';
 import { ApiErrorMessage } from '../../templates/api-error-message';
 import { AdminApi } from '../admin-api';
@@ -23,9 +23,9 @@ import { PhaseOption } from '../models/phase-option.model';
   imports: [
     ButtonModule,
     DialogModule,
+    ErrorMessage,
     FormsModule,
     InputTextModule,
-    MessageModule,
     MultiSelectModule,
     SelectModule,
   ],

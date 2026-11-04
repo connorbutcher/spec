@@ -2,9 +2,9 @@ import { Component, computed, inject, input, linkedSignal, signal } from '@angul
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { ListboxModule } from 'primeng/listbox';
-import { MessageModule } from 'primeng/message';
 import { Phase } from '../../../core/models/phase.model';
 import { SheetType } from '../../../core/models/sheet-type.model';
+import { ErrorMessage } from '../../../shared/components/error-message/error-message';
 import { PhasesStore } from '../../phases/phases.store';
 import { ApiErrorMessage } from '../../templates/api-error-message';
 import { AdminApi } from '../admin-api';
@@ -16,7 +16,7 @@ import { AdminUtil } from '../admin.util';
  */
 @Component({
   selector: 'app-phase-availability',
-  imports: [ButtonModule, FormsModule, ListboxModule, MessageModule],
+  imports: [ButtonModule, ErrorMessage, FormsModule, ListboxModule],
   templateUrl: './phase-availability.html',
   styleUrl: './phase-availability.scss',
 })

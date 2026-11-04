@@ -3,15 +3,15 @@ import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
-import { MessageModule } from 'primeng/message';
 import { SheetType } from '../../../core/models/sheet-type.model';
+import { ErrorMessage } from '../../../shared/components/error-message/error-message';
 import { ApiErrorMessage } from '../../templates/api-error-message';
 import { AdminApi } from '../admin-api';
 
 /** The dialog that adds a sheet type, which is just its name. */
 @Component({
   selector: 'app-add-sheet-type-dialog',
-  imports: [ButtonModule, DialogModule, FormsModule, InputTextModule, MessageModule],
+  imports: [ButtonModule, DialogModule, ErrorMessage, FormsModule, InputTextModule],
   templateUrl: './add-sheet-type-dialog.html',
   styleUrl: './add-sheet-type-dialog.scss',
 })

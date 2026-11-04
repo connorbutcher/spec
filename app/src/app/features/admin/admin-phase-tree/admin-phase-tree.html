@@ -17,16 +17,12 @@
 </header>
 
 @if (error(); as error) {
-  <p-message
+  <app-error-message
     class="error"
-    severity="error"
-    size="small"
-    icon="pi pi-exclamation-circle"
+    [message]="error"
     [closable]="true"
-    (onClose)="this.error.set(null)"
-  >
-    {{ error }}
-  </p-message>
+    (dismissed)="this.error.set(null)"
+  />
 }
 
 @if (hasError()) {

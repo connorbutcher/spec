@@ -26,9 +26,7 @@
     </div>
 
     @if (error(); as error) {
-      <p-message severity="error" size="small" icon="pi pi-exclamation-circle">{{
-        error
-      }}</p-message>
+      <app-error-message [message]="error" />
     }
   </div>
 
