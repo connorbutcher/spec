@@ -1,0 +1,8 @@
+<i
+  class="pi"
+  [class.pi-arrows-h]="template().orientation === 'Horizontal'"
+  [class.pi-arrows-v]="template().orientation === 'Vertical'"
+  aria-hidden="true"
+></i>
+<span class="name">{{ template().name }}</span>
+<span class="version">v{{ template().latestVersionNumber }}</span>

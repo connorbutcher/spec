@@ -7,6 +7,8 @@ import { EmptyState } from '../../../shared/components/empty-state/empty-state';
 import { SheetTypeIcon } from '../../../shared/sheet-type-icon';
 import { TemplateListGroup } from '../models/template-list-group.model';
 import { PanelNavigator } from '../panel-navigator';
+import { TemplateListGroupHead } from '../template-list-group-head/template-list-group-head';
+import { TemplateListItem } from '../template-list-item/template-list-item';
 import { CellTypesStore } from '../cell-types.store';
 import { TemplatesStore } from '../templates.store';
 
@@ -16,7 +18,7 @@ import { TemplatesStore } from '../templates.store';
  */
 @Component({
   selector: 'app-template-list-panel',
-  imports: [ButtonModule, EmptyState, FormsModule, ListboxModule],
+  imports: [ButtonModule, EmptyState, FormsModule, ListboxModule, TemplateListGroupHead, TemplateListItem],
   templateUrl: './template-list-panel.html',
   styleUrl: './template-list-panel.scss',
 })
@@ -68,9 +70,7 @@ export class TemplateListPanel {
     }
   }
 
-  public add(group: TemplateListGroup, event: Event): void {
-    // The button sits in the list's group header; keep the click from reaching the list.
-    event.stopPropagation();
+  public add(group: TemplateListGroup): void {
     void this.store.createTemplate(group.sheetTypeId);
   }
 

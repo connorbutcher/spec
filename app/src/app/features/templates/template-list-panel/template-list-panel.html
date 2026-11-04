@@ -30,31 +30,14 @@
         [fluid]="true"
       >
         <ng-template #group let-group>
-          <span class="group-head">
-            <i class="pi" [class]="group.icon" aria-hidden="true"></i>
-            <span class="name">{{ group.label }}</span>
-            <p-button
-              icon="pi pi-plus"
-              size="small"
-              severity="secondary"
-              [text]="true"
-              [disabled]="isSaving()"
-              [ariaLabel]="'Add a table to ' + group.label"
-              (onClick)="add(group, $event)"
-            />
-          </span>
+          <app-template-list-group-head
+            [group]="group"
+            [disabled]="isSaving()"
+            (added)="add(group)"
+          />
         </ng-template>
         <ng-template #item let-template>
-          <span class="template">
-            <i
-              class="pi"
-              [class.pi-arrows-h]="template.orientation === 'Horizontal'"
-              [class.pi-arrows-v]="template.orientation === 'Vertical'"
-              aria-hidden="true"
-            ></i>
-            <span class="name">{{ template.name }}</span>
-            <span class="version">v{{ template.latestVersionNumber }}</span>
-          </span>
+          <app-template-list-item [template]="template" />
         </ng-template>
       </p-listbox>
     }

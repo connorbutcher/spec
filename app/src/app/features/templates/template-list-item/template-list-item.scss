@@ -1,0 +1,25 @@
+:host {
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-3);
+  width: 100%;
+  min-width: 0;
+}
+
+.pi {
+  font-size: var(--app-font-size-xs);
+  color: var(--app-text-faint);
+}
+
+.name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.version {
+  color: var(--app-text-faint);
+  font-size: var(--app-font-size-sm);
+}
