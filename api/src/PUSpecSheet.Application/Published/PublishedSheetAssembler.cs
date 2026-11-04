@@ -36,6 +36,27 @@ public static class PublishedSheetAssembler
         return new PublishedSheetDto(version.SheetPublicId, version.VersionNumber, version.PublishedAtUtc, tables, null, missing);
     }
 
+    /// <summary>Each section's rows that have cells to show, in order.</summary>
+    private static ILookup<int, PublishedRowDto> RowsBySection(
+        PublishedSheetSelection selection,
+        PublishedStructure structure,
+        List<PublishedCellRecord> shown,
+        IReadOnlyDictionary<int, object> values,
+        Dictionary<int, int> blockOrder)
+    {
+        return shown
+            .GroupBy(cell => cell.RowId)
+            .Select(row => new
+            {
+                First = row.First(),
+                Dto = new PublishedRowDto(row.First().RowPublicId, Cells(row, selection, structure, blockOrder, values)),
+            })
+            .Where(row => row.Dto.Cells.Count > 0)
+            .OrderBy(row => row.First.RowOrder)
+            .ThenBy(row => row.First.RowId)
+            .ToLookup(row => row.First.SectionId, row => row.Dto);
+    }
+
     private static List<PublishedTableDto> Tables(
         PublishedSheetSelection selection,
         PublishedStructure structure,
@@ -47,17 +68,7 @@ public static class PublishedSheetAssembler
             .ThenBy(block => block.Id)
             .Select((block, index) => (block.Id, index))
             .ToDictionary(entry => entry.Id, entry => entry.index);
-        var rowsBySection = shown
-            .GroupBy(cell => cell.RowId)
-            .Select(row => new
-            {
-                First = row.First(),
-                Dto = new PublishedRowDto(row.First().RowPublicId, Cells(row, selection, structure, blockOrder, values)),
-            })
-            .Where(row => row.Dto.Cells.Count > 0)
-            .OrderBy(row => row.First.RowOrder)
-            .ThenBy(row => row.First.RowId)
-            .ToLookup(row => row.First.SectionId, row => row.Dto);
+        var rowsBySection = RowsBySection(selection, structure, shown, values, blockOrder);
         var sectionsByParent = structure.Sections
             .OrderBy(section => section.DisplayOrder)
             .ThenBy(section => section.Id)

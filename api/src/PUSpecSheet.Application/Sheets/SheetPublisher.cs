@@ -53,16 +53,9 @@ public sealed class SheetPublisher(
         var version = await AddNextVersionAsync(sheet, note, now, cancellationToken);
 
         // The replaced revisions close their range at the moment the new ones open, before the drafts are
-        // published, so the "one current revision per item" index never sees two at once. Each kind is one
-        // statement in the database; if the version save below fails, the transaction undoes them.
-        var tableIds = tableDrafts.Select(draft => draft.SheetTableId).ToList();
-        var sectionIds = sectionDrafts.Select(draft => draft.SheetSectionId).ToList();
-        var rowIds = rowDrafts.Select(draft => draft.SheetRowId).ToList();
-        var columnBlockIds = columnBlockDrafts.Select(draft => draft.SheetColumnBlockId).ToList();
-        await SupersedeAsync(db.SheetTableRevisions.Where(revision => tableIds.Contains(revision.SheetTableId)), now, cancellationToken);
-        await SupersedeAsync(db.SheetSectionRevisions.Where(revision => sectionIds.Contains(revision.SheetSectionId)), now, cancellationToken);
-        await SupersedeAsync(db.SheetRowRevisions.Where(revision => rowIds.Contains(revision.SheetRowId)), now, cancellationToken);
-        await SupersedeAsync(db.SheetColumnBlockRevisions.Where(revision => columnBlockIds.Contains(revision.SheetColumnBlockId)), now, cancellationToken);
+        // published, so the "one current revision per item" index never sees two at once. If the version
+        // save below fails, the transaction undoes them.
+        await SupersedeReplacedAsync(tableDrafts, sectionDrafts, rowDrafts, columnBlockDrafts, now, cancellationToken);
         await db.SaveSheetChangesAsync(cancellationToken);
 
         foreach (var draft in drafts)
@@ -111,6 +104,25 @@ public sealed class SheetPublisher(
             cancellationToken);
     }
 
+    /// <summary>Closes the published revisions the drafts replace, one statement per kind of item.</summary>
+    private async Task SupersedeReplacedAsync(
+        List<SheetTableRevision> tableDrafts,
+        List<SheetSectionRevision> sectionDrafts,
+        List<SheetRowRevision> rowDrafts,
+        List<SheetColumnBlockRevision> columnBlockDrafts,
+        DateTime now,
+        CancellationToken cancellationToken)
+    {
+        var tableIds = tableDrafts.Select(draft => draft.SheetTableId).ToList();
+        var sectionIds = sectionDrafts.Select(draft => draft.SheetSectionId).ToList();
+        var rowIds = rowDrafts.Select(draft => draft.SheetRowId).ToList();
+        var columnBlockIds = columnBlockDrafts.Select(draft => draft.SheetColumnBlockId).ToList();
+        await SupersedeAsync(db.SheetTableRevisions.Where(revision => tableIds.Contains(revision.SheetTableId)), now, cancellationToken);
+        await SupersedeAsync(db.SheetSectionRevisions.Where(revision => sectionIds.Contains(revision.SheetSectionId)), now, cancellationToken);
+        await SupersedeAsync(db.SheetRowRevisions.Where(revision => rowIds.Contains(revision.SheetRowId)), now, cancellationToken);
+        await SupersedeAsync(db.SheetColumnBlockRevisions.Where(revision => columnBlockIds.Contains(revision.SheetColumnBlockId)), now, cancellationToken);
+    }
+
     private async Task EnsureRequiredCellsFilledAsync(IReadOnlyList<SheetRowRevision> rowDrafts, CancellationToken cancellationToken)
     {
         var live = rowDrafts.Where(draft => !draft.IsDeleted).ToList();
@@ -119,6 +131,16 @@ public sealed class SheetPublisher(
             return;
         }
 
+        var emptyRowIds = await RowsWithEmptyRequiredCellsAsync(live, cancellationToken);
+        if (emptyRowIds.Count > 0)
+        {
+            await ThrowRequiredCellsEmptyAsync(live, emptyRowIds, cancellationToken);
+        }
+    }
+
+    /// <summary>The row of each required cell left empty in the drafts, once per cell.</summary>
+    private async Task<List<int>> RowsWithEmptyRequiredCellsAsync(List<SheetRowRevision> live, CancellationToken cancellationToken)
+    {
         var rowIds = live.Select(draft => draft.SheetRowId).ToList();
         // Only which cell, its row and its kind are needed, not the cells' templates and types.
         var required = await db.SheetCells
@@ -128,20 +150,19 @@ public sealed class SheetPublisher(
         var cells = required.Where(cell => cell.Kind.StoresValue() && cell.Kind != CellKind.Checkbox).ToList();
         if (cells.Count == 0)
         {
-            return;
+            return [];
         }
 
         var values = await valueStore.LoadAsync(live.Select(draft => draft.Id).ToList(), cancellationToken);
         var revisionByRow = live.ToDictionary(draft => draft.SheetRowId, draft => draft.Id);
-        var emptyRowIds = cells
+        return cells
             .Where(cell => !(values.GetValueOrDefault(revisionByRow[cell.SheetRowId])?.GetValueOrDefault(cell.Id)?.HasValue ?? false))
             .Select(cell => cell.SheetRowId)
             .ToList();
-        if (emptyRowIds.Count == 0)
-        {
-            return;
-        }
+    }
 
+    private async Task ThrowRequiredCellsEmptyAsync(List<SheetRowRevision> live, List<int> emptyRowIds, CancellationToken cancellationToken)
+    {
         var empty = emptyRowIds.Count;
         var stillEmpty = $"{empty} required {(empty == 1 ? "cell is" : "cells are")} still empty";
         var me = currentUser.UserId;

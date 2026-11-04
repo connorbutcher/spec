@@ -6,6 +6,7 @@ using PUSpecSheet.Application.Users;
 using PUSpecSheet.Contracts.Common;
 using PUSpecSheet.Contracts.Sheets;
 using PUSpecSheet.Data;
+using PUSpecSheet.Domain.Sheets;
 using PUSpecSheet.Domain.Templates;
 
 namespace PUSpecSheet.Application.Sheets;
@@ -65,30 +66,11 @@ public sealed class SheetRowService(
 
     public async Task<SheetDto> SaveValuesAsync(int rowId, SaveRowValuesRequest request, CancellationToken cancellationToken)
     {
-        var row = await db.SheetRows
-            .AsNoTracking()
-            .Include(candidate => candidate.SheetSection)
-            .ThenInclude(section => section.SheetTable)
-            .Include(candidate => candidate.Cells)
-            .ThenInclude(cell => cell.TemplateCell)
-            .ThenInclude(templateCell => templateCell.CellType)
-            .ThenInclude(cellType => cellType.Options)
-            .AsSplitQuery()
-            .SingleOrDefaultAsync(candidate => candidate.Id == rowId, cancellationToken)
-            ?? throw new NotFoundException($"Row {rowId} was not found.");
+        var row = await LoadRowWithCellTypesAsync(rowId, cancellationToken);
 
         // Check every value before locking the row or changing anything.
         var cellsById = row.Cells.ToDictionary(cell => cell.Id);
-        foreach (var value in request.Values)
-        {
-            if (!cellsById.TryGetValue(value.SheetCellId, out var cell))
-            {
-                throw new InvalidRequestException($"Cell {value.SheetCellId} isn't in this row.");
-            }
-
-            CellValueValidator.Validate(cell.TemplateCell, value);
-        }
-
+        ValidateValues(request, cellsById);
         await linkedValues.EnsureChoicesAsync(row.SheetSection.SheetTable.SheetId, cellsById, request.Values, cancellationToken);
 
         await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
@@ -219,5 +201,33 @@ public sealed class SheetRowService(
             .Select(entry => entry.Value.Shown!.DisplayOrder)
             .Order()
             .ToList();
+    }
+
+    private static void ValidateValues(SaveRowValuesRequest request, Dictionary<int, SheetCell> cellsById)
+    {
+        foreach (var value in request.Values)
+        {
+            if (!cellsById.TryGetValue(value.SheetCellId, out var cell))
+            {
+                throw new InvalidRequestException($"Cell {value.SheetCellId} isn't in this row.");
+            }
+
+            CellValueValidator.Validate(cell.TemplateCell, value);
+        }
+    }
+
+    private async Task<SheetRow> LoadRowWithCellTypesAsync(int rowId, CancellationToken cancellationToken)
+    {
+        return await db.SheetRows
+            .AsNoTracking()
+            .Include(candidate => candidate.SheetSection)
+            .ThenInclude(section => section.SheetTable)
+            .Include(candidate => candidate.Cells)
+            .ThenInclude(cell => cell.TemplateCell)
+            .ThenInclude(templateCell => templateCell.CellType)
+            .ThenInclude(cellType => cellType.Options)
+            .AsSplitQuery()
+            .SingleOrDefaultAsync(candidate => candidate.Id == rowId, cancellationToken)
+            ?? throw new NotFoundException($"Row {rowId} was not found.");
     }
 }

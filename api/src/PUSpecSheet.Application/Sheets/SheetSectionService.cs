@@ -33,32 +33,8 @@ public sealed class SheetSectionService(
             throw new InvalidRequestException("The header comes with the table and can't be added again.");
         }
 
-        if (request.ParentSheetSectionId is { } parentId)
-        {
-            var parent = await db.SheetSections
-                .AsNoTracking()
-                .SingleOrDefaultAsync(candidate => candidate.Id == parentId && candidate.SheetTableId == tableId, cancellationToken)
-                ?? throw new InvalidRequestException("That parent section isn't on this table.");
-            if (parent.TemplateSectionId != template.ParentSectionId)
-            {
-                throw new InvalidRequestException($"'{template.Name}' can't be added inside that section.");
-            }
-        }
-        else if (template.ParentSectionId is not null)
-        {
-            throw new InvalidRequestException($"'{template.Name}' goes inside another section.");
-        }
-
-        var siblings = (await liveSections.VisibleAsync(tableId, cancellationToken))
-            .Where(section => section.ParentSheetSectionId == request.ParentSheetSectionId)
-            .ToList();
-        var copies = siblings.Count(section => section.TemplateSectionId == template.Id);
-        if (template.MaxInstances is { } max && copies >= max)
-        {
-            throw new ConflictException($"'{template.Name}' can have at most {max}.");
-        }
-
-        var order = OrderGaps.Next(siblings.Select(section => section.DisplayOrder));
+        await EnsureParentFitsAsync(tableId, template, request.ParentSheetSectionId, cancellationToken);
+        var order = await NextOrderWithinLimitAsync(tableId, template, request.ParentSheetSectionId, cancellationToken);
         var section = instantiator.NewSection(table, template, tree, order);
         section.ParentSheetSectionId = request.ParentSheetSectionId;
 
@@ -187,5 +163,40 @@ public sealed class SheetSectionService(
                 remaining.Remove(leaf);
             }
         }
+    }
+
+    /// <summary>A section goes under a copy of its template's parent, or at the top level when it has none.</summary>
+    private async Task EnsureParentFitsAsync(int tableId, TemplateSection template, int? parentSheetSectionId, CancellationToken cancellationToken)
+    {
+        if (parentSheetSectionId is { } parentId)
+        {
+            var parent = await db.SheetSections
+                .AsNoTracking()
+                .SingleOrDefaultAsync(candidate => candidate.Id == parentId && candidate.SheetTableId == tableId, cancellationToken)
+                ?? throw new InvalidRequestException("That parent section isn't on this table.");
+            if (parent.TemplateSectionId != template.ParentSectionId)
+            {
+                throw new InvalidRequestException($"'{template.Name}' can't be added inside that section.");
+            }
+        }
+        else if (template.ParentSectionId is not null)
+        {
+            throw new InvalidRequestException($"'{template.Name}' goes inside another section.");
+        }
+    }
+
+    /// <summary>The display order for a new copy after its siblings, refused once the template's maximum is reached.</summary>
+    private async Task<int> NextOrderWithinLimitAsync(int tableId, TemplateSection template, int? parentSheetSectionId, CancellationToken cancellationToken)
+    {
+        var siblings = (await liveSections.VisibleAsync(tableId, cancellationToken))
+            .Where(section => section.ParentSheetSectionId == parentSheetSectionId)
+            .ToList();
+        var copies = siblings.Count(section => section.TemplateSectionId == template.Id);
+        if (template.MaxInstances is { } max && copies >= max)
+        {
+            throw new ConflictException($"'{template.Name}' can have at most {max}.");
+        }
+
+        return OrderGaps.Next(siblings.Select(section => section.DisplayOrder));
     }
 }

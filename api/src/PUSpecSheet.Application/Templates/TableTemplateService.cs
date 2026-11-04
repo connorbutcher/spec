@@ -47,42 +47,14 @@ public sealed class TableTemplateService(
 
     public async Task<TableTemplateDto> CreateAsync(CreateTableTemplateRequest request, CancellationToken cancellationToken)
     {
-        var sheetTypeExists = await db.SheetTypes.AnyAsync(
-            sheetType => sheetType.Id == request.SheetTypeId,
-            cancellationToken);
-
-        if (!sheetTypeExists)
-        {
-            throw new InvalidRequestException($"Sheet type {request.SheetTypeId} doesn't exist.");
-        }
-
+        await EnsureSheetTypeExistsAsync(request.SheetTypeId, cancellationToken);
         var name = request.Name.Trim();
         await EnsureNameIsFreeAsync(request.SheetTypeId, name, null, cancellationToken);
 
         var lastOrder = await db.TableTemplates
             .Where(template => template.SheetTypeId == request.SheetTypeId)
             .MaxAsync(template => (int?)template.DisplayOrder, cancellationToken);
-
-        // Every table starts with its header, the one section it always has.
-        var header = new TemplateSection { Name = "Header", DisplayOrder = 1 };
-        SectionInstanceRules.ApplyHeader(header);
-
-        var template = new TableTemplate
-        {
-            SheetTypeId = request.SheetTypeId,
-            Name = name,
-            DisplayOrder = (lastOrder ?? 0) + 1,
-            Versions =
-            [
-                new TableTemplateVersion
-                {
-                    VersionNumber = 1,
-                    Orientation = request.Orientation,
-                    Sections = [header],
-                },
-            ],
-        };
-
+        var template = NewTemplate(request, name, (lastOrder ?? 0) + 1);
         db.TableTemplates.Add(template);
         await db.SaveChangesAsync(cancellationToken);
 
@@ -183,6 +155,37 @@ public sealed class TableTemplateService(
         if (taken)
         {
             throw new ConflictException($"This sheet type already has a table called \"{name}\".");
+        }
+    }
+
+    /// <summary>A template whose first version holds only its header, the one section every table always has.</summary>
+    private static TableTemplate NewTemplate(CreateTableTemplateRequest request, string name, int displayOrder)
+    {
+        var header = new TemplateSection { Name = "Header", DisplayOrder = 1 };
+        SectionInstanceRules.ApplyHeader(header);
+        return new TableTemplate
+        {
+            SheetTypeId = request.SheetTypeId,
+            Name = name,
+            DisplayOrder = displayOrder,
+            Versions =
+            [
+                new TableTemplateVersion
+                {
+                    VersionNumber = 1,
+                    Orientation = request.Orientation,
+                    Sections = [header],
+                },
+            ],
+        };
+    }
+
+    private async Task EnsureSheetTypeExistsAsync(int sheetTypeId, CancellationToken cancellationToken)
+    {
+        var sheetTypeExists = await db.SheetTypes.AnyAsync(sheetType => sheetType.Id == sheetTypeId, cancellationToken);
+        if (!sheetTypeExists)
+        {
+            throw new InvalidRequestException($"Sheet type {sheetTypeId} doesn't exist.");
         }
     }
 }

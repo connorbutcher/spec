@@ -62,29 +62,9 @@ internal sealed class SheetViewBuilder
 
     public SheetDto Build()
     {
-        var tables = snapshot.Tables
-            .Where(table => RevisionResolver.IsVisible(snapshot.TableRevisions.GetValueOrDefault(table.Id)))
-            .OrderBy(table => snapshot.TableRevisions[table.Id].Shown!.DisplayOrder)
-            .ThenBy(table => table.Id)
-            .Select(BuildTable)
-            .ToList();
-
-        var versions = snapshot.Versions
-            .Select(version => new SheetVersionSummaryDto(
-                version.VersionNumber,
-                Utc(version.PublishedAtUtc),
-                version.PublishedByUserId,
-                version.PublishedBy.DisplayName,
-                version.Note))
-            .ToList();
-
-        var templates = snapshot.AvailableTemplates
-            .Select(template => new AvailableTemplateDto(
-                template.Id,
-                template.Name,
-                snapshot.LatestTemplateVersions.GetValueOrDefault(template.Id, 1)))
-            .ToList();
-
+        var tables = BuildTables();
+        var versions = BuildVersions();
+        var templates = BuildAvailableTemplates();
         var isLive = snapshot.AsOfUtc is null;
         var drafts = Drafts().ToList();
         return new SheetDto(
@@ -109,6 +89,38 @@ internal sealed class SheetViewBuilder
             // Gathered with the cells, so it holds the template of every cell shown and nothing more.
             TemplateCells = [.. templateCells.Values.OrderBy(templateCell => templateCell.Id)],
         };
+    }
+
+    private List<SheetTableDto> BuildTables()
+    {
+        return snapshot.Tables
+            .Where(table => RevisionResolver.IsVisible(snapshot.TableRevisions.GetValueOrDefault(table.Id)))
+            .OrderBy(table => snapshot.TableRevisions[table.Id].Shown!.DisplayOrder)
+            .ThenBy(table => table.Id)
+            .Select(BuildTable)
+            .ToList();
+    }
+
+    private List<SheetVersionSummaryDto> BuildVersions()
+    {
+        return snapshot.Versions
+            .Select(version => new SheetVersionSummaryDto(
+                version.VersionNumber,
+                Utc(version.PublishedAtUtc),
+                version.PublishedByUserId,
+                version.PublishedBy.DisplayName,
+                version.Note))
+            .ToList();
+    }
+
+    private List<AvailableTemplateDto> BuildAvailableTemplates()
+    {
+        return snapshot.AvailableTemplates
+            .Select(template => new AvailableTemplateDto(
+                template.Id,
+                template.Name,
+                snapshot.LatestTemplateVersions.GetValueOrDefault(template.Id, 1)))
+            .ToList();
     }
 
     private SheetTableDto BuildTable(SheetTable table)

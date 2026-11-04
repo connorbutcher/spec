@@ -14,42 +14,23 @@ public sealed class TemplateRowService(
 {
     public async Task<TableTemplateDto> CreateAsync(CreateTemplateRowRequest request, CancellationToken cancellationToken)
     {
-        var section = await db.TemplateSections
+        var versionId = await db.TemplateSections
             .AsNoTracking()
             .Where(candidate => candidate.Id == request.TemplateSectionId)
-            .Select(candidate => new
-            {
-                candidate.TableTemplateVersionId,
-            })
-            .SingleOrDefaultAsync(cancellationToken);
-
-        if (section is null)
-        {
-            throw new NotFoundException($"Section {request.TemplateSectionId} was not found.");
-        }
-
-        await guard.EnsureEditableAsync(section.TableTemplateVersionId, cancellationToken);
+            .Select(candidate => (int?)candidate.TableTemplateVersionId)
+            .SingleOrDefaultAsync(cancellationToken)
+            ?? throw new NotFoundException($"Section {request.TemplateSectionId} was not found.");
+        await guard.EnsureEditableAsync(versionId, cancellationToken);
 
         var rows = await db.TemplateRows
             .Include(row => row.Cells)
             .Where(row => row.TemplateSectionId == request.TemplateSectionId)
             .OrderBy(row => row.DisplayOrder)
             .ToListAsync(cancellationToken);
-
-        var source = rows.LastOrDefault();
-        if (request.CopyFromRowId is int copyFromId)
-        {
-            source = rows.SingleOrDefault(candidate => candidate.Id == copyFromId)
-                ?? throw new InvalidRequestException($"Row {copyFromId} isn't in this section.");
-        }
-
+        var source = CopySource(rows, request.CopyFromRowId);
         var insertIndex = Math.Clamp((request.Position ?? rows.Count + 1) - 1, 0, rows.Count);
         var defaultCellTypeId = await DefaultCellType.GetIdAsync(db, cancellationToken);
-        var columnBlockIds = await db.TemplateColumnBlocks
-            .Where(block => block.TableTemplateVersionId == section.TableTemplateVersionId)
-            .OrderBy(block => block.DisplayOrder)
-            .Select(block => block.Id)
-            .ToListAsync(cancellationToken);
+        var columnBlockIds = await ColumnBlockIdsAsync(versionId, cancellationToken);
 
         var row = new TemplateRow
         {
@@ -63,7 +44,7 @@ public sealed class TemplateRowService(
         db.TemplateRows.Add(row);
         await db.SaveChangesAsync(cancellationToken);
 
-        return await reader.ReadVersionAsync(section.TableTemplateVersionId, cancellationToken);
+        return await reader.ReadVersionAsync(versionId, cancellationToken);
     }
 
     public async Task<TableTemplateDto> MoveAsync(int id, MoveRequest request, CancellationToken cancellationToken)
@@ -113,6 +94,27 @@ public sealed class TemplateRowService(
     {
         return db.TemplateRows
             .Where(candidate => candidate.TemplateSectionId == row.TemplateSectionId)
+            .ToListAsync(cancellationToken);
+    }
+
+    /// <summary>The row a new row copies its cells from: the one asked for, or the section's last.</summary>
+    private static TemplateRow? CopySource(List<TemplateRow> rows, int? copyFromRowId)
+    {
+        if (copyFromRowId is not int copyFromId)
+        {
+            return rows.LastOrDefault();
+        }
+
+        return rows.SingleOrDefault(candidate => candidate.Id == copyFromId)
+            ?? throw new InvalidRequestException($"Row {copyFromId} isn't in this section.");
+    }
+
+    private async Task<List<int>> ColumnBlockIdsAsync(int versionId, CancellationToken cancellationToken)
+    {
+        return await db.TemplateColumnBlocks
+            .Where(block => block.TableTemplateVersionId == versionId)
+            .OrderBy(block => block.DisplayOrder)
+            .Select(block => block.Id)
             .ToListAsync(cancellationToken);
     }
 }

@@ -3,6 +3,7 @@ using PUSpecSheet.Data;
 using PUSpecSheet.Data.Configurations.Values;
 using PUSpecSheet.Domain.Sheets;
 using PUSpecSheet.Domain.Templates;
+using PUSpecSheet.Domain.Values;
 
 namespace PUSpecSheet.Application.Published;
 
@@ -18,24 +19,22 @@ public sealed class PublishedLookupHitReader(PuSpecSheetDbContext db)
     /// <param name="sheetId">The one sheet to search, or null for every sheet.</param>
     public IQueryable<PublishedLookupHit> Query(PublishedLookupCriteria criteria, DateTime momentUtc, int? sheetId)
     {
-        var key = criteria.Key;
-        var value = criteria.Value;
+        var values = Narrow(MatchingValues(criteria, momentUtc), criteria, sheetId);
+        return values.Select(text => new PublishedLookupHit(
+            text.SheetCell.SheetRow.SheetSection.SheetTable.SheetId,
+            text.SheetCell.SheetRow.SheetSection.SheetTable.Sheet.PublicId,
+            text.SheetCell.SheetRow.SheetSection.SheetTable.Sheet.Phase.Code,
+            text.SheetCell.SheetRow.SheetSection.SheetTable.Sheet.SheetTypeId,
+            text.SheetCell.SheetRow.SheetSection.SheetTableId,
+            text.SheetCell.SheetRow.SheetSectionId,
+            text.SheetCell.SheetRowId,
+            text.SheetCellId,
+            text.SheetCell.SheetColumnBlockId,
+            text.SheetCell.SheetRow.SheetSection.TemplateSection.Role == SectionRole.Header));
+    }
 
-        // The index holds the start of each value; the whole value is compared too for the rare long one.
-        var start = value.Length > TextValueConfiguration.LookupValueLength
-            ? value[..TextValueConfiguration.LookupValueLength]
-            : value;
-
-        var values = db.TextValues
-            .AsNoTracking()
-            .Where(text => EF.Property<string>(text, TextValueConfiguration.LookupValue) == start
-                && text.Value == value
-                && text.SheetCell.TemplateCell.LookupKey == key
-                && text.SheetRowRevision.Status == RevisionStatus.Published
-                && text.SheetRowRevision.PublishedAtUtc <= momentUtc
-                && (text.SheetRowRevision.SupersededAtUtc == null || text.SheetRowRevision.SupersededAtUtc > momentUtc)
-                && !text.SheetRowRevision.IsDeleted);
-
+    private static IQueryable<TextValue> Narrow(IQueryable<TextValue> values, PublishedLookupCriteria criteria, int? sheetId)
+    {
         if (sheetId is { } id)
         {
             values = values.Where(text => text.SheetRowRevision.SheetId == id);
@@ -51,16 +50,28 @@ public sealed class PublishedLookupHitReader(PuSpecSheetDbContext db)
             values = values.Where(text => text.SheetCell.SheetRow.SheetSection.SheetTable.Sheet.SheetTypeId == sheetTypeId);
         }
 
-        return values.Select(text => new PublishedLookupHit(
-            text.SheetCell.SheetRow.SheetSection.SheetTable.SheetId,
-            text.SheetCell.SheetRow.SheetSection.SheetTable.Sheet.PublicId,
-            text.SheetCell.SheetRow.SheetSection.SheetTable.Sheet.Phase.Code,
-            text.SheetCell.SheetRow.SheetSection.SheetTable.Sheet.SheetTypeId,
-            text.SheetCell.SheetRow.SheetSection.SheetTableId,
-            text.SheetCell.SheetRow.SheetSectionId,
-            text.SheetCell.SheetRowId,
-            text.SheetCellId,
-            text.SheetCell.SheetColumnBlockId,
-            text.SheetCell.SheetRow.SheetSection.TemplateSection.Role == SectionRole.Header));
+        return values;
+    }
+
+    /// <summary>The published text values under the key that equal the value at the moment.</summary>
+    private IQueryable<TextValue> MatchingValues(PublishedLookupCriteria criteria, DateTime momentUtc)
+    {
+        var key = criteria.Key;
+        var value = criteria.Value;
+
+        // The index holds the start of each value; the whole value is compared too for the rare long one.
+        var start = value.Length > TextValueConfiguration.LookupValueLength
+            ? value[..TextValueConfiguration.LookupValueLength]
+            : value;
+
+        return db.TextValues
+            .AsNoTracking()
+            .Where(text => EF.Property<string>(text, TextValueConfiguration.LookupValue) == start
+                && text.Value == value
+                && text.SheetCell.TemplateCell.LookupKey == key
+                && text.SheetRowRevision.Status == RevisionStatus.Published
+                && text.SheetRowRevision.PublishedAtUtc <= momentUtc
+                && (text.SheetRowRevision.SupersededAtUtc == null || text.SheetRowRevision.SupersededAtUtc > momentUtc)
+                && !text.SheetRowRevision.IsDeleted);
     }
 }
