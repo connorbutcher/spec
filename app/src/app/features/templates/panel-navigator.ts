@@ -1,6 +1,7 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { PanelRef } from './models/panel-ref';
 import { PanelCrumbsUtil } from './panel-crumbs.util';
+import { CellTypesStore } from './cell-types.store';
 import { TemplatesStore } from './templates.store';
 
 /**
@@ -16,6 +17,7 @@ export class PanelNavigator {
   public readonly canGoForward = computed(() => this.index() < this.history().length - 1);
 
   private readonly store = inject(TemplatesStore);
+  private readonly cellTypeStore = inject(CellTypesStore);
   private readonly history = signal<PanelRef[]>([{ kind: 'cellTypes' }]);
   private readonly index = signal(0);
     /** Collapses back-to-back steps for the same panel into one. */
@@ -91,7 +93,7 @@ export class PanelNavigator {
     this.forget(
       (ref) =>
         ref.kind !== 'template' &&
-        PanelCrumbsUtil.panelCrumbs(ref, template, index, (id) => this.store.cellType(id)).length === 0,
+        PanelCrumbsUtil.panelCrumbs(ref, template, index, (id) => this.cellTypeStore.cellType(id)).length === 0,
       fallback,
     );
   }

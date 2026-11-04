@@ -13,6 +13,7 @@ import { PanelNavigator } from '../panel-navigator';
 import { RowSettings } from '../row-settings/row-settings';
 import { SectionSettings } from '../section-settings/section-settings';
 import { TemplateSettings } from '../template-settings/template-settings';
+import { CellTypesStore } from '../cell-types.store';
 import { TemplatesStore } from '../templates.store';
 
 const TITLES: Readonly<Record<PanelRef['kind'], string>> = {
@@ -52,12 +53,13 @@ export class ConfigPanel {
 
   public readonly crumbs = computed<PanelCrumb[]>(() =>
     PanelCrumbsUtil.panelCrumbs(this.current(), this.store.template(), this.store.index(), (id) =>
-      this.store.cellType(id),
+      this.cellTypeStore.cellType(id),
     ),
   );
 
   private readonly navigator = inject(PanelNavigator);
   private readonly store = inject(TemplatesStore);
+  private readonly cellTypeStore = inject(CellTypesStore);
 
   public title(): string {
     return TITLES[this.current().kind];

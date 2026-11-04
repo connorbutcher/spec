@@ -5,6 +5,7 @@ import { PanelLinkItem } from '../models/panel-link-item.model';
 import { PanelLinkList } from '../panel-link-list/panel-link-list';
 import { PanelNavigator } from '../panel-navigator';
 import { SectionLinksUtil } from '../section-links.util';
+import { CellTypesStore } from '../cell-types.store';
 import { TemplatesStore } from '../templates.store';
 
 /** Panel page listing every cell type, with a way to add one. */
@@ -17,7 +18,7 @@ import { TemplatesStore } from '../templates.store';
 
 export class CellTypeList {
   public readonly items = computed<PanelLinkItem[]>(() =>
-    this.store.cellTypes().map((cellType) => ({
+    this.cellTypeStore.cellTypes().map((cellType) => ({
       ref: { kind: 'cellType', id: cellType.id },
       label: cellType.name,
       icon: CellKinds.cellKindInfo(cellType.kind).icon,
@@ -26,6 +27,7 @@ export class CellTypeList {
   );
 
   private readonly store = inject(TemplatesStore);
+  private readonly cellTypeStore = inject(CellTypesStore);
   private readonly navigator = inject(PanelNavigator);
 
   public isSaving(): boolean {
@@ -33,7 +35,7 @@ export class CellTypeList {
   }
 
   public async add(): Promise<void> {
-    const id = await this.store.createCellType();
+    const id = await this.cellTypeStore.createCellType();
     if (id !== null) {
       this.navigator.open({ kind: 'cellType', id });
     }

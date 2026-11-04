@@ -8,7 +8,7 @@ import { CellLayout } from '../models/cell-layout.model';
 import { CellType } from '../models/cell-type.model';
 import { GridStyle } from '../models/grid-style';
 import { PanelNavigator } from '../panel-navigator';
-import { TemplatesStore } from '../templates.store';
+import { CellTypesStore } from '../cell-types.store';
 
 /**
  * A cell in the preview, placed on its section's subgrid by row, column and spans. Label cells show
@@ -30,7 +30,7 @@ export class CanvasCell {
   public readonly layout = input.required<CellLayout>();
 
   public readonly cellType = computed<CellType | undefined>(() =>
-    this.store.cellType(this.layout().cell.cellTypeId),
+    this.cellTypeStore.cellType(this.layout().cell.cellTypeId),
   );
 
   /** The cell type's style with the cell's own overrides on top, as CSS. */
@@ -42,7 +42,7 @@ export class CanvasCell {
   });
 
   private readonly navigator = inject(PanelNavigator);
-  private readonly store = inject(TemplatesStore);
+  private readonly cellTypeStore = inject(CellTypesStore);
   private readonly menu = inject(CanvasMenu);
 
   /** The grid placement plus the cell's background, which fills the whole grid area. */

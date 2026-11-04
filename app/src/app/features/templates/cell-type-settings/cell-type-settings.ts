@@ -18,6 +18,7 @@ import { SettingValue } from '../models/setting-value';
 import { PanelNavigator } from '../panel-navigator';
 import { SectionLinksUtil } from '../section-links.util';
 import { SettingsEditor } from '../settings-editor/settings-editor';
+import { CellTypesStore } from '../cell-types.store';
 import { TemplatesStore } from '../templates.store';
 
 /**
@@ -46,7 +47,7 @@ export class CellTypeSettings {
   public readonly styleFields = STYLE_FIELDS;
 
   public readonly cellType = computed<CellType | undefined>(() =>
-    this.store.cellType(this.cellTypeId()),
+    this.cellTypeStore.cellType(this.cellTypeId()),
   );
 
   public readonly kind = computed<CellKindInfo>(() =>
@@ -60,6 +61,7 @@ export class CellTypeSettings {
   public readonly hasOptions = computed(() => CellKinds.isDropdown(this.cellType()?.kind));
 
   private readonly store = inject(TemplatesStore);
+  private readonly cellTypeStore = inject(CellTypesStore);
   private readonly navigator = inject(PanelNavigator);
 
   public isSaving(): boolean {
@@ -108,12 +110,12 @@ export class CellTypeSettings {
   }
 
   public async delete(): Promise<void> {
-    if (await this.store.deleteCellType(this.cellTypeId())) {
+    if (await this.cellTypeStore.deleteCellType(this.cellTypeId())) {
       this.navigator.forgetMissing({ kind: 'cellTypes' });
     }
   }
 
   private save(changes: Partial<SaveCellTypeRequest>): Promise<void> {
-    return this.store.updateCellType(this.cellTypeId(), changes);
+    return this.cellTypeStore.updateCellType(this.cellTypeId(), changes);
   }
 }

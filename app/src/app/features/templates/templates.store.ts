@@ -1,12 +1,9 @@
 import { httpResource } from '@angular/common/http';
-import { computed, inject, Injectable, linkedSignal, signal } from '@angular/core';
+import { computed, inject, Injectable, linkedSignal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router } from '@angular/router';
 import { filter } from 'rxjs';
 import { SheetType } from '../../core/models/sheet-type.model';
-import { ApiErrorMessage } from './api-error-message';
-import { CellType } from './models/cell-type.model';
-import { SaveCellTypeRequest } from './models/save-cell-type-request.model';
 import { TableTemplateSummary } from './models/table-template-summary.model';
 import { TableTemplate } from './models/table-template.model';
 import { TemplateIndex } from './models/template-index.model';
@@ -19,11 +16,15 @@ import { UpdateTemplateSectionRequest } from './models/update-template-section-r
 import { RouteParamUtil } from '../../core/route-param.util';
 import { TemplateIndexUtil } from './template-index.util';
 import { TemplateLayoutUtil } from './template-layout.util';
+import { CellTypesStore } from './cell-types.store';
+import { TemplateNamesUtil } from './template-names.util';
+import { TemplateSaves } from './template-saves';
 import { TemplatesApi } from './templates-api';
 
 /**
- * State for the templates screen: sheet types, template list and cell types (resources), the open
- * template and its layout, and every change the designer makes. Provided by the templates page.
+ * State for the templates screen: sheet types and the template list (resources), the open
+ * template and its layout, and every change the designer makes to templates. Cell types are in
+ * `CellTypesStore`, and both save through `TemplateSaves`. Provided by the templates page.
  *
  * Changes save straight away. Template changes return the whole template, which replaces the open
  * copy; creates return the new item's id so the panel can open it.
@@ -39,10 +40,6 @@ export class TemplatesStore {
 
   public readonly summaries = computed<TableTemplateSummary[]>(() =>
     this.summariesResource.hasValue() ? this.summariesResource.value() : [],
-  );
-
-  public readonly cellTypes = computed<CellType[]>(() =>
-    this.cellTypesResource.hasValue() ? this.cellTypesResource.value() : [],
   );
 
   public readonly listIsLoading = computed(
@@ -93,14 +90,16 @@ export class TemplatesStore {
     return template && template.sections.length > 0 ? TemplateLayoutUtil.layoutTemplate(template) : null;
   });
 
-  /** True while a change is being saved. */
-  public readonly isSaving = computed(() => this.pendingSaves() > 0);
+  /** True while a change to a template or a cell type is being saved. */
+  public readonly isSaving = computed(() => this.saves.isSaving());
 
   /** The last save's error, shown until dismissed or the next save. */
-  public readonly error = signal<string | null>(null);
+  public readonly error = computed(() => this.saves.error());
 
   private readonly router = inject(Router);
   private readonly api = inject(TemplatesApi);
+  private readonly saves = inject(TemplateSaves);
+  private readonly cellTypes = inject(CellTypesStore);
 
   private readonly navigationEnd = toSignal(
     this.router.events.pipe(filter((event) => event instanceof NavigationEnd)),
@@ -110,45 +109,26 @@ export class TemplatesStore {
   private readonly summariesResource = httpResource<TableTemplateSummary[]>(
     () => '/api/table-templates',
   );
-  private readonly cellTypesResource = httpResource<CellType[]>(() => '/api/cell-types');
-
   private readonly templateResource = httpResource<TableTemplate>(() => {
     const id = this.selectedTemplateId();
     if (id === null) {
       return undefined;
     }
+    // A cell type changing kind drops its cells' overrides on the server, so the template is read again.
+    this.cellTypes.overridesCleared();
     const version = this.viewedVersion();
     return version === null
       ? `/api/table-templates/${id}`
       : `/api/table-templates/${id}?version=${version}`;
   });
 
-  private readonly cellTypesById = computed(
-    () => new Map(this.cellTypes().map((cellType) => [cellType.id, cellType])),
-  );
-
-  private readonly pendingSaves = signal(0);
-
   /** The last cell override save, which the next one waits for. */
   private overrideSaves: Promise<void> = Promise.resolve();
-    /** `base`, or `base 2`, `base 3`... whichever isn't taken. With `numbered`, starts at `base 1`. */
-    private static nextName(base: string, taken: string[], numbered = false): string {
-      const names = new Set(taken.map((name) => name.toLowerCase()));
-      if (!numbered && !names.has(base.toLowerCase())) {
-        return base;
-      }
-      for (let number = numbered ? 1 : 2; ; number++) {
-        const candidate = `${base} ${number}`;
-        if (!names.has(candidate.toLowerCase())) {
-          return candidate;
-        }
-      }
-    }
 
   public reloadList(): void {
     this.sheetTypesResource.reload();
     this.summariesResource.reload();
-    this.cellTypesResource.reload();
+    this.cellTypes.reload();
   }
 
   public reloadTemplate(): void {
@@ -156,7 +136,7 @@ export class TemplatesStore {
   }
 
   public dismissError(): void {
-    this.error.set(null);
+    this.saves.dismissError();
   }
 
   public templatesFor(sheetTypeId: number): TableTemplateSummary[] {
@@ -165,12 +145,8 @@ export class TemplatesStore {
       .sort((a, b) => a.displayOrder - b.displayOrder);
   }
 
-  public cellType(id: number): CellType | undefined {
-    return this.cellTypesById().get(id);
-  }
-
   public async createTemplate(sheetTypeId: number): Promise<void> {
-    const name = TemplatesStore.nextName(
+    const name = TemplateNamesUtil.nextName(
       'New table',
       this.templatesFor(sheetTypeId).map((summary) => summary.name),
     );
@@ -238,7 +214,7 @@ export class TemplatesStore {
     });
     if (deleted) {
       this.summariesResource.reload();
-      this.cellTypesResource.reload();
+      this.cellTypes.reload();
       await this.router.navigate(['/templates']);
     }
   }
@@ -256,7 +232,7 @@ export class TemplatesStore {
       parentId === null
         ? template.sections
         : (this.index().sections.get(parentId)?.section.sections ?? []);
-    const name = TemplatesStore.nextName(
+    const name = TemplateNamesUtil.nextName(
       parentId === null ? 'Section' : 'Sub-section',
       siblings.map((section) => section.name),
       true,
@@ -300,7 +276,7 @@ export class TemplatesStore {
     if (!template) {
       return null;
     }
-    const name = TemplatesStore.nextName(
+    const name = TemplateNamesUtil.nextName(
       'Column block',
       template.columnBlocks.map((block) => block.name),
       true,
@@ -401,56 +377,6 @@ export class TemplatesStore {
     return (await this.changeTemplate(() => this.api.deleteCell(id))) !== null;
   }
 
-  /** Adds a Text cell type with an unused name. Returns its id. */
-  public async createCellType(): Promise<number | null> {
-    const name = TemplatesStore.nextName(
-      'New cell type',
-      this.cellTypes().map((cellType) => cellType.name),
-    );
-    const created = await this.save(() =>
-      this.api.createCellType({
-        name,
-        kind: 'Text',
-        description: null,
-        configuration: null,
-        style: null,
-        options: [],
-      }),
-    );
-    if (!created) {
-      return null;
-    }
-    this.cellTypesResource.update((cellTypes) => [...(cellTypes ?? []), created]);
-    return created.id;
-  }
-
-  /** Changes some of a cell type's settings, keeping the rest. */
-  public async updateCellType(id: number, changes: Partial<SaveCellTypeRequest>): Promise<void> {
-    const cellType = this.cellType(id);
-    if (!cellType) {
-      return;
-    }
-    const request: SaveCellTypeRequest = {
-      name: cellType.name,
-      kind: cellType.kind,
-      description: cellType.description,
-      configuration: cellType.configuration,
-      style: cellType.style,
-      options: cellType.options.map((option) => option.value),
-      ...changes,
-    };
-    const updated = await this.save(() => this.api.updateCellType(id, request));
-    if (updated) {
-      this.cellTypesResource.update((cellTypes) =>
-        (cellTypes ?? []).map((candidate) => (candidate.id === id ? updated : candidate)),
-      );
-      if (updated.kind !== cellType.kind) {
-        // A kind change drops the configuration overrides of the cells that use the type.
-        this.templateResource.reload();
-      }
-    }
-  }
-
   /** Changes what a cell overrides from its cell type's defaults, keeping the rest. */
   public updateCellOverrides(
     id: number,
@@ -473,19 +399,6 @@ export class TemplatesStore {
     return next;
   }
 
-  public async deleteCellType(id: number): Promise<boolean> {
-    const deleted = await this.save(async () => {
-      await this.api.deleteCellType(id);
-      return true;
-    });
-    if (deleted) {
-      this.cellTypesResource.update((cellTypes) =>
-        (cellTypes ?? []).filter((cellType) => cellType.id !== id),
-      );
-    }
-    return deleted === true;
-  }
-
   /**
    * Runs a template change and swaps in the returned template. With `added`, returns the id of the
    * section, column block, row or cell the change created; otherwise returns 0 on success. Null means it failed.
@@ -501,20 +414,11 @@ export class TemplatesStore {
     }
     this.templateResource.set(updated);
     // Cell counts per type change as cells come and go.
-    this.cellTypesResource.reload();
+    this.cellTypes.reload();
     return added ? (TemplateIndexUtil.addedIds(before[added], this.index()[added])[0] ?? null) : 0;
   }
 
-  private async save<T>(action: () => Promise<T>): Promise<T | null> {
-    this.error.set(null);
-    this.pendingSaves.update((count) => count + 1);
-    try {
-      return await action();
-    } catch (error) {
-      this.error.set(ApiErrorMessage.apiErrorMessage(error));
-      return null;
-    } finally {
-      this.pendingSaves.update((count) => count - 1);
-    }
+  private save<T>(action: () => Promise<T>): Promise<T | null> {
+    return this.saves.run(action);
   }
 }

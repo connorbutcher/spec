@@ -7,6 +7,7 @@ import { EmptyState } from '../../../shared/components/empty-state/empty-state';
 import { SheetTypeIcon } from '../../../shared/sheet-type-icon';
 import { TemplateListGroup } from '../models/template-list-group.model';
 import { PanelNavigator } from '../panel-navigator';
+import { CellTypesStore } from '../cell-types.store';
 import { TemplatesStore } from '../templates.store';
 
 /**
@@ -31,6 +32,7 @@ export class TemplateListPanel {
   );
 
   private readonly store = inject(TemplatesStore);
+  private readonly cellTypeStore = inject(CellTypesStore);
   private readonly navigator = inject(PanelNavigator);
   private readonly router = inject(Router);
 
@@ -51,7 +53,7 @@ export class TemplateListPanel {
   }
 
   public cellTypeCount(): number {
-    return this.store.cellTypes().length;
+    return this.cellTypeStore.cellTypes().length;
   }
 
   public isShowingCellTypes(): boolean {

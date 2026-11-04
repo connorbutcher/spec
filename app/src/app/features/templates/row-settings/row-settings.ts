@@ -9,6 +9,7 @@ import { TemplateColumnBlock } from '../models/template-column-block.model';
 import { MoveButtons } from '../move-buttons/move-buttons';
 import { PanelLinkList } from '../panel-link-list/panel-link-list';
 import { PanelNavigator } from '../panel-navigator';
+import { CellTypesStore } from '../cell-types.store';
 import { TemplatesStore } from '../templates.store';
 
 /**
@@ -49,6 +50,7 @@ export class RowSettings {
   );
 
   private readonly store = inject(TemplatesStore);
+  private readonly cellTypeStore = inject(CellTypesStore);
   private readonly navigator = inject(PanelNavigator);
 
   public isSaving(): boolean {
@@ -79,7 +81,7 @@ export class RowSettings {
   }
 
   private cellLink(cell: TemplateCell): PanelLinkItem {
-    const cellType = this.store.cellType(cell.cellTypeId);
+    const cellType = this.cellTypeStore.cellType(cell.cellTypeId);
     const spans = [
       cell.columnSpan > 1 ? `${cell.columnSpan} cols` : '',
       cell.rowSpan > 1 ? `${cell.rowSpan} rows` : '',

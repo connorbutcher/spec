@@ -19,6 +19,7 @@ import { UpdateTemplateCellRequest } from '../models/update-template-cell-reques
 import { NumberField } from '../number-field/number-field';
 import { PanelNavigator } from '../panel-navigator';
 import { SettingsEditor } from '../settings-editor/settings-editor';
+import { CellTypesStore } from '../cell-types.store';
 import { TemplatesStore } from '../templates.store';
 
 type PlacementField = 'column' | 'columnSpan' | 'rowSpan';
@@ -54,7 +55,7 @@ export class CellSettings {
 
   public readonly cellType = computed<CellType | undefined>(() => {
     const entry = this.entry();
-    return entry ? this.store.cellType(entry.cell.cellTypeId) : undefined;
+    return entry ? this.cellTypeStore.cellType(entry.cell.cellTypeId) : undefined;
   });
 
   public readonly kind = computed<CellKindInfo>(() =>
@@ -62,7 +63,7 @@ export class CellSettings {
   );
 
   public readonly typeOptions = computed(() =>
-    this.store.cellTypes().map((cellType) => ({
+    this.cellTypeStore.cellTypes().map((cellType) => ({
       label: `${cellType.name} (${CellKinds.cellKindInfo(cellType.kind).label})`,
       value: cellType.id,
       icon: CellKinds.cellKindInfo(cellType.kind).icon,
@@ -92,6 +93,7 @@ export class CellSettings {
   });
 
   private readonly store = inject(TemplatesStore);
+  private readonly cellTypeStore = inject(CellTypesStore);
   private readonly navigator = inject(PanelNavigator);
 
   public isSaving(): boolean {

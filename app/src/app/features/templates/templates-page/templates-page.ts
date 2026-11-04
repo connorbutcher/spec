@@ -5,6 +5,8 @@ import { ConfirmPopupModule } from 'primeng/confirmpopup';
 import { ConfigPanel } from '../config-panel/config-panel';
 import { PanelNavigator } from '../panel-navigator';
 import { TemplateListPanel } from '../template-list-panel/template-list-panel';
+import { CellTypesStore } from '../cell-types.store';
+import { TemplateSaves } from '../template-saves';
 import { TemplatesStore } from '../templates.store';
 
 /**
@@ -14,7 +16,7 @@ import { TemplatesStore } from '../templates.store';
 @Component({
   selector: 'app-templates-page',
   imports: [RouterOutlet, ConfirmPopupModule, TemplateListPanel, ConfigPanel],
-  providers: [TemplatesStore, PanelNavigator, ConfirmationService],
+  providers: [TemplatesStore, CellTypesStore, TemplateSaves, PanelNavigator, ConfirmationService],
   templateUrl: './templates-page.html',
   styleUrl: './templates-page.scss',
 })
