@@ -3,7 +3,7 @@ using System.IO.Compression;
 namespace PUSpecSheet.Api.Compression;
 
 /// <summary>The "Compression" configuration section: how API responses are compressed.</summary>
-public sealed class CompressionSettings
+public sealed record CompressionSettings
 {
     public const string SectionName = "Compression";
 

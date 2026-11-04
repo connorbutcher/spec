@@ -15,7 +15,31 @@ public sealed class SheetItemLocator(PuSpecSheetDbContext db) : ISheetItemLocato
 {
     public async Task<SheetItemReferenceDto> FindAsync(Guid publicId, CancellationToken cancellationToken)
     {
-        var sheet = await db.Sheets
+        return await FindSheetAsync(publicId, cancellationToken)
+            ?? await FindTableAsync(publicId, cancellationToken)
+            ?? await FindSectionAsync(publicId, cancellationToken)
+            ?? await FindColumnBlockAsync(publicId, cancellationToken)
+            ?? await FindRowAsync(publicId, cancellationToken)
+            ?? await FindCellAsync(publicId, cancellationToken)
+            ?? throw new NotFoundException($"Nothing on a sheet has the identifier {publicId}.");
+    }
+
+    private static SheetItemReferenceDto Reference(
+        SheetItemKind kind,
+        Guid publicId,
+        int id,
+        Sheet sheet,
+        int? tableId,
+        int? sectionId,
+        int? rowId,
+        bool isDeleted)
+    {
+        return new SheetItemReferenceDto(kind, publicId, id, sheet.Id, sheet.PublicId, sheet.PhaseId, sheet.SheetTypeId, tableId, sectionId, rowId, isDeleted);
+    }
+
+    private async Task<SheetItemReferenceDto?> FindSheetAsync(Guid publicId, CancellationToken cancellationToken)
+    {
+        return await db.Sheets
             .AsNoTracking()
             .Where(candidate => candidate.PublicId == publicId)
             .Select(candidate => new SheetItemReferenceDto(
@@ -31,11 +55,10 @@ public sealed class SheetItemLocator(PuSpecSheetDbContext db) : ISheetItemLocato
                 null,
                 false))
             .SingleOrDefaultAsync(cancellationToken);
-        if (sheet is not null)
-        {
-            return sheet;
-        }
+    }
 
+    private async Task<SheetItemReferenceDto?> FindTableAsync(Guid publicId, CancellationToken cancellationToken)
+    {
         var table = await db.SheetTables
             .AsNoTracking()
             .Where(candidate => candidate.PublicId == publicId)
@@ -51,6 +74,11 @@ public sealed class SheetItemLocator(PuSpecSheetDbContext db) : ISheetItemLocato
             return Reference(SheetItemKind.Table, publicId, table.Id, table.Sheet, table.Id, null, null, table.Deleted);
         }
 
+        return null;
+    }
+
+    private async Task<SheetItemReferenceDto?> FindSectionAsync(Guid publicId, CancellationToken cancellationToken)
+    {
         var section = await db.SheetSections
             .AsNoTracking()
             .Where(candidate => candidate.PublicId == publicId)
@@ -67,6 +95,11 @@ public sealed class SheetItemLocator(PuSpecSheetDbContext db) : ISheetItemLocato
             return Reference(SheetItemKind.Section, publicId, section.Id, section.Sheet, section.SheetTableId, section.Id, null, section.Deleted);
         }
 
+        return null;
+    }
+
+    private async Task<SheetItemReferenceDto?> FindColumnBlockAsync(Guid publicId, CancellationToken cancellationToken)
+    {
         var columnBlock = await db.SheetColumnBlocks
             .AsNoTracking()
             .Where(candidate => candidate.PublicId == publicId)
@@ -83,6 +116,11 @@ public sealed class SheetItemLocator(PuSpecSheetDbContext db) : ISheetItemLocato
             return Reference(SheetItemKind.ColumnBlock, publicId, columnBlock.Id, columnBlock.Sheet, columnBlock.SheetTableId, null, null, columnBlock.Deleted);
         }
 
+        return null;
+    }
+
+    private async Task<SheetItemReferenceDto?> FindRowAsync(Guid publicId, CancellationToken cancellationToken)
+    {
         var row = await db.SheetRows
             .AsNoTracking()
             .Where(candidate => candidate.PublicId == publicId)
@@ -100,6 +138,11 @@ public sealed class SheetItemLocator(PuSpecSheetDbContext db) : ISheetItemLocato
             return Reference(SheetItemKind.Row, publicId, row.Id, row.Sheet, row.TableId, row.SheetSectionId, row.Id, row.Deleted);
         }
 
+        return null;
+    }
+
+    private async Task<SheetItemReferenceDto?> FindCellAsync(Guid publicId, CancellationToken cancellationToken)
+    {
         var cell = await db.SheetCells
             .AsNoTracking()
             .Where(candidate => candidate.PublicId == publicId)
@@ -112,21 +155,9 @@ public sealed class SheetItemLocator(PuSpecSheetDbContext db) : ISheetItemLocato
                 candidate.SheetRow.SheetSection.SheetTable.Sheet,
                 Deleted = candidate.SheetRow.Revisions.Any(revision => revision.Status == RevisionStatus.Published && revision.SupersededAtUtc == null && revision.IsDeleted),
             })
-            .SingleOrDefaultAsync(cancellationToken)
-            ?? throw new NotFoundException($"Nothing on a sheet has the identifier {publicId}.");
-        return Reference(SheetItemKind.Cell, publicId, cell.Id, cell.Sheet, cell.TableId, cell.SectionId, cell.SheetRowId, cell.Deleted);
-    }
-
-    private static SheetItemReferenceDto Reference(
-        SheetItemKind kind,
-        Guid publicId,
-        int id,
-        Sheet sheet,
-        int? tableId,
-        int? sectionId,
-        int? rowId,
-        bool isDeleted)
-    {
-        return new SheetItemReferenceDto(kind, publicId, id, sheet.Id, sheet.PublicId, sheet.PhaseId, sheet.SheetTypeId, tableId, sectionId, rowId, isDeleted);
+            .SingleOrDefaultAsync(cancellationToken);
+        return cell is null
+            ? null
+            : Reference(SheetItemKind.Cell, publicId, cell.Id, cell.Sheet, cell.TableId, cell.SectionId, cell.SheetRowId, cell.Deleted);
     }
 }

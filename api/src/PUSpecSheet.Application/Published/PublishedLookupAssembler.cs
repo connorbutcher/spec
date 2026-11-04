@@ -58,29 +58,7 @@ public static class PublishedLookupAssembler
         var sections = structure.Sections
             .Where(section => section.TableId == hit.TableId)
             .ToDictionary(section => section.Id);
-        var sectionOrder = SectionOrder(sections.Values);
-        var scope = ScopeSections(hit, structure)?.ToHashSet();
-
-        // Everything that was on the sheet, top to bottom and then left to right.
-        var shown = cells
-            .Where(cell => sections.ContainsKey(cell.SectionId)
-                && (cell.ColumnBlockId is not { } blockId || structure.ColumnBlock(blockId) is not null))
-            .OrderBy(cell => sectionOrder[cell.SectionId])
-            .ThenBy(cell => cell.RowOrder)
-            .ThenBy(cell => cell.RowId)
-            .ThenBy(cell => cell.Column)
-            .ThenBy(cell => cell.CellId)
-            .ToList();
-
-        // The headings over the values: the block's for a cell in a block, the table's own otherwise.
-        var headings = shown
-            .Where(cell => cell.IsHeader
-                && !cell.Kind.StoresValue()
-                && !string.IsNullOrWhiteSpace(cell.Caption)
-                && cell.ColumnBlockId == hit.ColumnBlockId)
-            .Select(cell => cell.Caption!)
-            .ToList();
-
+        var shown = ShownCells(cells, sections, structure);
         var blocks = structure.ColumnBlocks
             .Where(block => block.TableId == hit.TableId)
             .OrderBy(block => block.DisplayOrder)
@@ -92,37 +70,14 @@ public static class PublishedLookupAssembler
         var kept = hit.ColumnBlockId is { } matchedBlockId
             ? blocks.Where(block => block.Id == matchedBlockId).ToList()
             : blocks;
-
+        var scope = ScopeSections(hit, structure)?.ToHashSet();
         var rows = new Dictionary<Guid, PublishedRowValuesDto>();
         foreach (var row in shown.Where(cell => scope is null || scope.Contains(cell.SectionId)).GroupBy(cell => cell.RowId))
         {
-            var valueCells = row
-                .Where(cell => cell.Kind.StoresValue()
-                    && (cell.ColumnBlockId is not { } blockId || kept.Any(block => block.Id == blockId)))
-                .ToList();
-            if (!valueCells.Any(cell => cell.CellId != hit.CellId && values.ContainsKey(cell.CellId)))
+            if (RowValues(hit, row, kept, names, sections, values) is { } rowValues)
             {
-                continue;
+                rows[row.First().RowPublicId] = rowValues;
             }
-
-            var first = row.First();
-            var own = ValuesOf(valueCells.Where(cell => cell.ColumnBlockId is null), values);
-
-            Dictionary<string, IReadOnlyList<object?>>? columns = null;
-            if (row.Any(cell => cell.ColumnBlockId is not null))
-            {
-                columns = [];
-                foreach (var block in kept)
-                {
-                    var inBlock = valueCells.Where(cell => cell.ColumnBlockId == block.Id).ToList();
-                    if (inBlock.Count > 0)
-                    {
-                        columns[names[block.Id]] = ValuesOf(inBlock, values);
-                    }
-                }
-            }
-
-            rows[first.RowPublicId] = new PublishedRowValuesDto(sections[first.SectionId].Name, own, columns);
         }
 
         return new PublishedLookupMatchDto(
@@ -134,7 +89,7 @@ public static class PublishedLookupAssembler
             table.PublicId,
             table.Title,
             hit.ColumnBlockId is { } namedBlockId ? names[namedBlockId] : null,
-            headings,
+            Headings(hit, shown),
             rows);
     }
 
@@ -161,6 +116,80 @@ public static class PublishedLookupAssembler
         }
 
         return order;
+    }
+
+    /// <summary>Everything that was on the sheet, top to bottom and then left to right.</summary>
+    private static List<PublishedLookupCellRecord> ShownCells(
+        IReadOnlyList<PublishedLookupCellRecord> cells,
+        Dictionary<int, PublishedSectionRecord> sections,
+        PublishedStructure structure)
+    {
+        var sectionOrder = SectionOrder(sections.Values);
+        return cells
+            .Where(cell => sections.ContainsKey(cell.SectionId)
+                && (cell.ColumnBlockId is not { } blockId || structure.ColumnBlock(blockId) is not null))
+            .OrderBy(cell => sectionOrder[cell.SectionId])
+            .ThenBy(cell => cell.RowOrder)
+            .ThenBy(cell => cell.RowId)
+            .ThenBy(cell => cell.Column)
+            .ThenBy(cell => cell.CellId)
+            .ToList();
+    }
+
+    /// <summary>The headings over the values: the block's for a cell in a block, the table's own otherwise.</summary>
+    private static List<string> Headings(PublishedLookupHit hit, List<PublishedLookupCellRecord> shown)
+    {
+        return shown
+            .Where(cell => cell.IsHeader
+                && !cell.Kind.StoresValue()
+                && !string.IsNullOrWhiteSpace(cell.Caption)
+                && cell.ColumnBlockId == hit.ColumnBlockId)
+            .Select(cell => cell.Caption!)
+            .ToList();
+    }
+
+    /// <summary>A row's values, or null when it holds nothing besides the cell that was found.</summary>
+    private static PublishedRowValuesDto? RowValues(
+        PublishedLookupHit hit,
+        IGrouping<int, PublishedLookupCellRecord> row,
+        List<PublishedColumnBlockRecord> kept,
+        IReadOnlyDictionary<int, string> names,
+        Dictionary<int, PublishedSectionRecord> sections,
+        IReadOnlyDictionary<int, object> values)
+    {
+        var valueCells = row
+            .Where(cell => cell.Kind.StoresValue()
+                && (cell.ColumnBlockId is not { } blockId || kept.Any(block => block.Id == blockId)))
+            .ToList();
+        if (!valueCells.Any(cell => cell.CellId != hit.CellId && values.ContainsKey(cell.CellId)))
+        {
+            return null;
+        }
+
+        var own = ValuesOf(valueCells.Where(cell => cell.ColumnBlockId is null), values);
+        var columns = row.Any(cell => cell.ColumnBlockId is not null)
+            ? BlockColumns(valueCells, kept, names, values)
+            : null;
+        return new PublishedRowValuesDto(sections[row.First().SectionId].Name, own, columns);
+    }
+
+    private static Dictionary<string, IReadOnlyList<object?>> BlockColumns(
+        List<PublishedLookupCellRecord> valueCells,
+        List<PublishedColumnBlockRecord> kept,
+        IReadOnlyDictionary<int, string> names,
+        IReadOnlyDictionary<int, object> values)
+    {
+        var columns = new Dictionary<string, IReadOnlyList<object?>>();
+        foreach (var block in kept)
+        {
+            var inBlock = valueCells.Where(cell => cell.ColumnBlockId == block.Id).ToList();
+            if (inBlock.Count > 0)
+            {
+                columns[names[block.Id]] = ValuesOf(inBlock, values);
+            }
+        }
+
+        return columns;
     }
 
     private static List<object?> ValuesOf(IEnumerable<PublishedLookupCellRecord> cells, IReadOnlyDictionary<int, object> values)

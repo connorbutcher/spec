@@ -1,7 +1,7 @@
 namespace PUSpecSheet.Api.Cors;
 
 /// <summary>The "Cors" configuration section: which browser origins may call the API.</summary>
-public sealed class CorsSettings
+public sealed record CorsSettings
 {
     public const string SectionName = "Cors";
 
