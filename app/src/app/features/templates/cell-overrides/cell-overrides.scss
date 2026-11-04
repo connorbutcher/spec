@@ -1,0 +1,10 @@
+:host {
+  display: contents;
+}
+
+.override-note {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--app-space-3);
+}

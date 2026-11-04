@@ -1,0 +1,36 @@
+<div class="app-field">
+  <label for="cell-type">Cell type</label>
+  <div class="type-row">
+    <p-select
+      inputId="cell-type"
+      [options]="typeOptions()"
+      optionLabel="label"
+      optionValue="value"
+      [ngModel]="cellTypeId()"
+      (onChange)="setType($event)"
+      [disabled]="disabled()"
+      [filter]="typeOptions().length > 8"
+      size="small"
+      [fluid]="true"
+      appendTo="body"
+    >
+      <ng-template #item let-option>
+        <span class="type-option">
+          <i class="pi" [class]="option.icon" aria-hidden="true"></i>
+          {{ option.label }}
+        </span>
+      </ng-template>
+    </p-select>
+    <p-button
+      icon="pi pi-cog"
+      label="Configure"
+      size="small"
+      severity="secondary"
+      [outlined]="true"
+      (onClick)="openCellType()"
+    />
+  </div>
+  <span class="hint">
+    <i class="pi" [class]="kind().icon" aria-hidden="true"></i> {{ kind().description }}
+  </span>
+</div>

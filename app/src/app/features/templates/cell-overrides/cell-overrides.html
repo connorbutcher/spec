@@ -1,0 +1,37 @@
+@if (configurationFields().length > 0) {
+  <h3 class="app-group-title">{{ kind().label }} settings</h3>
+  <app-settings-editor
+    idPrefix="cell-config"
+    [fields]="configurationFields()"
+    [defaults]="cellType().configuration"
+    [overrides]="configurationOverride()"
+    [overridable]="true"
+    [disabled]="disabled()"
+    (changed)="setConfigurationOverride($event)"
+  />
+}
+
+<h3 class="app-group-title">Style</h3>
+<app-settings-editor
+  idPrefix="cell-style"
+  [fields]="styleFields"
+  [defaults]="cellType().style"
+  [overrides]="cell().styleOverride"
+  [overridable]="true"
+  [disabled]="disabled()"
+  (changed)="setStyleOverride($event)"
+/>
+<div class="override-note">
+  <span class="app-field-note">Unmarked values come from {{ cellType().name }}.</span>
+  @if (hasOverrides()) {
+    <p-button
+      label="Reset all"
+      icon="pi pi-undo"
+      size="small"
+      severity="secondary"
+      [text]="true"
+      [disabled]="busy() || disabled()"
+      (onClick)="resetAll()"
+    />
+  }
+</div>

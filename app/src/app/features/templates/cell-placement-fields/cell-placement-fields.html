@@ -1,0 +1,36 @@
+<h3 class="app-group-title">Placement</h3>
+<div class="app-field-row">
+  <div class="app-field">
+    <label for="cell-column">Column</label>
+    <app-number-field
+      inputId="cell-column"
+      [value]="placement().column"
+      [min]="1"
+      [max]="100"
+      [disabled]="disabled()"
+      (committed)="set('column', $event)"
+    />
+  </div>
+  <div class="app-field">
+    <label for="cell-column-span">Col span</label>
+    <app-number-field
+      inputId="cell-column-span"
+      [value]="placement().columnSpan"
+      [min]="1"
+      [max]="100"
+      [disabled]="disabled()"
+      (committed)="set('columnSpan', $event)"
+    />
+  </div>
+  <div class="app-field">
+    <label for="cell-row-span">Row span</label>
+    <app-number-field
+      inputId="cell-row-span"
+      [value]="placement().rowSpan"
+      [min]="1"
+      [max]="100"
+      [disabled]="disabled()"
+      (committed)="set('rowSpan', $event)"
+    />
+  </div>
+</div>
