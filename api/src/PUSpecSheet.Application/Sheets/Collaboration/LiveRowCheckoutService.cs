@@ -21,12 +21,12 @@ public sealed class LiveRowCheckoutService(
             throw new InvalidRequestException("That row isn't on the sheet you have open.");
         }
 
-        // A row someone else has changed is theirs already, whether or not they are still in it.
-        var drafted = await checkouts.FindDraftAsync(rowId, cancellationToken);
-        if (drafted is not null && drafted.HolderUserId != connection.UserId)
+        // A row someone else has changed is theirs already, whether or not they are still in it. Only who
+        // holds the draft matters here, not whether it differs from what is published.
+        if (await checkouts.DraftHolderAsync(rowId, cancellationToken) is { } holderUserId && holderUserId != connection.UserId)
         {
-            var names = await checkouts.DisplayNamesAsync([drafted.HolderUserId], cancellationToken);
-            throw Held(names.GetValueOrDefault(drafted.HolderUserId, "another user"));
+            var names = await checkouts.DisplayNamesAsync([holderUserId], cancellationToken);
+            throw Held(names.GetValueOrDefault(holderUserId, "another user"));
         }
 
         var wanted = new LiveRowCheckout(sheetId, rowId, connection.UserId, connection.DisplayName);

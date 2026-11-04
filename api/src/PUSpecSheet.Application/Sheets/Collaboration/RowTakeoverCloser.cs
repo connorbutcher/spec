@@ -23,20 +23,25 @@ public sealed class RowTakeoverCloser(IRowCheckouts checkouts, ISheetLiveNotifie
             return await CloseAsync(takeover, obstacle.Value, cancellationToken);
         }
 
-        var handedOver = await checkouts.TransferAsync(
+        var moved = await checkouts.TransferAsync(
             takeover.RowId,
             takeover.HolderUserId,
             takeover.RequesterUserId,
             cancellationToken);
-        if (!handedOver)
+        if (moved == RowTransfer.Nothing)
         {
             return await CloseAsync(takeover, RowTakeoverStatus.Released, cancellationToken);
         }
 
         var granted = await CloseAsync(takeover, status, cancellationToken);
 
-        // Everyone on the sheet, not just these two, now sees the row checked out to someone else.
-        await notifier.SheetChangedAsync(takeover.SheetId, exceptConnectionId: null, cancellationToken);
+        // A moved draft changes the sheet everyone sees, so they all read it again. A moved live checkout
+        // only changes the list of checkouts, which everyone was sent as it moved.
+        if (moved == RowTransfer.Draft)
+        {
+            await notifier.SheetChangedAsync(takeover.SheetId, exceptConnectionId: null, cancellationToken);
+        }
+
         return granted;
     }
 

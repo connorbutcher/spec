@@ -25,7 +25,44 @@ public sealed class RowCheckouts(
             : null;
     }
 
-    public async Task<RowCheckout?> FindDraftAsync(int rowId, CancellationToken cancellationToken)
+    public async Task<int?> DraftHolderAsync(int rowId, CancellationToken cancellationToken)
+    {
+        return await db.SheetRowRevisions
+            .Where(revision => revision.SheetRowId == rowId && revision.Status == RevisionStatus.Draft)
+            .Select(revision => (int?)revision.AuthorUserId)
+            .SingleOrDefaultAsync(cancellationToken);
+    }
+
+    public async Task<int?> SheetOfAsync(int rowId, CancellationToken cancellationToken)
+    {
+        return await db.SheetRows
+            .Where(row => row.Id == rowId)
+            .Select(row => (int?)row.SheetSection.SheetTable.SheetId)
+            .SingleOrDefaultAsync(cancellationToken);
+    }
+
+    public async Task<RowTransfer> TransferAsync(int rowId, int fromUserId, int toUserId, CancellationToken cancellationToken)
+    {
+        var movedDraft = await TransferDraftAsync(rowId, fromUserId, toUserId, cancellationToken);
+        var movedLive = await TransferLiveAsync(rowId, fromUserId, toUserId, cancellationToken);
+        if (movedDraft)
+        {
+            return RowTransfer.Draft;
+        }
+
+        return movedLive ? RowTransfer.Live : RowTransfer.Nothing;
+    }
+
+    public async Task<IReadOnlyDictionary<int, string>> DisplayNamesAsync(IReadOnlyCollection<int> userIds, CancellationToken cancellationToken)
+    {
+        return await db.Users
+            .AsNoTracking()
+            .Where(user => userIds.Contains(user.Id))
+            .ToDictionaryAsync(user => user.Id, user => user.DisplayName, cancellationToken);
+    }
+
+    /// <summary>The row's checkout only if it is a draft: someone has saved something on it.</summary>
+    private async Task<RowCheckout?> FindDraftAsync(int rowId, CancellationToken cancellationToken)
     {
         var revisions = await db.SheetRowRevisions
             .Where(revision => revision.SheetRowId == rowId)
@@ -38,32 +75,9 @@ public sealed class RowCheckouts(
             return null;
         }
 
+        // The draft carries its sheet, so finding the sheet takes no query of its own.
         var published = revisions.SingleOrDefault(revision => revision.Status == RevisionStatus.Published);
-        var sheetId = await SheetOfAsync(rowId, cancellationToken);
-        return new RowCheckout(sheetId!.Value, draft.AuthorUserId, await HasChangesAsync(draft, published, cancellationToken));
-    }
-
-    public async Task<int?> SheetOfAsync(int rowId, CancellationToken cancellationToken)
-    {
-        return await db.SheetRows
-            .Where(row => row.Id == rowId)
-            .Select(row => (int?)row.SheetSection.SheetTable.SheetId)
-            .SingleOrDefaultAsync(cancellationToken);
-    }
-
-    public async Task<bool> TransferAsync(int rowId, int fromUserId, int toUserId, CancellationToken cancellationToken)
-    {
-        var movedDraft = await TransferDraftAsync(rowId, fromUserId, toUserId, cancellationToken);
-        var movedLive = await TransferLiveAsync(rowId, fromUserId, toUserId, cancellationToken);
-        return movedDraft || movedLive;
-    }
-
-    public async Task<IReadOnlyDictionary<int, string>> DisplayNamesAsync(IReadOnlyCollection<int> userIds, CancellationToken cancellationToken)
-    {
-        return await db.Users
-            .AsNoTracking()
-            .Where(user => userIds.Contains(user.Id))
-            .ToDictionaryAsync(user => user.Id, user => user.DisplayName, cancellationToken);
+        return new RowCheckout(draft.SheetId, draft.AuthorUserId, await HasChangesAsync(draft, published, cancellationToken));
     }
 
     private async Task<bool> TransferDraftAsync(int rowId, int fromUserId, int toUserId, CancellationToken cancellationToken)

@@ -199,6 +199,20 @@ public sealed class RowTakeoverTests
     }
 
     [Fact]
+    public async Task HandingOverARowItsHolderWasOnlyIn_DoesNotMakeEveryoneReadTheSheetAgain()
+    {
+        checkouts.CheckOutLive(Row, Sheet, Holder);
+        var takeover = await service.RequestAsync(Row, CancellationToken.None);
+
+        currentUser.UserId = Holder;
+        var approved = await service.ApproveAsync(takeover.Id, CancellationToken.None);
+
+        Assert.Equal(RowTakeoverStatus.Approved, approved.Status);
+        Assert.Equal(Requester, checkouts.HolderOf(Row));
+        Assert.Empty(notifier.ChangedSheets);
+    }
+
+    [Fact]
     public async Task Denying_KeepsTheRow()
     {
         var takeover = await service.RequestAsync(Row, CancellationToken.None);
