@@ -56,37 +56,13 @@ public sealed class RowValueStore(PuSpecSheetDbContext db)
     }
 
     /// <summary>Copies every value of one row revision onto another, so a new draft starts from what is published.</summary>
+    /// <remarks>
+    /// The copy happens in the database as one batch (see <see cref="RowValueCopySql"/>) and needs no save
+    /// afterwards. The target revision must already be saved.
+    /// </remarks>
     public async Task CopyAsync(int fromRevisionId, int toRevisionId, CancellationToken cancellationToken)
     {
-        foreach (var value in await db.TextValues.AsNoTracking().Where(v => v.SheetRowRevisionId == fromRevisionId).ToListAsync(cancellationToken))
-        {
-            db.TextValues.Add(new TextValue { SheetRowRevisionId = toRevisionId, SheetCellId = value.SheetCellId, Value = value.Value });
-        }
-
-        foreach (var value in await db.NumericValues.AsNoTracking().Where(v => v.SheetRowRevisionId == fromRevisionId).ToListAsync(cancellationToken))
-        {
-            db.NumericValues.Add(new NumericValue { SheetRowRevisionId = toRevisionId, SheetCellId = value.SheetCellId, Value = value.Value });
-        }
-
-        foreach (var value in await db.DateValues.AsNoTracking().Where(v => v.SheetRowRevisionId == fromRevisionId).ToListAsync(cancellationToken))
-        {
-            db.DateValues.Add(new DateValue { SheetRowRevisionId = toRevisionId, SheetCellId = value.SheetCellId, Value = value.Value });
-        }
-
-        foreach (var value in await db.BooleanValues.AsNoTracking().Where(v => v.SheetRowRevisionId == fromRevisionId).ToListAsync(cancellationToken))
-        {
-            db.BooleanValues.Add(new BooleanValue { SheetRowRevisionId = toRevisionId, SheetCellId = value.SheetCellId, Value = value.Value });
-        }
-
-        foreach (var value in await db.OptionValues.AsNoTracking().Where(v => v.SheetRowRevisionId == fromRevisionId).ToListAsync(cancellationToken))
-        {
-            db.OptionValues.Add(new OptionValue { SheetRowRevisionId = toRevisionId, SheetCellId = value.SheetCellId, CellTypeOptionId = value.CellTypeOptionId });
-        }
-
-        foreach (var value in await db.CellSettings.AsNoTracking().Where(v => v.SheetRowRevisionId == fromRevisionId).ToListAsync(cancellationToken))
-        {
-            db.CellSettings.Add(new CellSettingsValue { SheetRowRevisionId = toRevisionId, SheetCellId = value.SheetCellId, Settings = value.Settings });
-        }
+        await db.Database.ExecuteSqlRawAsync(RowValueCopySql.Build(db.Model), [fromRevisionId, toRevisionId], cancellationToken);
     }
 
     /// <summary>

@@ -23,7 +23,8 @@ public sealed class SheetPublisher(
     PuSpecSheetDbContext db,
     RowValueStore valueStore,
     DraftSweeper sweeper,
-    ICurrentUser currentUser)
+    ICurrentUser currentUser,
+    TimeProvider clock)
 {
     /// <exception cref="NotFoundException">The sheet doesn't exist.</exception>
     /// <exception cref="InvalidRequestException">There is nothing to publish, or a required cell is empty.</exception>
@@ -48,11 +49,12 @@ public sealed class SheetPublisher(
         await EnsureRequiredCellsFilledAsync(rowDrafts, cancellationToken);
 
         await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
-        var now = DateTime.UtcNow;
+        var now = clock.GetUtcNow().UtcDateTime;
         var version = await AddNextVersionAsync(sheet, note, now, cancellationToken);
 
-        // The replaced revisions close their range at the moment the new ones open, in a separate save so
-        // the "one current revision per item" index never sees two at once.
+        // The replaced revisions close their range at the moment the new ones open, before the drafts are
+        // published, so the "one current revision per item" index never sees two at once. Each kind is one
+        // statement in the database; if the version save below fails, the transaction undoes them.
         var tableIds = tableDrafts.Select(draft => draft.SheetTableId).ToList();
         var sectionIds = sectionDrafts.Select(draft => draft.SheetSectionId).ToList();
         var rowIds = rowDrafts.Select(draft => draft.SheetRowId).ToList();
@@ -96,14 +98,17 @@ public sealed class SheetPublisher(
         return version;
     }
 
-    /// <summary>Closes the current published revisions among <paramref name="revisions"/>; the save comes later.</summary>
+    /// <summary>
+    /// Closes the current published revisions among <paramref name="revisions"/>, in one statement. Nothing
+    /// else changes a published revision, so it needs no concurrency check of its own: the sheet's row
+    /// version already makes a second publish at the same moment fail.
+    /// </summary>
     private static async Task SupersedeAsync<TRevision>(IQueryable<TRevision> revisions, DateTime now, CancellationToken cancellationToken)
         where TRevision : class, ISheetRevision
     {
-        foreach (var previous in await revisions.Current().ToListAsync(cancellationToken))
-        {
-            previous.SupersededAtUtc = now;
-        }
+        await revisions.Current().ExecuteUpdateAsync(
+            setters => setters.SetProperty(revision => revision.SupersededAtUtc, now),
+            cancellationToken);
     }
 
     private async Task EnsureRequiredCellsFilledAsync(IReadOnlyList<SheetRowRevision> rowDrafts, CancellationToken cancellationToken)
@@ -115,13 +120,12 @@ public sealed class SheetPublisher(
         }
 
         var rowIds = live.Select(draft => draft.SheetRowId).ToList();
-        var cells = await db.SheetCells
-            .AsNoTracking()
-            .Include(cell => cell.TemplateCell)
-            .ThenInclude(templateCell => templateCell.CellType)
+        // Only which cell, its row and its kind are needed, not the cells' templates and types.
+        var required = await db.SheetCells
             .Where(cell => rowIds.Contains(cell.SheetRowId) && cell.TemplateCell.IsRequired)
+            .Select(cell => new { cell.Id, cell.SheetRowId, cell.TemplateCell.CellType.Kind })
             .ToListAsync(cancellationToken);
-        cells = cells.Where(cell => cell.TemplateCell.CellType.Kind.StoresValue() && cell.TemplateCell.CellType.Kind != CellKind.Checkbox).ToList();
+        var cells = required.Where(cell => cell.Kind.StoresValue() && cell.Kind != CellKind.Checkbox).ToList();
         if (cells.Count == 0)
         {
             return;

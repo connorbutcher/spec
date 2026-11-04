@@ -34,7 +34,6 @@ public sealed class RowDraftStarter(
         if (state.Current is { } current)
         {
             await valueStore.CopyAsync(current.Id, draft.Id, cancellationToken);
-            await db.SaveSheetChangesAsync(cancellationToken);
         }
 
         return draft;
