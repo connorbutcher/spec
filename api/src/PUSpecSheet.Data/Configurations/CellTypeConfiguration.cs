@@ -11,16 +11,24 @@ public sealed class CellTypeConfiguration : IEntityTypeConfiguration<CellType>
 {
     public void Configure(EntityTypeBuilder<CellType> builder)
     {
+        ConfigureTable(builder);
+        ConfigureProperties(builder);
+        ConfigureIndexes(builder);
+        ConfigureSeedData(builder);
+    }
+
+    private static void ConfigureTable(EntityTypeBuilder<CellType> builder)
+    {
         builder.ToTable("CellTypes");
 
         builder.HasKey(cellType => cellType.Id);
+    }
 
+    private static void ConfigureProperties(EntityTypeBuilder<CellType> builder)
+    {
         builder.Property(cellType => cellType.Name)
             .IsRequired()
             .HasMaxLength(100);
-
-        builder.HasIndex(cellType => cellType.Name)
-            .IsUnique();
 
         builder.Property(cellType => cellType.Kind)
             .IsRequired()
@@ -37,7 +45,16 @@ public sealed class CellTypeConfiguration : IEntityTypeConfiguration<CellType>
         builder.Property(cellType => cellType.Style)
             .IsRequired()
             .HasConversion<CellStyleConverter>();
+    }
 
+    private static void ConfigureIndexes(EntityTypeBuilder<CellType> builder)
+    {
+        builder.HasIndex(cellType => cellType.Name)
+            .IsUnique();
+    }
+
+    private static void ConfigureSeedData(EntityTypeBuilder<CellType> builder)
+    {
         // Starting cell types, one per kind plus a sample dropdown. Users can edit or add to these.
         builder.HasData(
             new CellType

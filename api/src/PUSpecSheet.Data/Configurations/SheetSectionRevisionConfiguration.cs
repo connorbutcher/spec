@@ -8,6 +8,14 @@ public sealed class SheetSectionRevisionConfiguration : IEntityTypeConfiguration
 {
     public void Configure(EntityTypeBuilder<SheetSectionRevision> builder)
     {
+        ConfigureTable(builder);
+        ConfigureProperties(builder);
+        ConfigureIndexes(builder);
+        ConfigureRelationships(builder);
+    }
+
+    private static void ConfigureTable(EntityTypeBuilder<SheetSectionRevision> builder)
+    {
         builder.ToTable("SheetSectionRevisions", table =>
         {
             // Draft or published, nothing else: the queries for live revisions rely on there being only two.
@@ -28,10 +36,25 @@ public sealed class SheetSectionRevisionConfiguration : IEntityTypeConfiguration
         });
 
         builder.HasKey(revision => revision.Id);
+    }
 
+    private static void ConfigureProperties(EntityTypeBuilder<SheetSectionRevision> builder)
+    {
         builder.Property(revision => revision.RowVersion)
             .IsRowVersion();
 
+        builder.Property(revision => revision.Status)
+            .HasConversion<int>();
+
+        builder.Property(revision => revision.CreatedAtUtc)
+            .HasDefaultValueSql("SYSUTCDATETIME()");
+
+        builder.Property(revision => revision.UpdatedAtUtc)
+            .HasDefaultValueSql("SYSUTCDATETIME()");
+    }
+
+    private static void ConfigureIndexes(EntityTypeBuilder<SheetSectionRevision> builder)
+    {
         // The current state: at most one published, not-yet-superseded revision per section.
         builder.HasIndex(revision => revision.SheetSectionId, "UX_SheetSectionRevisions_OneCurrentPerSection")
             .IsUnique()
@@ -63,21 +86,15 @@ public sealed class SheetSectionRevisionConfiguration : IEntityTypeConfiguration
         // The live sheet: its items' current revisions (published, not superseded) and their drafts.
         builder.HasIndex(revision => new { revision.SheetId, revision.Status })
             .IncludeProperties(revision => new { revision.SupersededAtUtc, revision.SheetSectionId, revision.AuthorUserId });
+    }
 
+    private static void ConfigureRelationships(EntityTypeBuilder<SheetSectionRevision> builder)
+    {
         // Copied from the item's sheet. Items already reach the sheet through their parents, so this can't cascade as well.
         builder.HasOne<Sheet>()
             .WithMany()
             .HasForeignKey(revision => revision.SheetId)
             .OnDelete(DeleteBehavior.NoAction);
-
-        builder.Property(revision => revision.Status)
-            .HasConversion<int>();
-
-        builder.Property(revision => revision.CreatedAtUtc)
-            .HasDefaultValueSql("SYSUTCDATETIME()");
-
-        builder.Property(revision => revision.UpdatedAtUtc)
-            .HasDefaultValueSql("SYSUTCDATETIME()");
 
         builder.HasOne(revision => revision.SheetSection)
             .WithMany(section => section.Revisions)

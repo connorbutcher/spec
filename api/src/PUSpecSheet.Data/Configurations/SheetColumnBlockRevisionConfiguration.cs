@@ -8,6 +8,14 @@ public sealed class SheetColumnBlockRevisionConfiguration : IEntityTypeConfigura
 {
     public void Configure(EntityTypeBuilder<SheetColumnBlockRevision> builder)
     {
+        ConfigureTable(builder);
+        ConfigureProperties(builder);
+        ConfigureIndexes(builder);
+        ConfigureRelationships(builder);
+    }
+
+    private static void ConfigureTable(EntityTypeBuilder<SheetColumnBlockRevision> builder)
+    {
         builder.ToTable("SheetColumnBlockRevisions", table =>
         {
             // Draft or published, nothing else: the queries for live revisions rely on there being only two.
@@ -28,10 +36,25 @@ public sealed class SheetColumnBlockRevisionConfiguration : IEntityTypeConfigura
         });
 
         builder.HasKey(revision => revision.Id);
+    }
 
+    private static void ConfigureProperties(EntityTypeBuilder<SheetColumnBlockRevision> builder)
+    {
         builder.Property(revision => revision.RowVersion)
             .IsRowVersion();
 
+        builder.Property(revision => revision.Status)
+            .HasConversion<int>();
+
+        builder.Property(revision => revision.CreatedAtUtc)
+            .HasDefaultValueSql("SYSUTCDATETIME()");
+
+        builder.Property(revision => revision.UpdatedAtUtc)
+            .HasDefaultValueSql("SYSUTCDATETIME()");
+    }
+
+    private static void ConfigureIndexes(EntityTypeBuilder<SheetColumnBlockRevision> builder)
+    {
         // The current state: at most one published, not-yet-superseded revision per block.
         builder.HasIndex(revision => revision.SheetColumnBlockId, "UX_SheetColumnBlockRevisions_OneCurrentPerBlock")
             .IsUnique()
@@ -63,21 +86,15 @@ public sealed class SheetColumnBlockRevisionConfiguration : IEntityTypeConfigura
         // The live sheet: its items' current revisions (published, not superseded) and their drafts.
         builder.HasIndex(revision => new { revision.SheetId, revision.Status })
             .IncludeProperties(revision => new { revision.SupersededAtUtc, revision.SheetColumnBlockId, revision.AuthorUserId });
+    }
 
+    private static void ConfigureRelationships(EntityTypeBuilder<SheetColumnBlockRevision> builder)
+    {
         // Copied from the item's sheet. Items already reach the sheet through their parents, so this can't cascade as well.
         builder.HasOne<Sheet>()
             .WithMany()
             .HasForeignKey(revision => revision.SheetId)
             .OnDelete(DeleteBehavior.NoAction);
-
-        builder.Property(revision => revision.Status)
-            .HasConversion<int>();
-
-        builder.Property(revision => revision.CreatedAtUtc)
-            .HasDefaultValueSql("SYSUTCDATETIME()");
-
-        builder.Property(revision => revision.UpdatedAtUtc)
-            .HasDefaultValueSql("SYSUTCDATETIME()");
 
         builder.HasOne(revision => revision.SheetColumnBlock)
             .WithMany(block => block.Revisions)

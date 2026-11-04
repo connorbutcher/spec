@@ -9,6 +9,14 @@ public sealed class TemplateCellConfiguration : IEntityTypeConfiguration<Templat
 {
     public void Configure(EntityTypeBuilder<TemplateCell> builder)
     {
+        ConfigureTable(builder);
+        ConfigureProperties(builder);
+        ConfigureIndexes(builder);
+        ConfigureRelationships(builder);
+    }
+
+    private static void ConfigureTable(EntityTypeBuilder<TemplateCell> builder)
+    {
         builder.ToTable("TemplateCells", table =>
         {
             table.HasCheckConstraint("CK_TemplateCells_Column", "[Column] >= 1");
@@ -17,7 +25,10 @@ public sealed class TemplateCellConfiguration : IEntityTypeConfiguration<Templat
         });
 
         builder.HasKey(cell => cell.Id);
+    }
 
+    private static void ConfigureProperties(EntityTypeBuilder<TemplateCell> builder)
+    {
         builder.Property(cell => cell.RowSpan)
             .HasDefaultValue(1);
 
@@ -35,7 +46,10 @@ public sealed class TemplateCellConfiguration : IEntityTypeConfiguration<Templat
 
         builder.Property(cell => cell.LookupKey)
             .HasMaxLength(LookupKeyRules.MaxLength);
+    }
 
+    private static void ConfigureIndexes(EntityTypeBuilder<TemplateCell> builder)
+    {
         // Finding the cells that answer to a lookup key; most cells have none.
         builder.HasIndex(cell => cell.LookupKey)
             .HasFilter("[LookupKey] IS NOT NULL");
@@ -45,7 +59,10 @@ public sealed class TemplateCellConfiguration : IEntityTypeConfiguration<Templat
         builder.HasIndex(cell => new { cell.TemplateRowId, cell.TemplateColumnBlockId, cell.Column })
             .IsUnique()
             .HasFilter(null);
+    }
 
+    private static void ConfigureRelationships(EntityTypeBuilder<TemplateCell> builder)
+    {
         builder.HasOne(cell => cell.TemplateRow)
             .WithMany(row => row.Cells)
             .HasForeignKey(cell => cell.TemplateRowId)

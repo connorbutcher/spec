@@ -8,21 +8,38 @@ public sealed class PermissionConfiguration : IEntityTypeConfiguration<Permissio
 {
     public void Configure(EntityTypeBuilder<Permission> builder)
     {
+        ConfigureTable(builder);
+        ConfigureProperties(builder);
+        ConfigureIndexes(builder);
+        ConfigureSeedData(builder);
+    }
+
+    private static void ConfigureTable(EntityTypeBuilder<Permission> builder)
+    {
         builder.ToTable("Permissions");
 
         builder.HasKey(permission => permission.Id);
+    }
 
+    private static void ConfigureProperties(EntityTypeBuilder<Permission> builder)
+    {
         builder.Property(permission => permission.Key)
             .IsRequired()
             .HasMaxLength(100);
 
-        builder.HasIndex(permission => permission.Key)
-            .IsUnique();
-
         builder.Property(permission => permission.Description)
             .IsRequired()
             .HasMaxLength(500);
+    }
 
+    private static void ConfigureIndexes(EntityTypeBuilder<Permission> builder)
+    {
+        builder.HasIndex(permission => permission.Key)
+            .IsUnique();
+    }
+
+    private static void ConfigureSeedData(EntityTypeBuilder<Permission> builder)
+    {
         // One row per key in PermissionKeys.
         builder.HasData(
             new Permission

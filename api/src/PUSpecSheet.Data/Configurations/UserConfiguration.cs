@@ -8,16 +8,24 @@ public sealed class UserConfiguration : IEntityTypeConfiguration<User>
 {
     public void Configure(EntityTypeBuilder<User> builder)
     {
+        ConfigureTable(builder);
+        ConfigureProperties(builder);
+        ConfigureIndexes(builder);
+        ConfigureSeedData(builder);
+    }
+
+    private static void ConfigureTable(EntityTypeBuilder<User> builder)
+    {
         builder.ToTable("Users");
 
         builder.HasKey(user => user.Id);
+    }
 
+    private static void ConfigureProperties(EntityTypeBuilder<User> builder)
+    {
         builder.Property(user => user.UserName)
             .IsRequired()
             .HasMaxLength(256);
-
-        builder.HasIndex(user => user.UserName)
-            .IsUnique();
 
         builder.Property(user => user.DisplayName)
             .IsRequired()
@@ -28,7 +36,16 @@ public sealed class UserConfiguration : IEntityTypeConfiguration<User>
 
         builder.Property(user => user.CreatedAtUtc)
             .HasDefaultValueSql("SYSUTCDATETIME()");
+    }
 
+    private static void ConfigureIndexes(EntityTypeBuilder<User> builder)
+    {
+        builder.HasIndex(user => user.UserName)
+            .IsUnique();
+    }
+
+    private static void ConfigureSeedData(EntityTypeBuilder<User> builder)
+    {
         // Everything runs as this user until sign-in is added.
         builder.HasData(new User
         {

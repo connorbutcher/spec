@@ -8,12 +8,26 @@ public sealed class SheetCellConfiguration : IEntityTypeConfiguration<SheetCell>
 {
     public void Configure(EntityTypeBuilder<SheetCell> builder)
     {
+        ConfigureTable(builder);
+        ConfigureProperties(builder);
+        ConfigureIndexes(builder);
+        ConfigureRelationships(builder);
+    }
+
+    private static void ConfigureTable(EntityTypeBuilder<SheetCell> builder)
+    {
         builder.ToTable("SheetCells");
 
         builder.HasKey(cell => cell.Id);
+    }
 
+    private static void ConfigureProperties(EntityTypeBuilder<SheetCell> builder)
+    {
         builder.HasPublicId(cell => cell.PublicId);
+    }
 
+    private static void ConfigureIndexes(EntityTypeBuilder<SheetCell> builder)
+    {
         // One cell per template cell in each row, and per column block copy for a block's cells. No
         // filter, so the row's own cells (no block) are unique too.
         builder.HasIndex(cell => new { cell.SheetRowId, cell.TemplateCellId, cell.SheetColumnBlockId })
@@ -21,7 +35,10 @@ public sealed class SheetCellConfiguration : IEntityTypeConfiguration<SheetCell>
             .HasFilter(null);
 
         builder.HasIndex(cell => cell.SheetColumnBlockId);
+    }
 
+    private static void ConfigureRelationships(EntityTypeBuilder<SheetCell> builder)
+    {
         builder.HasOne(cell => cell.SheetRow)
             .WithMany(row => row.Cells)
             .HasForeignKey(cell => cell.SheetRowId)

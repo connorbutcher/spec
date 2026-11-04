@@ -8,6 +8,14 @@ public sealed class TemplateSectionConfiguration : IEntityTypeConfiguration<Temp
 {
     public void Configure(EntityTypeBuilder<TemplateSection> builder)
     {
+        ConfigureTable(builder);
+        ConfigureProperties(builder);
+        ConfigureIndexes(builder);
+        ConfigureRelationships(builder);
+    }
+
+    private static void ConfigureTable(EntityTypeBuilder<TemplateSection> builder)
+    {
         builder.ToTable("TemplateSections", table =>
         {
             // 0 <= min <= initial <= max, and a max of at least 1.
@@ -24,7 +32,10 @@ public sealed class TemplateSectionConfiguration : IEntityTypeConfiguration<Temp
         });
 
         builder.HasKey(section => section.Id);
+    }
 
+    private static void ConfigureProperties(EntityTypeBuilder<TemplateSection> builder)
+    {
         builder.Property(section => section.Name)
             .IsRequired()
             .HasMaxLength(100);
@@ -33,14 +44,20 @@ public sealed class TemplateSectionConfiguration : IEntityTypeConfiguration<Temp
             .IsRequired()
             .HasConversion<string>()
             .HasMaxLength(20);
+    }
 
+    private static void ConfigureIndexes(EntityTypeBuilder<TemplateSection> builder)
+    {
         builder.HasIndex(section => section.TableTemplateVersionId);
 
         // A table version has one header and only one. A named index, so it stays separate from the one above.
         builder.HasIndex(section => section.TableTemplateVersionId, "UX_TemplateSections_OneHeaderPerVersion")
             .IsUnique()
             .HasFilter("[Role] = 'Header'");
+    }
 
+    private static void ConfigureRelationships(EntityTypeBuilder<TemplateSection> builder)
+    {
         // Deleting a version removes all of its sections in one go.
         builder.HasOne(section => section.TableTemplateVersion)
             .WithMany(version => version.Sections)
