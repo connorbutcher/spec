@@ -1,8 +1,8 @@
 import { Component, computed, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectButtonChangeEvent, SelectButtonModule } from 'primeng/selectbutton';
+import { AddButton } from '../../../shared/components/add-button/add-button';
 import { ColumnBlockLinksUtil } from '../column-block-links.util';
 import { ConfirmDeleteButton } from '../confirm-delete-button/confirm-delete-button';
 import { PanelLinkItem } from '../models/panel-link-item.model';
@@ -22,7 +22,7 @@ import { TemplatesStore } from '../templates.store';
 @Component({
   selector: 'app-template-settings',
   imports: [
-    ButtonModule,
+    AddButton,
     ConfirmDeleteButton,
     FormsModule,
     InputTextModule,

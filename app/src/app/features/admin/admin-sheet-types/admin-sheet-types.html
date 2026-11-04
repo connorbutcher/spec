@@ -5,13 +5,10 @@
     [tooltipDisabled]="canManage()"
     tooltipPosition="bottom"
   >
-    <p-button
-      icon="pi pi-plus"
+    <app-add-button
       label="Add sheet type"
-      size="small"
-      [outlined]="true"
       [disabled]="!canManage()"
-      (onClick)="isAdding.set(true)"
+      (clicked)="isAdding.set(true)"
     />
   </span>
 </header>

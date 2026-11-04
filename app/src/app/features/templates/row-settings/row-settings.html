@@ -20,22 +20,16 @@
       ariaLabel="Cells"
     />
     <div class="app-actions">
-      <p-button
-        icon="pi pi-plus"
+      <app-add-button
         label="Add cell"
-        size="small"
-        [outlined]="true"
         [disabled]="isSaving() || !canEdit()"
-        (onClick)="addCell()"
+        (clicked)="addCell()"
       />
       @for (block of columnBlocks(); track block.id) {
-        <p-button
-          icon="pi pi-plus"
+        <app-add-button
           [label]="'Add cell to ' + block.name"
-          size="small"
-          [outlined]="true"
           [disabled]="isSaving() || !canEdit()"
-          (onClick)="addCell(block.id)"
+          (clicked)="addCell(block.id)"
         />
       }
     </div>

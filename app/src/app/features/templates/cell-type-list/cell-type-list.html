@@ -5,13 +5,10 @@
   </p>
   <app-panel-link-list [items]="items()" emptyText="No cell types yet." ariaLabel="Cell types" />
   <div class="app-actions">
-    <p-button
-      icon="pi pi-plus"
+    <app-add-button
       label="New cell type"
-      size="small"
-      [outlined]="true"
       [disabled]="isSaving()"
-      (onClick)="add()"
+      (clicked)="add()"
     />
   </div>
 </div>

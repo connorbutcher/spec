@@ -4,6 +4,7 @@ import { ButtonModule } from 'primeng/button';
 import { TooltipModule } from 'primeng/tooltip';
 import { TreeModule, TreeNodeDropEvent, TreeNodeSelectEvent } from 'primeng/tree';
 import { Phase } from '../../../core/models/phase.model';
+import { AddButton } from '../../../shared/components/add-button/add-button';
 import { ErrorMessage } from '../../../shared/components/error-message/error-message';
 import { PhaseTreeUtil } from '../../phases/phase-tree.util';
 import { PhasesStore } from '../../phases/phases.store';
@@ -17,7 +18,7 @@ import { AdminUtil } from '../admin.util';
  */
 @Component({
   selector: 'app-admin-phase-tree',
-  imports: [ButtonModule, ErrorMessage, TooltipModule, TreeModule],
+  imports: [AddButton, ButtonModule, ErrorMessage, TooltipModule, TreeModule],
   providers: [TreeDragDropService],
   templateUrl: './admin-phase-tree.html',
   styleUrl: './admin-phase-tree.scss',

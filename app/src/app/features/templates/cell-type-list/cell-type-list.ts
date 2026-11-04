@@ -1,5 +1,5 @@
 import { Component, computed, inject } from '@angular/core';
-import { ButtonModule } from 'primeng/button';
+import { AddButton } from '../../../shared/components/add-button/add-button';
 import { CellKinds } from '../models/cell-kinds';
 import { PanelLinkItem } from '../models/panel-link-item.model';
 import { PanelLinkList } from '../panel-link-list/panel-link-list';
@@ -10,7 +10,7 @@ import { TemplatesStore } from '../templates.store';
 
 @Component({
   selector: 'app-cell-type-list',
-  imports: [ButtonModule, PanelLinkList],
+  imports: [AddButton, PanelLinkList],
   templateUrl: './cell-type-list.html',
   styleUrl: './cell-type-list.scss',
 })

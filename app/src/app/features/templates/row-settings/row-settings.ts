@@ -1,5 +1,5 @@
 import { Component, computed, inject, input } from '@angular/core';
-import { ButtonModule } from 'primeng/button';
+import { AddButton } from '../../../shared/components/add-button/add-button';
 import { ConfirmDeleteButton } from '../confirm-delete-button/confirm-delete-button';
 import { CellKinds } from '../models/cell-kinds';
 import { PanelLinkItem } from '../models/panel-link-item.model';
@@ -18,7 +18,7 @@ import { TemplatesStore } from '../templates.store';
  */
 @Component({
   selector: 'app-row-settings',
-  imports: [ButtonModule, ConfirmDeleteButton, MoveButtons, PanelLinkList],
+  imports: [AddButton, ConfirmDeleteButton, MoveButtons, PanelLinkList],
   templateUrl: './row-settings.html',
   styleUrl: './row-settings.scss',
 })

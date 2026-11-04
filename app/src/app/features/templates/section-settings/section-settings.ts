@@ -1,6 +1,6 @@
 import { Component, computed, inject, input } from '@angular/core';
-import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
+import { AddButton } from '../../../shared/components/add-button/add-button';
 import { ConfirmDeleteButton } from '../confirm-delete-button/confirm-delete-button';
 import { InstanceCountsFields } from '../instance-counts-fields/instance-counts-fields';
 import { InstanceCounts } from '../models/instance-counts.model';
@@ -22,7 +22,7 @@ import { TemplatesStore } from '../templates.store';
 @Component({
   selector: 'app-section-settings',
   imports: [
-    ButtonModule,
+    AddButton,
     ConfirmDeleteButton,
     InputTextModule,
     InstanceCountsFields,

@@ -1,9 +1,9 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { ButtonModule } from 'primeng/button';
 import { TableModule } from 'primeng/table';
 import { TooltipModule } from 'primeng/tooltip';
 import { CurrentUserStore } from '../../../core/auth/current-user.store';
 import { PERMISSIONS } from '../../../core/auth/permissions';
+import { AddButton } from '../../../shared/components/add-button/add-button';
 import { SheetTypeIcon } from '../../../shared/sheet-type-icon';
 import { PhasesStore } from '../../phases/phases.store';
 import { AddSheetTypeDialog } from '../add-sheet-type-dialog/add-sheet-type-dialog';
@@ -13,7 +13,7 @@ import { SheetTypeUsage } from '../models/sheet-type-usage.model';
 /** The Sheet types tab: every sheet type with the phases that have it, and the button that adds one. */
 @Component({
   selector: 'app-admin-sheet-types',
-  imports: [AddSheetTypeDialog, ButtonModule, TableModule, TooltipModule],
+  imports: [AddButton, AddSheetTypeDialog, TableModule, TooltipModule],
   templateUrl: './admin-sheet-types.html',
   styleUrl: './admin-sheet-types.scss',
 })

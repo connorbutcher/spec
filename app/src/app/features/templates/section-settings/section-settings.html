@@ -42,13 +42,10 @@
     <h3 class="app-group-title">Rows</h3>
     <app-panel-link-list [items]="rows()" emptyText="No rows yet." ariaLabel="Rows" />
     <div class="app-actions">
-      <p-button
-        icon="pi pi-plus"
+      <app-add-button
         label="Add row"
-        size="small"
-        [outlined]="true"
         [disabled]="isSaving() || !canEdit()"
-        (onClick)="addRow()"
+        (clicked)="addRow()"
       />
     </div>
 
@@ -60,13 +57,10 @@
         ariaLabel="Sub-sections"
       />
       <div class="app-actions">
-        <p-button
-          icon="pi pi-plus"
+        <app-add-button
           label="Add sub-section"
-          size="small"
-          [outlined]="true"
           [disabled]="isSaving() || !canEdit()"
-          (onClick)="addSubSection()"
+          (clicked)="addSubSection()"
         />
       </div>
 

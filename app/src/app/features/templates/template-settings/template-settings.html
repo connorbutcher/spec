@@ -49,13 +49,10 @@
       ariaLabel="Header and sections"
     />
     <div class="app-actions">
-      <p-button
-        icon="pi pi-plus"
+      <app-add-button
         label="Add section"
-        size="small"
-        [outlined]="true"
         [disabled]="isSaving() || !canEdit()"
-        (onClick)="addSection()"
+        (clicked)="addSection()"
       />
     </div>
 
@@ -67,13 +64,10 @@
         ariaLabel="Column blocks"
       />
       <div class="app-actions">
-        <p-button
-          icon="pi pi-plus"
+        <app-add-button
           label="Add column block"
-          size="small"
-          [outlined]="true"
           [disabled]="isSaving() || !canEdit()"
-          (onClick)="addColumnBlock()"
+          (clicked)="addColumnBlock()"
         />
       </div>
       <p class="app-field-note">
