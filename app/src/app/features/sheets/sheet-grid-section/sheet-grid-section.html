@@ -11,7 +11,14 @@
       <app-sheet-status-heading [style]="headingStyle" />
     }
     @for (cell of row.cells; track cell.cell.id) {
-      <app-sheet-grid-cell appSheetAnchor="cell" [anchorId]="cell.cell.id" [layout]="cell" />
+      <app-sheet-grid-cell
+        appSheetAnchor="cell"
+        [anchorId]="cell.cell.id"
+        [layout]="cell"
+        [cell]="sheetCells().get(cell.cell.id) ?? null"
+        [row]="sheetRows().get(row.rowId) ?? null"
+        [tone]="tone()"
+      />
     }
   </div>
 }

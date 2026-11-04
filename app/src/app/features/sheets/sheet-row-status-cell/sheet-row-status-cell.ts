@@ -58,7 +58,7 @@ export class SheetRowStatusCell {
     SheetIndexUtil.sectionTone(this.store.index(), this.rowId()),
   );
 
-  public readonly isSelected = computed(() => this.store.selection()?.rowId === this.rowId());
+  public readonly isSelected = computed(() => this.store.isRowSelected(this.rowId())());
 
   /** The row changed after the version being compared against. */
   public readonly changed = computed(

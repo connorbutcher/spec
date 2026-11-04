@@ -7,6 +7,7 @@ import { CellLayout } from '../../templates/models/cell-layout.model';
 import { CellType } from '../../templates/models/cell-type.model';
 import { SheetRow } from '../models/sheet-row.model';
 import { Sheet } from '../models/sheet.model';
+import { SheetIndexUtil } from '../sheet-index.util';
 import { SheetLayoutUtil } from '../sheet-layout.util';
 import { SheetStructureFixture } from '../sheet-structure.fixture';
 import { SheetStore } from '../sheet.store';
@@ -80,6 +81,16 @@ class SheetGridCellPage {
     http.expectOne('/api/cell-types').flush([TEXT_TYPE]);
     http.expectOne('/api/phases/1/sheets/2').flush(SheetResponseFixture.sheetResponse(sheet));
     await this.settle();
+    this.handDown(layout);
+    await this.settle();
+  }
+
+  /** Gives the cell its sheet cell, row and tone, as the section it sits in does. */
+  public handDown(layout: CellLayout): void {
+    const index = TestBed.inject(SheetStore).index();
+    this.fixture.componentRef.setInput('cell', index.cells.get(layout.cell.id) ?? null);
+    this.fixture.componentRef.setInput('row', index.rows.get(layout.rowId) ?? null);
+    this.fixture.componentRef.setInput('tone', SheetIndexUtil.sectionTone(index, layout.rowId));
   }
 
   public async settle(): Promise<void> {

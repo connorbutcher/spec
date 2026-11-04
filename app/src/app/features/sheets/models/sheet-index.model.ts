@@ -13,4 +13,6 @@ export interface SheetIndex {
   sectionParent: ReadonlyMap<number, number | null>;
   sectionTable: ReadonlyMap<number, number>;
   rowSection: ReadonlyMap<number, number>;
+  /** The row each cell is in. */
+  cellRow: ReadonlyMap<number, number>;
 }

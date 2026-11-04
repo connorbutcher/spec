@@ -26,7 +26,6 @@ import { SheetRow } from '../models/sheet-row.model';
 import { SheetCellEditor } from '../sheet-cell-editor/sheet-cell-editor';
 import { SheetCellMarks } from '../sheet-cell-marks/sheet-cell-marks';
 import { SheetCellValue } from '../sheet-cell-value/sheet-cell-value';
-import { SheetIndexUtil } from '../sheet-index.util';
 import { SheetLockUtil } from '../sheet-lock.util';
 import { SheetStore } from '../sheet.store';
 
@@ -75,13 +74,17 @@ const FLEX_ALIGNMENT: Readonly<Record<string, string>> = {
 export class SheetGridCell {
   public readonly layout = input.required<CellLayout>();
 
-  public readonly cell = computed<SheetCell | null>(
-    () => this.store.index().cells.get(this.layout().cell.id) ?? null,
-  );
+  /**
+   * The sheet's copy of the cell and of its row, handed down by the section. They are the same objects
+   * until that cell or row really changes (see `reuseUnchanged`), so a refresh of the sheet only reaches
+   * the cells it changed, not every cell looking itself up again.
+   */
+  public readonly cell = input<SheetCell | null>(null);
 
-  public readonly row = computed<SheetRow | null>(
-    () => this.store.index().rows.get(this.layout().rowId) ?? null,
-  );
+  public readonly row = input<SheetRow | null>(null);
+
+  /** The cell's fill, from where its section sits. A background set in the cell's own style takes precedence. */
+  public readonly tone = input<SectionTone>('plain');
 
   public readonly cellType = computed<CellType | null>(
     () => this.store.cellTypes().get(this.layout().cell.cellTypeId) ?? null,
@@ -127,14 +130,9 @@ export class SheetGridCell {
     const editable = this.editable();
     return (
       editable !== null &&
-      (editable.cellType.kind === 'Checkbox' || this.store.editingCellId() === editable.cell.id)
+      (editable.cellType.kind === 'Checkbox' || this.store.isEditing(editable.cell.id)())
     );
   });
-
-  /** The cell's fill, from where its section sits. A background set in the cell's own style takes precedence. */
-  public readonly tone = computed<SectionTone>(() =>
-    SheetIndexUtil.sectionTone(this.store.index(), this.layout().rowId),
-  );
 
   /** A caption in the header names its column; every other cell is an ordinary cell. */
   public readonly role = computed(() =>
@@ -164,9 +162,7 @@ export class SheetGridCell {
     return align ? { ...text, 'align-items': FLEX_ALIGNMENT[align] ?? 'flex-start' } : text;
   });
 
-  public readonly isSelected = computed(
-    () => this.store.selection()?.rowId === this.layout().rowId,
-  );
+  public readonly isSelected = computed(() => this.store.isRowSelected(this.layout().rowId)());
 
   public readonly caption = computed(() => this.layout().cell.caption ?? '');
 

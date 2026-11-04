@@ -29,12 +29,7 @@ export class RowCheckoutUtil {
 
   /** The row a cell is in, or null when the cell isn't on the sheet. */
   public static rowIdOfCell(index: SheetIndex, cellId: number): number | null {
-    for (const row of index.rows.values()) {
-      if (row.cells.some((cell) => cell.id === cellId)) {
-        return row.id;
-      }
-    }
-    return null;
+    return index.cellRow.get(cellId) ?? null;
   }
 
   /**

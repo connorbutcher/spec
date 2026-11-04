@@ -1,8 +1,18 @@
 import { httpResource } from '@angular/common/http';
-import { computed, inject, Injectable, linkedSignal, signal, untracked } from '@angular/core';
+import {
+  computed,
+  effect,
+  inject,
+  Injectable,
+  linkedSignal,
+  Signal,
+  signal,
+  untracked,
+} from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { map } from 'rxjs';
+import { KeyedFlags } from '../../shared/keyed-flags';
 import { ReuseUnchangedUtil } from '../../shared/reuse-unchanged.util';
 import { ApiErrorMessage } from '../templates/api-error-message';
 import { CellType } from '../templates/models/cell-type.model';
@@ -115,7 +125,7 @@ export class SheetStore {
    * The cell whose control is on screen. Every other cell that can be edited shows its plain value
    * until it is focused, so a sheet doesn't build a control for each of its cells.
    */
-  public readonly editingCellId = signal<number | null>(null);
+  public readonly editingCellId = computed(() => this.editingCell());
 
   /** The reason the last change failed, until it's dismissed or another change is made. */
   public readonly error = signal<string | null>(null);
@@ -130,6 +140,16 @@ export class SheetStore {
   private readonly rowCheckouts = inject(RowCheckoutStore, { optional: true });
   private readonly route = inject(ActivatedRoute);
   private readonly rawSelection = signal<SheetSelection | null>(null);
+  private readonly editingCell = signal<number | null>(null);
+
+  /**
+   * The selected row and the cell being edited, as a flag per row and per cell. A sheet can have
+   * thousands of cells; with a flag each, a click changes what two rows or two cells show, instead of
+   * making every cell on the sheet compare itself with the selection.
+   */
+  private readonly selectedRows = new KeyedFlags();
+  private readonly editingCells = new KeyedFlags();
+
   private readonly inFlight = signal(0);
   private tail: Promise<unknown> = Promise.resolve();
 
@@ -160,6 +180,14 @@ export class SheetStore {
       : null,
   );
 
+  constructor() {
+    // The selection can also end because its row left the sheet, so its flags follow what it ends up as.
+    effect(() => {
+      const rowId = this.selection()?.rowId ?? null;
+      untracked(() => this.selectedRows.set(rowId));
+    });
+  }
+
   public reload(): void {
     this.sheetResource.reload();
     if (this.cellTypesResource.status() === 'error') {
@@ -185,18 +213,28 @@ export class SheetStore {
   public setView(view: SheetView): void {
     this.view.set(view);
     this.rawSelection.set(null);
-    this.editingCellId.set(null);
+    this.setEditing(null);
+  }
+
+  /** Whether the row is the selected one. One flag per row: see `selectedRows`. */
+  public isRowSelected(rowId: number): Signal<boolean> {
+    return this.selectedRows.flag(rowId);
+  }
+
+  /** Whether the cell's control is on screen. One flag per cell: see `editingCells`. */
+  public isEditing(cellId: number): Signal<boolean> {
+    return this.editingCells.flag(cellId);
   }
 
   /** Puts a cell's control on screen, in place of whichever cell had one. */
   public edit(cellId: number): void {
-    this.editingCellId.set(cellId);
+    this.setEditing(cellId);
   }
 
   /** The user left a cell: it goes back to its plain value, unless another cell has taken over since. */
   public stopEditing(cellId: number): void {
-    if (this.editingCellId() === cellId) {
-      this.editingCellId.set(null);
+    if (this.editingCell() === cellId) {
+      this.setEditing(null);
     }
   }
 
@@ -358,6 +396,11 @@ export class SheetStore {
     } finally {
       this.publishing.set(null);
     }
+  }
+
+  private setEditing(cellId: number | null): void {
+    this.editingCell.set(cellId);
+    this.editingCells.set(cellId);
   }
 
   /** A sheet as it arrives from a read. Only a quiet `refresh` keeps the open copy's unchanged objects. */

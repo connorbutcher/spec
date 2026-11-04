@@ -18,6 +18,7 @@ export class SheetIndexUtil {
       sectionParent: new Map<number, number | null>(),
       sectionTable: new Map<number, number>(),
       rowSection: new Map<number, number>(),
+      cellRow: new Map<number, number>(),
     } satisfies SheetIndex;
 
     for (const table of sheet?.tables ?? []) {
@@ -77,7 +78,12 @@ export class SheetIndexUtil {
 
   /** The tone of a row's cells, from the section the row is in. Deeper groups are lighter. */
   public static sectionTone(index: SheetIndex, rowId: number): SectionTone {
-    const section = index.sections.get(index.rowSection.get(rowId) ?? -1);
+    return SheetIndexUtil.toneOfSection(index, index.rowSection.get(rowId) ?? -1);
+  }
+
+  /** The tone of the cells of a section's own rows. Deeper groups are lighter. */
+  public static toneOfSection(index: SheetIndex, sectionId: number): SectionTone {
+    const section = index.sections.get(sectionId);
     if (section === undefined) {
       return 'plain';
     }
@@ -100,6 +106,7 @@ export class SheetIndexUtil {
       index.rowSection.set(row.id, section.id);
       for (const cell of row.cells) {
         index.cells.set(cell.id, cell);
+        index.cellRow.set(cell.id, row.id);
       }
     }
     for (const child of section.sections) {

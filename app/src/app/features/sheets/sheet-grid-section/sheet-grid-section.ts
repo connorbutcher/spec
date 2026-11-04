@@ -3,7 +3,10 @@ import { SectionLayout } from '../../templates/models/section-layout.model';
 import { SheetGridCell } from '../sheet-grid-cell/sheet-grid-cell';
 import { CellLayout } from '../../templates/models/cell-layout.model';
 import { RowLayout } from '../models/row-layout.model';
+import { SectionTone } from '../models/section-tone';
+import { SheetCell } from '../models/sheet-cell.model';
 import { SheetChange } from '../models/sheet-change.model';
+import { SheetRow } from '../models/sheet-row.model';
 import { SheetAnchor } from '../sheet-anchor.directive';
 import { SheetChangeTag } from '../sheet-change-tag/sheet-change-tag';
 import { SheetIndexUtil } from '../sheet-index.util';
@@ -67,6 +70,26 @@ export class SheetGridSection {
   /** The sheet's copy of this section, which knows what can be added to it. */
   public readonly sheetSection = computed(
     () => this.store.index().sections.get(this.layout().section.id) ?? null,
+  );
+
+  /** The sheet's copy of each of the section's own rows, by id, for its cells. */
+  public readonly sheetRows = computed<ReadonlyMap<number, SheetRow>>(
+    () => new Map((this.sheetSection()?.rows ?? []).map((row) => [row.id, row])),
+  );
+
+  /** The sheet's copy of each cell in the section's own rows, by id. */
+  public readonly sheetCells = computed<ReadonlyMap<number, SheetCell>>(
+    () =>
+      new Map(
+        (this.sheetSection()?.rows ?? []).flatMap((row) =>
+          row.cells.map((cell): [number, SheetCell] => [cell.id, cell]),
+        ),
+      ),
+  );
+
+  /** The fill of the section's cells. Worked out once here, not by each cell. */
+  public readonly tone = computed<SectionTone>(() =>
+    SheetIndexUtil.toneOfSection(this.store.index(), this.layout().section.id),
   );
 
   /** A group holds other sections; it gets a bar and boundary around it and everything inside. */

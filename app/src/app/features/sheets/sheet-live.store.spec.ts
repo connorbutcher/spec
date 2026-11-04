@@ -55,6 +55,10 @@ describe('SheetLiveStore', () => {
       [firstRow.id, firstRow],
       [secondRow.id, secondRow],
     ]),
+    cellRow: new Map([
+      ...firstRow.cells.map((cell): [number, number] => [cell.id, firstRow.id]),
+      ...secondRow.cells.map((cell): [number, number] => [cell.id, secondRow.id]),
+    ]),
   };
   const editingCellId = signal<number | null>(null);
   const sheetError = signal<string | null>(null);
