@@ -10,7 +10,6 @@ export class SheetPresenceUtil {
     ];
   }
 
-  /** How many of the rows are checked out to each user, by user id. */
   public static checkedOutRowCounts(rows: Iterable<SheetRow>): ReadonlyMap<number, number> {
     const counts = new Map<number, number>();
     for (const row of rows) {

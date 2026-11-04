@@ -8,7 +8,6 @@ import { SheetTable } from './models/sheet-table.model';
 import { Sheet } from './models/sheet.model';
 
 export class SheetIndexUtil {
-  /** Indexes every table, section, row and cell of the sheet by id. */
   public static buildSheetIndex(sheet: Sheet | null): SheetIndex {
     const index = {
       tables: new Map<number, SheetTable>(),
@@ -30,7 +29,6 @@ export class SheetIndexUtil {
     return index;
   }
 
-  /** The sheet's cells with the given ids. */
   public static cellsById(sheet: Sheet, cellIds: number[]): Set<object> {
     if (cellIds.length === 0) {
       return new Set();

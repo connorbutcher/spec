@@ -4,7 +4,6 @@ import { SheetDraftSummary } from './models/sheet-draft-summary.model';
 import { SheetLabelsUtil } from './sheet-labels.util';
 
 export class PublishScopeUtil {
-  /** How many changes other people have waiting on the sheet. */
   public static otherDraftCount(others: readonly SheetDraftSummary[]): number {
     return others.reduce((total, summary) => total + summary.draftCount, 0);
   }

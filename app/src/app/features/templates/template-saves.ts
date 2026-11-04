@@ -8,7 +8,6 @@ import { ApiErrorMessage } from './api-error-message';
  */
 @Injectable()
 export class TemplateSaves {
-  /** True while a change is being saved. */
   public readonly isSaving = computed(() => this.pending() > 0);
 
   /** The last save's error, shown until dismissed or the next save. */

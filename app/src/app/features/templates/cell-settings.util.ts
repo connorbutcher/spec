@@ -23,7 +23,6 @@ export class CellSettingsUtil {
     return override?.kind === defaults.kind ? CellSettingsUtil.applyOverrides(defaults, override) : defaults;
   }
 
-  /** The style a cell uses. */
   public static effectiveStyle(defaults: CellStyle, override: CellStyle | null): CellStyle {
     return CellSettingsUtil.applyOverrides(defaults, override);
   }

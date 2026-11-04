@@ -12,7 +12,6 @@ export class KeyedFlags {
   private readonly flags = new Map<number, WritableSignal<boolean>>();
   private current: number | null = null;
 
-  /** Whether `key` is the one that is on. */
   public flag(key: number): Signal<boolean> {
     let flag = this.flags.get(key);
     if (flag === undefined) {

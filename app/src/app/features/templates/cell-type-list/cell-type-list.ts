@@ -8,7 +8,6 @@ import { SectionLinksUtil } from '../section-links.util';
 import { CellTypesStore } from '../cell-types.store';
 import { TemplatesStore } from '../templates.store';
 
-/** Panel page listing every cell type, with a way to add one. */
 @Component({
   selector: 'app-cell-type-list',
   imports: [ButtonModule, PanelLinkList],

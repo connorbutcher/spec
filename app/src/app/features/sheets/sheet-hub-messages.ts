@@ -9,7 +9,6 @@ export const SHEET_HUB = {
   joinSheet: 'JoinSheet',
   checkOutRow: 'CheckOutRow',
   releaseRow: 'ReleaseRow',
-  /** Messages the server sends. */
   presenceChanged: 'PresenceChanged',
   checkoutsChanged: 'CheckoutsChanged',
   sheetChanged: 'SheetChanged',

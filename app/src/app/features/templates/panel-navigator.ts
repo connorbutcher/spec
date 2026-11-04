@@ -42,7 +42,6 @@ export class PanelNavigator {
     this.index.set(kept.length);
   }
 
-  /** Starts a fresh history at `ref`. */
   public reset(ref: PanelRef): void {
     this.history.set([ref]);
     this.index.set(0);

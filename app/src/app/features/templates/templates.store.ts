@@ -58,7 +58,6 @@ export class TemplatesStore {
     return id === null ? null : Number(id);
   });
 
-  /** The open template, once it has loaded. */
   public readonly template = computed<TableTemplate | null>(() => {
     const id = this.selectedTemplateId();
     if (id === null || !this.templateResource.hasValue()) {
@@ -90,7 +89,6 @@ export class TemplatesStore {
     return template && template.sections.length > 0 ? TemplateLayoutUtil.layoutTemplate(template) : null;
   });
 
-  /** True while a change to a template or a cell type is being saved. */
   public readonly isSaving = computed(() => this.saves.isSaving());
 
   /** The last save's error, shown until dismissed or the next save. */

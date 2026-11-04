@@ -1,7 +1,6 @@
 import { TemplateSection } from './models/template-section.model';
 
 export class SectionRoleUtil {
-  /** Whether a section is the table's header. */
   public static isHeader(section: TemplateSection): boolean {
     return section.role === 'Header';
   }

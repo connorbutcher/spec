@@ -1,6 +1,5 @@
 import { PanelRef } from './panel-ref';
 
-/** One entry in a panel's list of things to drill into. */
 export type PanelLinkItem = {
   ref: PanelRef;
   label: string;

@@ -29,7 +29,6 @@ export class PhaseTreeUtil {
     return PhaseTreeUtil.toNodes(null, childrenByParent);
   }
 
-  /** Every node in the tree, keyed by phase id. */
   public static indexTreeNodes(nodes: readonly TreeNode<Phase>[]): Map<number, TreeNode<Phase>> {
     const index = new Map<number, TreeNode<Phase>>();
     PhaseTreeUtil.addToIndex(nodes, index);

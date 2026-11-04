@@ -3,10 +3,7 @@
  * Block cells count their columns from their block's first column.
  */
 export type ColumnPlan = {
-  /** Every column of the table. */
   total: number;
-  /** The table column each block starts on, by block id. */
   blockStarts: ReadonlyMap<number, number>;
-  /** How many columns each block takes, by block id. */
   blockWidths: ReadonlyMap<number, number>;
 }

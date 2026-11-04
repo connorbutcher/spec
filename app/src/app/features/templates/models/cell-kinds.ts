@@ -45,7 +45,6 @@ export const CELL_KINDS: readonly CellKindInfo[] = [
 ];
 
 export class CellKinds {
-  /** Display details for a cell kind. */
   public static cellKindInfo(kind: CellKind): CellKindInfo {
     return CELL_KINDS.find((info) => info.kind === kind) ?? CELL_KINDS[2];
   }
