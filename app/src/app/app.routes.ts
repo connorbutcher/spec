@@ -1,7 +1,10 @@
 import { Routes } from '@angular/router';
 
-const comingSoon = () =>
-  import('./features/coming-soon/coming-soon-page/coming-soon-page').then((m) => m.ComingSoonPage);
+export class AppRoutes {
+  public static comingSoon() {
+    return import('./features/coming-soon/coming-soon-page/coming-soon-page').then((m) => m.ComingSoonPage);
+  }
+}
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'phases' },
@@ -24,7 +27,7 @@ export const routes: Routes = [
   {
     path: 'help',
     title: 'Help · PU Spec Sheet',
-    loadComponent: comingSoon,
+    loadComponent: AppRoutes.comingSoon,
     data: { title: 'Help', icon: 'pi-question-circle' },
   },
   { path: '**', redirectTo: 'phases' },

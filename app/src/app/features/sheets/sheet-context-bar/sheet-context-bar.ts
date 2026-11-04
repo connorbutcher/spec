@@ -1,14 +1,14 @@
 import { Component, computed, inject } from '@angular/core';
 import { MenuItem } from 'primeng/api';
 import { BreadcrumbModule } from 'primeng/breadcrumb';
-import { itemStatus } from '../item-status.util';
+import { ItemStatusUtil } from '../item-status.util';
 import { ItemStatus } from '../models/item-status.model';
 import { SheetRow } from '../models/sheet-row.model';
 import { SheetContextActions } from '../sheet-context-actions/sheet-context-actions';
 import { SheetContextAdd } from '../sheet-context-add/sheet-context-add';
-import { sectionAncestors } from '../sheet-index.util';
-import { rowLabel, sectionLabel, tableLabel } from '../sheet-labels.util';
-import { otherUsersLock } from '../sheet-lock.util';
+import { SheetIndexUtil } from '../sheet-index.util';
+import { SheetLabelsUtil } from '../sheet-labels.util';
+import { SheetLockUtil } from '../sheet-lock.util';
 import { SheetStatus } from '../sheet-status/sheet-status';
 import { SheetTakeoverButton } from '../sheet-takeover-button/sheet-takeover-button';
 import { SheetStore } from '../sheet.store';
@@ -31,6 +31,7 @@ import { SheetStore } from '../sheet.store';
   templateUrl: './sheet-context-bar.html',
   styleUrl: './sheet-context-bar.scss',
 })
+
 export class SheetContextBar {
   public readonly row = computed<SheetRow | null>(() => {
     const rowId = this.store.selection()?.rowId ?? null;
@@ -47,19 +48,19 @@ export class SheetContextBar {
     }
     const steps: MenuItem[] = [
       {
-        label: tableLabel(table),
+        label: SheetLabelsUtil.tableLabel(table),
         command: () => this.store.select({ tableId: table.id, sectionId: null, rowId: null }),
       },
     ];
     const section = index.sections.get(selection.sectionId ?? -1);
     if (section !== undefined) {
-      for (const step of [...sectionAncestors(index, section.id), section]) {
-        steps.push({ label: sectionLabel(step), command: () => this.store.selectSection(step.id) });
+      for (const step of [...SheetIndexUtil.sectionAncestors(index, section.id), section]) {
+        steps.push({ label: SheetLabelsUtil.sectionLabel(step), command: () => this.store.selectSection(step.id) });
       }
     }
     const row = this.row();
     if (row !== null) {
-      steps.push({ label: rowLabel(row) ?? 'Row' });
+      steps.push({ label: SheetLabelsUtil.rowLabel(row) ?? 'Row' });
     }
     return steps;
   });
@@ -69,10 +70,10 @@ export class SheetContextBar {
   /** Where the selected row stands, written as it is in the status column but never cut short. */
   public readonly rowStatus = computed<ItemStatus | null>(() => {
     const row = this.row();
-    return row === null ? null : itemStatus(row, this.store.publishing());
+    return row === null ? null : ItemStatusUtil.itemStatus(row, this.store.publishing());
   });
 
-  public readonly lockedByOther = computed(() => otherUsersLock(this.row()?.lock) !== null);
+  public readonly lockedByOther = computed(() => SheetLockUtil.otherUsersLock(this.row()?.lock) !== null);
 
   public readonly canEdit = computed(() => this.store.canEdit());
 

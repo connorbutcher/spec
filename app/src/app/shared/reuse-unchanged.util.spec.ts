@@ -1,11 +1,11 @@
-import { reuseUnchanged } from './reuse-unchanged.util';
+import { ReuseUnchangedUtil } from './reuse-unchanged.util';
 
 describe('reuseUnchanged', () => {
   it('returns the previous object when nothing differs', () => {
     const previous = { id: 1, rows: [{ id: 2, cells: [{ id: 3, value: 'a' }] }] };
     const next = structuredClone(previous);
 
-    expect(reuseUnchanged(previous, next)).toBe(previous);
+    expect(ReuseUnchangedUtil.reuseUnchanged(previous, next)).toBe(previous);
   });
 
   it('keeps unchanged parts and replaces only the path to a change', () => {
@@ -18,7 +18,7 @@ describe('reuseUnchanged', () => {
     const next = structuredClone(previous);
     next.rows[1].cells[0].value = 'changed';
 
-    const result = reuseUnchanged(previous, next);
+    const result = ReuseUnchangedUtil.reuseUnchanged(previous, next);
 
     expect(result).toEqual(next);
     expect(result).not.toBe(previous);
@@ -31,7 +31,7 @@ describe('reuseUnchanged', () => {
     const next = { rows: [{ id: 1 }, { id: 3 }] };
     const nextRows = next.rows;
 
-    reuseUnchanged(previous, next);
+    ReuseUnchangedUtil.reuseUnchanged(previous, next);
 
     expect(previous).toEqual({ rows: [{ id: 1 }, { id: 2 }] });
     expect(next.rows).toBe(nextRows);
@@ -41,11 +41,11 @@ describe('reuseUnchanged', () => {
   it('sees added, removed and reordered items as changes', () => {
     const previous = { rows: [{ id: 1 }, { id: 2 }] };
 
-    expect(reuseUnchanged(previous, { rows: [{ id: 1 }] }).rows).toEqual([{ id: 1 }]);
-    expect(reuseUnchanged(previous, { rows: [{ id: 1 }, { id: 2 }, { id: 3 }] }).rows).toHaveLength(
+    expect(ReuseUnchangedUtil.reuseUnchanged(previous, { rows: [{ id: 1 }] }).rows).toEqual([{ id: 1 }]);
+    expect(ReuseUnchangedUtil.reuseUnchanged(previous, { rows: [{ id: 1 }, { id: 2 }, { id: 3 }] }).rows).toHaveLength(
       3,
     );
-    expect(reuseUnchanged(previous, { rows: [{ id: 2 }, { id: 1 }] }).rows).toEqual([
+    expect(ReuseUnchangedUtil.reuseUnchanged(previous, { rows: [{ id: 2 }, { id: 1 }] }).rows).toEqual([
       { id: 2 },
       { id: 1 },
     ]);
@@ -56,22 +56,22 @@ describe('reuseUnchanged', () => {
     const renamed: Record<string, unknown> = { b: undefined, lock: null };
     const locked: Record<string, unknown> = { a: undefined, lock: { isMine: true } };
 
-    expect(Object.keys(reuseUnchanged(previous, renamed))).toEqual(['b', 'lock']);
-    expect(reuseUnchanged(previous, locked)).toEqual(locked);
-    expect(reuseUnchanged(locked, { a: undefined, lock: null })).toEqual(previous);
+    expect(Object.keys(ReuseUnchangedUtil.reuseUnchanged(previous, renamed))).toEqual(['b', 'lock']);
+    expect(ReuseUnchangedUtil.reuseUnchanged(previous, locked)).toEqual(locked);
+    expect(ReuseUnchangedUtil.reuseUnchanged(locked, { a: undefined, lock: null })).toEqual(previous);
   });
 
   it('does not mistake an array for an object with the same keys', () => {
     const next = { 0: 'a' };
 
-    expect(reuseUnchanged(['a'], next)).toBe(next);
+    expect(ReuseUnchangedUtil.reuseUnchanged(['a'], next)).toBe(next);
   });
 
   it('returns the next value when there is nothing to compare it with', () => {
     const next = { id: 1 };
 
-    expect(reuseUnchanged(undefined, next)).toBe(next);
-    expect(reuseUnchanged(null, next)).toBe(next);
+    expect(ReuseUnchangedUtil.reuseUnchanged(undefined, next)).toBe(next);
+    expect(ReuseUnchangedUtil.reuseUnchanged(null, next)).toBe(next);
   });
 
   it('keeps the parts marked as fresh, and so the path to them, even when they are equal', () => {
@@ -79,7 +79,7 @@ describe('reuseUnchanged', () => {
     const next = structuredClone(previous);
     const fresh = next.rows[1];
 
-    const result = reuseUnchanged(previous, next, (part) => part === fresh);
+    const result = ReuseUnchangedUtil.reuseUnchanged(previous, next, (part) => part === fresh);
 
     expect(result).not.toBe(previous);
     expect(result.rows[0]).toBe(previous.rows[0]);

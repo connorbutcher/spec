@@ -3,7 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { CellConfiguration } from '../../templates/models/cell-configuration';
 import { CELL_INPUT_STYLE } from '../cell-input-style';
-import { valueRequest } from '../cell-value.util';
+import { CellValueUtil } from '../cell-value.util';
 import { CellValueRequest } from '../models/cell-value-request.model';
 import { SheetCell } from '../models/sheet-cell.model';
 
@@ -21,6 +21,7 @@ import { SheetCell } from '../models/sheet-cell.model';
     '(keydown.escape)': 'revert()',
   },
 })
+
 export class SheetNumberCell {
   public readonly cell = input.required<SheetCell>();
   public readonly configuration = input.required<CellConfiguration>();
@@ -49,7 +50,7 @@ export class SheetNumberCell {
   public commit(): void {
     const value = this.number();
     if (value !== this.cell().numberValue) {
-      this.changed.emit(valueRequest(this.cell(), 'Number', value));
+      this.changed.emit(CellValueUtil.valueRequest(this.cell(), 'Number', value));
     }
   }
 

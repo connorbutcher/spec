@@ -4,9 +4,9 @@ import { ButtonModule } from 'primeng/button';
 import { MenuModule } from 'primeng/menu';
 import { SheetSection } from '../models/sheet-section.model';
 import { SheetTable } from '../models/sheet-table.model';
-import { addableSection } from '../sheet-action-target.util';
-import { sectionLabel, tableLabel } from '../sheet-labels.util';
-import { otherUsersLock } from '../sheet-lock.util';
+import { SheetActionTargetUtil } from '../sheet-action-target.util';
+import { SheetLabelsUtil } from '../sheet-labels.util';
+import { SheetLockUtil } from '../sheet-lock.util';
 import { SheetStore } from '../sheet.store';
 
 /**
@@ -21,6 +21,7 @@ import { SheetStore } from '../sheet.store';
   templateUrl: './sheet-context-add.html',
   styleUrl: './sheet-context-add.scss',
 })
+
 export class SheetContextAdd {
   public readonly items = computed<MenuItem[]>(() =>
     [this.sectionGroup(), this.tableGroup(), this.newTableGroup()].filter(
@@ -35,11 +36,11 @@ export class SheetContextAdd {
   /** The selected table, unless someone else has a change to it in progress. */
   private readonly table = computed<SheetTable | null>(() => {
     const table = this.store.index().tables.get(this.store.selection()?.tableId ?? -1);
-    return table !== undefined && otherUsersLock(table.lock) === null ? table : null;
+    return table !== undefined && SheetLockUtil.otherUsersLock(table.lock) === null ? table : null;
   });
 
   private readonly section = computed<SheetSection | null>(() =>
-    addableSection(this.store.index(), this.store.selection()),
+    SheetActionTargetUtil.addableSection(this.store.index(), this.store.selection()),
   );
 
   private readonly sectionGroup = computed<MenuItem>(() => {
@@ -49,7 +50,7 @@ export class SheetContextAdd {
       return {};
     }
     return {
-      label: `In ${sectionLabel(section)}`,
+      label: `In ${SheetLabelsUtil.sectionLabel(section)}`,
       items: section.addableSections.map((addable) => ({
         label: addable.name,
         icon: 'pi pi-table',
@@ -65,7 +66,7 @@ export class SheetContextAdd {
       return {};
     }
     return {
-      label: `In ${tableLabel(table)}`,
+      label: `In ${SheetLabelsUtil.tableLabel(table)}`,
       items: [
         ...table.addableSections.map((addable) => ({
           label: addable.name,

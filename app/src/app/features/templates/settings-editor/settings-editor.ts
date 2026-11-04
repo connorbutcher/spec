@@ -1,11 +1,11 @@
 import { Component, computed, input, output } from '@angular/core';
-import { hasSetting, withSetting } from '../cell-settings.util';
+import { CellSettingsUtil } from '../cell-settings.util';
 import { SettingField } from '../models/setting-field.model';
 import { SettingValue } from '../models/setting-value';
 import { SettingValues } from '../models/setting-values';
 import { SettingRow } from '../setting-row/setting-row';
 import { SettingEntry } from '../models/setting-entry.model';
-import { formatSetting } from '../format-setting.util';
+import { FormatSettingUtil } from '../format-setting.util';
 
 /**
  * Edits a configuration or style object, one row per field. Without `overrides` it edits `defaults`
@@ -20,6 +20,7 @@ import { formatSetting } from '../format-setting.util';
   templateUrl: './settings-editor.html',
   styleUrl: './settings-editor.scss',
 })
+
 export class SettingsEditor {
   public readonly fields = input.required<readonly SettingField[]>();
   public readonly defaults = input.required<object>();
@@ -35,22 +36,22 @@ export class SettingsEditor {
     const defaults = this.defaults() as SettingValues;
     const overrides = this.overridable() ? (this.overrides() as SettingValues | null) : null;
     return this.fields().map((field) => {
-      const overridden = hasSetting(overrides, field.key);
+      const overridden = CellSettingsUtil.hasSetting(overrides, field.key);
       return {
         field,
         value: (overridden ? overrides?.[field.key] : defaults[field.key]) ?? null,
         overridden,
-        defaultText: formatSetting(field, defaults[field.key] ?? null),
+        defaultText: FormatSettingUtil.formatSetting(field, defaults[field.key] ?? null),
       };
     });
   });
 
   public set(field: SettingField, value: SettingValue): void {
-    this.changed.emit(withSetting(this.target(), field.key, value));
+    this.changed.emit(CellSettingsUtil.withSetting(this.target(), field.key, value));
   }
 
   public reset(field: SettingField): void {
-    this.changed.emit(withSetting(this.target(), field.key, null));
+    this.changed.emit(CellSettingsUtil.withSetting(this.target(), field.key, null));
   }
 
   /** What an edit changes: the overrides on a cell, else the defaults. */

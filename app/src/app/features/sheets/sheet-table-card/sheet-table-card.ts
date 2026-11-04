@@ -2,13 +2,13 @@ import { CdkDragHandle } from '@angular/cdk/drag-drop';
 import { Component, computed, inject, input, linkedSignal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { InputTextModule } from 'primeng/inputtext';
-import { itemStatus } from '../item-status.util';
+import { ItemStatusUtil } from '../item-status.util';
 import { ItemStatus } from '../models/item-status.model';
 import { SheetTable } from '../models/sheet-table.model';
 import { SheetGrid } from '../sheet-grid/sheet-grid';
-import { tableLabel } from '../sheet-labels.util';
+import { SheetLabelsUtil } from '../sheet-labels.util';
 import { SheetAnchor } from '../sheet-anchor.directive';
-import { otherUsersLock } from '../sheet-lock.util';
+import { SheetLockUtil } from '../sheet-lock.util';
 import { SheetStatus } from '../sheet-status/sheet-status';
 import { SheetStore } from '../sheet.store';
 
@@ -23,22 +23,23 @@ import { SheetStore } from '../sheet.store';
   templateUrl: './sheet-table-card.html',
   styleUrl: './sheet-table-card.scss',
 })
+
 export class SheetTableCard {
   public readonly table = input.required<SheetTable>();
 
-  public readonly label = computed(() => tableLabel(this.table()));
+  public readonly label = computed(() => SheetLabelsUtil.tableLabel(this.table()));
 
   /** The title as it is being typed. It is saved when focus leaves the box; Escape puts the saved one back. */
   public readonly title = linkedSignal(() => this.table().title ?? '');
 
   /** The title and position can be changed unless someone else has a change to them in progress. */
   public readonly canEditTable = computed(
-    () => this.store.canEdit() && otherUsersLock(this.table().lock) === null,
+    () => this.store.canEdit() && SheetLockUtil.otherUsersLock(this.table().lock) === null,
   );
 
   /** New, a draft and whose, or being published: where the table itself stands, beside its template's name. */
   public readonly status = computed<ItemStatus>(() =>
-    itemStatus(this.table(), this.store.publishing()),
+    ItemStatusUtil.itemStatus(this.table(), this.store.publishing()),
   );
 
   /** The table itself is selected, not a section or row in it. */

@@ -1,23 +1,19 @@
 import { TemplateLayout } from '../templates/models/template-layout.model';
-import { layoutSheetTable } from './sheet-layout.util';
+import { SheetLayoutUtil } from './sheet-layout.util';
 import {
-  addStatusColumn,
-  rowStatusStyle,
-  STATUS_COLUMN_WIDTH,
-  statusHeadingStyle,
-} from './sheet-status-column.util';
-import { fixtureTable } from './sheet-structure.fixture';
+  STATUS_COLUMN_WIDTH, SheetStatusColumnUtil } from './sheet-status-column.util';
+import { SheetStructureFixture } from './sheet-structure.fixture';
 
 describe('addStatusColumn', () => {
   it('puts a fixed column in front of the table columns', () => {
-    const layout = layoutSheetTable(fixtureTable());
+    const layout = SheetLayoutUtil.layoutSheetTable(SheetStructureFixture.fixtureTable());
     expect(layout.style['grid-template-columns']).toBe(
       `${STATUS_COLUMN_WIDTH}px repeat(5, minmax(112px, 1fr))`,
     );
   });
 
   it('moves every cell one column right and keeps its span, in nested sections too', () => {
-    const layout = layoutSheetTable(fixtureTable());
+    const layout = SheetLayoutUtil.layoutSheetTable(SheetStructureFixture.fixtureTable());
     const group = layout.sections[1];
     expect(layout.sections[0].cells.map((cell) => cell.style['grid-column'])).toEqual([
       '2 / span 1',
@@ -31,7 +27,7 @@ describe('addStatusColumn', () => {
   });
 
   it('leaves sections spanning every column, so each takes in the status column', () => {
-    const layout = layoutSheetTable(fixtureTable());
+    const layout = SheetLayoutUtil.layoutSheetTable(SheetStructureFixture.fixtureTable());
     expect(layout.sections.map((section) => section.style['grid-column'])).toEqual([
       '1 / -1',
       '1 / -1',
@@ -39,7 +35,7 @@ describe('addStatusColumn', () => {
   });
 
   it('keeps pinned columns pinned just right of the status column', () => {
-    const layout = layoutSheetTable({ ...fixtureTable(), stickyColumnCount: 2 });
+    const layout = SheetLayoutUtil.layoutSheetTable({ ...SheetStructureFixture.fixtureTable(), stickyColumnCount: 2 });
     const [first, second, third] = layout.sections[0].cells;
     expect(first.style['left']).toBe(`${STATUS_COLUMN_WIDTH}px`);
     expect(second.style['left']).toBe(`${STATUS_COLUMN_WIDTH + 160}px`);
@@ -68,13 +64,13 @@ describe('addStatusColumn', () => {
         },
       ],
     };
-    addStatusColumn(layout);
+    SheetStatusColumnUtil.addStatusColumn(layout);
     expect(layout.columnBlocks[0].style['grid-column']).toBe('4 / span 2');
   });
 
   it('places each row status on its own line of the status column, and the heading down the header', () => {
-    expect(rowStatusStyle(0)).toEqual({ 'grid-row': '1', 'grid-column': '1' });
-    expect(rowStatusStyle(2)).toEqual({ 'grid-row': '3', 'grid-column': '1' });
-    expect(statusHeadingStyle()).toEqual({ 'grid-row': '1 / -1', 'grid-column': '1' });
+    expect(SheetStatusColumnUtil.rowStatusStyle(0)).toEqual({ 'grid-row': '1', 'grid-column': '1' });
+    expect(SheetStatusColumnUtil.rowStatusStyle(2)).toEqual({ 'grid-row': '3', 'grid-column': '1' });
+    expect(SheetStatusColumnUtil.statusHeadingStyle()).toEqual({ 'grid-row': '1 / -1', 'grid-column': '1' });
   });
 });

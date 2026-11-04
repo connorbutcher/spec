@@ -1,6 +1,6 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { CurrentUserStore } from '../../core/auth/current-user.store';
-import { reuseUnchanged } from '../../shared/reuse-unchanged.util';
+import { ReuseUnchangedUtil } from '../../shared/reuse-unchanged.util';
 import { RowCheckout } from './models/row-checkout.model';
 import { SheetLock } from './models/sheet-lock.model';
 
@@ -12,6 +12,7 @@ import { SheetLock } from './models/sheet-lock.model';
  * It depends on neither of them, which is what lets both use it.
  */
 @Injectable()
+
 export class RowCheckoutStore {
   /** The lock each checked-out row shows, by row id. */
   public readonly locks = computed<ReadonlyMap<number, SheetLock>>(() => {
@@ -37,6 +38,6 @@ export class RowCheckoutStore {
    * A list that says the same as the last one changes nothing, so the sheet is not re-made for it.
    */
   public set(checkouts: RowCheckout[]): void {
-    this.checkouts.update((current) => reuseUnchanged(current, checkouts));
+    this.checkouts.update((current) => ReuseUnchangedUtil.reuseUnchanged(current, checkouts));
   }
 }

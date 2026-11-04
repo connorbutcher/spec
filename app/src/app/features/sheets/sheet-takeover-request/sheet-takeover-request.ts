@@ -3,7 +3,7 @@ import { ButtonModule } from 'primeng/button';
 import { MessageModule } from 'primeng/message';
 import { RowTakeover } from '../models/row-takeover.model';
 import { RowTakeoverStore } from '../row-takeover.store';
-import { rowLabel } from '../sheet-labels.util';
+import { SheetLabelsUtil } from '../sheet-labels.util';
 import { SheetStore } from '../sheet.store';
 
 /**
@@ -17,6 +17,7 @@ import { SheetStore } from '../sheet.store';
   templateUrl: './sheet-takeover-request.html',
   styleUrl: './sheet-takeover-request.scss',
 })
+
 export class SheetTakeoverRequest {
   public readonly takeover = input.required<RowTakeover>();
 
@@ -25,7 +26,7 @@ export class SheetTakeoverRequest {
   /** The row by the first text typed into it, so the viewer knows which one is meant. */
   public readonly rowName = computed(() => {
     const row = this.store.index().rows.get(this.takeover().rowId);
-    const label = row ? rowLabel(row) : null;
+    const label = row ? SheetLabelsUtil.rowLabel(row) : null;
     return label ? `the row "${label}"` : 'a row';
   });
 

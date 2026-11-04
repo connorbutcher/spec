@@ -1,6 +1,6 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { PanelRef } from './models/panel-ref';
-import { panelCrumbs } from './panel-crumbs.util';
+import { PanelCrumbsUtil } from './panel-crumbs.util';
 import { TemplatesStore } from './templates.store';
 
 /**
@@ -9,6 +9,7 @@ import { TemplatesStore } from './templates.store';
  * alongside the store it checks after deletes.
  */
 @Injectable()
+
 export class PanelNavigator {
   public readonly current = computed<PanelRef>(() => this.history()[this.index()]);
   public readonly canGoBack = computed(() => this.index() > 0);
@@ -17,10 +18,21 @@ export class PanelNavigator {
   private readonly store = inject(TemplatesStore);
   private readonly history = signal<PanelRef[]>([{ kind: 'cellTypes' }]);
   private readonly index = signal(0);
+    /** Collapses back-to-back steps for the same panel into one. */
+    private static withoutRepeats(steps: PanelRef[]): PanelRef[] {
+      return steps.filter((ref, index) => index === 0 || !PanelNavigator.samePanel(ref, steps[index - 1]));
+    }
+
+    private static samePanel(a: PanelRef, b: PanelRef): boolean {
+      if (a.kind !== b.kind) {
+        return false;
+      }
+      return !('id' in a) || !('id' in b) || a.id === b.id;
+    }
 
   /** Shows `ref`, unless it's already showing. */
   public open(ref: PanelRef): void {
-    if (samePanel(ref, this.current())) {
+    if (PanelNavigator.samePanel(ref, this.current())) {
       return;
     }
     const kept = this.history().slice(0, this.index() + 1);
@@ -55,7 +67,7 @@ export class PanelNavigator {
     const index = this.index();
 
     if (isGone(history[index])) {
-      const steps = withoutRepeats([
+      const steps = PanelNavigator.withoutRepeats([
         ...history.slice(0, index).filter((ref) => !isGone(ref)),
         fallback,
       ]);
@@ -65,9 +77,9 @@ export class PanelNavigator {
     }
 
     // Keep the current step current: count the surviving steps before it.
-    const before = withoutRepeats(history.slice(0, index + 1).filter((ref) => !isGone(ref)));
+    const before = PanelNavigator.withoutRepeats(history.slice(0, index + 1).filter((ref) => !isGone(ref)));
     const after = history.slice(index + 1).filter((ref) => !isGone(ref));
-    const steps = withoutRepeats([...before, ...after]);
+    const steps = PanelNavigator.withoutRepeats([...before, ...after]);
     this.history.set(steps);
     this.index.set(before.length - 1);
   }
@@ -79,24 +91,12 @@ export class PanelNavigator {
     this.forget(
       (ref) =>
         ref.kind !== 'template' &&
-        panelCrumbs(ref, template, index, (id) => this.store.cellType(id)).length === 0,
+        PanelCrumbsUtil.panelCrumbs(ref, template, index, (id) => this.store.cellType(id)).length === 0,
       fallback,
     );
   }
 
   public isShowing(ref: PanelRef): boolean {
-    return samePanel(ref, this.current());
+    return PanelNavigator.samePanel(ref, this.current());
   }
-}
-
-/** Collapses back-to-back steps for the same panel into one. */
-function withoutRepeats(steps: PanelRef[]): PanelRef[] {
-  return steps.filter((ref, index) => index === 0 || !samePanel(ref, steps[index - 1]));
-}
-
-function samePanel(a: PanelRef, b: PanelRef): boolean {
-  if (a.kind !== b.kind) {
-    return false;
-  }
-  return !('id' in a) || !('id' in b) || a.id === b.id;
 }

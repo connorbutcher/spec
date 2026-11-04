@@ -3,7 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { DatePickerModule } from 'primeng/datepicker';
 import { SelectModule } from 'primeng/select';
 import { SheetVersionOption } from '../models/sheet-version-option.model';
-import { momentLabel, versionLabel } from '../sheet-labels.util';
+import { SheetLabelsUtil } from '../sheet-labels.util';
 import { SheetStore } from '../sheet.store';
 
 /** Marks the "custom date" entry, which only appears while a date is being viewed. */
@@ -19,6 +19,7 @@ const DATE_OPTION = -1;
   templateUrl: './sheet-version-picker.html',
   styleUrl: './sheet-version-picker.scss',
 })
+
 export class SheetVersionPicker {
   public readonly options = computed<SheetVersionOption[]>(() => {
     const options: SheetVersionOption[] = [{ label: 'Latest (live)', value: null }];
@@ -26,9 +27,9 @@ export class SheetVersionPicker {
       options.push({ label: 'Date and time', value: DATE_OPTION });
     }
     for (const version of this.store.versions()) {
-      const published = momentLabel(version.publishedAtUtc);
+      const published = SheetLabelsUtil.momentLabel(version.publishedAtUtc);
       options.push({
-        label: `${versionLabel(version.versionNumber)} · ${published} · ${version.publishedByName}`,
+        label: `${SheetLabelsUtil.versionLabel(version.versionNumber)} · ${published} · ${version.publishedByName}`,
         value: version.versionNumber,
       });
     }

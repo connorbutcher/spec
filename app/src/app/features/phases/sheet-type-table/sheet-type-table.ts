@@ -3,7 +3,7 @@ import { RouterLink } from '@angular/router';
 import { TableModule } from 'primeng/table';
 import { Phase } from '../../../core/models/phase.model';
 import { SheetType } from '../../../core/models/sheet-type.model';
-import { sheetTypeIcon } from '../../../shared/sheet-type-icon';
+import { SheetTypeIcon } from '../../../shared/sheet-type-icon';
 
 /**
  * The phase's PU Spec Sheets as a dense grid. Each row opens the sheet on its own screen. Version,
@@ -15,12 +15,13 @@ import { sheetTypeIcon } from '../../../shared/sheet-type-icon';
   templateUrl: './sheet-type-table.html',
   styleUrl: './sheet-type-table.scss',
 })
+
 export class SheetTypeTable {
   public readonly sheetTypes = input.required<SheetType[]>();
   public readonly phase = input.required<Phase>();
 
   public icon(sheetType: SheetType): string {
-    return sheetTypeIcon(sheetType.name);
+    return SheetTypeIcon.sheetTypeIcon(sheetType.name);
   }
 
   public sheetLink(sheetType: SheetType): (string | number)[] {

@@ -3,7 +3,7 @@ import { AvatarModule } from 'primeng/avatar';
 import { OverlayBadgeModule } from 'primeng/overlaybadge';
 import { TooltipModule } from 'primeng/tooltip';
 import { SheetPresenceUser } from '../models/sheet-presence-user.model';
-import { initials, presenceDescription } from '../sheet-presence.util';
+import { SheetPresenceUtil } from '../sheet-presence.util';
 
 /**
  * One person who has the sheet open: their initials, with the number of rows checked out to them as a
@@ -15,15 +15,16 @@ import { initials, presenceDescription } from '../sheet-presence.util';
   templateUrl: './sheet-presence-badge.html',
   styleUrl: './sheet-presence-badge.scss',
 })
+
 export class SheetPresenceBadge {
   public readonly user = input.required<SheetPresenceUser>();
   public readonly isMe = input(false);
   /** How many rows the viewer can see checked out to this person. */
   public readonly checkedOutRows = input(0);
 
-  public readonly initials = computed(() => initials(this.user().displayName));
+  public readonly initials = computed(() => SheetPresenceUtil.initials(this.user().displayName));
 
   public readonly description = computed(() =>
-    presenceDescription(this.user(), this.isMe(), this.checkedOutRows()),
+    SheetPresenceUtil.presenceDescription(this.user(), this.isMe(), this.checkedOutRows()),
   );
 }

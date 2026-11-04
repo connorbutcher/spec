@@ -4,7 +4,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router } from '@angular/router';
 import { filter } from 'rxjs';
 import { SheetType } from '../../core/models/sheet-type.model';
-import { apiErrorMessage } from './api-error-message';
+import { ApiErrorMessage } from './api-error-message';
 import { CellType } from './models/cell-type.model';
 import { SaveCellTypeRequest } from './models/save-cell-type-request.model';
 import { TableTemplateSummary } from './models/table-template-summary.model';
@@ -16,9 +16,9 @@ import { UpdateTemplateCellOverridesRequest } from './models/update-template-cel
 import { UpdateTemplateCellRequest } from './models/update-template-cell-request.model';
 import { UpdateTemplateColumnBlockRequest } from './models/update-template-column-block-request.model';
 import { UpdateTemplateSectionRequest } from './models/update-template-section-request.model';
-import { findRouteParam } from '../../core/route-param.util';
-import { addedIds, buildTemplateIndex } from './template-index.util';
-import { layoutTemplate } from './template-layout.util';
+import { RouteParamUtil } from '../../core/route-param.util';
+import { TemplateIndexUtil } from './template-index.util';
+import { TemplateLayoutUtil } from './template-layout.util';
 import { TemplatesApi } from './templates-api';
 
 /**
@@ -29,6 +29,7 @@ import { TemplatesApi } from './templates-api';
  * copy; creates return the new item's id so the panel can open it.
  */
 @Injectable()
+
 export class TemplatesStore {
   public readonly sheetTypes = computed<SheetType[]>(() =>
     this.sheetTypesResource.hasValue()
@@ -56,7 +57,7 @@ export class TemplatesStore {
   /** The template id in the URL (`/templates/:templateId`), or null on `/templates`. */
   public readonly selectedTemplateId = computed<number | null>(() => {
     this.navigationEnd();
-    const id = findRouteParam(this.router.routerState.snapshot.root, 'templateId');
+    const id = RouteParamUtil.findRouteParam(this.router.routerState.snapshot.root, 'templateId');
     return id === null ? null : Number(id);
   });
 
@@ -85,11 +86,11 @@ export class TemplatesStore {
   public readonly templateIsLoading = computed(() => this.templateResource.isLoading());
   public readonly templateHasError = computed(() => this.templateResource.status() === 'error');
 
-  public readonly index = computed<TemplateIndex>(() => buildTemplateIndex(this.template()));
+  public readonly index = computed<TemplateIndex>(() => TemplateIndexUtil.buildTemplateIndex(this.template()));
 
   public readonly layout = computed<TemplateLayout | null>(() => {
     const template = this.template();
-    return template && template.sections.length > 0 ? layoutTemplate(template) : null;
+    return template && template.sections.length > 0 ? TemplateLayoutUtil.layoutTemplate(template) : null;
   });
 
   /** True while a change is being saved. */
@@ -130,6 +131,19 @@ export class TemplatesStore {
 
   /** The last cell override save, which the next one waits for. */
   private overrideSaves: Promise<void> = Promise.resolve();
+    /** `base`, or `base 2`, `base 3`... whichever isn't taken. With `numbered`, starts at `base 1`. */
+    private static nextName(base: string, taken: string[], numbered = false): string {
+      const names = new Set(taken.map((name) => name.toLowerCase()));
+      if (!numbered && !names.has(base.toLowerCase())) {
+        return base;
+      }
+      for (let number = numbered ? 1 : 2; ; number++) {
+        const candidate = `${base} ${number}`;
+        if (!names.has(candidate.toLowerCase())) {
+          return candidate;
+        }
+      }
+    }
 
   public reloadList(): void {
     this.sheetTypesResource.reload();
@@ -156,7 +170,7 @@ export class TemplatesStore {
   }
 
   public async createTemplate(sheetTypeId: number): Promise<void> {
-    const name = nextName(
+    const name = TemplatesStore.nextName(
       'New table',
       this.templatesFor(sheetTypeId).map((summary) => summary.name),
     );
@@ -242,7 +256,7 @@ export class TemplatesStore {
       parentId === null
         ? template.sections
         : (this.index().sections.get(parentId)?.section.sections ?? []);
-    const name = nextName(
+    const name = TemplatesStore.nextName(
       parentId === null ? 'Section' : 'Sub-section',
       siblings.map((section) => section.name),
       true,
@@ -286,7 +300,7 @@ export class TemplatesStore {
     if (!template) {
       return null;
     }
-    const name = nextName(
+    const name = TemplatesStore.nextName(
       'Column block',
       template.columnBlocks.map((block) => block.name),
       true,
@@ -389,7 +403,7 @@ export class TemplatesStore {
 
   /** Adds a Text cell type with an unused name. Returns its id. */
   public async createCellType(): Promise<number | null> {
-    const name = nextName(
+    const name = TemplatesStore.nextName(
       'New cell type',
       this.cellTypes().map((cellType) => cellType.name),
     );
@@ -488,7 +502,7 @@ export class TemplatesStore {
     this.templateResource.set(updated);
     // Cell counts per type change as cells come and go.
     this.cellTypesResource.reload();
-    return added ? (addedIds(before[added], this.index()[added])[0] ?? null) : 0;
+    return added ? (TemplateIndexUtil.addedIds(before[added], this.index()[added])[0] ?? null) : 0;
   }
 
   private async save<T>(action: () => Promise<T>): Promise<T | null> {
@@ -497,24 +511,10 @@ export class TemplatesStore {
     try {
       return await action();
     } catch (error) {
-      this.error.set(apiErrorMessage(error));
+      this.error.set(ApiErrorMessage.apiErrorMessage(error));
       return null;
     } finally {
       this.pendingSaves.update((count) => count - 1);
-    }
-  }
-}
-
-/** `base`, or `base 2`, `base 3`... whichever isn't taken. With `numbered`, starts at `base 1`. */
-function nextName(base: string, taken: string[], numbered = false): string {
-  const names = new Set(taken.map((name) => name.toLowerCase()));
-  if (!numbered && !names.has(base.toLowerCase())) {
-    return base;
-  }
-  for (let number = numbered ? 1 : 2; ; number++) {
-    const candidate = `${base} ${number}`;
-    if (!names.has(candidate.toLowerCase())) {
-      return candidate;
     }
   }
 }

@@ -7,7 +7,7 @@ import { CellTypeSettings } from '../cell-type-settings/cell-type-settings';
 import { ColumnBlockSettings } from '../column-block-settings/column-block-settings';
 import { PanelCrumb } from '../models/panel-crumb.model';
 import { PanelRef } from '../models/panel-ref';
-import { panelCrumbs } from '../panel-crumbs.util';
+import { PanelCrumbsUtil } from '../panel-crumbs.util';
 import { PanelBreadcrumb } from '../panel-breadcrumb/panel-breadcrumb';
 import { PanelNavigator } from '../panel-navigator';
 import { RowSettings } from '../row-settings/row-settings';
@@ -46,11 +46,12 @@ const TITLES: Readonly<Record<PanelRef['kind'], string>> = {
   templateUrl: './config-panel.html',
   styleUrl: './config-panel.scss',
 })
+
 export class ConfigPanel {
   public readonly current = computed<PanelRef>(() => this.navigator.current());
 
   public readonly crumbs = computed<PanelCrumb[]>(() =>
-    panelCrumbs(this.current(), this.store.template(), this.store.index(), (id) =>
+    PanelCrumbsUtil.panelCrumbs(this.current(), this.store.template(), this.store.index(), (id) =>
       this.store.cellType(id),
     ),
   );

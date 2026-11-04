@@ -1,10 +1,10 @@
 import { Component, computed, inject } from '@angular/core';
 import { ButtonModule } from 'primeng/button';
-import { cellKindInfo } from '../models/cell-kinds';
+import { CellKinds } from '../models/cell-kinds';
 import { PanelLinkItem } from '../models/panel-link-item.model';
 import { PanelLinkList } from '../panel-link-list/panel-link-list';
 import { PanelNavigator } from '../panel-navigator';
-import { plural } from '../section-links.util';
+import { SectionLinksUtil } from '../section-links.util';
 import { TemplatesStore } from '../templates.store';
 
 /** Panel page listing every cell type, with a way to add one. */
@@ -14,13 +14,14 @@ import { TemplatesStore } from '../templates.store';
   templateUrl: './cell-type-list.html',
   styleUrl: './cell-type-list.scss',
 })
+
 export class CellTypeList {
   public readonly items = computed<PanelLinkItem[]>(() =>
     this.store.cellTypes().map((cellType) => ({
       ref: { kind: 'cellType', id: cellType.id },
       label: cellType.name,
-      icon: cellKindInfo(cellType.kind).icon,
-      meta: cellType.usageCount > 0 ? plural(cellType.usageCount, 'cell') : cellType.kind,
+      icon: CellKinds.cellKindInfo(cellType.kind).icon,
+      meta: cellType.usageCount > 0 ? SectionLinksUtil.plural(cellType.usageCount, 'cell') : cellType.kind,
     })),
   );
 

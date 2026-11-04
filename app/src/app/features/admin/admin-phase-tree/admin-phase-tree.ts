@@ -5,11 +5,11 @@ import { MessageModule } from 'primeng/message';
 import { TooltipModule } from 'primeng/tooltip';
 import { TreeModule, TreeNodeDropEvent, TreeNodeSelectEvent } from 'primeng/tree';
 import { Phase } from '../../../core/models/phase.model';
-import { buildPhaseTree, indexTreeNodes } from '../../phases/phase-tree.util';
+import { PhaseTreeUtil } from '../../phases/phase-tree.util';
 import { PhasesStore } from '../../phases/phases.store';
-import { apiErrorMessage } from '../../templates/api-error-message';
+import { ApiErrorMessage } from '../../templates/api-error-message';
 import { AdminApi } from '../admin-api';
-import { phaseLocation } from '../admin.util';
+import { AdminUtil } from '../admin.util';
 
 /**
  * The phase tree of the admin screen, with the button that adds a phase. With permission, a phase can
@@ -22,6 +22,7 @@ import { phaseLocation } from '../admin.util';
   templateUrl: './admin-phase-tree.html',
   styleUrl: './admin-phase-tree.scss',
 })
+
 export class AdminPhaseTree {
   public readonly selectedPhaseId = input<number | null>(null);
   public readonly canManage = input(false);
@@ -33,7 +34,7 @@ export class AdminPhaseTree {
   public readonly error = signal<string | null>(null);
 
   /** This screen's own nodes, so dragging, expanding and collapsing here leave the side nav's tree alone. */
-  public readonly tree = computed<TreeNode<Phase>[]>(() => buildPhaseTree(this.store.phases()));
+  public readonly tree = computed<TreeNode<Phase>[]>(() => PhaseTreeUtil.buildPhaseTree(this.store.phases()));
 
   /** The node for the picked phase, as the same object the tree renders. */
   public readonly selectedNode = computed<TreeNode<Phase> | null>(() => {
@@ -44,7 +45,7 @@ export class AdminPhaseTree {
   private readonly store = inject(PhasesStore);
   private readonly api = inject(AdminApi);
 
-  private readonly nodesById = computed(() => indexTreeNodes(this.tree()));
+  private readonly nodesById = computed(() => PhaseTreeUtil.indexTreeNodes(this.tree()));
 
   public isLoading(): boolean {
     return this.store.isLoading() && this.store.phases().length === 0;
@@ -76,9 +77,9 @@ export class AdminPhaseTree {
       return;
     }
 
-    const before = phaseLocation(this.tree(), phase.id);
+    const before = AdminUtil.phaseLocation(this.tree(), phase.id);
     event.accept();
-    const after = phaseLocation(this.tree(), phase.id);
+    const after = AdminUtil.phaseLocation(this.tree(), phase.id);
     if (
       !after ||
       (before?.parentPhaseId === after.parentPhaseId && before.position === after.position)
@@ -91,7 +92,7 @@ export class AdminPhaseTree {
     try {
       await this.api.movePhase(phase.id, after.parentPhaseId, after.position);
     } catch (error) {
-      this.error.set(apiErrorMessage(error));
+      this.error.set(ApiErrorMessage.apiErrorMessage(error));
     } finally {
       this.store.reload();
       this.isMoving.set(false);

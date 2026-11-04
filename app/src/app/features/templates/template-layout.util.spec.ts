@@ -3,92 +3,79 @@ import { TableTemplate } from './models/table-template.model';
 import { TemplateCell } from './models/template-cell.model';
 import { TemplateColumnBlock } from './models/template-column-block.model';
 import { TemplateSection } from './models/template-section.model';
-import { layoutTemplate } from './template-layout.util';
+import { TemplateLayoutUtil } from './template-layout.util';
+
+class SpecHelpers {
+  public static cell(column: number, columnSpan = 1, rowSpan = 1, columnBlockId: number | null = null): TemplateCell {
+    return {
+      id: nextId++,
+      cellTypeId: 2,
+      column,
+      columnSpan,
+      rowSpan,
+      caption: null,
+      isRequired: false,
+      configurationOverride: null,
+      styleOverride: null,
+      columnBlockId,
+    };
+  }
+
+  public static section(name: string, role: SectionRole, sections: TemplateSection[], rows: TemplateCell[][]): TemplateSection {
+    return {
+      id: nextId++,
+      parentSectionId: null,
+      name,
+      displayOrder: 1,
+      role,
+      minInstances: role === 'Header' ? 1 : 0,
+      maxInstances: role === 'Header' ? 1 : null,
+      initialInstances: role === 'Header' ? 1 : 0,
+      sections,
+      rows: rows.map((cells, index) => ({ id: nextId++, displayOrder: index + 1, cells })),
+    };
+  }
+
+  public static block(id: number, name: string, displayOrder: number): TemplateColumnBlock {
+    return {
+      id,
+      name,
+      displayOrder,
+      minInstances: 0,
+      maxInstances: null,
+      initialInstances: 1,
+      stickyColumnCount: 0,
+    };
+  }
+
+  public static template(orientation: 'Horizontal' | 'Vertical', sections: TemplateSection[], columnBlocks: TemplateColumnBlock[] = []): TableTemplate {
+    return {
+      id: 1,
+      sheetTypeId: 1,
+      name: 'T',
+      displayOrder: 1,
+      versionId: 1,
+      versionNumber: 1,
+      orientation,
+      stickyColumnCount: 0,
+      isEditable: true,
+      versions: [{ id: 1, versionNumber: 1, createdAtUtc: '2026-09-29T00:00:00Z', isInUse: false }],
+      sections,
+      columnBlocks,
+    };
+  }
+}
 
 let nextId = 1;
 
 const PART = 900;
 const NOTE = 901;
-
-function cell(
-  column: number,
-  columnSpan = 1,
-  rowSpan = 1,
-  columnBlockId: number | null = null,
-): TemplateCell {
-  return {
-    id: nextId++,
-    cellTypeId: 2,
-    column,
-    columnSpan,
-    rowSpan,
-    caption: null,
-    isRequired: false,
-    configurationOverride: null,
-    styleOverride: null,
-    columnBlockId,
-  };
-}
-
-function section(
-  name: string,
-  role: SectionRole,
-  sections: TemplateSection[],
-  rows: TemplateCell[][],
-): TemplateSection {
-  return {
-    id: nextId++,
-    parentSectionId: null,
-    name,
-    displayOrder: 1,
-    role,
-    minInstances: role === 'Header' ? 1 : 0,
-    maxInstances: role === 'Header' ? 1 : null,
-    initialInstances: role === 'Header' ? 1 : 0,
-    sections,
-    rows: rows.map((cells, index) => ({ id: nextId++, displayOrder: index + 1, cells })),
-  };
-}
-
-function block(id: number, name: string, displayOrder: number): TemplateColumnBlock {
-  return {
-    id,
-    name,
-    displayOrder,
-    minInstances: 0,
-    maxInstances: null,
-    initialInstances: 1,
-    stickyColumnCount: 0,
-  };
-}
-
-function template(
-  orientation: 'Horizontal' | 'Vertical',
-  sections: TemplateSection[],
-  columnBlocks: TemplateColumnBlock[] = [],
-): TableTemplate {
-  return {
-    id: 1,
-    sheetTypeId: 1,
-    name: 'T',
-    displayOrder: 1,
-    versionId: 1,
-    versionNumber: 1,
-    orientation,
-    stickyColumnCount: 0,
-    isEditable: true,
-    versions: [{ id: 1, versionNumber: 1, createdAtUtc: '2026-09-29T00:00:00Z', isInUse: false }],
-    sections,
-    columnBlocks,
-  };
-}
-
 describe('layoutTemplate', () => {
   it('stacks a vertical table top to bottom: header first, then each section below it', () => {
-    const data = section('Data', 'Addable', [], [[cell(1), cell(2, 2)], [cell(1)]]);
-    const header = section('Header', 'Header', [], [[cell(1), cell(2), cell(3)]]);
+    const data = SpecHelpers.section('Data', 'Addable', [], [[SpecHelpers.cell(1), SpecHelpers.cell(2, 2)], [SpecHelpers.cell(1)]]);
+    const header = SpecHelpers.section('Header', 'Header', [], [[SpecHelpers.cell(1), SpecHelpers.cell(2), SpecHelpers.cell(3)]]);
 
-    const layout = layoutTemplate(template('Vertical', [data, header]));
+    const layout = TemplateLayoutUtil.layoutTemplate(SpecHelpers.template('Vertical', [data, header]));
 
     expect(layout.style).toEqual({
       'grid-template-rows': 'repeat(3, minmax(30px, auto))',
@@ -106,21 +93,21 @@ describe('layoutTemplate', () => {
   });
 
   it('stacks a horizontal table down too, with each column block after the rows own cells', () => {
-    const header = section(
+    const header = SpecHelpers.section(
       'Header',
       'Header',
       [],
-      [[cell(1), cell(1, 1, 1, PART), cell(2, 1, 1, PART), cell(1, 1, 1, NOTE)]],
+      [[SpecHelpers.cell(1), SpecHelpers.cell(1, 1, 1, PART), SpecHelpers.cell(2, 1, 1, PART), SpecHelpers.cell(1, 1, 1, NOTE)]],
     );
-    const data = section(
+    const data = SpecHelpers.section(
       'Data',
       'Addable',
       [],
-      [[cell(1, 2), cell(1, 2, 1, PART), cell(1, 1, 1, NOTE)]],
+      [[SpecHelpers.cell(1, 2), SpecHelpers.cell(1, 2, 1, PART), SpecHelpers.cell(1, 1, 1, NOTE)]],
     );
 
-    const layout = layoutTemplate(
-      template('Horizontal', [header, data], [block(PART, 'Part', 1), block(NOTE, 'Note', 2)]),
+    const layout = TemplateLayoutUtil.layoutTemplate(
+      SpecHelpers.template('Horizontal', [header, data], [SpecHelpers.block(PART, 'Part', 1), SpecHelpers.block(NOTE, 'Note', 2)]),
     );
 
     // Own cells take 2 columns, the Part block 2, the Note block 1.
@@ -143,20 +130,20 @@ describe('layoutTemplate', () => {
   });
 
   it('gives a column block with no cells yet one column', () => {
-    const header = section('Header', 'Header', [], [[cell(1)]]);
+    const header = SpecHelpers.section('Header', 'Header', [], [[SpecHelpers.cell(1)]]);
 
-    const layout = layoutTemplate(template('Horizontal', [header], [block(PART, 'Part', 1)]));
+    const layout = TemplateLayoutUtil.layoutTemplate(SpecHelpers.template('Horizontal', [header], [SpecHelpers.block(PART, 'Part', 1)]));
 
     expect(layout.style['grid-template-columns']).toBe('repeat(2, minmax(112px, 1fr))');
     expect(layout.columnBlocks[0].style['grid-column']).toBe('2 / span 1');
   });
 
   it('stacks a section own rows and sub-sections down a vertical table', () => {
-    const left = section('Left', 'Addable', [], [[cell(1)], [cell(1)]]);
-    const right = section('Right', 'Addable', [], [[cell(1), cell(2)]]);
-    const group = section('Group', 'Addable', [left, right], [[cell(1, 3)]]);
+    const left = SpecHelpers.section('Left', 'Addable', [], [[SpecHelpers.cell(1)], [SpecHelpers.cell(1)]]);
+    const right = SpecHelpers.section('Right', 'Addable', [], [[SpecHelpers.cell(1), SpecHelpers.cell(2)]]);
+    const group = SpecHelpers.section('Group', 'Addable', [left, right], [[SpecHelpers.cell(1, 3)]]);
 
-    const layout = layoutTemplate(template('Vertical', [group]));
+    const layout = TemplateLayoutUtil.layoutTemplate(SpecHelpers.template('Vertical', [group]));
 
     // Title row, then left (2 rows) and right (1 row) stacked below it.
     expect(layout.style['grid-template-rows']).toBe('repeat(4, minmax(30px, auto))');
@@ -173,7 +160,7 @@ describe('layoutTemplate', () => {
   });
 
   it('gives an empty section a placeholder so it can still be selected', () => {
-    const layout = layoutTemplate(template('Vertical', [section('Header', 'Header', [], [])]));
+    const layout = TemplateLayoutUtil.layoutTemplate(SpecHelpers.template('Vertical', [SpecHelpers.section('Header', 'Header', [], [])]));
 
     expect(layout.style['grid-template-rows']).toBe('repeat(1, minmax(30px, auto))');
     expect(layout.sections[0].emptyStyle).toEqual({

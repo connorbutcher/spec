@@ -18,6 +18,7 @@ const LONGEST_RETRY_MS = 15000;
  * This is the only file that knows about SignalR. `SheetLiveStore` decides what to do with what arrives.
  */
 @Injectable()
+
 export class SheetHub {
   public readonly state = signal<SheetConnectionState>('disconnected');
 
@@ -25,13 +26,24 @@ export class SheetHub {
   private connection: HubConnection | null = null;
   private retryTimer: ReturnType<typeof setTimeout> | null = null;
   private stopped = false;
+    /** A WebSocket can't send headers, so the development-only user switch goes in the address. */
+    private static hubUrl(): string {
+      return DEVELOPER_USER === null
+        ? SHEET_HUB.url
+        : `${SHEET_HUB.url}?${DEVELOPER_USER_QUERY_PARAMETER}=${encodeURIComponent(DEVELOPER_USER)}`;
+    }
+
+    /** 1s, 2s, 4s, 8s, then every 15s. */
+    private static retryDelay(previousRetries: number): number {
+      return Math.min(FIRST_RETRY_MS * 2 ** previousRetries, LONGEST_RETRY_MS);
+    }
 
   /** Opens the connection and listens for what the server says. Called once. */
   public start(handlers: SheetHubHandlers): void {
     const connection = new HubConnectionBuilder()
-      .withUrl(hubUrl())
+      .withUrl(SheetHub.hubUrl())
       .withAutomaticReconnect({
-        nextRetryDelayInMilliseconds: (retry) => retryDelay(retry.previousRetryCount),
+        nextRetryDelayInMilliseconds: (retry) => SheetHub.retryDelay(retry.previousRetryCount),
       })
       .configureLogging(LogLevel.Warning)
       .build();
@@ -95,7 +107,7 @@ export class SheetHub {
       this.setState('connected');
     } catch {
       this.setState('disconnected');
-      this.retryTimer = setTimeout(() => void this.connect(attempt + 1), retryDelay(attempt));
+      this.retryTimer = setTimeout(() => void this.connect(attempt + 1), SheetHub.retryDelay(attempt));
     }
   }
 
@@ -106,16 +118,4 @@ export class SheetHub {
     );
     this.state.set(state);
   }
-}
-
-/** A WebSocket can't send headers, so the development-only user switch goes in the address. */
-function hubUrl(): string {
-  return DEVELOPER_USER === null
-    ? SHEET_HUB.url
-    : `${SHEET_HUB.url}?${DEVELOPER_USER_QUERY_PARAMETER}=${encodeURIComponent(DEVELOPER_USER)}`;
-}
-
-/** 1s, 2s, 4s, 8s, then every 15s. */
-function retryDelay(previousRetries: number): number {
-  return Math.min(FIRST_RETRY_MS * 2 ** previousRetries, LONGEST_RETRY_MS);
 }

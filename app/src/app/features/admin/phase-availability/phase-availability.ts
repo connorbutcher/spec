@@ -6,9 +6,9 @@ import { MessageModule } from 'primeng/message';
 import { Phase } from '../../../core/models/phase.model';
 import { SheetType } from '../../../core/models/sheet-type.model';
 import { PhasesStore } from '../../phases/phases.store';
-import { apiErrorMessage } from '../../templates/api-error-message';
+import { ApiErrorMessage } from '../../templates/api-error-message';
 import { AdminApi } from '../admin-api';
-import { sameIds } from '../admin.util';
+import { AdminUtil } from '../admin.util';
 
 /**
  * Which sheet types a phase has: a checklist of every sheet type, saved as a whole. Nothing is
@@ -20,6 +20,7 @@ import { sameIds } from '../admin.util';
   templateUrl: './phase-availability.html',
   styleUrl: './phase-availability.scss',
 })
+
 export class PhaseAvailability {
   public readonly phase = input.required<Phase>();
   public readonly canManage = input(false);
@@ -36,7 +37,7 @@ export class PhaseAvailability {
 
   public readonly sheetTypes = computed<SheetType[]>(() => this.store.sheetTypes());
 
-  public readonly hasChanges = computed(() => !sameIds(this.ticked(), this.phase().sheetTypeIds));
+  public readonly hasChanges = computed(() => !AdminUtil.sameIds(this.ticked(), this.phase().sheetTypeIds));
 
   /** "V6 › 01-A2": where the phase sits in the tree. */
   public readonly path = computed(() =>
@@ -55,7 +56,7 @@ export class PhaseAvailability {
       await this.api.setPhaseSheetTypes(this.phase().id, this.ticked());
       this.store.reload();
     } catch (error) {
-      this.error.set(apiErrorMessage(error));
+      this.error.set(ApiErrorMessage.apiErrorMessage(error));
     } finally {
       this.isSaving.set(false);
     }

@@ -5,7 +5,7 @@ import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { SheetType } from '../../../core/models/sheet-type.model';
-import { apiErrorMessage } from '../../templates/api-error-message';
+import { ApiErrorMessage } from '../../templates/api-error-message';
 import { AdminApi } from '../admin-api';
 
 /** The dialog that adds a sheet type, which is just its name. */
@@ -15,6 +15,7 @@ import { AdminApi } from '../admin-api';
   templateUrl: './add-sheet-type-dialog.html',
   styleUrl: './add-sheet-type-dialog.scss',
 })
+
 export class AddSheetTypeDialog {
   public readonly visible = model(false);
 
@@ -46,7 +47,7 @@ export class AddSheetTypeDialog {
       this.visible.set(false);
       this.created.emit(sheetType);
     } catch (error) {
-      this.error.set(apiErrorMessage(error));
+      this.error.set(ApiErrorMessage.apiErrorMessage(error));
     } finally {
       this.isSaving.set(false);
     }

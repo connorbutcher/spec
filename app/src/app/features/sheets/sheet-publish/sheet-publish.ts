@@ -5,7 +5,7 @@ import { Popover, PopoverModule } from 'primeng/popover';
 import { TextareaModule } from 'primeng/textarea';
 import { PublishScopeOption } from '../models/publish-scope-option.model';
 import { PublishScope } from '../models/publish-scope';
-import { effectivePublishScope, publishLabel, publishScopeOptions } from '../publish-scope.util';
+import { PublishScopeUtil } from '../publish-scope.util';
 import { SheetPublishScope } from '../sheet-publish-scope/sheet-publish-scope';
 import { SheetStore } from '../sheet.store';
 
@@ -20,23 +20,24 @@ import { SheetStore } from '../sheet.store';
   templateUrl: './sheet-publish.html',
   styleUrl: './sheet-publish.scss',
 })
+
 export class SheetPublish {
   public readonly note = signal('');
 
   public readonly options = computed<PublishScopeOption[]>(() => {
     const sheet = this.store.sheet();
-    return publishScopeOptions(sheet?.myDraftCount ?? 0, sheet?.otherDrafts ?? []);
+    return PublishScopeUtil.publishScopeOptions(sheet?.myDraftCount ?? 0, sheet?.otherDrafts ?? []);
   });
 
   /** What will be published: the user's pick while it can be chosen, otherwise their own changes. */
   public readonly scope = computed<PublishScope>(() =>
-    effectivePublishScope(this.options(), this.chosenScope()),
+    PublishScopeUtil.effectivePublishScope(this.options(), this.chosenScope()),
   );
 
   /** The toolbar button counts the user's own changes, which is what it publishes unless they say otherwise. */
-  public readonly label = computed(() => publishLabel(this.countOf('Mine')));
+  public readonly label = computed(() => PublishScopeUtil.publishLabel(this.countOf('Mine')));
 
-  public readonly confirmLabel = computed(() => publishLabel(this.countOf(this.scope())));
+  public readonly confirmLabel = computed(() => PublishScopeUtil.publishLabel(this.countOf(this.scope())));
 
   public readonly hasChanges = computed(() => this.countOf('All') > 0);
 

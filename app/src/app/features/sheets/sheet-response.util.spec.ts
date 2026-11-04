@@ -1,48 +1,49 @@
 import { Sheet } from './models/sheet.model';
-import { sheetResponse } from './sheet-response.fixture';
-import { withTemplateCells } from './sheet-response.util';
-import { fixtureCell, fixtureRow, fixtureSection, fixtureTable } from './sheet-structure.fixture';
+import { SheetResponseFixture } from './sheet-response.fixture';
+import { SheetResponseUtil } from './sheet-response.util';
+import { SheetStructureFixture } from './sheet-structure.fixture';
 
-function sheetOf(): Sheet {
-  const table = fixtureTable();
-  const shared = fixtureCell(2);
-  const twin = { ...fixtureCell(2), template: shared.template };
-  table.sections = [
-    fixtureSection(
-      'Header',
-      'Header',
-      [fixtureRow([fixtureCell(1), shared])],
-      [fixtureSection('Limits', 'Addable', [fixtureRow([twin])])],
-    ),
-  ];
-  return {
-    id: 5,
-    publicId: 'sheet-5',
-    phaseId: 1,
-    sheetTypeId: 2,
-    isLive: true,
-    viewedVersionNumber: null,
-    viewedAsOfUtc: null,
-    latestVersionNumber: 1,
-    myDraftCount: 0,
-    otherDrafts: [],
-    versions: [],
-    tables: [table],
-    availableTemplates: [],
-    linkedSources: [],
-  };
+class SpecHelpers {
+  public static sheetOf(): Sheet {
+    const table = SheetStructureFixture.fixtureTable();
+    const shared = SheetStructureFixture.fixtureCell(2);
+    const twin = { ...SheetStructureFixture.fixtureCell(2), template: shared.template };
+    table.sections = [
+      SheetStructureFixture.fixtureSection(
+        'Header',
+        'Header',
+        [SheetStructureFixture.fixtureRow([SheetStructureFixture.fixtureCell(1), shared])],
+        [SheetStructureFixture.fixtureSection('Limits', 'Addable', [SheetStructureFixture.fixtureRow([twin])])],
+      ),
+    ];
+    return {
+      id: 5,
+      publicId: 'sheet-5',
+      phaseId: 1,
+      sheetTypeId: 2,
+      isLive: true,
+      viewedVersionNumber: null,
+      viewedAsOfUtc: null,
+      latestVersionNumber: 1,
+      myDraftCount: 0,
+      otherDrafts: [],
+      versions: [],
+      tables: [table],
+      availableTemplates: [],
+      linkedSources: [],
+    };
+  }
 }
-
 describe('withTemplateCells', () => {
   it('gives every cell, child sections too, the template cell it names', () => {
-    const sheet = sheetOf();
+    const sheet = SpecHelpers.sheetOf();
 
-    expect(withTemplateCells(sheetResponse(sheet))).toEqual(sheet);
+    expect(SheetResponseUtil.withTemplateCells(SheetResponseFixture.sheetResponse(sheet))).toEqual(sheet);
   });
 
   it('sends each template cell once, and cells built from one share its object', () => {
-    const response = sheetResponse(sheetOf());
-    const restored = withTemplateCells(response);
+    const response = SheetResponseFixture.sheetResponse(SpecHelpers.sheetOf());
+    const restored = SheetResponseUtil.withTemplateCells(response);
     const [section] = restored.tables[0].sections;
 
     expect(response.templateCells).toHaveLength(2);
@@ -50,8 +51,8 @@ describe('withTemplateCells', () => {
   });
 
   it('fails loudly when a cell names a template cell the sheet does not list', () => {
-    const response = { ...sheetResponse(sheetOf()), templateCells: [] };
+    const response = { ...SheetResponseFixture.sheetResponse(SpecHelpers.sheetOf()), templateCells: [] };
 
-    expect(() => withTemplateCells(response)).toThrow(/no template cell/);
+    expect(() => SheetResponseUtil.withTemplateCells(response)).toThrow(/no template cell/);
   });
 });

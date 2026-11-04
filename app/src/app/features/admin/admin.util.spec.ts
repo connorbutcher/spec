@@ -1,24 +1,20 @@
 import { Phase } from '../../core/models/phase.model';
 import { SheetType } from '../../core/models/sheet-type.model';
-import { buildPhaseTree } from '../phases/phase-tree.util';
-import { phaseLocation, phaseOptions, sameIds, sheetTypeUsage } from './admin.util';
+import { PhaseTreeUtil } from '../phases/phase-tree.util';
+import { AdminUtil } from './admin.util';
 
-function phase(
-  id: number,
-  code: string,
-  parentPhaseId: number | null,
-  displayOrder: number,
-  sheetTypeIds: number[] = [],
-): Phase {
-  return { id, code, description: null, displayOrder, parentPhaseId, sheetTypeIds };
+class SpecHelpers {
+  public static phase(id: number, code: string, parentPhaseId: number | null, displayOrder: number, sheetTypeIds: number[] = []): Phase {
+    return { id, code, description: null, displayOrder, parentPhaseId, sheetTypeIds };
+  }
 }
 
-const tree = buildPhaseTree([
-  phase(1, 'V6', null, 1, [1, 2]),
-  phase(2, 'A3', 1, 2, [2]),
-  phase(3, '01-A2', 1, 1, [1]),
-  phase(4, 'SC', null, 2),
-  phase(5, 'Rig', 3, 1, [2]),
+const tree = PhaseTreeUtil.buildPhaseTree([
+  SpecHelpers.phase(1, 'V6', null, 1, [1, 2]),
+  SpecHelpers.phase(2, 'A3', 1, 2, [2]),
+  SpecHelpers.phase(3, '01-A2', 1, 1, [1]),
+  SpecHelpers.phase(4, 'SC', null, 2),
+  SpecHelpers.phase(5, 'Rig', 3, 1, [2]),
 ]);
 
 const sheetTypes: SheetType[] = [
@@ -29,7 +25,7 @@ const sheetTypes: SheetType[] = [
 
 describe('phaseOptions', () => {
   it('lists every phase in tree order with its path', () => {
-    expect(phaseOptions(tree)).toEqual([
+    expect(AdminUtil.phaseOptions(tree)).toEqual([
       { id: 1, label: 'V6' },
       { id: 3, label: 'V6 › 01-A2' },
       { id: 5, label: 'V6 › 01-A2 › Rig' },
@@ -39,13 +35,13 @@ describe('phaseOptions', () => {
   });
 
   it('is empty when there are no phases', () => {
-    expect(phaseOptions([])).toEqual([]);
+    expect(AdminUtil.phaseOptions([])).toEqual([]);
   });
 });
 
 describe('sheetTypeUsage', () => {
   it('lists the phases that have each sheet type, in tree order', () => {
-    const usage = sheetTypeUsage(sheetTypes, tree);
+    const usage = AdminUtil.sheetTypeUsage(sheetTypes, tree);
     expect(usage.map((entry) => entry.sheetType.name)).toEqual(['Specification', 'Parts', 'PFKs']);
     expect(usage.map((entry) => entry.phaseCodes)).toEqual([
       ['V6', '01-A2'],
@@ -57,39 +53,39 @@ describe('sheetTypeUsage', () => {
 
 describe('phaseLocation', () => {
   it('finds a top-level phase', () => {
-    expect(phaseLocation(tree, 4)).toEqual({ parentPhaseId: null, position: 2 });
+    expect(AdminUtil.phaseLocation(tree, 4)).toEqual({ parentPhaseId: null, position: 2 });
   });
 
   it('finds a nested phase under its parent', () => {
-    expect(phaseLocation(tree, 2)).toEqual({ parentPhaseId: 1, position: 2 });
-    expect(phaseLocation(tree, 5)).toEqual({ parentPhaseId: 3, position: 1 });
+    expect(AdminUtil.phaseLocation(tree, 2)).toEqual({ parentPhaseId: 1, position: 2 });
+    expect(AdminUtil.phaseLocation(tree, 5)).toEqual({ parentPhaseId: 3, position: 1 });
   });
 
   it('follows the nodes as they stand after one is moved', () => {
-    const moved = buildPhaseTree([
-      phase(1, 'V6', null, 1),
-      phase(2, 'A3', 1, 1),
-      phase(4, 'SC', null, 2),
+    const moved = PhaseTreeUtil.buildPhaseTree([
+      SpecHelpers.phase(1, 'V6', null, 1),
+      SpecHelpers.phase(2, 'A3', 1, 1),
+      SpecHelpers.phase(4, 'SC', null, 2),
     ]);
     const [a3] = moved[0].children!.splice(0, 1);
     moved[1].children = [a3];
 
-    expect(phaseLocation(moved, 2)).toEqual({ parentPhaseId: 4, position: 1 });
+    expect(AdminUtil.phaseLocation(moved, 2)).toEqual({ parentPhaseId: 4, position: 1 });
   });
 
   it('is null for a phase the tree does not hold', () => {
-    expect(phaseLocation(tree, 99)).toBeNull();
+    expect(AdminUtil.phaseLocation(tree, 99)).toBeNull();
   });
 });
 
 describe('sameIds', () => {
   it('ignores order', () => {
-    expect(sameIds([1, 2, 3], [3, 1, 2])).toBe(true);
+    expect(AdminUtil.sameIds([1, 2, 3], [3, 1, 2])).toBe(true);
   });
 
   it('spots an added, removed or swapped id', () => {
-    expect(sameIds([1, 2], [1, 2, 3])).toBe(false);
-    expect(sameIds([1, 2, 3], [1, 2])).toBe(false);
-    expect(sameIds([1, 2], [1, 3])).toBe(false);
+    expect(AdminUtil.sameIds([1, 2], [1, 2, 3])).toBe(false);
+    expect(AdminUtil.sameIds([1, 2, 3], [1, 2])).toBe(false);
+    expect(AdminUtil.sameIds([1, 2], [1, 3])).toBe(false);
   });
 });

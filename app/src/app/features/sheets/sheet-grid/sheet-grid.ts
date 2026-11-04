@@ -1,11 +1,11 @@
 import { Component, computed, input, linkedSignal } from '@angular/core';
-import { reuseUnchanged } from '../../../shared/reuse-unchanged.util';
+import { ReuseUnchangedUtil } from '../../../shared/reuse-unchanged.util';
 import { TemplateLayout } from '../../templates/models/template-layout.model';
 import { SheetGridColumnBlock } from '../sheet-grid-column-block/sheet-grid-column-block';
 import { SheetAnchor } from '../sheet-anchor.directive';
 import { SheetGridSection } from '../sheet-grid-section/sheet-grid-section';
-import { tableLabel } from '../sheet-labels.util';
-import { layoutSheetTable } from '../sheet-layout.util';
+import { SheetLabelsUtil } from '../sheet-labels.util';
+import { SheetLayoutUtil } from '../sheet-layout.util';
 import { SheetTable } from '../models/sheet-table.model';
 
 /** One sheet table as a CSS grid, laid out with the template layout util so it matches its template. */
@@ -15,6 +15,7 @@ import { SheetTable } from '../models/sheet-table.model';
   templateUrl: './sheet-grid.html',
   styleUrl: './sheet-grid.scss',
 })
+
 export class SheetGrid {
   public readonly table = input.required<SheetTable>();
 
@@ -24,8 +25,8 @@ export class SheetGrid {
    */
   public readonly layout = linkedSignal<SheetTable, TemplateLayout>({
     source: this.table,
-    computation: (table, previous) => reuseUnchanged(previous?.value, layoutSheetTable(table)),
+    computation: (table, previous) => ReuseUnchangedUtil.reuseUnchanged(previous?.value, SheetLayoutUtil.layoutSheetTable(table)),
   });
 
-  public readonly label = computed(() => tableLabel(this.table()));
+  public readonly label = computed(() => SheetLabelsUtil.tableLabel(this.table()));
 }

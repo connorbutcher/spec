@@ -44,26 +44,27 @@ export const CELL_KINDS: readonly CellKindInfo[] = [
   },
 ];
 
-/** Display details for a cell kind. */
-export function cellKindInfo(kind: CellKind): CellKindInfo {
-  return CELL_KINDS.find((info) => info.kind === kind) ?? CELL_KINDS[2];
-}
+export class CellKinds {
+  /** Display details for a cell kind. */
+  public static cellKindInfo(kind: CellKind): CellKindInfo {
+    return CELL_KINDS.find((info) => info.kind === kind) ?? CELL_KINDS[2];
+  }
 
-/** Whether cells of this kind are only shown, and never filled in on a sheet. */
-export function isDisplayOnly(kind: CellKind | undefined): boolean {
-  return kind === 'Heading' || kind === 'Group';
-}
+  /** Whether cells of this kind are only shown, and never filled in on a sheet. */
+  public static isDisplayOnly(kind: CellKind | undefined): boolean {
+    return kind === 'Heading' || kind === 'Group';
+  }
 
-/**
- * Whether cells of this kind have settings that are chosen on the sheet, cell by cell, and not in the
- * template. Matches the API's `CellInstanceSettingsCatalog`.
- */
-export function hasInstanceSettings(kind: CellKind | undefined): boolean {
-  return kind === 'LinkedDropdown';
-}
+  /**
+   * Whether cells of this kind have settings that are chosen on the sheet, cell by cell, and not in the
+   * template. Matches the API's `CellInstanceSettingsCatalog`.
+   */
+  public static hasInstanceSettings(kind: CellKind | undefined): boolean {
+    return kind === 'LinkedDropdown';
+  }
 
-/** Whether cells of this kind pick one of the cell type's options. */
-
-export function isDropdown(kind: CellKind | undefined): boolean {
-  return kind === 'TextDropdown' || kind === 'NumberDropdown';
+  /** Whether cells of this kind pick one of the cell type's options. */
+  public static isDropdown(kind: CellKind | undefined): boolean {
+    return kind === 'TextDropdown' || kind === 'NumberDropdown';
+  }
 }

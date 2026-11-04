@@ -7,24 +7,31 @@ import { of } from 'rxjs';
 import { CurrentUserStore } from '../../core/auth/current-user.store';
 import { Sheet } from './models/sheet.model';
 import { RowCheckoutStore } from './row-checkout.store';
-import { fixtureTable } from './sheet-structure.fixture';
+import { SheetStructureFixture } from './sheet-structure.fixture';
 import { SheetStore } from './sheet.store';
-import { sheetResponse } from './sheet-response.fixture';
+import { SheetResponseFixture } from './sheet-response.fixture';
 
 const SHEET_URL = '/api/phases/1/sheets/2';
 
-/** How the store shows rows people are in but have not changed, which the server's sheet leaves out. */
-describe('SheetStore with row checkouts', () => {
-  let store: SheetStore;
-  let checkouts: RowCheckoutStore;
-  let sheet: Sheet;
-
-  async function settle(): Promise<void> {
+class SheetStoreWithRowCheckoutsPage {
+  public async settle(): Promise<void> {
     TestBed.inject(ApplicationRef).tick();
     await new Promise((resolve) => setTimeout(resolve));
     TestBed.inject(ApplicationRef).tick();
   }
+}
 
+/** How the store shows rows people are in but have not changed, which the server's sheet leaves out. */
+describe('SheetStore with row checkouts', () => {
+  let page: SheetStoreWithRowCheckoutsPage;
+
+  beforeEach(() => {
+    page = new SheetStoreWithRowCheckoutsPage();
+  });
+
+  let store: SheetStore;
+  let checkouts: RowCheckoutStore;
+  let sheet: Sheet;
   beforeEach(async () => {
     sheet = {
       id: 5,
@@ -38,7 +45,7 @@ describe('SheetStore with row checkouts', () => {
       myDraftCount: 0,
       otherDrafts: [],
       versions: [],
-      tables: [fixtureTable()],
+      tables: [SheetStructureFixture.fixtureTable()],
       availableTemplates: [],
       linkedSources: [],
     };
@@ -59,10 +66,10 @@ describe('SheetStore with row checkouts', () => {
     checkouts = TestBed.inject(RowCheckoutStore);
     const http = TestBed.inject(HttpTestingController);
 
-    await settle();
+    await page.settle();
     http.expectOne('/api/cell-types').flush([]);
-    http.expectOne(SHEET_URL).flush(sheetResponse(sheet));
-    await settle();
+    http.expectOne(SHEET_URL).flush(SheetResponseFixture.sheetResponse(sheet));
+    await page.settle();
   });
 
   it('shows the sheet as the server sent it while nobody is in a row', () => {

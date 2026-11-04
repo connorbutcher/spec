@@ -4,10 +4,10 @@ import { ButtonModule } from 'primeng/button';
 import { CheckboxChangeEvent, CheckboxModule } from 'primeng/checkbox';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectChangeEvent, SelectModule } from 'primeng/select';
-import { configurationFields, STYLE_FIELDS } from '../cell-setting-fields';
+import { STYLE_FIELDS, CellSettingFields } from '../cell-setting-fields';
 import { ConfirmDeleteButton } from '../confirm-delete-button/confirm-delete-button';
 import { CellConfiguration } from '../models/cell-configuration';
-import { cellKindInfo, isDisplayOnly } from '../models/cell-kinds';
+import { CellKinds } from '../models/cell-kinds';
 import { CellEntry } from '../models/cell-entry.model';
 import { CellKindInfo } from '../models/cell-kind-info.model';
 import { CellStyle } from '../models/cell-style.model';
@@ -42,6 +42,7 @@ type PlacementField = 'column' | 'columnSpan' | 'rowSpan';
   templateUrl: './cell-settings.html',
   styleUrl: './cell-settings.scss',
 })
+
 export class CellSettings {
   public readonly cellId = input.required<number>();
 
@@ -57,19 +58,19 @@ export class CellSettings {
   });
 
   public readonly kind = computed<CellKindInfo>(() =>
-    cellKindInfo(this.cellType()?.kind ?? 'Text'),
+    CellKinds.cellKindInfo(this.cellType()?.kind ?? 'Text'),
   );
 
   public readonly typeOptions = computed(() =>
     this.store.cellTypes().map((cellType) => ({
-      label: `${cellType.name} (${cellKindInfo(cellType.kind).label})`,
+      label: `${cellType.name} (${CellKinds.cellKindInfo(cellType.kind).label})`,
       value: cellType.id,
-      icon: cellKindInfo(cellType.kind).icon,
+      icon: CellKinds.cellKindInfo(cellType.kind).icon,
     })),
   );
 
   public readonly configurationFields = computed<readonly SettingField[]>(() =>
-    configurationFields(this.kind().kind),
+    CellSettingFields.configurationFields(this.kind().kind),
   );
 
   /** The cell's configuration override, if it's for its type's current kind. */
@@ -102,7 +103,7 @@ export class CellSettings {
   }
 
   public isDisplayOnly(): boolean {
-    return isDisplayOnly(this.cellType()?.kind);
+    return CellKinds.isDisplayOnly(this.cellType()?.kind);
   }
 
   public setType(event: SelectChangeEvent): void {

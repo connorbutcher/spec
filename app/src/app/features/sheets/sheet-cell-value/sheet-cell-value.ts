@@ -1,7 +1,7 @@
 import { Component, computed, input } from '@angular/core';
 import { CellConfiguration } from '../../templates/models/cell-configuration';
 import { CellType } from '../../templates/models/cell-type.model';
-import { displayValue } from '../cell-value.util';
+import { CellValueUtil } from '../cell-value.util';
 import { SheetCell } from '../models/sheet-cell.model';
 
 /**
@@ -19,6 +19,7 @@ import { SheetCell } from '../models/sheet-cell.model';
     '[class.styled-by-cell]': 'isText()',
   },
 })
+
 export class SheetCellValue {
   public readonly cell = input.required<SheetCell | null>();
   public readonly cellType = input.required<CellType | null>();
@@ -47,7 +48,7 @@ export class SheetCellValue {
     const cellType = this.cellType();
     const configuration = this.configuration();
     return cell !== null && cellType !== null && configuration !== null
-      ? displayValue(cell, cellType, configuration)
+      ? CellValueUtil.displayValue(cell, cellType, configuration)
       : '';
   });
 }

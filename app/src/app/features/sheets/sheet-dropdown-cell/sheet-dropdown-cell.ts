@@ -2,7 +2,7 @@ import { Component, computed, input, linkedSignal, output } from '@angular/core'
 import { FormsModule } from '@angular/forms';
 import { SelectModule } from 'primeng/select';
 import { CellType } from '../../templates/models/cell-type.model';
-import { valueRequest } from '../cell-value.util';
+import { CellValueUtil } from '../cell-value.util';
 import { CellValueRequest } from '../models/cell-value-request.model';
 import { SheetCell } from '../models/sheet-cell.model';
 
@@ -16,6 +16,7 @@ import { SheetCell } from '../models/sheet-cell.model';
   templateUrl: './sheet-dropdown-cell.html',
   styleUrl: './sheet-dropdown-cell.scss',
 })
+
 export class SheetDropdownCell {
   public readonly cell = input.required<SheetCell>();
   public readonly cellType = input.required<CellType>();
@@ -35,7 +36,7 @@ export class SheetDropdownCell {
   public choose(value: number | null): void {
     this.optionId.set(value);
     if (value !== this.cell().optionId) {
-      this.changed.emit(valueRequest(this.cell(), this.cellType().kind, value));
+      this.changed.emit(CellValueUtil.valueRequest(this.cell(), this.cellType().kind, value));
     }
   }
 }

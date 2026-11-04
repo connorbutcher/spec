@@ -1,7 +1,7 @@
 import { computed, Directive, effect, ElementRef, inject, input } from '@angular/core';
 import { SheetAnchorKind } from './models/sheet-anchor-kind';
 import { SheetAnchorService } from './sheet-anchor.service';
-import { anchorKey, anchorPublicId } from './sheet-anchor.util';
+import { SheetAnchorUtil } from './sheet-anchor.util';
 import { SheetSearchStore } from './sheet-search.store';
 import { SheetStore } from './sheet.store';
 
@@ -22,6 +22,7 @@ import { SheetStore } from './sheet.store';
     '[class.search-active]': 'isSearchActive()',
   },
 })
+
 export class SheetAnchor {
   public readonly appSheetAnchor = input.required<SheetAnchorKind>();
   /** The sheet id of the table, section, row or cell. */
@@ -30,8 +31,8 @@ export class SheetAnchor {
   /** The key it goes by, from its public id, or null while it isn't on the sheet. */
   public readonly key = computed(() => {
     const kind = this.appSheetAnchor();
-    const publicId = anchorPublicId(this.store.index(), kind, this.anchorId());
-    return publicId === null ? null : anchorKey(kind, publicId);
+    const publicId = SheetAnchorUtil.anchorPublicId(this.store.index(), kind, this.anchorId());
+    return publicId === null ? null : SheetAnchorUtil.anchorKey(kind, publicId);
   });
 
   public readonly isTarget = computed(() => {

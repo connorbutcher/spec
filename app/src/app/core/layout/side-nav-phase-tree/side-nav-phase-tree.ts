@@ -26,21 +26,7 @@ export class SideNavPhaseTree {
   /** Every phase as a flat list in tree order, for the collapsed rail. */
   public readonly codes = computed<MenuItem[]>(() => {
     const items: MenuItem[] = [];
-    const visit = (nodes: TreeNode<Phase>[]): void => {
-      for (const node of nodes) {
-        items.push({
-          label: node.label,
-          styleClass: node.data?.id === this.store.selectedPhaseId() ? 'selected' : '',
-          command: () => {
-            if (node.data) {
-              this.store.selectPhase(node.data.id);
-            }
-          },
-        });
-        visit(node.children ?? []);
-      }
-    };
-    visit(this.store.tree());
+    this.addCodes(this.store.tree(), items);
     return items;
   });
 
@@ -48,6 +34,21 @@ export class SideNavPhaseTree {
     const phase = (event.node as TreeNode<Phase>).data;
     if (phase) {
       this.store.selectPhase(phase.id);
+    }
+  }
+
+  private addCodes(nodes: TreeNode<Phase>[], items: MenuItem[]): void {
+    for (const node of nodes) {
+      items.push({
+        label: node.label,
+        styleClass: node.data?.id === this.store.selectedPhaseId() ? 'selected' : '',
+        command: () => {
+          if (node.data) {
+            this.store.selectPhase(node.data.id);
+          }
+        },
+      });
+      this.addCodes(node.children ?? [], items);
     }
   }
 }

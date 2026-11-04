@@ -9,9 +9,9 @@ import { SelectModule } from 'primeng/select';
 import { Phase } from '../../../core/models/phase.model';
 import { SheetType } from '../../../core/models/sheet-type.model';
 import { PhasesStore } from '../../phases/phases.store';
-import { apiErrorMessage } from '../../templates/api-error-message';
+import { ApiErrorMessage } from '../../templates/api-error-message';
 import { AdminApi } from '../admin-api';
-import { phaseOptions } from '../admin.util';
+import { AdminUtil } from '../admin.util';
 import { PhaseOption } from '../models/phase-option.model';
 
 /**
@@ -32,6 +32,7 @@ import { PhaseOption } from '../models/phase-option.model';
   templateUrl: './add-phase-dialog.html',
   styleUrl: './add-phase-dialog.scss',
 })
+
 export class AddPhaseDialog {
   public readonly visible = model(false);
 
@@ -47,7 +48,7 @@ export class AddPhaseDialog {
   public readonly error = signal<string | null>(null);
   public readonly isSaving = signal(false);
 
-  public readonly parentOptions = computed<PhaseOption[]>(() => phaseOptions(this.store.tree()));
+  public readonly parentOptions = computed<PhaseOption[]>(() => AdminUtil.phaseOptions(this.store.tree()));
 
   public readonly sheetTypes = computed<SheetType[]>(() => this.store.sheetTypes());
 
@@ -83,7 +84,7 @@ export class AddPhaseDialog {
       this.visible.set(false);
       this.created.emit(phase);
     } catch (error) {
-      this.error.set(apiErrorMessage(error));
+      this.error.set(ApiErrorMessage.apiErrorMessage(error));
     } finally {
       this.isSaving.set(false);
     }

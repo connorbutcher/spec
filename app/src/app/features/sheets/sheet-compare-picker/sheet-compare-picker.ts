@@ -2,7 +2,7 @@ import { Component, computed, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { SelectModule } from 'primeng/select';
 import { SheetVersionOption } from '../models/sheet-version-option.model';
-import { versionLabel } from '../sheet-labels.util';
+import { SheetLabelsUtil } from '../sheet-labels.util';
 import { SheetStore } from '../sheet.store';
 
 /**
@@ -15,11 +15,12 @@ import { SheetStore } from '../sheet.store';
   templateUrl: './sheet-compare-picker.html',
   styleUrl: './sheet-compare-picker.scss',
 })
+
 export class SheetComparePicker {
   public readonly options = computed<SheetVersionOption[]>(() => [
     { label: 'Changes: off', value: null },
     ...this.store.versions().map((version) => ({
-      label: `Changes since ${versionLabel(version.versionNumber)}`,
+      label: `Changes since ${SheetLabelsUtil.versionLabel(version.versionNumber)}`,
       value: version.versionNumber,
     })),
   ]);

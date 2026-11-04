@@ -3,7 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectButtonChangeEvent, SelectButtonModule } from 'primeng/selectbutton';
-import { columnBlockLinks } from '../column-block-links.util';
+import { ColumnBlockLinksUtil } from '../column-block-links.util';
 import { ConfirmDeleteButton } from '../confirm-delete-button/confirm-delete-button';
 import { PanelLinkItem } from '../models/panel-link-item.model';
 import { TableTemplate } from '../models/table-template.model';
@@ -11,8 +11,8 @@ import { TemplateOrientation } from '../models/template-orientation';
 import { PanelLinkList } from '../panel-link-list/panel-link-list';
 import { PanelNavigator } from '../panel-navigator';
 import { StickyColumnsField } from '../sticky-columns-field/sticky-columns-field';
-import { sectionLinks } from '../section-links.util';
-import { planColumns, topLevelOrder } from '../template-layout.util';
+import { SectionLinksUtil } from '../section-links.util';
+import { TemplateLayoutUtil } from '../template-layout.util';
 import { TemplatesStore } from '../templates.store';
 
 /**
@@ -33,14 +33,15 @@ import { TemplatesStore } from '../templates.store';
   templateUrl: './template-settings.html',
   styleUrl: './template-settings.scss',
 })
+
 export class TemplateSettings {
   public readonly template = computed<TableTemplate | null>(() => this.store.template());
 
   public readonly sections = computed<PanelLinkItem[]>(() =>
-    sectionLinks(topLevelOrder(this.template()?.sections ?? [])),
+    SectionLinksUtil.sectionLinks(TemplateLayoutUtil.topLevelOrder(this.template()?.sections ?? [])),
   );
 
-  public readonly columnBlocks = computed<PanelLinkItem[]>(() => columnBlockLinks(this.template()));
+  public readonly columnBlocks = computed<PanelLinkItem[]>(() => ColumnBlockLinksUtil.columnBlockLinks(this.template()));
 
   /** How many columns the table's own cells take, before the column blocks: the most that can be pinned. */
   public readonly ownColumns = computed(() => {
@@ -48,7 +49,7 @@ export class TemplateSettings {
     if (!template) {
       return 1;
     }
-    const plan = planColumns(template);
+    const plan = TemplateLayoutUtil.planColumns(template);
     const firstBlock = Math.min(...plan.blockStarts.values(), plan.total + 1);
     return Math.max(1, firstBlock - 1);
   });

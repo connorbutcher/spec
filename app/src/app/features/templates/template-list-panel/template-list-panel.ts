@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { ListboxChangeEvent, ListboxModule } from 'primeng/listbox';
 import { EmptyState } from '../../../shared/components/empty-state/empty-state';
-import { sheetTypeIcon } from '../../../shared/sheet-type-icon';
+import { SheetTypeIcon } from '../../../shared/sheet-type-icon';
 import { TemplateListGroup } from '../models/template-list-group.model';
 import { PanelNavigator } from '../panel-navigator';
 import { TemplatesStore } from '../templates.store';
@@ -19,12 +19,13 @@ import { TemplatesStore } from '../templates.store';
   templateUrl: './template-list-panel.html',
   styleUrl: './template-list-panel.scss',
 })
+
 export class TemplateListPanel {
   public readonly groups = computed<TemplateListGroup[]>(() =>
     this.store.sheetTypes().map((sheetType) => ({
       sheetTypeId: sheetType.id,
       label: sheetType.name,
-      icon: sheetTypeIcon(sheetType.name),
+      icon: SheetTypeIcon.sheetTypeIcon(sheetType.name),
       items: this.store.templatesFor(sheetType.id),
     })),
   );

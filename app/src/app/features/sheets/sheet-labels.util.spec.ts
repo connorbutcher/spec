@@ -1,40 +1,34 @@
-import { fixtureCell, fixtureRow, fixtureSection, fixtureTable } from './sheet-structure.fixture';
+import { SheetStructureFixture } from './sheet-structure.fixture';
 import {
-  changeLabel,
-  rowLabel,
-  sectionLabel,
-  tableLabel,
-  versionLabel,
-  viewLabel,
-} from './sheet-labels.util';
+  SheetLabelsUtil } from './sheet-labels.util';
 
 describe('sheet labels', () => {
   it('names a row after the first text typed into it, if there is any', () => {
-    const named = fixtureRow([fixtureCell(1), { ...fixtureCell(2), textValue: 'Stem diameter' }]);
+    const named = SheetStructureFixture.fixtureRow([SheetStructureFixture.fixtureCell(1), { ...SheetStructureFixture.fixtureCell(2), textValue: 'Stem diameter' }]);
 
-    expect(rowLabel(named)).toBe('Stem diameter');
-    expect(rowLabel(fixtureRow([fixtureCell(1)]))).toBeNull();
+    expect(SheetLabelsUtil.rowLabel(named)).toBe('Stem diameter');
+    expect(SheetLabelsUtil.rowLabel(SheetStructureFixture.fixtureRow([SheetStructureFixture.fixtureCell(1)]))).toBeNull();
   });
 
   it('names a section after its template, plus the first text typed into it', () => {
-    const empty = fixtureSection('Group', 'Addable', [fixtureRow([fixtureCell(1)])]);
-    const named = fixtureSection('Group', 'Addable', [
-      fixtureRow([fixtureCell(1), { ...fixtureCell(2), textValue: 'Intake valve' }]),
+    const empty = SheetStructureFixture.fixtureSection('Group', 'Addable', [SheetStructureFixture.fixtureRow([SheetStructureFixture.fixtureCell(1)])]);
+    const named = SheetStructureFixture.fixtureSection('Group', 'Addable', [
+      SheetStructureFixture.fixtureRow([SheetStructureFixture.fixtureCell(1), { ...SheetStructureFixture.fixtureCell(2), textValue: 'Intake valve' }]),
     ]);
 
-    expect(sectionLabel(empty)).toBe('Group');
-    expect(sectionLabel(named)).toBe('Group · Intake valve');
+    expect(SheetLabelsUtil.sectionLabel(empty)).toBe('Group');
+    expect(SheetLabelsUtil.sectionLabel(named)).toBe('Group · Intake valve');
   });
 
   it('calls a table by its title, or by its template until it has one', () => {
-    const table = fixtureTable();
+    const table = SheetStructureFixture.fixtureTable();
 
-    expect(tableLabel(table)).toBe('Limits table');
-    expect(tableLabel({ ...table, title: 'Piston parts' })).toBe('Piston parts');
+    expect(SheetLabelsUtil.tableLabel(table)).toBe('Limits table');
+    expect(SheetLabelsUtil.tableLabel({ ...table, title: 'Piston parts' })).toBe('Piston parts');
   });
 
   it('writes a version as v and its number', () => {
-    expect(versionLabel(3)).toBe('v3');
+    expect(SheetLabelsUtil.versionLabel(3)).toBe('v3');
   });
 
   it('says what is being looked at, and what changes are marked since', () => {
@@ -45,16 +39,16 @@ describe('sheet labels', () => {
       viewedAsOfUtc: null,
     };
 
-    expect(viewLabel(live, null)).toBe('Live · v9');
-    expect(viewLabel(live, 6)).toBe('Live · v9 · changes since v6');
-    expect(viewLabel({ ...live, latestVersionNumber: null }, null)).toBe('Live');
-    expect(viewLabel({ ...live, isLive: false, viewedVersionNumber: 6 }, null)).toBe(
+    expect(SheetLabelsUtil.viewLabel(live, null)).toBe('Live · v9');
+    expect(SheetLabelsUtil.viewLabel(live, 6)).toBe('Live · v9 · changes since v6');
+    expect(SheetLabelsUtil.viewLabel({ ...live, latestVersionNumber: null }, null)).toBe('Live');
+    expect(SheetLabelsUtil.viewLabel({ ...live, isLive: false, viewedVersionNumber: 6 }, null)).toBe(
       'v6 · read-only',
     );
   });
 
   it('says which version changed something, when and by whom', () => {
-    const label = changeLabel({
+    const label = SheetLabelsUtil.changeLabel({
       versionNumber: 3,
       atUtc: '2026-09-12T10:00:00Z',
       userName: 'A. Smith',

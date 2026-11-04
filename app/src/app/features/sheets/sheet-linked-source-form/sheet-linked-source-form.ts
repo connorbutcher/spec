@@ -4,7 +4,7 @@ import { ButtonModule } from 'primeng/button';
 import { SelectModule } from 'primeng/select';
 import { SelectButtonModule } from 'primeng/selectbutton';
 import { LinkedDropdownInstanceSettings } from '../models/linked-dropdown-instance-settings.model';
-import { tableLabel } from '../sheet-labels.util';
+import { SheetLabelsUtil } from '../sheet-labels.util';
 import { SheetStore } from '../sheet.store';
 
 /** A list this long gets a search box. */
@@ -21,6 +21,7 @@ const FILTER_FROM = 8;
   templateUrl: './sheet-linked-source-form.html',
   styleUrl: './sheet-linked-source-form.scss',
 })
+
 export class SheetLinkedSourceForm {
   /** What the cell is pointed at now, or null when nothing has been chosen. */
   public readonly settings = input.required<LinkedDropdownInstanceSettings | null>();
@@ -71,7 +72,7 @@ export class SheetLinkedSourceForm {
   public readonly tables = computed(() =>
     [...this.store.index().tables.values()]
       .filter((table) => table.linkableColumns.length > 0 || table.linkableRows.length > 0)
-      .map((table) => ({ id: table.id, label: tableLabel(table) })),
+      .map((table) => ({ id: table.id, label: SheetLabelsUtil.tableLabel(table) })),
   );
 
   public readonly columns = computed(() => this.columnsOf(this.tableId()));

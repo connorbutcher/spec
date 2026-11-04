@@ -7,18 +7,14 @@ import {
   Injector,
   input,
 } from '@angular/core';
-import { effectiveConfiguration, effectiveStyle } from '../../templates/cell-settings.util';
-import { cellStyleCss } from '../../templates/cell-style-css.util';
-import { isDisplayOnly } from '../../templates/models/cell-kinds';
+import { CellSettingsUtil } from '../../templates/cell-settings.util';
+import { CellStyleCssUtil } from '../../templates/cell-style-css.util';
+import { CellKinds } from '../../templates/models/cell-kinds';
 import { CellLayout } from '../../templates/models/cell-layout.model';
 import { CellType } from '../../templates/models/cell-type.model';
 import { GridStyle } from '../../templates/models/grid-style';
 import {
-  linkedChoices,
-  linkedHint,
-  linkedWarning,
-  sameLinkedChoices,
-} from '../linked-dropdown.util';
+  LinkedDropdownUtil } from '../linked-dropdown.util';
 import { CellSettingsRequest } from '../models/cell-settings-request.model';
 import { CellValueRequest } from '../models/cell-value-request.model';
 import { EditableCell } from '../models/editable-cell.model';
@@ -30,8 +26,8 @@ import { SheetRow } from '../models/sheet-row.model';
 import { SheetCellEditor } from '../sheet-cell-editor/sheet-cell-editor';
 import { SheetCellMarks } from '../sheet-cell-marks/sheet-cell-marks';
 import { SheetCellValue } from '../sheet-cell-value/sheet-cell-value';
-import { sectionTone } from '../sheet-index.util';
-import { otherUsersLock } from '../sheet-lock.util';
+import { SheetIndexUtil } from '../sheet-index.util';
+import { SheetLockUtil } from '../sheet-lock.util';
 import { SheetStore } from '../sheet.store';
 
 const FLEX_ALIGNMENT: Readonly<Record<string, string>> = {
@@ -75,6 +71,7 @@ const FLEX_ALIGNMENT: Readonly<Record<string, string>> = {
     '(keydown.enter)': 'select($event)',
   },
 })
+
 export class SheetGridCell {
   public readonly layout = input.required<CellLayout>();
 
@@ -90,18 +87,18 @@ export class SheetGridCell {
     () => this.store.cellTypes().get(this.layout().cell.cellTypeId) ?? null,
   );
 
-  public readonly displayOnly = computed(() => isDisplayOnly(this.cellType()?.kind));
+  public readonly displayOnly = computed(() => CellKinds.isDisplayOnly(this.cellType()?.kind));
 
   public readonly configuration = computed(() => {
     const cellType = this.cellType();
     return cellType
-      ? effectiveConfiguration(cellType.configuration, this.layout().cell.configurationOverride)
+      ? CellSettingsUtil.effectiveConfiguration(cellType.configuration, this.layout().cell.configurationOverride)
       : null;
   });
 
   public readonly isMine = computed(() => this.row()?.lock?.isMine === true);
 
-  public readonly lockedByOther = computed(() => otherUsersLock(this.row()?.lock) !== null);
+  public readonly lockedByOther = computed(() => SheetLockUtil.otherUsersLock(this.row()?.lock) !== null);
 
   /**
    * What the cell's control needs, when it has one: the cell takes a value, the sheet is live, and
@@ -136,7 +133,7 @@ export class SheetGridCell {
 
   /** The cell's fill, from where its section sits. A background set in the cell's own style takes precedence. */
   public readonly tone = computed<SectionTone>(() =>
-    sectionTone(this.store.index(), this.layout().rowId),
+    SheetIndexUtil.sectionTone(this.store.index(), this.layout().rowId),
   );
 
   /** A caption in the header names its column; every other cell is an ordinary cell. */
@@ -181,10 +178,10 @@ export class SheetGridCell {
     () => {
       const cell = this.cell();
       return cell !== null && this.cellType()?.kind === 'LinkedDropdown'
-        ? linkedChoices(this.store.sheet(), this.store.index(), cell.settings)
+        ? LinkedDropdownUtil.linkedChoices(this.store.sheet(), this.store.index(), cell.settings)
         : null;
     },
-    { equal: sameLinkedChoices },
+    { equal: LinkedDropdownUtil.sameLinkedChoices },
   );
 
   /**
@@ -193,7 +190,7 @@ export class SheetGridCell {
    */
   public readonly hint = computed(() => {
     const choices = this.linkedChoices();
-    const unlinked = choices === null ? null : linkedHint(choices);
+    const unlinked = choices === null ? null : LinkedDropdownUtil.linkedHint(choices);
     if (unlinked !== null) {
       return unlinked;
     }
@@ -208,7 +205,7 @@ export class SheetGridCell {
     const choices = this.linkedChoices();
     return choices === null || this.showsEditor()
       ? null
-      : linkedWarning(choices, this.cell()?.textValue ?? null);
+      : LinkedDropdownUtil.linkedWarning(choices, this.cell()?.textValue ?? null);
   });
 
   /** The cell's value changed after the version being compared against. */
@@ -225,7 +222,7 @@ export class SheetGridCell {
   private readonly styleCss = computed<Record<string, string>>(() => {
     const cellType = this.cellType();
     return cellType
-      ? cellStyleCss(effectiveStyle(cellType.style, this.layout().cell.styleOverride))
+      ? CellStyleCssUtil.cellStyleCss(CellSettingsUtil.effectiveStyle(cellType.style, this.layout().cell.styleOverride))
       : {};
   });
 

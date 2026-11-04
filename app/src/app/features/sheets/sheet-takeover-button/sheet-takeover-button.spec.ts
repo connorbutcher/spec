@@ -4,41 +4,49 @@ import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { RowTakeover } from '../models/row-takeover.model';
 import { SheetRow } from '../models/sheet-row.model';
-import { fixtureTakeover } from '../row-takeover.fixture';
+import { RowTakeoverFixture } from '../row-takeover.fixture';
 import { RowTakeoverStore } from '../row-takeover.store';
-import { fixtureRow } from '../sheet-structure.fixture';
+import { SheetStructureFixture } from '../sheet-structure.fixture';
 import { SheetTakeoverButton } from './sheet-takeover-button';
 
-describe('SheetTakeoverButton', () => {
-  let fixture: ComponentFixture<SheetTakeoverButton>;
-  let http: HttpTestingController;
-  let row: SheetRow;
-  let requested: number[];
-  const outgoing = signal<ReadonlyMap<number, RowTakeover>>(new Map());
+class SheetTakeoverButtonPage {
+  public fixture!: ComponentFixture<SheetTakeoverButton>;
+  public row!: SheetRow;
 
-  function availabilityUrl(): string {
-    return `/api/sheet-rows/${row.id}/takeover-availability`;
+  public availabilityUrl(): string {
+    return `/api/sheet-rows/${this.row.id}/takeover-availability`;
   }
 
-  function text(): string {
-    return (fixture.nativeElement as HTMLElement).textContent.replace(/\s+/g, ' ').trim();
+  public text(): string {
+    return (this.fixture.nativeElement as HTMLElement).textContent.replace(/\s+/g, ' ').trim();
   }
 
-  function button(): HTMLButtonElement | null {
-    return (fixture.nativeElement as HTMLElement).querySelector('button');
+  public button(): HTMLButtonElement | null {
+    return (this.fixture.nativeElement as HTMLElement).querySelector('button');
   }
 
   /** Lets the resource send its request and what came back reach the screen. */
-  async function settle(): Promise<void> {
-    fixture.detectChanges();
+  public async settle(): Promise<void> {
+    this.fixture.detectChanges();
     await new Promise((resolve) => setTimeout(resolve));
-    fixture.detectChanges();
+    this.fixture.detectChanges();
   }
+}
 
+describe('SheetTakeoverButton', () => {
+  let page: SheetTakeoverButtonPage;
+
+  beforeEach(() => {
+    page = new SheetTakeoverButtonPage();
+  });
+
+  let http: HttpTestingController;
+  let requested: number[];
+  const outgoing = signal<ReadonlyMap<number, RowTakeover>>(new Map());
   beforeEach(async () => {
     requested = [];
     outgoing.set(new Map());
-    row = { ...fixtureRow([]), lock: { userId: 2, userName: 'Engineer Two', isMine: false } };
+    page.row = { ...SheetStructureFixture.fixtureRow([]), lock: { userId: 2, userName: 'Engineer Two', isMine: false } };
     TestBed.configureTestingModule({
       providers: [
         provideHttpClient(),
@@ -56,10 +64,10 @@ describe('SheetTakeoverButton', () => {
         },
       ],
     });
-    fixture = TestBed.createComponent(SheetTakeoverButton);
-    fixture.componentRef.setInput('row', row);
+    page.fixture = TestBed.createComponent(SheetTakeoverButton);
+    page.fixture.componentRef.setInput('row', page.row);
     http = TestBed.inject(HttpTestingController);
-    await settle();
+    await page.settle();
   });
 
   afterEach(() => {
@@ -67,56 +75,56 @@ describe('SheetTakeoverButton', () => {
   });
 
   it('offers nothing to press until the server says the row can be asked for', async () => {
-    expect(button()?.disabled).toBe(true);
+    expect(page.button()?.disabled).toBe(true);
 
-    http.expectOne(availabilityUrl()).flush({ isAvailable: true, reason: null });
-    await settle();
+    http.expectOne(page.availabilityUrl()).flush({ isAvailable: true, reason: null });
+    await page.settle();
 
-    expect(button()?.disabled).toBe(false);
-    expect(text()).toContain('Request takeover');
+    expect(page.button()?.disabled).toBe(false);
+    expect(page.text()).toContain('Request takeover');
   });
 
   it('shows the reason in place of the button for a row with unpublished changes', async () => {
     const reason = 'Engineer Two has unpublished changes on this row.';
-    http.expectOne(availabilityUrl()).flush({ isAvailable: false, reason });
-    await settle();
+    http.expectOne(page.availabilityUrl()).flush({ isAvailable: false, reason });
+    await page.settle();
 
-    expect(button()).toBeNull();
-    expect(text()).toBe(reason);
+    expect(page.button()).toBeNull();
+    expect(page.text()).toBe(reason);
   });
 
   it('asks again when the row changes, as it may have been published', async () => {
-    http.expectOne(availabilityUrl()).flush({ isAvailable: false, reason: 'Has changes.' });
-    await settle();
+    http.expectOne(page.availabilityUrl()).flush({ isAvailable: false, reason: 'Has changes.' });
+    await page.settle();
 
-    fixture.componentRef.setInput('row', { ...row, lastChange: null, displayOrder: 99 });
-    await settle();
-    http.expectOne(availabilityUrl()).flush({ isAvailable: true, reason: null });
-    await settle();
+    page.fixture.componentRef.setInput('row', { ...page.row, lastChange: null, displayOrder: 99 });
+    await page.settle();
+    http.expectOne(page.availabilityUrl()).flush({ isAvailable: true, reason: null });
+    await page.settle();
 
-    expect(text()).toContain('Request takeover');
+    expect(page.text()).toContain('Request takeover');
   });
 
   it('asks for the row, then checks again whether it can still be asked for', async () => {
-    http.expectOne(availabilityUrl()).flush({ isAvailable: true, reason: null });
-    await settle();
+    http.expectOne(page.availabilityUrl()).flush({ isAvailable: true, reason: null });
+    await page.settle();
 
-    button()?.click();
-    await settle();
+    page.button()?.click();
+    await page.settle();
 
-    expect(requested).toEqual([row.id]);
-    http.expectOne(availabilityUrl()).flush({ isAvailable: true, reason: null });
-    await settle();
+    expect(requested).toEqual([page.row.id]);
+    http.expectOne(page.availabilityUrl()).flush({ isAvailable: true, reason: null });
+    await page.settle();
   });
 
   it('shows the countdown and Withdraw while a request waits', async () => {
-    http.expectOne(availabilityUrl()).flush({ isAvailable: true, reason: null });
+    http.expectOne(page.availabilityUrl()).flush({ isAvailable: true, reason: null });
     outgoing.set(
-      new Map([[row.id, fixtureTakeover({ rowId: row.id, holderName: 'Engineer Two' })]]),
+      new Map([[page.row.id, RowTakeoverFixture.fixtureTakeover({ rowId: page.row.id, holderName: 'Engineer Two' })]]),
     );
-    await settle();
+    await page.settle();
 
-    expect(text()).toContain('Asked Engineer Two · yours in 42s if unanswered');
-    expect(text()).toContain('Withdraw');
+    expect(page.text()).toContain('Asked Engineer Two · yours in 42s if unanswered');
+    expect(page.text()).toContain('Withdraw');
   });
 });

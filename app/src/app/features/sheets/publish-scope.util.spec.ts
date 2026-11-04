@@ -1,11 +1,6 @@
 import { SheetDraftSummary } from './models/sheet-draft-summary.model';
 import {
-  effectivePublishScope,
-  otherDraftCount,
-  otherDraftsLabel,
-  otherDraftsSummary,
-  publishScopeOptions,
-} from './publish-scope.util';
+  PublishScopeUtil } from './publish-scope.util';
 
 const asha: SheetDraftSummary = { userId: 2, userName: 'Asha', draftCount: 3 };
 const ben: SheetDraftSummary = { userId: 3, userName: 'Ben', draftCount: 1 };
@@ -13,24 +8,24 @@ const cara: SheetDraftSummary = { userId: 4, userName: 'Cara', draftCount: 2 };
 
 describe('publish scope', () => {
   it("adds up other people's changes", () => {
-    expect(otherDraftCount([])).toBe(0);
-    expect(otherDraftCount([asha, ben])).toBe(4);
+    expect(PublishScopeUtil.otherDraftCount([])).toBe(0);
+    expect(PublishScopeUtil.otherDraftCount([asha, ben])).toBe(4);
   });
 
   it('names whose changes they are', () => {
-    expect(otherDraftsLabel([asha])).toBe('3 by Asha');
-    expect(otherDraftsLabel([asha, ben])).toBe('3 by Asha and 1 by Ben');
-    expect(otherDraftsLabel([asha, ben, cara])).toBe('3 by Asha, 1 by Ben and 2 by Cara');
+    expect(PublishScopeUtil.otherDraftsLabel([asha])).toBe('3 by Asha');
+    expect(PublishScopeUtil.otherDraftsLabel([asha, ben])).toBe('3 by Asha and 1 by Ben');
+    expect(PublishScopeUtil.otherDraftsLabel([asha, ben, cara])).toBe('3 by Asha, 1 by Ben and 2 by Cara');
   });
 
   it('sums up what other people have waiting in one line', () => {
-    expect(otherDraftsSummary([])).toBeNull();
-    expect(otherDraftsSummary([ben])).toBe('1 draft by Ben');
-    expect(otherDraftsSummary([asha, ben])).toBe('4 drafts by others: 3 by Asha and 1 by Ben');
+    expect(PublishScopeUtil.otherDraftsSummary([])).toBeNull();
+    expect(PublishScopeUtil.otherDraftsSummary([ben])).toBe('1 draft by Ben');
+    expect(PublishScopeUtil.otherDraftsSummary([asha, ben])).toBe('4 drafts by others: 3 by Asha and 1 by Ben');
   });
 
   it('counts each choice: my own, and mine with everyone else’s', () => {
-    const [mine, all] = publishScopeOptions(2, [asha, ben]);
+    const [mine, all] = PublishScopeUtil.publishScopeOptions(2, [asha, ben]);
 
     expect(mine).toEqual(expect.objectContaining({ scope: 'Mine', count: 2, disabled: false }));
     expect(all).toEqual(expect.objectContaining({ scope: 'All', count: 6, disabled: false }));
@@ -38,25 +33,25 @@ describe('publish scope', () => {
   });
 
   it('defaults to my own changes', () => {
-    expect(effectivePublishScope(publishScopeOptions(2, [asha]), null)).toBe('Mine');
+    expect(PublishScopeUtil.effectivePublishScope(PublishScopeUtil.publishScopeOptions(2, [asha]), null)).toBe('Mine');
   });
 
   it('keeps the choice of everything while other people have changes', () => {
-    expect(effectivePublishScope(publishScopeOptions(2, [asha]), 'All')).toBe('All');
+    expect(PublishScopeUtil.effectivePublishScope(PublishScopeUtil.publishScopeOptions(2, [asha]), 'All')).toBe('All');
   });
 
   it('goes back to my own changes once nobody else has any', () => {
-    const options = publishScopeOptions(2, []);
+    const options = PublishScopeUtil.publishScopeOptions(2, []);
 
     expect(options[1].disabled).toBe(true);
-    expect(effectivePublishScope(options, 'All')).toBe('Mine');
+    expect(PublishScopeUtil.effectivePublishScope(options, 'All')).toBe('Mine');
   });
 
   it('takes everything when I have changed nothing myself', () => {
-    const options = publishScopeOptions(0, [asha]);
+    const options = PublishScopeUtil.publishScopeOptions(0, [asha]);
 
     expect(options[0].disabled).toBe(true);
-    expect(effectivePublishScope(options, null)).toBe('All');
-    expect(effectivePublishScope(options, 'Mine')).toBe('All');
+    expect(PublishScopeUtil.effectivePublishScope(options, null)).toBe('All');
+    expect(PublishScopeUtil.effectivePublishScope(options, 'Mine')).toBe('All');
   });
 });

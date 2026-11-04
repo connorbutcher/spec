@@ -1,11 +1,11 @@
 import { Component, computed, inject, input } from '@angular/core';
 import { TooltipModule } from 'primeng/tooltip';
-import { itemStatus, statusText } from '../item-status.util';
+import { ItemStatusUtil } from '../item-status.util';
 import { ItemStatus } from '../models/item-status.model';
 import { SectionTone } from '../models/section-tone';
 import { SheetRow } from '../models/sheet-row.model';
-import { sectionTone } from '../sheet-index.util';
-import { changeLabel } from '../sheet-labels.util';
+import { SheetIndexUtil } from '../sheet-index.util';
+import { SheetLabelsUtil } from '../sheet-labels.util';
 import { SheetStatus } from '../sheet-status/sheet-status';
 import { SheetStore } from '../sheet.store';
 
@@ -32,6 +32,7 @@ import { SheetStore } from '../sheet.store';
     '(click)': 'select($event)',
   },
 })
+
 export class SheetRowStatusCell {
   public readonly rowId = input.required<number>();
 
@@ -41,7 +42,7 @@ export class SheetRowStatusCell {
 
   public readonly status = computed<ItemStatus | null>(() => {
     const row = this.row();
-    return row === null ? null : itemStatus(row, this.store.publishing());
+    return row === null ? null : ItemStatusUtil.itemStatus(row, this.store.publishing());
   });
 
   /** The row is tinted while someone has it, in the colour of whose it is. */
@@ -54,7 +55,7 @@ export class SheetRowStatusCell {
   });
 
   public readonly tone = computed<SectionTone>(() =>
-    sectionTone(this.store.index(), this.rowId()),
+    SheetIndexUtil.sectionTone(this.store.index(), this.rowId()),
   );
 
   public readonly isSelected = computed(() => this.store.selection()?.rowId === this.rowId());
@@ -67,12 +68,12 @@ export class SheetRowStatusCell {
   /** "v3 · 12 Sep 2026 · A. Smith": when the row's version was published and by whom, as extra detail. */
   public readonly detail = computed(() => {
     const change = this.row()?.lastChange;
-    return change ? changeLabel(change) : undefined;
+    return change ? SheetLabelsUtil.changeLabel(change) : undefined;
   });
 
   public readonly label = computed(() => {
     const status = this.status();
-    return status === null ? null : `Status: ${statusText(status)}`;
+    return status === null ? null : `Status: ${ItemStatusUtil.statusText(status)}`;
   });
 
   private readonly store = inject(SheetStore);

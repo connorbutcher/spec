@@ -5,65 +5,67 @@ import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap } from '@angular/router';
 import { of } from 'rxjs';
 import { Sheet } from './models/sheet.model';
-import { fixtureTable } from './sheet-structure.fixture';
+import { SheetStructureFixture } from './sheet-structure.fixture';
 import { SheetStore } from './sheet.store';
 import { SheetResponse } from './models/sheet-response.model';
-import { sheetResponse } from './sheet-response.fixture';
+import { SheetResponseFixture } from './sheet-response.fixture';
+
+class SpecHelpers {
+  public static fixtureSheet(): Sheet {
+    return {
+      id: 5,
+      publicId: 'sheet-5',
+      phaseId: 1,
+      sheetTypeId: 2,
+      isLive: true,
+      viewedVersionNumber: null,
+      viewedAsOfUtc: null,
+      latestVersionNumber: 2,
+      myDraftCount: 0,
+      otherDrafts: [],
+      versions: [
+        {
+          versionNumber: 1,
+          publishedAtUtc: '2026-09-01T09:00:00Z',
+          publishedByUserId: 1,
+          publishedByName: 'A',
+          note: null,
+        },
+        {
+          versionNumber: 2,
+          publishedAtUtc: '2026-09-02T09:00:00Z',
+          publishedByUserId: 1,
+          publishedByName: 'A',
+          note: null,
+        },
+      ],
+      tables: [SheetStructureFixture.fixtureTable()],
+      availableTemplates: [],
+      linkedSources: [],
+    };
+  }
+
+  /** Lets resources send their requests and promise chains run on. */
+  public static async settle(): Promise<void> {
+    TestBed.inject(ApplicationRef).tick();
+    await new Promise((resolve) => setTimeout(resolve));
+    TestBed.inject(ApplicationRef).tick();
+  }
+
+  /** A copy as the API would send it back: equal data, all new objects. */
+  public static fromServer(sheet: Sheet, change: (copy: Sheet) => void = () => undefined): SheetResponse {
+    const copy = structuredClone(sheet);
+    change(copy);
+    return SheetResponseFixture.sheetResponse(copy);
+  }
+}
 
 const SHEET_URL = '/api/phases/1/sheets/2';
-
-function fixtureSheet(): Sheet {
-  return {
-    id: 5,
-    publicId: 'sheet-5',
-    phaseId: 1,
-    sheetTypeId: 2,
-    isLive: true,
-    viewedVersionNumber: null,
-    viewedAsOfUtc: null,
-    latestVersionNumber: 2,
-    myDraftCount: 0,
-    otherDrafts: [],
-    versions: [
-      {
-        versionNumber: 1,
-        publishedAtUtc: '2026-09-01T09:00:00Z',
-        publishedByUserId: 1,
-        publishedByName: 'A',
-        note: null,
-      },
-      {
-        versionNumber: 2,
-        publishedAtUtc: '2026-09-02T09:00:00Z',
-        publishedByUserId: 1,
-        publishedByName: 'A',
-        note: null,
-      },
-    ],
-    tables: [fixtureTable()],
-    availableTemplates: [],
-    linkedSources: [],
-  };
-}
-
-/** A copy as the API would send it back: equal data, all new objects. */
-function fromServer(sheet: Sheet, change: (copy: Sheet) => void = () => undefined): SheetResponse {
-  const copy = structuredClone(sheet);
-  change(copy);
-  return sheetResponse(copy);
-}
 
 describe('SheetStore', () => {
   let store: SheetStore;
   let http: HttpTestingController;
   let sheet: Sheet;
-
-  /** Lets resources send their requests and promise chains run on. */
-  async function settle(): Promise<void> {
-    TestBed.inject(ApplicationRef).tick();
-    await new Promise((resolve) => setTimeout(resolve));
-    TestBed.inject(ApplicationRef).tick();
-  }
 
   beforeEach(async () => {
     TestBed.configureTestingModule({
@@ -79,12 +81,12 @@ describe('SheetStore', () => {
     });
     store = TestBed.inject(SheetStore);
     http = TestBed.inject(HttpTestingController);
-    sheet = fixtureSheet();
+    sheet = SpecHelpers.fixtureSheet();
 
-    await settle();
+    await SpecHelpers.settle();
     http.expectOne('/api/cell-types').flush([]);
-    http.expectOne(SHEET_URL).flush(sheetResponse(sheet));
-    await settle();
+    http.expectOne(SHEET_URL).flush(SheetResponseFixture.sheetResponse(sheet));
+    await SpecHelpers.settle();
   });
 
   afterEach(() => {
@@ -112,19 +114,19 @@ describe('SheetStore', () => {
     });
     store = TestBed.inject(SheetStore);
     http = TestBed.inject(HttpTestingController);
-    await settle();
+    await SpecHelpers.settle();
     http.expectOne('/api/cell-types').flush(null, { status: 500, statusText: 'Server Error' });
-    http.expectOne(SHEET_URL).flush(sheetResponse(sheet));
-    await settle();
+    http.expectOne(SHEET_URL).flush(SheetResponseFixture.sheetResponse(sheet));
+    await SpecHelpers.settle();
 
     expect(store.sheet()).toBeNull();
     expect(store.hasError()).toBe(true);
 
     store.reload();
-    await settle();
+    await SpecHelpers.settle();
     http.expectOne('/api/cell-types').flush([]);
-    http.expectOne(SHEET_URL).flush(sheetResponse(sheet));
-    await settle();
+    http.expectOne(SHEET_URL).flush(SheetResponseFixture.sheetResponse(sheet));
+    await SpecHelpers.settle();
 
     expect(store.sheet()).toEqual(sheet);
     expect(store.hasError()).toBe(false);
@@ -134,9 +136,9 @@ describe('SheetStore', () => {
     store.selectRow(sheet.tables[0].sections[0].rows[0].id);
 
     store.setView({ version: 1 });
-    await settle();
-    http.expectOne(`${SHEET_URL}?version=1`).flush(sheetResponse({ ...sheet, isLive: false }));
-    await settle();
+    await SpecHelpers.settle();
+    http.expectOne(`${SHEET_URL}?version=1`).flush(SheetResponseFixture.sheetResponse({ ...sheet, isLive: false }));
+    await SpecHelpers.settle();
 
     expect(store.canEdit()).toBe(false);
     expect(store.selection()).toBeNull();
@@ -156,9 +158,9 @@ describe('SheetStore', () => {
     store.setView({ version: 1 });
     expect(store.editingCellId()).toBeNull();
 
-    await settle();
-    http.expectOne(`${SHEET_URL}?version=1`).flush(sheetResponse({ ...sheet, isLive: false }));
-    await settle();
+    await SpecHelpers.settle();
+    http.expectOne(`${SHEET_URL}?version=1`).flush(SheetResponseFixture.sheetResponse({ ...sheet, isLive: false }));
+    await SpecHelpers.settle();
   });
 
   it('selects a row together with its section and table', () => {
@@ -179,11 +181,11 @@ describe('SheetStore', () => {
     const cell = row.cells[0];
 
     const saving = store.saveValues(row.id, [{ sheetCellId: cell.id, text: 'new' }]);
-    await settle();
+    await SpecHelpers.settle();
     const request = http.expectOne(`/api/sheet-rows/${row.id}/values`);
     expect(request.request.body).toEqual({ values: [{ sheetCellId: cell.id, text: 'new' }] });
     request.flush(
-      fromServer(sheet, (copy) => {
+      SpecHelpers.fromServer(sheet, (copy) => {
         copy.tables[0].sections[1].rows[0].cells[0].textValue = 'new';
       }),
     );
@@ -207,12 +209,12 @@ describe('SheetStore', () => {
     };
 
     const saving = store.saveCellSettings(row.id, [{ sheetCellId: cell.id, settings }]);
-    await settle();
+    await SpecHelpers.settle();
     const request = http.expectOne(`/api/sheet-rows/${row.id}/cell-settings`);
     expect(request.request.method).toBe('PUT');
     expect(request.request.body).toEqual({ settings: [{ sheetCellId: cell.id, settings }] });
     request.flush(
-      fromServer(sheet, (copy) => {
+      SpecHelpers.fromServer(sheet, (copy) => {
         copy.tables[0].sections[1].rows[0].cells[0].settings = settings;
         copy.linkedSources = [
           { sheetTableId: 1, templateCellId: 15, sheetRowId: null, options: ['P-1001'] },
@@ -232,8 +234,8 @@ describe('SheetStore', () => {
     const cell = row?.cells[0];
 
     const saving = store.saveValues(row?.id ?? -1, [{ sheetCellId: cell?.id ?? -1, text: 'x' }]);
-    await settle();
-    http.expectOne(`/api/sheet-rows/${row?.id}/values`).flush(fromServer(sheet));
+    await SpecHelpers.settle();
+    http.expectOne(`/api/sheet-rows/${row?.id}/values`).flush(SpecHelpers.fromServer(sheet));
     await saving;
 
     const after = store.sheet()?.tables[0].sections[1].rows[0];
@@ -247,18 +249,18 @@ describe('SheetStore', () => {
 
     const first = store.setTableTitle(table.id, 'One');
     const second = store.setTableTitle(table.id, 'Two');
-    await settle();
+    await SpecHelpers.settle();
 
     const firstRequest = http.expectOne(`/api/sheet-tables/${table.id}`);
     expect(firstRequest.request.body).toEqual({ title: 'One' });
     expect(store.isBusy()).toBe(true);
-    firstRequest.flush(fromServer(sheet, (copy) => (copy.tables[0].title = 'One')));
+    firstRequest.flush(SpecHelpers.fromServer(sheet, (copy) => (copy.tables[0].title = 'One')));
     await first;
-    await settle();
+    await SpecHelpers.settle();
 
     const secondRequest = http.expectOne(`/api/sheet-tables/${table.id}`);
     expect(secondRequest.request.body).toEqual({ title: 'Two' });
-    secondRequest.flush(fromServer(sheet, (copy) => (copy.tables[0].title = 'Two')));
+    secondRequest.flush(SpecHelpers.fromServer(sheet, (copy) => (copy.tables[0].title = 'Two')));
     await second;
 
     expect(store.sheet()?.tables[0].title).toBe('Two');
@@ -269,7 +271,7 @@ describe('SheetStore', () => {
     const table = sheet.tables[0];
 
     const renaming = store.setTableTitle(table.id, 'Nope');
-    await settle();
+    await SpecHelpers.settle();
     http
       .expectOne(`/api/sheet-tables/${table.id}`)
       .flush(
@@ -277,11 +279,11 @@ describe('SheetStore', () => {
         { status: 409, statusText: 'Conflict' },
       );
     await renaming;
-    await settle();
+    await SpecHelpers.settle();
 
     expect(store.error()).toBe('Someone else is editing this table.');
-    http.expectOne(SHEET_URL).flush(sheetResponse(sheet));
-    await settle();
+    http.expectOne(SHEET_URL).flush(SheetResponseFixture.sheetResponse(sheet));
+    await SpecHelpers.settle();
 
     store.dismissError();
     expect(store.error()).toBeNull();
@@ -289,17 +291,17 @@ describe('SheetStore', () => {
 
   it('publishes my own changes, or everything on the sheet when asked', async () => {
     const mine = store.publish('First cut');
-    await settle();
+    await SpecHelpers.settle();
     const first = http.expectOne(`/api/sheets/${sheet.id}/publish`);
     expect(first.request.body).toEqual({ note: 'First cut', scope: 'Mine' });
-    first.flush(fromServer(sheet));
+    first.flush(SpecHelpers.fromServer(sheet));
     expect(await mine).toBe(true);
 
     const everything = store.publish(null, 'All');
-    await settle();
+    await SpecHelpers.settle();
     const second = http.expectOne(`/api/sheets/${sheet.id}/publish`);
     expect(second.request.body).toEqual({ note: null, scope: 'All' });
-    second.flush(fromServer(sheet));
+    second.flush(SpecHelpers.fromServer(sheet));
     expect(await everything).toBe(true);
   });
 
@@ -309,10 +311,10 @@ describe('SheetStore', () => {
     const added = { ...structuredClone(group.sections[0]), id: 9001, rows: [], sections: [] };
 
     const adding = store.addSection(table.id, 77, group.id);
-    await settle();
+    await SpecHelpers.settle();
     const request = http.expectOne(`/api/sheet-tables/${table.id}/sections`);
     expect(request.request.body).toEqual({ templateSectionId: 77, parentSheetSectionId: group.id });
-    request.flush(fromServer(sheet, (copy) => copy.tables[0].sections[0].sections.push(added)));
+    request.flush(SpecHelpers.fromServer(sheet, (copy) => copy.tables[0].sections[0].sections.push(added)));
     await adding;
 
     expect(store.selection()).toEqual({ tableId: table.id, sectionId: 9001, rowId: null });
@@ -324,10 +326,10 @@ describe('SheetStore', () => {
     store.selectRow(row.id);
 
     const removing = store.removeTable(-1);
-    await settle();
+    await SpecHelpers.settle();
     http
       .expectOne('/api/sheet-tables/-1')
-      .flush(fromServer(sheet, (copy) => (copy.tables[0].sections[1].rows = [])));
+      .flush(SpecHelpers.fromServer(sheet, (copy) => (copy.tables[0].sections[1].rows = [])));
     await removing;
 
     expect(store.selection()).toEqual({
@@ -343,13 +345,13 @@ describe('SheetStore', () => {
     const lockedRow = before.tables[0].sections[1].rows[0];
 
     store.refresh();
-    await settle();
+    await SpecHelpers.settle();
     http.expectOne(SHEET_URL).flush(
-      fromServer(sheet, (copy) => {
+      SpecHelpers.fromServer(sheet, (copy) => {
         copy.tables[0].sections[1].rows[0].lock = { userId: 2, userName: 'B', isMine: false };
       }),
     );
-    await settle();
+    await SpecHelpers.settle();
 
     const after = store.sheet()!;
     expect(after.tables[0].sections[1].rows[0].lock?.userName).toBe('B');
@@ -362,14 +364,14 @@ describe('SheetStore', () => {
 
     const saving = store.saveValues(row.id, [{ sheetCellId: row.cells[0].id, text: 'new' }]);
     store.refresh();
-    await settle();
+    await SpecHelpers.settle();
 
     // Only the save is out: the refresh has not been sent alongside it.
-    http.expectOne(`/api/sheet-rows/${row.id}/values`).flush(fromServer(sheet));
+    http.expectOne(`/api/sheet-rows/${row.id}/values`).flush(SpecHelpers.fromServer(sheet));
     await saving;
-    await settle();
-    http.expectOne(SHEET_URL).flush(fromServer(sheet));
-    await settle();
+    await SpecHelpers.settle();
+    http.expectOne(SHEET_URL).flush(SpecHelpers.fromServer(sheet));
+    await SpecHelpers.settle();
 
     expect(store.sheet()).toEqual(sheet);
   });

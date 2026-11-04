@@ -2,18 +2,18 @@ import { Service, signal } from '@angular/core';
 
 const COLLAPSED_KEY = 'pu-spec-sheet.side-nav-collapsed';
 
-function readCollapsed(): boolean {
-  try {
-    return localStorage.getItem(COLLAPSED_KEY) === 'true';
-  } catch {
-    return false;
-  }
-}
-
 /** App-wide layout state: whether the side nav is collapsed to icons. Remembered per browser. */
 @Service()
+
 export class LayoutService {
-  public readonly sideNavCollapsed = signal(readCollapsed());
+  public readonly sideNavCollapsed = signal(LayoutService.readCollapsed());
+    private static readCollapsed(): boolean {
+      try {
+        return localStorage.getItem(COLLAPSED_KEY) === 'true';
+      } catch {
+        return false;
+      }
+    }
 
   public toggleSideNav(): void {
     this.sideNavCollapsed.update((collapsed) => !collapsed);

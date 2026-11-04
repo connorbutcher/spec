@@ -24,12 +24,16 @@ import { FOOTER_NAV_ITEMS, MAIN_NAV_ITEMS } from './nav-items';
     '[class.collapsed]': 'collapsed()',
   },
 })
+
 export class SideNav {
-  public readonly mainItems = MAIN_NAV_ITEMS.map(toMenuItem);
-  public readonly footerItems = FOOTER_NAV_ITEMS.map(toMenuItem);
+  public readonly mainItems = MAIN_NAV_ITEMS.map(SideNav.toMenuItem);
+  public readonly footerItems = FOOTER_NAV_ITEMS.map(SideNav.toMenuItem);
 
   private readonly layout = inject(LayoutService);
   private readonly phases = inject(PhasesStore);
+    private static toMenuItem(navItem: NavItem): MenuItem {
+      return { label: navItem.label, icon: `pi ${navItem.icon}`, routerLink: navItem.path, navItem };
+    }
 
   /** Whether the current page is in the Phases section, which is when its tree shows. */
   public inPhases(): boolean {
@@ -44,8 +48,4 @@ export class SideNav {
   public navItem(item: MenuItem): NavItem {
     return item['navItem'] as NavItem;
   }
-}
-
-function toMenuItem(navItem: NavItem): MenuItem {
-  return { label: navItem.label, icon: `pi ${navItem.icon}`, routerLink: navItem.path, navItem };
 }

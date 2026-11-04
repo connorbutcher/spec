@@ -6,8 +6,8 @@ import { OutlineItem } from '../models/outline-item';
 import { PanelRef } from '../models/panel-ref';
 import { TemplateSection } from '../models/template-section.model';
 import { PanelNavigator } from '../panel-navigator';
-import { isHeader } from '../section-role.util';
-import { topLevelOrder } from '../template-layout.util';
+import { SectionRoleUtil } from '../section-role.util';
+import { TemplateLayoutUtil } from '../template-layout.util';
 import { TemplatesStore } from '../templates.store';
 
 type OutlineNode = TreeNode<OutlineItem | null>;
@@ -30,6 +30,7 @@ const BLOCKS_KEY = 'column-blocks';
   templateUrl: './structure-outline.html',
   styleUrl: './structure-outline.scss',
 })
+
 export class StructureOutline {
   public readonly isHorizontal = computed(
     () => this.store.template()?.orientation === 'Horizontal',
@@ -65,19 +66,32 @@ export class StructureOutline {
         label: template.name,
         data: null,
         expanded: true,
-        children: [...this.sectionNodes(topLevelOrder(template.sections)), ...blocks],
+        children: [...this.sectionNodes(TemplateLayoutUtil.topLevelOrder(template.sections)), ...blocks],
       },
     ];
   });
 
   /** The node for what the panel is showing, as the same object the tree renders. */
   public readonly selected = computed<OutlineNode | null>(() => {
-    const key = keyFor(this.navigator.current());
+    const key = StructureOutline.keyFor(this.navigator.current());
     return key === null ? null : (this.find(this.nodes(), key) ?? null);
   });
 
   private readonly store = inject(TemplatesStore);
   private readonly navigator = inject(PanelNavigator);
+    /** The outline key of the node for a panel, or null when the panel has no node. */
+    private static keyFor(ref: PanelRef): string | null {
+      switch (ref.kind) {
+        case 'template':
+          return TABLE_KEY;
+        case 'section':
+          return String(ref.id);
+        case 'columnBlock':
+          return `block-${ref.id}`;
+        default:
+          return null;
+      }
+    }
 
   public open(event: TreeNodeSelectEvent): void {
     const item = (event.node as OutlineNode).data;
@@ -96,7 +110,7 @@ export class StructureOutline {
 
   /** Only addable sections can hold sub-sections; the header holds rows only. */
   public canAddTo(node: OutlineNode): boolean {
-    return node.data?.kind === 'section' && !isHeader(node.data.section);
+    return node.data?.kind === 'section' && !SectionRoleUtil.isHeader(node.data.section);
   }
 
   /** Adds a sub-section to the node's section. */
@@ -143,19 +157,5 @@ export class StructureOutline {
       }
     }
     return undefined;
-  }
-}
-
-/** The outline key of the node for a panel, or null when the panel has no node. */
-function keyFor(ref: PanelRef): string | null {
-  switch (ref.kind) {
-    case 'template':
-      return TABLE_KEY;
-    case 'section':
-      return String(ref.id);
-    case 'columnBlock':
-      return `block-${ref.id}`;
-    default:
-      return null;
   }
 }

@@ -6,13 +6,14 @@ import { CellValueRequest } from './models/cell-value-request.model';
 import { PublishScope } from './models/publish-scope';
 import { SheetResponse } from './models/sheet-response.model';
 import { Sheet } from './models/sheet.model';
-import { withTemplateCells } from './sheet-response.util';
+import { SheetResponseUtil } from './sheet-response.util';
 
 /**
  * Write calls for sheets. Reads go through `httpResource` in the store. Every change returns the whole
  * sheet as the current user sees it live, which replaces the open copy.
  */
 @Service()
+
 export class SheetsApi {
   private readonly http = inject(HttpClient);
 
@@ -112,6 +113,6 @@ export class SheetsApi {
 
   /** The sheet a write answers with, each cell given its template cell. */
   private sheet(response: Observable<SheetResponse>): Promise<Sheet> {
-    return firstValueFrom(response.pipe(map(withTemplateCells)));
+    return firstValueFrom(response.pipe(map(SheetResponseUtil.withTemplateCells)));
   }
 }

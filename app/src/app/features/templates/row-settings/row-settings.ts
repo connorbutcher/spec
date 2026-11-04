@@ -1,7 +1,7 @@
 import { Component, computed, inject, input } from '@angular/core';
 import { ButtonModule } from 'primeng/button';
 import { ConfirmDeleteButton } from '../confirm-delete-button/confirm-delete-button';
-import { cellKindInfo } from '../models/cell-kinds';
+import { CellKinds } from '../models/cell-kinds';
 import { PanelLinkItem } from '../models/panel-link-item.model';
 import { RowEntry } from '../models/row-entry.model';
 import { TemplateCell } from '../models/template-cell.model';
@@ -21,6 +21,7 @@ import { TemplatesStore } from '../templates.store';
   templateUrl: './row-settings.html',
   styleUrl: './row-settings.scss',
 })
+
 export class RowSettings {
   public readonly rowId = input.required<number>();
 
@@ -93,7 +94,7 @@ export class RowSettings {
     return {
       ref: { kind: 'cell', id: cell.id },
       label: cell.caption || cellType?.name || 'Cell',
-      icon: cellKindInfo(cellType?.kind ?? 'Text').icon,
+      icon: CellKinds.cellKindInfo(cellType?.kind ?? 'Text').icon,
       meta: [place, ...spans].join(' · '),
     };
   }

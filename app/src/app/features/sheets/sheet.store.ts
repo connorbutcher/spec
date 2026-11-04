@@ -3,8 +3,8 @@ import { computed, inject, Injectable, linkedSignal, signal, untracked } from '@
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { map } from 'rxjs';
-import { reuseUnchanged } from '../../shared/reuse-unchanged.util';
-import { apiErrorMessage } from '../templates/api-error-message';
+import { ReuseUnchangedUtil } from '../../shared/reuse-unchanged.util';
+import { ApiErrorMessage } from '../templates/api-error-message';
 import { CellType } from '../templates/models/cell-type.model';
 import { CellSettingsRequest } from './models/cell-settings-request.model';
 import { CellValueRequest } from './models/cell-value-request.model';
@@ -20,10 +20,10 @@ import { SheetView } from './models/sheet-view.model';
 import { SheetResponse } from './models/sheet-response.model';
 import { Sheet } from './models/sheet.model';
 import { RowCheckoutStore } from './row-checkout.store';
-import { withRowCheckouts } from './row-checkout.util';
-import { addedId, buildSheetIndex, cellsById, sectionSiblings } from './sheet-index.util';
-import { withTemplateCells } from './sheet-response.util';
-import { sheetTarget, sheetUrl } from './sheet-url.util';
+import { RowCheckoutUtil } from './row-checkout.util';
+import { SheetIndexUtil } from './sheet-index.util';
+import { SheetResponseUtil } from './sheet-response.util';
+import { SheetUrlUtil } from './sheet-url.util';
 import { SheetsApi } from './sheets-api';
 
 /**
@@ -40,6 +40,7 @@ import { SheetsApi } from './sheets-api';
 const NOBODY: ReadonlyMap<number, SheetLock> = new Map();
 
 @Injectable()
+
 export class SheetStore {
   /** Which moment of the sheet is shown. Goes back to live whenever a different sheet is opened. */
   public readonly view = linkedSignal<SheetTarget | null, SheetView>({
@@ -63,7 +64,7 @@ export class SheetStore {
    */
   public readonly sheet = computed<Sheet | null>(() => {
     const loaded = this.loadedSheet();
-    return loaded === null ? null : withRowCheckouts(loaded, this.rowCheckouts?.locks() ?? NOBODY);
+    return loaded === null ? null : RowCheckoutUtil.withRowCheckouts(loaded, this.rowCheckouts?.locks() ?? NOBODY);
   });
 
   public readonly isLoading = computed(
@@ -77,7 +78,7 @@ export class SheetStore {
   /** Only the live view can be changed; a version or date is read-only. */
   public readonly canEdit = computed(() => this.sheet()?.isLive === true);
 
-  public readonly index = computed<SheetIndex>(() => buildSheetIndex(this.sheet()));
+  public readonly index = computed<SheetIndex>(() => SheetIndexUtil.buildSheetIndex(this.sheet()));
 
   /** The sheet's published versions, newest first. */
   public readonly versions = computed<SheetVersionSummary[]>(() =>
@@ -134,7 +135,7 @@ export class SheetStore {
 
   private readonly target = toSignal(
     this.route.paramMap.pipe(
-      map((params) => sheetTarget(params.get('phaseId'), params.get('sheetTypeId'))),
+      map((params) => SheetUrlUtil.sheetTarget(params.get('phaseId'), params.get('sheetTypeId'))),
     ),
     { initialValue: null },
   );
@@ -145,9 +146,9 @@ export class SheetStore {
   private readonly sheetResource = httpResource<Sheet>(
     () => {
       const target = this.target();
-      return target === null ? undefined : sheetUrl(target, this.view());
+      return target === null ? undefined : SheetUrlUtil.sheetUrl(target, this.view());
     },
-    { parse: (body) => this.received(withTemplateCells(body as SheetResponse)) },
+    { parse: (body) => this.received(SheetResponseUtil.withTemplateCells(body as SheetResponse)) },
   );
 
   private readonly cellTypesResource = httpResource<CellType[]>(() => '/api/cell-types');
@@ -239,7 +240,7 @@ export class SheetStore {
     }
     const before = this.index().tables;
     const sheet = await this.run(() => this.api.addTable(sheetId, tableTemplateId));
-    const added = sheet ? addedId(before, this.index().tables) : undefined;
+    const added = sheet ? SheetIndexUtil.addedId(before, this.index().tables) : undefined;
     if (added !== undefined) {
       this.rawSelection.set({ tableId: added, sectionId: null, rowId: null });
     }
@@ -267,14 +268,14 @@ export class SheetStore {
     const sheet = await this.run(() =>
       this.api.addSection(tableId, templateSectionId, parentSheetSectionId),
     );
-    const added = sheet ? addedId(before, this.index().sections) : undefined;
+    const added = sheet ? SheetIndexUtil.addedId(before, this.index().sections) : undefined;
     if (added !== undefined) {
       this.rawSelection.set({ tableId, sectionId: added, rowId: null });
     }
   }
 
   public async moveSection(sectionId: number, step: -1 | 1): Promise<void> {
-    const siblings = sectionSiblings(this.index(), sectionId);
+    const siblings = SheetIndexUtil.sectionSiblings(this.index(), sectionId);
     const position = siblings.findIndex((section) => section.id === sectionId) + 1 + step;
     await this.run(() => this.api.moveSection(sectionId, position));
   }
@@ -366,7 +367,7 @@ export class SheetStore {
     const open = untracked(() =>
       this.sheetResource.hasValue() ? this.sheetResource.value() : null,
     );
-    return keep && open?.id === sheet.id ? reuseUnchanged(open, sheet) : sheet;
+    return keep && open?.id === sheet.id ? ReuseUnchangedUtil.reuseUnchanged(open, sheet) : sheet;
   }
 
   /**
@@ -387,12 +388,12 @@ export class SheetStore {
     this.error.set(null);
     try {
       const refreshed = await change();
-      const saved = cellsById(refreshed, savedCellIds);
-      const sheet = reuseUnchanged(this.sheet(), refreshed, (part) => saved.has(part));
+      const saved = SheetIndexUtil.cellsById(refreshed, savedCellIds);
+      const sheet = ReuseUnchangedUtil.reuseUnchanged(this.sheet(), refreshed, (part) => saved.has(part));
       this.sheetResource.set(sheet);
       return sheet;
     } catch (failure) {
-      this.error.set(apiErrorMessage(failure));
+      this.error.set(ApiErrorMessage.apiErrorMessage(failure));
       this.sheetResource.reload();
       return null;
     } finally {

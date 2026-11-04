@@ -2,7 +2,7 @@ import { Component, computed, inject } from '@angular/core';
 import { ButtonModule } from 'primeng/button';
 import { Popover, PopoverModule } from 'primeng/popover';
 import { SheetComparePicker } from '../sheet-compare-picker/sheet-compare-picker';
-import { viewLabel } from '../sheet-labels.util';
+import { SheetLabelsUtil } from '../sheet-labels.util';
 import { SheetVersionPicker } from '../sheet-version-picker/sheet-version-picker';
 import { SheetStore } from '../sheet.store';
 
@@ -17,10 +17,11 @@ import { SheetStore } from '../sheet.store';
   templateUrl: './sheet-view-menu.html',
   styleUrl: './sheet-view-menu.scss',
 })
+
 export class SheetViewMenu {
   public readonly label = computed(() => {
     const sheet = this.store.sheet();
-    return sheet === null ? '' : viewLabel(sheet, this.store.changesSince());
+    return sheet === null ? '' : SheetLabelsUtil.viewLabel(sheet, this.store.changesSince());
   });
 
   public readonly isLive = computed(() => this.store.sheet()?.isLive ?? true);

@@ -5,7 +5,7 @@ import { CellEntry } from './models/cell-entry.model';
 import { PanelRef } from './models/panel-ref';
 import { SectionEntry } from './models/section-entry.model';
 import { PanelNavigator } from './panel-navigator';
-import { isHeader, sectionNoun } from './section-role.util';
+import { SectionRoleUtil } from './section-role.util';
 import { TemplatesStore } from './templates.store';
 
 /**
@@ -15,6 +15,7 @@ import { TemplatesStore } from './templates.store';
  * Provided by the template canvas.
  */
 @Injectable()
+
 export class CanvasMenu {
   public readonly items = signal<MenuItem[]>([]);
 
@@ -140,7 +141,7 @@ export class CanvasMenu {
       ...(section
         ? [
             {
-              label: `${sectionNoun(section.section)}: ${section.section.name}`,
+              label: `${SectionRoleUtil.sectionNoun(section.section)}: ${section.section.name}`,
               icon: 'pi pi-objects-column',
               items: this.sectionItems(section),
             },
@@ -174,8 +175,8 @@ export class CanvasMenu {
 
   private sectionItems(entry: SectionEntry): MenuItem[] {
     const { section } = entry;
-    const noun = sectionNoun(section);
-    const header = isHeader(section);
+    const noun = SectionRoleUtil.sectionNoun(section);
+    const header = SectionRoleUtil.isHeader(section);
     const locked = !this.store.canEdit();
     const parentId = entry.ancestors.at(-1)?.id ?? null;
 

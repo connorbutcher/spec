@@ -1,27 +1,28 @@
 import { SheetSelection } from './models/sheet-selection.model';
 import { SheetTable } from './models/sheet-table.model';
-import { addableSection, sheetActionTarget } from './sheet-action-target.util';
-import { buildSheetIndex } from './sheet-index.util';
-import { fixtureCell, fixtureRow, fixtureTable } from './sheet-structure.fixture';
+import { SheetActionTargetUtil } from './sheet-action-target.util';
+import { SheetIndexUtil } from './sheet-index.util';
+import { SheetStructureFixture } from './sheet-structure.fixture';
 
-function indexOf(tables: SheetTable[]): ReturnType<typeof buildSheetIndex> {
-  return buildSheetIndex({ tables } as Parameters<typeof buildSheetIndex>[0]);
+class SpecHelpers {
+  public static indexOf(tables: SheetTable[]): ReturnType<typeof SheetIndexUtil.buildSheetIndex> {
+    return SheetIndexUtil.buildSheetIndex({ tables } as Parameters<typeof SheetIndexUtil.buildSheetIndex>[0]);
+  }
 }
-
 describe('sheet action target', () => {
   it('has no target when nothing is selected', () => {
-    const table = fixtureTable();
+    const table = SheetStructureFixture.fixtureTable();
 
-    expect(sheetActionTarget(indexOf([table]), [table], null)).toBeNull();
+    expect(SheetActionTargetUtil.sheetActionTarget(SpecHelpers.indexOf([table]), [table], null)).toBeNull();
   });
 
   it('acts on the table when only the table is selected', () => {
-    const first = fixtureTable();
-    const second = { ...fixtureTable(), id: 2 };
+    const first = SheetStructureFixture.fixtureTable();
+    const second = { ...SheetStructureFixture.fixtureTable(), id: 2 };
     const tables = [first, second];
     const selection: SheetSelection = { tableId: 2, sectionId: null, rowId: null };
 
-    const target = sheetActionTarget(indexOf(tables), tables, selection);
+    const target = SheetActionTargetUtil.sheetActionTarget(SpecHelpers.indexOf(tables), tables, selection);
 
     expect(target?.kind).toBe('table');
     expect(target?.canMoveUp).toBe(true);
@@ -30,31 +31,31 @@ describe('sheet action target', () => {
   });
 
   it('leaves a table alone while someone else has a change to it', () => {
-    const table = { ...fixtureTable(), lock: { userName: 'A. Smith', isMine: false } };
+    const table = { ...SheetStructureFixture.fixtureTable(), lock: { userName: 'A. Smith', isMine: false } };
     const tables = [table as SheetTable];
     const selection: SheetSelection = { tableId: 1, sectionId: null, rowId: null };
 
-    expect(sheetActionTarget(indexOf(tables), tables, selection)?.canRemove).toBe(false);
+    expect(SheetActionTargetUtil.sheetActionTarget(SpecHelpers.indexOf(tables), tables, selection)?.canRemove).toBe(false);
   });
 
   it('acts on the section when its only row is selected', () => {
-    const table = fixtureTable();
+    const table = SheetStructureFixture.fixtureTable();
     const group = table.sections[0];
     const selection = { tableId: 1, sectionId: group.id, rowId: group.rows[0].id };
 
-    const target = sheetActionTarget(indexOf([table]), [table], selection);
+    const target = SheetActionTargetUtil.sheetActionTarget(SpecHelpers.indexOf([table]), [table], selection);
 
     expect(target?.kind).toBe('section');
     expect(target?.id).toBe(group.id);
   });
 
   it('acts on the row when its section has several', () => {
-    const table = fixtureTable();
+    const table = SheetStructureFixture.fixtureTable();
     const group = table.sections[0];
-    group.rows.push(fixtureRow([fixtureCell(1, 5)]));
+    group.rows.push(SheetStructureFixture.fixtureRow([SheetStructureFixture.fixtureCell(1, 5)]));
     const selection = { tableId: 1, sectionId: group.id, rowId: group.rows[1].id };
 
-    const target = sheetActionTarget(indexOf([table]), [table], selection);
+    const target = SheetActionTargetUtil.sheetActionTarget(SpecHelpers.indexOf([table]), [table], selection);
 
     expect(target?.kind).toBe('row');
     expect(target?.canMoveUp).toBe(true);
@@ -62,15 +63,15 @@ describe('sheet action target', () => {
   });
 
   it('has no target in the header, which stays where it is', () => {
-    const table = fixtureTable();
+    const table = SheetStructureFixture.fixtureTable();
     const header = table.sections[1];
     const selection = { tableId: 1, sectionId: header.id, rowId: header.rows[0].id };
 
-    expect(sheetActionTarget(indexOf([table]), [table], selection)).toBeNull();
+    expect(SheetActionTargetUtil.sheetActionTarget(SpecHelpers.indexOf([table]), [table], selection)).toBeNull();
   });
 
   it('adds into the nearest section around the selection that can take sections', () => {
-    const table = fixtureTable();
+    const table = SheetStructureFixture.fixtureTable();
     const group = table.sections[0];
     const limits = group.sections[0];
     group.addableSections = [
@@ -83,9 +84,9 @@ describe('sheet action target', () => {
         canAdd: true,
       },
     ];
-    const index = indexOf([table]);
+    const index = SpecHelpers.indexOf([table]);
 
-    expect(addableSection(index, { tableId: 1, sectionId: limits.id, rowId: null })).toBe(group);
-    expect(addableSection(index, { tableId: 1, sectionId: null, rowId: null })).toBeNull();
+    expect(SheetActionTargetUtil.addableSection(index, { tableId: 1, sectionId: limits.id, rowId: null })).toBe(group);
+    expect(SheetActionTargetUtil.addableSection(index, { tableId: 1, sectionId: null, rowId: null })).toBeNull();
   });
 });

@@ -6,8 +6,8 @@ import { SheetColumnBlock } from '../models/sheet-column-block.model';
 import { SheetTable } from '../models/sheet-table.model';
 import { SheetChange } from '../models/sheet-change.model';
 import { SheetChangeTag } from '../sheet-change-tag/sheet-change-tag';
-import { confirmRemoval } from '../sheet-confirm.util';
-import { otherUsersLock } from '../sheet-lock.util';
+import { SheetConfirmUtil } from '../sheet-confirm.util';
+import { SheetLockUtil } from '../sheet-lock.util';
 import { SheetStore } from '../sheet.store';
 
 /**
@@ -24,6 +24,7 @@ import { SheetStore } from '../sheet.store';
     '[style]': 'layout().style',
   },
 })
+
 export class SheetGridColumnBlock {
   public readonly layout = input.required<ColumnBlockLayout>();
 
@@ -35,7 +36,7 @@ export class SheetGridColumnBlock {
 
   public readonly canEdit = computed(() => {
     const block = this.block();
-    return this.store.canEdit() && block !== null && otherUsersLock(block.lock) === null;
+    return this.store.canEdit() && block !== null && SheetLockUtil.otherUsersLock(block.lock) === null;
   });
 
   public readonly position = computed(() =>
@@ -74,7 +75,7 @@ export class SheetGridColumnBlock {
     if (block === null) {
       return;
     }
-    confirmRemoval(
+    SheetConfirmUtil.confirmRemoval(
       this.confirmation,
       event,
       `Remove this ${block.name}? Its cells in every row go too.`,

@@ -1,7 +1,7 @@
 import { Component, computed, input } from '@angular/core';
 import { TooltipModule } from 'primeng/tooltip';
 import { SheetChange } from '../models/sheet-change.model';
-import { changeLabel } from '../sheet-labels.util';
+import { SheetLabelsUtil } from '../sheet-labels.util';
 
 /**
  * The small marks drawn over a cell: a corner triangle for a value that changed since the compared
@@ -14,6 +14,7 @@ import { changeLabel } from '../sheet-labels.util';
   templateUrl: './sheet-cell-marks.html',
   styleUrl: './sheet-cell-marks.scss',
 })
+
 export class SheetCellMarks {
   /** The change to the cell's own value. */
   public readonly cellChange = input<SheetChange | null>(null);
@@ -22,6 +23,6 @@ export class SheetCellMarks {
 
   public readonly cellDetail = computed(() => {
     const change = this.cellChange();
-    return change === null ? null : changeLabel(change);
+    return change === null ? null : SheetLabelsUtil.changeLabel(change);
   });
 }

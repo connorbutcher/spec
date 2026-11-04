@@ -2,8 +2,8 @@ import { Component, computed, inject } from '@angular/core';
 import { ConfirmationService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { SheetActionTarget } from '../models/sheet-action-target.model';
-import { sheetActionTarget } from '../sheet-action-target.util';
-import { confirmRemoval } from '../sheet-confirm.util';
+import { SheetActionTargetUtil } from '../sheet-action-target.util';
+import { SheetConfirmUtil } from '../sheet-confirm.util';
 import { SheetStore } from '../sheet.store';
 
 /**
@@ -16,9 +16,10 @@ import { SheetStore } from '../sheet.store';
   templateUrl: './sheet-context-actions.html',
   styleUrl: './sheet-context-actions.scss',
 })
+
 export class SheetContextActions {
   public readonly target = computed<SheetActionTarget | null>(() =>
-    sheetActionTarget(this.store.index(), this.store.sheet()?.tables ?? [], this.store.selection()),
+    SheetActionTargetUtil.sheetActionTarget(this.store.index(), this.store.sheet()?.tables ?? [], this.store.selection()),
   );
 
   /** "Remove row": the button names what it will take, as the selection can be any of three things. */
@@ -53,7 +54,7 @@ export class SheetContextActions {
   public askRemove(event: Event): void {
     const target = this.target();
     if (target !== null) {
-      confirmRemoval(this.confirmation, event, target.removeQuestion, () => this.remove(target));
+      SheetConfirmUtil.confirmRemoval(this.confirmation, event, target.removeQuestion, () => this.remove(target));
     }
   }
 

@@ -5,7 +5,7 @@ import { TextareaModule } from 'primeng/textarea';
 import { CellConfiguration } from '../../templates/models/cell-configuration';
 import { CellValueRequest } from '../models/cell-value-request.model';
 import { SheetCell } from '../models/sheet-cell.model';
-import { valueRequest } from '../cell-value.util';
+import { CellValueUtil } from '../cell-value.util';
 
 /**
  * The editor for a text cell: a PrimeNG text box (or text area, if the cell is multi-line) that fills
@@ -18,6 +18,7 @@ import { valueRequest } from '../cell-value.util';
   templateUrl: './sheet-text-cell.html',
   styleUrl: './sheet-text-cell.scss',
 })
+
 export class SheetTextCell {
   public readonly cell = input.required<SheetCell>();
   public readonly configuration = input.required<CellConfiguration>();
@@ -42,7 +43,7 @@ export class SheetTextCell {
       this.revert();
       return;
     }
-    this.changed.emit(valueRequest(this.cell(), 'Text', value === '' ? null : value));
+    this.changed.emit(CellValueUtil.valueRequest(this.cell(), 'Text', value === '' ? null : value));
   }
 
   public revert(): void {

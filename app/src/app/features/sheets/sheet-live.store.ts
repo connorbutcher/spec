@@ -3,7 +3,7 @@ import { CurrentUserStore } from '../../core/auth/current-user.store';
 import { SheetConnectionState } from './models/sheet-connection-state';
 import { SheetPresenceUser } from './models/sheet-presence-user.model';
 import { RowCheckoutStore } from './row-checkout.store';
-import { hubRefusalMessage, rowIdOfCell } from './row-checkout.util';
+import { RowCheckoutUtil } from './row-checkout.util';
 import { RowTakeoverStore } from './row-takeover.store';
 import { SheetHub } from './sheet-hub';
 import { SheetStore } from './sheet.store';
@@ -22,6 +22,7 @@ const RELEASE_DELAY_MS = 150;
  * same way go to `RowTakeoverStore`.
  */
 @Injectable()
+
 export class SheetLiveStore {
   /** Everyone who has the sheet open, the viewer included. */
   public readonly users = signal<SheetPresenceUser[]>([]);
@@ -42,7 +43,7 @@ export class SheetLiveStore {
   /** The row of the cell the viewer is in, which is the row to hold for them. */
   private readonly editingRowId = computed(() => {
     const cellId = this.sheetStore.editingCellId();
-    return cellId === null ? null : rowIdOfCell(this.sheetStore.index(), cellId);
+    return cellId === null ? null : RowCheckoutUtil.rowIdOfCell(this.sheetStore.index(), cellId);
   });
 
   /** The sheet the server knows this tab is on; null until joined and whenever the connection is down. */
@@ -134,7 +135,7 @@ export class SheetLiveStore {
     } catch (failure) {
       this.heldRowId = null;
       if (rowId !== null && this.wantedRowId === rowId) {
-        this.refuse(hubRefusalMessage(failure));
+        this.refuse(RowCheckoutUtil.hubRefusalMessage(failure));
       }
     }
   }

@@ -1,6 +1,6 @@
 import { computed, inject, Injectable, linkedSignal, signal } from '@angular/core';
 import { SheetSearchTarget } from './models/sheet-search-target.model';
-import { matchCountLabel, matchingKeys, searchTargets } from './sheet-search.util';
+import { SheetSearchUtil } from './sheet-search.util';
 import { SheetStore } from './sheet.store';
 
 /**
@@ -12,13 +12,14 @@ import { SheetStore } from './sheet.store';
  * `SheetSearch` scrolls the current one into view.
  */
 @Injectable()
+
 export class SheetSearchStore {
   public readonly query = signal('');
 
   /** The keys of everything that holds the query, in screen order. Nothing is worked out while it is blank. */
   public readonly matches = computed<string[]>(
-    () => (this.query().trim() === '' ? [] : matchingKeys(this.targets(), this.query())),
-    { equal: sameKeys },
+    () => (this.query().trim() === '' ? [] : SheetSearchUtil.matchingKeys(this.targets(), this.query())),
+    { equal: SheetSearchStore.sameKeys },
   );
 
   public readonly matchSet = computed<ReadonlySet<string>>(() => new Set(this.matches()));
@@ -44,14 +45,17 @@ export class SheetSearchStore {
 
   /** "3 of 12", or "No matches". */
   public readonly countLabel = computed(() =>
-    matchCountLabel(this.activeIndex(), this.matches().length),
+    SheetSearchUtil.matchCountLabel(this.activeIndex(), this.matches().length),
   );
 
   private readonly store = inject(SheetStore);
 
   private readonly targets = computed<SheetSearchTarget[]>(() =>
-    searchTargets(this.store.sheet(), this.store.index(), this.store.cellTypes()),
+    SheetSearchUtil.searchTargets(this.store.sheet(), this.store.index(), this.store.cellTypes()),
   );
+    private static sameKeys(a: string[], b: string[]): boolean {
+      return a.length === b.length && a.every((key, i) => key === b[i]);
+    }
 
   public isMatch(key: string): boolean {
     return this.matchSet().has(key);
@@ -75,8 +79,4 @@ export class SheetSearchStore {
   public clear(): void {
     this.query.set('');
   }
-}
-
-function sameKeys(a: string[], b: string[]): boolean {
-  return a.length === b.length && a.every((key, i) => key === b[i]);
 }

@@ -2,7 +2,7 @@ import { Component, input, linkedSignal, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DatePickerModule } from 'primeng/datepicker';
 import { CELL_INPUT_STYLE } from '../cell-input-style';
-import { fromDateValue, toDateValue, valueRequest } from '../cell-value.util';
+import { CellValueUtil } from '../cell-value.util';
 import { CellValueRequest } from '../models/cell-value-request.model';
 import { SheetCell } from '../models/sheet-cell.model';
 
@@ -17,6 +17,7 @@ import { SheetCell } from '../models/sheet-cell.model';
   templateUrl: './sheet-date-cell.html',
   styleUrl: './sheet-date-cell.scss',
 })
+
 export class SheetDateCell {
   public readonly cell = input.required<SheetCell>();
   /** The cell's caption, shown as a hint while the cell is empty. */
@@ -26,7 +27,7 @@ export class SheetDateCell {
   public readonly started = output<void>();
   public readonly changed = output<CellValueRequest>();
 
-  public readonly date = linkedSignal<Date | null>(() => fromDateValue(this.cell().dateValue));
+  public readonly date = linkedSignal<Date | null>(() => CellValueUtil.fromDateValue(this.cell().dateValue));
 
   public readonly inputStyle = CELL_INPUT_STYLE;
 
@@ -39,7 +40,7 @@ export class SheetDateCell {
   public leave(event: Event): void {
     const typed = event.target instanceof HTMLInputElement ? event.target.value.trim() : '';
     if (this.date() === null && typed !== '') {
-      this.date.set(fromDateValue(this.cell().dateValue));
+      this.date.set(CellValueUtil.fromDateValue(this.cell().dateValue));
       return;
     }
     this.commit();
@@ -47,9 +48,9 @@ export class SheetDateCell {
 
   public commit(): void {
     const date = this.date();
-    const value = date === null ? null : toDateValue(date);
+    const value = date === null ? null : CellValueUtil.toDateValue(date);
     if (value !== this.cell().dateValue) {
-      this.changed.emit(valueRequest(this.cell(), 'Date', date));
+      this.changed.emit(CellValueUtil.valueRequest(this.cell(), 'Date', date));
     }
   }
 }

@@ -5,9 +5,9 @@ import { NavigationEnd, Router } from '@angular/router';
 import { TreeNode } from 'primeng/api';
 import { filter } from 'rxjs';
 import { Phase } from '../../core/models/phase.model';
-import { findRouteParam } from '../../core/route-param.util';
+import { RouteParamUtil } from '../../core/route-param.util';
 import { SheetType } from '../../core/models/sheet-type.model';
-import { buildPhaseTree, indexTreeNodes, phaseAncestors } from './phase-tree.util';
+import { PhaseTreeUtil } from './phase-tree.util';
 
 /**
  * State for the phases: the phase list and sheet types (fetched with resources), the tree built from them and
@@ -15,6 +15,7 @@ import { buildPhaseTree, indexTreeNodes, phaseAncestors } from './phase-tree.uti
  * the pages it opens.
  */
 @Service()
+
 export class PhasesStore {
   public readonly isLoading = computed(
     () => this.phasesResource.isLoading() || this.sheetTypesResource.isLoading(),
@@ -34,12 +35,12 @@ export class PhasesStore {
       : [],
   );
 
-  public readonly tree = computed<TreeNode<Phase>[]>(() => buildPhaseTree(this.phases()));
+  public readonly tree = computed<TreeNode<Phase>[]>(() => PhaseTreeUtil.buildPhaseTree(this.phases()));
 
   /** The phase id in the current URL (`/phases/:phaseId`), or null on `/phases`. */
   public readonly selectedPhaseId = computed<number | null>(() => {
     this.navigationEnd();
-    const phaseId = findRouteParam(this.router.routerState.snapshot.root, 'phaseId');
+    const phaseId = RouteParamUtil.findRouteParam(this.router.routerState.snapshot.root, 'phaseId');
     return phaseId === null ? null : Number(phaseId);
   });
 
@@ -52,7 +53,7 @@ export class PhasesStore {
   /** The sheet type in the current URL (`/phases/:phaseId/sheets/:sheetTypeId`), or null when no sheet is open. */
   public readonly selectedSheetTypeId = computed<number | null>(() => {
     this.navigationEnd();
-    const sheetTypeId = findRouteParam(this.router.routerState.snapshot.root, 'sheetTypeId');
+    const sheetTypeId = RouteParamUtil.findRouteParam(this.router.routerState.snapshot.root, 'sheetTypeId');
     return sheetTypeId === null ? null : Number(sheetTypeId);
   });
 
@@ -76,7 +77,7 @@ export class PhasesStore {
     () => new Map(this.phases().map((phase) => [phase.id, phase])),
   );
 
-  private readonly treeNodesById = computed(() => indexTreeNodes(this.tree()));
+  private readonly treeNodesById = computed(() => PhaseTreeUtil.indexTreeNodes(this.tree()));
 
   public reload(): void {
     this.phasesResource.reload();
@@ -102,7 +103,7 @@ export class PhasesStore {
   }
 
   public ancestorsOf(id: number): Phase[] {
-    return phaseAncestors(id, this.phasesById());
+    return PhaseTreeUtil.phaseAncestors(id, this.phasesById());
   }
 
   /** The sheet types selected for a phase, in sheet type display order. */

@@ -10,7 +10,7 @@ import {
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { SheetAnchorTarget } from './models/sheet-anchor-target.model';
-import { anchorId, anchorKey, cellRowId, parseAnchor, selectionAnchor } from './sheet-anchor.util';
+import { SheetAnchorUtil } from './sheet-anchor.util';
 import { SheetStore } from './sheet.store';
 
 /**
@@ -24,14 +24,15 @@ import { SheetStore } from './sheet.store';
  * by its key.
  */
 @Injectable()
+
 export class SheetAnchorService {
   /** What the address points at, if it names a sheet anchor. */
-  public readonly anchor = computed<SheetAnchorTarget | null>(() => parseAnchor(this.fragment()));
+  public readonly anchor = computed<SheetAnchorTarget | null>(() => SheetAnchorUtil.parseAnchor(this.fragment()));
 
   /** The key of what the address points at, matching the `appSheetAnchor` of the element showing it. */
   public readonly targetKey = computed(() => {
     const anchor = this.anchor();
-    return anchor === null ? null : anchorKey(anchor.kind, anchor.publicId);
+    return anchor === null ? null : SheetAnchorUtil.anchorKey(anchor.kind, anchor.publicId);
   });
 
   private readonly route = inject(ActivatedRoute);
@@ -77,7 +78,7 @@ export class SheetAnchorService {
         if (anchor === null || key === this.selectedFor) {
           return;
         }
-        const id = anchorId(index, anchor);
+        const id = SheetAnchorUtil.anchorId(index, anchor);
         if (id === null) {
           return;
         }
@@ -90,11 +91,11 @@ export class SheetAnchorService {
     effect(() => {
       const selection = this.store.selection();
       untracked(() => {
-        const anchor = selectionAnchor(this.store.index(), selection);
+        const anchor = SheetAnchorUtil.selectionAnchor(this.store.index(), selection);
         if (anchor === null || this.pointsWithin(selection?.rowId ?? null, anchor)) {
           return;
         }
-        const key = anchorKey(anchor.kind, anchor.publicId);
+        const key = SheetAnchorUtil.anchorKey(anchor.kind, anchor.publicId);
         this.quiet = key;
         this.selectedFor = key;
         this.navigate(key);
@@ -165,7 +166,7 @@ export class SheetAnchorService {
         break;
       }
       case 'cell': {
-        const rowId = cellRowId(this.store.index(), id);
+        const rowId = SheetAnchorUtil.cellRowId(this.store.index(), id);
         if (rowId !== null) {
           this.store.selectRow(rowId);
         }
@@ -189,7 +190,7 @@ export class SheetAnchorService {
     if (current.kind !== 'cell' || rowId === null) {
       return false;
     }
-    const cellId = anchorId(this.store.index(), current);
-    return cellId !== null && cellRowId(this.store.index(), cellId) === rowId;
+    const cellId = SheetAnchorUtil.anchorId(this.store.index(), current);
+    return cellId !== null && SheetAnchorUtil.cellRowId(this.store.index(), cellId) === rowId;
   }
 }

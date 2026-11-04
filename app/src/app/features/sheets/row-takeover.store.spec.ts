@@ -4,7 +4,7 @@ import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { MessageService } from 'primeng/api';
 import { CurrentUserStore } from '../../core/auth/current-user.store';
-import { fixtureTakeover } from './row-takeover.fixture';
+import { RowTakeoverFixture } from './row-takeover.fixture';
 import { RowTakeoverStore } from './row-takeover.store';
 import { SheetStore } from './sheet.store';
 
@@ -50,7 +50,7 @@ describe('RowTakeoverStore', () => {
   });
 
   it('starts from what the server says is waiting', () => {
-    takeovers.reset([fixtureTakeover()]);
+    takeovers.reset([RowTakeoverFixture.fixtureTakeover()]);
 
     expect(takeovers.incoming().map((request) => request.id)).toEqual(['a']);
 
@@ -59,11 +59,11 @@ describe('RowTakeoverStore', () => {
   });
 
   it('lists a request for a row of mine until it is settled, then says what happened', () => {
-    takeovers.apply(fixtureTakeover());
+    takeovers.apply(RowTakeoverFixture.fixtureTakeover());
     expect(takeovers.incoming()).toHaveLength(1);
     expect(takeovers.outgoingByRow().size).toBe(0);
 
-    takeovers.apply(fixtureTakeover({ status: 'GrantedOnTimeout' }));
+    takeovers.apply(RowTakeoverFixture.fixtureTakeover({ status: 'GrantedOnTimeout' }));
 
     expect(takeovers.incoming()).toHaveLength(0);
     expect(refreshes).toBe(1);
@@ -73,13 +73,13 @@ describe('RowTakeoverStore', () => {
   });
 
   it('ignores a request for another sheet', () => {
-    takeovers.apply(fixtureTakeover({ sheetId: 99 }));
+    takeovers.apply(RowTakeoverFixture.fixtureTakeover({ sheetId: 99 }));
 
     expect(takeovers.incoming()).toEqual([]);
   });
 
   it('announces a settled request once, however many times it hears of it', async () => {
-    const mine = fixtureTakeover({
+    const mine = RowTakeoverFixture.fixtureTakeover({
       requesterUserId: ME,
       holderUserId: 2,
       holderName: 'Engineer Two',
@@ -111,7 +111,7 @@ describe('RowTakeoverStore', () => {
   });
 
   it('drops a request that had already gone when it was answered', async () => {
-    takeovers.apply(fixtureTakeover());
+    takeovers.apply(RowTakeoverFixture.fixtureTakeover());
 
     const answering = takeovers.approve(takeovers.incoming()[0]);
     http
@@ -126,10 +126,10 @@ describe('RowTakeoverStore', () => {
   });
 
   it('takes a request off the list once I keep the row, with no notice to myself', async () => {
-    takeovers.apply(fixtureTakeover());
+    takeovers.apply(RowTakeoverFixture.fixtureTakeover());
 
     const answering = takeovers.deny(takeovers.incoming()[0]);
-    http.expectOne('/api/row-takeovers/a/deny').flush(fixtureTakeover({ status: 'Denied' }));
+    http.expectOne('/api/row-takeovers/a/deny').flush(RowTakeoverFixture.fixtureTakeover({ status: 'Denied' }));
     await answering;
 
     expect(takeovers.incoming()).toHaveLength(0);
@@ -139,6 +139,6 @@ describe('RowTakeoverStore', () => {
   it('counts down from the time it holds', () => {
     takeovers.now.set(Date.parse('2026-10-07T12:00:18.200Z'));
 
-    expect(takeovers.secondsLeft(fixtureTakeover())).toBe(42);
+    expect(takeovers.secondsLeft(RowTakeoverFixture.fixtureTakeover())).toBe(42);
   });
 });

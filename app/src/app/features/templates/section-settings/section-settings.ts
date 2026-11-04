@@ -2,7 +2,7 @@ import { Component, computed, inject, input } from '@angular/core';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { ConfirmDeleteButton } from '../confirm-delete-button/confirm-delete-button';
-import { withCount } from '../instance-counts.util';
+import { InstanceCountsUtil } from '../instance-counts.util';
 import { InstanceField } from '../models/instance-field';
 import { PanelLinkItem } from '../models/panel-link-item.model';
 import { PanelRef } from '../models/panel-ref';
@@ -12,8 +12,8 @@ import { MoveButtons } from '../move-buttons/move-buttons';
 import { NumberField } from '../number-field/number-field';
 import { PanelLinkList } from '../panel-link-list/panel-link-list';
 import { PanelNavigator } from '../panel-navigator';
-import { plural, sectionLinks } from '../section-links.util';
-import { isHeader, sectionNoun } from '../section-role.util';
+import { SectionLinksUtil } from '../section-links.util';
+import { SectionRoleUtil } from '../section-role.util';
 import { TemplatesStore } from '../templates.store';
 
 /**
@@ -33,6 +33,7 @@ import { TemplatesStore } from '../templates.store';
   templateUrl: './section-settings.html',
   styleUrl: './section-settings.scss',
 })
+
 export class SectionSettings {
   public readonly sectionId = input.required<number>();
 
@@ -43,16 +44,16 @@ export class SectionSettings {
   /** "Header", "Section" or "Sub-section". */
   public readonly noun = computed(() => {
     const section = this.entry()?.section;
-    return section ? sectionNoun(section) : 'Section';
+    return section ? SectionRoleUtil.sectionNoun(section) : 'Section';
   });
 
   public readonly isHeader = computed(() => {
     const section = this.entry()?.section;
-    return section ? isHeader(section) : false;
+    return section ? SectionRoleUtil.isHeader(section) : false;
   });
 
   public readonly childSections = computed<PanelLinkItem[]>(() =>
-    sectionLinks(this.entry()?.section.sections ?? []),
+    SectionLinksUtil.sectionLinks(this.entry()?.section.sections ?? []),
   );
 
   public readonly rows = computed<PanelLinkItem[]>(() =>
@@ -60,7 +61,7 @@ export class SectionSettings {
       ref: { kind: 'row', id: row.id },
       label: `Row ${index + 1}`,
       icon: 'pi-bars',
-      meta: plural(row.cells.length, 'cell'),
+      meta: SectionLinksUtil.plural(row.cells.length, 'cell'),
       muted: row.cells.length === 0,
     })),
   );
@@ -101,7 +102,7 @@ export class SectionSettings {
     if (!section) {
       return;
     }
-    void this.save(withCount(section, field, value));
+    void this.save(InstanceCountsUtil.withCount(section, field, value));
   }
 
   public move(position: number): void {

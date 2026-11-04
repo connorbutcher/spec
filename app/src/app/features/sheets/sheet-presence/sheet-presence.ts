@@ -4,7 +4,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { SheetPresenceUser } from '../models/sheet-presence-user.model';
 import { SheetLiveStore } from '../sheet-live.store';
 import { SheetPresenceBadge } from '../sheet-presence-badge/sheet-presence-badge';
-import { checkedOutRowCounts, viewerFirst } from '../sheet-presence.util';
+import { SheetPresenceUtil } from '../sheet-presence.util';
 import { SheetStore } from '../sheet.store';
 
 /**
@@ -17,16 +17,17 @@ import { SheetStore } from '../sheet.store';
   templateUrl: './sheet-presence.html',
   styleUrl: './sheet-presence.scss',
 })
+
 export class SheetPresence {
   public readonly viewerId = computed(() => this.live.viewerId());
 
   public readonly users = computed<SheetPresenceUser[]>(() =>
-    viewerFirst(this.live.users(), this.viewerId()),
+    SheetPresenceUtil.viewerFirst(this.live.users(), this.viewerId()),
   );
 
   /** Rows checked out, by the id of the user they are checked out to. */
   public readonly checkedOutRows = computed(() =>
-    checkedOutRowCounts(this.store.index().rows.values()),
+    SheetPresenceUtil.checkedOutRowCounts(this.store.index().rows.values()),
   );
 
   /** Set while changes are not arriving live. */

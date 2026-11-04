@@ -1,6 +1,6 @@
 import { Component, computed, ElementRef, inject, input, output } from '@angular/core';
 import { CellConfiguration } from '../../templates/models/cell-configuration';
-import { hasInstanceSettings, isDropdown } from '../../templates/models/cell-kinds';
+import { CellKinds } from '../../templates/models/cell-kinds';
 import { CellType } from '../../templates/models/cell-type.model';
 import { CellSettingsRequest } from '../models/cell-settings-request.model';
 import { CellValueRequest } from '../models/cell-value-request.model';
@@ -44,6 +44,7 @@ const CONTROL_PANELS = '.p-select-overlay, .p-datepicker-panel, .p-overlay, .p-p
     '(document:focusin)': 'noticeLeaving($event)',
   },
 })
+
 export class SheetCellEditor {
   public readonly cell = input.required<SheetCell>();
   public readonly cellType = input.required<CellType>();
@@ -65,11 +66,11 @@ export class SheetCellEditor {
   /** Which editor to show. Text and number dropdowns share one. */
   public readonly editor = computed(() => {
     const kind = this.cellType().kind;
-    return isDropdown(kind) ? 'Dropdown' : kind;
+    return CellKinds.isDropdown(kind) ? 'Dropdown' : kind;
   });
 
   /** Whether the cell's kind has settings chosen on the sheet, and so the button that opens them. */
-  public readonly hasSettings = computed(() => hasInstanceSettings(this.cellType().kind));
+  public readonly hasSettings = computed(() => CellKinds.hasInstanceSettings(this.cellType().kind));
 
   private readonly element = inject<ElementRef<HTMLElement>>(ElementRef);
 

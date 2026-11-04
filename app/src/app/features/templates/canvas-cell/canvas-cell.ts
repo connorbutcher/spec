@@ -1,9 +1,9 @@
 import { Component, computed, inject, input } from '@angular/core';
 import { ButtonModule } from 'primeng/button';
 import { CanvasMenu } from '../canvas-menu';
-import { effectiveConfiguration, effectiveStyle } from '../cell-settings.util';
-import { cellStyleCss } from '../cell-style-css.util';
-import { isDisplayOnly } from '../models/cell-kinds';
+import { CellSettingsUtil } from '../cell-settings.util';
+import { CellStyleCssUtil } from '../cell-style-css.util';
+import { CellKinds } from '../models/cell-kinds';
 import { CellLayout } from '../models/cell-layout.model';
 import { CellType } from '../models/cell-type.model';
 import { GridStyle } from '../models/grid-style';
@@ -25,6 +25,7 @@ import { TemplatesStore } from '../templates.store';
     '[class.selected]': 'isSelected()',
   },
 })
+
 export class CanvasCell {
   public readonly layout = input.required<CellLayout>();
 
@@ -36,7 +37,7 @@ export class CanvasCell {
   public readonly styleCss = computed<Record<string, string>>(() => {
     const cellType = this.cellType();
     return cellType
-      ? cellStyleCss(effectiveStyle(cellType.style, this.layout().cell.styleOverride))
+      ? CellStyleCssUtil.cellStyleCss(CellSettingsUtil.effectiveStyle(cellType.style, this.layout().cell.styleOverride))
       : {};
   });
 
@@ -59,7 +60,7 @@ export class CanvasCell {
   }
 
   public isLabel(): boolean {
-    return isDisplayOnly(this.cellType()?.kind);
+    return CellKinds.isDisplayOnly(this.cellType()?.kind);
   }
 
   /** The unit the cell uses, from its type's configuration with the cell's override on top. */
@@ -68,7 +69,7 @@ export class CanvasCell {
     if (!cellType) {
       return null;
     }
-    const configuration = effectiveConfiguration(
+    const configuration = CellSettingsUtil.effectiveConfiguration(
       cellType.configuration,
       this.layout().cell.configurationOverride,
     );

@@ -1,6 +1,6 @@
 import { Component, computed, input } from '@angular/core';
 import { TagModule } from 'primeng/tag';
-import { stateIcon, stateText, statusTone, versionText } from '../item-status.util';
+import { ItemStatusUtil } from '../item-status.util';
 import { ItemStatus } from '../models/item-status.model';
 
 /**
@@ -17,17 +17,18 @@ import { ItemStatus } from '../models/item-status.model';
   templateUrl: './sheet-status.html',
   styleUrl: './sheet-status.scss',
 })
+
 export class SheetStatus {
   public readonly status = input.required<ItemStatus>();
 
   /** The item changed after the version being compared against: its version is written in bold. */
   public readonly changed = input(false);
 
-  public readonly version = computed(() => versionText(this.status()));
+  public readonly version = computed(() => ItemStatusUtil.versionText(this.status()));
 
-  public readonly text = computed(() => stateText(this.status()));
+  public readonly text = computed(() => ItemStatusUtil.stateText(this.status()));
 
-  public readonly icon = computed(() => stateIcon(this.status().state));
+  public readonly icon = computed(() => ItemStatusUtil.stateIcon(this.status().state));
 
-  public readonly tone = computed(() => statusTone(this.status()));
+  public readonly tone = computed(() => ItemStatusUtil.statusTone(this.status()));
 }

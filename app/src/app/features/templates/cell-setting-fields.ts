@@ -65,7 +65,9 @@ export const STYLE_FIELDS: readonly SettingField[] = [
   { key: 'backgroundColor', label: 'Background', control: 'color' },
 ];
 
-/** The configuration settings of a kind. Empty for kinds with none. */
-export function configurationFields(kind: CellKind): readonly SettingField[] {
-  return CONFIGURATION_FIELDS[kind];
+export class CellSettingFields {
+  /** The configuration settings of a kind. Empty for kinds with none. */
+  public static configurationFields(kind: CellKind): readonly SettingField[] {
+    return CONFIGURATION_FIELDS[kind];
+  }
 }

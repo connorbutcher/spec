@@ -2,7 +2,7 @@ import { Component, computed, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TabsModule } from 'primeng/tabs';
 import { SheetType } from '../../../core/models/sheet-type.model';
-import { sheetTypeIcon } from '../../../shared/sheet-type-icon';
+import { SheetTypeIcon } from '../../../shared/sheet-type-icon';
 import { SheetTab } from '../models/sheet-tab.model';
 
 /** PrimeNG tabs for the phase's sheets; each tab navigates to that sheet's own route. */
@@ -12,6 +12,7 @@ import { SheetTab } from '../models/sheet-tab.model';
   templateUrl: './sheet-switcher.html',
   styleUrl: './sheet-switcher.scss',
 })
+
 export class SheetSwitcher {
   public readonly sheetTypes = input.required<SheetType[]>();
   public readonly phaseId = input.required<number>();
@@ -21,7 +22,7 @@ export class SheetSwitcher {
     this.sheetTypes().map((sheetType) => ({
       id: sheetType.id,
       name: sheetType.name,
-      icon: sheetTypeIcon(sheetType.name),
+      icon: SheetTypeIcon.sheetTypeIcon(sheetType.name),
       link: ['/phases', this.phaseId(), 'sheets', sheetType.id],
     })),
   );

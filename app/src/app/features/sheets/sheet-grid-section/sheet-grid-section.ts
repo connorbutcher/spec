@@ -6,9 +6,9 @@ import { RowLayout } from '../models/row-layout.model';
 import { SheetChange } from '../models/sheet-change.model';
 import { SheetAnchor } from '../sheet-anchor.directive';
 import { SheetChangeTag } from '../sheet-change-tag/sheet-change-tag';
-import { isGroupSection, sectionAncestors } from '../sheet-index.util';
+import { SheetIndexUtil } from '../sheet-index.util';
 import { SheetRowStatusCell } from '../sheet-row-status-cell/sheet-row-status-cell';
-import { rowStatusStyle, statusHeadingStyle } from '../sheet-status-column.util';
+import { SheetStatusColumnUtil } from '../sheet-status-column.util';
 import { SheetStatusHeading } from '../sheet-status-heading/sheet-status-heading';
 import { SheetStore } from '../sheet.store';
 
@@ -34,11 +34,12 @@ import { SheetStore } from '../sheet.store';
     '(click)': 'select($event)',
   },
 })
+
 export class SheetGridSection {
   public readonly layout = input.required<SectionLayout>();
 
   /** Where the status column's heading sits, in the header section. */
-  public readonly headingStyle = statusHeadingStyle();
+  public readonly headingStyle = SheetStatusColumnUtil.statusHeadingStyle();
 
   /** The section's rows, each with its cells and the place of its status in the status column. */
   public readonly rows = computed<RowLayout[]>(() => {
@@ -49,7 +50,7 @@ export class SheetGridSection {
     return this.layout().section.rows.map((row, index) => ({
       rowId: row.id,
       cells: cells.get(row.id) ?? [],
-      statusStyle: rowStatusStyle(index),
+      statusStyle: SheetStatusColumnUtil.rowStatusStyle(index),
     }));
   });
 
@@ -71,11 +72,11 @@ export class SheetGridSection {
   /** A group holds other sections; it gets a bar and boundary around it and everything inside. */
   public readonly isGroup = computed(() => {
     const section = this.sheetSection();
-    return section !== null && isGroupSection(section);
+    return section !== null && SheetIndexUtil.isGroupSection(section);
   });
 
   public readonly isNested = computed(
-    () => sectionAncestors(this.store.index(), this.layout().section.id).length > 0,
+    () => SheetIndexUtil.sectionAncestors(this.store.index(), this.layout().section.id).length > 0,
   );
 
   /** What changed directly in this section, if that was after the compared version. */

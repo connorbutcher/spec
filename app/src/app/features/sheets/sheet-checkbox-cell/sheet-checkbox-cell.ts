@@ -1,7 +1,7 @@
 import { Component, input, linkedSignal, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CheckboxModule } from 'primeng/checkbox';
-import { valueRequest } from '../cell-value.util';
+import { CellValueUtil } from '../cell-value.util';
 import { CellValueRequest } from '../models/cell-value-request.model';
 import { SheetCell } from '../models/sheet-cell.model';
 
@@ -15,6 +15,7 @@ import { SheetCell } from '../models/sheet-cell.model';
   templateUrl: './sheet-checkbox-cell.html',
   styleUrl: './sheet-checkbox-cell.scss',
 })
+
 export class SheetCheckboxCell {
   public readonly cell = input.required<SheetCell>();
   public readonly label = input('');
@@ -37,7 +38,7 @@ export class SheetCheckboxCell {
     this.checked.set(value);
     // Unticked is the same as nothing saved, so only a real difference is sent.
     if (value !== (this.cell().booleanValue ?? false)) {
-      this.changed.emit(valueRequest(this.cell(), 'Checkbox', value));
+      this.changed.emit(CellValueUtil.valueRequest(this.cell(), 'Checkbox', value));
     }
   }
 }

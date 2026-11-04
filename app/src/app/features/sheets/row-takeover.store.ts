@@ -1,12 +1,12 @@
 import { computed, effect, inject, Injectable, signal } from '@angular/core';
 import { MessageService } from 'primeng/api';
 import { CurrentUserStore } from '../../core/auth/current-user.store';
-import { apiErrorMessage } from '../templates/api-error-message';
+import { ApiErrorMessage } from '../templates/api-error-message';
 import { RowTakeover } from './models/row-takeover.model';
-import { secondsUntilGranted, withoutTakeover, withTakeover } from './row-takeover.util';
+import { RowTakeoverUtil } from './row-takeover.util';
 import { RowTakeoversApi } from './row-takeovers-api';
 import { SheetStore } from './sheet.store';
-import { takeoverNotice } from './takeover-notice.util';
+import { TakeoverNoticeUtil } from './takeover-notice.util';
 
 const NOTICE_LIFE_MS = 8000;
 const TICK_MS = 1000;
@@ -20,6 +20,7 @@ const TICK_MS = 1000;
  * waiting request and announces a settled one once.
  */
 @Injectable()
+
 export class RowTakeoverStore {
   /** Requests for rows checked out to the viewer, waiting for their answer, oldest first. */
   public readonly incoming = computed<RowTakeover[]>(() => {
@@ -64,7 +65,7 @@ export class RowTakeoverStore {
 
   /** Whole seconds until an unanswered request is granted. */
   public secondsLeft(takeover: RowTakeover): number {
-    return secondsUntilGranted(takeover, this.now());
+    return RowTakeoverUtil.secondsUntilGranted(takeover, this.now());
   }
 
   /** Starts again from what the server says is waiting, on joining a sheet or leaving it. */
@@ -78,12 +79,12 @@ export class RowTakeoverStore {
       return;
     }
     if (takeover.status === 'Pending') {
-      this.waiting.update((list) => withTakeover(list, takeover));
+      this.waiting.update((list) => RowTakeoverUtil.withTakeover(list, takeover));
       return;
     }
 
     this.settled.add(takeover.id);
-    this.waiting.update((list) => withoutTakeover(list, takeover.id));
+    this.waiting.update((list) => RowTakeoverUtil.withoutTakeover(list, takeover.id));
     this.sheetStore.refresh();
     this.announce(takeover);
   }
@@ -108,7 +109,7 @@ export class RowTakeoverStore {
   /** Answers or withdraws a request. If it had already gone by then, it just comes off the list. */
   private async settle(takeover: RowTakeover, call: () => Promise<RowTakeover>): Promise<void> {
     if (!(await this.send(call))) {
-      this.waiting.update((list) => withoutTakeover(list, takeover.id));
+      this.waiting.update((list) => RowTakeoverUtil.withoutTakeover(list, takeover.id));
     }
   }
 
@@ -118,14 +119,14 @@ export class RowTakeoverStore {
       this.apply(await call());
       return true;
     } catch (failure) {
-      this.sheetStore.error.set(apiErrorMessage(failure));
+      this.sheetStore.error.set(ApiErrorMessage.apiErrorMessage(failure));
       return false;
     }
   }
 
   private announce(takeover: RowTakeover): void {
     const me = this.viewerId();
-    const notice = me === null ? null : takeoverNotice(takeover, me);
+    const notice = me === null ? null : TakeoverNoticeUtil.takeoverNotice(takeover, me);
     if (notice !== null) {
       this.messages.add({ ...notice, life: NOTICE_LIFE_MS });
     }

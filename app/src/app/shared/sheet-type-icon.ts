@@ -7,7 +7,9 @@ const ICONS_BY_NAME: Readonly<Record<string, string>> = {
   'torque sheet': 'pi-wrench',
 };
 
-/** The PrimeIcons class used for a sheet type, falling back to a generic document icon. */
-export function sheetTypeIcon(name: string): string {
-  return ICONS_BY_NAME[name.trim().toLowerCase()] ?? 'pi-file';
+export class SheetTypeIcon {
+  /** The PrimeIcons class used for a sheet type, falling back to a generic document icon. */
+  public static sheetTypeIcon(name: string): string {
+    return ICONS_BY_NAME[name.trim().toLowerCase()] ?? 'pi-file';
+  }
 }

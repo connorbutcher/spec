@@ -7,11 +7,11 @@ import { CellLayout } from '../../templates/models/cell-layout.model';
 import { CellType } from '../../templates/models/cell-type.model';
 import { SheetRow } from '../models/sheet-row.model';
 import { Sheet } from '../models/sheet.model';
-import { layoutSheetTable } from '../sheet-layout.util';
-import { fixtureTable } from '../sheet-structure.fixture';
+import { SheetLayoutUtil } from '../sheet-layout.util';
+import { SheetStructureFixture } from '../sheet-structure.fixture';
 import { SheetStore } from '../sheet.store';
 import { SheetGridCell } from './sheet-grid-cell';
-import { sheetResponse } from '../sheet-response.fixture';
+import { SheetResponseFixture } from '../sheet-response.fixture';
 
 const TEXT_TYPE: CellType = {
   id: 1,
@@ -25,23 +25,20 @@ const TEXT_TYPE: CellType = {
   usageCount: 0,
 };
 
-describe('SheetGridCell', () => {
-  let fixture: ComponentFixture<SheetGridCell>;
-  let outside: HTMLButtonElement;
+class SheetGridCellPage {
+  public fixture!: ComponentFixture<SheetGridCell>;
 
-  function host(): HTMLElement {
-    return fixture.nativeElement as HTMLElement;
+  public host(): HTMLElement {
+    return this.fixture.nativeElement as HTMLElement;
   }
 
-  function box(): HTMLInputElement | null {
-    return host().querySelector('input');
+  public box(): HTMLInputElement | null {
+    return this.host().querySelector('input');
   }
 
   /** Renders the first cell of the fixture table's header row, after `change` has adjusted the sheet. */
-  async function render(
-    change: (sheet: Sheet, row: SheetRow) => void = () => undefined,
-  ): Promise<void> {
-    const table = fixtureTable();
+  public async render(change: (sheet: Sheet, row: SheetRow) => void = () => undefined): Promise<void> {
+    const table = SheetStructureFixture.fixtureTable();
     const header = table.sections.find((section) => section.role === 'Header');
     const row = header?.rows[0] as SheetRow;
     row.cells[0].textValue = 'P-1001';
@@ -75,21 +72,30 @@ describe('SheetGridCell', () => {
       ],
     });
     const http = TestBed.inject(HttpTestingController);
-    const layout = layoutSheetTable(table).sections[0].cells[0] as CellLayout;
+    const layout = SheetLayoutUtil.layoutSheetTable(table).sections[0].cells[0] as CellLayout;
 
-    fixture = TestBed.createComponent(SheetGridCell);
-    fixture.componentRef.setInput('layout', layout);
-    fixture.detectChanges();
+    this.fixture = TestBed.createComponent(SheetGridCell);
+    this.fixture.componentRef.setInput('layout', layout);
+    this.fixture.detectChanges();
     http.expectOne('/api/cell-types').flush([TEXT_TYPE]);
-    http.expectOne('/api/phases/1/sheets/2').flush(sheetResponse(sheet));
-    await settle();
+    http.expectOne('/api/phases/1/sheets/2').flush(SheetResponseFixture.sheetResponse(sheet));
+    await this.settle();
   }
 
-  async function settle(): Promise<void> {
+  public async settle(): Promise<void> {
     await new Promise((resolve) => setTimeout(resolve));
-    await fixture.whenStable();
+    await this.fixture.whenStable();
   }
+}
 
+describe('SheetGridCell', () => {
+  let page: SheetGridCellPage;
+
+  beforeEach(() => {
+    page = new SheetGridCellPage();
+  });
+
+  let outside: HTMLButtonElement;
   beforeEach(() => {
     outside = document.createElement('button');
     document.body.appendChild(outside);
@@ -100,94 +106,94 @@ describe('SheetGridCell', () => {
   });
 
   it('shows its value as text, with no control, and can be tabbed to', async () => {
-    await render();
+    await page.render();
 
-    expect(host().textContent?.trim()).toBe('P-1001');
-    expect(box()).toBeNull();
-    expect(host().getAttribute('tabindex')).toBe('0');
+    expect(page.host().textContent?.trim()).toBe('P-1001');
+    expect(page.box()).toBeNull();
+    expect(page.host().getAttribute('tabindex')).toBe('0');
   });
 
   it('swaps in its control and moves into it when it is focused', async () => {
-    await render();
+    await page.render();
 
-    host().focus();
-    await settle();
+    page.host().focus();
+    await page.settle();
 
-    expect(box()?.value).toBe('P-1001');
-    expect(document.activeElement).toBe(box());
-    expect(host().getAttribute('tabindex')).toBeNull();
+    expect(page.box()?.value).toBe('P-1001');
+    expect(document.activeElement).toBe(page.box());
+    expect(page.host().getAttribute('tabindex')).toBeNull();
   });
 
   it('swaps in its control when it is pressed', async () => {
-    await render();
+    await page.render();
 
-    host().dispatchEvent(new Event('pointerdown', { bubbles: true }));
-    await settle();
+    page.host().dispatchEvent(new Event('pointerdown', { bubbles: true }));
+    await page.settle();
 
-    expect(box()).not.toBeNull();
+    expect(page.box()).not.toBeNull();
   });
 
   it('goes back to text as soon as focus moves somewhere else', async () => {
-    await render();
-    host().focus();
-    await settle();
+    await page.render();
+    page.host().focus();
+    await page.settle();
 
     outside.focus();
-    await settle();
+    await page.settle();
 
-    expect(box()).toBeNull();
-    expect(host().textContent?.trim()).toBe('P-1001');
-    expect(host().getAttribute('tabindex')).toBe('0');
+    expect(page.box()).toBeNull();
+    expect(page.host().textContent?.trim()).toBe('P-1001');
+    expect(page.host().getAttribute('tabindex')).toBe('0');
   });
 
   it('goes back to text when something else on the page is pressed', async () => {
-    await render();
-    host().focus();
-    await settle();
+    await page.render();
+    page.host().focus();
+    await page.settle();
 
     outside.dispatchEvent(new Event('pointerdown', { bubbles: true }));
-    await settle();
+    await page.settle();
 
-    expect(box()).toBeNull();
+    expect(page.box()).toBeNull();
   });
 
   it('keeps its control while a panel the control opened is being used', async () => {
-    await render();
-    host().focus();
-    await settle();
+    await page.render();
+    page.host().focus();
+    await page.settle();
     const panel = document.createElement('div');
     panel.className = 'p-select-overlay';
     panel.appendChild(outside);
     document.body.appendChild(panel);
 
     outside.dispatchEvent(new Event('pointerdown', { bubbles: true }));
-    await settle();
+    await page.settle();
 
-    expect(box()).not.toBeNull();
+    expect(page.box()).not.toBeNull();
     panel.remove();
   });
 
   it('stays as text in a row someone else is editing', async () => {
-    await render((_sheet, row) => {
+    await page.render((_sheet, row) => {
       row.lock = { userId: 2, userName: 'A. Smith', isMine: false };
     });
 
-    host().focus();
-    await settle();
+    page.host().focus();
+    await page.settle();
 
-    expect(box()).toBeNull();
-    expect(host().classList.contains('theirs')).toBe(true);
+    expect(page.box()).toBeNull();
+    expect(page.host().classList.contains('theirs')).toBe(true);
   });
 
   it('stays as text in a past version', async () => {
-    await render((sheet) => {
+    await page.render((sheet) => {
       sheet.isLive = false;
     });
 
-    host().focus();
-    await settle();
+    page.host().focus();
+    await page.settle();
 
-    expect(box()).toBeNull();
-    expect(host().getAttribute('tabindex')).toBeNull();
+    expect(page.box()).toBeNull();
+    expect(page.host().getAttribute('tabindex')).toBeNull();
   });
 });

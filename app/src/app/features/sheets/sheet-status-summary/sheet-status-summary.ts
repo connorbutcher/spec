@@ -1,7 +1,7 @@
 import { Component, computed, inject } from '@angular/core';
-import { stateIcon } from '../item-status.util';
-import { otherDraftsSummary } from '../publish-scope.util';
-import { draftCountLabel } from '../sheet-labels.util';
+import { ItemStatusUtil } from '../item-status.util';
+import { PublishScopeUtil } from '../publish-scope.util';
+import { SheetLabelsUtil } from '../sheet-labels.util';
 import { SheetStore } from '../sheet.store';
 
 /**
@@ -18,15 +18,16 @@ import { SheetStore } from '../sheet.store';
     'aria-label': 'Waiting to be published',
   },
 })
+
 export class SheetStatusSummary {
-  public readonly icon = stateIcon('Draft');
+  public readonly icon = ItemStatusUtil.stateIcon('Draft');
 
   public readonly mine = computed(() => {
     const count = this.store.sheet()?.myDraftCount ?? 0;
-    return count > 0 ? `${draftCountLabel(count)} by you` : null;
+    return count > 0 ? `${SheetLabelsUtil.draftCountLabel(count)} by you` : null;
   });
 
-  public readonly theirs = computed(() => otherDraftsSummary(this.store.sheet()?.otherDrafts ?? []));
+  public readonly theirs = computed(() => PublishScopeUtil.otherDraftsSummary(this.store.sheet()?.otherDrafts ?? []));
 
   private readonly store = inject(SheetStore);
 }

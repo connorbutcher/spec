@@ -1,16 +1,16 @@
 import { Component, computed, inject, input } from '@angular/core';
 import { InputTextModule } from 'primeng/inputtext';
 import { ConfirmDeleteButton } from '../confirm-delete-button/confirm-delete-button';
-import { withCount } from '../instance-counts.util';
+import { InstanceCountsUtil } from '../instance-counts.util';
 import { ColumnBlockEntry } from '../models/column-block-entry.model';
 import { InstanceField } from '../models/instance-field';
 import { UpdateTemplateColumnBlockRequest } from '../models/update-template-column-block-request.model';
 import { MoveButtons } from '../move-buttons/move-buttons';
 import { NumberField } from '../number-field/number-field';
 import { PanelNavigator } from '../panel-navigator';
-import { plural } from '../section-links.util';
+import { SectionLinksUtil } from '../section-links.util';
 import { StickyColumnsField } from '../sticky-columns-field/sticky-columns-field';
-import { planColumns } from '../template-layout.util';
+import { TemplateLayoutUtil } from '../template-layout.util';
 import { TemplatesStore } from '../templates.store';
 
 /**
@@ -24,6 +24,7 @@ import { TemplatesStore } from '../templates.store';
   templateUrl: './column-block-settings.html',
   styleUrl: './column-block-settings.scss',
 })
+
 export class ColumnBlockSettings {
   public readonly columnBlockId = input.required<number>();
 
@@ -40,13 +41,13 @@ export class ColumnBlockSettings {
     const cells = counts.reduce((total, count) => total + count, 0);
     return cells === 0
       ? 'No cells yet.'
-      : `${plural(cells, 'cell')} in ${plural(counts.length, 'row')}.`;
+      : `${SectionLinksUtil.plural(cells, 'cell')} in ${SectionLinksUtil.plural(counts.length, 'row')}.`;
   });
 
   /** How many columns the block takes: the most of it that can be pinned. */
   public readonly blockColumns = computed(() => {
     const template = this.store.template();
-    return template ? (planColumns(template).blockWidths.get(this.columnBlockId()) ?? 1) : 1;
+    return template ? (TemplateLayoutUtil.planColumns(template).blockWidths.get(this.columnBlockId()) ?? 1) : 1;
   });
 
   private readonly store = inject(TemplatesStore);
@@ -77,7 +78,7 @@ export class ColumnBlockSettings {
   public setCount(field: InstanceField, value: number | null): void {
     const block = this.entry()?.block;
     if (block) {
-      void this.save(withCount(block, field, value));
+      void this.save(InstanceCountsUtil.withCount(block, field, value));
     }
   }
 

@@ -4,10 +4,10 @@ import { TableModule } from 'primeng/table';
 import { TooltipModule } from 'primeng/tooltip';
 import { CurrentUserStore } from '../../../core/auth/current-user.store';
 import { PERMISSIONS } from '../../../core/auth/permissions';
-import { sheetTypeIcon } from '../../../shared/sheet-type-icon';
+import { SheetTypeIcon } from '../../../shared/sheet-type-icon';
 import { PhasesStore } from '../../phases/phases.store';
 import { AddSheetTypeDialog } from '../add-sheet-type-dialog/add-sheet-type-dialog';
-import { sheetTypeUsage } from '../admin.util';
+import { AdminUtil } from '../admin.util';
 import { SheetTypeUsage } from '../models/sheet-type-usage.model';
 
 /** The Sheet types tab: every sheet type with the phases that have it, and the button that adds one. */
@@ -17,11 +17,12 @@ import { SheetTypeUsage } from '../models/sheet-type-usage.model';
   templateUrl: './admin-sheet-types.html',
   styleUrl: './admin-sheet-types.scss',
 })
+
 export class AdminSheetTypes {
   public readonly isAdding = signal(false);
 
   public readonly rows = computed<SheetTypeUsage[]>(() =>
-    sheetTypeUsage(this.store.sheetTypes(), this.store.tree()),
+    AdminUtil.sheetTypeUsage(this.store.sheetTypes(), this.store.tree()),
   );
 
   public readonly canManage = computed(() => this.currentUser.can(PERMISSIONS.sheetTypesManage));
@@ -30,7 +31,7 @@ export class AdminSheetTypes {
   private readonly currentUser = inject(CurrentUserStore);
 
   public icon(row: SheetTypeUsage): string {
-    return sheetTypeIcon(row.sheetType.name);
+    return SheetTypeIcon.sheetTypeIcon(row.sheetType.name);
   }
 
   public onCreated(): void {
