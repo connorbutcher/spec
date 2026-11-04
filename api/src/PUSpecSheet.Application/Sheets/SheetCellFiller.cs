@@ -23,50 +23,7 @@ public sealed class SheetCellFiller(PuSpecSheetDbContext db) : ISheetCellFiller
         try
         {
             await TakeTableLockAsync(tableId, cancellationToken);
-
-            var versionId = await db.SheetTables
-                .Where(table => table.Id == tableId)
-                .Select(table => table.TableTemplateVersionId)
-                .SingleAsync(cancellationToken);
-
-            var rows = await db.SheetRows
-                .AsNoTracking()
-                .Where(row => row.SheetSection.SheetTableId == tableId)
-                .Select(row => new { row.Id, row.TemplateRowId })
-                .ToListAsync(cancellationToken);
-            var templateCells = await db.TemplateCells
-                .AsNoTracking()
-                .Where(cell => cell.TemplateRow.TemplateSection.TableTemplateVersionId == versionId)
-                .Select(cell => new { cell.Id, cell.TemplateRowId, cell.TemplateColumnBlockId })
-                .ToListAsync(cancellationToken);
-            var blocks = await db.SheetColumnBlocks
-                .AsNoTracking()
-                .Where(block => block.SheetTableId == tableId)
-                .Select(block => new { block.Id, block.TemplateColumnBlockId })
-                .ToListAsync(cancellationToken);
-            var existing = await db.SheetCells
-                .AsNoTracking()
-                .Where(cell => cell.SheetRow.SheetSection.SheetTableId == tableId)
-                .Select(cell => new { cell.SheetRowId, cell.TemplateCellId, cell.SheetColumnBlockId })
-                .ToListAsync(cancellationToken);
-
-            var missing = SheetCellPlanner.Missing(
-                rows.Select(row => (row.Id, row.TemplateRowId)),
-                templateCells.Select(cell => (cell.Id, cell.TemplateRowId, cell.TemplateColumnBlockId)),
-                blocks.Select(block => (block.Id, block.TemplateColumnBlockId)),
-                existing.Select(cell => (cell.SheetRowId, cell.TemplateCellId, cell.SheetColumnBlockId)));
-
-            if (missing.Count > 0)
-            {
-                db.SheetCells.AddRange(missing.Select(cell => new SheetCell
-                {
-                    SheetRowId = cell.SheetRowId,
-                    TemplateCellId = cell.TemplateCellId,
-                    SheetColumnBlockId = cell.SheetColumnBlockId,
-                }));
-                await db.SaveSheetChangesAsync(cancellationToken);
-            }
-
+            await AddMissingCellsAsync(tableId, cancellationToken);
             if (transaction is not null)
             {
                 await transaction.CommitAsync(cancellationToken);
@@ -79,6 +36,58 @@ public sealed class SheetCellFiller(PuSpecSheetDbContext db) : ISheetCellFiller
                 await transaction.DisposeAsync();
             }
         }
+    }
+
+    private async Task AddMissingCellsAsync(int tableId, CancellationToken cancellationToken)
+    {
+        var missing = await PlanMissingCellsAsync(tableId, cancellationToken);
+        if (missing.Count > 0)
+        {
+            db.SheetCells.AddRange(missing.Select(cell => new SheetCell
+            {
+                SheetRowId = cell.SheetRowId,
+                TemplateCellId = cell.TemplateCellId,
+                SheetColumnBlockId = cell.SheetColumnBlockId,
+            }));
+            await db.SaveSheetChangesAsync(cancellationToken);
+        }
+    }
+
+    private async Task<IReadOnlyList<(int SheetRowId, int TemplateCellId, int? SheetColumnBlockId)>> PlanMissingCellsAsync(
+        int tableId,
+        CancellationToken cancellationToken)
+    {
+        var versionId = await db.SheetTables
+            .Where(table => table.Id == tableId)
+            .Select(table => table.TableTemplateVersionId)
+            .SingleAsync(cancellationToken);
+
+        var rows = await db.SheetRows
+            .AsNoTracking()
+            .Where(row => row.SheetSection.SheetTableId == tableId)
+            .Select(row => new { row.Id, row.TemplateRowId })
+            .ToListAsync(cancellationToken);
+        var templateCells = await db.TemplateCells
+            .AsNoTracking()
+            .Where(cell => cell.TemplateRow.TemplateSection.TableTemplateVersionId == versionId)
+            .Select(cell => new { cell.Id, cell.TemplateRowId, cell.TemplateColumnBlockId })
+            .ToListAsync(cancellationToken);
+        var blocks = await db.SheetColumnBlocks
+            .AsNoTracking()
+            .Where(block => block.SheetTableId == tableId)
+            .Select(block => new { block.Id, block.TemplateColumnBlockId })
+            .ToListAsync(cancellationToken);
+        var existing = await db.SheetCells
+            .AsNoTracking()
+            .Where(cell => cell.SheetRow.SheetSection.SheetTableId == tableId)
+            .Select(cell => new { cell.SheetRowId, cell.TemplateCellId, cell.SheetColumnBlockId })
+            .ToListAsync(cancellationToken);
+
+        return SheetCellPlanner.Missing(
+            rows.Select(row => (row.Id, row.TemplateRowId)),
+            templateCells.Select(cell => (cell.Id, cell.TemplateRowId, cell.TemplateColumnBlockId)),
+            blocks.Select(block => (block.Id, block.TemplateColumnBlockId)),
+            existing.Select(cell => (cell.SheetRowId, cell.TemplateCellId, cell.SheetColumnBlockId)));
     }
 
     /// <summary>Waits for any other request filling the same table; released when the transaction ends.</summary>

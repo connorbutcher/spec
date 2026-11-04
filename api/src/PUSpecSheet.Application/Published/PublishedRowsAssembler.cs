@@ -20,16 +20,11 @@ public static class PublishedRowsAssembler
         IReadOnlyDictionary<int, object> values)
     {
         var sections = structure.Sections.ToDictionary(section => section.Id);
-        var sectionOrder = PublishedLookupAssembler.SectionOrder(sections.Values);
-        var tableOrder = structure.Tables
-            .Select((table, index) => (table.Id, index))
-            .ToDictionary(entry => entry.Id, entry => entry.index);
         var blocks = structure.ColumnBlocks
             .OrderBy(block => block.DisplayOrder)
             .ThenBy(block => block.Id)
             .ToList();
         var names = BlockNames(blocks, headerCells.Where(cell => sections.ContainsKey(cell.SectionId)), values);
-
         var kept = blocks
             .Where(block => selection.Columns.Count == 0
                 || selection.Columns.Contains(names[block.Id])
@@ -37,17 +32,7 @@ public static class PublishedRowsAssembler
             .ToList();
 
         var rows = new Dictionary<Guid, PublishedRowValuesDto>();
-        var shown = cells
-            .Where(cell => sections.ContainsKey(cell.SectionId)
-                && (cell.ColumnBlockId is not { } blockId || structure.ColumnBlock(blockId) is not null))
-            .OrderBy(cell => tableOrder[sections[cell.SectionId].TableId])
-            .ThenBy(cell => sectionOrder[cell.SectionId])
-            .ThenBy(cell => cell.RowOrder)
-            .ThenBy(cell => cell.RowId)
-            .ThenBy(cell => cell.Column)
-            .ThenBy(cell => cell.CellId);
-
-        foreach (var row in shown.GroupBy(cell => cell.RowId))
+        foreach (var row in ShownCells(cells, sections, structure).GroupBy(cell => cell.RowId))
         {
             var valueCells = row.Where(cell => cell.Kind.StoresValue()).ToList();
 
@@ -59,21 +44,9 @@ public static class PublishedRowsAssembler
 
             var first = row.First();
             var own = ValuesOf(valueCells.Where(cell => cell.ColumnBlockId is null), values);
-
-            Dictionary<string, IReadOnlyList<object?>>? columns = null;
-            if (row.Any(cell => cell.ColumnBlockId is not null))
-            {
-                columns = [];
-                foreach (var block in kept)
-                {
-                    var inBlock = valueCells.Where(cell => cell.ColumnBlockId == block.Id).ToList();
-                    if (inBlock.Count > 0)
-                    {
-                        columns[names[block.Id]] = ValuesOf(inBlock, values);
-                    }
-                }
-            }
-
+            var columns = row.Any(cell => cell.ColumnBlockId is not null)
+                ? BlockColumns(valueCells, kept, names, values)
+                : null;
             rows[first.RowPublicId] = new PublishedRowValuesDto(sections[first.SectionId].Name, own, columns);
         }
 
@@ -86,6 +59,26 @@ public static class PublishedRowsAssembler
     /// A block with no such value, or with one an earlier block of its table already has, goes by its
     /// identifier, so no two blocks of a table share a name.
     /// </summary>
+    /// <summary>Each kept block's values in the row, under the block's name; blocks with none are left out.</summary>
+    internal static Dictionary<string, IReadOnlyList<object?>> BlockColumns(
+        List<PublishedLookupCellRecord> valueCells,
+        List<PublishedColumnBlockRecord> kept,
+        IReadOnlyDictionary<int, string> names,
+        IReadOnlyDictionary<int, object> values)
+    {
+        var columns = new Dictionary<string, IReadOnlyList<object?>>();
+        foreach (var block in kept)
+        {
+            var inBlock = valueCells.Where(cell => cell.ColumnBlockId == block.Id).ToList();
+            if (inBlock.Count > 0)
+            {
+                columns[names[block.Id]] = ValuesOf(inBlock, values);
+            }
+        }
+
+        return columns;
+    }
+
     internal static Dictionary<int, string> BlockNames(
         List<PublishedColumnBlockRecord> blocks,
         IEnumerable<PublishedLookupCellRecord> headerCells,
@@ -113,6 +106,27 @@ public static class PublishedRowsAssembler
         }
 
         return names;
+    }
+
+    /// <summary>The cells that were on the sheet, table by table, top to bottom and then left to right.</summary>
+    private static IOrderedEnumerable<PublishedLookupCellRecord> ShownCells(
+        IReadOnlyList<PublishedLookupCellRecord> cells,
+        Dictionary<int, PublishedSectionRecord> sections,
+        PublishedStructure structure)
+    {
+        var sectionOrder = PublishedLookupAssembler.SectionOrder(sections.Values);
+        var tableOrder = structure.Tables
+            .Select((table, index) => (table.Id, index))
+            .ToDictionary(entry => entry.Id, entry => entry.index);
+        return cells
+            .Where(cell => sections.ContainsKey(cell.SectionId)
+                && (cell.ColumnBlockId is not { } blockId || structure.ColumnBlock(blockId) is not null))
+            .OrderBy(cell => tableOrder[sections[cell.SectionId].TableId])
+            .ThenBy(cell => sectionOrder[cell.SectionId])
+            .ThenBy(cell => cell.RowOrder)
+            .ThenBy(cell => cell.RowId)
+            .ThenBy(cell => cell.Column)
+            .ThenBy(cell => cell.CellId);
     }
 
     private static List<object?> ValuesOf(IEnumerable<PublishedLookupCellRecord> cells, IReadOnlyDictionary<int, object> values)

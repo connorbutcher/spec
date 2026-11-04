@@ -168,28 +168,9 @@ public static class PublishedLookupAssembler
 
         var own = ValuesOf(valueCells.Where(cell => cell.ColumnBlockId is null), values);
         var columns = row.Any(cell => cell.ColumnBlockId is not null)
-            ? BlockColumns(valueCells, kept, names, values)
+            ? PublishedRowsAssembler.BlockColumns(valueCells, kept, names, values)
             : null;
         return new PublishedRowValuesDto(sections[row.First().SectionId].Name, own, columns);
-    }
-
-    private static Dictionary<string, IReadOnlyList<object?>> BlockColumns(
-        List<PublishedLookupCellRecord> valueCells,
-        List<PublishedColumnBlockRecord> kept,
-        IReadOnlyDictionary<int, string> names,
-        IReadOnlyDictionary<int, object> values)
-    {
-        var columns = new Dictionary<string, IReadOnlyList<object?>>();
-        foreach (var block in kept)
-        {
-            var inBlock = valueCells.Where(cell => cell.ColumnBlockId == block.Id).ToList();
-            if (inBlock.Count > 0)
-            {
-                columns[names[block.Id]] = ValuesOf(inBlock, values);
-            }
-        }
-
-        return columns;
     }
 
     private static List<object?> ValuesOf(IEnumerable<PublishedLookupCellRecord> cells, IReadOnlyDictionary<int, object> values)

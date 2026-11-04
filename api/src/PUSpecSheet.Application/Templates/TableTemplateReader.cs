@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Application.Common;
 using PUSpecSheet.Contracts.Templates;
 using PUSpecSheet.Data;
+using PUSpecSheet.Domain.Templates;
 
 namespace PUSpecSheet.Application.Templates;
 
@@ -38,13 +39,7 @@ public sealed class TableTemplateReader(PuSpecSheetDbContext db)
             throw new NotFoundException($"Version {versionNumber} of table template {templateId} was not found.");
         }
 
-        var versionIds = versions.Select(candidate => candidate.Id).ToList();
-        var inUse = await db.SheetTables
-            .Where(table => versionIds.Contains(table.TableTemplateVersionId))
-            .Select(table => table.TableTemplateVersionId)
-            .Distinct()
-            .ToListAsync(cancellationToken);
-
+        var inUse = await VersionsInUseAsync(versions, cancellationToken);
         var summaries = versions
             .Select(candidate => new TableTemplateVersionSummaryDto(
                 candidate.Id,
@@ -52,25 +47,14 @@ public sealed class TableTemplateReader(PuSpecSheetDbContext db)
                 candidate.CreatedAtUtc,
                 inUse.Contains(candidate.Id)))
             .ToList();
-
-        var sections = await db.TemplateSections
-            .AsNoTracking()
-            .Where(section => section.TableTemplateVersionId == version.Id)
-            .ToListAsync(cancellationToken);
-
-        var rows = await db.TemplateRows
-            .AsNoTracking()
-            .Include(row => row.Cells)
-            .Where(row => row.TemplateSection.TableTemplateVersionId == version.Id)
-            .ToListAsync(cancellationToken);
-
-        var columnBlocks = await db.TemplateColumnBlocks
-            .AsNoTracking()
-            .Where(block => block.TableTemplateVersionId == version.Id)
-            .ToListAsync(cancellationToken);
-
         var isEditable = version == versions[^1] && !inUse.Contains(version.Id);
-        return template.ToDto(version, isEditable, summaries, sections, rows, columnBlocks);
+        return template.ToDto(
+            version,
+            isEditable,
+            summaries,
+            await LoadSectionsAsync(version.Id, cancellationToken),
+            await LoadRowsAsync(version.Id, cancellationToken),
+            await LoadColumnBlocksAsync(version.Id, cancellationToken));
     }
 
     /// <summary>Reads the version with the given id.</summary>
@@ -88,5 +72,41 @@ public sealed class TableTemplateReader(PuSpecSheetDbContext db)
         }
 
         return await ReadAsync(version.TableTemplateId, version.VersionNumber, cancellationToken);
+    }
+
+    /// <summary>The ids of the versions a sheet table is built from.</summary>
+    private async Task<List<int>> VersionsInUseAsync(List<TableTemplateVersion> versions, CancellationToken cancellationToken)
+    {
+        var versionIds = versions.Select(candidate => candidate.Id).ToList();
+        return await db.SheetTables
+            .Where(table => versionIds.Contains(table.TableTemplateVersionId))
+            .Select(table => table.TableTemplateVersionId)
+            .Distinct()
+            .ToListAsync(cancellationToken);
+    }
+
+    private async Task<List<TemplateSection>> LoadSectionsAsync(int versionId, CancellationToken cancellationToken)
+    {
+        return await db.TemplateSections
+            .AsNoTracking()
+            .Where(section => section.TableTemplateVersionId == versionId)
+            .ToListAsync(cancellationToken);
+    }
+
+    private async Task<List<TemplateRow>> LoadRowsAsync(int versionId, CancellationToken cancellationToken)
+    {
+        return await db.TemplateRows
+            .AsNoTracking()
+            .Include(row => row.Cells)
+            .Where(row => row.TemplateSection.TableTemplateVersionId == versionId)
+            .ToListAsync(cancellationToken);
+    }
+
+    private async Task<List<TemplateColumnBlock>> LoadColumnBlocksAsync(int versionId, CancellationToken cancellationToken)
+    {
+        return await db.TemplateColumnBlocks
+            .AsNoTracking()
+            .Where(block => block.TableTemplateVersionId == versionId)
+            .ToListAsync(cancellationToken);
     }
 }

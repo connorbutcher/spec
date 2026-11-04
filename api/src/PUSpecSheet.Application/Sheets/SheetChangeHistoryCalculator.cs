@@ -25,60 +25,15 @@ internal static class SheetChangeHistoryCalculator
         IReadOnlyDictionary<int, int?> sectionParents)
     {
         var history = new SheetChangeHistory();
-
-        SheetChange? Change(ISheetRevision revision)
-        {
-            if (revision.SheetVersionId is not { } versionId
-                || revision.PublishedAtUtc is not { } at
-                || !versionNumbers.TryGetValue(versionId, out var number))
-            {
-                return null;
-            }
-
-            return new SheetChange(number, DateTime.SpecifyKind(at, DateTimeKind.Utc), revision.AuthorUserId);
-        }
-
         foreach (var group in rowRevisions.GroupBy(revision => revision.SheetRowId))
         {
-            SheetRowRevision? previous = null;
-            foreach (var revision in group.OrderBy(candidate => candidate.RevisionNumber))
-            {
-                if (Change(revision) is { } change)
-                {
-                    var current = values.GetValueOrDefault(revision.Id) ?? [];
-                    var before = previous is null ? [] : values.GetValueOrDefault(previous.Id) ?? [];
-                    var cellsChanged = false;
-                    foreach (var cellId in current.Keys.Union(before.Keys))
-                    {
-                        if (!Same(current.GetValueOrDefault(cellId), before.GetValueOrDefault(cellId)))
-                        {
-                            history.Cells[cellId] = change;
-                            cellsChanged = true;
-                        }
-                    }
-
-                    if (cellsChanged || previous is null)
-                    {
-                        history.Rows[group.Key] = change;
-                    }
-
-                    var restructured = previous is null
-                        || revision.IsDeleted != previous.IsDeleted
-                        || revision.DisplayOrder != previous.DisplayOrder;
-                    if (restructured && rowSections.TryGetValue(group.Key, out var sectionId))
-                    {
-                        KeepNewest(history.Sections, sectionId, change);
-                    }
-                }
-
-                previous = revision;
-            }
+            RecordRow(history, group, values, versionNumbers, rowSections);
         }
 
         foreach (var revision in sectionRevisions)
         {
             if (sectionParents.GetValueOrDefault(revision.SheetSectionId) is { } parentId
-                && Change(revision) is { } change)
+                && ChangeOf(revision, versionNumbers) is { } change)
             {
                 KeepNewest(history.Sections, parentId, change);
             }
@@ -86,13 +41,79 @@ internal static class SheetChangeHistoryCalculator
 
         foreach (var revision in columnBlockRevisions.OrderBy(candidate => candidate.PublishedAtUtc).ThenBy(candidate => candidate.Id))
         {
-            if (Change(revision) is { } change)
+            if (ChangeOf(revision, versionNumbers) is { } change)
             {
                 history.ColumnBlocks[revision.SheetColumnBlockId] = change;
             }
         }
 
         return history;
+    }
+
+    private static void RecordRow(
+        SheetChangeHistory history,
+        IGrouping<int, SheetRowRevision> row,
+        IReadOnlyDictionary<int, Dictionary<int, CellValueBag>> values,
+        IReadOnlyDictionary<int, int> versionNumbers,
+        IReadOnlyDictionary<int, int> rowSections)
+    {
+        SheetRowRevision? previous = null;
+        foreach (var revision in row.OrderBy(candidate => candidate.RevisionNumber))
+        {
+            if (ChangeOf(revision, versionNumbers) is { } change)
+            {
+                var cellsChanged = RecordCells(history, revision, previous, values, change);
+                if (cellsChanged || previous is null)
+                {
+                    history.Rows[row.Key] = change;
+                }
+
+                var restructured = previous is null
+                    || revision.IsDeleted != previous.IsDeleted
+                    || revision.DisplayOrder != previous.DisplayOrder;
+                if (restructured && rowSections.TryGetValue(row.Key, out var sectionId))
+                {
+                    KeepNewest(history.Sections, sectionId, change);
+                }
+            }
+
+            previous = revision;
+        }
+    }
+
+    /// <summary>Records the change against each cell whose value differs from the previous revision's.</summary>
+    private static bool RecordCells(
+        SheetChangeHistory history,
+        SheetRowRevision revision,
+        SheetRowRevision? previous,
+        IReadOnlyDictionary<int, Dictionary<int, CellValueBag>> values,
+        SheetChange change)
+    {
+        var current = values.GetValueOrDefault(revision.Id) ?? [];
+        var before = previous is null ? [] : values.GetValueOrDefault(previous.Id) ?? [];
+        var cellsChanged = false;
+        foreach (var cellId in current.Keys.Union(before.Keys))
+        {
+            if (!Same(current.GetValueOrDefault(cellId), before.GetValueOrDefault(cellId)))
+            {
+                history.Cells[cellId] = change;
+                cellsChanged = true;
+            }
+        }
+
+        return cellsChanged;
+    }
+
+    private static SheetChange? ChangeOf(ISheetRevision revision, IReadOnlyDictionary<int, int> versionNumbers)
+    {
+        if (revision.SheetVersionId is not { } versionId
+            || revision.PublishedAtUtc is not { } at
+            || !versionNumbers.TryGetValue(versionId, out var number))
+        {
+            return null;
+        }
+
+        return new SheetChange(number, DateTime.SpecifyKind(at, DateTimeKind.Utc), revision.AuthorUserId);
     }
 
     /// <summary>

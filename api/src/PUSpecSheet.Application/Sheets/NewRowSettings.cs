@@ -24,39 +24,14 @@ public sealed class NewRowSettings(PuSpecSheetDbContext db, ICurrentUser current
             return;
         }
 
-        var cells = (await db.SheetCells
-                .AsNoTracking()
-                .Where(cell => newRowIds.Contains(cell.SheetRowId))
-                .Select(cell => new { cell.Id, cell.SheetRowId, cell.TemplateCellId, cell.SheetColumnBlockId, cell.TemplateCell.CellType.Kind })
-                .ToListAsync(cancellationToken))
-            .Where(cell => cell.Kind.HasInstanceSettings())
-            .ToList();
+        var cells = await LoadCellsWithSettingsAsync(newRowIds, cancellationToken);
         if (cells.Count == 0)
         {
             return;
         }
 
-        // Every row of the table built from the same template rows, as the user sees them.
-        var newRows = cells.Select(cell => cell.SheetRowId).ToHashSet();
-        var templateRowIds = await db.SheetRows
-            .Where(row => newRows.Contains(row.Id))
-            .Select(row => row.TemplateRowId)
-            .Distinct()
-            .ToListAsync(cancellationToken);
-        var templateRowByRow = await db.SheetRows
-            .Where(row => row.SheetSection.SheetTableId == tableId && templateRowIds.Contains(row.TemplateRowId))
-            .ToDictionaryAsync(row => row.Id, row => row.TemplateRowId, cancellationToken);
-
-        var me = currentUser.UserId;
-        var rowIds = templateRowByRow.Keys.ToList();
-        var shown = RevisionResolver.Resolve(
-            await db.SheetRowRevisions
-                .Where(revision => rowIds.Contains(revision.SheetRowId))
-                .VisibleTo(me)
-                .AsNoTracking()
-                .ToListAsync(cancellationToken),
-            revision => revision.SheetRowId,
-            me);
+        var templateRowByRow = await LoadTemplateRowsAsync(tableId, cells, cancellationToken);
+        var shown = await ResolveShownAsync(templateRowByRow.Keys.ToList(), cancellationToken);
 
         // For each kind of row, the one added most recently before these.
         var earlierByTemplateRow = shown
@@ -72,9 +47,69 @@ public sealed class NewRowSettings(PuSpecSheetDbContext db, ICurrentUser current
         var chosen = await db.CellSettings
             .AsNoTracking()
             .Where(value => earlierRevisionIds.Contains(value.SheetRowRevisionId))
-            .Select(value => new { value.SheetRowRevisionId, value.Settings, value.SheetCell.TemplateCellId, value.SheetCell.SheetColumnBlockId })
+            .Select(value => new ChosenSettings(value.SheetRowRevisionId, value.Settings, value.SheetCell.TemplateCellId, value.SheetCell.SheetColumnBlockId))
             .ToListAsync(cancellationToken);
 
+        AddInheritedSettings(cells, shown, templateRowByRow, earlierByTemplateRow, chosen);
+        await db.SaveSheetChangesAsync(cancellationToken);
+    }
+
+    /// <summary>The same for the rows of a newly added section and of the sub-sections it starts with.</summary>
+    public Task InheritAsync(SheetSection newSection, CancellationToken cancellationToken)
+    {
+        return InheritAsync(newSection.SheetTableId, RowIdsOf(newSection).ToList(), cancellationToken);
+    }
+
+    private static IEnumerable<int> RowIdsOf(SheetSection section)
+    {
+        return section.Rows
+            .Select(row => row.Id)
+            .Concat(section.ChildSheetSections.SelectMany(RowIdsOf));
+    }
+
+    private async Task<List<NewCell>> LoadCellsWithSettingsAsync(IReadOnlyCollection<int> newRowIds, CancellationToken cancellationToken)
+    {
+        var cells = await db.SheetCells
+            .AsNoTracking()
+            .Where(cell => newRowIds.Contains(cell.SheetRowId))
+            .Select(cell => new NewCell(cell.Id, cell.SheetRowId, cell.TemplateCellId, cell.SheetColumnBlockId, cell.TemplateCell.CellType.Kind))
+            .ToListAsync(cancellationToken);
+        return cells.Where(cell => cell.Kind.HasInstanceSettings()).ToList();
+    }
+
+    /// <summary>Every row of the table built from the same template rows as the new cells' rows, with that template row.</summary>
+    private async Task<Dictionary<int, int>> LoadTemplateRowsAsync(int tableId, List<NewCell> cells, CancellationToken cancellationToken)
+    {
+        var newRows = cells.Select(cell => cell.SheetRowId).ToHashSet();
+        var templateRowIds = await db.SheetRows
+            .Where(row => newRows.Contains(row.Id))
+            .Select(row => row.TemplateRowId)
+            .Distinct()
+            .ToListAsync(cancellationToken);
+        return await db.SheetRows
+            .Where(row => row.SheetSection.SheetTableId == tableId && templateRowIds.Contains(row.TemplateRowId))
+            .ToDictionaryAsync(row => row.Id, row => row.TemplateRowId, cancellationToken);
+    }
+
+    /// <summary>The rows as the user sees them.</summary>
+    private async Task<Dictionary<int, RevisionResolution<SheetRowRevision>>> ResolveShownAsync(List<int> rowIds, CancellationToken cancellationToken)
+    {
+        var me = currentUser.UserId;
+        var revisions = await db.SheetRowRevisions
+            .Where(revision => rowIds.Contains(revision.SheetRowId))
+            .VisibleTo(me)
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+        return RevisionResolver.Resolve(revisions, revision => revision.SheetRowId, me);
+    }
+
+    private void AddInheritedSettings(
+        List<NewCell> cells,
+        Dictionary<int, RevisionResolution<SheetRowRevision>> shown,
+        Dictionary<int, int> templateRowByRow,
+        Dictionary<int, int> earlierByTemplateRow,
+        List<ChosenSettings> chosen)
+    {
         foreach (var cell in cells)
         {
             if (shown.GetValueOrDefault(cell.SheetRowId)?.Shown is not { } mine
@@ -91,20 +126,5 @@ public sealed class NewRowSettings(PuSpecSheetDbContext db, ICurrentUser current
                 db.CellSettings.Add(new CellSettingsValue { SheetRowRevisionId = mine.Id, SheetCellId = cell.Id, Settings = match.Settings });
             }
         }
-
-        await db.SaveSheetChangesAsync(cancellationToken);
-    }
-
-    /// <summary>The same for the rows of a newly added section and of the sub-sections it starts with.</summary>
-    public Task InheritAsync(SheetSection newSection, CancellationToken cancellationToken)
-    {
-        return InheritAsync(newSection.SheetTableId, RowIdsOf(newSection).ToList(), cancellationToken);
-    }
-
-    private static IEnumerable<int> RowIdsOf(SheetSection section)
-    {
-        return section.Rows
-            .Select(row => row.Id)
-            .Concat(section.ChildSheetSections.SelectMany(RowIdsOf));
     }
 }
