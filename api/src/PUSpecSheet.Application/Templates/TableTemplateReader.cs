@@ -57,7 +57,6 @@ public sealed class TableTemplateReader(PuSpecSheetDbContext db)
             await LoadColumnBlocksAsync(version.Id, cancellationToken));
     }
 
-    /// <summary>Reads the version with the given id.</summary>
     public async Task<TableTemplateDto> ReadVersionAsync(int versionId, CancellationToken cancellationToken)
     {
         var version = await db.TableTemplateVersions

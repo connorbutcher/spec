@@ -7,7 +7,6 @@ public sealed record CompressionSettings
 {
     public const string SectionName = "Compression";
 
-    /// <summary>Turns response compression on or off for every response.</summary>
     public bool Enabled { get; init; } = true;
 
     /// <summary>

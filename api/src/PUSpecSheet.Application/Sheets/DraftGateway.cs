@@ -22,7 +22,6 @@ public abstract class DraftGateway<TRevision>(PuSpecSheetDbContext db, ICurrentU
     /// <summary>The current published revision and any drafts of the given items, tracked.</summary>
     protected abstract IQueryable<TRevision> CurrentAndDrafts(IReadOnlyCollection<int> itemIds);
 
-    /// <summary>The item a revision belongs to.</summary>
     protected abstract int ItemIdOf(TRevision revision);
 
     protected abstract Task<int> LastRevisionNumberAsync(int itemId, CancellationToken cancellationToken);

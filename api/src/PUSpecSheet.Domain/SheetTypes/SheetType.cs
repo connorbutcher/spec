@@ -11,6 +11,5 @@ public class SheetType
 
     public int DisplayOrder { get; set; }
 
-    /// <summary>The phases that have this sheet type available.</summary>
     public ICollection<PhaseSheetType> Phases { get; set; } = [];
 }

@@ -91,7 +91,6 @@ public sealed class NewRowSettings(PuSpecSheetDbContext db, ICurrentUser current
             .ToDictionaryAsync(row => row.Id, row => row.TemplateRowId, cancellationToken);
     }
 
-    /// <summary>The rows as the user sees them.</summary>
     private async Task<Dictionary<int, RevisionResolution<SheetRowRevision>>> ResolveShownAsync(List<int> rowIds, CancellationToken cancellationToken)
     {
         var me = currentUser.UserId;

@@ -5,7 +5,6 @@ using PUSpecSheet.Domain.Sheets;
 
 namespace PUSpecSheet.Application.Sheets;
 
-/// <summary>Draft handling for sheet rows.</summary>
 public sealed class RowDrafts(PuSpecSheetDbContext db, ICurrentUser currentUser, RowValueStore valueStore) : DraftGateway<SheetRowRevision>(db, currentUser)
 {
     protected override string Subject => "This row";

@@ -35,6 +35,5 @@ public class TemplateColumnBlock
     /// </summary>
     public int StickyColumnCount { get; set; }
 
-    /// <summary>The block's cells across every row of the version.</summary>
     public ICollection<TemplateCell> Cells { get; set; } = [];
 }

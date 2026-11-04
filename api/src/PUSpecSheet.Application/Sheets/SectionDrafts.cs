@@ -5,7 +5,6 @@ using PUSpecSheet.Domain.Sheets;
 
 namespace PUSpecSheet.Application.Sheets;
 
-/// <summary>Draft handling for sheet sections.</summary>
 public sealed class SectionDrafts(PuSpecSheetDbContext db, ICurrentUser currentUser) : DraftGateway<SheetSectionRevision>(db, currentUser)
 {
     protected override string Subject => "This section";

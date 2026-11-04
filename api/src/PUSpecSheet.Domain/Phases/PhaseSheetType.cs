@@ -2,7 +2,6 @@ using PUSpecSheet.Domain.SheetTypes;
 
 namespace PUSpecSheet.Domain.Phases;
 
-/// <summary>Makes a sheet type available to a phase.</summary>
 public class PhaseSheetType
 {
     public int PhaseId { get; set; }

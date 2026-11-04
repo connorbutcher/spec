@@ -27,6 +27,5 @@ public class SheetColumnBlock
 
     public ICollection<SheetColumnBlockRevision> Revisions { get; set; } = [];
 
-    /// <summary>The block's cells in every row of the table.</summary>
     public ICollection<SheetCell> Cells { get; set; } = [];
 }

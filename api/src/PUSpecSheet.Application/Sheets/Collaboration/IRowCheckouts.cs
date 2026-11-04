@@ -26,6 +26,5 @@ public interface IRowCheckouts
     /// </summary>
     Task<RowTransfer> TransferAsync(int rowId, int fromUserId, int toUserId, CancellationToken cancellationToken);
 
-    /// <summary>The display names of the given users, by user id.</summary>
     Task<IReadOnlyDictionary<int, string>> DisplayNamesAsync(IReadOnlyCollection<int> userIds, CancellationToken cancellationToken);
 }

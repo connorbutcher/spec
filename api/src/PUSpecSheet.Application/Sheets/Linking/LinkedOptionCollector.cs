@@ -40,7 +40,6 @@ internal sealed class LinkedOptionCollector
         return columns.ContainsKey((tableId, templateCellId));
     }
 
-    /// <summary>Whether anything is linked to this row.</summary>
     public bool WantsRow(int tableId, int rowId)
     {
         return rows.ContainsKey((tableId, rowId));

@@ -4,7 +4,6 @@ namespace PUSpecSheet.Application.Published;
 
 public static class PublishedServiceCollectionExtensions
 {
-    /// <summary>Registers the read-only services other applications use to query published sheets.</summary>
     public static IServiceCollection AddPuSpecSheetPublished(this IServiceCollection services)
     {
         services.AddSingleton<PublishedSheetCache>();

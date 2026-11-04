@@ -30,7 +30,6 @@ public class SheetRowRevision : ISheetRevision
     /// <summary>Order among the section's rows as of this revision.</summary>
     public int DisplayOrder { get; set; }
 
-    /// <summary>True when this revision removes the row from the sheet.</summary>
     public bool IsDeleted { get; set; }
 
     /// <summary>Who made the change; for a draft, who holds the row's lock.</summary>

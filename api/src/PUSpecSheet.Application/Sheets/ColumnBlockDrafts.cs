@@ -5,7 +5,6 @@ using PUSpecSheet.Domain.Sheets;
 
 namespace PUSpecSheet.Application.Sheets;
 
-/// <summary>Draft handling for sheet column blocks.</summary>
 public sealed class ColumnBlockDrafts(PuSpecSheetDbContext db, ICurrentUser currentUser) : DraftGateway<SheetColumnBlockRevision>(db, currentUser)
 {
     protected override string Subject => "This column block";

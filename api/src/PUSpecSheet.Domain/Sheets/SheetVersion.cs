@@ -34,6 +34,5 @@ public class SheetVersion
     /// <summary>The column block revisions (blocks added, moved or removed) published in this version.</summary>
     public ICollection<SheetColumnBlockRevision> ColumnBlockRevisions { get; set; } = [];
 
-    /// <summary>The row revisions published in this version.</summary>
     public ICollection<SheetRowRevision> RowRevisions { get; set; } = [];
 }
