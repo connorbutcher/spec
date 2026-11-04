@@ -4,7 +4,7 @@ import { SheetSection } from './sheet-section.model';
 import { SheetTable } from './sheet-table.model';
 
 /** Every table, section, row and cell of a sheet by id, with where each one sits, for looking things up. */
-export interface SheetIndex {
+export type SheetIndex = {
   tables: ReadonlyMap<number, SheetTable>;
   sections: ReadonlyMap<number, SheetSection>;
   rows: ReadonlyMap<number, SheetRow>;

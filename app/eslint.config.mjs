@@ -18,7 +18,8 @@ const STANDALONE_FUNCTIONS = [
 
 const LOCAL_FUNCTIONS = [':function FunctionDeclaration', `:function VariableDeclarator > ${FUNCTION_VALUE}`].join(', ');
 
-const ONE_INTERFACE = 'Program > :matches(TSInterfaceDeclaration, ExportNamedDeclaration > TSInterfaceDeclaration) ~ :matches(TSInterfaceDeclaration, ExportNamedDeclaration > TSInterfaceDeclaration)';
+const TYPE_DECLARATION = ':matches(TSInterfaceDeclaration, TSTypeAliasDeclaration)';
+const ONE_TYPE = `Program > :matches(${TYPE_DECLARATION}, ExportNamedDeclaration > ${TYPE_DECLARATION}) ~ :matches(${TYPE_DECLARATION}, ExportNamedDeclaration > ${TYPE_DECLARATION})`;
 
 const SHARED_SYNTAX = [
   {
@@ -30,15 +31,15 @@ const SHARED_SYNTAX = [
     message: 'Do not declare functions inside functions; make it a method (private static for helpers).',
   },
   {
-    selector: ONE_INTERFACE,
-    message: 'One interface per file.',
+    selector: ONE_TYPE,
+    message: 'One type per file.',
   },
 ];
 
 /**
  * Lint policy for the app:
  *  - Braces are always required around control-flow bodies (`curly: all`), opening on the statement's line (1TBS).
- *  - One class per file, and one interface per file.
+ *  - One class per file, and one type per file, declared with `type` rather than `interface`.
  *  - Helpers are static methods on a class, never standalone functions, and no function is declared inside another.
  *  - Every component lives in `<name>/<name>.ts` with `<name>.html` and `<name>.scss` beside it, never
  *    inline templates or styles, never ".component" in file names or "Component" on class names.
@@ -56,12 +57,13 @@ export default tseslint.config(
   {
     files: ['src/**/*.spec.ts'],
     languageOptions: { parser: tseslint.parser },
-    plugins: { '@stylistic': stylistic },
+    plugins: { '@typescript-eslint': tseslint.plugin, '@stylistic': stylistic },
     rules: {
       curly: ['error', 'all'],
       '@stylistic/brace-style': ['error', '1tbs'],
       '@stylistic/no-trailing-spaces': 'error',
       'max-classes-per-file': ['error', 1],
+      '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
       'no-restricted-syntax': ['error', ...SHARED_SYNTAX],
     },
   },
@@ -77,6 +79,7 @@ export default tseslint.config(
       '@stylistic/brace-style': ['error', '1tbs'],
       '@stylistic/no-trailing-spaces': 'error',
       'max-classes-per-file': ['error', 1],
+      '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
       '@typescript-eslint/explicit-member-accessibility': [
         'error',
         { accessibility: 'explicit', overrides: { constructors: 'no-public' } },

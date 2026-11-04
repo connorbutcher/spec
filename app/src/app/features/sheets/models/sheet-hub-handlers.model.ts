@@ -3,7 +3,7 @@ import { RowTakeover } from './row-takeover.model';
 import { SheetPresenceUser } from './sheet-presence-user.model';
 
 /** What to do with each thing the server says over the live connection. */
-export interface SheetHubHandlers {
+export type SheetHubHandlers = {
   presenceChanged: (users: SheetPresenceUser[]) => void;
   /** Which rows people are in without having changed them. Replaces the list before. */
   checkoutsChanged: (checkouts: RowCheckout[]) => void;

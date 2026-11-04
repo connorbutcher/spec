@@ -3,7 +3,7 @@
  * of a table (`templateCellId` is set: the values it holds, top to bottom) or a row of it (`sheetRowId` is
  * set: the values in the row after the one that names it). Only sources some cell is linked to are sent.
  */
-export interface SheetLinkedSource {
+export type SheetLinkedSource = {
   sheetTableId: number;
   templateCellId: number | null;
   sheetRowId: number | null;

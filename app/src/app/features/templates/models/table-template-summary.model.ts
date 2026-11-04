@@ -1,7 +1,7 @@
 import { TemplateOrientation } from './template-orientation';
 
 /** A table template without its sections, for the list. Orientation is the latest version's. */
-export interface TableTemplateSummary {
+export type TableTemplateSummary = {
   id: number;
   sheetTypeId: number;
   name: string;

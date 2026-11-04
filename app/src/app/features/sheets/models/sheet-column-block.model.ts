@@ -5,7 +5,7 @@ import { SheetLock } from './sheet-lock.model';
  * A copy of a column block on a horizontal sheet table. It runs through every row of the table: a row's
  * cells for it are the cells whose `sheetColumnBlockId` is this block's id.
  */
-export interface SheetColumnBlock {
+export type SheetColumnBlock = {
   id: number;
   publicId: string;
   templateColumnBlockId: number;

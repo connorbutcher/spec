@@ -4,7 +4,7 @@ import { CellStyle } from './cell-style.model';
 import { CellTypeOption } from './cell-type-option.model';
 
 /** A user-defined cell type, with the default configuration and style its cells start with. */
-export interface CellType {
+export type CellType = {
   id: number;
   name: string;
   kind: CellKind;

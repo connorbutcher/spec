@@ -1,5 +1,5 @@
 /** The user every request runs as, with what their roles allow. */
-export interface CurrentUser {
+export type CurrentUser = {
   id: number;
   userName: string;
   displayName: string;

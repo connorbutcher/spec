@@ -1,5 +1,5 @@
 /** Settings for a date cell. */
-export interface DateCellConfiguration {
+export type DateCellConfiguration = {
   kind: 'Date';
   includeTime?: boolean | null;
 }

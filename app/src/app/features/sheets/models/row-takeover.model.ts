@@ -5,7 +5,7 @@ import { RowTakeoverStatus } from './row-takeover-status';
  * it; left unanswered until `expiresAtUtc`, it is granted. Only a row the holder has not changed can
  * change hands: once it has unpublished changes it stays with them until they publish or discard.
  */
-export interface RowTakeover {
+export type RowTakeover = {
   id: string;
   sheetId: number;
   rowId: number;

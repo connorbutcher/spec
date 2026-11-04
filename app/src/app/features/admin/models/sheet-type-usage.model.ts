@@ -1,7 +1,7 @@
 import { SheetType } from '../../../core/models/sheet-type.model';
 
 /** A sheet type with the codes of the phases that have it. */
-export interface SheetTypeUsage {
+export type SheetTypeUsage = {
   sheetType: SheetType;
   phaseCodes: string[];
 }

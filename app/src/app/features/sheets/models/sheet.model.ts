@@ -8,7 +8,7 @@ import { SheetVersionSummary } from './sheet-version-summary.model';
  * A sheet as one viewer sees it. A live view is the latest published state with the viewer's own drafts
  * on top and other people's locks marked; a past view (by version number or date) is read-only.
  */
-export interface Sheet {
+export type Sheet = {
   id: number;
   publicId: string;
   phaseId: number;

@@ -2,7 +2,7 @@ import { SettingChoice } from './setting-choice.model';
 import { SettingControlType } from './setting-control-type';
 
 /** Describes one configuration or style setting, so the generic settings editor can show it. */
-export interface SettingField {
+export type SettingField = {
   /** The property name in the configuration or style object. */
   key: string;
   label: string;

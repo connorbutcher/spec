@@ -6,7 +6,7 @@ import { CellStyle } from './cell-style.model';
  * map onto CSS grid spans. The overrides hold only what the cell changes from its cell type's
  * defaults.
  */
-export interface TemplateCell {
+export type TemplateCell = {
   id: number;
   cellTypeId: number;
   column: number;

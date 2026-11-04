@@ -1,7 +1,7 @@
 import { TemplateSection } from './template-section.model';
 
 /** A section with where it sits in its template's tree. */
-export interface SectionEntry {
+export type SectionEntry = {
   section: TemplateSection;
   /** 1 for a top-level section. */
   depth: number;

@@ -1,7 +1,7 @@
 import { PublishScope } from './publish-scope';
 
 /** One of the choices of what to publish, with how many changes it would send out. */
-export interface PublishScopeOption {
+export type PublishScopeOption = {
   scope: PublishScope;
   label: string;
   count: number;

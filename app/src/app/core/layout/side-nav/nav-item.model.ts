@@ -1,5 +1,5 @@
 /** One entry in the side navigation. */
-export interface NavItem {
+export type NavItem = {
   label: string;
   icon: string;
   path: string;

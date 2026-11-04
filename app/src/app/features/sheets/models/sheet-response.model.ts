@@ -6,6 +6,6 @@ import { Sheet } from './sheet.model';
  * `templateCellId` (see `SheetCellTemplateRef`) in place of carrying it, and `templateCells` lists each
  * one once. `withTemplateCells` gives every cell its `template` back.
  */
-export interface SheetResponse extends Sheet {
+export type SheetResponse = {
   templateCells: TemplateCell[];
-}
+} & Sheet

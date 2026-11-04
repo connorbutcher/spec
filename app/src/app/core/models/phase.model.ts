@@ -1,5 +1,5 @@
 /** A phase as returned by the API. The tree is built client-side from `parentPhaseId`. */
-export interface Phase {
+export type Phase = {
   id: number;
   code: string;
   description: string | null;

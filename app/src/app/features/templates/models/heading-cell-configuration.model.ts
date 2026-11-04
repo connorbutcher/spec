@@ -1,4 +1,4 @@
 /** Settings for a heading cell. Headings have none yet. */
-export interface HeadingCellConfiguration {
+export type HeadingCellConfiguration = {
   kind: 'Heading';
 }

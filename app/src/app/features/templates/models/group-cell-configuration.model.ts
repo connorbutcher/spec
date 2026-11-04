@@ -1,4 +1,4 @@
 /** Settings for a group cell. Groups have none yet. */
-export interface GroupCellConfiguration {
+export type GroupCellConfiguration = {
   kind: 'Group';
 }

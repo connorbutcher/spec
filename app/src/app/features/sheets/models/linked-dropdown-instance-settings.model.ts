@@ -3,7 +3,7 @@
  * column of it (named by the template cell its cells were built from), giving the values that column
  * holds in every row, or one row of it, giving every value in that row. One of the two is set.
  */
-export interface LinkedDropdownInstanceSettings {
+export type LinkedDropdownInstanceSettings = {
   kind: 'LinkedDropdown';
   sourceSheetTableId: number | null;
   sourceTemplateCellId: number | null;

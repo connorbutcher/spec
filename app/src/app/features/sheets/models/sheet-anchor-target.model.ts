@@ -5,7 +5,7 @@ import { SheetAnchorKind } from './sheet-anchor-kind';
  * The public id stays the same from one version of the sheet to the next, so a link keeps working
  * after a publish.
  */
-export interface SheetAnchorTarget {
+export type SheetAnchorTarget = {
   kind: SheetAnchorKind;
   publicId: string;
 }

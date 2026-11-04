@@ -1,5 +1,5 @@
 /** What to tell someone when a takeover request they are part of is settled. */
-export interface TakeoverNotice {
+export type TakeoverNotice = {
   severity: 'success' | 'info' | 'warn';
   summary: string;
   detail: string;

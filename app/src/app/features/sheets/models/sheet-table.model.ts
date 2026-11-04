@@ -8,7 +8,7 @@ import { SheetLock } from './sheet-lock.model';
 import { SheetSection } from './sheet-section.model';
 
 /** A table on a sheet, built from one version of a table template and keeping that layout. */
-export interface SheetTable {
+export type SheetTable = {
   id: number;
   publicId: string;
   tableTemplateId: number;

@@ -1,5 +1,5 @@
 /** A kind of PU Spec Sheet, such as Specification or Torque Sheet. */
-export interface SheetType {
+export type SheetType = {
   id: number;
   name: string;
   displayOrder: number;

@@ -7,7 +7,7 @@ import { TemplateVersionSummary } from './template-version-summary.model';
  * A table template at one version, with that version's section tree and column blocks. Only the
  * latest version, while no sheet uses it, is editable.
  */
-export interface TableTemplate {
+export type TableTemplate = {
   id: number;
   sheetTypeId: number;
   name: string;

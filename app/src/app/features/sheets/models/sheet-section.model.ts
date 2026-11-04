@@ -9,7 +9,7 @@ import { SheetRow } from './sheet-row.model';
  * A section copy on a sheet table. Its own rows come first, then its sub-sections. The template's name,
  * role and instance counts are carried along so the screen can lay it out like the template.
  */
-export interface SheetSection {
+export type SheetSection = {
   id: number;
   publicId: string;
   templateSectionId: number;

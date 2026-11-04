@@ -3,7 +3,7 @@
  * runs through every row. Its cells are the row cells whose `columnBlockId` is this block. A null
  * `maxInstances` means no limit.
  */
-export interface TemplateColumnBlock {
+export type TemplateColumnBlock = {
   id: number;
   name: string;
   displayOrder: number;

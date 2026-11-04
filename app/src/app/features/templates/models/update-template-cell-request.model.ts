@@ -1,5 +1,5 @@
 /** The body for changing a cell. Every field is sent each time. */
-export interface UpdateTemplateCellRequest {
+export type UpdateTemplateCellRequest = {
   cellTypeId: number;
   column: number;
   rowSpan: number;

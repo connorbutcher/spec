@@ -2,7 +2,7 @@
  * How a table's columns are shared out: the rows' own cells first, then each column block in turn.
  * Block cells count their columns from their block's first column.
  */
-export interface ColumnPlan {
+export type ColumnPlan = {
   /** Every column of the table. */
   total: number;
   /** The table column each block starts on, by block id. */
