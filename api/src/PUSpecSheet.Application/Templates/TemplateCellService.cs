@@ -13,23 +13,7 @@ public sealed class TemplateCellService(
 {
     public async Task<TableTemplateDto> CreateAsync(CreateTemplateCellRequest request, CancellationToken cancellationToken)
     {
-        var row = await db.TemplateRows
-            .AsNoTracking()
-            .Where(candidate => candidate.Id == request.TemplateRowId)
-            .Select(candidate => new
-            {
-                candidate.TemplateSection.TableTemplateVersionId,
-                NextColumn = candidate.Cells
-                    .Where(cell => cell.TemplateColumnBlockId == request.TemplateColumnBlockId)
-                    .Max(cell => (int?)(cell.Column + cell.ColumnSpan)) ?? 1,
-            })
-            .SingleOrDefaultAsync(cancellationToken);
-
-        if (row is null)
-        {
-            throw new NotFoundException($"Row {request.TemplateRowId} was not found.");
-        }
-
+        var row = await LoadTargetAsync(request, cancellationToken);
         await guard.EnsureEditableAsync(row.TableTemplateVersionId, cancellationToken);
 
         if (request.TemplateColumnBlockId is int blockId)
@@ -45,13 +29,7 @@ public sealed class TemplateCellService(
         var column = request.Column ?? row.NextColumn;
         if (request.Column is not null)
         {
-            // Make room: the cells from this column on move one to the right, in one statement so the
-            // one-cell-per-column index is only checked once they've all moved.
-            await db.TemplateCells
-                .Where(cell => cell.TemplateRowId == request.TemplateRowId
-                    && cell.TemplateColumnBlockId == request.TemplateColumnBlockId
-                    && cell.Column >= column)
-                .ExecuteUpdateAsync(setters => setters.SetProperty(cell => cell.Column, cell => cell.Column + 1), cancellationToken);
+            await MakeRoomAsync(request, column, cancellationToken);
         }
 
         db.TemplateCells.Add(new TemplateCell
@@ -144,5 +122,32 @@ public sealed class TemplateCellService(
         {
             throw new InvalidRequestException($"Cell type {cellTypeId} doesn't exist.");
         }
+    }
+
+    private async Task<TemplateCellTarget> LoadTargetAsync(CreateTemplateCellRequest request, CancellationToken cancellationToken)
+    {
+        return await db.TemplateRows
+            .AsNoTracking()
+            .Where(candidate => candidate.Id == request.TemplateRowId)
+            .Select(candidate => new TemplateCellTarget(
+                candidate.TemplateSection.TableTemplateVersionId,
+                candidate.Cells
+                    .Where(cell => cell.TemplateColumnBlockId == request.TemplateColumnBlockId)
+                    .Max(cell => (int?)(cell.Column + cell.ColumnSpan)) ?? 1))
+            .SingleOrDefaultAsync(cancellationToken)
+            ?? throw new NotFoundException($"Row {request.TemplateRowId} was not found.");
+    }
+
+    /// <summary>
+    /// Moves the cells from this column on one to the right, in one statement so the one-cell-per-column
+    /// index is only checked once they've all moved.
+    /// </summary>
+    private async Task MakeRoomAsync(CreateTemplateCellRequest request, int column, CancellationToken cancellationToken)
+    {
+        await db.TemplateCells
+            .Where(cell => cell.TemplateRowId == request.TemplateRowId
+                && cell.TemplateColumnBlockId == request.TemplateColumnBlockId
+                && cell.Column >= column)
+            .ExecuteUpdateAsync(setters => setters.SetProperty(cell => cell.Column, cell => cell.Column + 1), cancellationToken);
     }
 }

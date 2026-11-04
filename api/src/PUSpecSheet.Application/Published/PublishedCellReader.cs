@@ -43,43 +43,53 @@ public sealed class PublishedCellReader(PuSpecSheetDbContext db)
             cells = cells.Where(filter);
         }
 
-        // The sheet on the revision lets SQL Server find the revisions through the (sheet, published) index.
+        return includeCaptions ? WithCaptions(cells, version) : WithoutCaptions(cells, version);
+    }
+
+    // The sheet on the revision lets SQL Server find the revisions through the (sheet, published) index.
+    private static IQueryable<PublishedCellRecord> WithCaptions(IQueryable<SheetCell> cells, ResolvedSheetVersion version)
+    {
         var sheetId = version.SheetId;
         var moment = version.PublishedAtUtc;
-        return includeCaptions
-            ? cells.SelectMany(
-                cell => cell.SheetRow.Revisions.Where(revision => revision.SheetId == sheetId
-                    && revision.Status == RevisionStatus.Published
-                    && revision.PublishedAtUtc <= moment
-                    && (revision.SupersededAtUtc == null || revision.SupersededAtUtc > moment)
-                    && !revision.IsDeleted),
-                (cell, revision) => new PublishedCellRecord(
-                    revision.Id,
-                    cell.SheetRowId,
-                    cell.SheetRow.PublicId,
-                    cell.SheetRow.SheetSectionId,
-                    revision.DisplayOrder,
-                    cell.Id,
-                    cell.PublicId,
-                    cell.SheetColumnBlockId,
-                    cell.TemplateCell.Column,
-                    cell.TemplateCell.Caption))
-            : cells.SelectMany(
-                cell => cell.SheetRow.Revisions.Where(revision => revision.SheetId == sheetId
-                    && revision.Status == RevisionStatus.Published
-                    && revision.PublishedAtUtc <= moment
-                    && (revision.SupersededAtUtc == null || revision.SupersededAtUtc > moment)
-                    && !revision.IsDeleted),
-                (cell, revision) => new PublishedCellRecord(
-                    revision.Id,
-                    cell.SheetRowId,
-                    cell.SheetRow.PublicId,
-                    cell.SheetRow.SheetSectionId,
-                    revision.DisplayOrder,
-                    cell.Id,
-                    cell.PublicId,
-                    cell.SheetColumnBlockId,
-                    cell.TemplateCell.Column,
-                    null));
+        return cells.SelectMany(
+            cell => cell.SheetRow.Revisions.Where(revision => revision.SheetId == sheetId
+                && revision.Status == RevisionStatus.Published
+                && revision.PublishedAtUtc <= moment
+                && (revision.SupersededAtUtc == null || revision.SupersededAtUtc > moment)
+                && !revision.IsDeleted),
+            (cell, revision) => new PublishedCellRecord(
+                revision.Id,
+                cell.SheetRowId,
+                cell.SheetRow.PublicId,
+                cell.SheetRow.SheetSectionId,
+                revision.DisplayOrder,
+                cell.Id,
+                cell.PublicId,
+                cell.SheetColumnBlockId,
+                cell.TemplateCell.Column,
+                cell.TemplateCell.Caption));
+    }
+
+    private static IQueryable<PublishedCellRecord> WithoutCaptions(IQueryable<SheetCell> cells, ResolvedSheetVersion version)
+    {
+        var sheetId = version.SheetId;
+        var moment = version.PublishedAtUtc;
+        return cells.SelectMany(
+            cell => cell.SheetRow.Revisions.Where(revision => revision.SheetId == sheetId
+                && revision.Status == RevisionStatus.Published
+                && revision.PublishedAtUtc <= moment
+                && (revision.SupersededAtUtc == null || revision.SupersededAtUtc > moment)
+                && !revision.IsDeleted),
+            (cell, revision) => new PublishedCellRecord(
+                revision.Id,
+                cell.SheetRowId,
+                cell.SheetRow.PublicId,
+                cell.SheetRow.SheetSectionId,
+                revision.DisplayOrder,
+                cell.Id,
+                cell.PublicId,
+                cell.SheetColumnBlockId,
+                cell.TemplateCell.Column,
+                null));
     }
 }

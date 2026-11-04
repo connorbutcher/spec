@@ -28,46 +28,11 @@ public sealed class PublishedValueReader(PuSpecSheetDbContext db)
         var revisionIds = cells.Select(cell => cell.RowRevisionId).Distinct().ToList();
         var cellIds = wholeSheet ? null : cells.Select(cell => cell.CellId).ToList();
 
-        var texts = await Scope(db.TextValues, revisionIds, cellIds)
-            .Select(value => new { value.SheetCellId, value.Value })
-            .ToListAsync(cancellationToken);
-        foreach (var text in texts)
-        {
-            result[text.SheetCellId] = text.Value;
-        }
-
-        var numbers = await Scope(db.NumericValues, revisionIds, cellIds)
-            .Select(value => new { value.SheetCellId, value.Value })
-            .ToListAsync(cancellationToken);
-        foreach (var number in numbers)
-        {
-            result[number.SheetCellId] = PublishedValues.Number(number.Value);
-        }
-
-        var dates = await Scope(db.DateValues, revisionIds, cellIds)
-            .Select(value => new { value.SheetCellId, value.Value })
-            .ToListAsync(cancellationToken);
-        foreach (var date in dates)
-        {
-            result[date.SheetCellId] = date.Value;
-        }
-
-        var booleans = await Scope(db.BooleanValues, revisionIds, cellIds)
-            .Select(value => new { value.SheetCellId, value.Value })
-            .ToListAsync(cancellationToken);
-        foreach (var boolean in booleans)
-        {
-            result[boolean.SheetCellId] = boolean.Value;
-        }
-
-        var options = await Scope(db.OptionValues, revisionIds, cellIds)
-            .Select(value => new { value.SheetCellId, value.CellTypeOption.Value, value.CellTypeOption.CellType.Kind })
-            .ToListAsync(cancellationToken);
-        foreach (var option in options)
-        {
-            result[option.SheetCellId] = PublishedValues.Option(option.Value, option.Kind);
-        }
-
+        await ReadTextsAsync(db, result, revisionIds, cellIds, cancellationToken);
+        await ReadNumbersAsync(db, result, revisionIds, cellIds, cancellationToken);
+        await ReadDatesAsync(db, result, revisionIds, cellIds, cancellationToken);
+        await ReadBooleansAsync(db, result, revisionIds, cellIds, cancellationToken);
+        await ReadOptionsAsync(db, result, revisionIds, cellIds, cancellationToken);
         return result;
     }
 
@@ -96,5 +61,60 @@ public sealed class PublishedValueReader(PuSpecSheetDbContext db)
         return values
             .AsNoTracking()
             .Where(value => EF.Parameter(revisionIds).Contains(value.SheetRowRevisionId));
+    }
+
+    public static async Task ReadTextsAsync(PuSpecSheetDbContext db, Dictionary<int, object> result, List<int> revisionIds, List<int>? cellIds, CancellationToken cancellationToken)
+    {
+        var texts = await Scope(db.TextValues, revisionIds, cellIds)
+            .Select(value => new { value.SheetCellId, value.Value })
+            .ToListAsync(cancellationToken);
+        foreach (var text in texts)
+        {
+            result[text.SheetCellId] = text.Value;
+        }
+    }
+
+    public static async Task ReadNumbersAsync(PuSpecSheetDbContext db, Dictionary<int, object> result, List<int> revisionIds, List<int>? cellIds, CancellationToken cancellationToken)
+    {
+        var numbers = await Scope(db.NumericValues, revisionIds, cellIds)
+            .Select(value => new { value.SheetCellId, value.Value })
+            .ToListAsync(cancellationToken);
+        foreach (var number in numbers)
+        {
+            result[number.SheetCellId] = PublishedValues.Number(number.Value);
+        }
+    }
+
+    public static async Task ReadDatesAsync(PuSpecSheetDbContext db, Dictionary<int, object> result, List<int> revisionIds, List<int>? cellIds, CancellationToken cancellationToken)
+    {
+        var dates = await Scope(db.DateValues, revisionIds, cellIds)
+            .Select(value => new { value.SheetCellId, value.Value })
+            .ToListAsync(cancellationToken);
+        foreach (var date in dates)
+        {
+            result[date.SheetCellId] = date.Value;
+        }
+    }
+
+    public static async Task ReadBooleansAsync(PuSpecSheetDbContext db, Dictionary<int, object> result, List<int> revisionIds, List<int>? cellIds, CancellationToken cancellationToken)
+    {
+        var booleans = await Scope(db.BooleanValues, revisionIds, cellIds)
+            .Select(value => new { value.SheetCellId, value.Value })
+            .ToListAsync(cancellationToken);
+        foreach (var boolean in booleans)
+        {
+            result[boolean.SheetCellId] = boolean.Value;
+        }
+    }
+
+    public static async Task ReadOptionsAsync(PuSpecSheetDbContext db, Dictionary<int, object> result, List<int> revisionIds, List<int>? cellIds, CancellationToken cancellationToken)
+    {
+        var options = await Scope(db.OptionValues, revisionIds, cellIds)
+            .Select(value => new { value.SheetCellId, value.CellTypeOption.Value, value.CellTypeOption.CellType.Kind })
+            .ToListAsync(cancellationToken);
+        foreach (var option in options)
+        {
+            result[option.SheetCellId] = PublishedValues.Option(option.Value, option.Kind);
+        }
     }
 }

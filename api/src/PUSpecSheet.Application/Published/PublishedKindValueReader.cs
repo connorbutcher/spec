@@ -28,27 +28,27 @@ public sealed class PublishedKindValueReader(PuSpecSheetDbContext db)
         var revisionIds = valueCells.Select(cell => cell.RowRevisionId).Distinct().ToList();
         if (CellsOf(valueCells, wholeSheet, out var textIds, CellKind.Text, CellKind.LinkedDropdown))
         {
-            await ReadTextsAsync(result, revisionIds, textIds, cancellationToken);
+            await PublishedValueReader.ReadTextsAsync(db, result, revisionIds, textIds, cancellationToken);
         }
 
         if (CellsOf(valueCells, wholeSheet, out var numberIds, CellKind.Number))
         {
-            await ReadNumbersAsync(result, revisionIds, numberIds, cancellationToken);
+            await PublishedValueReader.ReadNumbersAsync(db, result, revisionIds, numberIds, cancellationToken);
         }
 
         if (CellsOf(valueCells, wholeSheet, out var dateIds, CellKind.Date))
         {
-            await ReadDatesAsync(result, revisionIds, dateIds, cancellationToken);
+            await PublishedValueReader.ReadDatesAsync(db, result, revisionIds, dateIds, cancellationToken);
         }
 
         if (CellsOf(valueCells, wholeSheet, out var booleanIds, CellKind.Checkbox))
         {
-            await ReadBooleansAsync(result, revisionIds, booleanIds, cancellationToken);
+            await PublishedValueReader.ReadBooleansAsync(db, result, revisionIds, booleanIds, cancellationToken);
         }
 
         if (CellsOf(valueCells, wholeSheet, out var optionIds, CellKind.TextDropdown, CellKind.NumberDropdown))
         {
-            await ReadOptionsAsync(result, revisionIds, optionIds, cancellationToken);
+            await PublishedValueReader.ReadOptionsAsync(db, result, revisionIds, optionIds, cancellationToken);
         }
 
         return result;
@@ -60,60 +60,5 @@ public sealed class PublishedKindValueReader(PuSpecSheetDbContext db)
         var matching = cells.Where(cell => kinds.Contains(cell.Kind)).Select(cell => cell.CellId).ToList();
         ids = wholeSheet ? null : matching;
         return matching.Count > 0;
-    }
-
-    private async Task ReadTextsAsync(Dictionary<int, object> result, List<int> revisionIds, List<int>? cellIds, CancellationToken cancellationToken)
-    {
-        var texts = await PublishedValueReader.Scope(db.TextValues, revisionIds, cellIds)
-            .Select(value => new { value.SheetCellId, value.Value })
-            .ToListAsync(cancellationToken);
-        foreach (var text in texts)
-        {
-            result[text.SheetCellId] = text.Value;
-        }
-    }
-
-    private async Task ReadNumbersAsync(Dictionary<int, object> result, List<int> revisionIds, List<int>? cellIds, CancellationToken cancellationToken)
-    {
-        var numbers = await PublishedValueReader.Scope(db.NumericValues, revisionIds, cellIds)
-            .Select(value => new { value.SheetCellId, value.Value })
-            .ToListAsync(cancellationToken);
-        foreach (var number in numbers)
-        {
-            result[number.SheetCellId] = PublishedValues.Number(number.Value);
-        }
-    }
-
-    private async Task ReadDatesAsync(Dictionary<int, object> result, List<int> revisionIds, List<int>? cellIds, CancellationToken cancellationToken)
-    {
-        var dates = await PublishedValueReader.Scope(db.DateValues, revisionIds, cellIds)
-            .Select(value => new { value.SheetCellId, value.Value })
-            .ToListAsync(cancellationToken);
-        foreach (var date in dates)
-        {
-            result[date.SheetCellId] = date.Value;
-        }
-    }
-
-    private async Task ReadBooleansAsync(Dictionary<int, object> result, List<int> revisionIds, List<int>? cellIds, CancellationToken cancellationToken)
-    {
-        var booleans = await PublishedValueReader.Scope(db.BooleanValues, revisionIds, cellIds)
-            .Select(value => new { value.SheetCellId, value.Value })
-            .ToListAsync(cancellationToken);
-        foreach (var boolean in booleans)
-        {
-            result[boolean.SheetCellId] = boolean.Value;
-        }
-    }
-
-    private async Task ReadOptionsAsync(Dictionary<int, object> result, List<int> revisionIds, List<int>? cellIds, CancellationToken cancellationToken)
-    {
-        var options = await PublishedValueReader.Scope(db.OptionValues, revisionIds, cellIds)
-            .Select(value => new { value.SheetCellId, value.CellTypeOption.Value, value.CellTypeOption.CellType.Kind })
-            .ToListAsync(cancellationToken);
-        foreach (var option in options)
-        {
-            result[option.SheetCellId] = PublishedValues.Option(option.Value, option.Kind);
-        }
     }
 }
