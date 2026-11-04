@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { SelectModule } from 'primeng/select';
 import { SelectButtonModule } from 'primeng/selectbutton';
+import { DialogActions } from '../../../shared/components/dialog-actions/dialog-actions';
 import { LinkedDropdownInstanceSettings } from '../models/linked-dropdown-instance-settings.model';
 import { SheetLabelsUtil } from '../status/sheet-labels.util';
 import { SheetStore } from '../sheet.store';
@@ -17,7 +18,7 @@ const FILTER_FROM = 8;
  */
 @Component({
   selector: 'app-sheet-linked-source-form',
-  imports: [ButtonModule, FormsModule, SelectButtonModule, SelectModule],
+  imports: [ButtonModule, DialogActions, FormsModule, SelectButtonModule, SelectModule],
   templateUrl: './sheet-linked-source-form.html',
   styleUrl: './sheet-linked-source-form.scss',
 })

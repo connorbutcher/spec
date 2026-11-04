@@ -25,19 +25,12 @@
       [ngModelOptions]="{ standalone: true }"
     ></textarea>
     <div class="buttons">
-      <p-button
-        label="Cancel"
-        size="small"
-        severity="secondary"
-        [outlined]="true"
-        (onClick)="popover.hide()"
-      />
-      <p-button
-        [label]="confirmLabel()"
-        icon="pi pi-upload"
-        size="small"
-        [disabled]="!hasChanges() || isBusy()"
-        (onClick)="publish(popover)"
+      <app-dialog-actions
+        [confirmLabel]="confirmLabel()"
+        confirmIcon="pi pi-upload"
+        [confirmDisabled]="!hasChanges() || isBusy()"
+        (cancelled)="popover.hide()"
+        (confirmed)="publish(popover)"
       />
     </div>
   </form>

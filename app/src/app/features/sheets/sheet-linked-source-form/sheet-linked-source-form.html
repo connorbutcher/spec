@@ -84,13 +84,11 @@
       (onClick)="applied.emit(null)"
     />
     <span class="spacer"></span>
-    <p-button
-      label="Cancel"
-      size="small"
-      severity="secondary"
-      [outlined]="true"
-      (onClick)="cancelled.emit()"
+    <app-dialog-actions
+      confirmLabel="Apply"
+      [confirmDisabled]="!canApply()"
+      (cancelled)="cancelled.emit()"
+      (confirmed)="apply()"
     />
-    <p-button label="Apply" size="small" [disabled]="!canApply()" (onClick)="apply()" />
   </div>
 </form>

@@ -82,21 +82,13 @@
   </div>
 
   <ng-template #footer>
-    <p-button
-      label="Cancel"
-      size="small"
-      severity="secondary"
-      [outlined]="true"
-      [disabled]="isSaving()"
-      (onClick)="visible.set(false)"
-    />
-    <p-button
-      label="Add phase"
-      icon="pi pi-plus"
-      size="small"
-      [disabled]="!canAdd()"
-      [loading]="isSaving()"
-      (onClick)="add()"
+    <app-dialog-actions
+      confirmLabel="Add phase"
+      confirmIcon="pi pi-plus"
+      [confirmDisabled]="!canAdd()"
+      [busy]="isSaving()"
+      (cancelled)="visible.set(false)"
+      (confirmed)="add()"
     />
   </ng-template>
 </p-dialog>

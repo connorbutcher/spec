@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { Popover, PopoverModule } from 'primeng/popover';
 import { TextareaModule } from 'primeng/textarea';
+import { DialogActions } from '../../../shared/components/dialog-actions/dialog-actions';
 import { PublishScopeOption } from '../models/publish-scope-option.model';
 import { PublishScope } from '../models/publish-scope';
 import { PublishScopeUtil } from '../actions/publish-scope.util';
@@ -16,7 +17,7 @@ import { SheetStore } from '../sheet.store';
  */
 @Component({
   selector: 'app-sheet-publish',
-  imports: [ButtonModule, FormsModule, PopoverModule, SheetPublishScope, TextareaModule],
+  imports: [ButtonModule, DialogActions, FormsModule, PopoverModule, SheetPublishScope, TextareaModule],
   templateUrl: './sheet-publish.html',
   styleUrl: './sheet-publish.scss',
 })
