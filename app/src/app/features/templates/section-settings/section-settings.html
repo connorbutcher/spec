@@ -31,44 +31,12 @@
         </div>
       }
 
-      <h3 class="app-group-title">Added on the sheet</h3>
-      <div class="app-field-row">
-        <div class="app-field">
-          <label for="section-min">Fewest</label>
-          <app-number-field
-            inputId="section-min"
-            [value]="entry.section.minInstances"
-            [min]="0"
-            [max]="1000"
-            [disabled]="isSaving() || !canEdit()"
-            (committed)="setCount('minInstances', $event)"
-          />
-        </div>
-        <div class="app-field">
-          <label for="section-initial">Starts with</label>
-          <app-number-field
-            inputId="section-initial"
-            [value]="entry.section.initialInstances"
-            [min]="0"
-            [max]="1000"
-            [disabled]="isSaving() || !canEdit()"
-            (committed)="setCount('initialInstances', $event)"
-          />
-        </div>
-        <div class="app-field">
-          <label for="section-max">Most</label>
-          <app-number-field
-            inputId="section-max"
-            [value]="entry.section.maxInstances"
-            [min]="1"
-            [max]="1000"
-            [allowEmpty]="true"
-            placeholder="No limit"
-            [disabled]="isSaving() || !canEdit()"
-            (committed)="setCount('maxInstances', $event)"
-          />
-        </div>
-      </div>
+      <app-instance-counts-fields
+        idPrefix="section"
+        [counts]="entry.section"
+        [disabled]="isSaving() || !canEdit()"
+        (changed)="setCounts($event)"
+      />
     }
 
     <h3 class="app-group-title">Rows</h3>

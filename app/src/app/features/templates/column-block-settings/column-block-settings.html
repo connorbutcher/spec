@@ -37,44 +37,12 @@
       />
     </div>
 
-    <h3 class="app-group-title">Added on the sheet</h3>
-    <div class="app-field-row">
-      <div class="app-field">
-        <label for="column-block-min">Fewest</label>
-        <app-number-field
-          inputId="column-block-min"
-          [value]="entry.block.minInstances"
-          [min]="0"
-          [max]="1000"
-          [disabled]="isSaving() || !canEdit()"
-          (committed)="setCount('minInstances', $event)"
-        />
-      </div>
-      <div class="app-field">
-        <label for="column-block-initial">Starts with</label>
-        <app-number-field
-          inputId="column-block-initial"
-          [value]="entry.block.initialInstances"
-          [min]="0"
-          [max]="1000"
-          [disabled]="isSaving() || !canEdit()"
-          (committed)="setCount('initialInstances', $event)"
-        />
-      </div>
-      <div class="app-field">
-        <label for="column-block-max">Most</label>
-        <app-number-field
-          inputId="column-block-max"
-          [value]="entry.block.maxInstances"
-          [min]="1"
-          [max]="1000"
-          [allowEmpty]="true"
-          placeholder="No limit"
-          [disabled]="isSaving() || !canEdit()"
-          (committed)="setCount('maxInstances', $event)"
-        />
-      </div>
-    </div>
+    <app-instance-counts-fields
+      idPrefix="column-block"
+      [counts]="entry.block"
+      [disabled]="isSaving() || !canEdit()"
+      (changed)="setCounts($event)"
+    />
 
     <h3 class="app-group-title">Cells</h3>
     <p class="app-field-note">{{ cellSummary() }}</p>

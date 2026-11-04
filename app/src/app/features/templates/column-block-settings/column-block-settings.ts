@@ -1,12 +1,11 @@
 import { Component, computed, inject, input } from '@angular/core';
 import { InputTextModule } from 'primeng/inputtext';
 import { ConfirmDeleteButton } from '../confirm-delete-button/confirm-delete-button';
-import { InstanceCountsUtil } from '../instance-counts.util';
+import { InstanceCountsFields } from '../instance-counts-fields/instance-counts-fields';
 import { ColumnBlockEntry } from '../models/column-block-entry.model';
-import { InstanceField } from '../models/instance-field';
+import { InstanceCounts } from '../models/instance-counts.model';
 import { UpdateTemplateColumnBlockRequest } from '../models/update-template-column-block-request.model';
 import { MoveButtons } from '../move-buttons/move-buttons';
-import { NumberField } from '../number-field/number-field';
 import { PanelNavigator } from '../panel-navigator';
 import { SectionLinksUtil } from '../section-links.util';
 import { StickyColumnsField } from '../sticky-columns-field/sticky-columns-field';
@@ -20,7 +19,7 @@ import { TemplatesStore } from '../templates.store';
  */
 @Component({
   selector: 'app-column-block-settings',
-  imports: [ConfirmDeleteButton, InputTextModule, MoveButtons, NumberField, StickyColumnsField],
+  imports: [ConfirmDeleteButton, InputTextModule, InstanceCountsFields, MoveButtons, StickyColumnsField],
   templateUrl: './column-block-settings.html',
   styleUrl: './column-block-settings.scss',
 })
@@ -74,12 +73,8 @@ export class ColumnBlockSettings {
     input.value = this.entry()?.block.name ?? '';
   }
 
-  /** Saves one of the counts, nudging the others so fewest <= starts with <= most still holds. */
-  public setCount(field: InstanceField, value: number | null): void {
-    const block = this.entry()?.block;
-    if (block) {
-      void this.save(InstanceCountsUtil.withCount(block, field, value));
-    }
+  public setCounts(counts: InstanceCounts): void {
+    void this.save(counts);
   }
 
   public setSticky(count: number): void {

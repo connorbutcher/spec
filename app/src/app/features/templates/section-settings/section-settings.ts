@@ -2,14 +2,13 @@ import { Component, computed, inject, input } from '@angular/core';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { ConfirmDeleteButton } from '../confirm-delete-button/confirm-delete-button';
-import { InstanceCountsUtil } from '../instance-counts.util';
-import { InstanceField } from '../models/instance-field';
+import { InstanceCountsFields } from '../instance-counts-fields/instance-counts-fields';
+import { InstanceCounts } from '../models/instance-counts.model';
 import { PanelLinkItem } from '../models/panel-link-item.model';
 import { PanelRef } from '../models/panel-ref';
 import { SectionEntry } from '../models/section-entry.model';
 import { UpdateTemplateSectionRequest } from '../models/update-template-section-request.model';
 import { MoveButtons } from '../move-buttons/move-buttons';
-import { NumberField } from '../number-field/number-field';
 import { PanelLinkList } from '../panel-link-list/panel-link-list';
 import { PanelNavigator } from '../panel-navigator';
 import { SectionLinksUtil } from '../section-links.util';
@@ -26,8 +25,8 @@ import { TemplatesStore } from '../templates.store';
     ButtonModule,
     ConfirmDeleteButton,
     InputTextModule,
+    InstanceCountsFields,
     MoveButtons,
-    NumberField,
     PanelLinkList,
   ],
   templateUrl: './section-settings.html',
@@ -96,13 +95,8 @@ export class SectionSettings {
     input.value = this.entry()?.section.name ?? '';
   }
 
-  /** Saves one of the counts, nudging the others so fewest <= starts with <= most still holds. */
-  public setCount(field: InstanceField, value: number | null): void {
-    const section = this.entry()?.section;
-    if (!section) {
-      return;
-    }
-    void this.save(InstanceCountsUtil.withCount(section, field, value));
+  public setCounts(counts: InstanceCounts): void {
+    void this.save(counts);
   }
 
   public move(position: number): void {
