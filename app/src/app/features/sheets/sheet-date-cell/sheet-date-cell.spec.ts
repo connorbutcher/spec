@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { CellValueRequest } from '../models/cell-value-request.model';
-import { SheetStructureFixture } from '../sheet-structure.fixture';
+import { SheetStructureFixture } from '../data/sheet-structure.fixture';
 import { SheetDateCell } from './sheet-date-cell';
 
 class SheetDateCellPage {

@@ -1,11 +1,11 @@
 import { Component, computed, inject, input } from '@angular/core';
 import { TooltipModule } from 'primeng/tooltip';
-import { ItemStatusUtil } from '../item-status.util';
+import { ItemStatusUtil } from '../status/item-status.util';
 import { ItemStatus } from '../models/item-status.model';
 import { SectionTone } from '../models/section-tone';
 import { SheetRow } from '../models/sheet-row.model';
-import { SheetIndexUtil } from '../sheet-index.util';
-import { SheetLabelsUtil } from '../sheet-labels.util';
+import { SheetIndexUtil } from '../layout/sheet-index.util';
+import { SheetLabelsUtil } from '../status/sheet-labels.util';
 import { SheetStatus } from '../sheet-status/sheet-status';
 import { SheetStore } from '../sheet.store';
 

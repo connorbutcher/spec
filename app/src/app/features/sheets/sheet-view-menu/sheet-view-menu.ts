@@ -2,7 +2,7 @@ import { Component, computed, inject } from '@angular/core';
 import { ButtonModule } from 'primeng/button';
 import { Popover, PopoverModule } from 'primeng/popover';
 import { SheetComparePicker } from '../sheet-compare-picker/sheet-compare-picker';
-import { SheetLabelsUtil } from '../sheet-labels.util';
+import { SheetLabelsUtil } from '../status/sheet-labels.util';
 import { SheetVersionPicker } from '../sheet-version-picker/sheet-version-picker';
 import { SheetStore } from '../sheet.store';
 

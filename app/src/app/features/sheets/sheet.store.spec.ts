@@ -5,10 +5,10 @@ import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap } from '@angular/router';
 import { of } from 'rxjs';
 import { Sheet } from './models/sheet.model';
-import { SheetStructureFixture } from './sheet-structure.fixture';
+import { SheetStructureFixture } from './data/sheet-structure.fixture';
 import { SheetStore } from './sheet.store';
 import { SheetResponse } from './models/sheet-response.model';
-import { SheetResponseFixture } from './sheet-response.fixture';
+import { SheetResponseFixture } from './data/sheet-response.fixture';
 
 class SpecHelpers {
   public static fixtureSheet(): Sheet {

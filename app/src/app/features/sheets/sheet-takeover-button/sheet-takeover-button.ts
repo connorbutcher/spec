@@ -5,7 +5,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { RowTakeoverAvailability } from '../models/row-takeover-availability.model';
 import { RowTakeover } from '../models/row-takeover.model';
 import { SheetRow } from '../models/sheet-row.model';
-import { RowTakeoverStore } from '../row-takeover.store';
+import { RowTakeoverStore } from '../checkouts/row-takeover.store';
 
 /**
  * For a row checked out to someone else: asks them to hand it over. While the request waits it shows

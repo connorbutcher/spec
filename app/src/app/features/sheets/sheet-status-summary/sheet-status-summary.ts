@@ -1,7 +1,7 @@
 import { Component, computed, inject } from '@angular/core';
-import { ItemStatusUtil } from '../item-status.util';
-import { PublishScopeUtil } from '../publish-scope.util';
-import { SheetLabelsUtil } from '../sheet-labels.util';
+import { ItemStatusUtil } from '../status/item-status.util';
+import { PublishScopeUtil } from '../actions/publish-scope.util';
+import { SheetLabelsUtil } from '../status/sheet-labels.util';
 import { SheetStore } from '../sheet.store';
 
 /**

@@ -2,9 +2,9 @@ import { Component, computed, inject } from '@angular/core';
 import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
 import { SheetPresenceUser } from '../models/sheet-presence-user.model';
-import { SheetLiveStore } from '../sheet-live.store';
+import { SheetLiveStore } from '../live/sheet-live.store';
 import { SheetPresenceBadge } from '../sheet-presence-badge/sheet-presence-badge';
-import { SheetPresenceUtil } from '../sheet-presence.util';
+import { SheetPresenceUtil } from '../live/sheet-presence.util';
 import { SheetStore } from '../sheet.store';
 
 /**

@@ -1,8 +1,8 @@
 import { Component, computed, input, linkedSignal, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { SelectModule } from 'primeng/select';
-import { CellValueUtil } from '../cell-value.util';
-import { LinkedDropdownUtil } from '../linked-dropdown.util';
+import { CellValueUtil } from '../values/cell-value.util';
+import { LinkedDropdownUtil } from '../values/linked-dropdown.util';
 import { CellValueRequest } from '../models/cell-value-request.model';
 import { LinkedChoices } from '../models/linked-choices.model';
 import { SheetCell } from '../models/sheet-cell.model';

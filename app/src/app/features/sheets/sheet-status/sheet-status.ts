@@ -1,6 +1,6 @@
 import { Component, computed, input } from '@angular/core';
 import { TagModule } from 'primeng/tag';
-import { ItemStatusUtil } from '../item-status.util';
+import { ItemStatusUtil } from '../status/item-status.util';
 import { ItemStatus } from '../models/item-status.model';
 
 /**

@@ -6,8 +6,8 @@ import { SheetColumnBlock } from '../models/sheet-column-block.model';
 import { SheetTable } from '../models/sheet-table.model';
 import { SheetChange } from '../models/sheet-change.model';
 import { SheetChangeTag } from '../sheet-change-tag/sheet-change-tag';
-import { SheetConfirmUtil } from '../sheet-confirm.util';
-import { SheetLockUtil } from '../sheet-lock.util';
+import { SheetConfirmUtil } from '../actions/sheet-confirm.util';
+import { SheetLockUtil } from '../checkouts/sheet-lock.util';
 import { SheetStore } from '../sheet.store';
 
 /**

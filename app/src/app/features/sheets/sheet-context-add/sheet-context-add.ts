@@ -4,9 +4,9 @@ import { ButtonModule } from 'primeng/button';
 import { MenuModule } from 'primeng/menu';
 import { SheetSection } from '../models/sheet-section.model';
 import { SheetTable } from '../models/sheet-table.model';
-import { SheetActionTargetUtil } from '../sheet-action-target.util';
-import { SheetLabelsUtil } from '../sheet-labels.util';
-import { SheetLockUtil } from '../sheet-lock.util';
+import { SheetActionTargetUtil } from '../actions/sheet-action-target.util';
+import { SheetLabelsUtil } from '../status/sheet-labels.util';
+import { SheetLockUtil } from '../checkouts/sheet-lock.util';
 import { SheetStore } from '../sheet.store';
 
 /**

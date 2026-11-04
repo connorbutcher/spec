@@ -3,7 +3,7 @@ import { AvatarModule } from 'primeng/avatar';
 import { OverlayBadgeModule } from 'primeng/overlaybadge';
 import { TooltipModule } from 'primeng/tooltip';
 import { SheetPresenceUser } from '../models/sheet-presence-user.model';
-import { SheetPresenceUtil } from '../sheet-presence.util';
+import { SheetPresenceUtil } from '../live/sheet-presence.util';
 
 /**
  * One person who has the sheet open: their initials, with the number of rows checked out to them as a

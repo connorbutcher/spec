@@ -2,7 +2,7 @@ import { Component, computed, input } from '@angular/core';
 import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
 import { SheetChange } from '../models/sheet-change.model';
-import { SheetLabelsUtil } from '../sheet-labels.util';
+import { SheetLabelsUtil } from '../status/sheet-labels.util';
 
 /** The "changed in" tag on a section or column block: the version, with when and by whom in a tooltip. */
 @Component({

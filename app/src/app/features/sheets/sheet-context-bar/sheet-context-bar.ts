@@ -1,14 +1,14 @@
 import { Component, computed, inject } from '@angular/core';
 import { MenuItem } from 'primeng/api';
 import { BreadcrumbModule } from 'primeng/breadcrumb';
-import { ItemStatusUtil } from '../item-status.util';
+import { ItemStatusUtil } from '../status/item-status.util';
 import { ItemStatus } from '../models/item-status.model';
 import { SheetRow } from '../models/sheet-row.model';
 import { SheetContextActions } from '../sheet-context-actions/sheet-context-actions';
 import { SheetContextAdd } from '../sheet-context-add/sheet-context-add';
-import { SheetIndexUtil } from '../sheet-index.util';
-import { SheetLabelsUtil } from '../sheet-labels.util';
-import { SheetLockUtil } from '../sheet-lock.util';
+import { SheetIndexUtil } from '../layout/sheet-index.util';
+import { SheetLabelsUtil } from '../status/sheet-labels.util';
+import { SheetLockUtil } from '../checkouts/sheet-lock.util';
 import { SheetStatus } from '../sheet-status/sheet-status';
 import { SheetTakeoverButton } from '../sheet-takeover-button/sheet-takeover-button';
 import { SheetStore } from '../sheet.store';

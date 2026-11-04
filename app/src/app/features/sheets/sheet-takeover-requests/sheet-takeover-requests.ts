@@ -1,5 +1,5 @@
 import { Component, computed, inject } from '@angular/core';
-import { RowTakeoverStore } from '../row-takeover.store';
+import { RowTakeoverStore } from '../checkouts/row-takeover.store';
 import { SheetTakeoverRequest } from '../sheet-takeover-request/sheet-takeover-request';
 
 /** The takeover requests waiting for the viewer's answer, oldest first. Takes no room when there are none. */

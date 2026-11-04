@@ -1,8 +1,8 @@
 import { Component, input, linkedSignal, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DatePickerModule } from 'primeng/datepicker';
-import { CELL_INPUT_STYLE } from '../cell-input-style';
-import { CellValueUtil } from '../cell-value.util';
+import { CELL_INPUT_STYLE } from '../layout/cell-input-style';
+import { CellValueUtil } from '../values/cell-value.util';
 import { CellValueRequest } from '../models/cell-value-request.model';
 import { SheetCell } from '../models/sheet-cell.model';
 

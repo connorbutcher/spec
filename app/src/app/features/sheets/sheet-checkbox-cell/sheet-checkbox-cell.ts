@@ -1,7 +1,7 @@
 import { Component, input, linkedSignal, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CheckboxModule } from 'primeng/checkbox';
-import { CellValueUtil } from '../cell-value.util';
+import { CellValueUtil } from '../values/cell-value.util';
 import { CellValueRequest } from '../models/cell-value-request.model';
 import { SheetCell } from '../models/sheet-cell.model';
 

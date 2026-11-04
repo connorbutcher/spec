@@ -14,7 +14,7 @@ import { CellLayout } from '../../templates/models/cell-layout.model';
 import { CellType } from '../../templates/models/cell-type.model';
 import { GridStyle } from '../../templates/models/grid-style';
 import {
-  LinkedDropdownUtil } from '../linked-dropdown.util';
+  LinkedDropdownUtil } from '../values/linked-dropdown.util';
 import { CellSettingsRequest } from '../models/cell-settings-request.model';
 import { CellValueRequest } from '../models/cell-value-request.model';
 import { EditableCell } from '../models/editable-cell.model';
@@ -26,7 +26,7 @@ import { SheetRow } from '../models/sheet-row.model';
 import { SheetCellEditor } from '../sheet-cell-editor/sheet-cell-editor';
 import { SheetCellMarks } from '../sheet-cell-marks/sheet-cell-marks';
 import { SheetCellValue } from '../sheet-cell-value/sheet-cell-value';
-import { SheetLockUtil } from '../sheet-lock.util';
+import { SheetLockUtil } from '../checkouts/sheet-lock.util';
 import { SheetStore } from '../sheet.store';
 
 const FLEX_ALIGNMENT: Readonly<Record<string, string>> = {

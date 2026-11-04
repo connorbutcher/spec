@@ -5,7 +5,7 @@ import { TextareaModule } from 'primeng/textarea';
 import { CellConfiguration } from '../../templates/models/cell-configuration';
 import { CellValueRequest } from '../models/cell-value-request.model';
 import { SheetCell } from '../models/sheet-cell.model';
-import { CellValueUtil } from '../cell-value.util';
+import { CellValueUtil } from '../values/cell-value.util';
 
 /**
  * The editor for a text cell: a PrimeNG text box (or text area, if the cell is multi-line) that fills

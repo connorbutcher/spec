@@ -5,7 +5,7 @@ import { Popover, PopoverModule } from 'primeng/popover';
 import { TextareaModule } from 'primeng/textarea';
 import { PublishScopeOption } from '../models/publish-scope-option.model';
 import { PublishScope } from '../models/publish-scope';
-import { PublishScopeUtil } from '../publish-scope.util';
+import { PublishScopeUtil } from '../actions/publish-scope.util';
 import { SheetPublishScope } from '../sheet-publish-scope/sheet-publish-scope';
 import { SheetStore } from '../sheet.store';
 

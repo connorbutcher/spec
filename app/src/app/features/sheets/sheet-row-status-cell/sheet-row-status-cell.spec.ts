@@ -5,10 +5,10 @@ import { ActivatedRoute, convertToParamMap } from '@angular/router';
 import { of } from 'rxjs';
 import { SheetRow } from '../models/sheet-row.model';
 import { Sheet } from '../models/sheet.model';
-import { SheetStructureFixture } from '../sheet-structure.fixture';
+import { SheetStructureFixture } from '../data/sheet-structure.fixture';
 import { SheetStore } from '../sheet.store';
 import { SheetRowStatusCell } from './sheet-row-status-cell';
-import { SheetResponseFixture } from '../sheet-response.fixture';
+import { SheetResponseFixture } from '../data/sheet-response.fixture';
 
 class SheetRowStatusCellPage {
   public fixture!: ComponentFixture<SheetRowStatusCell>;

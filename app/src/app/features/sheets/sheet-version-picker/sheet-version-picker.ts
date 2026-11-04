@@ -3,7 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { DatePickerModule } from 'primeng/datepicker';
 import { SelectModule } from 'primeng/select';
 import { SheetVersionOption } from '../models/sheet-version-option.model';
-import { SheetLabelsUtil } from '../sheet-labels.util';
+import { SheetLabelsUtil } from '../status/sheet-labels.util';
 import { SheetStore } from '../sheet.store';
 
 /** Marks the "custom date" entry, which only appears while a date is being viewed. */

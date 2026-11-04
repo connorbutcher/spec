@@ -2,8 +2,8 @@ import { Component, computed, inject } from '@angular/core';
 import { ConfirmationService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { SheetActionTarget } from '../models/sheet-action-target.model';
-import { SheetActionTargetUtil } from '../sheet-action-target.util';
-import { SheetConfirmUtil } from '../sheet-confirm.util';
+import { SheetActionTargetUtil } from '../actions/sheet-action-target.util';
+import { SheetConfirmUtil } from '../actions/sheet-confirm.util';
 import { SheetStore } from '../sheet.store';
 
 /**

@@ -2,7 +2,7 @@ import { Component, computed, input, linkedSignal, output } from '@angular/core'
 import { FormsModule } from '@angular/forms';
 import { SelectModule } from 'primeng/select';
 import { CellType } from '../../templates/models/cell-type.model';
-import { CellValueUtil } from '../cell-value.util';
+import { CellValueUtil } from '../values/cell-value.util';
 import { CellValueRequest } from '../models/cell-value-request.model';
 import { SheetCell } from '../models/sheet-cell.model';
 

@@ -7,11 +7,11 @@ import { SectionTone } from '../models/section-tone';
 import { SheetCell } from '../models/sheet-cell.model';
 import { SheetChange } from '../models/sheet-change.model';
 import { SheetRow } from '../models/sheet-row.model';
-import { SheetAnchor } from '../sheet-anchor.directive';
+import { SheetAnchor } from '../anchors/sheet-anchor.directive';
 import { SheetChangeTag } from '../sheet-change-tag/sheet-change-tag';
-import { SheetIndexUtil } from '../sheet-index.util';
+import { SheetIndexUtil } from '../layout/sheet-index.util';
 import { SheetRowStatusCell } from '../sheet-row-status-cell/sheet-row-status-cell';
-import { SheetStatusColumnUtil } from '../sheet-status-column.util';
+import { SheetStatusColumnUtil } from '../status/sheet-status-column.util';
 import { SheetStatusHeading } from '../sheet-status-heading/sheet-status-heading';
 import { SheetStore } from '../sheet.store';
 

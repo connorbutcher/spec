@@ -2,8 +2,8 @@ import { Component, computed, inject, input } from '@angular/core';
 import { ButtonModule } from 'primeng/button';
 import { MessageModule } from 'primeng/message';
 import { RowTakeover } from '../models/row-takeover.model';
-import { RowTakeoverStore } from '../row-takeover.store';
-import { SheetLabelsUtil } from '../sheet-labels.util';
+import { RowTakeoverStore } from '../checkouts/row-takeover.store';
+import { SheetLabelsUtil } from '../status/sheet-labels.util';
 import { SheetStore } from '../sheet.store';
 
 /**

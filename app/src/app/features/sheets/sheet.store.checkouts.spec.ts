@@ -6,10 +6,10 @@ import { ActivatedRoute, convertToParamMap } from '@angular/router';
 import { of } from 'rxjs';
 import { CurrentUserStore } from '../../core/auth/current-user.store';
 import { Sheet } from './models/sheet.model';
-import { RowCheckoutStore } from './row-checkout.store';
-import { SheetStructureFixture } from './sheet-structure.fixture';
+import { RowCheckoutStore } from './checkouts/row-checkout.store';
+import { SheetStructureFixture } from './data/sheet-structure.fixture';
 import { SheetStore } from './sheet.store';
-import { SheetResponseFixture } from './sheet-response.fixture';
+import { SheetResponseFixture } from './data/sheet-response.fixture';
 
 const SHEET_URL = '/api/phases/1/sheets/2';
 

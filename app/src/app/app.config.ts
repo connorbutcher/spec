@@ -4,7 +4,7 @@ import { provideRouter, withComponentInputBinding } from '@angular/router';
 import { providePrimeNG } from 'primeng/config';
 import { routes } from './app.routes';
 import { developerUserInterceptor } from './core/auth/developer-user.interceptor';
-import { sheetConnectionInterceptor } from './features/sheets/sheet-connection.interceptor';
+import { sheetConnectionInterceptor } from './features/sheets/live/sheet-connection.interceptor';
 import { SpecSheetPreset } from './theme';
 
 export const appConfig: ApplicationConfig = {

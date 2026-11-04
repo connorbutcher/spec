@@ -7,12 +7,12 @@ import { CellLayout } from '../../templates/models/cell-layout.model';
 import { CellType } from '../../templates/models/cell-type.model';
 import { SheetRow } from '../models/sheet-row.model';
 import { Sheet } from '../models/sheet.model';
-import { SheetIndexUtil } from '../sheet-index.util';
-import { SheetLayoutUtil } from '../sheet-layout.util';
-import { SheetStructureFixture } from '../sheet-structure.fixture';
+import { SheetIndexUtil } from '../layout/sheet-index.util';
+import { SheetLayoutUtil } from '../layout/sheet-layout.util';
+import { SheetStructureFixture } from '../data/sheet-structure.fixture';
 import { SheetStore } from '../sheet.store';
 import { SheetGridCell } from './sheet-grid-cell';
-import { SheetResponseFixture } from '../sheet-response.fixture';
+import { SheetResponseFixture } from '../data/sheet-response.fixture';
 
 const TEXT_TYPE: CellType = {
   id: 1,

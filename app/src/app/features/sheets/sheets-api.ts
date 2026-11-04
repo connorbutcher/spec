@@ -6,7 +6,7 @@ import { CellValueRequest } from './models/cell-value-request.model';
 import { PublishScope } from './models/publish-scope';
 import { SheetResponse } from './models/sheet-response.model';
 import { Sheet } from './models/sheet.model';
-import { SheetResponseUtil } from './sheet-response.util';
+import { SheetResponseUtil } from './data/sheet-response.util';
 
 /**
  * Write calls for sheets. Reads go through `httpResource` in the store. Every change returns the whole

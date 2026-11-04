@@ -11,8 +11,8 @@ import { ButtonModule } from 'primeng/button';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
-import { SheetAnchorService } from '../sheet-anchor.service';
-import { SheetSearchStore } from '../sheet-search.store';
+import { SheetAnchorService } from '../anchors/sheet-anchor.service';
+import { SheetSearchStore } from '../search/sheet-search.store';
 
 /**
  * The search box on the sheet's top line. It finds every table heading and cell that shows what is

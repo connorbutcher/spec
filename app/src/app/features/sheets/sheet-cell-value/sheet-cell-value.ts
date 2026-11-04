@@ -1,7 +1,7 @@
 import { Component, computed, input } from '@angular/core';
 import { CellConfiguration } from '../../templates/models/cell-configuration';
 import { CellType } from '../../templates/models/cell-type.model';
-import { CellValueUtil } from '../cell-value.util';
+import { CellValueUtil } from '../values/cell-value.util';
 import { SheetCell } from '../models/sheet-cell.model';
 
 /**

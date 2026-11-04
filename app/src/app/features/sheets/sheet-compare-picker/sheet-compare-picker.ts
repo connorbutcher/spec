@@ -2,7 +2,7 @@ import { Component, computed, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { SelectModule } from 'primeng/select';
 import { SheetVersionOption } from '../models/sheet-version-option.model';
-import { SheetLabelsUtil } from '../sheet-labels.util';
+import { SheetLabelsUtil } from '../status/sheet-labels.util';
 import { SheetStore } from '../sheet.store';
 
 /**

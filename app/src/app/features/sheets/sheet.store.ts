@@ -29,11 +29,11 @@ import { SheetVersionSummary } from './models/sheet-version-summary.model';
 import { SheetView } from './models/sheet-view.model';
 import { SheetResponse } from './models/sheet-response.model';
 import { Sheet } from './models/sheet.model';
-import { RowCheckoutStore } from './row-checkout.store';
-import { RowCheckoutUtil } from './row-checkout.util';
-import { SheetIndexUtil } from './sheet-index.util';
-import { SheetResponseUtil } from './sheet-response.util';
-import { SheetUrlUtil } from './sheet-url.util';
+import { RowCheckoutStore } from './checkouts/row-checkout.store';
+import { RowCheckoutUtil } from './checkouts/row-checkout.util';
+import { SheetIndexUtil } from './layout/sheet-index.util';
+import { SheetResponseUtil } from './data/sheet-response.util';
+import { SheetUrlUtil } from './anchors/sheet-url.util';
 import { SheetsApi } from './sheets-api';
 
 /**

@@ -1,7 +1,7 @@
 import { Component, computed, input } from '@angular/core';
 import { TooltipModule } from 'primeng/tooltip';
 import { SheetChange } from '../models/sheet-change.model';
-import { SheetLabelsUtil } from '../sheet-labels.util';
+import { SheetLabelsUtil } from '../status/sheet-labels.util';
 
 /**
  * The small marks drawn over a cell: a corner triangle for a value that changed since the compared

@@ -4,9 +4,9 @@ import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { RowTakeover } from '../models/row-takeover.model';
 import { SheetRow } from '../models/sheet-row.model';
-import { RowTakeoverFixture } from '../row-takeover.fixture';
-import { RowTakeoverStore } from '../row-takeover.store';
-import { SheetStructureFixture } from '../sheet-structure.fixture';
+import { RowTakeoverFixture } from '../checkouts/row-takeover.fixture';
+import { RowTakeoverStore } from '../checkouts/row-takeover.store';
+import { SheetStructureFixture } from '../data/sheet-structure.fixture';
 import { SheetTakeoverButton } from './sheet-takeover-button';
 
 class SheetTakeoverButtonPage {

@@ -4,7 +4,7 @@ import { ButtonModule } from 'primeng/button';
 import { SelectModule } from 'primeng/select';
 import { SelectButtonModule } from 'primeng/selectbutton';
 import { LinkedDropdownInstanceSettings } from '../models/linked-dropdown-instance-settings.model';
-import { SheetLabelsUtil } from '../sheet-labels.util';
+import { SheetLabelsUtil } from '../status/sheet-labels.util';
 import { SheetStore } from '../sheet.store';
 
 /** A list this long gets a search box. */

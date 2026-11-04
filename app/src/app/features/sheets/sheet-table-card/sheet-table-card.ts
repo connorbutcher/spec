@@ -2,13 +2,13 @@ import { CdkDragHandle } from '@angular/cdk/drag-drop';
 import { Component, computed, inject, input, linkedSignal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { InputTextModule } from 'primeng/inputtext';
-import { ItemStatusUtil } from '../item-status.util';
+import { ItemStatusUtil } from '../status/item-status.util';
 import { ItemStatus } from '../models/item-status.model';
 import { SheetTable } from '../models/sheet-table.model';
 import { SheetGrid } from '../sheet-grid/sheet-grid';
-import { SheetLabelsUtil } from '../sheet-labels.util';
-import { SheetAnchor } from '../sheet-anchor.directive';
-import { SheetLockUtil } from '../sheet-lock.util';
+import { SheetLabelsUtil } from '../status/sheet-labels.util';
+import { SheetAnchor } from '../anchors/sheet-anchor.directive';
+import { SheetLockUtil } from '../checkouts/sheet-lock.util';
 import { SheetStatus } from '../sheet-status/sheet-status';
 import { SheetStore } from '../sheet.store';
 
