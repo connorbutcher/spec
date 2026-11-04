@@ -15,10 +15,7 @@
       appendTo="body"
     >
       <ng-template #item let-option>
-        <span class="type-option">
-          <i class="pi" [class]="option.icon" aria-hidden="true"></i>
-          {{ option.label }}
-        </span>
+        <app-icon-option [icon]="option.icon" [label]="option.label" />
       </ng-template>
     </p-select>
     <p-button

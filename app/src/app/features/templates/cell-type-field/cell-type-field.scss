@@ -12,17 +12,6 @@
   }
 }
 
-.type-option {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--app-space-3);
-
-  .pi {
-    font-size: var(--app-font-size-sm);
-    color: var(--app-text-muted);
-  }
-}
-
 .hint .pi {
   font-size: var(--app-font-size-2xs);
 }

@@ -6,6 +6,7 @@ import { TextareaModule } from 'primeng/textarea';
 import { STYLE_FIELDS, CellSettingFields } from '../cell-setting-fields';
 import { CellTypeOptionsEditor } from '../cell-type-options-editor/cell-type-options-editor';
 import { ConfirmDeleteButton } from '../confirm-delete-button/confirm-delete-button';
+import { IconOption } from '../icon-option/icon-option';
 import { CellConfiguration } from '../models/cell-configuration';
 import { CellKind } from '../models/cell-kind';
 import { CellKindInfo } from '../models/cell-kind-info.model';
@@ -31,6 +32,7 @@ import { TemplatesStore } from '../templates.store';
     CellTypeOptionsEditor,
     ConfirmDeleteButton,
     FormsModule,
+    IconOption,
     InputTextModule,
     SelectModule,
     SettingsEditor,

@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { SelectChangeEvent, SelectModule } from 'primeng/select';
 import { CellTypesStore } from '../cell-types.store';
+import { IconOption } from '../icon-option/icon-option';
 import { CellKindInfo } from '../models/cell-kind-info.model';
 import { CellKinds } from '../models/cell-kinds';
 import { PanelNavigator } from '../panel-navigator';
@@ -10,7 +11,7 @@ import { PanelNavigator } from '../panel-navigator';
 /** A cell's type: a picker of every cell type, a button that opens the chosen one, and what its kind does. */
 @Component({
   selector: 'app-cell-type-field',
-  imports: [ButtonModule, FormsModule, SelectModule],
+  imports: [ButtonModule, FormsModule, IconOption, SelectModule],
   templateUrl: './cell-type-field.html',
   styleUrl: './cell-type-field.scss',
 })

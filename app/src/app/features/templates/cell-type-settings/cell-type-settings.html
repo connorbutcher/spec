@@ -29,10 +29,7 @@
         appendTo="body"
       >
         <ng-template #item let-kind>
-          <span class="kind-option">
-            <i class="pi" [class]="kind.icon" aria-hidden="true"></i>
-            {{ kind.label }}
-          </span>
+          <app-icon-option [icon]="kind.icon" [label]="kind.label" />
         </ng-template>
       </p-select>
       <span class="hint">{{ kind().description }}</span>
