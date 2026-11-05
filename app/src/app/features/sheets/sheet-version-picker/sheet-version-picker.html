@@ -9,7 +9,16 @@
     [disabled]="!hasVersions() && selected() === null"
     placeholder="No versions yet"
     (onChange)="chooseVersion($event.value)"
-  />
+  >
+    <ng-template #item let-option>
+      <span class="option">
+        <span>{{ option.label }}</span>
+        @if (option.note) {
+          <span class="note app-truncate" [title]="option.note">{{ option.note }}</span>
+        }
+      </span>
+    </ng-template>
+  </p-select>
   <p-datepicker
     size="small"
     placeholder="As of date"

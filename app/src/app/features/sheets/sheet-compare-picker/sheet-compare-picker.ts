@@ -17,13 +17,21 @@ import { SheetStore } from '../sheet.store';
 })
 
 export class SheetComparePicker {
-  public readonly options = computed<SheetVersionOption[]>(() => [
-    { label: 'Changes: off', value: null },
-    ...this.store.versions().map((version) => ({
-      label: `Changes since ${SheetLabelsUtil.versionLabel(version.versionNumber)}`,
-      value: version.versionNumber,
-    })),
-  ]);
+  /** Only versions before the one being viewed: nothing in it can have changed since a later one. */
+  public readonly options = computed<SheetVersionOption[]>(() => {
+    const viewed = this.store.view().version ?? null;
+    return [
+      { label: 'Changes: off', value: null, note: null },
+      ...this.store
+        .versions()
+        .filter((version) => viewed === null || version.versionNumber < viewed)
+        .map((version) => ({
+          label: `Changes since ${SheetLabelsUtil.versionLabel(version.versionNumber)}`,
+          value: version.versionNumber,
+          note: null,
+        })),
+    ];
+  });
 
   public readonly selected = computed(() => this.store.changesSince());
 

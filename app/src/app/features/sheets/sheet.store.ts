@@ -211,6 +211,11 @@ export class SheetStore {
   }
 
   public setView(view: SheetView): void {
+    const since = this.changesSince();
+    if (since !== null && view.version !== undefined && since >= view.version) {
+      // Nothing in a version can have changed since that version or a later one.
+      this.changesSince.set(null);
+    }
     this.view.set(view);
     this.rawSelection.set(null);
     this.setEditing(null);

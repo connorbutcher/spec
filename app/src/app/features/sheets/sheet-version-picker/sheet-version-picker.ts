@@ -22,15 +22,16 @@ const DATE_OPTION = -1;
 
 export class SheetVersionPicker {
   public readonly options = computed<SheetVersionOption[]>(() => {
-    const options: SheetVersionOption[] = [{ label: 'Latest (live)', value: null }];
+    const options: SheetVersionOption[] = [{ label: 'Latest (live)', value: null, note: null }];
     if (this.store.view().asOf) {
-      options.push({ label: 'Date and time', value: DATE_OPTION });
+      options.push({ label: 'Date and time', value: DATE_OPTION, note: null });
     }
     for (const version of this.store.versions()) {
       const published = SheetLabelsUtil.momentLabel(version.publishedAtUtc);
       options.push({
         label: `${SheetLabelsUtil.versionLabel(version.versionNumber)} · ${published} · ${version.publishedByName}`,
         value: version.versionNumber,
+        note: version.note,
       });
     }
     return options;

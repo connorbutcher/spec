@@ -9,3 +9,16 @@ p-select,
 p-datepicker {
   width: 100%;
 }
+
+// A version in the list, with its publisher's note under it.
+.option {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  max-width: 22rem;
+}
+
+.note {
+  color: var(--app-text-muted);
+  font-size: var(--app-font-size-sm);
+}
