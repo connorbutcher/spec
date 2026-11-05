@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Template Designer Options</title>
+<style>
+  /* Layout: one reading column of notes; each option is a full-width mock of the designer in the app's own look. */
+  :root {
+    --bg: #f1f4f9; --panel: #ffffff; --fg: #1f2937; --fg-strong: #0f172a; --fg-muted: #5b6b82;
+    --line: #d5dbe3; --accent: #152a55; --pick: #e7edf7;
+    --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    --mono: ui-monospace, 'Cascadia Code', 'Roboto Mono', Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme='light']) {
+      --bg: #10151f; --panel: #171e2b; --fg: #d3dae6; --fg-strong: #f1f4f9; --fg-muted: #93a1b8;
+      --line: #2b3547; --accent: #adc3e5; --pick: #1f2a3d; color-scheme: dark;
+    }
+  }
+  body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--font); font-size: 14px; line-height: 1.5; }
+  .page { max-width: 72rem; margin: 0 auto; padding: 1.5rem 16px 3rem; display: flex; flex-direction: column; gap: 1.75rem; }
+  h1 { font-size: 1.35rem; margin: 0; color: var(--fg-strong); text-wrap: balance; }
+  h2 { font-size: 1.05rem; margin: 0; color: var(--fg-strong); }
+  p { margin: 0; max-width: 72ch; }
+  section { display: flex; flex-direction: column; gap: 0.6rem; min-width: 0; }
+  .lede { color: var(--fg-muted); }
+  .tag { display: inline-block; font-size: 0.7rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--accent); background: var(--pick); padding: 0.1rem 0.4rem; border-radius: 0.25rem; vertical-align: middle; margin-left: 0.4rem; }
+  .scroll { overflow-x: auto; min-width: 0; padding-bottom: 2px; }
+  ul { margin: 0; padding-left: 1.1rem; max-width: 76ch; }
+  li { margin-block: 0.15rem; }
+  .cap { font-size: 0.78rem; color: var(--fg-muted); }
+  table.plain { border-collapse: collapse; font-size: 0.82rem; min-width: 46rem; width: 100%; }
+  table.plain th, table.plain td { text-align: left; padding: 0.3rem 0.8rem 0.3rem 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+  table.plain th { color: var(--fg-muted); font-weight: 600; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; }
+  table.plain td:first-child { color: var(--fg-strong); font-weight: 600; white-space: nowrap; }
+
+  /* ---------- The mock: the app's light look, kept in both themes ---------- */
+  .mock {
+    --m-navy: #152a55; --m-text: #1f2937; --m-muted: #64748b; --m-faint: #94a3b8; --m-surface: #fff;
+    --m-line: #d5dbe3; --m-edge: #b8c2d0; --m-head: #dfe6ef; --m-band: #eaeff6; --m-bar: #f8fafc;
+    --m-pick: #dbe6f6; --m-hover: #f1f5fa; --m-red: #b42318;
+    background: #f1f4f9; color: var(--m-text); border: 1px solid var(--m-edge); border-radius: 0.25rem;
+    font-size: 12.5px; line-height: 1.25; color-scheme: light; min-width: 64rem; display: flex; height: 430px; overflow: hidden;
+  }
+  .mock * { box-sizing: border-box; }
+  .mock .col { background: var(--m-surface); border-right: 1px solid var(--m-line); display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+  .mock .grow { flex: 1; }
+  .mock .bar { display: flex; align-items: center; gap: 0.4rem; padding: 0.3rem 0.55rem; border-bottom: 1px solid var(--m-line); min-height: 32px; white-space: nowrap; background: var(--m-surface); }
+  .mock .bar.sub { background: var(--m-bar); min-height: 30px; }
+  .mock .ttl { font-weight: 600; }
+  .mock .muted { color: var(--m-muted); }
+  .mock .faint { color: var(--m-faint); }
+  .mock .small { font-size: 11px; }
+  .mock .caps { font-size: 10.5px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--m-muted); }
+  .mock .btn { border: 1px solid var(--m-edge); border-radius: 0.25rem; padding: 0.1rem 0.45rem; font-size: 11.5px; background: var(--m-surface); display: inline-flex; align-items: center; gap: 0.25rem; white-space: nowrap; }
+  .mock .btn.txt { border-color: transparent; background: transparent; padding-inline: 0.25rem; color: var(--m-muted); }
+  .mock .btn.on { background: var(--m-pick); border-color: var(--m-pick); color: var(--m-navy); font-weight: 600; }
+  .mock .btn.danger { color: var(--m-red); }
+  .mock .fld { border: 1px solid var(--m-edge); border-radius: 0.25rem; padding: 0.12rem 0.45rem; font-size: 11.5px; background: var(--m-surface); display: inline-flex; align-items: center; justify-content: space-between; gap: 0.5rem; min-width: 6rem; }
+  .mock .fld.w { width: 100%; }
+  .mock .sep { align-self: stretch; border-left: 1px solid var(--m-line); margin-block: 0.15rem; }
+  .mock svg.i { width: 13px; height: 13px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* Level colours are only on the small icons: the rest stays grey. */
+  .mock .lv-table { color: #152a55; } .mock .lv-head { color: #5b6b82; } .mock .lv-sec { color: #2f6b8f; }
+  .mock .lv-sub { color: #4f7f6a; } .mock .lv-row { color: #7a6a3a; } .mock .lv-cell { color: #6b5b95; } .mock .lv-blk { color: #8a5a44; }
+
+  /* Tree */
+  .mock .tree { padding: 0.3rem 0; overflow: auto; flex: 1; }
+  .mock .tn { display: flex; align-items: center; gap: 0.3rem; padding: 0.14rem 0.45rem; white-space: nowrap; position: relative; }
+  .mock .tn .lbl { overflow: hidden; text-overflow: ellipsis; }
+  .mock .tn .meta { margin-left: auto; color: var(--m-faint); font-size: 10.5px; }
+  .mock .tn .acts { margin-left: auto; display: inline-flex; gap: 0.1rem; color: var(--m-muted); }
+  .mock .tn.sel { background: var(--m-pick); color: var(--m-navy); font-weight: 600; }
+  .mock .tn.hov { background: var(--m-hover); }
+  .mock .tn.drag { outline: 1px dashed var(--m-navy); outline-offset: -1px; background: var(--m-hover); }
+  .mock .tn .tog { width: 11px; color: var(--m-faint); display: inline-flex; justify-content: center; }
+  .mock .tn .grip { color: var(--m-faint); }
+  .mock .ind1 { padding-left: 1.2rem; } .mock .ind2 { padding-left: 2.1rem; } .mock .ind3 { padding-left: 3rem; } .mock .ind4 { padding-left: 3.9rem; }
+  .mock .dropline { height: 0; border-top: 2px solid var(--m-navy); margin: 0 0.5rem 0 3rem; }
+
+  /* Crumbs */
+  .mock .crumbs { display: flex; align-items: center; gap: 0.2rem; overflow: hidden; min-width: 0; }
+  .mock .crumb { display: inline-flex; align-items: center; gap: 0.2rem; color: var(--m-muted); padding: 0.05rem 0.2rem; border-radius: 0.2rem; }
+  .mock .crumb.cur { color: var(--m-navy); font-weight: 600; background: var(--m-pick); }
+  .mock .chev { color: var(--m-faint); font-size: 10px; }
+
+  /* Canvas grid */
+  .mock .canvas { flex: 1; overflow: auto; padding: 0.7rem; background: var(--m-surface); }
+  .mock .grid { display: grid; grid-template-columns: 1.6fr 0.9fr 1fr 1fr 1fr 0.8fr; border-left: 1px solid var(--m-line); border-top: 1px solid var(--m-line); min-width: 34rem; }
+  .mock .grid > div { border-right: 1px solid var(--m-line); border-bottom: 1px solid var(--m-line); padding: 0.25rem 0.35rem; min-height: 24px; display: flex; align-items: center; justify-content: space-between; gap: 0.3rem; overflow: hidden; white-space: nowrap; }
+  .mock .grid .h { background: var(--m-head); font-weight: 600; }
+  .mock .grid .band { grid-column: 1 / -1; background: var(--m-band); font-weight: 600; }
+  .mock .grid .band.sub { background: #f3f6fa; font-weight: 600; padding-left: 0.9rem; }
+  .mock .grid .t { color: var(--m-faint); font-size: 10.5px; }
+  .mock .grid .pickcell { outline: 2px solid var(--m-navy); outline-offset: -2px; background: #f5f8fd; }
+  .mock .grid .pickrow { background: #fafcff; }
+  .mock .s2 { grid-column: span 2; } .mock .s3 { grid-column: span 3; } .mock .s4 { grid-column: span 4; } .mock .s5 { grid-column: span 5; }
+
+  /* Canvas with a structure gutter (option B) */
+  .mock .gutgrid { display: grid; grid-template-columns: 7.5rem 1fr; min-width: 40rem; }
+  .mock .gut { border-right: 2px solid var(--m-line); display: flex; align-items: center; gap: 0.25rem; padding: 0 0.35rem; color: var(--m-muted); font-size: 11px; white-space: nowrap; overflow: hidden; }
+  .mock .gut.sec { border-right-color: #2f6b8f; } .mock .gut.subs { border-right-color: #4f7f6a; padding-left: 0.9rem; }
+  .mock .gut.rw { padding-left: 1.6rem; }
+  .mock .gut.hot { background: var(--m-pick); color: var(--m-navy); font-weight: 600; }
+  .mock .addline { grid-column: 2; color: var(--m-faint); font-size: 11px; padding: 0.1rem 0.4rem; border: 1px dashed var(--m-line); border-top: 0; display: flex; align-items: center; gap: 0.25rem; }
+
+  /* Settings panel */
+  .mock .set { width: 290px; flex: none; border-right: 0; border-left: 1px solid var(--m-line); }
+  .mock .set .body { overflow: auto; flex: 1; }
+  .mock .grp { border-bottom: 1px solid var(--m-line); }
+  .mock .grp > .gh { display: flex; align-items: center; gap: 0.3rem; padding: 0.3rem 0.55rem; font-weight: 600; background: var(--m-bar); }
+  .mock .grp > .gh .n { margin-left: auto; font-weight: 400; color: var(--m-faint); font-size: 10.5px; }
+  .mock .grp > .gb { padding: 0.35rem 0.55rem 0.5rem; display: grid; grid-template-columns: 5.4rem 1fr; gap: 0.3rem 0.5rem; align-items: center; }
+  .mock .grp > .gb .full { grid-column: 1 / -1; }
+  .mock .grp.closed > .gb { display: none; }
+  .mock .tabs { display: flex; gap: 0.8rem; padding: 0 0.55rem; border-bottom: 1px solid var(--m-line); }
+  .mock .tab { padding: 0.35rem 0.05rem; color: var(--m-muted); border-bottom: 2px solid transparent; }
+  .mock .tab.on { color: var(--m-navy); border-bottom-color: var(--m-navy); font-weight: 600; }
+  .mock .chk { width: 12px; height: 12px; border: 1px solid var(--m-edge); border-radius: 2px; display: inline-block; }
+  .mock .chk.on { background: var(--m-navy); border-color: var(--m-navy); }
+  .mock .ovr { color: var(--m-faint); font-size: 10px; }
+
+  /* Tables drawer stub and popover */
+  .mock .rail { width: 30px; flex: none; background: var(--m-surface); border-right: 1px solid var(--m-line); display: flex; flex-direction: column; align-items: center; padding-top: 0.4rem; gap: 0.5rem; color: var(--m-muted); }
+  .mock .pop { position: absolute; background: var(--m-surface); border: 1px solid var(--m-edge); border-radius: 0.25rem; box-shadow: 0 4px 14px rgba(15,23,42,0.14); z-index: 2; }
+  .mock .pop .mi { display: flex; align-items: center; gap: 0.4rem; padding: 0.2rem 0.6rem; white-space: nowrap; }
+  .mock .pop .mi.hov { background: var(--m-hover); }
+  .mock .pop .msep { border-top: 1px solid var(--m-line); margin: 0.15rem 0; }
+  .mock .rel { position: relative; }
+
+  /* Tree table (option C) */
+  .mock table.tt { border-collapse: collapse; width: 100%; min-width: 40rem; }
+  .mock table.tt th, .mock table.tt td { border-bottom: 1px solid var(--m-line); padding: 0.18rem 0.45rem; text-align: left; white-space: nowrap; }
+  .mock table.tt th { background: var(--m-bar); font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--m-muted); }
+  .mock table.tt tr.sel td { background: var(--m-pick); }
+  .mock table.tt td .nm { display: inline-flex; align-items: center; gap: 0.3rem; }
+  .mock table.tt td.num { font-variant-numeric: tabular-nums; color: var(--m-muted); }
+  .mock .ed { border: 1px solid var(--m-edge); border-radius: 0.2rem; padding: 0.02rem 0.3rem; background: #fff; display: inline-flex; min-width: 5rem; justify-content: space-between; }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 0.3rem 1rem; font-size: 0.8rem; color: var(--fg-muted); align-items: center; }
+  .legend span { display: inline-flex; align-items: center; gap: 0.3rem; }
+  .legend svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-table" viewBox="0 0 16 16"><rect x="2" y="2.5" width="12" height="11" rx="1"/><path d="M2 6h12M2 9.5h12M6.5 6v7.5"/></symbol>
+    <symbol id="i-head" viewBox="0 0 16 16"><rect x="2" y="2.5" width="12" height="11" rx="1"/><path d="M2 6h12" stroke-width="2.6"/></symbol>
+    <symbol id="i-sec" viewBox="0 0 16 16"><path d="M2 4.5a1 1 0 0 1 1-1h3l1.3 1.5H13a1 1 0 0 1 1 1V12a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1z"/></symbol>
+    <symbol id="i-sub" viewBox="0 0 16 16"><path d="M3 3v6.5a1 1 0 0 0 1 1h2"/><rect x="7" y="7.5" width="7" height="6" rx="1"/></symbol>
+    <symbol id="i-row" viewBox="0 0 16 16"><rect x="2" y="5.5" width="12" height="5" rx="1"/><path d="M6 5.5v5M10 5.5v5"/></symbol>
+    <symbol id="i-cell" viewBox="0 0 16 16"><rect x="4" y="4" width="8" height="8" rx="1"/></symbol>
+    <symbol id="i-blk" viewBox="0 0 16 16"><rect x="2.5" y="2.5" width="4.5" height="11" rx="1"/><rect x="9" y="2.5" width="4.5" height="11" rx="1"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 16 16"><path d="M8 3v10M3 8h10"/></symbol>
+    <symbol id="i-dots" viewBox="0 0 16 16"><circle cx="3.5" cy="8" r="0.6"/><circle cx="8" cy="8" r="0.6"/><circle cx="12.5" cy="8" r="0.6"/></symbol>
+    <symbol id="i-grip" viewBox="0 0 16 16"><path d="M6 4h.01M10 4h.01M6 8h.01M10 8h.01M6 12h.01M10 12h.01" stroke-width="2"/></symbol>
+    <symbol id="i-down" viewBox="0 0 16 16"><path d="M4.5 6.5 8 10l3.5-3.5"/></symbol>
+    <symbol id="i-right" viewBox="0 0 16 16"><path d="M6.5 4.5 10 8l-3.5 3.5"/></symbol>
+    <symbol id="i-up" viewBox="0 0 16 16"><path d="M8 13V3M4 7l4-4 4 4"/></symbol>
+    <symbol id="i-dn" viewBox="0 0 16 16"><path d="M8 3v10M4 9l4 4 4-4"/></symbol>
+    <symbol id="i-lt" viewBox="0 0 16 16"><path d="M13 8H3M7 4 3 8l4 4"/></symbol>
+    <symbol id="i-rt" viewBox="0 0 16 16"><path d="M3 8h10M9 4l4 4-4 4"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 16 16"><path d="M3 4.5h10M6.5 4.5V3h3v1.5M4.5 4.5l.6 8.5h5.8l.6-8.5"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 16 16"><rect x="5" y="5" width="8" height="8" rx="1"/><path d="M3 11V4a1 1 0 0 1 1-1h7"/></symbol>
+    <symbol id="i-search" viewBox="0 0 16 16"><circle cx="7" cy="7" r="4"/><path d="m10 10 3.5 3.5"/></symbol>
+    <symbol id="i-list" viewBox="0 0 16 16"><path d="M5 4h8M5 8h8M5 12h8M2.5 4h.01M2.5 8h.01M2.5 12h.01" /></symbol>
+    <symbol id="i-tree" viewBox="0 0 16 16"><rect x="2" y="2" width="5" height="3.5" rx="0.6"/><rect x="9" y="6.5" width="5" height="3.5" rx="0.6"/><rect x="9" y="11" width="5" height="3.5" rx="0.6"/><path d="M4.5 5.5v7h4.5M4.5 8.2h4.5"/></symbol>
+    <symbol id="i-panel" viewBox="0 0 16 16"><rect x="2" y="2.5" width="12" height="11" rx="1"/><path d="M6 2.5v11"/></symbol>
+  </defs>
+</svg>
+
+<main class="page">
+  <header>
+    <h1>A clearer template designer</h1>
+    <p class="lede">Three ways to make building a table (sections, sub-sections, rows and cells) easier to find your way around. All three keep the dense, grey look and use PrimeNG controls only. Nothing here is built yet: pick one and I'll implement it.</p>
+  </header>
+
+  <section>
+    <h2>What gets in the way today</h2>
+    <ul>
+      <li><b>Two trees side by side.</b> The table list and the structure outline look the same and sit next to each other, so it isn't obvious which one you're in. Together they also squeeze the table preview to about a third of the screen.</li>
+      <li><b>The outline stops at sections.</b> Rows and cells aren't in it. To reach a row you go to its section's settings and pick it from a list, or right-click a cell. Nothing in the outline lights up when you click a cell.</li>
+      <li><b>Every level looks alike.</b> Header, section and sub-section are plain text with no icon, and column blocks sit under a separate grey heading, so the depth isn't readable at a glance.</li>
+      <li><b>Adding and moving are scattered.</b> "+" on hover in the outline, "Add row" in the section panel, "Insert cell" only in the right-click menu, and moving only through up/down buttons in each panel.</li>
+      <li><b>The settings panel is one long scroll.</b> The breadcrumb wraps onto three lines, back/forward arrows duplicate it, and a cell's type, placement, kind settings and style are stacked with no way to fold them.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>The same in every option</h2>
+    <ul>
+      <li><b>One icon per level</b>, used in the tree, the breadcrumb, menus and panel titles. Colour is only on these small icons.</li>
+      <li><b>A one-line selection bar</b> above the preview: the breadcrumb of what's selected, each crumb clickable to jump up a level, plus the actions for that level. It replaces the wrapping breadcrumb and the back/forward arrows in the settings panel.</li>
+      <li><b>The table list folds away</b> once a table is open: it becomes a narrow rail with a "Tables" button that opens it as a PrimeNG drawer, and the table name in the toolbar is a picker to switch tables.</li>
+      <li><b>The settings panel uses folding groups</b> (PrimeNG Panel, toggleable): General, Placement, Type settings, Style. Each group header shows a count of overridden values. Delete sits with the actions in the selection bar rather than at the bottom of the panel.</li>
+      <li><b>Clicking anything selects it everywhere</b>: the canvas, the tree (or gutter) and the panel stay in step, and Esc selects the parent.</li>
+    </ul>
+    <div class="legend">
+      <span style="color:var(--accent)"><svg><use href="#i-table"/></svg>Table</span>
+      <span style="color:#5b6b82"><svg><use href="#i-head"/></svg>Header</span>
+      <span style="color:#2f6b8f"><svg><use href="#i-sec"/></svg>Section</span>
+      <span style="color:#4f7f6a"><svg><use href="#i-sub"/></svg>Sub-section</span>
+      <span style="color:#7a6a3a"><svg><use href="#i-row"/></svg>Row</span>
+      <span style="color:#6b5b95"><svg><use href="#i-cell"/></svg>Cell</span>
+      <span style="color:#8a5a44"><svg><use href="#i-blk"/></svg>Column block</span>
+    </div>
+  </section>
+
+  <!-- ===================== OPTION A ===================== -->
+  <section>
+    <h2>Option A: full structure tree <span class="tag">Recommended</span></h2>
+    <p>The outline becomes the complete structure: table, header, sections, sub-sections, rows and cells, each with its icon and a short summary. Hovering a node shows "+" (add the natural child) and "⋯" (the same menu as right-click). Nodes drag to reorder or move into another section (PrimeNG Tree drag and drop), with a drop line showing where they'll land. A filter box at the top finds a cell by caption.</p>
+    <div class="scroll">
+      <div class="mock">
+        <div class="rail"><svg class="i"><use href="#i-list"/></svg><span class="small" style="writing-mode:vertical-rl;transform:rotate(180deg)">Tables</span></div>
+
+        <div class="col" style="width:250px;flex:none">
+          <div class="bar"><span class="caps">Structure</span><span class="grow"></span><span class="btn txt"><svg class="i"><use href="#i-plus"/></svg>Section</span></div>
+          <div class="bar sub"><span class="fld w"><span class="faint">Filter cells and sections</span><svg class="i faint"><use href="#i-search"/></svg></span></div>
+          <div class="tree">
+            <div class="tn"><span class="tog"><svg class="i"><use href="#i-down"/></svg></span><svg class="i lv-table"><use href="#i-table"/></svg><span class="lbl ttl">Engine specification</span></div>
+            <div class="tn ind1"><span class="tog"><svg class="i"><use href="#i-right"/></svg></span><svg class="i lv-head"><use href="#i-head"/></svg><span class="lbl">Header</span><span class="meta">2 rows</span></div>
+            <div class="tn ind1"><span class="tog"><svg class="i"><use href="#i-down"/></svg></span><svg class="i lv-sec"><use href="#i-sec"/></svg><span class="lbl">System</span><span class="meta">1 row · 4 subs</span></div>
+            <div class="tn ind2"><span class="tog"><svg class="i"><use href="#i-right"/></svg></span><svg class="i lv-sub"><use href="#i-sub"/></svg><span class="lbl">Dimension</span><span class="meta">3 rows</span></div>
+            <div class="tn ind2"><span class="tog"><svg class="i"><use href="#i-right"/></svg></span><svg class="i lv-sub"><use href="#i-sub"/></svg><span class="lbl">Material</span><span class="meta">2 rows</span></div>
+            <div class="tn ind2"><span class="tog"><svg class="i"><use href="#i-down"/></svg></span><svg class="i lv-sub"><use href="#i-sub"/></svg><span class="lbl">Bolted joint</span><span class="meta">2 rows</span></div>
+            <div class="tn ind3 hov"><span class="tog"><svg class="i"><use href="#i-right"/></svg></span><svg class="i lv-row"><use href="#i-row"/></svg><span class="lbl">Row 1 <span class="faint">· Characteristic, Component</span></span><span class="acts"><svg class="i"><use href="#i-plus"/></svg><svg class="i"><use href="#i-dots"/></svg></span></div>
+            <div class="tn ind3"><span class="tog"><svg class="i"><use href="#i-down"/></svg></span><svg class="i lv-row"><use href="#i-row"/></svg><span class="lbl">Row 2 <span class="faint">· Fastener</span></span></div>
+            <div class="tn ind4"><span class="tog"></span><svg class="i lv-cell"><use href="#i-cell"/></svg><span class="lbl">Fastener</span><span class="meta">Label</span></div>
+            <div class="tn ind4"><span class="tog"></span><svg class="i lv-cell"><use href="#i-cell"/></svg><span class="lbl">Thread size</span><span class="meta">Dropdown</span></div>
+            <div class="tn ind4 sel"><span class="tog"></span><svg class="i lv-cell"><use href="#i-cell"/></svg><span class="lbl">Torque</span><span class="meta" style="color:#152a55">Torque (Nm)</span></div>
+            <div class="tn ind4"><span class="tog"></span><svg class="i lv-cell"><use href="#i-cell"/></svg><span class="lbl">Angle</span><span class="meta">Number</span></div>
+            <div class="dropline"></div>
+            <div class="tn ind2 drag"><span class="tog"><svg class="i"><use href="#i-right"/></svg></span><span class="grip"><svg class="i"><use href="#i-grip"/></svg></span><svg class="i lv-sub"><use href="#i-sub"/></svg><span class="lbl">Surface finish</span><span class="meta">dragging</span></div>
+            <div class="tn ind1"><span class="tog"><svg class="i"><use href="#i-right"/></svg></span><svg class="i lv-sec"><use href="#i-sec"/></svg><span class="lbl">Release note</span><span class="meta">1 row</span></div>
+            <div class="tn ind1"><span class="tog"><svg class="i"><use href="#i-right"/></svg></span><svg class="i lv-sec"><use href="#i-sec"/></svg><span class="lbl">Approval</span><span class="meta">1 row</span></div>
+          </div>
+        </div>
+
+        <div class="col grow">
+          <div class="bar"><span class="fld" style="min-width:11rem"><b>Engine specification</b><svg class="i"><use href="#i-down"/></svg></span><span class="fld">Version 2 (in use)<svg class="i"><use href="#i-down"/></svg></span><span class="btn">Horizontal</span><span class="btn on">Vertical</span><span class="grow"></span><span class="muted small">Saved</span></div>
+          <div class="bar sub">
+            <span class="crumbs">
+              <span class="crumb"><svg class="i lv-table"><use href="#i-table"/></svg>Table</span><span class="chev">›</span>
+              <span class="crumb"><svg class="i lv-sec"><use href="#i-sec"/></svg>System</span><span class="chev">›</span>
+              <span class="crumb"><svg class="i lv-sub"><use href="#i-sub"/></svg>Bolted joint</span><span class="chev">›</span>
+              <span class="crumb"><svg class="i lv-row"><use href="#i-row"/></svg>Row 2</span><span class="chev">›</span>
+              <span class="crumb cur"><svg class="i lv-cell"><use href="#i-cell"/></svg>Torque · col 3</span>
+            </span>
+            <span class="grow"></span>
+            <span class="btn txt" title="Insert cell left"><svg class="i"><use href="#i-lt"/></svg></span>
+            <span class="btn txt" title="Insert cell right"><svg class="i"><use href="#i-rt"/></svg></span>
+            <span class="btn txt"><svg class="i"><use href="#i-copy"/></svg>Duplicate</span>
+            <span class="sep"></span>
+            <span class="btn txt danger"><svg class="i"><use href="#i-trash"/></svg></span>
+          </div>
+          <div class="canvas">
+            <div class="grid">
+              <div class="h">Characteristic</div><div class="h s4" style="justify-content:center">Limits</div><div class="h">Status</div>
+              <div class="h"></div><div class="h">Nominal</div><div class="h">Min</div><div class="h">Max</div><div class="h">Unit</div><div class="h"></div>
+              <div class="band">System name *</div>
+              <div>Characteristic <span class="t">Text</span></div><div><span class="t">Meas…</span></div><div><span class="t">Meas…</span></div><div><span class="t">Meas…</span></div><div></div><div></div>
+              <div class="band sub">Bolted joint: thread, torque and final angle</div>
+              <div class="pickrow">Fastener <span class="t">Label</span></div><div class="pickrow"><span class="t">Thread…</span></div><div class="pickcell"><span>Torque</span><span class="t">Nm</span></div><div class="pickrow">Angle <span class="t">Num</span></div><div class="pickrow"></div><div class="pickrow"></div>
+              <div>Surface <span class="t">Text</span></div><div class="s2" style="justify-content:center">Ra</div><div></div><div></div><div></div>
+              <div class="band">What changed and why</div>
+              <div class="s5"><span class="t">Notes</span></div><div></div>
+              <div class="band">Approval</div>
+              <div>Approved by</div><div class="s2">Name *</div><div class="s2">On *</div><div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col set">
+          <div class="bar"><svg class="i lv-cell"><use href="#i-cell"/></svg><span class="ttl">Cell: Torque</span><span class="grow"></span><span class="muted small">Row 2 · col 3</span></div>
+          <div class="body">
+            <div class="grp"><div class="gh"><svg class="i"><use href="#i-down"/></svg>General</div>
+              <div class="gb"><span class="muted">Type</span><span class="fld">Torque (Nm)<svg class="i"><use href="#i-down"/></svg></span>
+                <span class="muted">Caption</span><span class="fld faint">Optional prompt</span>
+                <span class="muted">Required</span><span><span class="chk"></span></span></div></div>
+            <div class="grp"><div class="gh"><svg class="i"><use href="#i-down"/></svg>Placement</div>
+              <div class="gb"><span class="muted">Col · span</span><span style="display:flex;gap:0.3rem"><span class="fld" style="min-width:3rem">3</span><span class="fld" style="min-width:3rem">1</span></span>
+                <span class="muted">Row span</span><span class="fld" style="min-width:3rem;width:3rem">1</span></div></div>
+            <div class="grp"><div class="gh"><svg class="i"><use href="#i-down"/></svg>Number settings<span class="n">1 overridden</span></div>
+              <div class="gb"><span class="muted">Min</span><span class="fld">0 <span class="ovr">from type</span></span>
+                <span class="muted">Max</span><span class="fld"><b>650</b> <span class="ovr">reset</span></span>
+                <span class="muted">Decimals</span><span class="fld">1 <span class="ovr">from type</span></span></div></div>
+            <div class="grp closed"><div class="gh"><svg class="i"><use href="#i-right"/></svg>Style<span class="n">none overridden</span></div><div class="gb"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="cap">The tree shows every level, so the selected cell is always visible in context. Rows are labelled with their first captions so "Row 2" means something. The selection bar carries the actions for the selected level; for a section it would show Add row, Add sub-section and Delete.</p>
+    <ul>
+      <li><b>Add:</b> "+" on a node adds its natural child (section → row, row → cell). The "⋯" menu and right-click offer everything else, such as Insert row above.</li>
+      <li><b>Move:</b> drag in the tree, or Alt+↑/↓ on the selected node. The up/down buttons in the panels go away.</li>
+      <li><b>Cost:</b> mostly front-end. The tree, selection bar and panel groups are new components; moving a row or sub-section into a different parent needs one new API endpoint.</li>
+    </ul>
+  </section>
+
+  <!-- ===================== OPTION B ===================== -->
+  <section>
+    <h2>Option B: canvas first, structure in a gutter</h2>
+    <p>No separate outline column. The preview takes the full width, and a narrow labelled gutter on its left shows which section, sub-section and row each line belongs to, with a coloured edge for depth. Clicking a gutter label selects that level. Hovering between rows shows a thin "+ Add row" line. A "Structure" button opens the full tree in a popover for jumping around big tables.</p>
+    <div class="scroll">
+      <div class="mock">
+        <div class="rail"><svg class="i"><use href="#i-list"/></svg><span class="small" style="writing-mode:vertical-rl;transform:rotate(180deg)">Tables</span></div>
+        <div class="col grow rel">
+          <div class="bar"><span class="fld" style="min-width:11rem"><b>Engine specification</b><svg class="i"><use href="#i-down"/></svg></span><span class="fld">Version 2 (in use)<svg class="i"><use href="#i-down"/></svg></span><span class="btn">Horizontal</span><span class="btn on">Vertical</span><span class="sep"></span><span class="btn"><svg class="i"><use href="#i-tree"/></svg>Structure</span><span class="grow"></span><span class="muted small">Saved</span></div>
+          <div class="bar sub">
+            <span class="crumbs">
+              <span class="crumb"><svg class="i lv-table"><use href="#i-table"/></svg>Table</span><span class="chev">›</span>
+              <span class="crumb"><svg class="i lv-sec"><use href="#i-sec"/></svg>System</span><span class="chev">›</span>
+              <span class="crumb cur"><svg class="i lv-sub"><use href="#i-sub"/></svg>Bolted joint</span>
+            </span>
+            <span class="grow"></span>
+            <span class="btn txt"><svg class="i"><use href="#i-plus"/></svg>Row</span>
+            <span class="btn txt"><svg class="i"><use href="#i-plus"/></svg>Sub-section</span>
+            <span class="btn txt"><svg class="i"><use href="#i-up"/></svg></span>
+            <span class="btn txt"><svg class="i"><use href="#i-dn"/></svg></span>
+            <span class="sep"></span>
+            <span class="btn txt danger"><svg class="i"><use href="#i-trash"/></svg></span>
+          </div>
+          <div class="canvas">
+            <div class="gutgrid">
+              <div class="gut"></div>
+              <div class="grid" style="min-width:0;border-top:1px solid #d5dbe3"><div class="h">Characteristic</div><div class="h s4" style="justify-content:center">Limits</div><div class="h">Status</div></div>
+              <div class="gut sec"><svg class="i lv-sec"><use href="#i-sec"/></svg>System</div>
+              <div class="grid" style="min-width:0;border-top:0"><div class="band">System name *</div></div>
+              <div class="gut rw"><svg class="i lv-row"><use href="#i-row"/></svg>Row 1</div>
+              <div class="grid" style="min-width:0;border-top:0"><div>Characteristic <span class="t">Text</span></div><div><span class="t">Meas…</span></div><div><span class="t">Meas…</span></div><div><span class="t">Meas…</span></div><div></div><div></div></div>
+              <div class="gut subs hot"><svg class="i lv-sub"><use href="#i-sub"/></svg>Bolted joint</div>
+              <div class="grid" style="min-width:0;border-top:0;outline:2px solid #152a55;outline-offset:-1px"><div class="band sub">Bolted joint: thread, torque and final angle</div></div>
+              <div class="gut subs rw hot" style="font-weight:400"><svg class="i lv-row"><use href="#i-row"/></svg>Row 1</div>
+              <div class="grid" style="min-width:0;border-top:0"><div class="pickrow">Fastener <span class="t">Label</span></div><div class="pickrow"><span class="t">Thread…</span></div><div class="pickrow">Torque <span class="t">Nm</span></div><div class="pickrow">Angle <span class="t">Num</span></div><div class="pickrow"></div><div class="pickrow"></div></div>
+              <div class="gut subs rw hot" style="font-weight:400"><svg class="i lv-row"><use href="#i-row"/></svg>Row 2</div>
+              <div class="grid" style="min-width:0;border-top:0"><div class="pickrow">Surface <span class="t">Text</span></div><div class="s2 pickrow" style="justify-content:center">Ra</div><div class="pickrow"></div><div class="pickrow"></div><div class="pickrow"></div></div>
+              <div class="gut subs"></div>
+              <div class="addline"><svg class="i"><use href="#i-plus"/></svg>Add row to Bolted joint</div>
+              <div class="gut sec"><svg class="i lv-sec"><use href="#i-sec"/></svg>Release note</div>
+              <div class="grid" style="min-width:0;border-top:0"><div class="band">What changed and why</div></div>
+              <div class="gut sec"><svg class="i lv-sec"><use href="#i-sec"/></svg>Approval</div>
+              <div class="grid" style="min-width:0;border-top:0"><div class="band">Approval</div></div>
+            </div>
+          </div>
+          <div class="pop" style="left:21.5rem;top:30px;width:230px;padding:0.3rem 0">
+            <div class="bar sub" style="border-top:0"><span class="fld w"><span class="faint">Find…</span><svg class="i faint"><use href="#i-search"/></svg></span></div>
+            <div class="tn"><svg class="i lv-head"><use href="#i-head"/></svg>Header</div>
+            <div class="tn"><svg class="i lv-sec"><use href="#i-sec"/></svg>System</div>
+            <div class="tn ind1"><svg class="i lv-sub"><use href="#i-sub"/></svg>Dimension</div>
+            <div class="tn ind1"><svg class="i lv-sub"><use href="#i-sub"/></svg>Material</div>
+            <div class="tn ind1 sel"><svg class="i lv-sub"><use href="#i-sub"/></svg>Bolted joint</div>
+            <div class="tn ind1"><svg class="i lv-sub"><use href="#i-sub"/></svg>Surface finish</div>
+            <div class="tn"><svg class="i lv-sec"><use href="#i-sec"/></svg>Release note</div>
+            <div class="tn"><svg class="i lv-sec"><use href="#i-sec"/></svg>Approval</div>
+          </div>
+        </div>
+        <div class="col set">
+          <div class="bar"><svg class="i lv-sub"><use href="#i-sub"/></svg><span class="ttl">Sub-section: Bolted joint</span></div>
+          <div class="body">
+            <div class="grp"><div class="gh"><svg class="i"><use href="#i-down"/></svg>General</div>
+              <div class="gb"><span class="muted">Name</span><span class="fld w">Bolted joint</span>
+                <span class="muted">Heading</span><span class="fld w">Bolted joint: thread, torque…</span></div></div>
+            <div class="grp"><div class="gh"><svg class="i"><use href="#i-down"/></svg>Instances</div>
+              <div class="gb"><span class="muted">Min · max</span><span style="display:flex;gap:0.3rem"><span class="fld" style="min-width:3rem">1</span><span class="fld" style="min-width:3rem">10</span></span>
+                <span class="muted">Start with</span><span class="fld" style="min-width:3rem;width:3rem">1</span></div></div>
+            <div class="grp"><div class="gh"><svg class="i"><use href="#i-down"/></svg>Contents<span class="n">2 rows</span></div>
+              <div class="gb"><span class="full muted small">Rows and sub-sections are picked in the preview or the gutter.</span></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="cap">The structure lives next to the lines it describes, so the preview is the one place you work. Shown with a sub-section selected and the Structure popover open.</p>
+    <ul>
+      <li><b>Add:</b> the "+ Add row" line under the last row of each section, the selection bar's buttons, and right-click.</li>
+      <li><b>Move:</b> drag a gutter label up or down, or the arrow buttons in the selection bar. Moving to another section is done through the "⋯" menu ("Move to…").</li>
+      <li><b>Trade-off:</b> the most room for the table, but deep tables get a busy gutter, and a horizontal table's column blocks need their own strip across the top. More work in the canvas, which is the most complex part of the designer.</li>
+    </ul>
+  </section>
+
+  <!-- ===================== OPTION C ===================== -->
+  <section>
+    <h2>Option C: a Structure grid and a Layout preview</h2>
+    <p>Two tabs over the main area. <b>Structure</b> is a PrimeNG TreeTable of the whole table: one line per section, row and cell with editable columns for type, caption, required, column and span, so most edits happen inline without the side panel. <b>Layout</b> is today's preview, for checking how it looks and fine-tuning spans and style. The side panel stays for detailed settings of the selected line.</p>
+    <div class="scroll">
+      <div class="mock">
+        <div class="rail"><svg class="i"><use href="#i-list"/></svg><span class="small" style="writing-mode:vertical-rl;transform:rotate(180deg)">Tables</span></div>
+        <div class="col grow">
+          <div class="bar"><span class="fld" style="min-width:11rem"><b>Engine specification</b><svg class="i"><use href="#i-down"/></svg></span><span class="fld">Version 2 (in use)<svg class="i"><use href="#i-down"/></svg></span><span class="btn">Horizontal</span><span class="btn on">Vertical</span><span class="grow"></span><span class="muted small">Saved</span></div>
+          <div class="tabs"><span class="tab on">Structure</span><span class="tab">Layout</span><span class="grow"></span></div>
+          <div class="bar sub">
+            <span class="btn txt"><svg class="i"><use href="#i-plus"/></svg>Section</span>
+            <span class="btn txt"><svg class="i"><use href="#i-plus"/></svg>Sub-section</span>
+            <span class="btn txt"><svg class="i"><use href="#i-plus"/></svg>Row</span>
+            <span class="btn txt"><svg class="i"><use href="#i-plus"/></svg>Cell</span>
+            <span class="sep"></span>
+            <span class="btn txt"><svg class="i"><use href="#i-up"/></svg></span><span class="btn txt"><svg class="i"><use href="#i-dn"/></svg></span>
+            <span class="btn txt danger"><svg class="i"><use href="#i-trash"/></svg></span>
+            <span class="grow"></span>
+            <span class="fld" style="min-width:12rem"><span class="faint">Filter</span><svg class="i faint"><use href="#i-search"/></svg></span>
+          </div>
+          <div class="canvas" style="padding:0">
+            <table class="tt">
+              <thead><tr><th>Name</th><th>Type</th><th>Caption</th><th>Req.</th><th>Col</th><th>Span</th><th>Instances</th></tr></thead>
+              <tbody>
+                <tr><td><span class="nm"><svg class="i faint"><use href="#i-right"/></svg><svg class="i lv-head"><use href="#i-head"/></svg>Header</span></td><td class="muted">2 rows</td><td></td><td></td><td></td><td></td><td class="num">1</td></tr>
+                <tr><td><span class="nm"><svg class="i faint"><use href="#i-down"/></svg><svg class="i lv-sec"><use href="#i-sec"/></svg>System</span></td><td class="muted">Section</td><td>System name</td><td><span class="chk on"></span></td><td></td><td></td><td class="num">1 – 20</td></tr>
+                <tr><td style="padding-left:1.6rem"><span class="nm"><svg class="i faint"><use href="#i-down"/></svg><svg class="i lv-sub"><use href="#i-sub"/></svg>Bolted joint</span></td><td class="muted">Sub-section</td><td>Bolted joint: thread, torque…</td><td></td><td></td><td></td><td class="num">1 – 10</td></tr>
+                <tr><td style="padding-left:2.7rem"><span class="nm"><svg class="i faint"><use href="#i-down"/></svg><svg class="i lv-row"><use href="#i-row"/></svg>Row 1</span></td><td class="muted">4 cells</td><td></td><td></td><td></td><td></td><td></td></tr>
+                <tr><td style="padding-left:3.9rem"><span class="nm"><svg class="i lv-cell"><use href="#i-cell"/></svg>Fastener</span></td><td>Label</td><td>Fastener</td><td></td><td class="num">1</td><td class="num">1</td><td></td></tr>
+                <tr><td style="padding-left:3.9rem"><span class="nm"><svg class="i lv-cell"><use href="#i-cell"/></svg>Thread size</span></td><td>Thread size</td><td class="faint">—</td><td><span class="chk on"></span></td><td class="num">2</td><td class="num">1</td><td></td></tr>
+                <tr class="sel"><td style="padding-left:3.9rem"><span class="nm"><svg class="i lv-cell"><use href="#i-cell"/></svg><b>Torque</b></span></td><td><span class="ed">Torque (Nm)<svg class="i"><use href="#i-down"/></svg></span></td><td><span class="ed">Torque</span></td><td><span class="chk on"></span></td><td class="num"><span class="ed" style="min-width:2rem">3</span></td><td class="num"><span class="ed" style="min-width:2rem">1</span></td><td></td></tr>
+                <tr><td style="padding-left:3.9rem"><span class="nm"><svg class="i lv-cell"><use href="#i-cell"/></svg>Angle</span></td><td>Number</td><td>Angle</td><td></td><td class="num">4</td><td class="num">1</td><td></td></tr>
+                <tr><td style="padding-left:2.7rem"><span class="nm"><svg class="i faint"><use href="#i-right"/></svg><svg class="i lv-row"><use href="#i-row"/></svg>Row 2</span></td><td class="muted">2 cells</td><td></td><td></td><td></td><td></td><td></td></tr>
+                <tr><td style="padding-left:1.6rem"><span class="nm"><svg class="i faint"><use href="#i-right"/></svg><svg class="i lv-sub"><use href="#i-sub"/></svg>Surface finish</span></td><td class="muted">Sub-section</td><td></td><td></td><td></td><td></td><td class="num">1 – 5</td></tr>
+                <tr><td><span class="nm"><svg class="i faint"><use href="#i-right"/></svg><svg class="i lv-sec"><use href="#i-sec"/></svg>Release note</span></td><td class="muted">Section</td><td></td><td></td><td></td><td></td><td class="num">1</td></tr>
+                <tr><td><span class="nm"><svg class="i faint"><use href="#i-right"/></svg><svg class="i lv-sec"><use href="#i-sec"/></svg>Approval</span></td><td class="muted">Section</td><td></td><td></td><td></td><td></td><td class="num">1</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="col set">
+          <div class="bar"><svg class="i lv-cell"><use href="#i-cell"/></svg><span class="ttl">Cell: Torque</span></div>
+          <div class="body">
+            <div class="grp closed"><div class="gh"><svg class="i"><use href="#i-right"/></svg>General<span class="n">edited in the grid</span></div><div class="gb"></div></div>
+            <div class="grp"><div class="gh"><svg class="i"><use href="#i-down"/></svg>Number settings<span class="n">1 overridden</span></div>
+              <div class="gb"><span class="muted">Min</span><span class="fld">0 <span class="ovr">from type</span></span>
+                <span class="muted">Max</span><span class="fld"><b>650</b> <span class="ovr">reset</span></span>
+                <span class="muted">Decimals</span><span class="fld">1 <span class="ovr">from type</span></span>
+                <span class="muted">Unit</span><span class="fld">Nm <span class="ovr">from type</span></span></div></div>
+            <div class="grp"><div class="gh"><svg class="i"><use href="#i-down"/></svg>Style<span class="n">none overridden</span></div>
+              <div class="gb"><span class="muted">Bold</span><span><span class="chk"></span></span><span class="muted">Align</span><span style="display:flex;gap:0.2rem"><span class="btn">L</span><span class="btn">C</span><span class="btn on">R</span></span></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="cap">A spreadsheet-like view of the structure: fast for engineers who want to set up many cells, and the hierarchy is the indentation.</p>
+    <ul>
+      <li><b>Add and move:</b> one toolbar above the grid that acts on the selected line, keyboard friendly (arrow keys to move through lines, Enter to edit).</li>
+      <li><b>Trade-off:</b> the quickest for bulk set-up and the clearest hierarchy, but you no longer see the layout while you change the structure, so spans and column blocks are harder to picture. Two places to edit the same thing (grid and panel) needs care.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Side by side</h2>
+    <div class="scroll">
+      <table class="plain">
+        <thead><tr><th></th><th>A: full tree</th><th>B: canvas first</th><th>C: structure grid</th></tr></thead>
+        <tbody>
+          <tr><td>See the hierarchy</td><td>Always, every level</td><td>In the gutter; full tree in a popover</td><td>Always, as indented lines</td></tr>
+          <tr><td>See the layout while editing</td><td>Yes</td><td>Yes, widest</td><td>Only on the Layout tab</td></tr>
+          <tr><td>Find a row or cell</td><td>Tree, filter, or click the preview</td><td>Click the preview</td><td>Grid filter</td></tr>
+          <tr><td>Add</td><td>"+" on node, bar, right-click</td><td>"+ Add row" lines, bar, right-click</td><td>Grid toolbar</td></tr>
+          <tr><td>Move</td><td>Drag in tree, Alt+↑/↓</td><td>Drag gutter label, arrows</td><td>Arrows in toolbar</td></tr>
+          <tr><td>Bulk set-up of many cells</td><td>Good</td><td>Fair</td><td>Best</td></tr>
+          <tr><td>Change from today</td><td>Moderate: outline rebuilt, rest kept</td><td>Large: canvas reworked</td><td>Large: new grid view</td></tr>
+          <tr><td>Build effort</td><td>Smallest</td><td>Largest</td><td>Medium</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>Recommendation</h2>
+    <p>Option A. It fixes the main complaints directly: the outline becomes a real map of the table with every level and a clear icon, it follows whatever you click, adding and moving happen in one consistent place, and the folded-away table list gives the preview most of the screen back. It keeps the preview you already use and is the least work. Option C's inline editing could be added later as a "Grid" tab if bulk set-up turns out to be a pain.</p>
+  </section>
+</main>
+</body>
+</html>
