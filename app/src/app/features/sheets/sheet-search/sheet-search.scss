@@ -16,8 +16,8 @@
 
 // "3 of 12": fixed figures so the buttons beside it don't shift while stepping.
 .count {
-  min-width: 4.5rem;
-  padding: 0 var(--app-space-2);
+  min-width: 3.5rem;
+  padding: 0 var(--app-space-1);
   color: var(--app-text-secondary);
   font-size: var(--app-font-size-md);
   font-variant-numeric: tabular-nums;
