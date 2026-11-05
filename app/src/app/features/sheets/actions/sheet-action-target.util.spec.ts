@@ -49,6 +49,20 @@ describe('sheet action target', () => {
     expect(target?.id).toBe(group.id);
   });
 
+  it('leaves a section alone while someone else has a change to it', () => {
+    const table = SheetStructureFixture.fixtureTable();
+    const group = { ...table.sections[0], lock: { userId: 2, userName: 'A. Smith', isMine: false, isCheckout: false } };
+    const locked = { ...table, sections: [group, ...table.sections.slice(1)] };
+    const selection = { tableId: 1, sectionId: group.id, rowId: group.rows[0].id };
+
+    const target = SheetActionTargetUtil.sheetActionTarget(SpecHelpers.indexOf([locked]), [locked], selection);
+
+    expect(target?.kind).toBe('section');
+    expect(target?.canMoveUp).toBe(false);
+    expect(target?.canMoveDown).toBe(false);
+    expect(target?.canRemove).toBe(false);
+  });
+
   it('acts on the row when its section has several', () => {
     const table = SheetStructureFixture.fixtureTable();
     const group = table.sections[0];

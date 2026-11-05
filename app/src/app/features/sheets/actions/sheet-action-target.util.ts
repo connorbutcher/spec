@@ -60,12 +60,13 @@ export class SheetActionTargetUtil {
     const siblings = SheetIndexUtil.sectionSiblings(index, section.id);
     const first = siblings[0]?.role === 'Header' ? 1 : 0;
     const position = siblings.findIndex((candidate) => candidate.id === section.id);
+    const isFree = SheetLockUtil.otherUsersLock(section.lock) === null;
     return {
       kind: 'section',
       id: section.id,
-      canMoveUp: position > first,
-      canMoveDown: position >= 0 && position < siblings.length - 1,
-      canRemove: section.canRemove,
+      canMoveUp: isFree && position > first,
+      canMoveDown: isFree && position >= 0 && position < siblings.length - 1,
+      canRemove: isFree && section.canRemove,
       removeQuestion: `Remove ${SheetLabelsUtil.sectionLabel(section)}? Its rows and sections go too.`,
     };
   }
