@@ -1,5 +1,4 @@
 using Microsoft.Extensions.DependencyInjection;
-using PUSpecSheet.Application.Sheets.Demo;
 using PUSpecSheet.Application.Sheets.Drafts;
 using PUSpecSheet.Application.Sheets.History;
 using PUSpecSheet.Application.Sheets.Linking;
@@ -39,16 +38,6 @@ public static class SheetServiceCollectionExtensions
         services.AddScoped<ISheetRowService, SheetRowService>();
         services.AddScoped<ISheetCellSettingsService, SheetCellSettingsService>();
         services.AddScoped<ISheetColumnBlockService, SheetColumnBlockService>();
-
-        services.AddScoped<DemoLimitsTemplateSeeder>();
-        services.AddScoped<DemoLimitsSheetSeeder>();
-        services.AddScoped<DemoPartsGridTemplateSeeder>();
-        services.AddScoped<DemoPartsGridSheetSeeder>();
-        services.AddScoped<DemoPartUsageTemplateSeeder>();
-        services.AddScoped<DemoPartUsageSheetSeeder>();
-        services.AddScoped<DemoLimitCheckTemplateSeeder>();
-        services.AddScoped<DemoLimitCheckSheetSeeder>();
-        services.AddScoped<DemoDataSeeder>();
 
         return services;
     }

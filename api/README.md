@@ -93,6 +93,12 @@ The hub takes who a connection is from its signed-in user (`ClaimsPrincipalExten
 
 To try it before sign-in exists, Development seeds two more users (`engineer2`, `engineer3`) and lets a request name the user it runs as (`DeveloperSignIn:AllowUserSwitching`): open the app in a second tab with `?developerUser=engineer2`.
 
+## Sample data
+
+In Development the API builds a showcase on start (`Application/Seeding`, run from `ShowcaseDataSeeder`): templates for Specification ("Engine specification"), PFKs ("Gauges", "PFK register") and Parts ("Parts matrix", horizontal) that use every cell kind, and sheets built from them for V6 and 01-A2 to A5, with published versions by `developer`, `engineer2` and `engineer3` and some of their changes left unpublished, so there are locks to see. Changes are made through the same services the API uses, as whichever user `BackgroundUser` names.
+
+**It clears the database the first time.** Every sheet, template and user-made cell type is deleted first (`SampleDataReset`); phases, sheet types, users and permissions are kept. After that it does nothing while a sheet version with the note `ShowcaseDataSeeder.CompletedNote` exists, so work done on top of it stays. Set `SampleData:Rebuild` to `true` in `appsettings.Development.json` to clear and rebuild on every start until it is set back. A failure is logged and tried again, from a clean database, on the next start.
+
 ## Published API
 
 `Published` reads only published revisions, by public identifier (the GUIDs), never by database id. What a version held never changes, so answers are cached in memory (`PublishedSheetCache`, `PublishedRowsCache`, `PublishedLookupCache`) and served with ETags; `PublishedSheetHttpCache` holds the HTTP side. Its queries project straight to small records (`Published...Record`) and the `...Assembler` classes, which are pure, build the response. The field names and routes of this API are a contract with other applications: change them only on purpose.

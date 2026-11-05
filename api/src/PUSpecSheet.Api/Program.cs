@@ -7,7 +7,7 @@ using PUSpecSheet.Api.Compression;
 using PUSpecSheet.Api.Cors;
 using PUSpecSheet.Api.ExceptionHandling;
 using PUSpecSheet.Application.DependencyInjection;
-using PUSpecSheet.Application.Sheets.Demo;
+using PUSpecSheet.Application.Seeding;
 using PUSpecSheet.Data;
 using PUSpecSheet.Data.DependencyInjection;
 using PUSpecSheet.Data.Seeding;
@@ -45,13 +45,15 @@ var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
-    // Creates the database on first run, applies any pending migrations and adds sample phases.
+    // Creates the database on first run, applies any pending migrations and adds sample phases, users and
+    // the showcase sample data. The showcase clears the sheets and templates the first time it runs (or
+    // every start while SampleData:Rebuild is true): see ShowcaseDataSeeder.
     using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<PuSpecSheetDbContext>();
     await db.Database.MigrateAsync();
     await DevelopmentDataSeeder.SeedAsync(db);
     await DevelopmentUserSeeder.SeedAsync(db);
-    await scope.ServiceProvider.GetRequiredService<DemoDataSeeder>().SeedAsync();
+    await scope.ServiceProvider.GetRequiredService<ShowcaseDataSeeder>().SeedAsync(app.Configuration.GetValue<bool>("SampleData:Rebuild"));
 
     app.MapPuSpecSheetApiDocumentation();
 }

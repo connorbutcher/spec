@@ -2,6 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 using PUSpecSheet.Application.CellTypes;
 using PUSpecSheet.Application.Phases;
 using PUSpecSheet.Application.Published;
+using PUSpecSheet.Application.Seeding;
 using PUSpecSheet.Application.Sheets;
 using PUSpecSheet.Application.SheetTypes;
 using PUSpecSheet.Application.Templates;
@@ -16,6 +17,7 @@ public static class ApplicationServiceCollectionExtensions
         services.AddScoped<ISheetTypeService, SheetTypeService>();
         services.AddScoped<IPhaseService, PhaseService>();
         services.AddScoped<IUserAccessService, UserAccessService>();
+        services.AddScoped<BackgroundUser>();
 
         services.AddScoped<ICellTypeService, CellTypeService>();
 
@@ -31,6 +33,7 @@ public static class ApplicationServiceCollectionExtensions
 
         services.AddPuSpecSheetSheets();
         services.AddPuSpecSheetPublished();
+        services.AddPuSpecSheetSeeding();
 
         return services;
     }
