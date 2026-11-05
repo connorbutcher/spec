@@ -38,10 +38,18 @@ app-sheet-linked-dropdown-cell {
   --p-select-padding-x: var(--app-space-4);
   --p-select-padding-y: var(--app-space-2);
   --p-select-font-size: var(--app-font-size-base);
+  // A narrower arrow, so a short value (G-101) still reads in a narrow column beside the clear button.
+  --p-select-dropdown-width: 1.5rem;
 
   --p-checkbox-focus-ring-width: 0;
   --p-checkbox-focus-ring-shadow: none;
 
   --p-datepicker-focus-ring-width: 0;
   --p-datepicker-focus-ring-shadow: none;
+}
+
+// The value starts where a read-only cell's text does, but needs no gap before the clear button.
+app-sheet-dropdown-cell .p-select .p-select-label,
+app-sheet-linked-dropdown-cell .p-select .p-select-label {
+  padding-inline-end: var(--app-space-1);
 }
