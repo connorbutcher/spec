@@ -1,6 +1,6 @@
 @if (waiting(); as takeover) {
   <span class="note" aria-live="polite">
-    Asked {{ takeover.holderName }} · yours in {{ secondsLeft() }}s if unanswered
+    <span class="app-truncate">Asked {{ takeover.holderName }} · yours in {{ secondsLeft() }}s if unanswered</span>
   </span>
   <p-button
     label="Withdraw"
@@ -10,9 +10,9 @@
     (onClick)="withdraw(takeover)"
   />
 } @else if (blockedReason(); as reason) {
-  <span class="note" role="note">
+  <span class="note" role="note" [pTooltip]="reason" tooltipPosition="bottom">
     <i class="pi pi-ban" aria-hidden="true"></i>
-    {{ reason }}
+    <span class="app-truncate">{{ reason }}</span>
   </span>
 } @else {
   <p-button

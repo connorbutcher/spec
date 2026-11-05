@@ -5,22 +5,45 @@
   background: var(--app-surface-subtle);
 }
 
-// One line of a fixed height, so nothing below moves when the selection changes.
+// One line of a fixed height, so nothing below moves when the selection changes. The path and the
+// row's notes give way (cut short) before the actions do.
 .context-bar {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
   gap: var(--app-space-2) var(--app-space-6);
-  min-height: 2.125rem;
+  height: 2.125rem;
   padding: var(--app-space-1) var(--app-space-6);
+  overflow: hidden;
 }
 
 .path {
   --p-breadcrumb-padding: 0;
   --p-breadcrumb-background: transparent;
   --p-breadcrumb-gap: var(--app-space-2);
-  min-width: 0;
+  flex: 0 1 auto;
+  min-width: 8rem;
+  overflow: hidden;
   font-size: var(--app-font-size-md);
+  white-space: nowrap;
+
+  // Cut short from the start, so the selected item at the end of the path stays in view.
+  ::ng-deep .p-breadcrumb-list {
+    flex-wrap: nowrap;
+    justify-content: flex-end;
+  }
+}
+
+// The longest thing on the line, so it gives way first.
+app-sheet-takeover-button {
+  flex: 0 4 auto;
+  min-width: 8rem;
+}
+
+app-sheet-status,
+app-sheet-context-add,
+app-sheet-context-actions {
+  flex: none;
 }
 
 .nothing {
@@ -29,5 +52,5 @@
 }
 
 .spacer {
-  flex: 1;
+  flex: 1 0 0;
 }

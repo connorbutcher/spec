@@ -2,15 +2,27 @@
   display: inline-flex;
   align-items: center;
   gap: var(--app-space-3);
+  min-width: 0;
   margin-left: var(--app-space-3);
 }
 
 // The countdown while a request waits, or the reason the row can't be asked for.
 .note {
   display: inline-flex;
+  min-width: 0;
   align-items: center;
   gap: var(--app-space-3);
   color: var(--app-text-muted);
   font-size: var(--app-font-size-base);
   font-variant-numeric: tabular-nums;
+
+  i {
+    flex: none;
+  }
+}
+
+// Only the note gives way when the line is short; a button keeps its label on one line.
+p-button {
+  flex: none;
+  white-space: nowrap;
 }
