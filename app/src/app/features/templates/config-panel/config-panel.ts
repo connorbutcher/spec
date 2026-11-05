@@ -7,28 +7,19 @@ import { CellTypeSettings } from '../cell-type-settings/cell-type-settings';
 import { ColumnBlockSettings } from '../column-block-settings/column-block-settings';
 import { PanelCrumb } from '../models/panel-crumb.model';
 import { PanelRef } from '../models/panel-ref';
+import { StructureLevel } from '../models/structure-level';
 import { PanelCrumbsUtil } from '../panel-crumbs.util';
-import { PanelBreadcrumb } from '../panel-breadcrumb/panel-breadcrumb';
 import { PanelNavigator } from '../panel-navigator';
 import { RowSettings } from '../row-settings/row-settings';
 import { SectionSettings } from '../section-settings/section-settings';
+import { StructureIcons } from '../structure-icons';
 import { TemplateSettings } from '../template-settings/template-settings';
 import { CellTypesStore } from '../cell-types.store';
 import { TemplatesStore } from '../templates.store';
 
-const TITLES: Readonly<Record<PanelRef['kind'], string>> = {
-  template: 'Table',
-  section: 'Section',
-  columnBlock: 'Column block',
-  row: 'Row',
-  cell: 'Cell',
-  cellTypes: 'Cell types',
-  cellType: 'Cell type',
-};
-
 /**
- * The right-hand configuration panel. Shows the settings for whatever was last opened, with back and
- * forward through what's been opened and a breadcrumb up through the table.
+ * The right-hand configuration panel: the settings for whatever is selected, under a one-line title
+ * with its level's icon and name. Where it sits in the table is in the selection bar.
  */
 @Component({
   selector: 'app-config-panel',
@@ -39,7 +30,6 @@ const TITLES: Readonly<Record<PanelRef['kind'], string>> = {
     CellTypeSettings,
     ColumnBlockSettings,
     ErrorMessage,
-    PanelBreadcrumb,
     RowSettings,
     SectionSettings,
     TemplateSettings,
@@ -47,7 +37,6 @@ const TITLES: Readonly<Record<PanelRef['kind'], string>> = {
   templateUrl: './config-panel.html',
   styleUrl: './config-panel.scss',
 })
-
 export class ConfigPanel {
   public readonly current = computed<PanelRef>(() => this.navigator.current());
 
@@ -57,12 +46,27 @@ export class ConfigPanel {
     ),
   );
 
+  public readonly level = computed<StructureLevel>(() =>
+    StructureIcons.levelOf(this.current(), this.store.index()),
+  );
+
+  /** The selected item's own name, after its noun; none for the cell type list. */
+  public readonly name = computed<string | null>(() => {
+    const kind = this.current().kind;
+    return kind === 'cellTypes' ? null : (this.crumbs().at(-1)?.label ?? null);
+  });
+
   private readonly navigator = inject(PanelNavigator);
   private readonly store = inject(TemplatesStore);
   private readonly cellTypeStore = inject(CellTypesStore);
 
-  public title(): string {
-    return TITLES[this.current().kind];
+  public noun(): string {
+    return StructureIcons.noun(this.level());
+  }
+
+  public icon(): string {
+    const level = this.level();
+    return `pi ${StructureIcons.icon(level)} ${StructureIcons.levelClass(level)}`;
   }
 
   /** False when the item was deleted or its table isn't loaded yet. */
@@ -78,20 +82,8 @@ export class ConfigPanel {
     this.store.dismissError();
   }
 
-  public canGoBack(): boolean {
-    return this.navigator.canGoBack();
-  }
-
-  public canGoForward(): boolean {
-    return this.navigator.canGoForward();
-  }
-
-  public back(): void {
-    this.navigator.back();
-  }
-
-  public forward(): void {
-    this.navigator.forward();
+  public openCellTypes(): void {
+    this.navigator.open({ kind: 'cellTypes' });
   }
 
   /** The id of the current item, for panels that show one. */

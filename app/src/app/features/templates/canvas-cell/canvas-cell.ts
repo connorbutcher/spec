@@ -1,6 +1,6 @@
 import { Component, computed, inject, input } from '@angular/core';
 import { ButtonModule } from 'primeng/button';
-import { CanvasMenu } from '../canvas-menu';
+import { StructureMenu } from '../structure-menu';
 import { CellSettingsUtil } from '../cell-settings.util';
 import { CellStyleCssUtil } from '../cell-style-css.util';
 import { CellKinds } from '../models/cell-kinds';
@@ -9,6 +9,7 @@ import { CellType } from '../models/cell-type.model';
 import { GridStyle } from '../models/grid-style';
 import { PanelNavigator } from '../panel-navigator';
 import { CellTypesStore } from '../cell-types.store';
+import { TemplatesStore } from '../templates.store';
 
 /**
  * A cell in the preview, placed on its section's subgrid by row, column and spans. Label cells show
@@ -23,9 +24,9 @@ import { CellTypesStore } from '../cell-types.store';
   host: {
     '[style]': 'hostStyle()',
     '[class.selected]': 'isSelected()',
+    '[class.in-selected-row]': 'isInSelectedRow()',
   },
 })
-
 export class CanvasCell {
   public readonly layout = input.required<CellLayout>();
 
@@ -37,13 +38,16 @@ export class CanvasCell {
   public readonly styleCss = computed<Record<string, string>>(() => {
     const cellType = this.cellType();
     return cellType
-      ? CellStyleCssUtil.cellStyleCss(CellSettingsUtil.effectiveStyle(cellType.style, this.layout().cell.styleOverride))
+      ? CellStyleCssUtil.cellStyleCss(
+          CellSettingsUtil.effectiveStyle(cellType.style, this.layout().cell.styleOverride),
+        )
       : {};
   });
 
   private readonly navigator = inject(PanelNavigator);
   private readonly cellTypeStore = inject(CellTypesStore);
-  private readonly menu = inject(CanvasMenu);
+  private readonly menu = inject(StructureMenu);
+  private readonly store = inject(TemplatesStore);
 
   /** The grid placement plus the cell's background, which fills the whole grid area. */
   public hostStyle(): GridStyle {
@@ -76,6 +80,15 @@ export class CanvasCell {
     return 'unit' in configuration ? (configuration.unit ?? null) : null;
   }
 
+  /** Whether the selection is this cell's row, which tints the row's cells. */
+  public isInSelectedRow(): boolean {
+    const current = this.navigator.current();
+    return (
+      current.kind === 'row' &&
+      this.store.index().cells.get(this.layout().cell.id)?.row.row.id === current.id
+    );
+  }
+
   public isSelected(): boolean {
     return this.navigator.isShowing({ kind: 'cell', id: this.layout().cell.id });
   }
@@ -89,6 +102,6 @@ export class CanvasCell {
   }
 
   public openMenu(event: MouseEvent): void {
-    this.menu.openForCell(event, this.layout().cell.id);
+    this.menu.open(event, { kind: 'cell', id: this.layout().cell.id });
   }
 }

@@ -1,0 +1,16 @@
+.picker {
+  min-width: 12rem;
+  max-width: 18rem;
+
+  ::ng-deep .p-select-label {
+    color: var(--app-text-strong);
+    font-size: var(--app-font-size-lg);
+    font-weight: var(--app-font-weight-semibold);
+  }
+}
+
+.group {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--app-space-3);
+}

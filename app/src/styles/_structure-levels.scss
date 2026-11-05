@@ -1,0 +1,35 @@
+/* The colour of each structure level's icon in the template designer (see StructureIcons). Only the
+   icon is tinted; labels stay in the usual greys. */
+.pi.level-table {
+  color: var(--app-level-table);
+}
+
+.pi.level-header {
+  color: var(--app-level-header);
+}
+
+.pi.level-section {
+  color: var(--app-level-section);
+}
+
+.pi.level-subSection {
+  color: var(--app-level-sub-section);
+}
+
+.pi.level-row {
+  color: var(--app-level-row);
+}
+
+.pi.level-cell {
+  color: var(--app-level-cell);
+}
+
+.pi.level-columnBlock,
+.pi.level-columnBlocks {
+  color: var(--app-level-column-block);
+}
+
+.pi.level-cellTypes,
+.pi.level-cellType {
+  color: var(--app-text-muted);
+}

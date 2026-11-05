@@ -1,22 +1,27 @@
 :host {
   display: flex;
   flex-direction: column;
-  gap: var(--app-space-2);
   min-height: 0;
 }
 
-// A plain indented list in greys; the accent colour only marks the selected node.
+// A plain indented list in greys; the level icons carry the only colour, and the accent marks the
+// selected node.
 .tree {
-  // A little more room than the default compact row, for the add button at the end of each node.
-  --p-tree-node-padding: 0.2rem 0.4rem;
+  --p-tree-node-padding: 0.05rem 0.3rem;
   --p-tree-border-color: transparent;
   --p-tree-background: transparent;
+  --p-tree-indent: 0.7rem;
   --p-tree-node-color: var(--app-text-strong);
   --p-tree-node-hover-background: var(--app-surface-hover);
   --p-tree-node-hover-color: var(--app-text-strong);
   --p-tree-node-selected-background: var(--app-surface-selected);
   --p-tree-node-selected-color: var(--app-navy);
   --p-tree-node-toggle-button-color: var(--app-text-faint);
+  --p-tree-node-toggle-button-size: 1.1rem;
+  --p-tree-filter-margin: 0 0 var(--app-space-3);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
   font-size: var(--app-font-size-base);
 }
 
@@ -24,50 +29,87 @@
   display: flex;
   flex: 1;
   align-items: center;
-  justify-content: space-between;
   gap: var(--app-space-3);
   min-width: 0;
+  min-height: 1.375rem;
+
+  i {
+    flex: none;
+    font-size: var(--app-font-size-md);
+  }
 
   .name {
+    flex: 0 1 auto;
+    min-width: 2.5rem;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
 
-  // The "+" only appears on the node you're pointing at or have selected.
-  .add {
-    opacity: 0;
-    transition: opacity 0.1s;
+  .meta {
+    // The summary gives way long before the name does.
+    flex: 0 1000 auto;
+    min-width: 0;
+    margin-left: auto;
+    overflow: hidden;
+    color: var(--app-text-faint);
+    font-size: var(--app-font-size-sm);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  // The buttons appear on the node you're pointing at or have selected, in place of the summary's end.
+  .actions {
+    display: none;
+    flex: none;
+    margin-left: auto;
+
+    ::ng-deep .p-button {
+      width: 1.25rem;
+      height: 1.25rem;
+      padding: 0;
+    }
   }
 }
 
-:host ::ng-deep .p-tree-node-content:hover .add,
-:host ::ng-deep .p-tree-node-content.p-tree-node-selected .add,
-:host ::ng-deep .add:focus-within {
-  opacity: 1;
+:host ::ng-deep .p-tree-node-content:hover .actions,
+:host ::ng-deep .p-tree-node-content.p-tree-node-selected .actions,
+:host ::ng-deep .actions:focus-within {
+  display: inline-flex;
 }
 
-.add-section {
-  align-self: flex-start;
-  margin-left: var(--app-space-2);
-
-  ::ng-deep .p-button {
-    color: var(--app-text-muted);
-    font-size: var(--app-font-size-base);
-  }
+:host ::ng-deep .p-tree-node-content:hover .meta,
+:host ::ng-deep .p-tree-node-content.p-tree-node-selected .meta {
+  margin-left: 0;
 }
 
-.add-actions {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
+// The filter box sits on top; the nodes scroll under it.
+:host ::ng-deep .p-tree-filter .p-inputtext {
+  padding-block: var(--app-space-2);
+  font-size: var(--app-font-size-base);
+}
+
+:host ::ng-deep .p-tree-root {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
 }
 
 // The column block group is a quiet label, not something to select.
-:host ::ng-deep .p-tree-node.group > .p-tree-node-content {
-  color: var(--app-text-muted);
+:host
+  ::ng-deep
+  .p-tree-node[aria-selected='false']
+  > .p-tree-node-content:has(.level-columnBlocks) {
   cursor: default;
-  font-size: var(--app-font-size-sm);
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
+}
+
+// Long names and summaries are cut short rather than widening the tree.
+:host ::ng-deep .p-tree-node-content {
+  min-width: 0;
+}
+
+:host ::ng-deep .p-tree-root-children,
+:host ::ng-deep .p-tree-node-children,
+:host ::ng-deep .p-tree-node {
+  min-width: 0;
 }

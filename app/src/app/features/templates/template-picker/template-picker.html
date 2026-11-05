@@ -1,0 +1,22 @@
+<p-select
+  class="picker"
+  [options]="groups()"
+  [group]="true"
+  optionGroupLabel="label"
+  optionGroupChildren="items"
+  optionLabel="name"
+  optionValue="id"
+  [ngModel]="selectedTemplateId()"
+  (onChange)="open($event)"
+  [filter]="true"
+  filterBy="name"
+  size="small"
+  appendTo="body"
+  ariaLabel="Table"
+>
+  <ng-template #group let-group>
+    <span class="group"
+      ><i [class]="'pi ' + group.icon" aria-hidden="true"></i>{{ group.label }}</span
+    >
+  </ng-template>
+</p-select>

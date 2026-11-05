@@ -3,8 +3,12 @@ import { MenuItem } from 'primeng/api';
 import { BreadcrumbModule } from 'primeng/breadcrumb';
 import { PanelCrumb } from '../models/panel-crumb.model';
 import { PanelNavigator } from '../panel-navigator';
+import { StructureIcons } from '../structure-icons';
 
-/** Where the open panel sits in the table, as a PrimeNG breadcrumb. Earlier steps open their panels. */
+/**
+ * Where the selection sits in the table, as a one-line PrimeNG breadcrumb with each level's icon.
+ * Earlier steps select their part of the table.
+ */
 @Component({
   selector: 'app-panel-breadcrumb',
   imports: [BreadcrumbModule],
@@ -17,7 +21,10 @@ export class PanelBreadcrumb {
   public readonly items = computed<MenuItem[]>(() => {
     const crumbs = this.crumbs();
     return crumbs.map((crumb, index) => ({
-      label: crumb.label,
+      // The table's name is in the toolbar, so its step is just its icon once there's a deeper one.
+      label: crumb.level === 'table' && crumbs.length > 1 ? undefined : crumb.label,
+      title: crumb.label,
+      icon: `pi ${StructureIcons.icon(crumb.level)} ${StructureIcons.levelClass(crumb.level)}`,
       styleClass: index === crumbs.length - 1 ? 'current' : undefined,
       command: index === crumbs.length - 1 ? undefined : () => this.navigator.open(crumb.ref),
     }));

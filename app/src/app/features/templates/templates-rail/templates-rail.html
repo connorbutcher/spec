@@ -1,0 +1,34 @@
+<nav class="app-card rail" aria-label="Tables and cell types">
+  <p-button
+    icon="pi pi-list"
+    size="small"
+    severity="secondary"
+    [text]="true"
+    ariaLabel="Tables"
+    pTooltip="Tables"
+    tooltipPosition="right"
+    (onClick)="isOpen.set(true)"
+  />
+  <p-button
+    icon="pi pi-th-large"
+    size="small"
+    [severity]="isShowingCellTypes() ? 'primary' : 'secondary'"
+    [text]="!isShowingCellTypes()"
+    [ariaLabel]="cellTypesLabel()"
+    [pTooltip]="cellTypesLabel()"
+    tooltipPosition="right"
+    (onClick)="openCellTypes()"
+  />
+</nav>
+
+<p-drawer
+  [visible]="isOpen()"
+  (visibleChange)="isOpen.set($event)"
+  position="left"
+  styleClass="tables-drawer"
+  [closable]="false"
+  [modal]="true"
+  [dismissible]="true"
+>
+  <app-template-list-panel />
+</p-drawer>

@@ -5,16 +5,17 @@ import { SelectChangeEvent, SelectModule } from 'primeng/select';
 import { SelectButtonChangeEvent, SelectButtonModule } from 'primeng/selectbutton';
 import { TableTemplate } from '../models/table-template.model';
 import { TemplateOrientation } from '../models/template-orientation';
+import { TemplatePicker } from '../template-picker/template-picker';
 import { TemplatesStore } from '../templates.store';
 
 /**
- * The bar above the canvas: the table's name, which version is showing and its orientation, the
+ * The bar above the designer: a picker for the table, which version is showing and its orientation, the
  * direction sections are added in (vertical: top to bottom; horizontal: left to right). A version
  * that can't change says so and offers the way on.
  */
 @Component({
   selector: 'app-designer-toolbar',
-  imports: [ButtonModule, FormsModule, SelectButtonModule, SelectModule],
+  imports: [ButtonModule, FormsModule, SelectButtonModule, SelectModule, TemplatePicker],
   templateUrl: './designer-toolbar.html',
   styleUrl: './designer-toolbar.scss',
 })

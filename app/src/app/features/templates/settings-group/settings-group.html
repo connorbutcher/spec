@@ -1,0 +1,23 @@
+<p-panel
+  class="group"
+  [toggleable]="true"
+  toggler="header"
+  [collapsed]="isFolded()"
+  (collapsedChange)="setFolded($event)"
+>
+  <ng-template #header>
+    <i
+      class="pi fold"
+      [class.pi-chevron-right]="isFolded()"
+      [class.pi-chevron-down]="!isFolded()"
+      aria-hidden="true"
+    ></i>
+    <span class="title">{{ title() }}</span>
+    @if (note(); as note) {
+      <span class="note">{{ note }}</span>
+    }
+  </ng-template>
+  <div class="app-fields body">
+    <ng-content />
+  </div>
+</p-panel>

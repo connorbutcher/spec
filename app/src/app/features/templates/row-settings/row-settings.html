@@ -1,49 +1,9 @@
 @if (entry(); as entry) {
-  <div class="app-fields">
-    <p class="app-field-note">Row {{ entry.number }} of {{ entry.section.name }}</p>
-
-    <div class="app-field">
-      <span class="app-field-label">Position</span>
-      <app-move-buttons
-        noun="row"
-        [position]="entry.number"
-        [count]="entry.section.rows.length"
-        [disabled]="isSaving() || !canEdit()"
-        (moved)="move($event)"
-      />
-    </div>
-
-    <h3 class="app-group-title">Cells</h3>
+  <app-settings-group title="Cells" key="row-cells" [note]="cellCount()">
     <app-panel-link-list
       [items]="cells()"
-      emptyText="No cells in this row yet."
+      emptyText="No cells in this row yet. Add one from the bar above the table."
       ariaLabel="Cells"
     />
-    <div class="app-actions">
-      <app-add-button
-        label="Add cell"
-        [disabled]="isSaving() || !canEdit()"
-        (clicked)="addCell()"
-      />
-      @for (block of columnBlocks(); track block.id) {
-        <app-add-button
-          [label]="'Add cell to ' + block.name"
-          [disabled]="isSaving() || !canEdit()"
-          (clicked)="addCell(block.id)"
-        />
-      }
-    </div>
-    <p class="app-field-note">
-      New cells go after the last cell in the row, or in the column block.
-    </p>
-
-    <div class="app-danger-zone">
-      <app-confirm-delete-button
-        label="Delete row"
-        warning="Its cells go too."
-        [disabled]="isSaving() || !canEdit()"
-        (confirmed)="delete()"
-      />
-    </div>
-  </div>
+  </app-settings-group>
 }

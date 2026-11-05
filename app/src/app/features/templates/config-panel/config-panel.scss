@@ -10,24 +10,41 @@
   height: 100%;
   min-height: 0;
 
+  // One line: the level's icon, what it is and its name.
   .panel-head {
     display: flex;
-    flex-direction: column;
-    gap: var(--app-space-2);
-    padding: var(--app-space-2) var(--app-space-4) var(--app-space-3);
-    border-bottom: 1px solid var(--app-border);
-  }
-
-  .nav {
-    display: flex;
     align-items: center;
-    gap: var(--app-space-1);
+    gap: var(--app-space-3);
+    min-height: 2rem;
+    padding: var(--app-space-2) var(--app-space-4);
+    border-bottom: 1px solid var(--app-border);
+
+    i {
+      flex: none;
+      font-size: var(--app-font-size-md);
+    }
 
     h2 {
-      margin: 0 0 0 var(--app-space-3);
+      display: flex;
+      flex: 1;
+      gap: var(--app-space-3);
+      min-width: 0;
+      margin: 0;
       font-size: var(--app-font-size-base);
       font-weight: var(--app-font-weight-semibold);
       color: var(--app-text-strong);
+      white-space: nowrap;
+    }
+
+    .noun {
+      flex: none;
+      color: var(--app-text-muted);
+      font-weight: var(--app-font-weight-normal);
+    }
+
+    .name {
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
   }
 
@@ -37,10 +54,14 @@
     font-size: var(--app-font-size-md);
   }
 
+  // Settings groups run edge to edge; anything else gets the usual padding.
   .panel-body {
     flex: 1;
     min-height: 0;
     overflow-y: auto;
+  }
+
+  .padded {
     padding: var(--app-space-4);
   }
 }

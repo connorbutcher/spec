@@ -79,3 +79,11 @@ app-setting-row .p-button.p-button-icon-only {
   width: var(--app-icon-button-size);
   height: var(--app-icon-button-size);
 }
+
+/* Context menu: a delete item (styleClass "danger") reads in red. */
+.p-contextmenu .p-contextmenu-item.danger:not(.p-disabled) {
+  .p-contextmenu-item-label,
+  .p-contextmenu-item-icon {
+    color: var(--p-red-600);
+  }
+}

@@ -1,28 +1,22 @@
 <aside class="app-card config-panel" aria-labelledby="config-panel-title">
   <header class="panel-head">
-    <div class="nav">
+    <i [class]="icon()" aria-hidden="true"></i>
+    <h2 id="config-panel-title">
+      <span class="noun">{{ noun() }}</span>
+      @if (name(); as name) {
+        <span class="name">{{ name }}</span>
+      }
+    </h2>
+    @if (current().kind === 'cellType') {
       <p-button
+        class="back"
         icon="pi pi-arrow-left"
+        label="Cell types"
         size="small"
         severity="secondary"
         [text]="true"
-        [disabled]="!canGoBack()"
-        ariaLabel="Back"
-        (onClick)="back()"
+        (onClick)="openCellTypes()"
       />
-      <p-button
-        icon="pi pi-arrow-right"
-        size="small"
-        severity="secondary"
-        [text]="true"
-        [disabled]="!canGoForward()"
-        ariaLabel="Forward"
-        (onClick)="forward()"
-      />
-      <h2 id="config-panel-title">{{ title() }}</h2>
-    </div>
-    @if (exists()) {
-      <app-panel-breadcrumb [crumbs]="crumbs()" />
     }
   </header>
 
@@ -37,11 +31,11 @@
 
   <div class="panel-body">
     @if (!exists()) {
-      <p class="app-note">
+      <p class="app-note padded">
         @if (current().kind === 'template') {
           Pick a table from the list to configure it.
         } @else {
-          This item isn't here any more. Go back, or pick something in the table.
+          This item isn't here any more. Pick something in the table.
         }
       </p>
     } @else {
@@ -62,10 +56,10 @@
           <app-cell-settings [cellId]="id()" />
         }
         @case ('cellTypes') {
-          <app-cell-type-list />
+          <div class="padded"><app-cell-type-list /></div>
         }
         @case ('cellType') {
-          <app-cell-type-settings [cellTypeId]="id()" />
+          <div class="padded"><app-cell-type-settings [cellTypeId]="id()" /></div>
         }
       }
     }

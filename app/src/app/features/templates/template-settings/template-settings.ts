@@ -1,47 +1,25 @@
 import { Component, computed, inject } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import { InputTextModule } from 'primeng/inputtext';
-import { SelectButtonChangeEvent, SelectButtonModule } from 'primeng/selectbutton';
-import { AddButton } from '../../../shared/components/add-button/add-button';
-import { ColumnBlockLinksUtil } from '../column-block-links.util';
 import { ConfirmDeleteButton } from '../confirm-delete-button/confirm-delete-button';
-import { PanelLinkItem } from '../models/panel-link-item.model';
 import { TableTemplate } from '../models/table-template.model';
-import { TemplateOrientation } from '../models/template-orientation';
-import { PanelLinkList } from '../panel-link-list/panel-link-list';
-import { PanelNavigator } from '../panel-navigator';
+import { SettingsGroup } from '../settings-group/settings-group';
 import { StickyColumnsField } from '../sticky-columns-field/sticky-columns-field';
-import { SectionLinksUtil } from '../section-links.util';
 import { TemplateLayoutUtil } from '../template-layout.util';
 import { TemplatesStore } from '../templates.store';
 
 /**
- * Panel page for the open table: its name, orientation, version, top-level sections and, for a
- * horizontal table, its column blocks.
+ * Panel page for the open table: its name and, for a horizontal table, how many of its own columns
+ * stay pinned. The orientation and version are in the toolbar, and its sections and column blocks
+ * in the structure tree.
  */
 @Component({
   selector: 'app-template-settings',
-  imports: [
-    AddButton,
-    ConfirmDeleteButton,
-    FormsModule,
-    InputTextModule,
-    PanelLinkList,
-    SelectButtonModule,
-    StickyColumnsField,
-  ],
+  imports: [ConfirmDeleteButton, InputTextModule, SettingsGroup, StickyColumnsField],
   templateUrl: './template-settings.html',
   styleUrl: './template-settings.scss',
 })
-
 export class TemplateSettings {
   public readonly template = computed<TableTemplate | null>(() => this.store.template());
-
-  public readonly sections = computed<PanelLinkItem[]>(() =>
-    SectionLinksUtil.sectionLinks(TemplateLayoutUtil.topLevelOrder(this.template()?.sections ?? [])),
-  );
-
-  public readonly columnBlocks = computed<PanelLinkItem[]>(() => ColumnBlockLinksUtil.columnBlockLinks(this.template()));
 
   /** How many columns the table's own cells take, before the column blocks: the most that can be pinned. */
   public readonly ownColumns = computed(() => {
@@ -54,13 +32,7 @@ export class TemplateSettings {
     return Math.max(1, firstBlock - 1);
   });
 
-  public readonly orientations = [
-    { label: 'Horizontal', value: 'Horizontal' },
-    { label: 'Vertical', value: 'Vertical' },
-  ];
-
   private readonly store = inject(TemplatesStore);
-  private readonly navigator = inject(PanelNavigator);
 
   /** Only horizontal tables have column blocks. */
   public isHorizontal(): boolean {
@@ -84,32 +56,10 @@ export class TemplateSettings {
     input.value = this.template()?.name ?? '';
   }
 
-  public setOrientation(event: SelectButtonChangeEvent): void {
-    const template = this.template();
-    const orientation = event.value as TemplateOrientation | null;
-    if (template && orientation && orientation !== template.orientation) {
-      void this.store.updateTemplate(template.name, orientation);
-    }
-  }
-
   public setSticky(count: number): void {
     const template = this.template();
     if (template) {
       void this.store.updateTemplate(template.name, template.orientation, count);
-    }
-  }
-
-  public async addSection(): Promise<void> {
-    const id = await this.store.addSection(null);
-    if (id !== null) {
-      this.navigator.open({ kind: 'section', id });
-    }
-  }
-
-  public async addColumnBlock(): Promise<void> {
-    const id = await this.store.addColumnBlock();
-    if (id !== null) {
-      this.navigator.open({ kind: 'columnBlock', id });
     }
   }
 

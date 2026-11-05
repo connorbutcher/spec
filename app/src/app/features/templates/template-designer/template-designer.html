@@ -18,12 +18,16 @@
           <app-structure-outline />
         </nav>
 
-        <div class="canvas-scroll">
-          @if (layout(); as layout) {
-            <app-template-canvas [layout]="layout" />
-          }
+        <div class="main">
+          <app-selection-bar />
+          <div class="canvas-scroll">
+            @if (layout(); as layout) {
+              <app-template-canvas [layout]="layout" />
+            }
+          </div>
         </div>
       </div>
     }
   }
 </div>
+<p-contextmenu [model]="menu.items()" appendTo="body" />

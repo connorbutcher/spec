@@ -5,6 +5,16 @@
   --app-navy: #152a55;
   --app-navy-dark: #101f3f;
 
+  // Structure levels. Only the small icons in the template designer's tree, breadcrumb and panel
+  // title use them, so each level is recognisable at a glance while everything else stays grey.
+  --app-level-table: #152a55;
+  --app-level-header: #64748b;
+  --app-level-section: #2f6b8f;
+  --app-level-sub-section: #4f7f6a;
+  --app-level-row: #8a6d2b;
+  --app-level-cell: #6b5b95;
+  --app-level-column-block: #8a5a44;
+
   // Text, darkest to lightest.
   --app-text-strong: #0f172a;
   --app-text: #1f2937;

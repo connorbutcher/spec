@@ -3,7 +3,8 @@
   height: 100%;
 }
 
-// Three columns that each fill the height and scroll their own content.
+// Three columns that each fill the height and scroll their own content. With a table open the list
+// is a narrow rail.
 .templates-page {
   display: grid;
   grid-template-columns: minmax(180px, 230px) minmax(0, 1fr) minmax(260px, 320px);
@@ -11,13 +12,20 @@
   gap: var(--app-space-4);
   height: 100%;
 
+  &.designing {
+    grid-template-columns: 2.25rem minmax(0, 1fr) minmax(280px, 340px);
+  }
+
   .designer {
     min-width: 0;
     min-height: 0;
   }
 
   @media (max-width: 1000px) {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: auto minmax(360px, 1fr) auto;
+    &,
+    &.designing {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: auto minmax(360px, 1fr) auto;
+    }
   }
 }

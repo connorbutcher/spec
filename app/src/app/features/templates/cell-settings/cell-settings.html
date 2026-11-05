@@ -1,21 +1,5 @@
 @if (entry(); as entry) {
-  <div class="app-fields">
-    <p class="app-field-note">
-      @if (blockName(); as blockName) {
-        {{ blockName }} column {{ entry.cell.column }} of
-      } @else {
-        Column {{ entry.cell.column }} of
-      }
-      <p-button
-        [label]="'row ' + entry.row.number"
-        [link]="true"
-        size="small"
-        styleClass="inline-link"
-        (onClick)="openRow()"
-      />
-      in {{ entry.row.section.name }}
-    </p>
-
+  <app-settings-group title="General" key="cell-general">
     <app-cell-type-field
       [cellTypeId]="entry.cell.cellTypeId"
       [disabled]="isSaving() || !canEdit()"
@@ -72,29 +56,23 @@
         </span>
       </div>
     }
+  </app-settings-group>
 
+  <app-settings-group title="Placement" key="cell-placement" [note]="blockName()">
     <app-cell-placement-fields
       [placement]="entry.cell"
       [disabled]="isSaving() || !canEdit()"
       (changed)="setPlacement($event)"
     />
+  </app-settings-group>
 
-    @if (cellType(); as cellType) {
-      <app-cell-overrides
-        [cell]="entry.cell"
-        [cellType]="cellType"
-        [disabled]="!canEdit()"
-        [busy]="isSaving()"
-        (changed)="setOverrides($event)"
-      />
-    }
-
-    <div class="app-danger-zone">
-      <app-confirm-delete-button
-        label="Delete cell"
-        [disabled]="isSaving() || !canEdit()"
-        (confirmed)="delete()"
-      />
-    </div>
-  </div>
+  @if (cellType(); as cellType) {
+    <app-cell-overrides
+      [cell]="entry.cell"
+      [cellType]="cellType"
+      [disabled]="!canEdit()"
+      [busy]="isSaving()"
+      (changed)="setOverrides($event)"
+    />
+  }
 }

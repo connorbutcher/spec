@@ -1,5 +1,5 @@
 @if (entry(); as entry) {
-  <div class="app-fields">
+  <app-settings-group title="General" key="column-block-general">
     <div class="app-field">
       <label for="column-block-name">Column block name</label>
       <input
@@ -16,17 +16,6 @@
     </div>
 
     <div class="app-field">
-      <span class="app-field-label">Order, left to right</span>
-      <app-move-buttons
-        noun="column block"
-        [position]="entry.number"
-        [count]="blockCount()"
-        [disabled]="isSaving() || !canEdit()"
-        (moved)="move($event)"
-      />
-    </div>
-
-    <div class="app-field">
       <app-sticky-columns-field
         id="column-block-sticky"
         label="Sticky columns"
@@ -36,28 +25,22 @@
         (changed)="setSticky($event)"
       />
     </div>
+  </app-settings-group>
 
+  <app-settings-group title="Added on the sheet" key="column-block-instances">
     <app-instance-counts-fields
       idPrefix="column-block"
       [counts]="entry.block"
       [disabled]="isSaving() || !canEdit()"
       (changed)="setCounts($event)"
     />
+  </app-settings-group>
 
-    <h3 class="app-group-title">Cells</h3>
+  <app-settings-group title="Cells" key="column-block-cells">
     <p class="app-field-note">{{ cellSummary() }}</p>
     <p class="app-field-note">
       Each row has its own cells for this block, and every copy on a sheet runs through every row.
-      Add or change them from a row, or right-click a cell in the block.
+      Add them from a row, or right-click a cell in the block.
     </p>
-
-    <div class="app-danger-zone">
-      <app-confirm-delete-button
-        label="Delete column block"
-        warning="Its cells in every row go too."
-        [disabled]="isSaving() || !canEdit()"
-        (confirmed)="delete()"
-      />
-    </div>
-  </div>
+  </app-settings-group>
 }

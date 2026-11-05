@@ -1,0 +1,37 @@
+.bar {
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-5);
+  min-height: 2rem;
+  padding: var(--app-space-1) var(--app-space-4) var(--app-space-1) var(--app-space-5);
+  border-bottom: 1px solid var(--app-border);
+  background: var(--app-surface-subtle);
+}
+
+.crumbs {
+  flex: 1;
+  min-width: 0;
+}
+
+.actions {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--app-space-1);
+
+  ::ng-deep .p-button {
+    padding: var(--app-space-1) var(--app-space-3);
+    font-size: var(--app-font-size-md);
+  }
+
+  ::ng-deep .p-button-icon-only {
+    width: 1.5rem;
+    padding-inline: 0;
+  }
+}
+
+.divider {
+  align-self: stretch;
+  margin: var(--app-space-2) var(--app-space-2);
+  border-left: 1px solid var(--app-border);
+}

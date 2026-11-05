@@ -2,9 +2,10 @@ import { CellType } from './models/cell-type.model';
 import { PanelCrumb } from './models/panel-crumb.model';
 import { PanelRef } from './models/panel-ref';
 import { TableTemplate } from './models/table-template.model';
-import { TemplateCell } from './models/template-cell.model';
 import { TemplateIndex } from './models/template-index.model';
 import { TemplateSection } from './models/template-section.model';
+import { StructureIcons } from './structure-icons';
+import { StructureTreeUtil } from './structure-tree.util';
 
 export class PanelCrumbsUtil {
   /**
@@ -12,9 +13,14 @@ export class PanelCrumbsUtil {
    * cell types › type.
    * Returns an empty list when the item no longer exists.
    */
-  public static panelCrumbs(ref: PanelRef, template: TableTemplate | null, index: TemplateIndex, cellType: (id: number) => CellType | undefined): PanelCrumb[] {
+  public static panelCrumbs(
+    ref: PanelRef,
+    template: TableTemplate | null,
+    index: TemplateIndex,
+    cellType: (id: number) => CellType | undefined,
+  ): PanelCrumb[] {
     const tableCrumb: PanelCrumb[] = template
-      ? [{ label: template.name, ref: { kind: 'template' } }]
+      ? [{ label: template.name, ref: { kind: 'template' }, level: 'table' }]
       : [];
 
     switch (ref.kind) {
@@ -22,11 +28,13 @@ export class PanelCrumbsUtil {
         return tableCrumb;
       case 'section': {
         const entry = index.sections.get(ref.id);
-        return entry ? [...tableCrumb, ...PanelCrumbsUtil.sectionCrumbs([...entry.ancestors, entry.section])] : [];
+        return entry
+          ? [...tableCrumb, ...PanelCrumbsUtil.sectionCrumbs([...entry.ancestors, entry.section])]
+          : [];
       }
       case 'columnBlock': {
         const entry = index.columnBlocks.get(ref.id);
-        return entry ? [...tableCrumb, { label: entry.block.name, ref }] : [];
+        return entry ? [...tableCrumb, { label: entry.block.name, ref, level: 'columnBlock' }] : [];
       }
       case 'row': {
         const entry = index.rows.get(ref.id);
@@ -37,7 +45,7 @@ export class PanelCrumbsUtil {
         return [
           ...tableCrumb,
           ...PanelCrumbsUtil.sectionCrumbs([...(path?.ancestors ?? []), entry.section]),
-          { label: `Row ${entry.number}`, ref },
+          { label: `Row ${entry.number}`, ref, level: 'row' },
         ];
       }
       case 'cell': {
@@ -48,31 +56,28 @@ export class PanelCrumbsUtil {
         const rowRef: PanelRef = { kind: 'row', id: entry.row.row.id };
         return [
           ...PanelCrumbsUtil.panelCrumbs(rowRef, template, index, cellType),
-          { label: PanelCrumbsUtil.cellLabel(entry.cell, index), ref },
+          { label: StructureTreeUtil.cellName(entry.cell, cellType), ref, level: 'cell' },
         ];
       }
       case 'cellTypes':
-        return [{ label: 'Cell types', ref }];
+        return [{ label: 'Cell types', ref, level: 'cellTypes' }];
       case 'cellType': {
         const found = cellType(ref.id);
         return found
           ? [
-              { label: 'Cell types', ref: { kind: 'cellTypes' } },
-              { label: found.name, ref },
+              { label: 'Cell types', ref: { kind: 'cellTypes' }, level: 'cellTypes' },
+              { label: found.name, ref, level: 'cellType' },
             ]
           : [];
       }
     }
   }
 
-  /** "Column 2", or "Part column 2" for a cell in a column block. */
-  private static cellLabel(cell: TemplateCell, index: TemplateIndex): string {
-    const block =
-      cell.columnBlockId === null ? undefined : index.columnBlocks.get(cell.columnBlockId);
-    return block ? `${block.block.name} column ${cell.column}` : `Column ${cell.column}`;
-  }
-
   private static sectionCrumbs(sections: TemplateSection[]): PanelCrumb[] {
-    return sections.map((section) => ({ label: section.name, ref: { kind: 'section', id: section.id } }));
+    return sections.map((section) => ({
+      label: section.name,
+      ref: { kind: 'section', id: section.id },
+      level: StructureIcons.sectionLevel(section),
+    }));
   }
 }

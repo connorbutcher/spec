@@ -11,6 +11,7 @@ import { SettingValue } from '../models/setting-value';
 import { TemplateCell } from '../models/template-cell.model';
 import { UpdateTemplateCellOverridesRequest } from '../models/update-template-cell-overrides-request.model';
 import { SettingsEditor } from '../settings-editor/settings-editor';
+import { SettingsGroup } from '../settings-group/settings-group';
 
 /**
  * The configuration and style a cell overrides from its cell type, with a button that drops every
@@ -18,7 +19,7 @@ import { SettingsEditor } from '../settings-editor/settings-editor';
  */
 @Component({
   selector: 'app-cell-overrides',
-  imports: [ButtonModule, SettingsEditor],
+  imports: [ButtonModule, SettingsEditor, SettingsGroup],
   templateUrl: './cell-overrides.html',
   styleUrl: './cell-overrides.scss',
 })
@@ -47,6 +48,22 @@ export class CellOverrides {
   public readonly hasOverrides = computed(
     () => this.configurationOverride() !== null || this.cell().styleOverride != null,
   );
+
+  /** "2 changed" for a group with overrides, or null. */
+  public readonly configurationNote = computed<string | null>(() =>
+    CellOverrides.changedNote(this.configurationOverride(), ['kind']),
+  );
+
+  public readonly styleNote = computed<string | null>(() =>
+    CellOverrides.changedNote(this.cell().styleOverride ?? null, []),
+  );
+
+  private static changedNote(override: object | null, ignored: string[]): string | null {
+    const count = Object.entries(override ?? {}).filter(
+      ([key, value]) => !ignored.includes(key) && value !== null && value !== undefined,
+    ).length;
+    return count > 0 ? `${count} changed` : null;
+  }
 
   public setConfigurationOverride(values: Record<string, SettingValue>): void {
     const kind = this.kind().kind;

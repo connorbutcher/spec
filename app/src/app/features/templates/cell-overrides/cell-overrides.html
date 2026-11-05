@@ -1,26 +1,33 @@
 @if (configurationFields().length > 0) {
-  <h3 class="app-group-title">{{ kind().label }} settings</h3>
-  <app-settings-editor
-    idPrefix="cell-config"
-    [fields]="configurationFields()"
-    [defaults]="cellType().configuration"
-    [overrides]="configurationOverride()"
-    [overridable]="true"
-    [disabled]="disabled()"
-    (changed)="setConfigurationOverride($event)"
-  />
+  <app-settings-group
+    [title]="kind().label + ' settings'"
+    key="cell-configuration"
+    [note]="configurationNote()"
+  >
+    <app-settings-editor
+      idPrefix="cell-config"
+      [fields]="configurationFields()"
+      [defaults]="cellType().configuration"
+      [overrides]="configurationOverride()"
+      [overridable]="true"
+      [disabled]="disabled()"
+      (changed)="setConfigurationOverride($event)"
+    />
+  </app-settings-group>
 }
 
-<h3 class="app-group-title">Style</h3>
-<app-settings-editor
-  idPrefix="cell-style"
-  [fields]="styleFields"
-  [defaults]="cellType().style"
-  [overrides]="cell().styleOverride"
-  [overridable]="true"
-  [disabled]="disabled()"
-  (changed)="setStyleOverride($event)"
-/>
+<app-settings-group title="Style" key="cell-style" [note]="styleNote()">
+  <app-settings-editor
+    idPrefix="cell-style"
+    [fields]="styleFields"
+    [defaults]="cellType().style"
+    [overrides]="cell().styleOverride"
+    [overridable]="true"
+    [disabled]="disabled()"
+    (changed)="setStyleOverride($event)"
+  />
+</app-settings-group>
+
 <div class="override-note">
   <span class="app-field-note">Unmarked values come from {{ cellType().name }}.</span>
   @if (hasOverrides()) {

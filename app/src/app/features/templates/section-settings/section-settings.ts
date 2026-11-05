@@ -1,38 +1,24 @@
 import { Component, computed, inject, input } from '@angular/core';
 import { InputTextModule } from 'primeng/inputtext';
-import { AddButton } from '../../../shared/components/add-button/add-button';
-import { ConfirmDeleteButton } from '../confirm-delete-button/confirm-delete-button';
 import { InstanceCountsFields } from '../instance-counts-fields/instance-counts-fields';
 import { InstanceCounts } from '../models/instance-counts.model';
-import { PanelLinkItem } from '../models/panel-link-item.model';
-import { PanelRef } from '../models/panel-ref';
 import { SectionEntry } from '../models/section-entry.model';
 import { UpdateTemplateSectionRequest } from '../models/update-template-section-request.model';
-import { MoveButtons } from '../move-buttons/move-buttons';
-import { PanelLinkList } from '../panel-link-list/panel-link-list';
-import { PanelNavigator } from '../panel-navigator';
-import { SectionLinksUtil } from '../section-links.util';
 import { SectionRoleUtil } from '../section-role.util';
+import { SettingsGroup } from '../settings-group/settings-group';
 import { TemplatesStore } from '../templates.store';
 
 /**
- * Panel page for a section: its name, how it's added on a sheet, its own rows and its sub-sections. The
- * header is always exactly one and can't be moved or removed; every other section is addable.
+ * Panel page for a section: its name and how it's added on a sheet. The header is always exactly one.
+ * Its rows and sub-sections are in the structure tree, and adding, moving and deleting are in the
+ * selection bar.
  */
 @Component({
   selector: 'app-section-settings',
-  imports: [
-    AddButton,
-    ConfirmDeleteButton,
-    InputTextModule,
-    InstanceCountsFields,
-    MoveButtons,
-    PanelLinkList,
-  ],
+  imports: [InputTextModule, InstanceCountsFields, SettingsGroup],
   templateUrl: './section-settings.html',
   styleUrl: './section-settings.scss',
 })
-
 export class SectionSettings {
   public readonly sectionId = input.required<number>();
 
@@ -51,22 +37,7 @@ export class SectionSettings {
     return section ? SectionRoleUtil.isHeader(section) : false;
   });
 
-  public readonly childSections = computed<PanelLinkItem[]>(() =>
-    SectionLinksUtil.sectionLinks(this.entry()?.section.sections ?? []),
-  );
-
-  public readonly rows = computed<PanelLinkItem[]>(() =>
-    (this.entry()?.section.rows ?? []).map((row, index) => ({
-      ref: { kind: 'row', id: row.id },
-      label: `Row ${index + 1}`,
-      icon: 'pi-bars',
-      meta: SectionLinksUtil.plural(row.cells.length, 'cell'),
-      muted: row.cells.length === 0,
-    })),
-  );
-
   private readonly store = inject(TemplatesStore);
-  private readonly navigator = inject(PanelNavigator);
 
   public isSaving(): boolean {
     return this.store.isSaving();
@@ -74,16 +45,6 @@ export class SectionSettings {
 
   public canEdit(): boolean {
     return this.store.canEdit();
-  }
-
-  /** Top-level sections are independent of each other, so they have no position to change. */
-  public isTopLevel(): boolean {
-    return this.entry()?.section.parentSectionId === null;
-  }
-
-  public position(): number {
-    const entry = this.entry();
-    return entry ? entry.siblings.indexOf(entry.section) + 1 : 1;
   }
 
   public async rename(input: HTMLInputElement): Promise<void> {
@@ -97,36 +58,6 @@ export class SectionSettings {
 
   public setCounts(counts: InstanceCounts): void {
     void this.save(counts);
-  }
-
-  public move(position: number): void {
-    void this.store.moveSection(this.sectionId(), position);
-  }
-
-  public async addSubSection(): Promise<void> {
-    const id = await this.store.addSection(this.sectionId());
-    if (id !== null) {
-      this.navigator.open({ kind: 'section', id });
-    }
-  }
-
-  public async addRow(): Promise<void> {
-    const id = await this.store.addRow(this.sectionId());
-    if (id !== null) {
-      this.navigator.open({ kind: 'row', id });
-    }
-  }
-
-  public deleteWarning(): string {
-    return 'Its rows and sub-sections, with their cells, go too.';
-  }
-
-  public async delete(): Promise<void> {
-    const parent = this.entry()?.ancestors.at(-1);
-    const fallback: PanelRef = parent ? { kind: 'section', id: parent.id } : { kind: 'template' };
-    if (await this.store.deleteSection(this.sectionId())) {
-      this.navigator.forgetMissing(fallback);
-    }
   }
 
   private save(changes: Partial<UpdateTemplateSectionRequest>): Promise<void> {

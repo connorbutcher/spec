@@ -1,28 +1,24 @@
 import { Component, computed, inject, input } from '@angular/core';
-import { AddButton } from '../../../shared/components/add-button/add-button';
-import { ConfirmDeleteButton } from '../confirm-delete-button/confirm-delete-button';
 import { CellKinds } from '../models/cell-kinds';
 import { PanelLinkItem } from '../models/panel-link-item.model';
 import { RowEntry } from '../models/row-entry.model';
 import { TemplateCell } from '../models/template-cell.model';
 import { TemplateColumnBlock } from '../models/template-column-block.model';
-import { MoveButtons } from '../move-buttons/move-buttons';
 import { PanelLinkList } from '../panel-link-list/panel-link-list';
-import { PanelNavigator } from '../panel-navigator';
 import { CellTypesStore } from '../cell-types.store';
+import { SettingsGroup } from '../settings-group/settings-group';
 import { TemplatesStore } from '../templates.store';
 
 /**
- * Panel page for a row: where it sits in its section and its cells, the row's own first and then, in a
- * horizontal table, its cells in each column block.
+ * Panel page for a row: its cells, the row's own first and then, in a horizontal table, its cells in
+ * each column block. Adding, moving and deleting are in the selection bar.
  */
 @Component({
   selector: 'app-row-settings',
-  imports: [AddButton, ConfirmDeleteButton, MoveButtons, PanelLinkList],
+  imports: [PanelLinkList, SettingsGroup],
   templateUrl: './row-settings.html',
   styleUrl: './row-settings.scss',
 })
-
 export class RowSettings {
   public readonly rowId = input.required<number>();
 
@@ -51,33 +47,10 @@ export class RowSettings {
 
   private readonly store = inject(TemplatesStore);
   private readonly cellTypeStore = inject(CellTypesStore);
-  private readonly navigator = inject(PanelNavigator);
 
-  public isSaving(): boolean {
-    return this.store.isSaving();
-  }
-
-  public canEdit(): boolean {
-    return this.store.canEdit();
-  }
-
-  public move(position: number): void {
-    void this.store.moveRow(this.rowId(), position);
-  }
-
-  /** Adds a cell after the last of the row's own cells, or of a column block's cells with its id. */
-  public async addCell(columnBlockId: number | null = null): Promise<void> {
-    const id = await this.store.addCell(this.rowId(), null, columnBlockId);
-    if (id !== null) {
-      this.navigator.open({ kind: 'cell', id });
-    }
-  }
-
-  public async delete(): Promise<void> {
-    const sectionId = this.entry()?.section.id;
-    if (sectionId !== undefined && (await this.store.deleteRow(this.rowId()))) {
-      this.navigator.forgetMissing({ kind: 'section', id: sectionId });
-    }
+  public cellCount(): string {
+    const count = this.cells().length;
+    return `${count} cell${count === 1 ? '' : 's'}`;
   }
 
   private cellLink(cell: TemplateCell): PanelLinkItem {

@@ -1,5 +1,5 @@
 @if (template(); as template) {
-  <div class="app-fields">
+  <app-settings-group title="General" key="table-general">
     <div class="app-field">
       <label for="template-name">Name</label>
       <input
@@ -14,21 +14,6 @@
       />
     </div>
 
-    <div class="app-field">
-      <span class="app-field-label" id="template-orientation-label">Orientation</span>
-      <p-selectbutton
-        [options]="orientations"
-        optionLabel="label"
-        optionValue="value"
-        [ngModel]="template.orientation"
-        (onChange)="setOrientation($event)"
-        [allowEmpty]="false"
-        [disabled]="isSaving() || !canEdit()"
-        size="small"
-        ariaLabelledBy="template-orientation-label"
-      />
-    </div>
-
     @if (isHorizontal()) {
       <div class="app-field">
         <app-sticky-columns-field
@@ -40,48 +25,18 @@
           (changed)="setSticky($event)"
         />
       </div>
-    }
-
-    <h3 class="app-group-title">Header and sections</h3>
-    <app-panel-link-list
-      [items]="sections()"
-      emptyText="No sections yet."
-      ariaLabel="Header and sections"
-    />
-    <div class="app-actions">
-      <app-add-button
-        label="Add section"
-        [disabled]="isSaving() || !canEdit()"
-        (clicked)="addSection()"
-      />
-    </div>
-
-    @if (isHorizontal()) {
-      <h3 class="app-group-title">Column blocks</h3>
-      <app-panel-link-list
-        [items]="columnBlocks()"
-        emptyText="No column blocks yet."
-        ariaLabel="Column blocks"
-      />
-      <div class="app-actions">
-        <app-add-button
-          label="Add column block"
-          [disabled]="isSaving() || !canEdit()"
-          (clicked)="addColumnBlock()"
-        />
-      </div>
       <p class="app-field-note">
-        People add copies of each block across the sheet. Every row has cells in every copy.
+        People add copies of each column block across the sheet. Every row has cells in every copy.
       </p>
     }
+  </app-settings-group>
 
-    <div class="app-danger-zone">
-      <app-confirm-delete-button
-        label="Delete table"
-        warning="Every version, with its sections, rows and cells, goes too."
-        [disabled]="isSaving()"
-        (confirmed)="delete()"
-      />
-    </div>
-  </div>
+  <app-settings-group title="Delete" key="table-delete">
+    <app-confirm-delete-button
+      label="Delete table"
+      warning="Every version, with its sections, rows and cells, goes too."
+      [disabled]="isSaving()"
+      (confirmed)="delete()"
+    />
+  </app-settings-group>
 }

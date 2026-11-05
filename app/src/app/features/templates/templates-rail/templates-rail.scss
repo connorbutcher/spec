@@ -1,0 +1,32 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
+.rail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--app-space-2);
+  height: 100%;
+  padding: var(--app-space-3) 0;
+}
+
+// The drawer holds the same list panel as the page shows when no table is open.
+::ng-deep .tables-drawer.p-drawer {
+  --p-drawer-content-padding: 0;
+  width: 15rem;
+
+  .p-drawer-header {
+    display: none;
+  }
+
+  app-template-list-panel {
+    height: 100%;
+  }
+
+  .list-panel {
+    border: 0;
+    border-radius: 0;
+  }
+}

@@ -1,0 +1,51 @@
+<div class="bar">
+  <app-panel-breadcrumb class="crumbs" [crumbs]="crumbs()" />
+
+  <div class="actions" role="toolbar" aria-label="Actions for the selection">
+    @for (action of labelled(); track action.id) {
+      <p-button
+        [icon]="'pi ' + action.icon"
+        [label]="action.label"
+        size="small"
+        severity="secondary"
+        [text]="true"
+        [disabled]="action.disabled"
+        (onClick)="run(action, $event)"
+      />
+    }
+    @if (icons().length > 0) {
+      <span class="divider" aria-hidden="true"></span>
+    }
+    @for (action of icons(); track action.id) {
+      <p-button
+        [icon]="'pi ' + action.icon"
+        size="small"
+        severity="secondary"
+        [text]="true"
+        [disabled]="action.disabled"
+        [ariaLabel]="action.label"
+        [pTooltip]="action.label"
+        tooltipPosition="bottom"
+        [showDelay]="300"
+        (onClick)="run(action, $event)"
+      />
+    }
+    @if (danger().length > 0) {
+      <span class="divider" aria-hidden="true"></span>
+    }
+    @for (action of danger(); track action.id) {
+      <p-button
+        [icon]="'pi ' + action.icon"
+        size="small"
+        severity="danger"
+        [text]="true"
+        [disabled]="action.disabled"
+        [ariaLabel]="action.label"
+        [pTooltip]="action.label"
+        tooltipPosition="bottom"
+        [showDelay]="300"
+        (onClick)="run(action, $event)"
+      />
+    }
+  </div>
+</div>

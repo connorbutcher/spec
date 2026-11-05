@@ -1,6 +1,6 @@
 import { Component, inject, input } from '@angular/core';
 import { CanvasCell } from '../canvas-cell/canvas-cell';
-import { CanvasMenu } from '../canvas-menu';
+import { StructureMenu } from '../structure-menu';
 import { GridStyle } from '../models/grid-style';
 import { SectionLayout } from '../models/section-layout.model';
 import { PanelNavigator } from '../panel-navigator';
@@ -25,7 +25,7 @@ export class CanvasSection {
   public readonly layout = input.required<SectionLayout>();
 
   private readonly navigator = inject(PanelNavigator);
-  private readonly menu = inject(CanvasMenu);
+  private readonly menu = inject(StructureMenu);
 
   public hostStyle(): GridStyle {
     return this.layout().style;
@@ -36,6 +36,6 @@ export class CanvasSection {
   }
 
   public openMenu(event: MouseEvent): void {
-    this.menu.openForSection(event, this.layout().section.id);
+    this.menu.open(event, { kind: 'section', id: this.layout().section.id });
   }
 }

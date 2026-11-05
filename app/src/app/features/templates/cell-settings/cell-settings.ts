@@ -1,12 +1,10 @@
 import { Component, computed, inject, input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ButtonModule } from 'primeng/button';
 import { CheckboxChangeEvent, CheckboxModule } from 'primeng/checkbox';
 import { InputTextModule } from 'primeng/inputtext';
 import { CellOverrides } from '../cell-overrides/cell-overrides';
 import { CellPlacementFields } from '../cell-placement-fields/cell-placement-fields';
 import { CellTypeField } from '../cell-type-field/cell-type-field';
-import { ConfirmDeleteButton } from '../confirm-delete-button/confirm-delete-button';
 import { CellKinds } from '../models/cell-kinds';
 import { CellEntry } from '../models/cell-entry.model';
 import { CellKindInfo } from '../models/cell-kind-info.model';
@@ -14,30 +12,28 @@ import { CellPlacement } from '../models/cell-placement.model';
 import { CellType } from '../models/cell-type.model';
 import { UpdateTemplateCellOverridesRequest } from '../models/update-template-cell-overrides-request.model';
 import { UpdateTemplateCellRequest } from '../models/update-template-cell-request.model';
-import { PanelNavigator } from '../panel-navigator';
 import { CellTypesStore } from '../cell-types.store';
+import { SettingsGroup } from '../settings-group/settings-group';
 import { TemplatesStore } from '../templates.store';
 
 /**
- * Panel page for a cell: its type, caption, whether it's required, its lookup key, where it sits in the row, and the
- * configuration and style it overrides from its cell type.
+ * Panel page for a cell: its type, caption, whether it's required, its lookup key, where it sits in the row, and
+ * the configuration and style it overrides from its cell type.
  */
 @Component({
   selector: 'app-cell-settings',
   imports: [
-    ButtonModule,
     CellOverrides,
     CellPlacementFields,
     CellTypeField,
     CheckboxModule,
-    ConfirmDeleteButton,
+    SettingsGroup,
     FormsModule,
     InputTextModule,
   ],
   templateUrl: './cell-settings.html',
   styleUrl: './cell-settings.scss',
 })
-
 export class CellSettings {
   public readonly cellId = input.required<number>();
 
@@ -64,7 +60,6 @@ export class CellSettings {
 
   private readonly store = inject(TemplatesStore);
   private readonly cellTypeStore = inject(CellTypesStore);
-  private readonly navigator = inject(PanelNavigator);
 
   public isSaving(): boolean {
     return this.store.isSaving();
@@ -108,20 +103,6 @@ export class CellSettings {
 
   public setOverrides(changes: Partial<UpdateTemplateCellOverridesRequest>): void {
     void this.store.updateCellOverrides(this.cellId(), changes);
-  }
-
-  public openRow(): void {
-    const entry = this.entry();
-    if (entry) {
-      this.navigator.open({ kind: 'row', id: entry.row.row.id });
-    }
-  }
-
-  public async delete(): Promise<void> {
-    const rowId = this.entry()?.row.row.id;
-    if (rowId !== undefined && (await this.store.deleteCell(this.cellId()))) {
-      this.navigator.forgetMissing({ kind: 'row', id: rowId });
-    }
   }
 
   private save(changes: Partial<UpdateTemplateCellRequest>): Promise<void> {

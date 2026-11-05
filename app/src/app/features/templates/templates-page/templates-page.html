@@ -1,5 +1,9 @@
-<div class="templates-page">
-  <app-template-list-panel />
+<div class="templates-page" [class.designing]="isDesigning()">
+  @if (isDesigning()) {
+    <app-templates-rail />
+  } @else {
+    <app-template-list-panel />
+  }
   <section class="designer" aria-live="polite">
     <router-outlet />
   </section>

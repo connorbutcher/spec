@@ -1,6 +1,57 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+// One line: earlier steps shrink first, and the current step keeps its name.
 .crumbs {
+  ::ng-deep .p-breadcrumb-list {
+    flex-wrap: nowrap;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  ::ng-deep .p-breadcrumb-item {
+    flex-shrink: 1;
+    min-width: 2.5rem;
+  }
+
+  ::ng-deep .p-breadcrumb-item:first-child {
+    min-width: auto;
+  }
+
+  ::ng-deep .p-breadcrumb-item:not(.current) .p-breadcrumb-item-label {
+    max-width: 9rem;
+  }
+
+  ::ng-deep .p-breadcrumb-item-link {
+    gap: var(--app-space-2);
+    min-width: 0;
+    padding: var(--app-space-1) var(--app-space-2);
+    border-radius: var(--app-radius);
+  }
+
+  ::ng-deep .p-breadcrumb-item-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  ::ng-deep .p-breadcrumb-item-icon {
+    font-size: var(--app-font-size-sm);
+  }
+
+  ::ng-deep .current {
+    flex-shrink: 0;
+    max-width: 60%;
+  }
+
+  ::ng-deep .current .p-breadcrumb-item-link {
+    background: var(--app-surface-selected);
+  }
+
   ::ng-deep .current .p-breadcrumb-item-label {
-    color: var(--app-text);
+    color: var(--app-navy);
     font-weight: var(--app-font-weight-semibold);
   }
 }
