@@ -24,6 +24,9 @@ export class SheetStatus {
   /** The item changed after the version being compared against: its version is written in bold. */
   public readonly changed = input(false);
 
+  /** Only the state's icon is shown, not its words: for a narrow column that puts them in a tooltip. */
+  public readonly compact = input(false);
+
   public readonly version = computed(() => ItemStatusUtil.versionText(this.status()));
 
   public readonly text = computed(() => ItemStatusUtil.stateText(this.status()));

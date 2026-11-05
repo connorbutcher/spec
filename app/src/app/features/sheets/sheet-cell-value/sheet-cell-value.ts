@@ -15,6 +15,7 @@ import { SheetCell } from '../models/sheet-cell.model';
   styleUrl: './sheet-cell-value.scss',
   host: {
     '[class.fills-cell]': 'fillsCell()',
+    '[class.wraps]': 'isText()',
     '[class.multiline]': 'isMultiline()',
     '[class.styled-by-cell]': 'isText()',
   },
@@ -37,7 +38,7 @@ export class SheetCellValue {
   /** A text box takes its text style from the cell; the other controls keep their own. */
   public readonly isText = computed(() => this.cellType()?.kind === 'Text');
 
-  /** A multi-line text cell wraps, as its text area does; anything else stays on one line, as its box does. */
+  /** A multi-line text cell keeps its own line breaks, as its text area does. */
   public readonly isMultiline = computed(() => {
     const configuration = this.configuration();
     return configuration?.kind === 'Text' && configuration.multiline === true;

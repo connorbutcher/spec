@@ -65,10 +65,18 @@ export class SheetRowStatusCell {
     () => this.store.markedChange(this.row()?.lastChange) !== null,
   );
 
-  /** "v3 · 12 Sep 2026 · A. Smith": when the row's version was published and by whom, as extra detail. */
+  /**
+   * The row's state and who has it ("Draft · A. Smith"), which the narrow column shows only as an icon,
+   * over when the row's version was published and by whom ("v3 · 12 Sep 2026 · A. Smith").
+   */
   public readonly detail = computed(() => {
+    const status = this.status();
     const change = this.row()?.lastChange;
-    return change ? SheetLabelsUtil.changeLabel(change) : undefined;
+    const lines = [
+      status === null ? null : ItemStatusUtil.stateText(status),
+      change ? SheetLabelsUtil.changeLabel(change) : null,
+    ].filter((line) => line !== null);
+    return lines.length > 0 ? lines.join('\n') : undefined;
   });
 
   public readonly label = computed(() => {

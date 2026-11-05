@@ -33,8 +33,8 @@ class SheetGridCellPage {
     return this.fixture.nativeElement as HTMLElement;
   }
 
-  public box(): HTMLInputElement | null {
-    return this.host().querySelector('input');
+  public box(): HTMLTextAreaElement | null {
+    return this.host().querySelector('textarea');
   }
 
   /** Renders the first cell of the fixture table's header row, after `change` has adjusted the sheet. */

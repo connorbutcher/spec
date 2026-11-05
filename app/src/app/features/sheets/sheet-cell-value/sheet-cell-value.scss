@@ -16,7 +16,8 @@
 }
 
 // Standing in for the cell's control: the text sits where the control's own text would, with the
-// same padding, on one line, so nothing moves when the control takes its place.
+// same padding, so nothing moves when the control takes its place. Only text wraps; the other
+// values stay on one line, as their controls do.
 :host(.fills-cell) {
   .value,
   .hint {
@@ -54,7 +55,16 @@
   }
 }
 
-// A multi-line text cell shows every line, as its text area does.
+// A text cell wraps onto more lines rather than cutting its text off, as its text area does.
+:host(.fills-cell.wraps) {
+  .value,
+  .hint {
+    overflow-wrap: anywhere;
+    white-space: normal;
+  }
+}
+
+// A multi-line text cell also keeps the line breaks typed into it.
 :host(.fills-cell.multiline) {
   .value,
   .hint {

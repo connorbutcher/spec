@@ -23,7 +23,7 @@ class SheetRowStatusCellPage {
 
   public text(): string {
     return [...this.host().querySelectorAll('.version, p-tag, .state')]
-      .map((part) => (part.textContent ?? '').replace(/\s+/g, ' ').trim())
+      .map((part) => (part.getAttribute('aria-label') ?? part.textContent ?? '').replace(/\s+/g, ' ').trim())
       .join(' ');
   }
 

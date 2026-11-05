@@ -2,8 +2,11 @@ import { GridStyle } from '../../templates/models/grid-style';
 import { SectionLayout } from '../../templates/models/section-layout.model';
 import { TemplateLayout } from '../../templates/models/template-layout.model';
 
-/** The width of the status column. Fixed, because the pinned columns after it sit this far from the left. */
-export const STATUS_COLUMN_WIDTH = 168;
+/**
+ * The width of the status column: room for a row's version and its state's icon, as the state's words
+ * are in the tooltip. Fixed, because the pinned columns after it sit this far from the left.
+ */
+export const STATUS_COLUMN_WIDTH = 64;
 
 export class SheetStatusColumnUtil {
   /**
