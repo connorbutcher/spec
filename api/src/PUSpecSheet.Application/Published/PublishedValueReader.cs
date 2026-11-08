@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using PUSpecSheet.Application.Sheets.Values;
 using PUSpecSheet.Data;
 using PUSpecSheet.Domain.Values;
 
@@ -6,17 +7,17 @@ namespace PUSpecSheet.Application.Published;
 
 /// <summary>
 /// Reads cell values from the typed tables of the "values" schema, by sheet cell id. Each query returns
-/// only the cell id and the value, and finds them through the row revisions the cell query already found,
-/// so no value query reads the revisions table again.
+/// only the cell id and the value. A whole sheet's values are found through the sheet's revisions at the
+/// version; selected cells through the row revisions the cell query found.
 /// </summary>
 public sealed class PublishedValueReader(PuSpecSheetDbContext db)
 {
     /// <param name="cells">The cells to read values for, as the cell query found them.</param>
-    /// <param name="wholeSheet">True when the cells are every cell of the sheet, so every value of their revisions is read and not a long list of cells.</param>
+    /// <param name="wholeSheet">The version, when the cells are every cell of the sheet, so every value of its revisions is read and not a long list of cells; otherwise null.</param>
     /// <param name="cancellationToken">Stops the queries.</param>
     public async Task<Dictionary<int, object>> ReadAsync(
         IReadOnlyList<PublishedCellRecord> cells,
-        bool wholeSheet,
+        ResolvedSheetVersion? wholeSheet,
         CancellationToken cancellationToken)
     {
         var result = new Dictionary<int, object>();
@@ -25,8 +26,8 @@ public sealed class PublishedValueReader(PuSpecSheetDbContext db)
             return result;
         }
 
-        var revisionIds = cells.Select(cell => cell.RowRevisionId).Distinct().ToList();
-        var cellIds = wholeSheet ? null : cells.Select(cell => cell.CellId).ToList();
+        var revisionIds = RevisionsOf(db, cells.Select(cell => cell.RowRevisionId), wholeSheet);
+        var cellIds = wholeSheet is not null ? null : cells.Select(cell => cell.CellId).ToList();
 
         await ReadTextsAsync(db, result, revisionIds, cellIds, cancellationToken);
         await ReadNumbersAsync(db, result, revisionIds, cellIds, cancellationToken);
@@ -37,33 +38,36 @@ public sealed class PublishedValueReader(PuSpecSheetDbContext db)
     }
 
     /// <summary>
-    /// The values of one typed table held by the row revisions found, and only for the cells listed when
-    /// there are any (null for a whole sheet).
+    /// The row revisions to read values for: for a whole sheet, a query over the sheet's revisions at the
+    /// version, which SQL Server runs inside each value query; otherwise the ids the cell query found.
     /// </summary>
     /// <remarks>
-    /// A whole sheet's revisions are sent as one JSON parameter. As many separate parameters, a large sheet
-    /// costs a fresh plan for every count of rows, and a join back to the revisions instead reads the
-    /// revisions of every sheet in the database, because SQL Server can't tell how few belong to this one.
+    /// A whole sheet's ids sent as one JSON parameter looked cheap, but SQL Server guesses a JSON list holds
+    /// about 50 ids and, for a small value table, reads the whole list again for every value row: 63 of the
+    /// 79 ms of a 2,000-row sheet went on 101 dates. The query is found through the (sheet, published) index.
     /// </remarks>
+    public static RowRevisionScope RevisionsOf(PuSpecSheetDbContext db, IEnumerable<int> found, ResolvedSheetVersion? wholeSheet)
+    {
+        return wholeSheet is null
+            ? RowRevisionScope.Of(found.Distinct().ToList())
+            : RowRevisionScope.Of(db.RowRevisionIdsAt(wholeSheet));
+    }
+
+    /// <summary>
+    /// The values of one typed table held by the row revisions in scope, and only for the cells listed when
+    /// there are any (null for a whole sheet).
+    /// </summary>
     public static IQueryable<TValue> Scope<TValue>(
         IQueryable<TValue> values,
-        List<int> revisionIds,
+        RowRevisionScope revisions,
         List<int>? cellIds)
         where TValue : class, ICellValue
     {
-        if (cellIds is not null)
-        {
-            return values
-                .AsNoTracking()
-                .Where(value => revisionIds.Contains(value.SheetRowRevisionId) && cellIds.Contains(value.SheetCellId));
-        }
-
-        return values
-            .AsNoTracking()
-            .Where(value => EF.Parameter(revisionIds).Contains(value.SheetRowRevisionId));
+        var scoped = revisions.Apply(values.AsNoTracking());
+        return cellIds is null ? scoped : scoped.Where(value => cellIds.Contains(value.SheetCellId));
     }
 
-    public static async Task ReadTextsAsync(PuSpecSheetDbContext db, Dictionary<int, object> result, List<int> revisionIds, List<int>? cellIds, CancellationToken cancellationToken)
+    public static async Task ReadTextsAsync(PuSpecSheetDbContext db, Dictionary<int, object> result, RowRevisionScope revisionIds, List<int>? cellIds, CancellationToken cancellationToken)
     {
         var texts = await Scope(db.TextValues, revisionIds, cellIds)
             .Select(value => new { value.SheetCellId, value.Value })
@@ -74,7 +78,7 @@ public sealed class PublishedValueReader(PuSpecSheetDbContext db)
         }
     }
 
-    public static async Task ReadNumbersAsync(PuSpecSheetDbContext db, Dictionary<int, object> result, List<int> revisionIds, List<int>? cellIds, CancellationToken cancellationToken)
+    public static async Task ReadNumbersAsync(PuSpecSheetDbContext db, Dictionary<int, object> result, RowRevisionScope revisionIds, List<int>? cellIds, CancellationToken cancellationToken)
     {
         var numbers = await Scope(db.NumericValues, revisionIds, cellIds)
             .Select(value => new { value.SheetCellId, value.Value })
@@ -85,7 +89,7 @@ public sealed class PublishedValueReader(PuSpecSheetDbContext db)
         }
     }
 
-    public static async Task ReadDatesAsync(PuSpecSheetDbContext db, Dictionary<int, object> result, List<int> revisionIds, List<int>? cellIds, CancellationToken cancellationToken)
+    public static async Task ReadDatesAsync(PuSpecSheetDbContext db, Dictionary<int, object> result, RowRevisionScope revisionIds, List<int>? cellIds, CancellationToken cancellationToken)
     {
         var dates = await Scope(db.DateValues, revisionIds, cellIds)
             .Select(value => new { value.SheetCellId, value.Value })
@@ -96,7 +100,7 @@ public sealed class PublishedValueReader(PuSpecSheetDbContext db)
         }
     }
 
-    public static async Task ReadBooleansAsync(PuSpecSheetDbContext db, Dictionary<int, object> result, List<int> revisionIds, List<int>? cellIds, CancellationToken cancellationToken)
+    public static async Task ReadBooleansAsync(PuSpecSheetDbContext db, Dictionary<int, object> result, RowRevisionScope revisionIds, List<int>? cellIds, CancellationToken cancellationToken)
     {
         var booleans = await Scope(db.BooleanValues, revisionIds, cellIds)
             .Select(value => new { value.SheetCellId, value.Value })
@@ -107,7 +111,7 @@ public sealed class PublishedValueReader(PuSpecSheetDbContext db)
         }
     }
 
-    public static async Task ReadOptionsAsync(PuSpecSheetDbContext db, Dictionary<int, object> result, List<int> revisionIds, List<int>? cellIds, CancellationToken cancellationToken)
+    public static async Task ReadOptionsAsync(PuSpecSheetDbContext db, Dictionary<int, object> result, RowRevisionScope revisionIds, List<int>? cellIds, CancellationToken cancellationToken)
     {
         var options = await Scope(db.OptionValues, revisionIds, cellIds)
             .Select(value => new { value.SheetCellId, value.CellTypeOption.Value, value.CellTypeOption.CellType.Kind })

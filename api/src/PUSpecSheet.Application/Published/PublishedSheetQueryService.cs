@@ -66,7 +66,7 @@ public sealed class PublishedSheetQueryService(
         var structure = await structureReader.ReadAsync(version, cancellationToken);
         var scope = selection.IsEverything ? null : structure.ScopeFor(selection);
         var cells = await cellReader.ReadAsync(version, scope, selection.IncludeLabels, cancellationToken);
-        var values = await valueReader.ReadAsync(cells, selection.IsEverything, cancellationToken);
+        var values = await valueReader.ReadAsync(cells, selection.IsEverything ? version : null, cancellationToken);
 
         var sheet = PublishedSheetAssembler.Assemble(version, selection, structure, cells, values);
         cache.Set(key, sheet, cells.Count);

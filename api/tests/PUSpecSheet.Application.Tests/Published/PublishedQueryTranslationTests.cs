@@ -110,15 +110,19 @@ public sealed class PublishedQueryTranslationTests : IDisposable
     }
 
     [Fact]
-    public void WholeSheetValues_AreFoundByTheRevisionsTheCellQueryFound_InOneParameter()
+    public void WholeSheetValues_AreFoundThroughTheSheetsRevisionsAtTheVersion_WithNoListOfIds()
     {
-        var sql = PublishedValueReader.Scope(db.NumericValues, [11, 12, 13], null)
+        var revisions = PublishedValueReader.RevisionsOf(db, [11, 12, 13], Version);
+
+        var sql = PublishedValueReader.Scope(db.NumericValues, revisions, null)
             .Select(value => new { value.SheetCellId, value.Value })
             .ToQueryString();
 
         Assert.Contains("[values].[NumericValues]", sql);
-        Assert.Contains("OPENJSON(@revisionIds)", sql);
-        Assert.DoesNotContain("[SheetRowRevisions]", sql);
+        Assert.Contains("[SheetId] = @sheetId", sql);
+        Assert.Contains("[IsDeleted] = CAST(0 AS bit)", sql);
+        Assert.Contains("[SupersededAtUtc] > @momentUtc", sql);
+        Assert.DoesNotContain("OPENJSON", sql);
         Assert.DoesNotContain("JOIN", sql);
         Assert.StartsWith("SELECT [n].[SheetCellId], [n].[Value]", sql[sql.IndexOf("SELECT", StringComparison.Ordinal)..]);
     }
@@ -126,7 +130,9 @@ public sealed class PublishedQueryTranslationTests : IDisposable
     [Fact]
     public void SelectedValues_AreFoundByRevisionAndCellWithNoJoins()
     {
-        var sql = PublishedValueReader.Scope(db.TextValues, [11, 12], [101, 102])
+        var revisions = PublishedValueReader.RevisionsOf(db, [11, 12, 12], null);
+
+        var sql = PublishedValueReader.Scope(db.TextValues, revisions, [101, 102])
             .Select(value => new { value.SheetCellId, value.Value })
             .ToQueryString();
 
@@ -138,7 +144,7 @@ public sealed class PublishedQueryTranslationTests : IDisposable
     [Fact]
     public void OptionValues_BringTheOptionTextAndItsKind()
     {
-        var sql = PublishedValueReader.Scope(db.OptionValues, [11], [101])
+        var sql = PublishedValueReader.Scope(db.OptionValues, PublishedValueReader.RevisionsOf(db, [11], null), [101])
             .Select(value => new { value.SheetCellId, value.CellTypeOption.Value, value.CellTypeOption.CellType.Kind })
             .ToQueryString();
 

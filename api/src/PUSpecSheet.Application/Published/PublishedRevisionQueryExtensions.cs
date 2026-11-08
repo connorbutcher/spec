@@ -1,3 +1,4 @@
+using PUSpecSheet.Data;
 using PUSpecSheet.Domain.Sheets;
 
 namespace PUSpecSheet.Application.Published;
@@ -14,5 +15,18 @@ public static class PublishedRevisionQueryExtensions
         return revisions.Where(revision => revision.Status == RevisionStatus.Published
             && revision.PublishedAtUtc <= momentUtc
             && (revision.SupersededAtUtc == null || revision.SupersededAtUtc > momentUtc));
+    }
+
+    /// <summary>
+    /// The ids of the rows' revisions shown at a version, found through the (sheet, published) index: the
+    /// same revisions the published cell queries join to.
+    /// </summary>
+    public static IQueryable<int> RowRevisionIdsAt(this PuSpecSheetDbContext db, ResolvedSheetVersion version)
+    {
+        var sheetId = version.SheetId;
+        return db.SheetRowRevisions
+            .Where(revision => revision.SheetId == sheetId && !revision.IsDeleted)
+            .PublishedAt(version.PublishedAtUtc)
+            .Select(revision => revision.Id);
     }
 }

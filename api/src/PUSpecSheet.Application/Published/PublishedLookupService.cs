@@ -81,7 +81,7 @@ public sealed class PublishedLookupService(
 
             var sectionIds = PublishedLookupAssembler.ScopeSections(hit, structure);
             var cells = await cellReader.Query(version, hit, sectionIds).ToListAsync(cancellationToken);
-            var values = await valueReader.ReadAsync(cells, wholeSheet: false, cancellationToken);
+            var values = await valueReader.ReadAsync(cells, wholeSheet: null, cancellationToken);
             cellCount += cells.Count;
 
             matches.Add(PublishedLookupAssembler.Assemble(hit, version, structure, cells, values));

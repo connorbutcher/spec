@@ -11,11 +11,11 @@ namespace PUSpecSheet.Application.Published;
 public sealed class PublishedKindValueReader(PuSpecSheetDbContext db)
 {
     /// <param name="cells">The cells to read values for.</param>
-    /// <param name="wholeSheet">True when the cells are every cell of the sheet, so every value of their revisions is read and not a long list of cells.</param>
+    /// <param name="wholeSheet">The version, when the cells are every cell of the sheet, so every value of its revisions is read and not a long list of cells; otherwise null.</param>
     /// <param name="cancellationToken">Stops the queries.</param>
     public async Task<Dictionary<int, object>> ReadAsync(
         IReadOnlyList<PublishedLookupCellRecord> cells,
-        bool wholeSheet,
+        ResolvedSheetVersion? wholeSheet,
         CancellationToken cancellationToken)
     {
         var result = new Dictionary<int, object>();
@@ -25,7 +25,7 @@ public sealed class PublishedKindValueReader(PuSpecSheetDbContext db)
             return result;
         }
 
-        var revisionIds = valueCells.Select(cell => cell.RowRevisionId).Distinct().ToList();
+        var revisionIds = PublishedValueReader.RevisionsOf(db, valueCells.Select(cell => cell.RowRevisionId), wholeSheet);
         if (CellsOf(valueCells, wholeSheet, out var textIds, CellKind.Text, CellKind.LinkedDropdown))
         {
             await PublishedValueReader.ReadTextsAsync(db, result, revisionIds, textIds, cancellationToken);
@@ -55,10 +55,10 @@ public sealed class PublishedKindValueReader(PuSpecSheetDbContext db)
     }
 
     /// <summary>Whether any cell is of the kinds, and the ids of those cells (null for a whole sheet).</summary>
-    private static bool CellsOf(List<PublishedLookupCellRecord> cells, bool wholeSheet, out List<int>? ids, params CellKind[] kinds)
+    private static bool CellsOf(List<PublishedLookupCellRecord> cells, ResolvedSheetVersion? wholeSheet, out List<int>? ids, params CellKind[] kinds)
     {
         var matching = cells.Where(cell => kinds.Contains(cell.Kind)).Select(cell => cell.CellId).ToList();
-        ids = wholeSheet ? null : matching;
+        ids = wholeSheet is not null ? null : matching;
         return matching.Count > 0;
     }
 }
