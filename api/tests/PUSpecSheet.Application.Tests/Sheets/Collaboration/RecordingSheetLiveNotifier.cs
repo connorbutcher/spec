@@ -20,9 +20,13 @@ internal sealed class RecordingSheetLiveNotifier : ISheetLiveNotifier
         return Task.CompletedTask;
     }
 
-    public Task SheetChangedAsync(int sheetId, string? exceptConnectionId, CancellationToken cancellationToken)
+    /// <summary>The rows each announcement named, as a comma-separated list, or "*" for the whole sheet.</summary>
+    public List<string> Notices { get; } = [];
+
+    public Task SheetChangedAsync(int sheetId, SheetChangedNoticeDto notice, string? exceptConnectionId, CancellationToken cancellationToken)
     {
         ChangedSheets.Add(sheetId);
+        Notices.Add(notice.RowIds is { } rows ? string.Join(',', rows) : "*");
         return Task.CompletedTask;
     }
 

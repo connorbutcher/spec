@@ -8,6 +8,7 @@ import { Sheet } from './models/sheet.model';
 import { SheetStructureFixture } from './data/sheet-structure.fixture';
 import { SheetStore } from './sheet.store';
 import { SheetResponse } from './models/sheet-response.model';
+import { SheetRowsChangeResponse } from './models/sheet-rows-change-response.model';
 import { SheetResponseFixture } from './data/sheet-response.fixture';
 
 class SpecHelpers {
@@ -58,9 +59,21 @@ class SpecHelpers {
     change(copy);
     return SheetResponseFixture.sheetResponse(copy);
   }
+
+  /** Rows as the API would send them back after a save, from a changed copy of the sheet. */
+  public static rowsFromServer(
+    sheet: Sheet,
+    rowIds: readonly number[],
+    change: (copy: Sheet) => void = () => undefined,
+  ): SheetRowsChangeResponse {
+    const copy = structuredClone(sheet);
+    change(copy);
+    return SheetResponseFixture.rowsResponse(copy, rowIds);
+  }
 }
 
 const SHEET_URL = '/api/phases/1/sheets/2';
+const LIVE_URL = '/api/sheets/5';
 
 describe('SheetStore', () => {
   let store: SheetStore;
@@ -185,7 +198,7 @@ describe('SheetStore', () => {
     const request = http.expectOne(`/api/sheet-rows/${row.id}/values`);
     expect(request.request.body).toEqual({ values: [{ sheetCellId: cell.id, text: 'new' }] });
     request.flush(
-      SpecHelpers.fromServer(sheet, (copy) => {
+      SpecHelpers.rowsFromServer(sheet, [row.id], (copy) => {
         copy.tables[0].sections[1].rows[0].cells[0].textValue = 'new';
       }),
     );
@@ -214,7 +227,7 @@ describe('SheetStore', () => {
     expect(request.request.method).toBe('PUT');
     expect(request.request.body).toEqual({ settings: [{ sheetCellId: cell.id, settings }] });
     request.flush(
-      SpecHelpers.fromServer(sheet, (copy) => {
+      SpecHelpers.rowsFromServer(sheet, [row.id], (copy) => {
         copy.tables[0].sections[1].rows[0].cells[0].settings = settings;
         copy.linkedSources = [
           { sheetTableId: 1, templateCellId: 15, sheetRowId: null, options: ['P-1001'] },
@@ -235,7 +248,7 @@ describe('SheetStore', () => {
 
     const saving = store.saveValues(row?.id ?? -1, [{ sheetCellId: cell?.id ?? -1, text: 'x' }]);
     await SpecHelpers.settle();
-    http.expectOne(`/api/sheet-rows/${row?.id}/values`).flush(SpecHelpers.fromServer(sheet));
+    http.expectOne(`/api/sheet-rows/${row?.id}/values`).flush(SpecHelpers.rowsFromServer(sheet, [row?.id ?? -1]));
     await saving;
 
     const after = store.sheet()?.tables[0].sections[1].rows[0];
@@ -346,7 +359,7 @@ describe('SheetStore', () => {
 
     store.refresh();
     await SpecHelpers.settle();
-    http.expectOne(SHEET_URL).flush(
+    http.expectOne(LIVE_URL).flush(
       SpecHelpers.fromServer(sheet, (copy) => {
         copy.tables[0].sections[1].rows[0].lock = { userId: 2, userName: 'B', isMine: false };
       }),
@@ -359,21 +372,64 @@ describe('SheetStore', () => {
     expect(after.tables[0].sections[0]).toBe(header);
   });
 
-  it("waits for the user's own change before refreshing, and skips it if another is in flight", async () => {
+  it("waits for the user's own change before refreshing, so an older read never lands on a newer save", async () => {
     const row = sheet.tables[0].sections[1].rows[0];
 
     const saving = store.saveValues(row.id, [{ sheetCellId: row.cells[0].id, text: 'new' }]);
     store.refresh();
+    store.refresh();
     await SpecHelpers.settle();
 
     // Only the save is out: the refresh has not been sent alongside it.
-    http.expectOne(`/api/sheet-rows/${row.id}/values`).flush(SpecHelpers.fromServer(sheet));
+    http.expectOne(`/api/sheet-rows/${row.id}/values`).flush(SpecHelpers.rowsFromServer(sheet, [row.id]));
     await saving;
     await SpecHelpers.settle();
-    http.expectOne(SHEET_URL).flush(SpecHelpers.fromServer(sheet));
+
+    // The two refreshes asked while the save was out make one read.
+    http.expectOne(LIVE_URL).flush(SpecHelpers.fromServer(sheet));
     await SpecHelpers.settle();
 
     expect(store.sheet()).toEqual(sheet);
+  });
+
+  it('reads only the rows someone else checked out, keeping everything else', async () => {
+    const before = store.sheet()!;
+    const first = before.tables[0].sections[1].rows[0];
+    const second = before.tables[0].sections[0].rows[0];
+
+    store.refreshRows([first.id]);
+    store.refreshRows([second.id]);
+    await SpecHelpers.settle();
+    const request = http.expectOne((candidate) => candidate.url === `${LIVE_URL}/rows`);
+    expect(request.request.params.getAll('ids')).toEqual([String(first.id), String(second.id)]);
+    request.flush(
+      SpecHelpers.rowsFromServer(sheet, [first.id, second.id], (copy) => {
+        copy.tables[0].sections[1].rows[0].lock = { userId: 2, userName: 'B', isMine: false };
+        copy.otherDrafts = [{ userId: 2, userName: 'B', draftCount: 1 }];
+      }),
+    );
+    await SpecHelpers.settle();
+
+    const after = store.sheet()!;
+    expect(after.tables[0].sections[1].rows[0].lock?.userName).toBe('B');
+    expect(after.tables[0].sections[0].rows[0]).toBe(second);
+    expect(after.tables[0].sections[0]).toBe(before.tables[0].sections[0]);
+    expect(after.otherDrafts).toEqual([{ userId: 2, userName: 'B', draftCount: 1 }]);
+  });
+
+  it('reads the whole sheet when rows arrive from a newer version than the one open', async () => {
+    const row = sheet.tables[0].sections[1].rows[0];
+
+    store.refreshRows([row.id]);
+    await SpecHelpers.settle();
+    http
+      .expectOne((candidate) => candidate.url === `${LIVE_URL}/rows`)
+      .flush(SpecHelpers.rowsFromServer(sheet, [row.id], (copy) => (copy.latestVersionNumber = 3)));
+    await SpecHelpers.settle();
+    http.expectOne(LIVE_URL).flush(SpecHelpers.fromServer(sheet, (copy) => (copy.latestVersionNumber = 3)));
+    await SpecHelpers.settle();
+
+    expect(store.sheet()?.latestVersionNumber).toBe(3);
   });
 
   it('marks only changes made after the version being compared against', () => {

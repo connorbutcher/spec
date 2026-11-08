@@ -14,6 +14,12 @@ public interface ISheetService
     Task<SheetDto> GetAsync(int sheetId, SheetViewPoint view, CancellationToken cancellationToken);
 
     /// <summary>
+    /// Some rows of the live sheet as the current user sees them, with what follows from them. Unlike a
+    /// whole read it leaves the user's drafts as they are, so nothing else on the sheet changes under them.
+    /// </summary>
+    Task<SheetRowsChangeDto> GetRowsAsync(int sheetId, IReadOnlyCollection<int> rowIds, CancellationToken cancellationToken);
+
+    /// <summary>
     /// Publishes drafts on the sheet as its next version: the current user's own, or everyone's when the
     /// request asks for <see cref="PublishScope.All"/>.
     /// </summary>

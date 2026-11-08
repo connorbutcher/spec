@@ -17,13 +17,13 @@ public sealed class SignalRSheetLiveNotifier(IHubContext<SheetHub, ISheetHubClie
         return hub.Clients.Group(SheetGroups.Sheet(sheetId)).CheckoutsChanged(checkouts);
     }
 
-    public Task SheetChangedAsync(int sheetId, string? exceptConnectionId, CancellationToken cancellationToken)
+    public Task SheetChangedAsync(int sheetId, SheetChangedNoticeDto notice, string? exceptConnectionId, CancellationToken cancellationToken)
     {
         var group = SheetGroups.Sheet(sheetId);
         var clients = string.IsNullOrEmpty(exceptConnectionId)
             ? hub.Clients.Group(group)
             : hub.Clients.GroupExcept(group, exceptConnectionId);
-        return clients.SheetChanged();
+        return clients.SheetChanged(notice);
     }
 
     public Task TakeoverChangedAsync(RowTakeoverDto takeover, CancellationToken cancellationToken)

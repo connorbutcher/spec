@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PUSpecSheet.Api.ApiDocumentation;
@@ -59,6 +60,29 @@ public sealed class SheetsController(ISheetService sheets, ISheetTableService ta
         CancellationToken cancellationToken)
     {
         var result = await sheets.GetAsync(id, SheetViewPoint.From(version, asOf), cancellationToken);
+        return Ok(result);
+    }
+
+    /// <summary>Get some rows of a sheet</summary>
+    /// <remarks>
+    /// Rows of the live sheet as you see them, with your draft count, other people's drafts, the choices
+    /// of linked dropdowns and the rows of their tables that can be linked to. Read this in place of the
+    /// whole sheet when the live connection says only some rows changed. A row asked for that isn't on the
+    /// sheet any more is left out.
+    /// </remarks>
+    /// <param name="id">The sheet's id.</param>
+    /// <param name="ids">The rows to read, by id.</param>
+    /// <param name="cancellationToken">Cancels the request.</param>
+    /// <response code="200">The rows as you see them.</response>
+    /// <response code="400">No rows, or more than 500, were asked for.</response>
+    /// <response code="404">The sheet doesn't exist.</response>
+    [HttpGet("api/sheets/{id:int}/rows")]
+    public async Task<ActionResult<SheetRowsChangeDto>> GetRows(
+        int id,
+        [FromQuery, MinLength(1), MaxLength(500)] int[] ids,
+        CancellationToken cancellationToken)
+    {
+        var result = await sheets.GetRowsAsync(id, ids, cancellationToken);
         return Ok(result);
     }
 

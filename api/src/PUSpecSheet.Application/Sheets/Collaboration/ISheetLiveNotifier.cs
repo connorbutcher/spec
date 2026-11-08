@@ -14,8 +14,9 @@ public interface ISheetLiveNotifier
     /// <summary>
     /// Tells everyone on the sheet that what they see is out of date (a row was checked out or released, or
     /// a version was published), leaving out the connection that made the change, which already has it.
+    /// The notice names the rows to read again when nothing else changed.
     /// </summary>
-    Task SheetChangedAsync(int sheetId, string? exceptConnectionId, CancellationToken cancellationToken);
+    Task SheetChangedAsync(int sheetId, SheetChangedNoticeDto notice, string? exceptConnectionId, CancellationToken cancellationToken);
 
     /// <summary>Tells everyone on the sheet which rows people are in without having changed them yet.</summary>
     Task CheckoutsChangedAsync(int sheetId, IReadOnlyList<RowCheckoutDto> checkouts, CancellationToken cancellationToken);

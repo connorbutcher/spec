@@ -28,11 +28,13 @@ import { SheetTarget } from './models/sheet-target.model';
 import { SheetVersionSummary } from './models/sheet-version-summary.model';
 import { SheetView } from './models/sheet-view.model';
 import { SheetResponse } from './models/sheet-response.model';
+import { SheetRowsChange } from './models/sheet-rows-change.model';
 import { Sheet } from './models/sheet.model';
 import { RowCheckoutStore } from './checkouts/row-checkout.store';
 import { RowCheckoutUtil } from './checkouts/row-checkout.util';
 import { SheetIndexUtil } from './layout/sheet-index.util';
 import { SheetResponseUtil } from './data/sheet-response.util';
+import { SheetRowsMergeUtil } from './data/sheet-rows-merge.util';
 import { SheetUrlUtil } from './anchors/sheet-url.util';
 import { SheetsApi } from './sheets-api';
 
@@ -40,9 +42,12 @@ import { SheetsApi } from './sheets-api';
  * State for the sheet screen: the sheet being looked at (a resource, live or at a version or date), the
  * cell types its cells use, what is selected, and every change the user makes. Provided by the sheet page.
  *
- * Changes save straight away and each returns the refreshed live sheet, which replaces the open copy.
- * Changes are sent one at a time, in the order they were made. A failed change shows its reason and
- * reloads the sheet, so the screen goes back to what the server has.
+ * Changes save straight away. Saving a row's values or cell settings returns just that row (and what
+ * follows from it), which is put into the open copy; every other change returns the refreshed live
+ * sheet, which replaces it. Changes are sent one at a time, in the order they were made, and the quiet
+ * reads that follow other people's changes wait their turn in the same queue, so an older read never
+ * lands on top of a newer save. A failed change shows its reason and reloads the sheet, so the screen
+ * goes back to what the server has.
  *
  * A refreshed sheet keeps the objects of everything that did not change (see `reuseUnchanged`), so a
  * change only re-renders the tables, rows and cells it touched.
@@ -160,8 +165,14 @@ export class SheetStore {
     { initialValue: null },
   );
 
-  /** Set by `refresh` for the read it starts: that read keeps the objects of everything that didn't change. */
+  /** Set for a quiet reload of the sheet: that read keeps the objects of everything that didn't change. */
   private keepUnchangedOnNextRead = false;
+
+  /** Whether a quiet read of the whole sheet is waiting in the queue. */
+  private fullReadQueued = false;
+
+  /** The rows a quiet read waiting in the queue will read; null when none is waiting. */
+  private queuedRowIds: Set<number> | null = null;
 
   private readonly sheetResource = httpResource<Sheet>(
     () => {
@@ -196,17 +207,51 @@ export class SheetStore {
   }
 
   /**
-   * Someone else changed the sheet (a row checked out or released, a version published): reads it again
-   * without disturbing the user. It waits for the user's own changes in flight, and is skipped if another
-   * has started by then, as that change brings the whole sheet back anyway. Everything that didn't change
-   * keeps its object, so a cell being typed into keeps what was typed.
+   * Someone else changed the sheet (a version published, a table or section taken): reads it again
+   * without disturbing the user, after the user's own changes already queued. A read already waiting
+   * covers this one. Everything that didn't change keeps its object, so a cell being typed into keeps
+   * what was typed.
    */
   public refresh(): void {
-    void this.tail.then(() => {
-      if (this.inFlight() === 0 && this.sheet() !== null) {
+    if (this.fullReadQueued) {
+      return;
+    }
+    this.fullReadQueued = true;
+    this.enqueueRead(async () => {
+      this.fullReadQueued = false;
+      const open = this.openSheet();
+      if (open === null) {
+        return;
+      }
+      if (!open.isLive) {
+        // A past view never changes; only its list of versions can grow, which a reload picks up.
         this.keepUnchangedOnNextRead = true;
         this.sheetResource.reload();
+        return;
       }
+      this.applyQuietly(await this.api.live(open.id));
+    });
+  }
+
+  /**
+   * Someone else checked rows out or released them: reads only those rows again, like `refresh` does
+   * the whole sheet. Rows named while a read is waiting join it.
+   */
+  public refreshRows(rowIds: readonly number[]): void {
+    if (this.queuedRowIds !== null) {
+      rowIds.forEach((rowId) => this.queuedRowIds?.add(rowId));
+      return;
+    }
+    const queued = new Set(rowIds);
+    this.queuedRowIds = queued;
+    this.enqueueRead(async () => {
+      this.queuedRowIds = null;
+      const open = this.openSheet();
+      if (open === null || !open.isLive) {
+        return;
+      }
+      const asked = [...queued];
+      this.applyQuietly(await this.withRows(this.api.rows(open.id, asked), asked));
     });
   }
 
@@ -353,14 +398,14 @@ export class SheetStore {
 
   public async saveValues(rowId: number, values: CellValueRequest[]): Promise<void> {
     await this.run(
-      () => this.api.saveValues(rowId, values),
+      () => this.withRows(this.api.saveValues(rowId, values), [rowId]),
       values.map((value) => value.sheetCellId),
     );
   }
 
   public async saveCellSettings(rowId: number, settings: CellSettingsRequest[]): Promise<void> {
     await this.run(
-      () => this.api.saveCellSettings(rowId, settings),
+      () => this.withRows(this.api.saveCellSettings(rowId, settings), [rowId]),
       settings.map((entry) => entry.sheetCellId),
     );
   }
@@ -406,6 +451,38 @@ export class SheetStore {
   private setEditing(cellId: number | null): void {
     this.editingCell.set(cellId);
     this.editingCells.set(cellId);
+  }
+
+  /** The sheet as last loaded, without the rows people are in marked. */
+  private openSheet(): Sheet | null {
+    return untracked(() => (this.sheetResource.hasValue() ? this.sheetResource.value() : null));
+  }
+
+  /**
+   * The open sheet with the rows a call answers with put in. When they can't be (a version was published
+   * since, or a row isn't on this copy), the whole live sheet is read instead.
+   */
+  private async withRows(answer: Promise<SheetRowsChange>, rowIds: readonly number[]): Promise<Sheet> {
+    const change = await answer;
+    const open = this.openSheet();
+    const merged = open === null ? null : SheetRowsMergeUtil.merge(open, change, rowIds);
+    return merged ?? this.api.live(change.sheetId);
+  }
+
+  /** Queues a quiet read behind the user's changes. One that fails falls back to reloading the sheet. */
+  private enqueueRead(read: () => Promise<void>): void {
+    this.tail = this.tail.then(read).catch(() => {
+      this.keepUnchangedOnNextRead = true;
+      this.sheetResource.reload();
+    });
+  }
+
+  /** Shows a sheet a quiet read brought, keeping every object that didn't change, if it is still the one open. */
+  private applyQuietly(next: Sheet): void {
+    const open = this.openSheet();
+    if (open?.id === next.id && open.isLive) {
+      this.sheetResource.set(ReuseUnchangedUtil.reuseUnchanged(open, next));
+    }
   }
 
   /** A sheet as it arrives from a read. Only a quiet `refresh` keeps the open copy's unchanged objects. */

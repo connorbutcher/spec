@@ -48,6 +48,12 @@ public sealed class SheetService(
         return await reader.ReadAsync(sheetId, view, cancellationToken);
     }
 
+    public async Task<SheetRowsChangeDto> GetRowsAsync(int sheetId, IReadOnlyCollection<int> rowIds, CancellationToken cancellationToken)
+    {
+        var sheet = await reader.ReadLiveAsync(sheetId, cancellationToken);
+        return SheetRowsChanges.From(sheet, rowIds);
+    }
+
     public async Task<SheetDto> PublishAsync(int sheetId, PublishSheetRequest request, CancellationToken cancellationToken)
     {
         await publisher.PublishAsync(sheetId, request.Note, request.Scope, cancellationToken);

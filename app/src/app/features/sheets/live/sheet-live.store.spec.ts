@@ -43,6 +43,7 @@ describe('SheetLiveStore', () => {
 
   let live: SheetLiveStore;
   let refreshes: number;
+  let rowRefreshes: number[][];
   let resets: RowTakeover[][];
   let applied: RowTakeover[];
   let checkouts: RowCheckout[][];
@@ -65,6 +66,7 @@ describe('SheetLiveStore', () => {
   beforeEach(async () => {
     page.hub = new FakeSheetHub();
     refreshes = 0;
+    rowRefreshes = [];
     resets = [];
     applied = [];
     checkouts = [];
@@ -82,6 +84,7 @@ describe('SheetLiveStore', () => {
             editingCellId,
             error: sheetError,
             refresh: () => refreshes++,
+            refreshRows: (rowIds: number[]) => rowRefreshes.push(rowIds),
             stopEditing: (cellId: number) => {
               if (editingCellId() === cellId) {
                 editingCellId.set(null);
@@ -160,9 +163,17 @@ describe('SheetLiveStore', () => {
   });
 
   it('reads the sheet again when the server says it changed', () => {
-    page.hub.handlers?.sheetChanged();
+    page.hub.handlers?.sheetChanged({ rowIds: null });
 
     expect(refreshes).toBe(1);
+    expect(rowRefreshes).toEqual([]);
+  });
+
+  it('reads only the rows the server names when only rows changed hands', () => {
+    page.hub.handlers?.sheetChanged({ rowIds: [firstRow.id, secondRow.id] });
+
+    expect(rowRefreshes).toEqual([[firstRow.id, secondRow.id]]);
+    expect(refreshes).toBe(0);
   });
 
   it('takes in who is there, and which rows they are in, as people come and go', () => {

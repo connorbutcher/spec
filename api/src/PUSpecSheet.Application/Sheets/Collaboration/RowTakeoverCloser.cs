@@ -39,7 +39,7 @@ public sealed class RowTakeoverCloser(IRowCheckouts checkouts, ISheetLiveNotifie
         // only changes the list of checkouts, which everyone was sent as it moved.
         if (moved == RowTransfer.Draft)
         {
-            await notifier.SheetChangedAsync(takeover.SheetId, exceptConnectionId: null, cancellationToken);
+            await notifier.SheetChangedAsync(takeover.SheetId, SheetChangedNoticeDto.Everything, exceptConnectionId: null, cancellationToken);
         }
 
         return granted;

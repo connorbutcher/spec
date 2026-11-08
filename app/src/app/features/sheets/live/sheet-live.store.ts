@@ -1,5 +1,6 @@
 import { computed, DestroyRef, effect, inject, Injectable, signal, untracked } from '@angular/core';
 import { CurrentUserStore } from '../../../core/auth/current-user.store';
+import { SheetChangedNotice } from '../models/sheet-changed-notice.model';
 import { SheetConnectionState } from '../models/sheet-connection-state';
 import { SheetPresenceUser } from '../models/sheet-presence-user.model';
 import { RowCheckoutStore } from '../checkouts/row-checkout.store';
@@ -61,7 +62,7 @@ export class SheetLiveStore {
     this.hub.start({
       presenceChanged: (users) => this.users.set(users),
       checkoutsChanged: (checkouts) => this.rowCheckouts.set(checkouts),
-      sheetChanged: () => this.sheetStore.refresh(),
+      sheetChanged: (notice) => this.sheetChanged(notice),
       takeoverChanged: (takeover) => this.takeovers.apply(takeover),
     });
 
@@ -79,6 +80,16 @@ export class SheetLiveStore {
     });
 
     inject(DestroyRef).onDestroy(() => void this.hub.stop());
+  }
+
+  /** Reads again only the rows the server names, or the whole sheet when it names none. */
+  private sheetChanged(notice: SheetChangedNotice | null): void {
+    const rowIds = notice?.rowIds ?? null;
+    if (rowIds === null) {
+      this.sheetStore.refresh();
+    } else if (rowIds.length > 0) {
+      this.sheetStore.refreshRows(rowIds);
+    }
   }
 
   /** Joins a sheet and takes in who is there; with no sheet, or no connection, nobody is. */

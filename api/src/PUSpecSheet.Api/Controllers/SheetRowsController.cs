@@ -2,13 +2,17 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PUSpecSheet.Api.ApiDocumentation;
 using PUSpecSheet.Application.Sheets;
+using PUSpecSheet.Application.Sheets.Reading;
 using PUSpecSheet.Contracts.Common;
 using PUSpecSheet.Contracts.Sheets;
 using PUSpecSheet.Domain.Users;
 
 namespace PUSpecSheet.Api.Controllers;
 
-/// <summary>Changes to one row on a sheet. Every action returns the refreshed live view of the sheet.</summary>
+/// <summary>
+/// Changes to one row on a sheet. Saving values or cell settings answers with the row and what follows
+/// from it (a <see cref="SheetRowsChangeDto"/>); every other action returns the refreshed live view of the sheet.
+/// </summary>
 [ApiController]
 [Tags(ApiTags.SheetRows)]
 [Route("api/sheet-rows")]
@@ -39,14 +43,14 @@ public sealed class SheetRowsController(ISheetRowService rows, ISheetCellSetting
     /// <param name="id">The sheet row's id.</param>
     /// <param name="request">The cells to change and their new values.</param>
     /// <param name="cancellationToken">Cancels the request.</param>
-    /// <response code="200">The refreshed live view of the sheet.</response>
+    /// <response code="200">The row as it now stands, with what follows from it on the sheet.</response>
     /// <response code="400">A value doesn't fit its cell: the wrong kind, out of range, or not one of the dropdown's options.</response>
     /// <response code="409">The row is locked by someone else.</response>
     [HttpPut("{id:int}/values")]
-    public async Task<ActionResult<SheetDto>> SaveValues(int id, SaveRowValuesRequest request, CancellationToken cancellationToken)
+    public async Task<ActionResult<SheetRowsChangeDto>> SaveValues(int id, SaveRowValuesRequest request, CancellationToken cancellationToken)
     {
         var result = await rows.SaveValuesAsync(id, request, cancellationToken);
-        return Ok(result);
+        return Ok(SheetRowsChanges.From(result, [id]));
     }
 
     /// <summary>Save the settings chosen for a row's cells</summary>
@@ -61,14 +65,14 @@ public sealed class SheetRowsController(ISheetRowService rows, ISheetCellSetting
     /// <param name="id">The sheet row's id.</param>
     /// <param name="request">The cells to change and their new settings.</param>
     /// <param name="cancellationToken">Cancels the request.</param>
-    /// <response code="200">The refreshed live view of the sheet.</response>
+    /// <response code="200">The row as it now stands, with what follows from it on the sheet.</response>
     /// <response code="400">The cell's kind has no settings, they are for another kind, or what they point at isn't on the sheet.</response>
     /// <response code="409">The row is locked by someone else.</response>
     [HttpPut("{id:int}/cell-settings")]
-    public async Task<ActionResult<SheetDto>> SaveCellSettings(int id, SaveRowCellSettingsRequest request, CancellationToken cancellationToken)
+    public async Task<ActionResult<SheetRowsChangeDto>> SaveCellSettings(int id, SaveRowCellSettingsRequest request, CancellationToken cancellationToken)
     {
         var result = await cellSettings.SaveAsync(id, request, cancellationToken);
-        return Ok(result);
+        return Ok(SheetRowsChanges.From(result, [id]));
     }
 
     /// <summary>Move a row</summary>

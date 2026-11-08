@@ -49,6 +49,24 @@ public sealed class SheetLockSignatureTests
         Assert.Equal(SheetLockSignature.Of(without), SheetLockSignature.Of(withPending));
     }
 
+    [Fact]
+    public void WhenOnlyRowsChangeHands_TheyAreNamed()
+    {
+        var before = SheetLockSignature.Entries(Sheet(3, Row(10, null), Row(11, new SheetLockDto(1, "Developer", IsMine: true)), Row(12, null)));
+        var after = SheetLockSignature.Entries(Sheet(3, Row(10, new SheetLockDto(2, "Engineer Two", IsMine: false)), Row(11, null), Row(12, null)));
+
+        Assert.Equal([10, 11], SheetLockSignature.ChangedRows(before, after));
+    }
+
+    [Fact]
+    public void WhenAVersionIsPublished_NoRowsAreNamed()
+    {
+        var before = SheetLockSignature.Entries(Sheet(3, Row(10, new SheetLockDto(1, "Developer", IsMine: true))));
+        var after = SheetLockSignature.Entries(Sheet(4, Row(10, null)));
+
+        Assert.Null(SheetLockSignature.ChangedRows(before, after));
+    }
+
     private static SheetRowDto Row(int id, SheetLockDto? held, bool isPending = false)
     {
         return new SheetRowDto(id, Guid.Empty, 1, id, held, isPending, CanRemove: true, [], null);
