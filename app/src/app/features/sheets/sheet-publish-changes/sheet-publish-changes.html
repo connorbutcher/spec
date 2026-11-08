@@ -1,0 +1,18 @@
+<span class="heading" id="publish-changes-heading">What's changing</span>
+<ul class="changes" aria-labelledby="publish-changes-heading">
+  @for (change of shown(); track change.key) {
+    <li>
+      <p-button
+        class="change-link"
+        size="small"
+        [link]="true"
+        [label]="change.path"
+        (onClick)="chosen.emit(change.key)"
+      />
+      <span class="kind">{{ change.kind }}@if (change.holder; as holder) { · {{ holder }}}</span>
+    </li>
+  }
+</ul>
+@if (hiddenCount() > 0) {
+  <span class="more">and {{ hiddenCount() }} more</span>
+}

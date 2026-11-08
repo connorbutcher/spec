@@ -13,6 +13,9 @@
       [scope]="scope()"
       (scopeChange)="chooseScope($event)"
     />
+    @if (changes().length > 0) {
+      <app-sheet-publish-changes [changes]="changes()" (chosen)="showChange($event, popover)" />
+    }
     <label class="heading" for="publish-note">Note for this version (optional)</label>
     <textarea
       pTextarea
