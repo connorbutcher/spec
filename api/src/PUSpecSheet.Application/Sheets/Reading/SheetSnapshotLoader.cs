@@ -33,9 +33,11 @@ public sealed class SheetSnapshotLoader(PuSpecSheetDbContext db, RowValueStore v
         var sectionRevisions = await ResolveRevisionsAsync(db.SectionRevisionsOf(sheetId), revision => revision.SheetSectionId, moment, currentUserId, cancellationToken);
         var rowRevisions = await ResolveRevisionsAsync(db.RowRevisionsOf(sheetId), revision => revision.SheetRowId, moment, currentUserId, cancellationToken);
         var columnBlockRevisions = await ResolveRevisionsAsync(db.ColumnBlockRevisionsOf(sheetId), revision => revision.SheetColumnBlockId, moment, currentUserId, cancellationToken);
-        var values = await LoadShownValuesAsync(rowRevisions, cancellationToken);
+        var values = await LoadShownValuesAsync(db.RowRevisionsOf(sheetId), rowRevisions, moment, cancellationToken);
 
         var versionIds = tables.Select(table => table.TableTemplateVersionId).Distinct().ToList();
+        var templateRows = await LoadTemplateRowsAsync(versionIds, cancellationToken);
+        await AttachTemplateCellsAsync(rows, templateRows, cancellationToken);
         var availableTemplates = await LoadAvailableTemplatesAsync(sheet.SheetTypeId, cancellationToken);
 
         var snapshot = new SheetSnapshot
@@ -55,7 +57,7 @@ public sealed class SheetSnapshotLoader(PuSpecSheetDbContext db, RowValueStore v
             Values = values,
             TemplateSections = await LoadTemplateSectionsAsync(versionIds, cancellationToken),
             TemplateColumnBlocks = await LoadTemplateColumnBlocksAsync(versionIds, cancellationToken),
-            TemplateRows = await LoadTemplateRowsAsync(versionIds, cancellationToken),
+            TemplateRows = templateRows,
             CellTypes = await LoadCellTypesAsync(cancellationToken),
             AvailableTemplates = availableTemplates,
             LatestTemplateVersions = await LoadLatestTemplateVersionsAsync(availableTemplates, cancellationToken),
@@ -94,15 +96,22 @@ public sealed class SheetSnapshotLoader(PuSpecSheetDbContext db, RowValueStore v
         CancellationToken cancellationToken)
         where TRevision : class, ISheetRevision
     {
-        // The live view needs every revision that hasn't been replaced, which is the current published
-        // one and any drafts. A past view needs the one published revision whose range covers the moment.
-        var filtered = moment is { } at
+        return await InView(query, moment).AsNoTracking().ToListAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// The revisions a view can show. The live view needs every revision that hasn't been replaced, which is
+    /// the current published one and any drafts. A past view needs the one published revision whose range
+    /// covers the moment.
+    /// </summary>
+    private static IQueryable<TRevision> InView<TRevision>(IQueryable<TRevision> query, DateTime? moment)
+        where TRevision : class, ISheetRevision
+    {
+        return moment is { } at
             ? query.Where(revision => revision.Status == RevisionStatus.Published
                 && revision.PublishedAtUtc <= at
                 && (revision.SupersededAtUtc == null || revision.SupersededAtUtc > at))
             : query.CurrentAndDrafts();
-
-        return await filtered.AsNoTracking().ToListAsync(cancellationToken);
     }
 
     private async Task<Sheet> LoadSheetAsync(int sheetId, CancellationToken cancellationToken)
@@ -142,14 +151,45 @@ public sealed class SheetSnapshotLoader(PuSpecSheetDbContext db, RowValueStore v
             .ToListAsync(cancellationToken);
     }
 
+    /// <summary>
+    /// The sheet's rows and their cells. Each cell's template cell is attached afterwards (see
+    /// <see cref="AttachTemplateCellsAsync"/>) rather than joined here, where it would be read and built
+    /// again for every cell made from it.
+    /// </summary>
     private async Task<List<SheetRow>> LoadRowsAsync(int sheetId, CancellationToken cancellationToken)
     {
         return await db.SheetRows
             .AsNoTracking()
             .Include(row => row.Cells)
-            .ThenInclude(cell => cell.TemplateCell)
             .Where(row => row.SheetSection.SheetTable.SheetId == sheetId)
             .ToListAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// Gives every cell its template cell from the template rows already read, and reads only those that
+    /// aren't among them in one more query.
+    /// </summary>
+    private async Task AttachTemplateCellsAsync(List<SheetRow> rows, List<TemplateRow> templateRows, CancellationToken cancellationToken)
+    {
+        var templateCells = templateRows.SelectMany(row => row.Cells).ToDictionary(cell => cell.Id);
+        var cells = rows.SelectMany(row => row.Cells).ToList();
+        var missingIds = cells
+            .Select(cell => cell.TemplateCellId)
+            .Where(id => !templateCells.ContainsKey(id))
+            .Distinct()
+            .ToList();
+        if (missingIds.Count > 0)
+        {
+            foreach (var templateCell in await db.TemplateCells.AsNoTracking().Where(cell => missingIds.Contains(cell.Id)).ToListAsync(cancellationToken))
+            {
+                templateCells[templateCell.Id] = templateCell;
+            }
+        }
+
+        foreach (var cell in cells)
+        {
+            cell.TemplateCell = templateCells[cell.TemplateCellId];
+        }
     }
 
     private async Task<List<SheetColumnBlock>> LoadColumnBlocksAsync(int sheetId, CancellationToken cancellationToken)
@@ -161,15 +201,34 @@ public sealed class SheetSnapshotLoader(PuSpecSheetDbContext db, RowValueStore v
             .ToListAsync(cancellationToken);
     }
 
+    /// <summary>
+    /// The values of the row revisions shown. They are read for every revision the view could show, found
+    /// by the sheet in the database rather than sent as a list of ids (see <see cref="RowRevisionScope"/>),
+    /// and other people's drafts are then left out.
+    /// </summary>
     private async Task<Dictionary<int, Dictionary<int, CellValueBag>>> LoadShownValuesAsync(
+        IQueryable<SheetRowRevision> sheetRowRevisions,
         Dictionary<int, RevisionResolution<SheetRowRevision>> rowRevisions,
+        DateTime? moment,
         CancellationToken cancellationToken)
     {
         var shownRowRevisionIds = rowRevisions.Values
             .Where(resolution => resolution.Shown is not null)
             .Select(resolution => resolution.Shown!.Id)
-            .ToList();
-        return await valueStore.LoadAsync(shownRowRevisionIds, cancellationToken);
+            .ToHashSet();
+        if (shownRowRevisionIds.Count == 0)
+        {
+            return [];
+        }
+
+        var scope = RowRevisionScope.Of(InView(sheetRowRevisions, moment).Select(revision => revision.Id));
+        var values = await valueStore.LoadAsync(scope, cancellationToken);
+        foreach (var revisionId in values.Keys.Where(revisionId => !shownRowRevisionIds.Contains(revisionId)).ToList())
+        {
+            values.Remove(revisionId);
+        }
+
+        return values;
     }
 
     private async Task<List<TemplateSection>> LoadTemplateSectionsAsync(List<int> versionIds, CancellationToken cancellationToken)

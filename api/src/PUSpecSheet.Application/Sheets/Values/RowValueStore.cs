@@ -12,42 +12,50 @@ namespace PUSpecSheet.Application.Sheets.Values;
 public sealed class RowValueStore(PuSpecSheetDbContext db)
 {
     /// <summary>Every value of the given row revisions, by revision id and then sheet cell id.</summary>
-    public async Task<Dictionary<int, Dictionary<int, CellValueBag>>> LoadAsync(
+    public Task<Dictionary<int, Dictionary<int, CellValueBag>>> LoadAsync(
         IReadOnlyCollection<int> revisionIds,
         CancellationToken cancellationToken)
     {
+        return LoadAsync(RowRevisionScope.Of(revisionIds), cancellationToken);
+    }
+
+    /// <summary>Every value of the row revisions in scope, by revision id and then sheet cell id.</summary>
+    public async Task<Dictionary<int, Dictionary<int, CellValueBag>>> LoadAsync(
+        RowRevisionScope revisions,
+        CancellationToken cancellationToken)
+    {
         var result = new Dictionary<int, Dictionary<int, CellValueBag>>();
-        if (revisionIds.Count == 0)
+        if (revisions.IsEmpty)
         {
             return result;
         }
 
-        foreach (var value in await db.TextValues.AsNoTracking().Where(v => revisionIds.Contains(v.SheetRowRevisionId)).ToListAsync(cancellationToken))
+        foreach (var value in await revisions.Apply(db.TextValues.AsNoTracking()).ToListAsync(cancellationToken))
         {
             BagFor(result, value).Text = value.Value;
         }
 
-        foreach (var value in await db.NumericValues.AsNoTracking().Where(v => revisionIds.Contains(v.SheetRowRevisionId)).ToListAsync(cancellationToken))
+        foreach (var value in await revisions.Apply(db.NumericValues.AsNoTracking()).ToListAsync(cancellationToken))
         {
             BagFor(result, value).Number = value.Value;
         }
 
-        foreach (var value in await db.DateValues.AsNoTracking().Where(v => revisionIds.Contains(v.SheetRowRevisionId)).ToListAsync(cancellationToken))
+        foreach (var value in await revisions.Apply(db.DateValues.AsNoTracking()).ToListAsync(cancellationToken))
         {
             BagFor(result, value).Date = value.Value;
         }
 
-        foreach (var value in await db.BooleanValues.AsNoTracking().Where(v => revisionIds.Contains(v.SheetRowRevisionId)).ToListAsync(cancellationToken))
+        foreach (var value in await revisions.Apply(db.BooleanValues.AsNoTracking()).ToListAsync(cancellationToken))
         {
             BagFor(result, value).Boolean = value.Value;
         }
 
-        foreach (var value in await db.OptionValues.AsNoTracking().Where(v => revisionIds.Contains(v.SheetRowRevisionId)).ToListAsync(cancellationToken))
+        foreach (var value in await revisions.Apply(db.OptionValues.AsNoTracking()).ToListAsync(cancellationToken))
         {
             BagFor(result, value).OptionId = value.CellTypeOptionId;
         }
 
-        foreach (var value in await db.CellSettings.AsNoTracking().Where(v => revisionIds.Contains(v.SheetRowRevisionId)).ToListAsync(cancellationToken))
+        foreach (var value in await revisions.Apply(db.CellSettings.AsNoTracking()).ToListAsync(cancellationToken))
         {
             BagFor(result, value).Settings = value.Settings;
         }
