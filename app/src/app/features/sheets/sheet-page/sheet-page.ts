@@ -1,10 +1,14 @@
 import { CdkDrag, CdkDragDrop, CdkDropList } from '@angular/cdk/drag-drop';
-import { Component, computed, inject, input } from '@angular/core';
+import { Component, computed, effect, inject, input } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { Title } from '@angular/platform-browser';
+import { NavigationEnd, Router } from '@angular/router';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ConfirmPopupModule } from 'primeng/confirmpopup';
 import { MessageModule } from 'primeng/message';
 import { SkeletonModule } from 'primeng/skeleton';
 import { ToastModule } from 'primeng/toast';
+import { filter } from 'rxjs';
 import { Phase } from '../../../core/models/phase.model';
 import { SheetType } from '../../../core/models/sheet-type.model';
 import { EmptyState } from '../../../shared/components/empty-state/empty-state';
@@ -117,6 +121,26 @@ export class SheetPage {
 
   private readonly phases = inject(PhasesStore);
   private readonly sheetStore = inject(SheetStore);
+  private readonly title = inject(Title);
+
+  private readonly navigationEnd = toSignal(
+    inject(Router).events.pipe(filter((event) => event instanceof NavigationEnd)),
+  );
+
+  /**
+   * Names the browser tab after the phase and sheet, so several open sheets can be told apart. It is set
+   * again after every navigation, because moving between rows changes the URL's fragment and the router
+   * then puts the route's generic title back.
+   */
+  constructor() {
+    effect(() => {
+      this.navigationEnd();
+      const phase = this.phase();
+      const sheetType = this.sheetType();
+      const name = phase && sheetType ? `${phase.code} ${sheetType.name}` : 'Sheet';
+      this.title.setTitle(`${name} · PU Spec Sheet`);
+    });
+  }
 
   public retry(): void {
     this.phases.reload();

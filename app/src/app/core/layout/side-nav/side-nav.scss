@@ -12,14 +12,17 @@
 
 .side-nav {
   display: flex;
-  overflow-y: auto;
+  overflow: hidden;
   flex-direction: column;
   justify-content: space-between;
   height: 100%;
   padding: var(--app-space-3);
 }
 
+// A long phase tree scrolls here, above the footer, instead of running under Help and the API status.
 .main {
+  flex: 1 1 auto;
+  overflow-y: auto;
   min-height: 0;
 }
 
