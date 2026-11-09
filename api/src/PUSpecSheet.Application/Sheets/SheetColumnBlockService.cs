@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Application.Common;
 using PUSpecSheet.Application.Sheets.Drafts;
 using PUSpecSheet.Application.Sheets.Reading;
+using PUSpecSheet.Application.Sheets.Removal;
 using PUSpecSheet.Application.Sheets.Revisions;
 using PUSpecSheet.Application.Sheets.Layout;
 using PUSpecSheet.Application.Users;
@@ -19,6 +20,7 @@ public sealed class SheetColumnBlockService(
     SheetInstantiator instantiator,
     ISheetCellFiller filler,
     SheetReader reader,
+    IRemovalInProgressGuard removals,
     ICurrentUser currentUser) : ISheetColumnBlockService
 {
     public async Task<SheetDto> AddAsync(int tableId, AddSheetColumnBlockRequest request, CancellationToken cancellationToken)
@@ -39,6 +41,7 @@ public sealed class SheetColumnBlockService(
                 candidate => candidate.Id == request.TemplateColumnBlockId && candidate.TableTemplateVersionId == table.TableTemplateVersionId,
                 cancellationToken)
             ?? throw new InvalidRequestException("That column block isn't part of this table's template.");
+        await removals.EnsurePlaceNotBeingRemovedAsync(tableId, null, currentUser.UserId, cancellationToken);
 
         var visible = await VisibleAsync(tableId, cancellationToken);
         var copies = visible.Count(block => block.TemplateColumnBlockId == template.Id);
@@ -58,6 +61,7 @@ public sealed class SheetColumnBlockService(
     public async Task<SheetDto> MoveAsync(int columnBlockId, MoveRequest request, CancellationToken cancellationToken)
     {
         var block = await LoadAsync(columnBlockId, cancellationToken);
+        await removals.EnsurePlaceNotBeingRemovedAsync(block.SheetTableId, null, currentUser.UserId, cancellationToken);
         var state = await drafts.LoadAsync(columnBlockId, cancellationToken);
 
         var siblingOrders = (await VisibleAsync(block.SheetTableId, cancellationToken))
@@ -92,6 +96,7 @@ public sealed class SheetColumnBlockService(
 
         var state = await drafts.LoadAsync(columnBlockId, cancellationToken);
         await drafts.EnsureNotLockedByOthersAsync(state, cancellationToken);
+        await removals.EnsurePlaceNotBeingRemovedAsync(block.SheetTableId, null, currentUser.UserId, cancellationToken);
 
         var sheetId = block.SheetTable.SheetId;
         if (state.IsNew)

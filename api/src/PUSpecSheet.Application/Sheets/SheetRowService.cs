@@ -4,6 +4,7 @@ using PUSpecSheet.Application.Sheets.Collaboration;
 using PUSpecSheet.Application.Sheets.Drafts;
 using PUSpecSheet.Application.Sheets.Linking;
 using PUSpecSheet.Application.Sheets.Reading;
+using PUSpecSheet.Application.Sheets.Removal;
 using PUSpecSheet.Application.Sheets.Revisions;
 using PUSpecSheet.Application.Sheets.Layout;
 using PUSpecSheet.Application.Sheets.Values;
@@ -27,6 +28,7 @@ public sealed class SheetRowService(
     SheetInstantiator instantiator,
     ISheetCellFiller filler,
     SheetReader reader,
+    IRemovalInProgressGuard removals,
     ICurrentUser currentUser) : ISheetRowService
 {
     public async Task<SheetDto> AddAsync(int sectionId, AddSheetRowRequest request, CancellationToken cancellationToken)
@@ -47,6 +49,7 @@ public sealed class SheetRowService(
             .Include(row => row.Cells)
             .SingleOrDefaultAsync(row => row.Id == request.TemplateRowId && row.TemplateSectionId == section.TemplateSectionId, cancellationToken)
             ?? throw new InvalidRequestException("That row isn't part of this section's template.");
+        await removals.EnsurePlaceNotBeingRemovedAsync(section.SheetTableId, sectionId, currentUser.UserId, cancellationToken);
 
         var orders = await VisibleRowOrdersAsync(sectionId, excludingRowId: null, cancellationToken);
         var row = instantiator.NewRow(templateRow, section.SheetTable.SheetId, OrderGaps.Next(orders));
@@ -136,6 +139,7 @@ public sealed class SheetRowService(
         liveCheckouts.EnsureNotHeldByOthers(rowId);
         var state = await drafts.LoadAsync(rowId, cancellationToken);
         await drafts.EnsureNotLockedByOthersAsync(state, cancellationToken);
+        await removals.EnsurePlaceNotBeingRemovedAsync(row.SheetSection.SheetTableId, row.SheetSectionId, currentUser.UserId, cancellationToken);
 
         if (state.IsNew)
         {

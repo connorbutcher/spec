@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Application.Common;
 using PUSpecSheet.Application.Sheets.Drafts;
 using PUSpecSheet.Application.Sheets.Reading;
+using PUSpecSheet.Application.Sheets.Removal;
 using PUSpecSheet.Application.Sheets.Revisions;
 using PUSpecSheet.Application.Sheets.Layout;
 using PUSpecSheet.Application.Sheets.Values;
@@ -22,6 +23,8 @@ public sealed class SheetSectionService(
     ISheetCellFiller filler,
     NewRowSettings newRowSettings,
     SheetReader reader,
+    RemovalContentsGuard contents,
+    IRemovalInProgressGuard removals,
     ICurrentUser currentUser) : ISheetSectionService
 {
     public async Task<SheetDto> AddAsync(int tableId, AddSheetSectionRequest request, CancellationToken cancellationToken)
@@ -39,6 +42,7 @@ public sealed class SheetSectionService(
         }
 
         await EnsureParentFitsAsync(tableId, template, request.ParentSheetSectionId, cancellationToken);
+        await removals.EnsurePlaceNotBeingRemovedAsync(tableId, request.ParentSheetSectionId, currentUser.UserId, cancellationToken);
         var order = await NextOrderWithinLimitAsync(tableId, template, request.ParentSheetSectionId, cancellationToken);
         var section = instantiator.NewSection(table, template, tree, order);
         section.ParentSheetSectionId = request.ParentSheetSectionId;
@@ -58,6 +62,7 @@ public sealed class SheetSectionService(
             throw new InvalidRequestException("The header always stays first.");
         }
 
+        await removals.EnsurePlaceNotBeingRemovedAsync(section.SheetTableId, section.ParentSheetSectionId, currentUser.UserId, cancellationToken);
         var state = await drafts.LoadAsync(sectionId, cancellationToken);
         var siblingOrders = (await liveSections.VisibleAsync(section.SheetTableId, cancellationToken))
             .Where(candidate => candidate.ParentSheetSectionId == section.ParentSheetSectionId && candidate.Id != sectionId)
@@ -100,7 +105,10 @@ public sealed class SheetSectionService(
 
         var state = await drafts.LoadAsync(sectionId, cancellationToken);
         await drafts.EnsureNotLockedByOthersAsync(state, cancellationToken);
-        await EnsureNobodyElseIsEditingInsideAsync(section, cancellationToken);
+        await removals.EnsurePlaceNotBeingRemovedAsync(section.SheetTableId, section.ParentSheetSectionId, currentUser.UserId, cancellationToken);
+        await contents.EnsureSectionsFreeAsync(
+            await liveSections.SubtreeIdsAsync(section.SheetTableId, section.Id, cancellationToken),
+            cancellationToken);
 
         var sheetId = section.SheetTable.SheetId;
         if (state.IsNew)
@@ -125,25 +133,6 @@ public sealed class SheetSectionService(
             .Include(section => section.SheetTable)
             .SingleOrDefaultAsync(section => section.Id == sectionId, cancellationToken)
             ?? throw new NotFoundException($"Section {sectionId} was not found.");
-    }
-
-    /// <summary>
-    /// Removing a section removes what's inside it, so nobody else may be holding a draft in there, and no draft in
-    /// there may be waiting for approval.
-    /// </summary>
-    private async Task EnsureNobodyElseIsEditingInsideAsync(SheetSection section, CancellationToken cancellationToken)
-    {
-        var me = currentUser.UserId;
-        var ids = await liveSections.SubtreeIdsAsync(section.SheetTableId, section.Id, cancellationToken);
-
-        var others = await db.SheetSectionRevisions
-            .AnyAsync(revision => ids.Contains(revision.SheetSectionId) && revision.Status == RevisionStatus.Draft && (revision.AuthorUserId != me || revision.SheetSubmissionId != null), cancellationToken)
-            || await db.SheetRowRevisions
-                .AnyAsync(revision => ids.Contains(revision.SheetRow.SheetSectionId) && revision.Status == RevisionStatus.Draft && (revision.AuthorUserId != me || revision.SheetSubmissionId != null), cancellationToken);
-        if (others)
-        {
-            throw new ConflictException("Someone else is editing inside this section, so it can't be removed yet.");
-        }
     }
 
     /// <summary>

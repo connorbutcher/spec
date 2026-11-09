@@ -19,12 +19,13 @@ public sealed class LiveRowCheckoutServiceTests
     private readonly SheetPresenceTracker presence = new();
     private readonly LiveRowCheckoutTracker tracker = new();
     private readonly RowTakeoverStore takeovers = new();
+    private readonly FakeRemovalInProgressGuard removals = new();
     private readonly LiveRowCheckoutService service;
 
     public LiveRowCheckoutServiceTests()
     {
         var settler = new RowTakeoverSettler(takeovers, new RowTakeoverCloser(drafts, notifier), new SettableClock());
-        service = new LiveRowCheckoutService(drafts, presence, tracker, settler, notifier);
+        service = new LiveRowCheckoutService(drafts, presence, tracker, settler, removals, notifier);
 
         drafts.AddRow(10);
         drafts.AddRow(11);
@@ -72,6 +73,18 @@ public sealed class LiveRowCheckoutServiceTests
         await service.CheckOutAsync("sam", 10, CancellationToken.None);
 
         Assert.Equal(Sam, tracker.HolderOf(10)!.UserId);
+    }
+
+    [Fact]
+    public async Task ARowInASectionSomeoneElseIsRemoving_IsRefusedByName()
+    {
+        removals.RemoveSectionOf(10, Sam, "Sam");
+
+        var refused = await Assert.ThrowsAsync<ConflictException>(() => service.CheckOutAsync("alex", 10, CancellationToken.None));
+
+        Assert.Equal("Sam is removing the section this is in, so it can't be changed unless they put it back.", refused.Message);
+        Assert.Null(tracker.HolderOf(10));
+        Assert.Empty(notifier.Checkouts);
     }
 
     [Fact]

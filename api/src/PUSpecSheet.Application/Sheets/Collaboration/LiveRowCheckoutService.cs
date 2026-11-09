@@ -1,4 +1,5 @@
 using PUSpecSheet.Application.Common;
+using PUSpecSheet.Application.Sheets.Removal;
 
 namespace PUSpecSheet.Application.Sheets.Collaboration;
 
@@ -7,6 +8,7 @@ public sealed class LiveRowCheckoutService(
     SheetPresenceTracker presence,
     LiveRowCheckoutTracker tracker,
     IRowTakeoverSettler takeovers,
+    IRemovalInProgressGuard removals,
     ISheetLiveNotifier notifier) : ILiveRowCheckoutService
 {
     public async Task CheckOutAsync(string connectionId, int rowId, CancellationToken cancellationToken)
@@ -28,6 +30,8 @@ public sealed class LiveRowCheckoutService(
             var names = await checkouts.DisplayNamesAsync([holderUserId], cancellationToken);
             throw Held(names.GetValueOrDefault(holderUserId, "another user"));
         }
+
+        await removals.EnsureRowNotBeingRemovedAsync(rowId, connection.UserId, cancellationToken);
 
         var wanted = new LiveRowCheckout(sheetId, rowId, connection.UserId, connection.DisplayName);
         if (!tracker.TryCheckOut(connectionId, wanted, out var heldBy))

@@ -1,6 +1,8 @@
 using PUSpecSheet.Application.Sheets.Collaboration;
+using PUSpecSheet.Application.Sheets.Removal;
 using PUSpecSheet.Application.Sheets.Revisions;
 using PUSpecSheet.Application.Sheets.Values;
+using PUSpecSheet.Application.Users;
 using PUSpecSheet.Data;
 using PUSpecSheet.Domain.Sheets;
 
@@ -14,7 +16,9 @@ public sealed class RowDraftStarter(
     PuSpecSheetDbContext db,
     RowDrafts drafts,
     LiveRowCheckoutGuard liveCheckouts,
-    RowValueStore valueStore)
+    IRemovalInProgressGuard removals,
+    RowValueStore valueStore,
+    ICurrentUser currentUser)
 {
     /// <summary>
     /// The user's draft on the row. A newly started draft is saved straight away and given a copy of the
@@ -26,6 +30,13 @@ public sealed class RowDraftStarter(
         liveCheckouts.EnsureNotHeldByOthers(rowId);
 
         var state = await drafts.LoadAsync(rowId, cancellationToken);
+        if (state.Draft is null)
+        {
+            // Holding a draft already means nobody could have started removing around it since, so only
+            // a new draft needs the check, and saves into an open one cost nothing extra.
+            await removals.EnsureRowNotBeingRemovedAsync(rowId, currentUser.UserId, cancellationToken);
+        }
+
         var (draft, created) = await drafts.EnsureMineAsync(rowId, state, cancellationToken);
         if (!created)
         {

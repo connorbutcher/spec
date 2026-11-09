@@ -3,6 +3,7 @@ using PUSpecSheet.Application.Sheets.Drafts;
 using PUSpecSheet.Application.Sheets.History;
 using PUSpecSheet.Application.Sheets.Linking;
 using PUSpecSheet.Application.Sheets.Reading;
+using PUSpecSheet.Application.Sheets.Removal;
 using PUSpecSheet.Application.Sheets.Layout;
 using PUSpecSheet.Application.Sheets.Values;
 
@@ -24,6 +25,8 @@ public static class SheetServiceCollectionExtensions
         services.AddScoped<TableDrafts>();
         services.AddScoped<SectionDrafts>();
         services.AddScoped<RowDrafts>();
+        services.AddScoped<IRemovalInProgressGuard, RemovalInProgressGuard>();
+        services.AddScoped<RemovalContentsGuard>();
         services.AddScoped<RowDraftStarter>();
         services.AddScoped<NewRowSettings>();
         services.AddScoped<LinkedDropdownValueRule>();

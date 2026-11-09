@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Application.Common;
 using PUSpecSheet.Application.Sheets.Drafts;
 using PUSpecSheet.Application.Sheets.Reading;
+using PUSpecSheet.Application.Sheets.Removal;
 using PUSpecSheet.Application.Sheets.Revisions;
 using PUSpecSheet.Application.Sheets.Layout;
 using PUSpecSheet.Application.Users;
@@ -18,6 +19,7 @@ public sealed class SheetTableService(
     SheetInstantiator instantiator,
     ISheetCellFiller filler,
     SheetReader reader,
+    RemovalContentsGuard contents,
     ICurrentUser currentUser) : ISheetTableService
 {
     public async Task<SheetDto> AddAsync(int sheetId, AddSheetTableRequest request, CancellationToken cancellationToken)
@@ -95,18 +97,7 @@ public sealed class SheetTableService(
         var sheetId = await SheetIdOfAsync(tableId, cancellationToken);
         var state = await drafts.LoadAsync(tableId, cancellationToken);
         await drafts.EnsureNotLockedByOthersAsync(state, cancellationToken);
-
-        var me = currentUser.UserId;
-        var othersInside = await db.SheetSectionRevisions
-            .AnyAsync(revision => revision.SheetSection.SheetTableId == tableId && revision.Status == RevisionStatus.Draft && (revision.AuthorUserId != me || revision.SheetSubmissionId != null), cancellationToken)
-            || await db.SheetRowRevisions
-                .AnyAsync(revision => revision.SheetRow.SheetSection.SheetTableId == tableId && revision.Status == RevisionStatus.Draft && (revision.AuthorUserId != me || revision.SheetSubmissionId != null), cancellationToken)
-            || await db.SheetColumnBlockRevisions
-                .AnyAsync(revision => revision.SheetColumnBlock.SheetTableId == tableId && revision.Status == RevisionStatus.Draft && (revision.AuthorUserId != me || revision.SheetSubmissionId != null), cancellationToken);
-        if (othersInside)
-        {
-            throw new ConflictException("Someone else is editing inside this table, so it can't be removed yet.");
-        }
+        await contents.EnsureTableFreeAsync(tableId, cancellationToken);
 
         if (state.IsNew)
         {
