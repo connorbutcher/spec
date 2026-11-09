@@ -18,6 +18,8 @@
       @if (sheet(); as open) {
         @if (open.reviewedSubmissionId) {
           <app-sheet-review-bar />
+        } @else if (open.isLive) {
+          <app-sheet-pending-approvals />
         }
         <app-sheet-context-bar />
         <app-sheet-takeover-requests />
