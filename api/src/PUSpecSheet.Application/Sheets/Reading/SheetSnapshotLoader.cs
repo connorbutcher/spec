@@ -29,10 +29,10 @@ public sealed class SheetSnapshotLoader(PuSpecSheetDbContext db, RowValueStore v
 
         // Revisions are found by the sheet they carry, which the (sheet, status) and (sheet, published)
         // indexes lead with, so the cost follows the size of this sheet rather than the whole database.
-        var tableRevisions = await ResolveRevisionsAsync(db.TableRevisionsOf(sheetId), revision => revision.SheetTableId, moment, currentUserId, cancellationToken);
-        var sectionRevisions = await ResolveRevisionsAsync(db.SectionRevisionsOf(sheetId), revision => revision.SheetSectionId, moment, currentUserId, cancellationToken);
-        var rowRevisions = await ResolveRevisionsAsync(db.RowRevisionsOf(sheetId), revision => revision.SheetRowId, moment, currentUserId, cancellationToken);
-        var columnBlockRevisions = await ResolveRevisionsAsync(db.ColumnBlockRevisionsOf(sheetId), revision => revision.SheetColumnBlockId, moment, currentUserId, cancellationToken);
+        var tableRevisions = await ResolveRevisionsAsync(db.TableRevisionsOf(sheetId), revision => revision.SheetTableId, moment, view, currentUserId, cancellationToken);
+        var sectionRevisions = await ResolveRevisionsAsync(db.SectionRevisionsOf(sheetId), revision => revision.SheetSectionId, moment, view, currentUserId, cancellationToken);
+        var rowRevisions = await ResolveRevisionsAsync(db.RowRevisionsOf(sheetId), revision => revision.SheetRowId, moment, view, currentUserId, cancellationToken);
+        var columnBlockRevisions = await ResolveRevisionsAsync(db.ColumnBlockRevisionsOf(sheetId), revision => revision.SheetColumnBlockId, moment, view, currentUserId, cancellationToken);
         var values = await LoadShownValuesAsync(db.RowRevisionsOf(sheetId), rowRevisions, moment, cancellationToken);
 
         var versionIds = tables.Select(table => table.TableTemplateVersionId).Distinct().ToList();
@@ -45,6 +45,7 @@ public sealed class SheetSnapshotLoader(PuSpecSheetDbContext db, RowValueStore v
             Sheet = sheet,
             AsOfUtc = moment,
             ViewedVersionNumber = versionNumber,
+            ReviewedSubmissionId = view.ReviewedSubmissionId,
             Versions = versions,
             Tables = tables,
             Sections = sections,
@@ -82,12 +83,17 @@ public sealed class SheetSnapshotLoader(PuSpecSheetDbContext db, RowValueStore v
         IQueryable<TRevision> query,
         Func<TRevision, int> itemId,
         DateTime? moment,
+        SheetViewPoint view,
         int currentUserId,
         CancellationToken cancellationToken)
         where TRevision : class, ISheetRevision
     {
         var revisions = await LoadRevisionsAsync(query, moment, cancellationToken);
-        return RevisionResolver.Resolve(revisions, itemId, currentUserId);
+
+        // Reviewing a submission shows its drafts and nobody else's, the reviewer's own included.
+        return view.ReviewedSubmissionId is { } submissionId
+            ? RevisionResolver.Resolve(revisions, itemId, draft => draft.SheetSubmissionId == submissionId)
+            : RevisionResolver.Resolve(revisions, itemId, currentUserId);
     }
 
     private static async Task<List<TRevision>> LoadRevisionsAsync<TRevision>(

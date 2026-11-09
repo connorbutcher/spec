@@ -17,6 +17,8 @@ public static class ApiTags
 
     public const string SheetItems = "Sheet items";
 
+    public const string Approvals = "Approvals";
+
     public const string TableTemplates = "Table templates";
 
     public const string TemplateSections = "Template sections";

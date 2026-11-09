@@ -20,8 +20,9 @@ public interface ISheetService
     Task<SheetRowsChangeDto> GetRowsAsync(int sheetId, IReadOnlyCollection<int> rowIds, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Publishes drafts on the sheet as its next version: the current user's own, or everyone's when the
-    /// request asks for <see cref="PublishScope.All"/>.
+    /// Publishes drafts on the sheet as its next version straight away, without approval: the current user's
+    /// own, or everyone's when the request asks for <see cref="PublishScope.All"/>. Only start-up seeding uses
+    /// this; publishing through the API waits for approval (see <c>ISheetSubmissionService</c>).
     /// </summary>
     Task<SheetDto> PublishAsync(int sheetId, PublishSheetRequest request, CancellationToken cancellationToken);
 

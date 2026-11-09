@@ -17,6 +17,9 @@ public sealed record SheetSnapshot
 
     public int? ViewedVersionNumber { get; init; }
 
+    /// <summary>The submission whose waiting changes are shown over the published sheet, or null.</summary>
+    public int? ReviewedSubmissionId { get; init; }
+
     public required IReadOnlyList<SheetVersion> Versions { get; init; }
 
     public required IReadOnlyList<SheetTable> Tables { get; init; }

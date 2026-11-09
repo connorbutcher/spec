@@ -25,11 +25,29 @@ internal static class SheetRevisionQueryExtensions
         return revisions.Where(revision => revision.Status == RevisionStatus.Draft);
     }
 
-    /// <summary>The drafts a publish takes: the publisher's own, or everyone's.</summary>
+    /// <summary>
+    /// The drafts a publish takes: the publisher's own, or everyone's. Drafts already waiting for approval
+    /// are left out, as they belong to their submission until it is decided.
+    /// </summary>
     public static IQueryable<TRevision> DraftsIn<TRevision>(this IQueryable<TRevision> revisions, PublishScope scope, int publisherUserId)
         where TRevision : class, ISheetRevision
     {
-        return scope == PublishScope.All ? revisions.Drafts() : revisions.DraftsOf(publisherUserId);
+        var drafts = scope == PublishScope.All ? revisions.Drafts() : revisions.DraftsOf(publisherUserId);
+        return drafts.Where(revision => revision.SheetSubmissionId == null);
+    }
+
+    /// <summary>The drafts one user holds that aren't waiting for approval, so they can still change or discard them.</summary>
+    public static IQueryable<TRevision> OpenDraftsOf<TRevision>(this IQueryable<TRevision> revisions, int userId)
+        where TRevision : class, ISheetRevision
+    {
+        return revisions.DraftsOf(userId).Where(revision => revision.SheetSubmissionId == null);
+    }
+
+    /// <summary>The drafts waiting for approval in one submission.</summary>
+    public static IQueryable<TRevision> InSubmission<TRevision>(this IQueryable<TRevision> revisions, int submissionId)
+        where TRevision : class, ISheetRevision
+    {
+        return revisions.Where(revision => revision.Status == RevisionStatus.Draft && revision.SheetSubmissionId == submissionId);
     }
 
     /// <summary>The drafts one user holds.</summary>

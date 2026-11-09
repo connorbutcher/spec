@@ -2,8 +2,10 @@ using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PUSpecSheet.Api.ApiDocumentation;
+using PUSpecSheet.Application.Approvals;
 using PUSpecSheet.Application.Sheets;
 using PUSpecSheet.Application.Sheets.Reading;
+using PUSpecSheet.Contracts.Approvals;
 using PUSpecSheet.Contracts.Sheets;
 using PUSpecSheet.Domain.Users;
 
@@ -15,7 +17,7 @@ namespace PUSpecSheet.Api.Controllers;
 /// </summary>
 [ApiController]
 [Tags(ApiTags.Sheets)]
-public sealed class SheetsController(ISheetService sheets, ISheetTableService tables) : ControllerBase
+public sealed class SheetsController(ISheetService sheets, ISheetTableService tables, ISheetSubmissionService submissions) : ControllerBase
 {
     /// <summary>Open a phase's sheet</summary>
     /// <remarks>
@@ -44,22 +46,27 @@ public sealed class SheetsController(ISheetService sheets, ISheetTableService ta
 
     /// <summary>Get a sheet</summary>
     /// <remarks>
-    /// The sheet with this id, live or as of a version number or a date and time.
+    /// The sheet with this id, live or as of a version number or a date and time, or with a submission's
+    /// changes on top for its approvers to check. Only one of <c>version</c>, <c>asOf</c> and <c>submission</c> can be given.
     /// </remarks>
     /// <param name="id">The sheet's id.</param>
     /// <param name="version" example="3">Show the sheet as of this version number. Leave out for the live view.</param>
     /// <param name="asOf" example="2026-09-30T14:02:11Z">Show the sheet as it was published at this date and time (UTC). Can't be combined with <c>version</c>.</param>
+    /// <param name="submission" example="12">Show the live sheet with this submission's changes, which wait for approval, on top. Read-only, and only for its submitter and approvers.</param>
     /// <param name="cancellationToken">Cancels the request.</param>
     /// <response code="200">The sheet as you see it.</response>
-    /// <response code="404">The sheet or version doesn't exist.</response>
+    /// <response code="403">You aren't the submission's submitter or one of its approvers.</response>
+    /// <response code="404">The sheet, version or submission doesn't exist.</response>
+    /// <response code="409">The submission has already been decided.</response>
     [HttpGet("api/sheets/{id:int}")]
     public async Task<ActionResult<SheetDto>> Get(
         int id,
         [FromQuery] int? version,
         [FromQuery] DateTime? asOf,
+        [FromQuery] int? submission,
         CancellationToken cancellationToken)
     {
-        var result = await sheets.GetAsync(id, SheetViewPoint.From(version, asOf), cancellationToken);
+        var result = await sheets.GetAsync(id, SheetViewPoint.From(version, asOf, submission), cancellationToken);
         return Ok(result);
     }
 
@@ -102,24 +109,27 @@ public sealed class SheetsController(ISheetService sheets, ISheetTableService ta
         return Ok(result);
     }
 
-    /// <summary>Publish drafts</summary>
+    /// <summary>Publish drafts, once approved</summary>
     /// <remarks>
-    /// Publishes drafts on the sheet as its next version, with an optional note, and releases their locks.
-    /// With <c>scope</c> <c>Mine</c> (the default) only your own drafts are published and other people's are untouched.
-    /// With <c>All</c> every draft on the sheet at that moment is published, whoever made it: each change stays
-    /// attributed to the person who made it, the version is attributed to you, and their locks are released.
+    /// Submits drafts on the sheet for publishing as its next version, with an optional note, to one or more
+    /// approvers (see <c>GET api/approvers</c>). Nothing is published yet: the drafts stay locked, to you as
+    /// well, and stay out of the published sheet until every approver approves; the last approval publishes
+    /// them. A rejection hands them back to their authors to change and submit again.
+    /// With <c>scope</c> <c>Mine</c> (the default) only your own drafts go in and other people's are untouched.
+    /// With <c>All</c> every draft on the sheet at that moment goes in, whoever made it: each change stays
+    /// attributed to the person who made it, and the version to you.
     /// </remarks>
     /// <param name="id">The sheet's id.</param>
-    /// <param name="request">An optional note describing the version, and whose drafts to publish.</param>
+    /// <param name="request">The approvers, an optional note describing the version, and whose drafts to publish.</param>
     /// <param name="cancellationToken">Cancels the request.</param>
     /// <response code="200">The refreshed live view of the sheet.</response>
-    /// <response code="400">There is nothing to publish, or required cells are still empty.</response>
-    /// <response code="409">Someone changed one of the drafts, or published, at the same moment.</response>
+    /// <response code="400">There is nothing to publish, required cells are still empty, or an approver can't be chosen.</response>
+    /// <response code="409">Someone changed one of the drafts at the same moment.</response>
     [HttpPost("api/sheets/{id:int}/publish")]
     [Authorize(Policy = PermissionKeys.SheetsPublish)]
-    public async Task<ActionResult<SheetDto>> Publish(int id, PublishSheetRequest request, CancellationToken cancellationToken)
+    public async Task<ActionResult<SheetDto>> Publish(int id, SubmitSheetRequest request, CancellationToken cancellationToken)
     {
-        var result = await sheets.PublishAsync(id, request, cancellationToken);
+        var result = await submissions.SubmitAsync(id, request, cancellationToken);
         return Ok(result);
     }
 

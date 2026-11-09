@@ -6,6 +6,7 @@ using PUSpecSheet.Application.Sheets.Values;
 using PUSpecSheet.Application.Users;
 using PUSpecSheet.Contracts.Sheets;
 using PUSpecSheet.Data;
+using PUSpecSheet.Domain.Approvals;
 using PUSpecSheet.Domain.CellTypes;
 using PUSpecSheet.Domain.Sheets;
 
@@ -21,6 +22,10 @@ namespace PUSpecSheet.Application.Sheets;
 /// A draft of theirs that changes nothing is dropped rather than published, like the publisher's own. If
 /// they save into a draft while it is being published, the publish fails as a conflict and nothing changes.
 /// </para>
+/// <para>
+/// Through the API a publish first waits for approval: <see cref="PrepareAsync"/> gathers and checks the
+/// drafts for a submission, and <see cref="PublishSubmissionAsync"/> publishes them once it is approved.
+/// </para>
 /// </summary>
 public sealed class SheetPublisher(
     PuSpecSheetDbContext db,
@@ -29,39 +34,86 @@ public sealed class SheetPublisher(
     ICurrentUser currentUser,
     TimeProvider clock)
 {
+    /// <summary>Publishes straight away, without approval. Only start-up seeding does this.</summary>
     /// <exception cref="NotFoundException">The sheet doesn't exist.</exception>
     /// <exception cref="InvalidRequestException">There is nothing to publish, or a required cell is empty.</exception>
     /// <exception cref="ConflictException">Someone else published the sheet at the same moment.</exception>
     public async Task PublishAsync(int sheetId, string? note, PublishScope scope, CancellationToken cancellationToken)
     {
-        var sheet = await db.Sheets.SingleOrDefaultAsync(candidate => candidate.Id == sheetId, cancellationToken)
-            ?? throw new NotFoundException($"Sheet {sheetId} was not found.");
-        await sweeper.SweepAsync(sheetId, scope, cancellationToken);
-        var me = currentUser.UserId;
+        var drafts = await PrepareAsync(sheetId, scope, cancellationToken);
+        var sheet = await FindSheetAsync(sheetId, cancellationToken);
+        await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
+        await PublishDraftsAsync(sheet, drafts, note, currentUser.UserId, cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
+    }
 
-        var tableDrafts = await db.TableRevisionsOf(sheetId).DraftsIn(scope, me).ToListAsync(cancellationToken);
-        var sectionDrafts = await db.SectionRevisionsOf(sheetId).DraftsIn(scope, me).ToListAsync(cancellationToken);
-        var rowDrafts = await db.RowRevisionsOf(sheetId).DraftsIn(scope, me).ToListAsync(cancellationToken);
-        var columnBlockDrafts = await db.ColumnBlockRevisionsOf(sheetId).DraftsIn(scope, me).ToListAsync(cancellationToken);
-        List<ISheetRevision> drafts = [.. tableDrafts, .. sectionDrafts, .. rowDrafts, .. columnBlockDrafts];
+    /// <summary>
+    /// The drafts a publish in <paramref name="scope"/> would take, once those that change nothing are swept
+    /// away, checked to be publishable. Drafts already waiting for approval are never among them.
+    /// </summary>
+    /// <exception cref="NotFoundException">The sheet doesn't exist.</exception>
+    /// <exception cref="InvalidRequestException">There is nothing to publish, or a required cell is empty.</exception>
+    public async Task<SheetDraftSet> PrepareAsync(int sheetId, PublishScope scope, CancellationToken cancellationToken)
+    {
+        if (!await db.Sheets.AnyAsync(sheet => sheet.Id == sheetId, cancellationToken))
+        {
+            throw new NotFoundException($"Sheet {sheetId} was not found.");
+        }
+
+        await sweeper.SweepAsync(sheetId, scope, cancellationToken);
+        var drafts = await SheetDraftSet.LoadAsync(db, sheetId, new ScopeDraftSelection(scope, currentUser.UserId), cancellationToken);
         if (drafts.Count == 0)
         {
             throw new InvalidRequestException(scope == PublishScope.All ? "There are no changes to publish." : "You have no changes to publish.");
         }
 
-        await EnsureRequiredCellsFilledAsync(rowDrafts, cancellationToken);
+        await EnsureRequiredCellsFilledAsync(drafts.Rows, cancellationToken);
+        return drafts;
+    }
 
+    /// <summary>
+    /// Publishes an approved submission's drafts as the sheet's next version, attributed to its submitter and
+    /// carrying its note, and records the version on it. Changes already made to the tracked submission are
+    /// saved in the same transaction, so the submission and the version can't disagree.
+    /// </summary>
+    /// <exception cref="ConflictException">Someone else published the sheet, or decided the submission, at the same moment.</exception>
+    public async Task<SheetVersion> PublishSubmissionAsync(SheetSubmission submission, CancellationToken cancellationToken)
+    {
+        var sheet = await FindSheetAsync(submission.SheetId, cancellationToken);
+        var drafts = await SheetDraftSet.LoadAsync(db, sheet.Id, new SubmissionDraftSelection(submission.Id), cancellationToken);
         await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
+        var version = await PublishDraftsAsync(sheet, drafts, submission.Note, submission.SubmittedByUserId, cancellationToken);
+        submission.SheetVersionId = version.Id;
+        await db.SaveSheetChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
+        return version;
+    }
+
+    private async Task<Sheet> FindSheetAsync(int sheetId, CancellationToken cancellationToken)
+    {
+        return await db.Sheets.SingleOrDefaultAsync(candidate => candidate.Id == sheetId, cancellationToken)
+            ?? throw new NotFoundException($"Sheet {sheetId} was not found.");
+    }
+
+    /// <summary>Publishes the drafts as the sheet's next version, inside the caller's transaction.</summary>
+    private async Task<SheetVersion> PublishDraftsAsync(
+        Sheet sheet,
+        SheetDraftSet drafts,
+        string? note,
+        int publishedByUserId,
+        CancellationToken cancellationToken)
+    {
         var now = clock.GetUtcNow().UtcDateTime;
-        var version = await AddNextVersionAsync(sheet, note, now, cancellationToken);
+        var lastVersion = await LastVersionNumberAsync(sheet.Id, cancellationToken);
+        var version = AddNextVersion(sheet, note, now, publishedByUserId, lastVersion);
 
         // The replaced revisions close their range at the moment the new ones open, before the drafts are
         // published, so the "one current revision per item" index never sees two at once. If the version
         // save below fails, the transaction undoes them.
-        await SupersedeReplacedAsync(tableDrafts, sectionDrafts, rowDrafts, columnBlockDrafts, now, cancellationToken);
+        await SupersedeReplacedAsync(drafts, now, cancellationToken);
         await db.SaveSheetChangesAsync(cancellationToken);
 
-        foreach (var draft in drafts)
+        foreach (var draft in drafts.All)
         {
             draft.Status = RevisionStatus.Published;
             draft.PublishedAtUtc = now;
@@ -69,21 +121,25 @@ public sealed class SheetPublisher(
         }
 
         await db.SaveSheetChangesAsync(cancellationToken);
-        await transaction.CommitAsync(cancellationToken);
+        return version;
+    }
+
+    private async Task<int> LastVersionNumberAsync(int sheetId, CancellationToken cancellationToken)
+    {
+        return await db.SheetVersions
+            .Where(version => version.SheetId == sheetId)
+            .MaxAsync(version => (int?)version.VersionNumber, cancellationToken) ?? 0;
     }
 
     /// <summary>Adds the sheet's next version, numbered one after its last.</summary>
-    private async Task<SheetVersion> AddNextVersionAsync(Sheet sheet, string? note, DateTime now, CancellationToken cancellationToken)
+    private SheetVersion AddNextVersion(Sheet sheet, string? note, DateTime now, int publishedByUserId, int lastVersion)
     {
-        var lastVersion = await db.SheetVersions
-            .Where(version => version.SheetId == sheet.Id)
-            .MaxAsync(version => (int?)version.VersionNumber, cancellationToken) ?? 0;
         var version = new SheetVersion
         {
             SheetId = sheet.Id,
             VersionNumber = lastVersion + 1,
             PublishedAtUtc = now,
-            PublishedByUserId = currentUser.UserId,
+            PublishedByUserId = publishedByUserId,
             Note = string.IsNullOrWhiteSpace(note) ? null : note.Trim(),
         };
         db.SheetVersions.Add(version);
@@ -108,18 +164,12 @@ public sealed class SheetPublisher(
     }
 
     /// <summary>Closes the published revisions the drafts replace, one statement per kind of item.</summary>
-    private async Task SupersedeReplacedAsync(
-        List<SheetTableRevision> tableDrafts,
-        List<SheetSectionRevision> sectionDrafts,
-        List<SheetRowRevision> rowDrafts,
-        List<SheetColumnBlockRevision> columnBlockDrafts,
-        DateTime now,
-        CancellationToken cancellationToken)
+    private async Task SupersedeReplacedAsync(SheetDraftSet drafts, DateTime now, CancellationToken cancellationToken)
     {
-        var tableIds = tableDrafts.Select(draft => draft.SheetTableId).ToList();
-        var sectionIds = sectionDrafts.Select(draft => draft.SheetSectionId).ToList();
-        var rowIds = rowDrafts.Select(draft => draft.SheetRowId).ToList();
-        var columnBlockIds = columnBlockDrafts.Select(draft => draft.SheetColumnBlockId).ToList();
+        var tableIds = drafts.Tables.Select(draft => draft.SheetTableId).ToList();
+        var sectionIds = drafts.Sections.Select(draft => draft.SheetSectionId).ToList();
+        var rowIds = drafts.Rows.Select(draft => draft.SheetRowId).ToList();
+        var columnBlockIds = drafts.ColumnBlocks.Select(draft => draft.SheetColumnBlockId).ToList();
         await SupersedeAsync(db.SheetTableRevisions.Where(revision => tableIds.Contains(revision.SheetTableId)), now, cancellationToken);
         await SupersedeAsync(db.SheetSectionRevisions.Where(revision => sectionIds.Contains(revision.SheetSectionId)), now, cancellationToken);
         await SupersedeAsync(db.SheetRowRevisions.Where(revision => rowIds.Contains(revision.SheetRowId)), now, cancellationToken);

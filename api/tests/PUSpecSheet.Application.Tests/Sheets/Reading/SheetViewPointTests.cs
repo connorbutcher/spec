@@ -47,4 +47,20 @@ public sealed class SheetViewPointTests
     {
         Assert.Throws<InvalidRequestException>(() => SheetViewPoint.From(3, DateTime.UtcNow));
     }
+
+    [Fact]
+    public void ReviewingASubmission_IsNotTheLiveView()
+    {
+        var view = SheetViewPoint.From(null, null, 12);
+
+        Assert.False(view.IsLive);
+        Assert.Equal(12, view.ReviewedSubmissionId);
+        Assert.Null(view.AsOfUtc);
+    }
+
+    [Fact]
+    public void ASubmissionWithAVersion_IsRefused()
+    {
+        Assert.Throws<InvalidRequestException>(() => SheetViewPoint.From(3, null, 12));
+    }
 }

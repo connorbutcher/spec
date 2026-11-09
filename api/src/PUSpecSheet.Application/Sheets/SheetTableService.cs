@@ -98,11 +98,11 @@ public sealed class SheetTableService(
 
         var me = currentUser.UserId;
         var othersInside = await db.SheetSectionRevisions
-            .AnyAsync(revision => revision.SheetSection.SheetTableId == tableId && revision.Status == RevisionStatus.Draft && revision.AuthorUserId != me, cancellationToken)
+            .AnyAsync(revision => revision.SheetSection.SheetTableId == tableId && revision.Status == RevisionStatus.Draft && (revision.AuthorUserId != me || revision.SheetSubmissionId != null), cancellationToken)
             || await db.SheetRowRevisions
-                .AnyAsync(revision => revision.SheetRow.SheetSection.SheetTableId == tableId && revision.Status == RevisionStatus.Draft && revision.AuthorUserId != me, cancellationToken)
+                .AnyAsync(revision => revision.SheetRow.SheetSection.SheetTableId == tableId && revision.Status == RevisionStatus.Draft && (revision.AuthorUserId != me || revision.SheetSubmissionId != null), cancellationToken)
             || await db.SheetColumnBlockRevisions
-                .AnyAsync(revision => revision.SheetColumnBlock.SheetTableId == tableId && revision.Status == RevisionStatus.Draft && revision.AuthorUserId != me, cancellationToken);
+                .AnyAsync(revision => revision.SheetColumnBlock.SheetTableId == tableId && revision.Status == RevisionStatus.Draft && (revision.AuthorUserId != me || revision.SheetSubmissionId != null), cancellationToken);
         if (othersInside)
         {
             throw new ConflictException("Someone else is editing inside this table, so it can't be removed yet.");

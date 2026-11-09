@@ -14,12 +14,25 @@ internal static class RevisionResolver
         int currentUserId)
         where TRevision : class, ISheetRevision
     {
+        return Resolve(revisions, itemId, draft => draft.AuthorUserId == currentUserId);
+    }
+
+    /// <summary>
+    /// Works out what each item shows, from its current published revision and any draft: the draft when
+    /// <paramref name="showsDraft"/> says so, otherwise the published revision.
+    /// </summary>
+    public static Dictionary<int, RevisionResolution<TRevision>> Resolve<TRevision>(
+        IEnumerable<TRevision> revisions,
+        Func<TRevision, int> itemId,
+        Func<TRevision, bool> showsDraft)
+        where TRevision : class, ISheetRevision
+    {
         var result = new Dictionary<int, RevisionResolution<TRevision>>();
         foreach (var group in revisions.GroupBy(itemId))
         {
             var draft = group.FirstOrDefault(revision => revision.Status == RevisionStatus.Draft);
             var published = group.FirstOrDefault(revision => revision.Status == RevisionStatus.Published);
-            var shown = draft is not null && draft.AuthorUserId == currentUserId ? draft : published;
+            var shown = draft is not null && showsDraft(draft) ? draft : published;
             result[group.Key] = new RevisionResolution<TRevision>(shown, draft);
         }
 

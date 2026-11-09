@@ -64,6 +64,22 @@ public sealed class RevisionResolverTests
     }
 
     [Fact]
+    public void ReviewingASubmission_ShowsItsDrafts_AndNobodyElses()
+    {
+        var submitted = Draft(rowId: 5, author: SomeoneElse);
+        submitted.SheetSubmissionId = 12;
+        var mine = Draft(rowId: 6, author: Me);
+
+        var resolved = RevisionResolver.Resolve(
+            [Published(rowId: 5), submitted, Published(rowId: 6), mine],
+            revision => revision.SheetRowId,
+            draft => draft.SheetSubmissionId == 12);
+
+        Assert.Same(submitted, resolved[5].Shown);
+        Assert.Equal(RevisionStatus.Published, resolved[6].Shown!.Status);
+    }
+
+    [Fact]
     public void NothingAtAll_IsNotVisible()
     {
         Assert.False(RevisionResolver.IsVisible<SheetRowRevision>(null));

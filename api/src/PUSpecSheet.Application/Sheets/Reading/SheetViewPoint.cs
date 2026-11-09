@@ -3,24 +3,37 @@ using PUSpecSheet.Application.Common;
 namespace PUSpecSheet.Application.Sheets.Reading;
 
 /// <summary>
-/// Which moment of a sheet to show: the live state (neither set), the state when a version was
-/// published, or the state at a date and time.
+/// Which moment of a sheet to show: the live state (nothing set), the state when a version was published,
+/// the state at a date and time, or the live state with a submission's changes on top, for its approvers.
 /// </summary>
 public sealed record SheetViewPoint(int? VersionNumber, DateTime? AsOfUtc)
 {
     public static SheetViewPoint Live { get; } = new(null, null);
 
-    public bool IsLive => VersionNumber is null && AsOfUtc is null;
+    /// <summary>The submission whose waiting changes are shown over the published sheet, read-only.</summary>
+    public int? ReviewedSubmissionId { get; init; }
+
+    public bool IsLive => VersionNumber is null && AsOfUtc is null && ReviewedSubmissionId is null;
 
     /// <summary>Builds a view point from the two query options, which can't be used together.</summary>
     public static SheetViewPoint From(int? versionNumber, DateTime? asOf)
     {
-        if (versionNumber is not null && asOf is not null)
+        return From(versionNumber, asOf, null);
+    }
+
+    /// <summary>Builds a view point from the three query options, of which at most one can be used.</summary>
+    public static SheetViewPoint From(int? versionNumber, DateTime? asOf, int? submissionId)
+    {
+        var given = (versionNumber is null ? 0 : 1) + (asOf is null ? 0 : 1) + (submissionId is null ? 0 : 1);
+        if (given > 1)
         {
-            throw new InvalidRequestException("Ask for a version number or a date, not both.");
+            throw new InvalidRequestException("Ask for a version number, a date or a submission, not more than one.");
         }
 
-        return new SheetViewPoint(versionNumber, asOf is { } moment ? ToUtc(moment) : null);
+        return new SheetViewPoint(versionNumber, asOf is { } moment ? ToUtc(moment) : null)
+        {
+            ReviewedSubmissionId = submissionId,
+        };
     }
 
     private static DateTime ToUtc(DateTime moment)

@@ -68,6 +68,31 @@ public sealed class SheetRevisionQueryTranslationTests : IDisposable
         Assert.DoesNotContain("AuthorUserId] =", sql);
     }
 
+    [Fact]
+    public void DraftsInAPublish_LeaveOutDraftsWaitingForApproval()
+    {
+        var sql = db.SheetRowRevisions.DraftsIn(PublishScope.All, 42).ToQueryString();
+
+        Assert.Contains("[SheetSubmissionId] IS NULL", sql);
+    }
+
+    [Fact]
+    public void OpenDraftsOf_AreThatUsersDraftsNotWaitingForApproval()
+    {
+        var sql = db.SheetRowRevisions.OpenDraftsOf(42).ToQueryString();
+
+        Assert.Contains("[Status] = 0 AND [s].[AuthorUserId] = @userId", sql);
+        Assert.Contains("[SheetSubmissionId] IS NULL", sql);
+    }
+
+    [Fact]
+    public void InSubmission_IsThatSubmissionsDrafts()
+    {
+        var sql = db.SheetTableRevisions.InSubmission(12).ToQueryString();
+
+        Assert.Contains("[Status] = 0 AND [s].[SheetSubmissionId] = @submissionId", sql);
+    }
+
     [Theory]
     [InlineData(3, "IN (@ids1, @ids2, @ids3)")]
     [InlineData(5000, "OPENJSON(@ids)")]

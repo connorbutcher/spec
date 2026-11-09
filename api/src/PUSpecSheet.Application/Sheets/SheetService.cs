@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using PUSpecSheet.Application.Approvals;
 using PUSpecSheet.Application.Common;
 using PUSpecSheet.Application.Sheets.Drafts;
 using PUSpecSheet.Application.Sheets.Reading;
@@ -16,6 +17,7 @@ public sealed class SheetService(
     SheetReader reader,
     SheetPublisher publisher,
     DraftSweeper sweeper,
+    SubmissionQueries submissions,
     ICurrentUser currentUser) : ISheetService
 {
     public async Task<SheetDto> OpenAsync(int phaseId, int sheetTypeId, SheetViewPoint view, CancellationToken cancellationToken)
@@ -40,6 +42,11 @@ public sealed class SheetService(
 
     public async Task<SheetDto> GetAsync(int sheetId, SheetViewPoint view, CancellationToken cancellationToken)
     {
+        if (view.ReviewedSubmissionId is { } submissionId)
+        {
+            await submissions.EnsureCanReviewAsync(sheetId, submissionId, currentUser.UserId, cancellationToken);
+        }
+
         if (view.IsLive)
         {
             await sweeper.SweepAsync(sheetId, cancellationToken);
@@ -70,10 +77,10 @@ public sealed class SheetService(
         var me = currentUser.UserId;
         await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
 
-        await db.RowRevisionsOf(sheetId).DraftsOf(me).ExecuteDeleteAsync(cancellationToken);
-        await db.ColumnBlockRevisionsOf(sheetId).DraftsOf(me).ExecuteDeleteAsync(cancellationToken);
-        await db.SectionRevisionsOf(sheetId).DraftsOf(me).ExecuteDeleteAsync(cancellationToken);
-        await db.TableRevisionsOf(sheetId).DraftsOf(me).ExecuteDeleteAsync(cancellationToken);
+        await db.RowRevisionsOf(sheetId).OpenDraftsOf(me).ExecuteDeleteAsync(cancellationToken);
+        await db.ColumnBlockRevisionsOf(sheetId).OpenDraftsOf(me).ExecuteDeleteAsync(cancellationToken);
+        await db.SectionRevisionsOf(sheetId).OpenDraftsOf(me).ExecuteDeleteAsync(cancellationToken);
+        await db.TableRevisionsOf(sheetId).OpenDraftsOf(me).ExecuteDeleteAsync(cancellationToken);
 
         // Items that only ever existed as the user's drafts now have no revisions at all, so they go too.
         var orphanBlockIds = await db.SheetColumnBlocks

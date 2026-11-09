@@ -41,6 +41,7 @@ public sealed class ApplicationExceptionHandler(IProblemDetailsService problemDe
             NotFoundException => StatusCodes.Status404NotFound,
             ConflictException => StatusCodes.Status409Conflict,
             InvalidRequestException => StatusCodes.Status400BadRequest,
+            ForbiddenException => StatusCodes.Status403Forbidden,
             _ => null,
         };
     }

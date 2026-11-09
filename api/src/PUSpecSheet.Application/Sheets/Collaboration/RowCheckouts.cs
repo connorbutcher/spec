@@ -89,7 +89,8 @@ public sealed class RowCheckouts(
             .SingleOrDefaultAsync(
                 revision => revision.SheetRowId == rowId && revision.Status == RevisionStatus.Draft,
                 cancellationToken);
-        if (draft is null || draft.AuthorUserId != fromUserId)
+        // A draft waiting for approval stays with its author until it is decided.
+        if (draft is null || draft.AuthorUserId != fromUserId || draft.SheetSubmissionId is not null)
         {
             return false;
         }

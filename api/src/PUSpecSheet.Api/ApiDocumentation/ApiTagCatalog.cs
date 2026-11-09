@@ -44,6 +44,10 @@ public static class ApiTagCatalog
                 new ApiTagDescription(
                     ApiTags.SheetItems,
                     "Finds any sheet, table, section, column block, row or cell from its public identifier."),
+                new ApiTagDescription(
+                    ApiTags.Approvals,
+                    "Publishing waits for approval. A publish becomes a submission for the approvers its submitter chose; "
+                    + "every one of them must approve before its changes are published, and one rejection sends them back."),
             ]),
         new ApiTagGroup(
             "Templates",

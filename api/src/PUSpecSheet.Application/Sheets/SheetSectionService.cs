@@ -127,16 +127,19 @@ public sealed class SheetSectionService(
             ?? throw new NotFoundException($"Section {sectionId} was not found.");
     }
 
-    /// <summary>Removing a section removes what's inside it, so nobody else may be holding a draft in there.</summary>
+    /// <summary>
+    /// Removing a section removes what's inside it, so nobody else may be holding a draft in there, and no draft in
+    /// there may be waiting for approval.
+    /// </summary>
     private async Task EnsureNobodyElseIsEditingInsideAsync(SheetSection section, CancellationToken cancellationToken)
     {
         var me = currentUser.UserId;
         var ids = await liveSections.SubtreeIdsAsync(section.SheetTableId, section.Id, cancellationToken);
 
         var others = await db.SheetSectionRevisions
-            .AnyAsync(revision => ids.Contains(revision.SheetSectionId) && revision.Status == RevisionStatus.Draft && revision.AuthorUserId != me, cancellationToken)
+            .AnyAsync(revision => ids.Contains(revision.SheetSectionId) && revision.Status == RevisionStatus.Draft && (revision.AuthorUserId != me || revision.SheetSubmissionId != null), cancellationToken)
             || await db.SheetRowRevisions
-                .AnyAsync(revision => ids.Contains(revision.SheetRow.SheetSectionId) && revision.Status == RevisionStatus.Draft && revision.AuthorUserId != me, cancellationToken);
+                .AnyAsync(revision => ids.Contains(revision.SheetRow.SheetSectionId) && revision.Status == RevisionStatus.Draft && (revision.AuthorUserId != me || revision.SheetSubmissionId != null), cancellationToken);
         if (others)
         {
             throw new ConflictException("Someone else is editing inside this section, so it can't be removed yet.");

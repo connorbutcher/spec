@@ -168,6 +168,7 @@ public abstract class DraftGateway<TRevision>(PuSpecSheetDbContext db, ICurrentU
     {
         if (state.Draft is { } existing)
         {
+            EnsureNotAwaitingApproval(existing);
             if (existing.AuthorUserId != currentUser.UserId)
             {
                 await ThrowLockedAsync(existing.AuthorUserId, cancellationToken);
@@ -196,9 +197,17 @@ public abstract class DraftGateway<TRevision>(PuSpecSheetDbContext db, ICurrentU
         return (draft, true);
     }
 
-    /// <summary>Refuses when someone else holds the item's draft; does nothing for no draft or the viewer's own.</summary>
+    /// <summary>
+    /// Refuses when someone else holds the item's draft, or the draft is waiting for approval; does nothing
+    /// for no draft or the viewer's own open one.
+    /// </summary>
     public async Task EnsureNotLockedByOthersAsync(DraftState<TRevision> state, CancellationToken cancellationToken)
     {
+        if (state.Draft is { } submitted)
+        {
+            EnsureNotAwaitingApproval(submitted);
+        }
+
         if (state.Draft is { } draft && draft.AuthorUserId != currentUser.UserId)
         {
             await ThrowLockedAsync(draft.AuthorUserId, cancellationToken);
@@ -216,9 +225,18 @@ public abstract class DraftGateway<TRevision>(PuSpecSheetDbContext db, ICurrentU
     private static List<(TRevision Draft, TRevision Current)> DraftsOnPublishedItems(IEnumerable<DraftState<TRevision>> states)
     {
         return states
-            .Where(state => state.Draft is not null && state.Current is not null)
+            .Where(state => state.Draft is { SheetSubmissionId: null } && state.Current is not null)
             .Select(state => (state.Draft!, state.Current!))
             .ToList();
+    }
+
+    /// <summary>A draft waiting for approval is frozen, for its author as much as anyone, until it is decided.</summary>
+    private void EnsureNotAwaitingApproval(TRevision draft)
+    {
+        if (draft.SheetSubmissionId is not null)
+        {
+            throw new ConflictException($"{Subject} has changes waiting for approval. It can be changed again once they are approved or rejected.");
+        }
     }
 
     private async Task ThrowLockedAsync(int authorUserId, CancellationToken cancellationToken)

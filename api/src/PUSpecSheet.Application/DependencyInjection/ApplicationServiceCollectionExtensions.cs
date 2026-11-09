@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using PUSpecSheet.Application.Approvals;
 using PUSpecSheet.Application.CellTypes;
 using PUSpecSheet.Application.Phases;
 using PUSpecSheet.Application.Published;
@@ -32,6 +33,7 @@ public static class ApplicationServiceCollectionExtensions
         services.AddScoped<ITemplateColumnBlockService, TemplateColumnBlockService>();
 
         services.AddPuSpecSheetSheets();
+        services.AddPuSpecSheetApprovals();
         services.AddPuSpecSheetPublished();
         services.AddPuSpecSheetSeeding();
 

@@ -69,7 +69,7 @@ internal sealed class SheetViewBuilder
         var tables = BuildTables();
         var versions = BuildVersions();
         var templates = BuildAvailableTemplates();
-        var isLive = snapshot.AsOfUtc is null;
+        var isLive = snapshot.AsOfUtc is null && snapshot.ReviewedSubmissionId is null;
         var drafts = Drafts().ToList();
         return new SheetDto(
             snapshot.Sheet.Id,
@@ -86,6 +86,7 @@ internal sealed class SheetViewBuilder
             templates)
         {
             OtherDrafts = DraftSummaries.OfOthers(drafts, currentUserId, UserName),
+            ReviewedSubmissionId = snapshot.ReviewedSubmissionId,
 
             // Gathered while the tables above were built, so they hold exactly what the viewer can see.
             LinkedSources = linkedOptions.Build(),
@@ -451,7 +452,10 @@ internal sealed class SheetViewBuilder
             return null;
         }
 
-        return new SheetLockDto(draft.AuthorUserId, UserName(draft.AuthorUserId), draft.AuthorUserId == currentUserId);
+        return new SheetLockDto(draft.AuthorUserId, UserName(draft.AuthorUserId), draft.AuthorUserId == currentUserId)
+        {
+            IsAwaitingApproval = draft.SheetSubmissionId is not null,
+        };
     }
 
     /// <summary>
@@ -464,14 +468,18 @@ internal sealed class SheetViewBuilder
         return resolution.Shown is { Status: RevisionStatus.Draft, RevisionNumber: 1 };
     }
 
-    /// <summary>Every draft on the sheet, whoever holds it. A past view has none.</summary>
+    /// <summary>
+    /// Every draft on the sheet that can still be published, whoever holds it. A past view has none, and drafts
+    /// already waiting for approval belong to their submission.
+    /// </summary>
     private IEnumerable<ISheetRevision> Drafts()
     {
         return snapshot.TableRevisions.Values.Select(resolution => (ISheetRevision?)resolution.Draft)
             .Concat(snapshot.SectionRevisions.Values.Select(resolution => resolution.Draft))
             .Concat(snapshot.RowRevisions.Values.Select(resolution => resolution.Draft))
             .Concat(snapshot.ColumnBlockRevisions.Values.Select(resolution => resolution.Draft))
-            .OfType<ISheetRevision>();
+            .OfType<ISheetRevision>()
+            .Where(draft => draft.SheetSubmissionId is null);
     }
 
     private static DateTime Utc(DateTime value)

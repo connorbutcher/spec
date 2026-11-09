@@ -27,6 +27,12 @@ public sealed record SheetDto(
     /// </summary>
     public IReadOnlyList<SheetDraftSummaryDto> OtherDrafts { get; init; } = [];
 
+    /// <summary>
+    /// Set when the view shows a submission's changes waiting for approval over the published sheet, for its
+    /// approvers to check. Such a view is read-only, like a past one.
+    /// </summary>
+    public int? ReviewedSubmissionId { get; init; }
+
     /// <summary>The choices of every column a linked dropdown on the sheet is pointed at.</summary>
     public IReadOnlyList<SheetLinkedSourceDto> LinkedSources { get; init; } = [];
 
