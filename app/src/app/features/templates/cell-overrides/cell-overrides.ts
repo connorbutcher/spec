@@ -6,6 +6,9 @@ import { CellKindInfo } from '../models/cell-kind-info.model';
 import { CellKinds } from '../models/cell-kinds';
 import { CellStyle } from '../models/cell-style.model';
 import { CellType } from '../models/cell-type.model';
+import { LabelledTextSlot } from '../models/labelled-text-slot.model';
+import { LabelledTextSlotsField } from '../labelled-text-slots-field/labelled-text-slots-field';
+import { LabelledTextSlotsUtil } from '../labelled-text-slots.util';
 import { SettingField } from '../models/setting-field.model';
 import { SettingValue } from '../models/setting-value';
 import { TemplateCell } from '../models/template-cell.model';
@@ -19,7 +22,7 @@ import { SettingsGroup } from '../settings-group/settings-group';
  */
 @Component({
   selector: 'app-cell-overrides',
-  imports: [ButtonModule, SettingsEditor, SettingsGroup],
+  imports: [ButtonModule, LabelledTextSlotsField, SettingsEditor, SettingsGroup],
   templateUrl: './cell-overrides.html',
   styleUrl: './cell-overrides.scss',
 })
@@ -45,6 +48,19 @@ export class CellOverrides {
     return override?.kind === this.cellType().kind ? override : null;
   });
 
+  /** Whether the cell names its own labelled text values rather than its type's. */
+  public readonly slotsOverridden = computed(() => {
+    const override = this.configurationOverride();
+    return override?.kind === 'LabelledText' && (override.slots ?? null) !== null;
+  });
+
+  /** The labelled text values the cell has: its own, or its type's. */
+  public readonly slots = computed<readonly LabelledTextSlot[]>(() => {
+    const override = this.configurationOverride();
+    const own = override?.kind === 'LabelledText' ? (override.slots ?? null) : null;
+    return own ?? LabelledTextSlotsUtil.templateSlots(this.cellType().configuration);
+  });
+
   public readonly hasOverrides = computed(
     () => this.configurationOverride() !== null || this.cell().styleOverride != null,
   );
@@ -68,6 +84,12 @@ export class CellOverrides {
   public setConfigurationOverride(values: Record<string, SettingValue>): void {
     const kind = this.kind().kind;
     this.changed.emit({ configurationOverride: { ...values, kind } as CellConfiguration });
+  }
+
+  /** Gives the cell its own labelled text values, or with null goes back to its type's. */
+  public setSlots(slots: LabelledTextSlot[] | null): void {
+    const override = this.configurationOverride() ?? { kind: 'LabelledText' };
+    this.changed.emit({ configurationOverride: { ...override, kind: 'LabelledText', slots } });
   }
 
   public setStyleOverride(values: Record<string, SettingValue>): void {

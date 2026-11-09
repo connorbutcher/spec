@@ -1,0 +1,71 @@
+<ol class="slots">
+  @for (slot of slots(); track slot.key; let index = $index, first = $first, last = $last) {
+    <li>
+      <p-inputgroup>
+        <input
+          #labelInput
+          pInputText
+          pSize="small"
+          type="text"
+          placeholder="No label"
+          [attr.maxlength]="longestLabel"
+          [attr.aria-label]="'Label of value ' + (index + 1)"
+          [value]="slot.label"
+          [disabled]="disabled()"
+          (change)="relabel(index, labelInput)"
+        />
+        <p-inputgroup-addon class="key" [pTooltip]="'Values are kept under ' + slot.key">
+          {{ slot.key }}
+        </p-inputgroup-addon>
+        <p-button
+          icon="pi pi-chevron-up"
+          size="small"
+          severity="secondary"
+          [outlined]="true"
+          [disabled]="disabled() || first"
+          ariaLabel="Move value up"
+          (onClick)="move(index, -1)"
+        />
+        <p-button
+          icon="pi pi-chevron-down"
+          size="small"
+          severity="secondary"
+          [outlined]="true"
+          [disabled]="disabled() || last"
+          ariaLabel="Move value down"
+          (onClick)="move(index, 1)"
+        />
+        <p-button
+          icon="pi pi-times"
+          size="small"
+          severity="danger"
+          [outlined]="true"
+          [disabled]="disabled() || (first && last)"
+          ariaLabel="Remove value"
+          (onClick)="remove(index)"
+        />
+      </p-inputgroup>
+    </li>
+  }
+</ol>
+
+<p-inputgroup>
+  <input
+    #newLabel
+    pInputText
+    pSize="small"
+    type="text"
+    placeholder="New value's label, e.g. LH"
+    aria-label="New value's label"
+    [attr.maxlength]="longestLabel"
+    [disabled]="disabled() || isFull()"
+    (keydown.enter)="add(newLabel)"
+  />
+  <p-button
+    icon="pi pi-plus"
+    label="Add"
+    size="small"
+    [disabled]="disabled() || isFull()"
+    (onClick)="add(newLabel)"
+  />
+</p-inputgroup>

@@ -10,6 +10,7 @@ import { SheetCellSettings } from '../sheet-cell-settings/sheet-cell-settings';
 import { SheetCheckboxCell } from '../sheet-checkbox-cell/sheet-checkbox-cell';
 import { SheetDateCell } from '../sheet-date-cell/sheet-date-cell';
 import { SheetDropdownCell } from '../sheet-dropdown-cell/sheet-dropdown-cell';
+import { SheetLabelledTextCell } from '../sheet-labelled-text-cell/sheet-labelled-text-cell';
 import { SheetLinkedDropdownCell } from '../sheet-linked-dropdown-cell/sheet-linked-dropdown-cell';
 import { SheetNumberCell } from '../sheet-number-cell/sheet-number-cell';
 import { SheetTextCell } from '../sheet-text-cell/sheet-text-cell';
@@ -32,6 +33,7 @@ const CONTROL_PANELS = '.p-select-overlay, .p-datepicker-panel, .p-overlay, .p-p
     SheetCheckboxCell,
     SheetDateCell,
     SheetDropdownCell,
+    SheetLabelledTextCell,
     SheetLinkedDropdownCell,
     SheetNumberCell,
     SheetTextCell,

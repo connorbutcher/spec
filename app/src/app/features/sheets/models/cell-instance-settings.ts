@@ -1,3 +1,4 @@
+import { LabelledTextInstanceSettings } from './labelled-text-instance-settings.model';
 import { LinkedDropdownInstanceSettings } from './linked-dropdown-instance-settings.model';
 
 /**
@@ -5,4 +6,4 @@ import { LinkedDropdownInstanceSettings } from './linked-dropdown-instance-setti
  * kind they are for; it matches the API's polymorphic `CellInstanceSettings`. They are saved in the row's
  * draft and published with it, like the cell's value. A new kind of settings joins this union.
  */
-export type CellInstanceSettings = LinkedDropdownInstanceSettings;
+export type CellInstanceSettings = LinkedDropdownInstanceSettings | LabelledTextInstanceSettings;

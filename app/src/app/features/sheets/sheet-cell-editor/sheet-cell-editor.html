@@ -44,6 +44,15 @@
       />
     }
   }
+  @case ('LabelledText') {
+    <app-sheet-labelled-text-cell
+      [cell]="cell()"
+      [configuration]="configuration()"
+      [label]="label()"
+      (started)="started.emit()"
+      (changed)="changed.emit($event)"
+    />
+  }
   @case ('Dropdown') {
     <app-sheet-dropdown-cell
       [cell]="cell()"
@@ -59,6 +68,7 @@
   <app-sheet-cell-settings
     [cell]="cell()"
     [cellType]="cellType()"
+    [configuration]="configuration()"
     (changed)="settingsChanged.emit($event)"
   />
 }

@@ -63,9 +63,12 @@ sheets/
     sheet-cell-editor/        Picks the editor for the cell's kind.
       sheet-text-cell/ sheet-number-cell/ sheet-date-cell/ sheet-checkbox-cell/ sheet-dropdown-cell/
       sheet-linked-dropdown-cell/   A dropdown of the values in a column, or a row, of another table.
+      sheet-labelled-text-cell/     A text box per value of a labelled text cell, each with its label.
       sheet-cell-settings/      The button and popover for a kind's settings chosen on the sheet.
         sheet-linked-source-form/   The table, and the column or row of it, a linked dropdown reads.
+        sheet-labelled-text-slots-form/  The values (slots and labels) one labelled text cell holds.
     sheet-cell-value/         The read-only value.
+      sheet-labelled-text-value/  A labelled text cell's values, one line each with its label.
     sheet-cell-marks/         Cell-changed corner, warning sign.
   sheet-status/             Version, state and who, written the one way for a row, the selected row and a table.
   sheet-change-tag/         The "vN" tag on a changed section or column block.
@@ -77,6 +80,7 @@ sheets/
   item-status.util.ts       An item's status from its lock, pending flag and last change; its words, icon and colour.
   cell-value.util.ts        Cell value ⇄ request, and value → display text.
   linked-dropdown.util.ts   What a linked dropdown offers, and what is wrong with it when something is.
+  labelled-text-value.util.ts  A labelled text cell's slots on the sheet, and its values as they are saved.
   sheet-labels.util.ts      Every label written in more than one place.
   sheet-lock.util.ts        "Is someone else editing this?"
   sheet-confirm.util.ts     The remove confirmation popup.
@@ -231,7 +235,9 @@ the selection. A link to a cell is kept while its row stays selected.
 
 A kind can have settings that are chosen cell by cell on the sheet (`cell.settings`, see
 `models/cell-instance-settings.ts`). They are saved with `store.saveCellSettings`, belong to the row's
-draft like a value, and the API clears the cell's value when they change. A linked dropdown's are the
+draft like a value, and the API clears the cell's value when they change (a labelled text cell only
+loses the values of the slots it no longer has). A labelled text cell's are its slots: the values it
+holds and their labels, when they differ from its template's. A linked dropdown's are the
 table it reads and either a column or a row of it: `table.linkableColumns` and `table.linkableRows` list
 what each table offers, and `sheet.linkedSources` holds the values of every column and row in use.
 `linkedChoices` puts them together for one cell, and says when the cell has no source (`unset`) or its

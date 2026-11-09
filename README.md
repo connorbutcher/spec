@@ -49,7 +49,7 @@ Endpoint text comes from the XML comments on the controller actions (`<summary>`
 Most of what a cell is comes from its template: its cell type, and that type's configuration and style with the cell's overrides. Some settings can only be chosen once the cell is on a sheet, because they point at something on that sheet. These are **instance settings**, and they work the same way for every kind that has them:
 
 - They are one JSON document per cell, `CellInstanceSettings`, whose `kind` names the cell kind (like `CellConfiguration`). It is stored in `values.CellSettings`, keyed by row revision and cell exactly like a value, so settings are part of the row: changing them starts the user's draft, they are published, discarded and put back with the row, they show in the change marks, and a past version shows the settings it had.
-- `PUT api/sheet-rows/{id}/cell-settings` saves them. A cell whose settings change loses its value, which was chosen under the old ones. A new row starts with the settings of the row of the same kind added to its table before it.
+- `PUT api/sheet-rows/{id}/cell-settings` saves them. A cell whose settings change loses its value, which was chosen under the old ones (a labelled text cell only loses the values of slots it no longer has). A new row starts with the settings of the row of the same kind added to its table before it.
 - In the UI, a kind that has them gets a button beside its editor (`sheet-cell-settings`) that opens that kind's form in a popover.
 
 The first kind to use them is the **linked dropdown** (`CellKind.LinkedDropdown`): each cell is pointed at a table on its sheet and one of that table's columns, and offers the values in that column. Its rules:
@@ -71,6 +71,19 @@ The source can instead be **a row** of the table (`SourceSheetRowId` in place of
 | A number reads as its cell shows it, to the cell's decimal places (0.80) | `LinkedOptionText` |
 | A source is a table with a column or a row, never both | `LinkedDropdownInstanceSettings.HasSource`, `CellInstanceSettingsValidator` |
 | Everything else is as for a column: the value must be a choice when saved, is stored as text, and is kept and flagged if the row's values change or the row is removed | the rules above |
+
+The second is the **labelled text** cell (`CellKind.LabelledText`): several short texts in one cell, each with a label beside it, such as a right-hand and a left-hand part number labelled RH and LH in red.
+
+| Rule | Where it lives |
+| --- | --- |
+| The cell type sets the slots (a fixed `key` and a `label` each), the label colour and the max length; a template cell can override them | `LabelledTextCellConfiguration`, `labelled-text-slots-field` |
+| A sheet can change one cell's slots (relabel, reorder, add, remove); null keeps the template's | `LabelledTextInstanceSettings`, `sheet-labelled-text-slots-form` |
+| Each slot's value is its own row in `values.LabelledTextValues`, keyed by revision, cell and slot key, with `Position` for its order | `LabelledTextValueConfiguration`, `RowValueStore` |
+| Relabelling keeps the values; removing a slot clears its value; reordering moves the values with it | `SheetCellSettingsService`, `RowValueStore.ArrangeSlotsAsync` |
+| A lookup key on the cell finds it by any of its values | `PublishedLookupHitReader` |
+| The published value is an object of slot key to text, `{ "rh": "PU-1001-A", "lh": "PU-1051-A" }`; a column block is named by the first value | `PublishedValueReader.ReadLabelledTextsAsync`, `PublishedValues.Text` |
+
+The Parts matrix showcase uses one for its part numbers (the "Part numbers" cell type), and its third part is changed on the sheet to a single value labelled "Both".
 
 **To add a setting to a kind that already has them** (as `SourceSheetRowId` was), add a nullable property to its settings record (`LinkedDropdownInstanceSettings`) and its TypeScript interface, check it in `CellInstanceSettingsValidator`, and add its control to the kind's form. There is no migration: the settings are JSON, settings stored before the property existed read with it not set, and a property that is later removed is ignored when old settings are read.
 

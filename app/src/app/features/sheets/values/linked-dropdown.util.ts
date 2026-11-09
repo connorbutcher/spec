@@ -11,9 +11,10 @@ const MISSING: LinkedChoices = { status: 'missing', source: '', options: NO_OPTI
 export class LinkedDropdownUtil {
   /** What a linked dropdown cell with these settings can offer on this sheet. */
   public static linkedChoices(sheet: Sheet | null, index: SheetIndex, settings: CellInstanceSettings | null): LinkedChoices {
-    const tableId = settings?.sourceSheetTableId ?? null;
-    const templateCellId = settings?.sourceTemplateCellId ?? null;
-    const rowId = settings?.sourceSheetRowId ?? null;
+    const linked = settings?.kind === 'LinkedDropdown' ? settings : null;
+    const tableId = linked?.sourceSheetTableId ?? null;
+    const templateCellId = linked?.sourceTemplateCellId ?? null;
+    const rowId = linked?.sourceSheetRowId ?? null;
     if (tableId === null || (templateCellId === null) === (rowId === null)) {
       return UNSET;
     }

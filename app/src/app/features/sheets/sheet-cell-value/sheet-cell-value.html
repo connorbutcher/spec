@@ -6,6 +6,8 @@
     [class.pi-stop]="!isChecked()"
     [attr.aria-label]="isChecked() ? 'Ticked' : 'Not ticked'"
   ></i>
+} @else if (isLabelledText() && cell(); as cell) {
+  <app-sheet-labelled-text-value [cell]="cell" [configuration]="configuration()" [hint]="hint()" />
 } @else if (text()) {
   <span class="value">{{ text() }}</span>
 } @else {

@@ -71,6 +71,9 @@ export class CellValueUtil {
       case 'NumberDropdown': {
         return cellType.options.find((option) => option.id === cell.optionId)?.value ?? '';
       }
+      case 'LabelledText': {
+        return Object.values(cell.slots ?? {}).join(' / ');
+      }
       default: {
         return '';
       }

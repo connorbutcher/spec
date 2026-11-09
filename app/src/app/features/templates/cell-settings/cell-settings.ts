@@ -69,6 +69,12 @@ export class CellSettings {
     return this.store.canEdit();
   }
 
+  /** Whether other systems can find the cell by its text: a text cell, or any value of a labelled text cell. */
+  public hasLookupKey(): boolean {
+    const kind = this.kind().kind;
+    return kind === 'Text' || kind === 'LabelledText';
+  }
+
   public isDisplayOnly(): boolean {
     return CellKinds.isDisplayOnly(this.cellType()?.kind);
   }

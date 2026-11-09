@@ -1,0 +1,24 @@
+<form class="app-fields slots-form" (submit)="$event.preventDefault()">
+  <div class="app-field">
+    <span class="app-field-label">Values in this cell</span>
+    <app-labelled-text-slots-editor [slots]="draft()" (changed)="draft.set($event)" />
+  </div>
+  <p class="app-field-note">Only this cell changes. Removing a value clears what was typed in it.</p>
+  <div class="buttons">
+    <p-button
+      label="Use template's"
+      size="small"
+      severity="secondary"
+      [text]="true"
+      [disabled]="chosen() === null"
+      (onClick)="applied.emit(null)"
+    />
+    <span class="spacer"></span>
+    <app-dialog-actions
+      confirmLabel="Apply"
+      [confirmDisabled]="!hasChanges()"
+      (cancelled)="cancelled.emit()"
+      (confirmed)="apply()"
+    />
+  </div>
+</form>

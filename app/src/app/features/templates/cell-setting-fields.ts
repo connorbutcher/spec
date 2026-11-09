@@ -44,7 +44,17 @@ const CONFIGURATION_FIELDS: Readonly<Record<CellKind, readonly SettingField[]>> 
   TextDropdown: [],
   NumberDropdown: [DECIMAL_PLACES, UNIT],
   LinkedDropdown: [],
-
+  LabelledText: [
+    {
+      key: 'maxLength',
+      label: 'Max length',
+      control: 'integer',
+      min: 1,
+      max: 4000,
+      placeholder: 'No limit',
+    },
+    { key: 'labelColor', label: 'Label colour', control: 'color' },
+  ],
 };
 
 /** The style settings every kind has, in the order they're shown. */

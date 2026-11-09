@@ -7,6 +7,9 @@ import { STYLE_FIELDS, CellSettingFields } from '../cell-setting-fields';
 import { CellTypeOptionsEditor } from '../cell-type-options-editor/cell-type-options-editor';
 import { ConfirmDeleteButton } from '../confirm-delete-button/confirm-delete-button';
 import { IconOption } from '../icon-option/icon-option';
+import { LabelledTextSlotsField } from '../labelled-text-slots-field/labelled-text-slots-field';
+import { LabelledTextSlotsUtil } from '../labelled-text-slots.util';
+import { LabelledTextSlot } from '../models/labelled-text-slot.model';
 import { CellConfiguration } from '../models/cell-configuration';
 import { CellKind } from '../models/cell-kind';
 import { CellKindInfo } from '../models/cell-kind-info.model';
@@ -34,6 +37,7 @@ import { TemplatesStore } from '../templates.store';
     FormsModule,
     IconOption,
     InputTextModule,
+    LabelledTextSlotsField,
     SelectModule,
     SettingsEditor,
     TextareaModule,
@@ -61,6 +65,11 @@ export class CellTypeSettings {
   );
 
   public readonly hasOptions = computed(() => CellKinds.isDropdown(this.cellType()?.kind));
+
+  /** A labelled text type's values, or the one unlabelled value it has until some are named. */
+  public readonly slots = computed<readonly LabelledTextSlot[]>(() =>
+    LabelledTextSlotsUtil.templateSlots(this.cellType()?.configuration ?? null),
+  );
 
   private readonly store = inject(TemplatesStore);
   private readonly cellTypeStore = inject(CellTypesStore);
@@ -101,6 +110,13 @@ export class CellTypeSettings {
   public setConfiguration(values: Record<string, SettingValue>): void {
     const kind = this.kind().kind;
     void this.save({ configuration: { ...values, kind } as CellConfiguration });
+  }
+
+  public setSlots(slots: LabelledTextSlot[]): void {
+    const configuration = this.cellType()?.configuration;
+    if (configuration?.kind === 'LabelledText') {
+      void this.save({ configuration: { ...configuration, slots } });
+    }
   }
 
   public setStyle(values: Record<string, SettingValue>): void {

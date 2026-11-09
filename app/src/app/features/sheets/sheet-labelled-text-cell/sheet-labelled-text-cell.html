@@ -1,0 +1,19 @@
+@for (slot of slots(); track slot.key; let index = $index) {
+  <span class="line">
+    <input
+      pInputText
+      pSize="small"
+      type="text"
+      [attr.maxlength]="maxLength()"
+      [attr.aria-label]="ariaLabel(slot.label, index)"
+      [placeholder]="slot.label"
+      [ngModel]="values()[slot.key] ?? ''"
+      (ngModelChange)="set(slot.key, $event)"
+      (keydown.enter)="enter($event, index)"
+      (keydown.escape)="revert()"
+    />
+    @if (slot.label) {
+      <span class="label" [style.color]="labelColor()">{{ slot.label }}</span>
+    }
+  </span>
+}

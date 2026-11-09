@@ -1,5 +1,5 @@
 <p-button
-  icon="pi pi-link"
+  [icon]="icon()"
   size="small"
   severity="secondary"
   tooltipPosition="left"
@@ -13,6 +13,14 @@
     @case ('LinkedDropdown') {
       <app-sheet-linked-source-form
         [settings]="linkedDropdown()"
+        (applied)="save($event, popover)"
+        (cancelled)="popover.hide()"
+      />
+    }
+    @case ('LabelledText') {
+      <app-sheet-labelled-text-slots-form
+        [templateSlots]="templateSlots()"
+        [chosen]="chosenSlots()"
         (applied)="save($event, popover)"
         (cancelled)="popover.hide()"
       />

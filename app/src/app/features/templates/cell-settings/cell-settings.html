@@ -36,7 +36,7 @@
       </div>
     }
 
-    @if (kind().kind === 'Text') {
+    @if (hasLookupKey()) {
       <div class="app-field">
         <label for="cell-lookup-key">Lookup key</label>
         <input

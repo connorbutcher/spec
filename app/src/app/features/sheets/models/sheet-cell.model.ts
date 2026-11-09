@@ -18,6 +18,8 @@ export type SheetCell = {
   optionId: number | null;
   /** The settings chosen for this cell on the sheet, for a kind that has them; null when nothing is chosen. */
   settings: CellInstanceSettings | null;
+  /** A labelled text cell's values by slot key, such as `{ rh: 'P-1003-R' }`; null when it holds none. */
+  slots?: Readonly<Record<string, string>> | null;
 
   /** The column block copy the cell belongs to, or null for the row's own cells. */
   sheetColumnBlockId: number | null;

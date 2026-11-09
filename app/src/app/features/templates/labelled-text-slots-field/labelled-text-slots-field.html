@@ -1,0 +1,20 @@
+<div class="head">
+  <span class="label">Values</span>
+  @if (overridden()) {
+    <p-button
+      icon="pi pi-undo"
+      size="small"
+      severity="secondary"
+      [text]="true"
+      label="Use cell type's"
+      [disabled]="disabled()"
+      (onClick)="restored.emit()"
+    />
+  }
+</div>
+<app-labelled-text-slots-editor
+  [slots]="slots()"
+  [disabled]="disabled()"
+  (changed)="changed.emit($event)"
+/>
+<p class="app-field-note">Each value is shown with its label beside it. A sheet can change them cell by cell.</p>

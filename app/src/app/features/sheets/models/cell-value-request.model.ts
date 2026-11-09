@@ -9,4 +9,6 @@ export type CellValueRequest = {
   date?: string | null;
   boolean?: boolean | null;
   optionId?: number | null;
+  /** A labelled text cell's values by slot key, in the cell's order. A slot left out is cleared. */
+  slots?: Record<string, string> | null;
 }

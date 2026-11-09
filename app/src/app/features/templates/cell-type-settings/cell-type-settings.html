@@ -63,6 +63,14 @@
       <p class="app-field-note">{{ kind().label }} cells have no extra settings.</p>
     }
 
+    @if (cellType.kind === 'LabelledText') {
+      <app-labelled-text-slots-field
+        [slots]="slots()"
+        [disabled]="isSaving()"
+        (changed)="setSlots($event)"
+      />
+    }
+
     @if (hasOptions()) {
       <div class="app-field">
         <span class="app-field-label">Options</span>

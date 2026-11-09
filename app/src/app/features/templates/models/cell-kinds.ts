@@ -42,6 +42,12 @@ export const CELL_KINDS: readonly CellKindInfo[] = [
     icon: 'pi-link',
     description: 'One choice from a column of another table, picked on the sheet.',
   },
+  {
+    kind: 'LabelledText',
+    label: 'Labelled text',
+    icon: 'pi-tags',
+    description: 'Several short texts in one cell, each labelled, such as RH and LH part numbers.',
+  },
 ];
 
 export class CellKinds {
@@ -59,7 +65,7 @@ export class CellKinds {
    * template. Matches the API's `CellInstanceSettingsCatalog`.
    */
   public static hasInstanceSettings(kind: CellKind | undefined): boolean {
-    return kind === 'LinkedDropdown';
+    return kind === 'LinkedDropdown' || kind === 'LabelledText';
   }
 
   /** Whether cells of this kind pick one of the cell type's options. */

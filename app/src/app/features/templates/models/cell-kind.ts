@@ -8,5 +8,6 @@ export type CellKind =
   | 'Checkbox'
   | 'TextDropdown'
   | 'NumberDropdown'
-  | 'LinkedDropdown';
+  | 'LinkedDropdown'
+  | 'LabelledText';
 

@@ -1,0 +1,12 @@
+@if (isEmpty()) {
+  <span class="hint">{{ hint() }}</span>
+} @else {
+  @for (slot of slots(); track slot.key) {
+    <span class="line">
+      <span class="value">{{ values()[slot.key] ?? '' }}</span>
+      @if (slot.label) {
+        <span class="label" [style.color]="labelColor()">{{ slot.label }}</span>
+      }
+    </span>
+  }
+}

@@ -13,6 +13,15 @@
       [disabled]="disabled()"
       (changed)="setConfigurationOverride($event)"
     />
+    @if (kind().kind === 'LabelledText') {
+      <app-labelled-text-slots-field
+        [slots]="slots()"
+        [overridden]="slotsOverridden()"
+        [disabled]="disabled()"
+        (changed)="setSlots($event)"
+        (restored)="setSlots(null)"
+      />
+    }
   </app-settings-group>
 }
 

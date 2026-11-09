@@ -1,0 +1,28 @@
+// Laid out like a setting row's group: marked on the left while the cell has its own values.
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-2);
+  padding-left: var(--app-space-3);
+  border-left: 2px solid transparent;
+}
+
+:host(.overridden) {
+  border-left-color: var(--p-primary-color);
+
+  .label {
+    color: var(--p-primary-color);
+  }
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 1.75rem;
+}
+
+.label {
+  color: var(--app-text-secondary);
+  font-size: var(--app-font-size-md);
+}

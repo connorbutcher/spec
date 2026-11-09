@@ -2,6 +2,7 @@ import { Component, computed, input } from '@angular/core';
 import { CellConfiguration } from '../../templates/models/cell-configuration';
 import { CellType } from '../../templates/models/cell-type.model';
 import { CellValueUtil } from '../values/cell-value.util';
+import { SheetLabelledTextValue } from '../sheet-labelled-text-value/sheet-labelled-text-value';
 import { SheetCell } from '../models/sheet-cell.model';
 
 /**
@@ -11,13 +12,14 @@ import { SheetCell } from '../models/sheet-cell.model';
  */
 @Component({
   selector: 'app-sheet-cell-value',
+  imports: [SheetLabelledTextValue],
   templateUrl: './sheet-cell-value.html',
   styleUrl: './sheet-cell-value.scss',
   host: {
     '[class.fills-cell]': 'fillsCell()',
     '[class.wraps]': 'isText()',
     '[class.multiline]': 'isMultiline()',
-    '[class.styled-by-cell]': 'isText()',
+    '[class.styled-by-cell]': 'isText() || isLabelledText()',
   },
 })
 
@@ -37,6 +39,9 @@ export class SheetCellValue {
 
   /** A text box takes its text style from the cell; the other controls keep their own. */
   public readonly isText = computed(() => this.cellType()?.kind === 'Text');
+
+  /** A labelled text cell shows each value on its own line with its label. */
+  public readonly isLabelledText = computed(() => this.cellType()?.kind === 'LabelledText');
 
   /** A multi-line text cell keeps its own line breaks, as its text area does. */
   public readonly isMultiline = computed(() => {
