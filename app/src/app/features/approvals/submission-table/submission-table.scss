@@ -1,38 +1,28 @@
 .submissions {
   .sheet {
-    width: 9rem;
     font-weight: var(--app-font-weight-medium);
     white-space: nowrap;
   }
 
-  .submitted {
-    width: 10rem;
-  }
-
-  .changes {
-    width: 9rem;
-  }
-
-  .approvers {
-    width: 14rem;
-  }
-
   .status {
-    width: 9rem;
     white-space: nowrap;
   }
 
+  // Room for Review, Approve and Reject on one line.
   .actions {
     width: 1%;
+    min-width: 16rem;
   }
 
   small {
     display: block;
     color: var(--app-text-muted);
     font-size: var(--app-font-size-md);
+    white-space: nowrap;
   }
 
   .note {
+    min-width: 8rem;
     white-space: pre-line;
   }
 

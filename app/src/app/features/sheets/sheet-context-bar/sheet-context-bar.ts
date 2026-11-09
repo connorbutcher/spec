@@ -75,6 +75,11 @@ export class SheetContextBar {
 
   public readonly lockedByOther = computed(() => SheetLockUtil.otherUsersLock(this.row()?.lock) !== null);
 
+  /** Someone else has the row and it can be asked for. One waiting for approval stays with its author. */
+  public readonly canAskForRow = computed(
+    () => this.lockedByOther() && this.canEdit() && this.row()?.lock?.isAwaitingApproval !== true,
+  );
+
   public readonly canEdit = computed(() => this.store.canEdit());
 
   private readonly store = inject(SheetStore);

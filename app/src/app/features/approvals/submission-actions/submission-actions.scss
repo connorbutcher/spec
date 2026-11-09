@@ -2,10 +2,11 @@
   display: contents;
 }
 
+// The buttons wrap onto a second line when there isn't room, rather than widening what holds them.
 .actions {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: flex-end;
   gap: var(--app-space-2);
-  white-space: nowrap;
 }

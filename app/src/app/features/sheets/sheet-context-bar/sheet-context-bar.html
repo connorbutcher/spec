@@ -5,7 +5,7 @@
       @if (rowStatus(); as status) {
         <app-sheet-status [status]="status" />
       }
-      @if (lockedByOther() && canEdit()) {
+      @if (canAskForRow()) {
         <app-sheet-takeover-button [row]="row" />
       }
     }

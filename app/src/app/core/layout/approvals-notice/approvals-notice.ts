@@ -30,7 +30,10 @@ export class ApprovalsNotice {
   constructor() {
     effect(() => {
       const count = this.approvals.awaitingCount();
-      if (count > 0 && !this.shown) {
+      if (count === 0) {
+        // Everything was decided, so the notice no longer holds.
+        untracked(() => this.messages.clear(ApprovalsNotice.KEY));
+      } else if (!this.shown) {
         this.shown = true;
         untracked(() => this.show(count));
       }

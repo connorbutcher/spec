@@ -1,4 +1,5 @@
 import { Component, computed, inject } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { Popover, PopoverModule } from 'primeng/popover';
 import { SheetComparePicker } from '../sheet-compare-picker/sheet-compare-picker';
@@ -29,9 +30,13 @@ export class SheetViewMenu {
   public readonly hasVersions = computed(() => this.store.versions().length > 0);
 
   private readonly store = inject(SheetStore);
+  private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
+  /** Shows the live sheet, dropping any submission the address asked to review so a reload stays live. */
   public backToLive(): void {
     this.store.setView({});
+    void this.router.navigate([], { relativeTo: this.route, queryParams: { review: null }, queryParamsHandling: 'merge' });
   }
 
   public reload(popover: Popover): void {

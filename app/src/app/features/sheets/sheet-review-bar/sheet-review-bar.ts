@@ -1,6 +1,5 @@
 import { Component, computed, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ButtonModule } from 'primeng/button';
 import { CurrentUserStore } from '../../../core/auth/current-user.store';
 import { ErrorMessage } from '../../../shared/components/error-message/error-message';
 import { ApprovalsStore } from '../../approvals/approvals.store';
@@ -13,11 +12,11 @@ import { SheetStore } from '../sheet.store';
 /**
  * Above a sheet showing a submission's changes for review: whose changes they are, what they change and
  * the note, the approvers' decisions, and Approve and Reject for an approver who hasn't decided (Withdraw
- * for the submitter). A decision, or Back to live, goes back to the live sheet.
+ * for the submitter). A decision goes back to the live sheet, as does Back to live in the view menu.
  */
 @Component({
   selector: 'app-sheet-review-bar',
-  imports: [ButtonModule, ErrorMessage, SubmissionActions, SubmissionApprovers],
+  imports: [ErrorMessage, SubmissionActions, SubmissionApprovers],
   templateUrl: './sheet-review-bar.html',
   styleUrl: './sheet-review-bar.scss',
 })
