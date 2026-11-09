@@ -9,9 +9,16 @@
   gap: var(--app-space-1);
 }
 
+// Narrow until it is used, so the sheet tabs keep their room on the top line.
 .box {
-  width: 10rem;
+  width: 7rem;
   font-size: var(--app-font-size-md);
+  transition: width 0.15s ease;
+
+  &:focus,
+  &:not(:placeholder-shown) {
+    width: 12rem;
+  }
 }
 
 // "3 of 12": fixed figures so the buttons beside it don't shift while stepping.

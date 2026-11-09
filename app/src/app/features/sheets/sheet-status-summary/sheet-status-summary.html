@@ -1,13 +1,27 @@
 @if (mine(); as mine) {
-  <span class="app-status-tone count" data-tone="mine">
+  <span
+    class="app-status-tone count"
+    data-tone="mine"
+    tabindex="0"
+    [pTooltip]="mine.text"
+    tooltipPosition="bottom"
+    [attr.aria-label]="mine.text"
+  >
     <i [class]="icon" aria-hidden="true"></i>
-    {{ mine }}
+    {{ mine.count }}
   </span>
 }
 
 @if (theirs(); as theirs) {
-  <span class="app-status-tone count" data-tone="theirs">
+  <span
+    class="app-status-tone count"
+    data-tone="theirs"
+    tabindex="0"
+    [pTooltip]="theirs.text"
+    tooltipPosition="bottom"
+    [attr.aria-label]="theirs.text"
+  >
     <i [class]="icon" aria-hidden="true"></i>
-    {{ theirs }}
+    {{ theirs.count }}
   </span>
 }

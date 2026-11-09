@@ -1,15 +1,16 @@
 :host {
   display: inline-flex;
-  flex-wrap: wrap;
   align-items: center;
-  gap: var(--app-space-2) var(--app-space-6);
+  gap: var(--app-space-4);
   font-size: var(--app-font-size-md);
 }
 
+// Just the icon and the number; who and how many in words is in the tooltip.
 .count {
   display: inline-flex;
   align-items: center;
-  gap: var(--app-space-2);
+  gap: var(--app-space-1);
+  cursor: default;
 
   i {
     font-size: var(--app-font-size-sm);

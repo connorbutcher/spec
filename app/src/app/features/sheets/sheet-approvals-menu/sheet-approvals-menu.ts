@@ -11,7 +11,7 @@ import { SheetStore } from '../sheet.store';
 
 /**
  * Approvals on the sheet's top line, as one small button that only shows when there is something to
- * decide: "2 to approve" on the live sheet, or "Reviewing" while a submission's changes are shown. It
+ * decide: a clock and a count on the live sheet, or "Reviewing" while a submission's changes are shown. It
  * opens a popover with each submission's details and Review, Approve and Reject (Withdraw for the
  * submitter). A decision made while reviewing goes back to the live sheet.
  */
@@ -41,12 +41,15 @@ export class SheetApprovalsMenu {
     return this.approvals.awaitingMe().filter((submission) => submission.sheetId === sheet.id);
   });
 
+  /** Just the count on the live sheet, to keep the top line short; the tooltip says what it counts. */
   public readonly label = computed(() =>
-    this.isReviewing() ? 'Reviewing' : `${this.submissions().length} to approve`,
+    this.isReviewing() ? 'Reviewing' : String(this.submissions().length),
   );
 
   public readonly tooltip = computed(() =>
-    this.isReviewing() ? 'Approve or reject the changes shown' : 'Changes on this sheet waiting for your approval',
+    this.isReviewing()
+      ? 'Approve or reject the changes shown'
+      : `${this.submissions().length} waiting for your approval on this sheet`,
   );
 
   public readonly heading = computed(() =>
