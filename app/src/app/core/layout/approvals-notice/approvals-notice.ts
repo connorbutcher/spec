@@ -7,7 +7,8 @@ import { ApprovalsStore } from '../../../features/approvals/approvals.store';
 
 /**
  * Tells the user, once when the app opens, that changes are waiting for their approval, with a button to
- * the Approvals screen. After that the count on the Approvals entry in the side nav keeps them told.
+ * the Approvals screen, and fades after a few seconds. Not on a sheet, whose top line already says what
+ * on it waits for them. After that the count on the Approvals entry in the side nav keeps them told.
  */
 @Component({
   selector: 'app-approvals-notice',
@@ -33,7 +34,7 @@ export class ApprovalsNotice {
       if (count === 0) {
         // Everything was decided, so the notice no longer holds.
         untracked(() => this.messages.clear(ApprovalsNotice.KEY));
-      } else if (!this.shown) {
+      } else if (!this.shown && !this.onSheet()) {
         this.shown = true;
         untracked(() => this.show(count));
       }
@@ -45,13 +46,17 @@ export class ApprovalsNotice {
     void this.router.navigate(['/approvals']);
   }
 
+  private onSheet(): boolean {
+    return /\/sheets\/\d+/.test(this.router.url);
+  }
+
   private show(count: number): void {
     this.messages.add({
       key: ApprovalsNotice.KEY,
       severity: 'secondary',
       summary: 'Waiting for your approval',
       detail: count === 1 ? '1 set of changes is waiting for you.' : `${count} sets of changes are waiting for you.`,
-      sticky: true,
+      life: 8000,
     });
   }
 }

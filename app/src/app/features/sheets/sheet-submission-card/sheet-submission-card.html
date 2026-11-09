@@ -1,0 +1,18 @@
+<article class="submission-card">
+  <header class="head">
+    <strong>{{ submission().submittedByName }}</strong>
+    <span class="meta">{{ changes() }} · {{ submitted() }}</span>
+  </header>
+  @if (submission().note; as note) {
+    <p class="note">{{ note }}</p>
+  }
+  <app-submission-approvers [approvers]="submission().approvers" />
+  <app-submission-actions
+    [submission]="submission()"
+    [canDecide]="canDecide()"
+    [canWithdraw]="canWithdraw()"
+    [showReview]="showReview()"
+    [rejectInline]="true"
+    (decided)="decided.emit($event)"
+  />
+</article>

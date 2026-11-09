@@ -1,0 +1,23 @@
+.submission-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-2);
+  font-size: var(--app-font-size-md);
+}
+
+.head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--app-space-4);
+}
+
+.meta {
+  color: var(--app-text-muted);
+  white-space: nowrap;
+}
+
+.note {
+  margin: 0;
+  white-space: pre-line;
+}

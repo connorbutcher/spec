@@ -1,0 +1,27 @@
+:host {
+  display: contents;
+}
+
+// The approval colour marks what waits for the user, as it does on the rows themselves.
+.approvals-button {
+  --p-button-text-primary-color: var(--app-status-approval);
+}
+
+.approvals {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-4);
+  width: 24rem;
+  max-height: 60vh;
+  overflow-y: auto;
+
+  .heading {
+    font-size: var(--app-font-size-base);
+    font-weight: var(--app-font-weight-semibold);
+  }
+
+  app-sheet-submission-card + app-sheet-submission-card {
+    padding-top: var(--app-space-4);
+    border-top: 1px solid var(--app-border);
+  }
+}

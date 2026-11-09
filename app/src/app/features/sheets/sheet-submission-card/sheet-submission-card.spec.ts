@@ -4,7 +4,7 @@ import { provideRouter } from '@angular/router';
 import { CurrentUserStore } from '../../../core/auth/current-user.store';
 import { ApprovalsStore } from '../../approvals/approvals.store';
 import { SheetSubmission } from '../../approvals/models/sheet-submission.model';
-import { SheetSubmissionLine } from './sheet-submission-line';
+import { SheetSubmissionCard } from './sheet-submission-card';
 
 const SUBMISSION: SheetSubmission = {
   id: 12,
@@ -24,8 +24,8 @@ const SUBMISSION: SheetSubmission = {
   approvers: [{ userId: 1, userName: 'Developer', decision: 'Pending', decidedAtUtc: null, reason: null }],
 };
 
-class SheetSubmissionLinePage {
-  public fixture!: ComponentFixture<SheetSubmissionLine>;
+class SheetSubmissionCardPage {
+  public fixture!: ComponentFixture<SheetSubmissionCard>;
   public readonly rejected: [number, string][] = [];
 
   public async render(userId: number): Promise<void> {
@@ -40,14 +40,14 @@ class SheetSubmissionLinePage {
       },
     };
     TestBed.configureTestingModule({
-      imports: [SheetSubmissionLine],
+      imports: [SheetSubmissionCard],
       providers: [
         provideRouter([]),
         { provide: ApprovalsStore, useValue: approvals },
         { provide: CurrentUserStore, useValue: { user: signal({ id: userId }) } },
       ],
     });
-    this.fixture = TestBed.createComponent(SheetSubmissionLine);
+    this.fixture = TestBed.createComponent(SheetSubmissionCard);
     this.fixture.componentRef.setInput('submission', SUBMISSION);
     await this.fixture.whenStable();
   }
@@ -58,17 +58,17 @@ class SheetSubmissionLinePage {
   }
 }
 
-describe('SheetSubmissionLine', () => {
-  let page: SheetSubmissionLinePage;
+describe('SheetSubmissionCard', () => {
+  let page: SheetSubmissionCardPage;
 
   beforeEach(() => {
-    page = new SheetSubmissionLinePage();
+    page = new SheetSubmissionCardPage();
   });
 
   it('offers Review, Approve and Reject to an approver who has not decided', async () => {
     await page.render(1);
     expect(page.buttons()).toEqual(['Review', 'Approve', 'Reject']);
-    expect((page.fixture.nativeElement as HTMLElement).textContent).toContain("Engineer Two's changes for approval");
+    expect((page.fixture.nativeElement as HTMLElement).textContent).toContain('Rev B');
   });
 
   it('offers Withdraw, not a decision, to the submitter', async () => {

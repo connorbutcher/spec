@@ -1,0 +1,27 @@
+@if (submissions().length > 0) {
+  <p-button
+    class="approvals-button"
+    size="small"
+    [text]="true"
+    icon="pi pi-clock"
+    [label]="label()"
+    [pTooltip]="tooltip()"
+    tooltipPosition="bottom"
+    (onClick)="popover.toggle($event)"
+  />
+  <p-popover #popover appendTo="body">
+    <div class="approvals">
+      <span class="heading">{{ heading() }}</span>
+      @for (submission of submissions(); track submission.id) {
+        <app-sheet-submission-card
+          [submission]="submission"
+          [showReview]="!isReviewing()"
+          (decided)="decided(popover)"
+        />
+      }
+      @if (approvals.error(); as message) {
+        <app-error-message [message]="message" [closable]="true" (dismissed)="approvals.error.set(null)" />
+      }
+    </div>
+  </p-popover>
+}

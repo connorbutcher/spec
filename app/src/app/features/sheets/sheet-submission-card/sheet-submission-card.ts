@@ -6,18 +6,18 @@ import { SubmissionApprovers } from '../../approvals/submission-approvers/submis
 import { SubmissionLabelsUtil } from '../../approvals/submission-labels.util';
 
 /**
- * One submission on the sheet, on one line: whose changes they are, what they change and the note, the
- * approvers' decisions, and what the user can do. Approve and Reject show for an approver who hasn't
+ * One submission, stacked in a few short lines for the approvals popover: who submitted it, what it
+ * changes and when, the note, the approvers' decisions, and what the user can do. Approve and Reject show for an approver who hasn't
  * decided yet, Withdraw for the submitter.
  */
 @Component({
-  selector: 'app-sheet-submission-line',
+  selector: 'app-sheet-submission-card',
   imports: [SubmissionActions, SubmissionApprovers],
-  templateUrl: './sheet-submission-line.html',
-  styleUrl: './sheet-submission-line.scss',
+  templateUrl: './sheet-submission-card.html',
+  styleUrl: './sheet-submission-card.scss',
 })
 
-export class SheetSubmissionLine {
+export class SheetSubmissionCard {
   public readonly submission = input.required<SheetSubmission>();
 
   /** Offer a link to the changes shown on the sheet; left out while they already are. */
@@ -26,6 +26,8 @@ export class SheetSubmissionLine {
   public readonly decided = output<SheetSubmission>();
 
   public readonly changes = computed(() => SubmissionLabelsUtil.changesLabel(this.submission().changes));
+
+  public readonly submitted = computed(() => SubmissionLabelsUtil.submittedLabel(this.submission()));
 
   public readonly canDecide = computed(() => {
     const me = this.currentUser.user()?.id;

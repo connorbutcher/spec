@@ -1,7 +1,7 @@
-import { Component, computed, inject, input, output } from '@angular/core';
+import { Component, computed, inject, input, output, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
-import { Popover, PopoverModule } from 'primeng/popover';
+import { PopoverModule } from 'primeng/popover';
 import { ApprovalsStore } from '../approvals.store';
 import { SheetSubmission } from '../models/sheet-submission.model';
 import { SubmissionRejectForm } from '../submission-reject-form/submission-reject-form';
@@ -30,6 +30,12 @@ export class SubmissionActions {
   /** Offer a link to the changes on the sheet; left out on the sheet itself. */
   public readonly showReview = input(true);
 
+  /** Ask for the rejection reason in place, under the buttons, rather than in a popover: for use inside one. */
+  public readonly rejectInline = input(false);
+
+  /** The inline rejection form is open. */
+  public readonly rejecting = signal(false);
+
   /** A decision went through. */
   public readonly decided = output<SheetSubmission>();
 
@@ -50,9 +56,9 @@ export class SubmissionActions {
     this.settle(await this.store.approve(this.submission().id));
   }
 
-  public async reject(reason: string, popover: Popover): Promise<void> {
+  public async reject(reason: string): Promise<void> {
     const result = await this.store.reject(this.submission().id, reason);
-    popover.hide();
+    this.rejecting.set(false);
     this.settle(result);
   }
 

@@ -18,12 +18,12 @@
         icon="pi pi-times"
         label="Reject"
         [disabled]="isBusy()"
-        (onClick)="popover.toggle($event)"
+        (onClick)="rejectInline() ? rejecting.set(!rejecting()) : popover.toggle($event)"
       />
       <p-popover #popover appendTo="body">
         <app-submission-reject-form
           [busy]="isBusy()"
-          (rejected)="reject($event, popover)"
+          (rejected)="popover.hide(); reject($event)"
           (cancelled)="popover.hide()"
         />
       </p-popover>
@@ -40,4 +40,12 @@
       />
     }
   </div>
+  @if (rejecting()) {
+    <app-submission-reject-form
+      class="inline-reject"
+      [busy]="isBusy()"
+      (rejected)="reject($event)"
+      (cancelled)="rejecting.set(false)"
+    />
+  }
 }
