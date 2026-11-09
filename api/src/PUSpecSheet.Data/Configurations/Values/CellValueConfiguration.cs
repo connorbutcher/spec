@@ -17,7 +17,7 @@ public abstract class CellValueConfiguration<TValue> : IEntityTypeConfiguration<
 
         // A value is only ever found by its revision and cell, so that pair is the key and the table is
         // stored in that order: a revision's values sit together and are read without a second lookup.
-        builder.HasKey(value => new { value.SheetRowRevisionId, value.SheetCellId });
+        ConfigureKey(builder);
 
         // Revisions and cells both sit under the row, so only the revision side cascades; the values
         // are always gone (with their revision) by the time the row's cells are removed.
@@ -30,6 +30,12 @@ public abstract class CellValueConfiguration<TValue> : IEntityTypeConfiguration<
     }
 
     protected abstract string TableName { get; }
+
+    /// <summary>A value is only ever found by its revision and cell, so that pair is the key unless a table holds more than one value a cell.</summary>
+    protected virtual void ConfigureKey(EntityTypeBuilder<TValue> builder)
+    {
+        builder.HasKey(value => new { value.SheetRowRevisionId, value.SheetCellId });
+    }
 
     /// <summary>Maps the value column and the revision's collection navigation.</summary>
     protected abstract void ConfigureValue(EntityTypeBuilder<TValue> builder);

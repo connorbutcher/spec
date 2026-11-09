@@ -76,6 +76,9 @@ public class SheetRowRevision : ISheetRevision
 
     public ICollection<OptionValue> OptionValues { get; set; } = [];
 
+    /// <summary>The values of labelled text cells, one for each slot that holds something.</summary>
+    public ICollection<LabelledTextValue> LabelledTextValues { get; set; } = [];
+
     /// <summary>The settings chosen on the sheet for the revision's cells, kept beside their values.</summary>
     public ICollection<CellSettingsValue> CellSettings { get; set; } = [];
 }

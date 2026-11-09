@@ -286,6 +286,7 @@ internal sealed class SheetViewBuilder
             change)
         {
             Settings = value?.Settings,
+            Slots = value?.Slots,
         };
     }
 

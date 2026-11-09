@@ -118,8 +118,8 @@ public sealed class SheetEditor(
         }
     }
 
-    /// <summary>Points a linked dropdown cell at a source on the sheet.</summary>
-    public async Task LinkAsync(SheetRowDto row, SheetCellDto cell, LinkedDropdownInstanceSettings settings, CancellationToken cancellationToken)
+    /// <summary>Chooses a cell's settings on the sheet: where a linked dropdown takes its choices from, for example.</summary>
+    public async Task ChooseSettingsAsync(SheetRowDto row, SheetCellDto cell, CellInstanceSettings settings, CancellationToken cancellationToken)
     {
         Sheet = await cellSettings.SaveAsync(row.Id, new SaveRowCellSettingsRequest([new CellSettingsRequest(cell.Id, settings)]), cancellationToken);
     }

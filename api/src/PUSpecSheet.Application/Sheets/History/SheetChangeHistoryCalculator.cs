@@ -136,6 +136,7 @@ internal static class SheetChangeHistoryCalculator
             && left?.Date == right?.Date
             && left?.Boolean == right?.Boolean
             && left?.OptionId == right?.OptionId
+            && SlotValues.Same(left?.Slots, right?.Slots)
             && left?.Settings == right?.Settings;
     }
 }

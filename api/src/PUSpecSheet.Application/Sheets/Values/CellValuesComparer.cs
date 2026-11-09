@@ -35,6 +35,7 @@ public static class CellValuesComparer
             && left?.Date == right?.Date
             && (left?.Boolean ?? false) == (right?.Boolean ?? false)
             && left?.OptionId == right?.OptionId
+            && SlotValues.Same(left?.Slots, right?.Slots)
             && left?.Settings == right?.Settings;
     }
 }

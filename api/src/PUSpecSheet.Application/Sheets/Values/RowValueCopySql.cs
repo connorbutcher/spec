@@ -22,6 +22,7 @@ public static class RowValueCopySql
         typeof(BooleanValue),
         typeof(OptionValue),
         typeof(CellSettingsValue),
+        typeof(LabelledTextValue),
     ];
 
     /// <summary>The batch, with <c>{0}</c> the revision copied from and <c>{1}</c> the one copied to.</summary>

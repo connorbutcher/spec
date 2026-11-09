@@ -10,6 +10,7 @@ namespace PUSpecSheet.Domain.CellTypes.InstanceSettings;
 /// </summary>
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "kind")]
 [JsonDerivedType(typeof(LinkedDropdownInstanceSettings), nameof(CellKind.LinkedDropdown))]
+[JsonDerivedType(typeof(LabelledTextInstanceSettings), nameof(CellKind.LabelledText))]
 public abstract record CellInstanceSettings
 {
     /// <summary>The kind these settings belong to. Written to JSON as the type discriminator.</summary>

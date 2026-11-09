@@ -40,10 +40,11 @@ public sealed class TemplateCellLookupKeyService(
                 throw new InvalidRequestException(LookupKeyRules.Description);
             }
 
-            // A lookup finds a cell by the text typed into it, so only a text cell can answer to a key.
-            if (cell.CellType.Kind != CellKind.Text)
+            // A lookup finds a cell by the text typed into it, so only a text cell can answer to a key. A
+            // labelled text cell answers to any of its values.
+            if (cell.CellType.Kind is not (CellKind.Text or CellKind.LabelledText))
             {
-                throw new InvalidRequestException("Only a text cell can have a lookup key.");
+                throw new InvalidRequestException("Only a text or labelled text cell can have a lookup key.");
             }
         }
 

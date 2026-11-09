@@ -3,6 +3,7 @@ using PUSpecSheet.Application.Sheets.Linking;
 using PUSpecSheet.Contracts.Sheets;
 using PUSpecSheet.Domain.CellTypes;
 using PUSpecSheet.Domain.CellTypes.InstanceSettings;
+using PUSpecSheet.Domain.CellTypes.LabelledText;
 
 namespace PUSpecSheet.Application.Sheets.Values;
 
@@ -38,6 +39,9 @@ internal static class CellInstanceSettingsValidator
             case LinkedDropdownInstanceSettings linked:
                 CheckLinkedDropdown(name, linked, sheet);
                 break;
+
+            case LabelledTextInstanceSettings labelled when LabelledTextRules.CheckSlots(labelled.Slots) is { } problem:
+                throw new InvalidRequestException($"'{name}': {problem}");
         }
     }
 

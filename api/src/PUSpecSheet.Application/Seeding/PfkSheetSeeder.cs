@@ -179,7 +179,7 @@ public sealed class PfkSheetSeeder(SheetEditorFactory editors, ShowcaseUsers use
         var gauges = editor.Table(GaugeTable(editor));
         var column = gauges.LinkableColumns.FirstOrDefault(candidate => candidate.Label == GaugeTemplate.GaugeIdCaption) ?? gauges.LinkableColumns[0];
         var settings = new LinkedDropdownInstanceSettings { SourceSheetTableId = gauges.Id, SourceTemplateCellId = column.TemplateCellId };
-        await editor.LinkAsync(row, cell, settings, cancellationToken);
+        await editor.ChooseSettingsAsync(row, cell, settings, cancellationToken);
     }
 
     private static async Task AddNoteAsync(SheetEditor editor, string text, CancellationToken cancellationToken)

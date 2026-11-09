@@ -34,7 +34,8 @@ public sealed class RowValueCopySqlTests : IDisposable
         Assert.Contains("INSERT INTO [values].[BooleanValues] ([SheetRowRevisionId], [SheetCellId], [Value])", sql);
         Assert.Contains("INSERT INTO [values].[OptionValues] ([SheetRowRevisionId], [SheetCellId], [CellTypeOptionId])", sql);
         Assert.Contains("INSERT INTO [values].[CellSettings] ([SheetRowRevisionId], [SheetCellId], [Settings])", sql);
-        Assert.Equal(6, sql.Split("INSERT INTO").Length - 1);
+        Assert.Contains("INSERT INTO [values].[LabelledTextValues] ([SheetRowRevisionId], [SheetCellId], [SlotKey], [Position], [Value])", sql);
+        Assert.Equal(7, sql.Split("INSERT INTO").Length - 1);
     }
 
     [Fact]

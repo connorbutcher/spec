@@ -1,4 +1,6 @@
 using PUSpecSheet.Contracts.Sheets;
+using PUSpecSheet.Domain.CellTypes.InstanceSettings;
+using PUSpecSheet.Domain.CellTypes.LabelledText;
 
 namespace PUSpecSheet.Application.Seeding;
 
@@ -12,6 +14,9 @@ namespace PUSpecSheet.Application.Seeding;
 public sealed class PartsSheetSeeder(SheetEditorFactory editors, ShowcaseUsers users)
 {
     private const int StartingParts = 3;
+
+    /// <summary>The part whose numbers are the same on both hands.</summary>
+    private const int SymmetricPart = 2;
 
     private static readonly string[] Materials = ["EN AC-42100 T6", "42CrMo4 QT", "38MnVS6 forged", "EN AC-42100 T6", "42CrMo4 QT"];
 
@@ -131,7 +136,7 @@ public sealed class PartsSheetSeeder(SheetEditorFactory editors, ShowcaseUsers u
         var materials = new List<CellValueRequest>();
         for (var part = from; part < parts.Count; part++)
         {
-            numbers.AddRange(editor.Values(header[0], parts[part].Id, $"PU-{1001 + part}-{(char)('A' + step)}"));
+            numbers.AddRange(editor.Values(header[0], parts[part].Id, await PartNumbersAsync(editor, header[0], parts[part].Id, part, step, cancellationToken)));
             materials.AddRange(editor.Values(header[1], parts[part].Id, Materials[part % Materials.Length]));
         }
 
@@ -160,6 +165,31 @@ public sealed class PartsSheetSeeder(SheetEditorFactory editors, ShowcaseUsers u
                 await editor.SaveAsync(row, requests, cancellationToken);
             }
         }
+    }
+
+    /// <summary>
+    /// A part's right-hand and left-hand numbers. The third part is the same on both hands, so on the sheet its
+    /// cell is changed to hold one number labelled "Both" instead of the template's RH and LH.
+    /// </summary>
+    private static async Task<IReadOnlyDictionary<string, string>> PartNumbersAsync(
+        SheetEditor editor,
+        SheetRowDto header,
+        int partId,
+        int part,
+        int step,
+        CancellationToken cancellationToken)
+    {
+        var suffix = (char)('A' + step);
+        if (part != SymmetricPart)
+        {
+            return new Dictionary<string, string> { ["rh"] = $"PU-{1001 + part}-{suffix}", ["lh"] = $"PU-{1051 + part}-{suffix}" };
+        }
+
+        // The part's only cell in the top header row is its part numbers.
+        var cell = header.Cells.Single(candidate => candidate.SheetColumnBlockId == partId);
+        var settings = new LabelledTextInstanceSettings { Slots = [new LabelledTextSlot("both", "Both")] };
+        await editor.ChooseSettingsAsync(header, cell, settings, cancellationToken);
+        return new Dictionary<string, string> { ["both"] = $"PU-{1001 + part}-{suffix}" };
     }
 
     private static object BaselineValue(string kind, decimal baseValue, int step)

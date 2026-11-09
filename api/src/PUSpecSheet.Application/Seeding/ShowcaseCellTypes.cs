@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Data;
 using PUSpecSheet.Domain.CellTypes;
 using PUSpecSheet.Domain.CellTypes.Configurations;
+using PUSpecSheet.Domain.CellTypes.LabelledText;
 using PUSpecSheet.Domain.CellTypes.Styles;
 
 namespace PUSpecSheet.Application.Seeding;
@@ -86,6 +87,18 @@ public sealed class ShowcaseCellTypes(PuSpecSheetDbContext db)
             CellKind.LinkedDropdown,
             "A choice from a column or row of another table, picked on the sheet.",
             new LinkedDropdownCellConfiguration(),
+            new CellStyle(),
+            []),
+        (
+            ShowcaseCellTypeNames.PartNumbers,
+            CellKind.LabelledText,
+            "A part number for each hand, each labelled in red.",
+            new LabelledTextCellConfiguration
+            {
+                MaxLength = 20,
+                Slots = [new LabelledTextSlot("rh", "RH"), new LabelledTextSlot("lh", "LH")],
+                LabelColor = "#dc2626",
+            },
             new CellStyle(),
             []),
     ];

@@ -87,7 +87,7 @@ public sealed class SheetRowService(
             .Select(value => new CellValueChange(
                 value.SheetCellId,
                 cellsById[value.SheetCellId].TemplateCell.CellType.Kind,
-                value with { Text = value.Text?.Trim() }))
+                value with { Text = value.Text?.Trim(), Slots = SlotValues.Clean(value.Slots) }))
             .ToList();
         await valueStore.SetManyAsync(draft.Id, changes, cancellationToken);
         await db.SaveSheetChangesAsync(cancellationToken);

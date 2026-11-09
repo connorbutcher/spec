@@ -1,4 +1,3 @@
-using System.Globalization;
 using PUSpecSheet.Contracts.Published;
 using PUSpecSheet.Domain.CellTypes;
 
@@ -90,7 +89,7 @@ public static class PublishedRowsAssembler
             .ThenBy(cell => cell.RowId)
             .ThenBy(cell => cell.Column)
             .GroupBy(cell => cell.ColumnBlockId!.Value)
-            .ToDictionary(group => group.Key, group => Convert.ToString(values[group.First().CellId], CultureInfo.InvariantCulture));
+            .ToDictionary(group => group.Key, group => PublishedValues.Text(values[group.First().CellId]));
 
         var names = new Dictionary<int, string>();
         var taken = new HashSet<(int TableId, string Name)>();

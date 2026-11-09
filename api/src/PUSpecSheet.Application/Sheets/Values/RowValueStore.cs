@@ -3,6 +3,7 @@ using PUSpecSheet.Contracts.Sheets;
 using PUSpecSheet.Data;
 using PUSpecSheet.Domain.CellTypes;
 using PUSpecSheet.Domain.CellTypes.InstanceSettings;
+using PUSpecSheet.Domain.CellTypes.LabelledText;
 using PUSpecSheet.Domain.Values;
 
 namespace PUSpecSheet.Application.Sheets.Values;
@@ -60,6 +61,16 @@ public sealed class RowValueStore(PuSpecSheetDbContext db)
             BagFor(result, value).Settings = value.Settings;
         }
 
+        var slotValues = await revisions.Apply(db.LabelledTextValues.AsNoTracking())
+            .OrderBy(value => value.Position)
+            .ToListAsync(cancellationToken);
+        foreach (var value in slotValues)
+        {
+            var bag = BagFor(result, value);
+            bag.Slots ??= new Dictionary<string, string>(StringComparer.Ordinal);
+            bag.Slots[value.SlotKey] = value.Value;
+        }
+
         return result;
     }
 
@@ -115,6 +126,70 @@ public sealed class RowValueStore(PuSpecSheetDbContext db)
             request => request.OptionId is not null,
             (value, request) => value.CellTypeOptionId = request.OptionId!.Value,
             cancellationToken);
+        await SetSlotsAsync(revisionId, Of(changes, CellKind.LabelledText), cancellationToken);
+    }
+
+    /// <summary>
+    /// Puts a draft's labelled text values in the order of the cell's slots and drops the values of slots it
+    /// no longer has, after its slots changed on the sheet.
+    /// </summary>
+    public async Task ArrangeSlotsAsync(int revisionId, int cellId, IReadOnlyList<LabelledTextSlot> slots, CancellationToken cancellationToken)
+    {
+        var positions = slots.Select((slot, index) => (slot.Key, index)).ToDictionary(entry => entry.Key, entry => entry.index, StringComparer.Ordinal);
+        var held = await db.LabelledTextValues
+            .Where(value => value.SheetRowRevisionId == revisionId && value.SheetCellId == cellId)
+            .ToListAsync(cancellationToken);
+        foreach (var value in held)
+        {
+            if (positions.TryGetValue(value.SlotKey, out var position))
+            {
+                value.Position = position;
+            }
+            else
+            {
+                db.LabelledTextValues.Remove(value);
+            }
+        }
+    }
+
+    /// <summary>Replaces every value of each labelled text cell with the ones sent, in the order sent.</summary>
+    private async Task SetSlotsAsync(int revisionId, List<CellValueChange> changes, CancellationToken cancellationToken)
+    {
+        if (changes.Count == 0)
+        {
+            return;
+        }
+
+        var cellIds = changes.Select(change => change.SheetCellId).ToList();
+        var existing = await db.LabelledTextValues
+            .Where(value => value.SheetRowRevisionId == revisionId && cellIds.Contains(value.SheetCellId))
+            .ToListAsync(cancellationToken);
+        var byCell = existing.ToLookup(value => value.SheetCellId);
+        foreach (var change in changes)
+        {
+            var held = byCell[change.SheetCellId].ToDictionary(value => value.SlotKey, StringComparer.Ordinal);
+            var wanted = SlotValues.Clean(change.Value.Slots) ?? [];
+            foreach (var (key, value) in held)
+            {
+                if (!wanted.ContainsKey(key))
+                {
+                    db.LabelledTextValues.Remove(value);
+                }
+            }
+
+            var position = 0;
+            foreach (var (key, text) in wanted)
+            {
+                if (!held.TryGetValue(key, out var value))
+                {
+                    value = new LabelledTextValue { SheetRowRevisionId = revisionId, SheetCellId = change.SheetCellId, SlotKey = key };
+                    db.LabelledTextValues.Add(value);
+                }
+
+                value.Value = text;
+                value.Position = position++;
+            }
+        }
     }
 
     /// <summary>

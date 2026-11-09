@@ -8,7 +8,8 @@ namespace PUSpecSheet.Application.Seeding;
 /// "Parts matrix", a horizontal table on the Parts sheet. Its own two columns (characteristic and drawing
 /// reference) are pinned; then a one-column "Baseline" block (exactly one copy, pinned once scrolled to) and
 /// a two-column "Part" block people add copies of, one per part (one to eight, three to start with). The
-/// three-row header carries each part's number, in blue and looked up by "partNumber", and its material.
+/// three-row header carries each part's numbers, right hand and left hand with red RH and LH labels, in blue
+/// and looked up by "partNumber", and its material.
 /// Groups people add hold rows of dimensions (a Min and Max per part), single values (one value across a
 /// part's two columns), checks, first-article dates and, from version 2, fastener thread sizes and torques.
 /// </summary>
@@ -46,13 +47,12 @@ public sealed class PartsMatrixTemplate : IShowcaseTemplate
             layout.Cell(ShowcaseCellTypeNames.Heading, 2, "Drawing ref.", rowSpan: 3),
             layout.Cell(ShowcaseCellTypeNames.Heading, 1, "Baseline", rowSpan: 2, block: baseline, style: Banner),
             layout.Cell(
-                ShowcaseCellTypeNames.Text,
+                ShowcaseCellTypeNames.PartNumbers,
                 1,
-                "Part number",
+                "Part numbers",
                 columnSpan: 2,
                 block: part,
                 style: new CellStyle { BackgroundColor = "#bfdbfe", TextColor = "#1e3a8a", Bold = true, Align = CellTextAlign.Center },
-                configuration: new TextCellConfiguration { MaxLength = 20 },
                 lookupKey: "partNumber",
                 required: true));
         layout.Row(header, layout.Cell(ShowcaseCellTypeNames.Material, 1, "Material", columnSpan: 2, block: part));

@@ -26,6 +26,7 @@ public sealed class SampleDataReset(PuSpecSheetDbContext db)
         await db.BooleanValues.ExecuteDeleteAsync(cancellationToken);
         await db.OptionValues.ExecuteDeleteAsync(cancellationToken);
         await db.CellSettings.ExecuteDeleteAsync(cancellationToken);
+        await db.LabelledTextValues.ExecuteDeleteAsync(cancellationToken);
         await db.SheetRowRevisions.ExecuteDeleteAsync(cancellationToken);
         await db.SheetCells.ExecuteDeleteAsync(cancellationToken);
         await db.SheetRows.ExecuteDeleteAsync(cancellationToken);

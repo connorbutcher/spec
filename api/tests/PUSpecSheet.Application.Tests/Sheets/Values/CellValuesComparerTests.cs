@@ -102,4 +102,16 @@ public sealed class CellValuesComparerTests
         Assert.False(CellValuesComparer.Same(left, elsewhere));
         Assert.False(CellValuesComparer.Same(left, cleared));
     }
+
+    [Fact]
+    public void LabelledText_IsComparedSlotBySlot_IgnoringSpacesAndEmptySlots()
+    {
+        var left = Values((1, new CellValueBag { Slots = new() { ["rh"] = "P-1003-R", ["lh"] = "P-1003-L" } }));
+        var same = Values((1, new CellValueBag { Slots = new() { ["lh"] = " P-1003-L", ["rh"] = "P-1003-R", ["c"] = "" } }));
+        var swapped = Values((1, new CellValueBag { Slots = new() { ["rh"] = "P-1003-L", ["lh"] = "P-1003-R" } }));
+
+        Assert.True(CellValuesComparer.Same(left, same));
+        Assert.False(CellValuesComparer.Same(left, swapped));
+        Assert.True(CellValuesComparer.Same(Values(), Values((1, new CellValueBag { Slots = new() { ["rh"] = " " } }))));
+    }
 }

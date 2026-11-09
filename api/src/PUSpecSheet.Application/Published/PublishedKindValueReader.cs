@@ -51,6 +51,11 @@ public sealed class PublishedKindValueReader(PuSpecSheetDbContext db)
             await PublishedValueReader.ReadOptionsAsync(db, result, revisionIds, optionIds, cancellationToken);
         }
 
+        if (CellsOf(valueCells, wholeSheet, out var labelledIds, CellKind.LabelledText))
+        {
+            await PublishedValueReader.ReadLabelledTextsAsync(db, result, revisionIds, labelledIds, cancellationToken);
+        }
+
         return result;
     }
 

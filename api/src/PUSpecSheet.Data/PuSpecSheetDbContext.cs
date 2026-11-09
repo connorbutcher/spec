@@ -86,6 +86,8 @@ public sealed class PuSpecSheetDbContext(DbContextOptions<PuSpecSheetDbContext> 
 
     public DbSet<CellSettingsValue> CellSettings => Set<CellSettingsValue>();
 
+    public DbSet<LabelledTextValue> LabelledTextValues => Set<LabelledTextValue>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

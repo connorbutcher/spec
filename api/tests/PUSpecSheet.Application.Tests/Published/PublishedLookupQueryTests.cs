@@ -40,6 +40,18 @@ public sealed class PublishedLookupQueryTests : IDisposable
     }
 
     [Fact]
+    public void FindingAValue_AlsoSeeksEachValueOfLabelledTextCells()
+    {
+        var sql = new PublishedLookupHitReader(db)
+            .Query(PublishedLookupCriteria.Create("partNumber", "P-1003"), Moment, null)
+            .ToQueryString();
+
+        Assert.Contains("[values].[TextValues]", sql);
+        Assert.Contains("[values].[LabelledTextValues]", sql);
+        Assert.Contains("UNION ALL", sql);
+    }
+
+    [Fact]
     public void FindingAValue_CanKeepToASheetAPhaseAndASheetType()
     {
         var sql = new PublishedLookupHitReader(db)

@@ -22,6 +22,8 @@ internal static class ColumnBlockCells
         await db.DateValues.Where(value => value.SheetCell.SheetColumnBlockId != null && blockIds.Contains(value.SheetCell.SheetColumnBlockId.Value)).ExecuteDeleteAsync(cancellationToken);
         await db.BooleanValues.Where(value => value.SheetCell.SheetColumnBlockId != null && blockIds.Contains(value.SheetCell.SheetColumnBlockId.Value)).ExecuteDeleteAsync(cancellationToken);
         await db.OptionValues.Where(value => value.SheetCell.SheetColumnBlockId != null && blockIds.Contains(value.SheetCell.SheetColumnBlockId.Value)).ExecuteDeleteAsync(cancellationToken);
+        await db.LabelledTextValues.Where(value => value.SheetCell.SheetColumnBlockId != null && blockIds.Contains(value.SheetCell.SheetColumnBlockId.Value)).ExecuteDeleteAsync(cancellationToken);
+        await db.CellSettings.Where(value => value.SheetCell.SheetColumnBlockId != null && blockIds.Contains(value.SheetCell.SheetColumnBlockId.Value)).ExecuteDeleteAsync(cancellationToken);
         await db.SheetCells.Where(cell => cell.SheetColumnBlockId != null && blockIds.Contains(cell.SheetColumnBlockId.Value)).ExecuteDeleteAsync(cancellationToken);
         await db.SheetColumnBlocks.Where(block => blockIds.Contains(block.Id)).ExecuteDeleteAsync(cancellationToken);
     }

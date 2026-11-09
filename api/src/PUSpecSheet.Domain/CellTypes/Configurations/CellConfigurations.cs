@@ -16,6 +16,7 @@ public static class CellConfigurations
             CellKind.TextDropdown => new TextDropdownCellConfiguration(),
             CellKind.NumberDropdown => new NumberDropdownCellConfiguration(),
             CellKind.LinkedDropdown => new LinkedDropdownCellConfiguration(),
+            CellKind.LabelledText => new LabelledTextCellConfiguration(),
             _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "Unknown cell kind."),
         };
     }

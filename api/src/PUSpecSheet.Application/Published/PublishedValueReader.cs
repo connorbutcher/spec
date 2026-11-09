@@ -34,6 +34,7 @@ public sealed class PublishedValueReader(PuSpecSheetDbContext db)
         await ReadDatesAsync(db, result, revisionIds, cellIds, cancellationToken);
         await ReadBooleansAsync(db, result, revisionIds, cellIds, cancellationToken);
         await ReadOptionsAsync(db, result, revisionIds, cellIds, cancellationToken);
+        await ReadLabelledTextsAsync(db, result, revisionIds, cellIds, cancellationToken);
         return result;
     }
 
@@ -119,6 +120,19 @@ public sealed class PublishedValueReader(PuSpecSheetDbContext db)
         foreach (var option in options)
         {
             result[option.SheetCellId] = PublishedValues.Option(option.Value, option.Kind);
+        }
+    }
+
+    /// <summary>A labelled text cell's values, as an object of slot key to text in the cell's order, such as { "rh": "P-1003-R", "lh": "P-1003-L" }.</summary>
+    public static async Task ReadLabelledTextsAsync(PuSpecSheetDbContext db, Dictionary<int, object> result, RowRevisionScope revisionIds, List<int>? cellIds, CancellationToken cancellationToken)
+    {
+        var values = await Scope(db.LabelledTextValues, revisionIds, cellIds)
+            .OrderBy(value => value.Position)
+            .Select(value => new { value.SheetCellId, value.SlotKey, value.Value })
+            .ToListAsync(cancellationToken);
+        foreach (var cell in values.GroupBy(value => value.SheetCellId))
+        {
+            result[cell.Key] = cell.ToDictionary(value => value.SlotKey, value => value.Value, StringComparer.Ordinal);
         }
     }
 }

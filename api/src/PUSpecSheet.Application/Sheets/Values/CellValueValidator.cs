@@ -2,6 +2,7 @@ using PUSpecSheet.Application.Common;
 using PUSpecSheet.Contracts.Sheets;
 using PUSpecSheet.Domain.CellTypes;
 using PUSpecSheet.Domain.CellTypes.Configurations;
+using PUSpecSheet.Domain.CellTypes.LabelledText;
 using PUSpecSheet.Domain.Templates;
 
 namespace PUSpecSheet.Application.Sheets.Values;
@@ -31,6 +32,10 @@ internal static class CellValueValidator
 
                 break;
 
+            case CellKind.LabelledText:
+                CheckSlots(name, request, configuration as LabelledTextCellConfiguration);
+                break;
+
             case CellKind.Number:
                 if (request.Number is { } number && configuration is NumberCellConfiguration numberConfiguration)
                 {
@@ -47,6 +52,23 @@ internal static class CellValueValidator
                 }
 
                 break;
+        }
+    }
+
+    private static void CheckSlots(string name, CellValueRequest request, LabelledTextCellConfiguration? configuration)
+    {
+        var maxLength = configuration?.MaxLength ?? TextCellConfiguration.LongestMaxLength;
+        foreach (var (key, value) in request.Slots ?? new Dictionary<string, string>())
+        {
+            if (!LabelledTextRules.IsKey(key))
+            {
+                throw new InvalidRequestException($"'{key}' isn't one of the values of '{name}'.");
+            }
+
+            if (value?.Trim().Length > maxLength)
+            {
+                throw new InvalidRequestException($"Each value of '{name}' can have at most {maxLength} characters.");
+            }
         }
     }
 

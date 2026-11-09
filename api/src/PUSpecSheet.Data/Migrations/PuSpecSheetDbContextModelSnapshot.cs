@@ -1566,6 +1566,45 @@ namespace PUSpecSheet.Data.Migrations
                     b.ToTable("DateValues", "values");
                 });
 
+            modelBuilder.Entity("PUSpecSheet.Domain.Values.LabelledTextValue", b =>
+                {
+                    b.Property<int>("SheetRowRevisionId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SheetCellId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SlotKey")
+                        .HasMaxLength(20)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<string>("LookupValue")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)")
+                        .HasComputedColumnSql("CONVERT(nvarchar(200), LEFT([Value], 200))", true);
+
+                    b.Property<int>("Position")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.HasKey("SheetRowRevisionId", "SheetCellId", "SlotKey");
+
+                    b.HasIndex("LookupValue")
+                        .HasDatabaseName("IX_LabelledTextValues_LookupValue");
+
+                    SqlServerIndexBuilderExtensions.IncludeProperties(b.HasIndex("LookupValue"), new[] { "SheetCellId", "SheetRowRevisionId" });
+
+                    b.HasIndex("SheetCellId");
+
+                    b.ToTable("LabelledTextValues", "values");
+                });
+
             modelBuilder.Entity("PUSpecSheet.Domain.Values.NumericValue", b =>
                 {
                     b.Property<int>("SheetRowRevisionId")
@@ -2199,6 +2238,25 @@ namespace PUSpecSheet.Data.Migrations
                     b.Navigation("SheetRowRevision");
                 });
 
+            modelBuilder.Entity("PUSpecSheet.Domain.Values.LabelledTextValue", b =>
+                {
+                    b.HasOne("PUSpecSheet.Domain.Sheets.SheetCell", "SheetCell")
+                        .WithMany()
+                        .HasForeignKey("SheetCellId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("PUSpecSheet.Domain.Sheets.SheetRowRevision", "SheetRowRevision")
+                        .WithMany("LabelledTextValues")
+                        .HasForeignKey("SheetRowRevisionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("SheetCell");
+
+                    b.Navigation("SheetRowRevision");
+                });
+
             modelBuilder.Entity("PUSpecSheet.Domain.Values.NumericValue", b =>
                 {
                     b.HasOne("PUSpecSheet.Domain.Sheets.SheetCell", "SheetCell")
@@ -2314,6 +2372,8 @@ namespace PUSpecSheet.Data.Migrations
                     b.Navigation("CellSettings");
 
                     b.Navigation("DateValues");
+
+                    b.Navigation("LabelledTextValues");
 
                     b.Navigation("NumericValues");
 

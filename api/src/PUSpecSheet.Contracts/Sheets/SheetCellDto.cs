@@ -24,4 +24,7 @@ public sealed record SheetCellDto(
     /// takes its choices from, for example); null when nothing has been chosen.
     /// </summary>
     public CellInstanceSettings? Settings { get; init; }
+
+    /// <summary>A labelled text cell's values by slot key, in the order they were saved; null when it holds none.</summary>
+    public IReadOnlyDictionary<string, string>? Slots { get; init; }
 }

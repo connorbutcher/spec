@@ -20,4 +20,5 @@ public static class ShowcaseCellTypeNames
     public const string ThreadSize = "Thread size";
     public const string SampleFrequency = "Sample frequency";
     public const string Linked = "Linked dropdown";
+    public const string PartNumbers = "Part numbers";
 }

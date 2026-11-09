@@ -17,7 +17,7 @@ public static class CellKindExtensions
     /// <summary>Whether a linked dropdown can take its choices from cells of this kind: anything that reads as text.</summary>
     public static bool CanBeLinkedTo(this CellKind kind)
     {
-        return kind.StoresValue() && kind != CellKind.Checkbox;
+        return kind.StoresValue() && kind is not (CellKind.Checkbox or CellKind.LabelledText);
     }
 
     /// <summary>Whether cells of this kind pick one of the cell type's options.</summary>

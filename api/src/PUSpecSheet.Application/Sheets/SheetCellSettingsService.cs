@@ -6,7 +6,9 @@ using PUSpecSheet.Application.Sheets.Revisions;
 using PUSpecSheet.Application.Sheets.Values;
 using PUSpecSheet.Contracts.Sheets;
 using PUSpecSheet.Data;
+using PUSpecSheet.Domain.CellTypes;
 using PUSpecSheet.Domain.CellTypes.InstanceSettings;
+using PUSpecSheet.Domain.CellTypes.LabelledText;
 using PUSpecSheet.Domain.Sheets;
 
 namespace PUSpecSheet.Application.Sheets;
@@ -92,7 +94,19 @@ public sealed class SheetCellSettingsService(
             .ToDictionary(entry => entry.Key, entry => entry.Value);
         await valueStore.SetSettingsAsync(draftId, changed, cancellationToken);
 
+        // A labelled text cell keeps the values of the slots it still has; any other cell starts again.
+        foreach (var (cellId, settings) in changed)
+        {
+            var templateCell = cellsById[cellId].TemplateCell;
+            if (templateCell.CellType.Kind == CellKind.LabelledText)
+            {
+                var slots = LabelledTextSlots.Effective(CellSettingsResolver.ResolveConfiguration(templateCell), settings);
+                await valueStore.ArrangeSlotsAsync(draftId, cellId, slots, cancellationToken);
+            }
+        }
+
         var cleared = changed.Keys
+            .Where(cellId => cellsById[cellId].TemplateCell.CellType.Kind != CellKind.LabelledText)
             .Select(cellId => new CellValueChange(
                 cellId,
                 cellsById[cellId].TemplateCell.CellType.Kind,

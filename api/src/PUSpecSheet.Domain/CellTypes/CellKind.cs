@@ -29,4 +29,10 @@ public enum CellKind
     /// and the choice is stored as its text.
     /// </summary>
     LinkedDropdown,
+
+    /// <summary>
+    /// Several short texts in one cell, each with a label beside it, such as a right-hand and a left-hand part
+    /// number. The template names the values (its slots) and the sheet can change them cell by cell.
+    /// </summary>
+    LabelledText,
 }

@@ -7,8 +7,8 @@ namespace PUSpecSheet.Application.Seeding;
 /// <summary>
 /// Turns a plain list of values into the requests that fill a row's cells, left to right, skipping the
 /// heading and group cells that hold no value. A string fills a text or linked cell or picks a dropdown
-/// option by its text, a number fills a number cell or picks a number option, and a date or a bool fills a
-/// date or checkbox. Null leaves a cell as it is.
+/// option by its text, a number fills a number cell or picks a number option, a date or a bool fills a
+/// date or checkbox, and a dictionary of slot key to text fills a labelled text cell. Null leaves a cell as it is.
 /// </summary>
 public static class SheetValues
 {
@@ -58,6 +58,7 @@ public static class SheetValues
             (CellKind.Date, DateOnly date) => new CellValueRequest(cellId, null, null, date, null, null),
             (CellKind.Checkbox, bool flag) => new CellValueRequest(cellId, null, null, null, flag, null),
             (CellKind.Text or CellKind.LinkedDropdown, string text) => new CellValueRequest(cellId, text, null, null, null, null),
+            (CellKind.LabelledText, IReadOnlyDictionary<string, string> slots) => new CellValueRequest(cellId, null, null, null, null, null) { Slots = slots },
             _ => throw new InvalidOperationException($"A {value.GetType().Name} can't go in a {kind} cell."),
         };
     }

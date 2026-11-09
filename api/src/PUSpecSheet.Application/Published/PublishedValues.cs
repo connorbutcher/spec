@@ -15,6 +15,20 @@ public static class PublishedValues
         return value / 1.0000000000000000000000000000m;
     }
 
+    /// <summary>
+    /// A value as one line of text, to name something by: a labelled text cell gives its first value, and any
+    /// other value is written as it is sent.
+    /// </summary>
+    public static string? Text(object value)
+    {
+        if (value is IReadOnlyDictionary<string, string> slots)
+        {
+            return slots.Values.FirstOrDefault();
+        }
+
+        return Convert.ToString(value, CultureInfo.InvariantCulture);
+    }
+
     /// <summary>A dropdown's chosen option: a number for a number dropdown when its text is one, otherwise the text.</summary>
     public static object Option(string text, CellKind kind)
     {

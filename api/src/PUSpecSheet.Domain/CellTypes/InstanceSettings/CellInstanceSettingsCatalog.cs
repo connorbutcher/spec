@@ -9,6 +9,7 @@ public static class CellInstanceSettingsCatalog
         return kind switch
         {
             CellKind.LinkedDropdown => new LinkedDropdownInstanceSettings(),
+            CellKind.LabelledText => new LabelledTextInstanceSettings(),
             _ => null,
         };
     }
