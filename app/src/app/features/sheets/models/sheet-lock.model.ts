@@ -8,4 +8,9 @@ export type SheetLock = {
    * this side from the live connection (`RowCheckoutStore`); a lock that came with the sheet never has it.
    */
   isCheckout?: boolean;
+  /**
+   * The change has been submitted for publishing and waits for approval: nobody can change the item, the
+   * person who made it included, until it is approved and published or rejected and handed back.
+   */
+  isAwaitingApproval?: boolean;
 }

@@ -13,3 +13,11 @@ describe('otherUsersLock', () => {
     expect(SheetLockUtil.otherUsersLock({ userId: 1, userName: 'Me', isMine: true })).toBeNull();
   });
 });
+
+describe('otherUsersLock while changes wait for approval', () => {
+  it('keeps even the author out', () => {
+    const lock = { userId: 1, userName: 'Me', isMine: true, isAwaitingApproval: true };
+
+    expect(SheetLockUtil.otherUsersLock(lock)).toBe(lock);
+  });
+});

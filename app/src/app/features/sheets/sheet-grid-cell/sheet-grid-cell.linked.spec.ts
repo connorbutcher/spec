@@ -86,7 +86,10 @@ class LinkedDropdownCellPage {
         SheetStore,
         {
           provide: ActivatedRoute,
-          useValue: { paramMap: of(convertToParamMap({ phaseId: '1', sheetTypeId: '2' })) },
+          useValue: {
+            paramMap: of(convertToParamMap({ phaseId: '1', sheetTypeId: '2' })),
+            queryParamMap: of(convertToParamMap({})),
+          },
         },
       ],
     });

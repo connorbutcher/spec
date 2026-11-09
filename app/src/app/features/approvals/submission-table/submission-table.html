@@ -1,0 +1,43 @@
+<p-table class="app-compact-table submissions" [value]="submissions()" size="small" [showGridlines]="true">
+  <ng-template #header>
+    <tr>
+      <th class="sheet">Sheet</th>
+      <th class="submitted">Submitted</th>
+      <th class="changes">Changes</th>
+      <th>Note</th>
+      <th class="approvers">Approvers</th>
+      <th class="status">Status</th>
+      <th class="actions"><span class="visually-hidden">Actions</span></th>
+    </tr>
+  </ng-template>
+  <ng-template #body let-submission>
+    <tr>
+      <td class="sheet">{{ sheetLabel(submission) }}</td>
+      <td class="submitted">
+        {{ submission.submittedByName }}
+        <small>{{ submittedLabel(submission) }}</small>
+      </td>
+      <td class="changes">{{ changesLabel(submission) }}</td>
+      <td class="note">
+        {{ submission.note ?? '' }}
+        @if (rejection(submission); as reason) {
+          <small class="reason">Rejected by {{ reason }}</small>
+        }
+      </td>
+      <td class="approvers"><app-submission-approvers [approvers]="submission.approvers" /></td>
+      <td class="status">{{ statusLabel(submission) }}</td>
+      <td class="actions">
+        <app-submission-actions
+          [submission]="submission"
+          [canDecide]="role() === 'approver'"
+          [canWithdraw]="role() === 'submitter'"
+        />
+      </td>
+    </tr>
+  </ng-template>
+  <ng-template #emptymessage>
+    <tr>
+      <td colspan="7" class="muted">{{ emptyMessage() }}</td>
+    </tr>
+  </ng-template>
+</p-table>

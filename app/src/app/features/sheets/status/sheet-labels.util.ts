@@ -48,7 +48,7 @@ export class SheetLabelsUtil {
    * "v6 · read-only" and "12 Sep 2026, 14:05 · read-only" for a past view. When changes are being marked,
    * the version they are marked since follows: "Live · v9 · changes since v6".
    */
-  public static viewLabel(sheet: Pick<Sheet, 'isLive' | 'latestVersionNumber' | 'viewedVersionNumber' | 'viewedAsOfUtc'>, changesSince: number | null): string {
+  public static viewLabel(sheet: Pick<Sheet, 'isLive' | 'latestVersionNumber' | 'viewedVersionNumber' | 'viewedAsOfUtc' | 'reviewedSubmissionId'>, changesSince: number | null): string {
     const parts = sheet.isLive ? ['Live'] : [];
     if (sheet.isLive && sheet.latestVersionNumber !== null) {
       parts.push(SheetLabelsUtil.versionLabel(sheet.latestVersionNumber));
@@ -56,6 +56,8 @@ export class SheetLabelsUtil {
       parts.push(SheetLabelsUtil.versionLabel(sheet.viewedVersionNumber));
     } else if (!sheet.isLive && sheet.viewedAsOfUtc) {
       parts.push(SheetLabelsUtil.momentLabel(sheet.viewedAsOfUtc));
+    } else if (sheet.reviewedSubmissionId) {
+      parts.push('Changes for approval');
     }
     if (!sheet.isLive) {
       parts.push('read-only');

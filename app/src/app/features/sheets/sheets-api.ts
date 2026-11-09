@@ -46,9 +46,15 @@ export class SheetsApi {
     );
   }
 
-  public publish(sheetId: number, note: string | null, scope: PublishScope): Promise<Sheet> {
+  /** Submits drafts for publishing; nothing is published until every approver approves. */
+  public publish(
+    sheetId: number,
+    note: string | null,
+    scope: PublishScope,
+    approverUserIds: readonly number[],
+  ): Promise<Sheet> {
     return this.sheet(
-      this.http.post<SheetResponse>(`/api/sheets/${sheetId}/publish`, { note, scope }),
+      this.http.post<SheetResponse>(`/api/sheets/${sheetId}/publish`, { note, scope, approverUserIds }),
     );
   }
 

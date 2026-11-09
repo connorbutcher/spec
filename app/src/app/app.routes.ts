@@ -14,6 +14,11 @@ export const routes: Routes = [
     loadChildren: () => import('./features/phases/phases.routes').then((m) => m.PHASES_ROUTES),
   },
   {
+    path: 'approvals',
+    title: 'Approvals · PU Spec Sheet',
+    loadChildren: () => import('./features/approvals/approvals.routes').then((m) => m.APPROVALS_ROUTES),
+  },
+  {
     path: 'templates',
     title: 'Templates · PU Spec Sheet',
     loadChildren: () =>

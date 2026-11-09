@@ -88,7 +88,10 @@ describe('SheetStore', () => {
         SheetStore,
         {
           provide: ActivatedRoute,
-          useValue: { paramMap: of(convertToParamMap({ phaseId: '1', sheetTypeId: '2' })) },
+          useValue: {
+            paramMap: of(convertToParamMap({ phaseId: '1', sheetTypeId: '2' })),
+            queryParamMap: of(convertToParamMap({})),
+          },
         },
       ],
     });
@@ -121,7 +124,10 @@ describe('SheetStore', () => {
         SheetStore,
         {
           provide: ActivatedRoute,
-          useValue: { paramMap: of(convertToParamMap({ phaseId: '1', sheetTypeId: '2' })) },
+          useValue: {
+            paramMap: of(convertToParamMap({ phaseId: '1', sheetTypeId: '2' })),
+            queryParamMap: of(convertToParamMap({})),
+          },
         },
       ],
     });
@@ -302,18 +308,18 @@ describe('SheetStore', () => {
     expect(store.error()).toBeNull();
   });
 
-  it('publishes my own changes, or everything on the sheet when asked', async () => {
-    const mine = store.publish('First cut');
+  it('submits my own changes, or everything on the sheet when asked, to the chosen approvers', async () => {
+    const mine = store.publish('First cut', 'Mine', [2]);
     await SpecHelpers.settle();
     const first = http.expectOne(`/api/sheets/${sheet.id}/publish`);
-    expect(first.request.body).toEqual({ note: 'First cut', scope: 'Mine' });
+    expect(first.request.body).toEqual({ note: 'First cut', scope: 'Mine', approverUserIds: [2] });
     first.flush(SpecHelpers.fromServer(sheet));
     expect(await mine).toBe(true);
 
-    const everything = store.publish(null, 'All');
+    const everything = store.publish(null, 'All', [2, 3]);
     await SpecHelpers.settle();
     const second = http.expectOne(`/api/sheets/${sheet.id}/publish`);
-    expect(second.request.body).toEqual({ note: null, scope: 'All' });
+    expect(second.request.body).toEqual({ note: null, scope: 'All', approverUserIds: [2, 3] });
     second.flush(SpecHelpers.fromServer(sheet));
     expect(await everything).toBe(true);
   });

@@ -55,6 +55,13 @@ describe('pendingChanges', () => {
     expect(changes[1]).toEqual(expect.objectContaining({ kind: 'New', holder: 'A. Smith' }));
   });
 
+  it('leaves out changes already waiting for approval', () => {
+    const waiting = SpecHelpers.sheet([
+      SpecHelpers.section('s1', 'Crankshaft', [SpecHelpers.row('r1', 'End float', { ...MINE, isAwaitingApproval: true })]),
+    ]);
+    expect(PendingChangesUtil.pendingChanges(waiting, 'All')).toEqual([]);
+  });
+
   it('lists a changed section once, without the rows inside it', () => {
     const changed = SpecHelpers.sheet([SpecHelpers.section('s1', 'Crankshaft', [SpecHelpers.row('r1', 'End float', MINE)], MINE)]);
     expect(PendingChangesUtil.pendingChanges(changed, 'Mine').map((change) => change.key)).toEqual(['section-s1']);

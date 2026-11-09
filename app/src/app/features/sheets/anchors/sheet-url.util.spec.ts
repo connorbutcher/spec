@@ -30,3 +30,18 @@ describe('sheetUrl', () => {
     );
   });
 });
+
+describe('reviewing a submission', () => {
+  it('asks for the live sheet with the submission on top', () => {
+    expect(SheetUrlUtil.sheetUrl({ phaseId: 3, sheetTypeId: 2 }, { submission: 12 })).toBe(
+      '/api/phases/3/sheets/2?submission=12',
+    );
+  });
+
+  it('reads the submission from the review parameter, if it is an id', () => {
+    expect(SheetUrlUtil.reviewedSubmission('12')).toBe(12);
+    expect(SheetUrlUtil.reviewedSubmission(null)).toBeNull();
+    expect(SheetUrlUtil.reviewedSubmission('x')).toBeNull();
+    expect(SheetUrlUtil.reviewedSubmission('0')).toBeNull();
+  });
+});

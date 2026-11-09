@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { MenuItem } from 'primeng/api';
 import { MenuModule } from 'primeng/menu';
+import { ApprovalsStore } from '../../../features/approvals/approvals.store';
 import { PhasesStore } from '../../../features/phases/phases.store';
 import { ApiStatus } from '../api-status/api-status';
 import { SideNavBanner } from '../side-nav-banner/side-nav-banner';
@@ -31,6 +32,7 @@ export class SideNav {
 
   private readonly layout = inject(LayoutService);
   private readonly phases = inject(PhasesStore);
+  private readonly approvals = inject(ApprovalsStore);
     private static toMenuItem(navItem: NavItem): MenuItem {
       return { label: navItem.label, icon: `pi ${navItem.icon}`, routerLink: navItem.path, navItem };
     }
@@ -42,6 +44,11 @@ export class SideNav {
 
   public collapsed(): boolean {
     return this.layout.sideNavCollapsed();
+  }
+
+  /** The badge count for an entry: the changes waiting for the user's approval, on Approvals. */
+  public countFor(item: NavItem): number {
+    return item.path === '/approvals' ? this.approvals.awaitingCount() : 0;
   }
 
   /** The nav entry a menu item was built from, for the item template. */

@@ -33,3 +33,18 @@
     color: var(--app-on-dark);
   }
 }
+
+// A count beside the label; over the icon's corner when the nav is collapsed.
+.side-nav-link {
+  position: relative;
+
+  .count {
+    margin-left: auto;
+  }
+
+  .count.collapsed {
+    position: absolute;
+    top: 0;
+    right: 0;
+  }
+}

@@ -1,0 +1,12 @@
+<p-toast [key]="key" position="bottom-right">
+  <ng-template let-message #message>
+    <div class="notice">
+      <i class="pi pi-check-square" aria-hidden="true"></i>
+      <div class="text">
+        <strong>{{ message.summary }}</strong>
+        <span>{{ message.detail }}</span>
+      </div>
+      <p-button label="Review" size="small" (onClick)="open()" />
+    </div>
+  </ng-template>
+</p-toast>

@@ -57,10 +57,13 @@ const NOBODY: ReadonlyMap<number, SheetLock> = new Map();
 @Injectable()
 
 export class SheetStore {
-  /** Which moment of the sheet is shown. Goes back to live whenever a different sheet is opened. */
-  public readonly view = linkedSignal<SheetTarget | null, SheetView>({
-    source: () => this.target(),
-    computation: () => ({}),
+  /**
+   * Which moment of the sheet is shown. Goes back to live whenever a different sheet is opened, unless the
+   * address asks to review a submission (`?review=`), as the Approvals screen does.
+   */
+  public readonly view = linkedSignal<{ target: SheetTarget | null; review: number | null }, SheetView>({
+    source: () => ({ target: this.target(), review: this.reviewParam() }),
+    computation: ({ review }) => (review === null ? {} : { submission: review }),
   });
 
   /** Mark everything that changed after this version; null leaves the tables clean. */
@@ -162,6 +165,12 @@ export class SheetStore {
     this.route.paramMap.pipe(
       map((params) => SheetUrlUtil.sheetTarget(params.get('phaseId'), params.get('sheetTypeId'))),
     ),
+    { initialValue: null },
+  );
+
+  /** The submission the address asks to review, or null. */
+  private readonly reviewParam = toSignal(
+    this.route.queryParamMap.pipe(map((params) => SheetUrlUtil.reviewedSubmission(params.get('review')))),
     { initialValue: null },
   );
 
@@ -426,23 +435,32 @@ export class SheetStore {
     }
   }
 
-  public async publish(note: string | null, scope: PublishScope = 'Mine'): Promise<boolean> {
+  /**
+   * Submits changes for publishing to the chosen approvers. They stay on the sheet, frozen and marked as
+   * waiting for approval, until every approver approves (then they are the next version) or one rejects.
+   */
+  public async publish(
+    note: string | null,
+    scope: PublishScope = 'Mine',
+    approverUserIds: readonly number[] = [],
+  ): Promise<boolean> {
     const sheetId = this.sheet()?.id;
     if (sheetId === undefined) {
       return false;
     }
-    return (await this.run(() => this.publishNow(sheetId, note, scope))) !== null;
+    return (await this.run(() => this.publishNow(sheetId, note, scope, approverUserIds))) !== null;
   }
 
-  /** Publishes, with `publishing` saying what is going out for exactly as long as the call takes. */
+  /** Submits, with `publishing` saying what is going out for exactly as long as the call takes. */
   private async publishNow(
     sheetId: number,
     note: string | null,
     scope: PublishScope,
+    approverUserIds: readonly number[],
   ): Promise<Sheet> {
     this.publishing.set(scope);
     try {
-      return await this.api.publish(sheetId, note, scope);
+      return await this.api.publish(sheetId, note, scope, approverUserIds);
     } finally {
       this.publishing.set(null);
     }

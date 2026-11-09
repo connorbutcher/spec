@@ -3,7 +3,7 @@
   icon="pi pi-upload"
   size="small"
   [disabled]="!hasChanges() || isBusy()"
-  (onClick)="popover.toggle($event)"
+  (onClick)="open($event, popover)"
 />
 <p-popover #popover appendTo="body">
   <form class="publish-form" (submit)="$event.preventDefault()">
@@ -16,6 +16,12 @@
     @if (changes().length > 0) {
       <app-sheet-publish-changes [changes]="changes()" (chosen)="showChange($event, popover)" />
     }
+    <app-sheet-publish-approvers
+      [approvers]="approvals.approvers()"
+      [selected]="approverIds()"
+      [isLoading]="approvals.isLoadingApprovers()"
+      (selectedChange)="approverIds.set($event)"
+    />
     <label class="heading" for="publish-note">Note for this version (optional)</label>
     <textarea
       pTextarea
@@ -30,8 +36,8 @@
     <div class="buttons">
       <app-dialog-actions
         [confirmLabel]="confirmLabel()"
-        confirmIcon="pi pi-upload"
-        [confirmDisabled]="!hasChanges() || isBusy()"
+        confirmIcon="pi pi-send"
+        [confirmDisabled]="!hasChanges() || !hasApprovers() || isBusy()"
         (cancelled)="popover.hide()"
         (confirmed)="publish(popover)"
       />

@@ -26,6 +26,6 @@ describe('App', () => {
     const navLabels = Array.from(compiled.querySelectorAll('.side-nav-link .label')).map((el) =>
       el.textContent?.trim(),
     );
-    expect(navLabels).toEqual(['Phases', 'Templates', 'Admin', 'Help']);
+    expect(navLabels).toEqual(['Phases', 'Templates', 'Admin', 'Approvals', 'Help']);
   });
 });

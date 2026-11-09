@@ -1,0 +1,14 @@
+<ul class="approvers">
+  @for (approver of approvers(); track approver.userId) {
+    <li
+      [class]="'decision-' + approver.decision"
+      [pTooltip]="approver.reason ?? undefined"
+      [tooltipDisabled]="!approver.reason"
+      tooltipPosition="top"
+      [attr.aria-label]="approver.userName + ': ' + approver.decision"
+    >
+      <i [class]="icon(approver)" aria-hidden="true"></i>
+      {{ approver.userName }}
+    </li>
+  }
+</ul>

@@ -29,18 +29,22 @@ public sealed class SheetsController(ISheetService sheets, ISheetTableService ta
     /// <param name="sheetTypeId">The sheet type's id.</param>
     /// <param name="version" example="3">Show the sheet as of this version number. Leave out for the live view.</param>
     /// <param name="asOf" example="2026-09-30T14:02:11Z">Show the sheet as it was published at this date and time (UTC). Can't be combined with <c>version</c>.</param>
+    /// <param name="submission" example="12">Show the live sheet with this submission's changes, which wait for approval, on top. Read-only, and only for its submitter and approvers.</param>
     /// <param name="cancellationToken">Cancels the request.</param>
     /// <response code="200">The sheet as you see it.</response>
-    /// <response code="404">The phase or version doesn't exist, or the sheet type isn't available to this phase.</response>
+    /// <response code="403">You aren't the submission's submitter or one of its approvers.</response>
+    /// <response code="404">The phase, version or submission doesn't exist, or the sheet type isn't available to this phase.</response>
+    /// <response code="409">The submission has already been decided.</response>
     [HttpGet("api/phases/{phaseId:int}/sheets/{sheetTypeId:int}")]
     public async Task<ActionResult<SheetDto>> Open(
         int phaseId,
         int sheetTypeId,
         [FromQuery] int? version,
         [FromQuery] DateTime? asOf,
+        [FromQuery] int? submission,
         CancellationToken cancellationToken)
     {
-        var result = await sheets.OpenAsync(phaseId, sheetTypeId, SheetViewPoint.From(version, asOf), cancellationToken);
+        var result = await sheets.OpenAsync(phaseId, sheetTypeId, SheetViewPoint.From(version, asOf, submission), cancellationToken);
         return Ok(result);
     }
 

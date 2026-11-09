@@ -1,0 +1,27 @@
+.approvers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--app-space-1) var(--app-space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--app-font-size-md);
+
+  li {
+    white-space: nowrap;
+  }
+
+  .pi {
+    margin-right: var(--app-space-1);
+    font-size: var(--app-font-size-sm);
+    color: var(--app-text-muted);
+  }
+
+  .decision-Approved .pi {
+    color: var(--app-status-publishing);
+  }
+
+  .decision-Rejected .pi {
+    color: var(--app-grid-warning);
+  }
+}

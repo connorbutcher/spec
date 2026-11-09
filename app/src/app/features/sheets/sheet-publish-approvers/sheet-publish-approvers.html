@@ -1,0 +1,22 @@
+<div class="approvers">
+  <label class="heading" for="publish-approvers">Approvers</label>
+  <p-multiselect
+    inputId="publish-approvers"
+    [options]="approvers()"
+    optionLabel="userName"
+    optionValue="userId"
+    [ngModel]="selected()"
+    (ngModelChange)="selectedChange.emit($event ?? [])"
+    [ngModelOptions]="{ standalone: true }"
+    [filter]="approvers().length > 8"
+    [showToggleAll]="false"
+    [loading]="isLoading()"
+    [maxSelectedLabels]="4"
+    placeholder="Choose who approves"
+    emptyMessage="Nobody else can approve changes"
+    size="small"
+    appendTo="body"
+    [fluid]="true"
+  />
+  <small>Every person chosen must approve before the changes are published.</small>
+</div>

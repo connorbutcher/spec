@@ -1,0 +1,15 @@
+.approvers {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-2);
+
+  .heading {
+    font-size: var(--app-font-size-base);
+    font-weight: var(--app-font-weight-semibold);
+  }
+
+  small {
+    color: var(--p-text-muted-color);
+    font-size: var(--app-font-size-md);
+  }
+}

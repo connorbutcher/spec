@@ -25,4 +25,9 @@ export type Sheet = {
   availableTemplates: AvailableTemplate[];
   /** The choices of every column a linked dropdown on the sheet is pointed at. */
   linkedSources: SheetLinkedSource[];
+  /**
+   * Set when the view shows a submission's changes waiting for approval over the published sheet, for its
+   * approvers to check. Such a view is read-only, like a past one.
+   */
+  reviewedSubmissionId?: number | null;
 }

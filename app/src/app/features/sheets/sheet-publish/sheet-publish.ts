@@ -4,8 +4,10 @@ import { ButtonModule } from 'primeng/button';
 import { Popover, PopoverModule } from 'primeng/popover';
 import { TextareaModule } from 'primeng/textarea';
 import { DialogActions } from '../../../shared/components/dialog-actions/dialog-actions';
+import { ApprovalsStore } from '../../approvals/approvals.store';
 import { PendingChangesUtil } from '../actions/pending-changes.util';
 import { SheetAnchorService } from '../anchors/sheet-anchor.service';
+import { SheetPublishApprovers } from '../sheet-publish-approvers/sheet-publish-approvers';
 import { SheetPublishChanges } from '../sheet-publish-changes/sheet-publish-changes';
 import { PublishScopeOption } from '../models/publish-scope-option.model';
 import { PublishScope } from '../models/publish-scope';
@@ -14,9 +16,10 @@ import { SheetPublishScope } from '../sheet-publish-scope/sheet-publish-scope';
 import { SheetStore } from '../sheet.store';
 
 /**
- * The Publish button: publishes changes on the sheet as its next version. In a popover it asks whose
- * changes to send out (the user's own, which is the default, or everything waiting on the sheet) and for
- * an optional note, and shows how many changes will go out and lists them, each a link to it on the sheet.
+ * The Publish button: submits changes on the sheet for publishing as its next version. In a popover it
+ * asks whose changes to send (the user's own, which is the default, or everything waiting on the sheet),
+ * who must approve them, and for an optional note, and lists the changes, each a link to it on the sheet.
+ * Nothing is published until every chosen approver approves; until then the changes are frozen.
  */
 @Component({
   selector: 'app-sheet-publish',
@@ -25,6 +28,7 @@ import { SheetStore } from '../sheet.store';
     DialogActions,
     FormsModule,
     PopoverModule,
+    SheetPublishApprovers,
     SheetPublishChanges,
     SheetPublishScope,
     TextareaModule,
@@ -35,6 +39,11 @@ import { SheetStore } from '../sheet.store';
 
 export class SheetPublish {
   public readonly note = signal('');
+
+  /** The people chosen to approve; kept between openings until a submission goes through. */
+  public readonly approverIds = signal<number[]>([]);
+
+  public readonly approvals = inject(ApprovalsStore);
 
   public readonly options = computed<PublishScopeOption[]>(() => {
     const sheet = this.store.sheet();
@@ -49,9 +58,11 @@ export class SheetPublish {
   /** The toolbar button counts the user's own changes, which is what it publishes unless they say otherwise. */
   public readonly label = computed(() => PublishScopeUtil.publishLabel(this.countOf('Mine')));
 
-  public readonly confirmLabel = computed(() => PublishScopeUtil.publishLabel(this.countOf(this.scope())));
+  public readonly confirmLabel = computed(() => PublishScopeUtil.submitLabel(this.countOf(this.scope())));
 
   public readonly hasChanges = computed(() => this.countOf('All') > 0);
+
+  public readonly hasApprovers = computed(() => this.approverIds().length > 0);
 
   public readonly isBusy = computed(() => this.store.isBusy());
 
@@ -63,6 +74,11 @@ export class SheetPublish {
   private readonly store = inject(SheetStore);
   private readonly anchors = inject(SheetAnchorService);
   private readonly chosenScope = signal<PublishScope | null>(null);
+
+  public open(event: Event, popover: Popover): void {
+    this.approvals.loadApprovers();
+    popover.toggle(event);
+  }
 
   public chooseScope(scope: PublishScope): void {
     this.chosenScope.set(scope);
@@ -76,10 +92,11 @@ export class SheetPublish {
 
   public async publish(popover: Popover): Promise<void> {
     const note = this.note().trim();
-    if (await this.store.publish(note === '' ? null : note, this.scope())) {
+    if (await this.store.publish(note === '' ? null : note, this.scope(), this.approverIds())) {
       this.note.set('');
       this.chosenScope.set(null);
       popover.hide();
+      this.approvals.reload();
     }
   }
 

@@ -74,4 +74,9 @@ export class PublishScopeUtil {
   public static publishLabel(count: number): string {
     return count > 0 ? `Publish (${count})` : 'Publish';
   }
+
+  /** "Submit for approval (3)": the publish form's button, which sends the changes to their approvers. */
+  public static submitLabel(count: number): string {
+    return count > 0 ? `Submit for approval (${count})` : 'Submit for approval';
+  }
 }

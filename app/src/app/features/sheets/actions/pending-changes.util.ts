@@ -48,9 +48,12 @@ export class PendingChangesUtil {
     }
   }
 
-  /** A saved change (not someone only being in the item) that this publish takes. */
+  /**
+   * A saved change (not someone only being in the item, nor one already waiting for approval) that this
+   * publish takes.
+   */
   private static isTaken(lock: SheetLock | null, scope: PublishScope): boolean {
-    return lock !== null && lock.isCheckout !== true && (scope === 'All' || lock.isMine);
+    return lock !== null && lock.isCheckout !== true && lock.isAwaitingApproval !== true && (scope === 'All' || lock.isMine);
   }
 
   private static change(

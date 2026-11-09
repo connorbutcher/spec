@@ -1,0 +1,23 @@
+<form class="reject-form" (submit)="$event.preventDefault()">
+  <label class="heading" for="reject-reason">Why are these changes rejected?</label>
+  <textarea
+    pTextarea
+    pSize="small"
+    id="reject-reason"
+    rows="3"
+    maxlength="1000"
+    [ngModel]="reason()"
+    (ngModelChange)="reason.set($event)"
+    [ngModelOptions]="{ standalone: true }"
+  ></textarea>
+  <div class="buttons">
+    <app-dialog-actions
+      confirmLabel="Reject"
+      confirmIcon="pi pi-times"
+      [confirmDisabled]="!canReject()"
+      [busy]="busy()"
+      (cancelled)="cancel()"
+      (confirmed)="reject()"
+    />
+  </div>
+</form>

@@ -1,0 +1,27 @@
+<section class="app-card approvals-page">
+  <header class="page-head">
+    <h1>Approvals</h1>
+  </header>
+
+  @if (store.error(); as message) {
+    <div class="error">
+      <app-error-message [message]="message" [closable]="true" (dismissed)="store.error.set(null)" />
+    </div>
+  }
+
+  <div class="body">
+    <h2 class="app-eyebrow">Waiting for you ({{ store.awaitingCount() }})</h2>
+    <app-submission-table
+      [submissions]="store.awaitingMe()"
+      role="approver"
+      emptyMessage="Nothing is waiting for your approval."
+    />
+
+    <h2 class="app-eyebrow">Your submissions</h2>
+    <app-submission-table
+      [submissions]="store.mine()"
+      role="submitter"
+      emptyMessage="You haven't submitted anything in the last 30 days."
+    />
+  </div>
+</section>

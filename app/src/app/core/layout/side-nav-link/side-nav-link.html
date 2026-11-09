@@ -3,10 +3,14 @@
   [routerLink]="item().path"
   routerLinkActive="active"
   ariaCurrentWhenActive="page"
-  [pTooltip]="item().label"
+  [pTooltip]="label()"
   tooltipPosition="right"
   [tooltipDisabled]="!collapsed()"
+  [attr.aria-label]="label()"
 >
   <i class="pi" [class]="item().icon" aria-hidden="true"></i>
   <span class="label" [class.visually-hidden]="collapsed()">{{ item().label }}</span>
+  @if (count() > 0) {
+    <p-badge class="count" [class.collapsed]="collapsed()" [value]="count()" size="small" severity="contrast" />
+  }
 </a>

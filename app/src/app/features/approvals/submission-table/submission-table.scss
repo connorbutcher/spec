@@ -1,0 +1,46 @@
+.submissions {
+  .sheet {
+    width: 9rem;
+    font-weight: var(--app-font-weight-medium);
+    white-space: nowrap;
+  }
+
+  .submitted {
+    width: 10rem;
+  }
+
+  .changes {
+    width: 9rem;
+  }
+
+  .approvers {
+    width: 14rem;
+  }
+
+  .status {
+    width: 9rem;
+    white-space: nowrap;
+  }
+
+  .actions {
+    width: 1%;
+  }
+
+  small {
+    display: block;
+    color: var(--app-text-muted);
+    font-size: var(--app-font-size-md);
+  }
+
+  .note {
+    white-space: pre-line;
+  }
+
+  .reason {
+    white-space: normal;
+  }
+
+  .muted {
+    color: var(--app-text-muted);
+  }
+}

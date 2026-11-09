@@ -32,12 +32,7 @@ public sealed class SheetService(
             sheetId = await CreateSheetAsync(phaseId, sheetTypeId, cancellationToken);
         }
 
-        if (view.IsLive)
-        {
-            await sweeper.SweepAsync(sheetId.Value, cancellationToken);
-        }
-
-        return await reader.ReadAsync(sheetId.Value, view, cancellationToken);
+        return await GetAsync(sheetId.Value, view, cancellationToken);
     }
 
     public async Task<SheetDto> GetAsync(int sheetId, SheetViewPoint view, CancellationToken cancellationToken)

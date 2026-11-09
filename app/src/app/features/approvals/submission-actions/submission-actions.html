@@ -1,0 +1,43 @@
+@if (isPending()) {
+  <div class="actions">
+    @if (showReview()) {
+      <p-button size="small" [text]="true" icon="pi pi-eye" label="Review" (onClick)="review()" />
+    }
+    @if (canDecide()) {
+      <p-button
+        size="small"
+        icon="pi pi-check"
+        label="Approve"
+        [loading]="isBusy()"
+        (onClick)="approve()"
+      />
+      <p-button
+        size="small"
+        severity="secondary"
+        [outlined]="true"
+        icon="pi pi-times"
+        label="Reject"
+        [disabled]="isBusy()"
+        (onClick)="popover.toggle($event)"
+      />
+      <p-popover #popover appendTo="body">
+        <app-submission-reject-form
+          [busy]="isBusy()"
+          (rejected)="reject($event, popover)"
+          (cancelled)="popover.hide()"
+        />
+      </p-popover>
+    }
+    @if (canWithdraw()) {
+      <p-button
+        size="small"
+        severity="secondary"
+        [outlined]="true"
+        icon="pi pi-undo"
+        label="Withdraw"
+        [loading]="isBusy()"
+        (onClick)="withdraw()"
+      />
+    }
+  </div>
+}

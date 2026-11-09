@@ -71,3 +71,12 @@ describe('itemStatus', () => {
     expect(ItemStatusUtil.statusTone(status)).toBe('approval');
   });
 });
+
+describe('itemStatus of a change waiting for approval', () => {
+  it('is For approval, whoever made it, and not part of a publish that is running', () => {
+    const status = ItemStatusUtil.itemStatus(SpecHelpers.source({ ...MINE, isAwaitingApproval: true }), 'Mine');
+    expect(status.state).toBe('ForApproval');
+    expect(ItemStatusUtil.statusText(status)).toBe('v7 · For approval · You');
+    expect(ItemStatusUtil.statusTone(status)).toBe('approval');
+  });
+});

@@ -103,6 +103,9 @@ export class ItemStatusUtil {
     if (lock.isCheckout === true) {
       return 'CheckedOut';
     }
+    if (lock.isAwaitingApproval === true) {
+      return 'ForApproval';
+    }
     return publishing === 'All' || (publishing === 'Mine' && lock.isMine) ? 'Publishing' : 'Draft';
   }
 }

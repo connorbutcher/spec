@@ -1,0 +1,36 @@
+<div class="review-bar">
+  <i class="pi pi-clock app-status-tone" data-tone="approval" aria-hidden="true"></i>
+  @if (submission(); as submission) {
+    <span class="summary">
+      <strong>{{ submission.submittedByName }}'s changes for approval</strong>
+      · {{ changes() }}
+      @if (submission.note) {
+        · <span class="note">{{ submission.note }}</span>
+      }
+    </span>
+    <app-submission-approvers [approvers]="submission.approvers" />
+    <span class="spacer"></span>
+    <app-submission-actions
+      [submission]="submission"
+      [canDecide]="canDecide()"
+      [canWithdraw]="canWithdraw()"
+      [showReview]="false"
+      (decided)="backToLive()"
+    />
+  } @else {
+    <span class="summary">Changes waiting for approval</span>
+    <span class="spacer"></span>
+  }
+  <p-button
+    size="small"
+    [text]="true"
+    icon="pi pi-arrow-left"
+    label="Back to live"
+    (onClick)="backToLive()"
+  />
+</div>
+@if (approvals.error(); as message) {
+  <div class="error">
+    <app-error-message [message]="message" [closable]="true" (dismissed)="approvals.error.set(null)" />
+  </div>
+}

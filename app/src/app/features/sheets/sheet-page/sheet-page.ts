@@ -17,6 +17,7 @@ import { RowCheckoutStore } from '../checkouts/row-checkout.store';
 import { RowTakeoverStore } from '../checkouts/row-takeover.store';
 import { SheetAnchorService } from '../anchors/sheet-anchor.service';
 import { SheetContextBar } from '../sheet-context-bar/sheet-context-bar';
+import { SheetReviewBar } from '../sheet-review-bar/sheet-review-bar';
 import { SheetHub } from '../live/sheet-hub';
 import { SheetLiveStore } from '../live/sheet-live.store';
 import { SheetLoadError } from '../sheet-load-error/sheet-load-error';
@@ -43,6 +44,7 @@ import { SheetStore } from '../sheet.store';
     EmptyState,
     MessageModule,
     SheetContextBar,
+    SheetReviewBar,
     SheetLoadError,
     SheetSwitcher,
     SheetTableCard,

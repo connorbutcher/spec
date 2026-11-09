@@ -15,7 +15,10 @@
         }
       </header>
 
-      @if (sheet()) {
+      @if (sheet(); as open) {
+        @if (open.reviewedSubmissionId) {
+          <app-sheet-review-bar />
+        }
         <app-sheet-context-bar />
         <app-sheet-takeover-requests />
       }
