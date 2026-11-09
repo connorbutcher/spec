@@ -76,7 +76,13 @@ public sealed class PermissionConfiguration : IEntityTypeConfiguration<Permissio
             {
                 Id = 6,
                 Key = PermissionKeys.SheetsPublish,
-                Description = "Publish a sheet's drafts as its next version.",
+                Description = "Publish a sheet's drafts as its next version, once the chosen approvers approve.",
+            },
+            new Permission
+            {
+                Id = 7,
+                Key = PermissionKeys.SheetsApprove,
+                Description = "Approve or reject the changes someone else submitted for publishing.",
             });
     }
 }

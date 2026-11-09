@@ -31,4 +31,7 @@ public interface ISheetRevision
     DateTime? SupersededAtUtc { get; set; }
 
     int? SheetVersionId { get; set; }
+
+    /// <summary>The publish waiting for approval this draft is part of; while set the draft is frozen.</summary>
+    int? SheetSubmissionId { get; set; }
 }

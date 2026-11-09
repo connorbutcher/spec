@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using PUSpecSheet.Domain.Approvals;
 using PUSpecSheet.Domain.Sheets;
 
 namespace PUSpecSheet.Data.Configurations;
@@ -110,6 +111,12 @@ public sealed class SheetTableRevisionConfiguration : IEntityTypeConfiguration<S
             .OnDelete(DeleteBehavior.Restrict);
 
         // Versions and tables both sit under the sheet, so this can't cascade as well.
+        // The publish awaiting approval the draft is part of. Submissions sit under the sheet too, so no cascade.
+        builder.HasOne<SheetSubmission>()
+            .WithMany()
+            .HasForeignKey(revision => revision.SheetSubmissionId)
+            .OnDelete(DeleteBehavior.NoAction);
+
         builder.HasOne(revision => revision.SheetVersion)
             .WithMany(version => version.TableRevisions)
             .HasForeignKey(revision => revision.SheetVersionId)

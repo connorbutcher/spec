@@ -25,6 +25,9 @@ public static class PermissionKeys
     /// <summary>Publish a sheet's drafts as its next version.</summary>
     public const string SheetsPublish = "sheets.publish";
 
+    /// <summary>Approve or reject the changes someone else submitted for publishing.</summary>
+    public const string SheetsApprove = "sheets.approve";
+
     public static IReadOnlyList<string> All { get; } =
     [
         PhasesManage,
@@ -33,5 +36,6 @@ public static class PermissionKeys
         CellTypesManage,
         SheetsEdit,
         SheetsPublish,
+        SheetsApprove,
     ];
 }

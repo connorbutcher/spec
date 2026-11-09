@@ -56,4 +56,10 @@ public class SheetSectionRevision : ISheetRevision
     public int? SheetVersionId { get; set; }
 
     public SheetVersion? SheetVersion { get; set; }
+
+    /// <summary>
+    /// The publish waiting for approval that this draft is part of. While set, the draft is frozen: nobody,
+    /// its author included, can change, discard or hand it on. Kept once published, to say which approval did it.
+    /// </summary>
+    public int? SheetSubmissionId { get; set; }
 }

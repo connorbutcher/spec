@@ -22,6 +22,90 @@ namespace PUSpecSheet.Data.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("PUSpecSheet.Domain.Approvals.SheetSubmission", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("DecidedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<int>("SheetId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("SheetVersionId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("SubmittedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("SubmittedByUserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SheetVersionId");
+
+                    b.HasIndex("SheetId", "Status");
+
+                    b.HasIndex("SubmittedByUserId", "Status");
+
+                    b.ToTable("SheetSubmissions", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_SheetSubmissions_DecidedAt", "([Status] = 0 AND [DecidedAtUtc] IS NULL) OR ([Status] <> 0 AND [DecidedAtUtc] IS NOT NULL)");
+
+                            t.HasCheckConstraint("CK_SheetSubmissions_Status", "[Status] IN (0, 1, 2, 3)");
+
+                            t.HasCheckConstraint("CK_SheetSubmissions_Version", "[SheetVersionId] IS NULL OR [Status] = 1");
+                        });
+                });
+
+            modelBuilder.Entity("PUSpecSheet.Domain.Approvals.SheetSubmissionApprover", b =>
+                {
+                    b.Property<int>("SheetSubmissionId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("DecidedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Decision")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Reason")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.HasKey("SheetSubmissionId", "UserId");
+
+                    b.HasIndex("UserId", "Decision");
+
+                    b.ToTable("SheetSubmissionApprovers", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_SheetSubmissionApprovers_Decision", "[Decision] IN (0, 1, 2)");
+
+                            t.HasCheckConstraint("CK_SheetSubmissionApprovers_Reason", "[Decision] <> 2 OR (LEN([Reason]) > 0)");
+                        });
+                });
+
             modelBuilder.Entity("PUSpecSheet.Domain.CellTypes.CellType", b =>
                 {
                     b.Property<int>("Id")
@@ -449,6 +533,9 @@ namespace PUSpecSheet.Data.Migrations
                     b.Property<int>("SheetId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("SheetSubmissionId")
+                        .HasColumnType("int");
+
                     b.Property<int?>("SheetVersionId")
                         .HasColumnType("int");
 
@@ -464,6 +551,8 @@ namespace PUSpecSheet.Data.Migrations
                         .HasDefaultValueSql("SYSUTCDATETIME()");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("SheetSubmissionId");
 
                     b.HasIndex("SheetVersionId");
 
@@ -584,6 +673,9 @@ namespace PUSpecSheet.Data.Migrations
                     b.Property<int>("SheetRowId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("SheetSubmissionId")
+                        .HasColumnType("int");
+
                     b.Property<int?>("SheetVersionId")
                         .HasColumnType("int");
 
@@ -599,6 +691,8 @@ namespace PUSpecSheet.Data.Migrations
                         .HasDefaultValueSql("SYSUTCDATETIME()");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("SheetSubmissionId");
 
                     b.HasIndex("SheetVersionId");
 
@@ -724,6 +818,9 @@ namespace PUSpecSheet.Data.Migrations
                     b.Property<int>("SheetSectionId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("SheetSubmissionId")
+                        .HasColumnType("int");
+
                     b.Property<int?>("SheetVersionId")
                         .HasColumnType("int");
 
@@ -739,6 +836,8 @@ namespace PUSpecSheet.Data.Migrations
                         .HasDefaultValueSql("SYSUTCDATETIME()");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("SheetSubmissionId");
 
                     b.HasIndex("SheetVersionId");
 
@@ -856,6 +955,9 @@ namespace PUSpecSheet.Data.Migrations
                     b.Property<int>("SheetId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("SheetSubmissionId")
+                        .HasColumnType("int");
+
                     b.Property<int>("SheetTableId")
                         .HasColumnType("int");
 
@@ -878,6 +980,8 @@ namespace PUSpecSheet.Data.Migrations
                         .HasDefaultValueSql("SYSUTCDATETIME()");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("SheetSubmissionId");
 
                     b.HasIndex("SheetVersionId");
 
@@ -1278,8 +1382,14 @@ namespace PUSpecSheet.Data.Migrations
                         new
                         {
                             Id = 6,
-                            Description = "Publish a sheet's drafts as its next version.",
+                            Description = "Publish a sheet's drafts as its next version, once the chosen approvers approve.",
                             Key = "sheets.publish"
+                        },
+                        new
+                        {
+                            Id = 7,
+                            Description = "Approve or reject the changes someone else submitted for publishing.",
+                            Key = "sheets.approve"
                         });
                 });
 
@@ -1526,6 +1636,51 @@ namespace PUSpecSheet.Data.Migrations
                     b.ToTable("TextValues", "values");
                 });
 
+            modelBuilder.Entity("PUSpecSheet.Domain.Approvals.SheetSubmission", b =>
+                {
+                    b.HasOne("PUSpecSheet.Domain.Sheets.Sheet", "Sheet")
+                        .WithMany()
+                        .HasForeignKey("SheetId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("PUSpecSheet.Domain.Sheets.SheetVersion", "SheetVersion")
+                        .WithMany()
+                        .HasForeignKey("SheetVersionId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("PUSpecSheet.Domain.Users.User", "SubmittedBy")
+                        .WithMany()
+                        .HasForeignKey("SubmittedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Sheet");
+
+                    b.Navigation("SheetVersion");
+
+                    b.Navigation("SubmittedBy");
+                });
+
+            modelBuilder.Entity("PUSpecSheet.Domain.Approvals.SheetSubmissionApprover", b =>
+                {
+                    b.HasOne("PUSpecSheet.Domain.Approvals.SheetSubmission", "SheetSubmission")
+                        .WithMany("Approvers")
+                        .HasForeignKey("SheetSubmissionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("PUSpecSheet.Domain.Users.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("SheetSubmission");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("PUSpecSheet.Domain.CellTypes.CellTypeOption", b =>
                 {
                     b.HasOne("PUSpecSheet.Domain.CellTypes.CellType", "CellType")
@@ -1650,6 +1805,11 @@ namespace PUSpecSheet.Data.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
+                    b.HasOne("PUSpecSheet.Domain.Approvals.SheetSubmission", null)
+                        .WithMany()
+                        .HasForeignKey("SheetSubmissionId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
                     b.HasOne("PUSpecSheet.Domain.Sheets.SheetVersion", "SheetVersion")
                         .WithMany("ColumnBlockRevisions")
                         .HasForeignKey("SheetVersionId")
@@ -1700,6 +1860,11 @@ namespace PUSpecSheet.Data.Migrations
                         .HasForeignKey("SheetRowId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("PUSpecSheet.Domain.Approvals.SheetSubmission", null)
+                        .WithMany()
+                        .HasForeignKey("SheetSubmissionId")
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("PUSpecSheet.Domain.Sheets.SheetVersion", "SheetVersion")
                         .WithMany("RowRevisions")
@@ -1759,6 +1924,11 @@ namespace PUSpecSheet.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("PUSpecSheet.Domain.Approvals.SheetSubmission", null)
+                        .WithMany()
+                        .HasForeignKey("SheetSubmissionId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
                     b.HasOne("PUSpecSheet.Domain.Sheets.SheetVersion", "SheetVersion")
                         .WithMany("SectionRevisions")
                         .HasForeignKey("SheetVersionId")
@@ -1803,6 +1973,11 @@ namespace PUSpecSheet.Data.Migrations
                         .HasForeignKey("SheetId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
+
+                    b.HasOne("PUSpecSheet.Domain.Approvals.SheetSubmission", null)
+                        .WithMany()
+                        .HasForeignKey("SheetSubmissionId")
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("PUSpecSheet.Domain.Sheets.SheetTable", "SheetTable")
                         .WithMany("Revisions")
@@ -2087,6 +2262,11 @@ namespace PUSpecSheet.Data.Migrations
                     b.Navigation("SheetCell");
 
                     b.Navigation("SheetRowRevision");
+                });
+
+            modelBuilder.Entity("PUSpecSheet.Domain.Approvals.SheetSubmission", b =>
+                {
+                    b.Navigation("Approvers");
                 });
 
             modelBuilder.Entity("PUSpecSheet.Domain.CellTypes.CellType", b =>

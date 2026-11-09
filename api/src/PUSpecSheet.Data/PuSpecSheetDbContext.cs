@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using PUSpecSheet.Domain.Approvals;
 using PUSpecSheet.Domain.CellTypes;
 using PUSpecSheet.Domain.Phases;
 using PUSpecSheet.Domain.Sheets;
@@ -50,6 +51,10 @@ public sealed class PuSpecSheetDbContext(DbContextOptions<PuSpecSheetDbContext> 
     public DbSet<Sheet> Sheets => Set<Sheet>();
 
     public DbSet<SheetVersion> SheetVersions => Set<SheetVersion>();
+
+    public DbSet<SheetSubmission> SheetSubmissions => Set<SheetSubmission>();
+
+    public DbSet<SheetSubmissionApprover> SheetSubmissionApprovers => Set<SheetSubmissionApprover>();
 
     public DbSet<SheetTable> SheetTables => Set<SheetTable>();
 

@@ -58,6 +58,12 @@ public class SheetRowRevision : ISheetRevision
 
     public SheetVersion? SheetVersion { get; set; }
 
+    /// <summary>
+    /// The publish waiting for approval that this draft is part of. While set, the draft is frozen: nobody,
+    /// its author included, can change, discard or hand it on. Kept once published, to say which approval did it.
+    /// </summary>
+    public int? SheetSubmissionId { get; set; }
+
     // The revision's cell values, one typed table per cell kind in the "values" schema.
 
     public ICollection<TextValue> TextValues { get; set; } = [];
