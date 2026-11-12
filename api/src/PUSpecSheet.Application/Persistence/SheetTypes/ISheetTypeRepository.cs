@@ -19,5 +19,11 @@ public interface ISheetTypeRepository
     /// <summary>Which of the ids asked for are sheet types.</summary>
     Task<List<int>> GetExistingIdsAsync(IReadOnlyCollection<int> ids, CancellationToken cancellationToken);
 
+    /// <summary>The id of the sheet type with the name. It must exist.</summary>
+    Task<int> GetIdByNameAsync(string name, CancellationToken cancellationToken);
+
+    /// <summary>The ids of the sheet types with any of the names.</summary>
+    Task<List<int>> ListIdsByNamesAsync(IReadOnlyCollection<string> names, CancellationToken cancellationToken);
+
     void Add(SheetType sheetType);
 }

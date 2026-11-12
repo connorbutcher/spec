@@ -1,6 +1,5 @@
 using PUSpecSheet.Application.Common;
 using PUSpecSheet.Application.Sheets.Values;
-using PUSpecSheet.Data.Values;
 using PUSpecSheet.Domain.CellTypes;
 using PUSpecSheet.Domain.CellTypes.Configurations;
 using PUSpecSheet.Domain.Templates;

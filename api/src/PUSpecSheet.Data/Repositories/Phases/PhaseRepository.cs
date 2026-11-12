@@ -70,6 +70,14 @@ public sealed class PhaseRepository(PuSpecSheetDbContext db) : IPhaseRepository
             .AnyAsync(link => link.PhaseId == phaseId && link.SheetTypeId == sheetTypeId, cancellationToken);
     }
 
+    public async Task<List<Phase>> ListByCodesForEditAsync(IReadOnlyCollection<string> codes, CancellationToken cancellationToken)
+    {
+        return await db.Phases
+            .Include(phase => phase.SheetTypes)
+            .Where(phase => codes.Contains(phase.Code))
+            .ToListAsync(cancellationToken);
+    }
+
     public void Add(Phase phase)
     {
         db.Phases.Add(phase);

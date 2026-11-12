@@ -1,6 +1,6 @@
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using PUSpecSheet.Data;
+using PUSpecSheet.Application.Persistence.Seeding;
+using PUSpecSheet.Application.Persistence.Sheets;
 
 namespace PUSpecSheet.Application.Seeding;
 
@@ -11,7 +11,7 @@ namespace PUSpecSheet.Application.Seeding;
 /// and A2 to A5 with published history by three people, unpublished changes and the locks they hold.
 /// <para>
 /// <b>It clears the database first.</b> Every sheet, template and user-made cell type is deleted (see
-/// <see cref="SampleDataReset"/>) and the showcase is built in their place. That happens once: the
+/// <see cref="ISampleDataRepository"/>) and the showcase is built in their place. That happens once: the
 /// showcase's last publish carries <see cref="CompletedNote"/>, and while a version with that note exists
 /// nothing is touched again, so work done on top of the showcase is kept. Set <c>SampleData:Rebuild</c> to
 /// true to clear and rebuild it on the next start regardless. A failure is logged instead of stopping the
@@ -19,8 +19,8 @@ namespace PUSpecSheet.Application.Seeding;
 /// </para>
 /// </summary>
 public sealed partial class ShowcaseDataSeeder(
-    PuSpecSheetDbContext db,
-    SampleDataReset reset,
+    ISheetRepository sheets,
+    ISampleDataRepository reset,
     ShowcaseCellTypes cellTypes,
     ShowcasePhases phases,
     ShowcaseTemplateWriter templates,
@@ -37,7 +37,7 @@ public sealed partial class ShowcaseDataSeeder(
     {
         try
         {
-            if (!rebuild && await db.SheetVersions.AnyAsync(version => version.Note == CompletedNote, cancellationToken))
+            if (!rebuild && await sheets.AnyVersionWithNoteAsync(CompletedNote, cancellationToken))
             {
                 return;
             }

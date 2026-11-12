@@ -49,6 +49,16 @@ public sealed class TemplateCellRepository(PuSpecSheetDbContext db) : ITemplateC
             .ExecuteDeleteAsync(cancellationToken);
     }
 
+    public async Task<List<TemplateCell>> ListAsync(IReadOnlyCollection<int> ids, CancellationToken cancellationToken)
+    {
+        return await db.TemplateCells.AsNoTracking().Where(cell => ids.Contains(cell.Id)).ToListAsync(cancellationToken);
+    }
+
+    public async Task<bool> LookupKeyExistsAsync(string key, CancellationToken cancellationToken)
+    {
+        return await db.TemplateCells.AnyAsync(cell => cell.LookupKey == key, cancellationToken);
+    }
+
     public void Add(TemplateCell cell)
     {
         db.TemplateCells.Add(cell);

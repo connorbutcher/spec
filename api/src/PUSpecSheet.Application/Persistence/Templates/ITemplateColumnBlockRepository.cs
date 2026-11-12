@@ -25,6 +25,12 @@ public interface ITemplateColumnBlockRepository
     /// <summary>The highest display order among a version's column blocks, or null when it has none.</summary>
     Task<int?> GetLastDisplayOrderAsync(int versionId, CancellationToken cancellationToken);
 
+    /// <summary>The column block, read only, when it is part of the version; null otherwise.</summary>
+    Task<TemplateColumnBlock?> FindInVersionAsync(int id, int versionId, CancellationToken cancellationToken);
+
+    /// <summary>Every column block of the versions, read only.</summary>
+    Task<List<TemplateColumnBlock>> ListInVersionsAsync(IReadOnlyCollection<int> versionIds, CancellationToken cancellationToken);
+
     void Add(TemplateColumnBlock block);
 
     void Remove(TemplateColumnBlock block);

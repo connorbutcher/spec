@@ -29,6 +29,12 @@ public interface ITemplateSectionRepository
     /// <summary>The highest display order under one parent (or at the top level) of a version, or null when there are none.</summary>
     Task<int?> GetLastDisplayOrderAsync(int versionId, int? parentSectionId, CancellationToken cancellationToken);
 
+    /// <summary>A version's sections with their rows and cells, read only, for laying sheet content out from it.</summary>
+    Task<List<TemplateSection>> ListForLayoutAsync(int versionId, CancellationToken cancellationToken);
+
+    /// <summary>Every section of the versions, read only.</summary>
+    Task<List<TemplateSection>> ListInVersionsAsync(IReadOnlyCollection<int> versionIds, CancellationToken cancellationToken);
+
     void Add(TemplateSection section);
 
     void RemoveRange(IEnumerable<TemplateSection> sections);

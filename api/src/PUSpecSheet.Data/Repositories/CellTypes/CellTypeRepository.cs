@@ -87,6 +87,31 @@ public sealed class CellTypeRepository(PuSpecSheetDbContext db) : ICellTypeRepos
                 cancellationToken);
     }
 
+    public async Task<Dictionary<int, CellType>> GetAllWithOptionsByIdAsync(CancellationToken cancellationToken)
+    {
+        return await db.CellTypes
+            .AsNoTracking()
+            .Include(cellType => cellType.Options)
+            .ToDictionaryAsync(cellType => cellType.Id, cancellationToken);
+    }
+
+    public async Task<List<string>> ListNamesInUseAsync(IReadOnlyCollection<string> names, CancellationToken cancellationToken)
+    {
+        return await db.CellTypes
+            .Where(cellType => names.Contains(cellType.Name))
+            .Select(cellType => cellType.Name)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<List<CellType>> ListByNamesAsync(IReadOnlyCollection<string> names, CancellationToken cancellationToken)
+    {
+        return await db.CellTypes
+            .AsNoTracking()
+            .Include(cellType => cellType.Options)
+            .Where(cellType => names.Contains(cellType.Name))
+            .ToListAsync(cancellationToken);
+    }
+
     public void Add(CellType cellType)
     {
         db.CellTypes.Add(cellType);

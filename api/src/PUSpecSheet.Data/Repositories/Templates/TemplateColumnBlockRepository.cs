@@ -56,6 +56,23 @@ public sealed class TemplateColumnBlockRepository(PuSpecSheetDbContext db) : ITe
             .MaxAsync(block => (int?)block.DisplayOrder, cancellationToken);
     }
 
+    public async Task<TemplateColumnBlock?> FindInVersionAsync(int id, int versionId, CancellationToken cancellationToken)
+    {
+        return await db.TemplateColumnBlocks
+            .AsNoTracking()
+            .SingleOrDefaultAsync(
+                candidate => candidate.Id == id && candidate.TableTemplateVersionId == versionId,
+                cancellationToken);
+    }
+
+    public async Task<List<TemplateColumnBlock>> ListInVersionsAsync(IReadOnlyCollection<int> versionIds, CancellationToken cancellationToken)
+    {
+        return await db.TemplateColumnBlocks
+            .AsNoTracking()
+            .Where(block => versionIds.Contains(block.TableTemplateVersionId))
+            .ToListAsync(cancellationToken);
+    }
+
     public void Add(TemplateColumnBlock block)
     {
         db.TemplateColumnBlocks.Add(block);

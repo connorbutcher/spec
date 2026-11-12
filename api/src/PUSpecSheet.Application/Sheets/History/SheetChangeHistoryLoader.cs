@@ -1,11 +1,6 @@
 using System.Globalization;
-using Microsoft.EntityFrameworkCore;
+using PUSpecSheet.Application.Persistence.Sheets;
 using PUSpecSheet.Application.Sheets.Reading;
-using PUSpecSheet.Application.Sheets.Revisions;
-using PUSpecSheet.Application.Sheets.Values;
-using PUSpecSheet.Data;
-using PUSpecSheet.Data.Values;
-using PUSpecSheet.Domain.Sheets;
 
 namespace PUSpecSheet.Application.Sheets.History;
 
@@ -19,7 +14,10 @@ namespace PUSpecSheet.Application.Sheets.History;
 /// version. A history is therefore kept by sheet and version (see <see cref="SheetChangeHistoryCache"/>),
 /// and every view that lands on the same version, live, by number or by date, shares it.
 /// </remarks>
-public sealed class SheetChangeHistoryLoader(PuSpecSheetDbContext db, RowValueStore valueStore, SheetChangeHistoryCache cache)
+public sealed class SheetChangeHistoryLoader(
+    SheetRevisionRepositories revisions,
+    IRowValueRepository values,
+    SheetChangeHistoryCache cache)
 {
     public async Task<SheetChangeHistory> LoadAsync(
         SheetSnapshot sheet,
@@ -56,42 +54,18 @@ public sealed class SheetChangeHistoryLoader(PuSpecSheetDbContext db, RowValueSt
         // Found by the sheet they carry, like the sheet's own revisions (see SheetSnapshotLoader).
         var sheetId = sheet.Sheet.Id;
 
-        var rowRevisions = await Published(
-                db.RowRevisionsOf(sheetId),
-                moment)
-            .ToListAsync(cancellationToken);
-        var sectionRevisions = await Published(
-                db.SectionRevisionsOf(sheetId),
-                moment)
-            .ToListAsync(cancellationToken);
-        var columnBlockRevisions = await Published(
-                db.ColumnBlockRevisionsOf(sheetId),
-                moment)
-            .ToListAsync(cancellationToken);
-        var values = await valueStore.LoadAsync(
-            RowRevisionScope.Of(PublishedUpTo(db.RowRevisionsOf(sheetId), moment).Select(revision => revision.Id)),
-            cancellationToken);
+        var rowRevisions = await revisions.Rows.ListPublishedUpToAsync(sheetId, moment, cancellationToken);
+        var sectionRevisions = await revisions.Sections.ListPublishedUpToAsync(sheetId, moment, cancellationToken);
+        var columnBlockRevisions = await revisions.ColumnBlocks.ListPublishedUpToAsync(sheetId, moment, cancellationToken);
+        var publishedValues = await values.LoadPublishedUpToAsync(sheetId, moment, cancellationToken);
 
         return SheetChangeHistoryCalculator.Calculate(
             rowRevisions,
             sectionRevisions,
             columnBlockRevisions,
-            values,
+            publishedValues,
             sheet.Versions.ToDictionary(version => version.Id, version => version.VersionNumber),
             sheet.Rows.ToDictionary(row => row.Id, row => row.SheetSectionId),
             sheet.Sections.ToDictionary(section => section.Id, section => section.ParentSheetSectionId));
-    }
-
-    private static IQueryable<TRevision> Published<TRevision>(IQueryable<TRevision> query, DateTime? moment)
-        where TRevision : class, ISheetRevision
-    {
-        return PublishedUpTo(query, moment).AsNoTracking();
-    }
-
-    private static IQueryable<TRevision> PublishedUpTo<TRevision>(IQueryable<TRevision> query, DateTime? moment)
-        where TRevision : class, ISheetRevision
-    {
-        return query.Where(revision => revision.Status == RevisionStatus.Published
-            && (moment == null || revision.PublishedAtUtc <= moment));
     }
 }

@@ -1,5 +1,7 @@
-using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Application.Common;
+using PUSpecSheet.Application.Persistence;
+using PUSpecSheet.Application.Persistence.Sheets;
+using PUSpecSheet.Application.Persistence.Templates;
 using PUSpecSheet.Application.Sheets.Collaboration;
 using PUSpecSheet.Application.Sheets.Drafts;
 using PUSpecSheet.Application.Sheets.Linking;
@@ -11,18 +13,21 @@ using PUSpecSheet.Application.Sheets.Values;
 using PUSpecSheet.Application.Users;
 using PUSpecSheet.Contracts.Common;
 using PUSpecSheet.Contracts.Sheets;
-using PUSpecSheet.Data;
 using PUSpecSheet.Domain.Sheets;
 using PUSpecSheet.Domain.Templates;
 
 namespace PUSpecSheet.Application.Sheets;
 
 public sealed class SheetRowService(
-    PuSpecSheetDbContext db,
+    ISheetSectionRepository sections,
+    ISheetRowRepository rows,
+    ISheetRowRevisionRepository rowRevisions,
+    ITemplateRowRepository templateRows,
+    IRowValueRepository values,
+    IUnitOfWork unitOfWork,
     RowDrafts drafts,
     LiveRowCheckoutGuard liveCheckouts,
     RowDraftStarter draftStarter,
-    RowValueStore valueStore,
     LinkedDropdownValueRule linkedValues,
     NewRowSettings newRowSettings,
     SheetInstantiator instantiator,
@@ -33,21 +38,14 @@ public sealed class SheetRowService(
 {
     public async Task<SheetDto> AddAsync(int sectionId, AddSheetRowRequest request, CancellationToken cancellationToken)
     {
-        var section = await db.SheetSections
-            .AsNoTracking()
-            .Include(candidate => candidate.TemplateSection)
-            .Include(candidate => candidate.SheetTable)
-            .SingleOrDefaultAsync(candidate => candidate.Id == sectionId, cancellationToken)
+        var section = await sections.FindWithTemplateAndTableAsync(sectionId, cancellationToken)
             ?? throw new NotFoundException($"Section {sectionId} was not found.");
         if (section.TemplateSection.Role == SectionRole.Header)
         {
             throw new InvalidRequestException("Rows can't be added to the header.");
         }
 
-        var templateRow = await db.TemplateRows
-            .AsNoTracking()
-            .Include(row => row.Cells)
-            .SingleOrDefaultAsync(row => row.Id == request.TemplateRowId && row.TemplateSectionId == section.TemplateSectionId, cancellationToken)
+        var templateRow = await templateRows.FindInSectionWithCellsAsync(request.TemplateRowId, section.TemplateSectionId, cancellationToken)
             ?? throw new InvalidRequestException("That row isn't part of this section's template.");
         await removals.EnsurePlaceNotBeingRemovedAsync(section.SheetTableId, sectionId, currentUser.UserId, cancellationToken);
 
@@ -55,8 +53,8 @@ public sealed class SheetRowService(
         var row = instantiator.NewRow(templateRow, section.SheetTable.SheetId, OrderGaps.Next(orders));
         row.SheetSectionId = sectionId;
 
-        db.SheetRows.Add(row);
-        await db.SaveSheetChangesAsync(cancellationToken);
+        rows.Add(row);
+        await unitOfWork.SaveSheetChangesAsync(cancellationToken);
         await filler.FillAsync(section.SheetTableId, cancellationToken);
         await newRowSettings.InheritAsync(section.SheetTableId, [row.Id], cancellationToken);
         return await reader.ReadLiveAsync(section.SheetTable.SheetId, cancellationToken);
@@ -66,7 +64,7 @@ public sealed class SheetRowService(
     {
         var sheetId = await SheetIdOfAsync(rowId, cancellationToken);
 
-        await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
+        await using var transaction = await unitOfWork.BeginTransactionAsync(cancellationToken);
         await draftStarter.StartAsync(rowId, cancellationToken);
         await transaction.CommitAsync(cancellationToken);
         return await reader.ReadLiveAsync(sheetId, cancellationToken);
@@ -81,7 +79,7 @@ public sealed class SheetRowService(
         var changes = ReadValues(request, cellsById);
         await linkedValues.EnsureChoicesAsync(row.SheetSection.SheetTable.SheetId, cellsById, changes, cancellationToken);
 
-        await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
+        await using var transaction = await unitOfWork.BeginTransactionAsync(cancellationToken);
         var draft = await draftStarter.StartAsync(rowId, cancellationToken);
         foreach (var change in changes)
         {
@@ -89,8 +87,8 @@ public sealed class SheetRowService(
             change.Value.Slots = SlotValues.Clean(change.Value.Slots);
         }
 
-        await valueStore.SetManyAsync(draft.Id, changes, cancellationToken);
-        await db.SaveSheetChangesAsync(cancellationToken);
+        await values.SetManyAsync(draft.Id, changes, cancellationToken);
+        await unitOfWork.SaveSheetChangesAsync(cancellationToken);
 
         // Values put back to what is published leave nothing to publish, so the row is released.
         await drafts.ReleaseIfUnchangedAsync(rowId, cancellationToken);
@@ -107,13 +105,13 @@ public sealed class SheetRowService(
         var published = (await drafts.LoadAsync(rowId, cancellationToken)).Current?.DisplayOrder;
         var order = OrderGaps.PlaceAt(siblingOrders, request.DisplayOrder, published);
 
-        await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
+        await using var transaction = await unitOfWork.BeginTransactionAsync(cancellationToken);
         var draft = await draftStarter.StartAsync(rowId, cancellationToken);
         draft.DisplayOrder = order;
-        await db.SaveSheetChangesAsync(cancellationToken);
+        await unitOfWork.SaveSheetChangesAsync(cancellationToken);
         await drafts.ReleaseIfUnchangedAsync(rowId, cancellationToken);
         await drafts.ReleaseRestoredOrderAsync(
-            await db.SheetRows.Where(candidate => candidate.SheetSectionId == sectionId).Select(candidate => candidate.Id).ToListAsync(cancellationToken),
+            await rows.ListIdsInSectionAsync(sectionId, cancellationToken),
             cancellationToken);
         await transaction.CommitAsync(cancellationToken);
 
@@ -122,13 +120,7 @@ public sealed class SheetRowService(
 
     public async Task<SheetDto> RemoveAsync(int rowId, CancellationToken cancellationToken)
     {
-        var row = await db.SheetRows
-            .AsNoTracking()
-            .Include(candidate => candidate.SheetSection)
-            .ThenInclude(section => section.TemplateSection)
-            .Include(candidate => candidate.SheetSection)
-            .ThenInclude(section => section.SheetTable)
-            .SingleOrDefaultAsync(candidate => candidate.Id == rowId, cancellationToken)
+        var row = await rows.FindWithSectionAsync(rowId, cancellationToken)
             ?? throw new NotFoundException($"Row {rowId} was not found.");
         if (row.SheetSection.TemplateSection.Role == SectionRole.Header)
         {
@@ -144,13 +136,13 @@ public sealed class SheetRowService(
         if (state.IsNew)
         {
             // Only its author ever saw it, so there's no history to keep.
-            await db.SheetRows.Where(candidate => candidate.Id == rowId).ExecuteDeleteAsync(cancellationToken);
+            await rows.DeleteAsync(rowId, cancellationToken);
         }
         else
         {
             var (draft, _) = await drafts.EnsureMineAsync(rowId, state, cancellationToken);
             draft.IsDeleted = true;
-            await db.SaveSheetChangesAsync(cancellationToken);
+            await unitOfWork.SaveSheetChangesAsync(cancellationToken);
         }
 
         return await reader.ReadLiveAsync(sheetId, cancellationToken);
@@ -165,12 +157,12 @@ public sealed class SheetRowService(
             await drafts.EnsureNotLockedByOthersAsync(state, cancellationToken);
             if (state.IsNew)
             {
-                await db.SheetRows.Where(candidate => candidate.Id == rowId).ExecuteDeleteAsync(cancellationToken);
+                await rows.DeleteAsync(rowId, cancellationToken);
             }
             else
             {
-                db.SheetRowRevisions.Remove(draft);
-                await db.SaveSheetChangesAsync(cancellationToken);
+                rowRevisions.Remove(draft);
+                await unitOfWork.SaveSheetChangesAsync(cancellationToken);
             }
         }
 
@@ -179,19 +171,13 @@ public sealed class SheetRowService(
 
     private async Task<int> SheetIdOfAsync(int rowId, CancellationToken cancellationToken)
     {
-        return await db.SheetRows
-            .Where(row => row.Id == rowId)
-            .Select(row => (int?)row.SheetSection.SheetTable.SheetId)
-            .SingleOrDefaultAsync(cancellationToken)
+        return await rows.FindSheetIdAsync(rowId, cancellationToken)
             ?? throw new NotFoundException($"Row {rowId} was not found.");
     }
 
     private async Task<int> SectionIdOfAsync(int rowId, CancellationToken cancellationToken)
     {
-        return await db.SheetRows
-            .Where(row => row.Id == rowId)
-            .Select(row => (int?)row.SheetSectionId)
-            .SingleOrDefaultAsync(cancellationToken)
+        return await rows.FindSectionIdAsync(rowId, cancellationToken)
             ?? throw new NotFoundException($"Row {rowId} was not found.");
     }
 
@@ -199,11 +185,7 @@ public sealed class SheetRowService(
     private async Task<IReadOnlyList<int>> VisibleRowOrdersAsync(int sectionId, int? excludingRowId, CancellationToken cancellationToken)
     {
         var me = currentUser.UserId;
-        var revisions = await db.SheetRowRevisions
-            .Where(revision => revision.SheetRow.SheetSectionId == sectionId)
-            .VisibleTo(me)
-            .AsNoTracking()
-            .ToListAsync(cancellationToken);
+        var revisions = await rowRevisions.ListVisibleInSectionAsync(sectionId, me, cancellationToken);
 
         return RevisionResolver.Resolve(revisions, revision => revision.SheetRowId, me)
             .Where(entry => entry.Key != excludingRowId && RevisionResolver.IsVisible(entry.Value))
@@ -235,16 +217,7 @@ public sealed class SheetRowService(
 
     private async Task<SheetRow> LoadRowWithCellTypesAsync(int rowId, CancellationToken cancellationToken)
     {
-        return await db.SheetRows
-            .AsNoTracking()
-            .Include(candidate => candidate.SheetSection)
-            .ThenInclude(section => section.SheetTable)
-            .Include(candidate => candidate.Cells)
-            .ThenInclude(cell => cell.TemplateCell)
-            .ThenInclude(templateCell => templateCell.CellType)
-            .ThenInclude(cellType => cellType.Options)
-            .AsSplitQuery()
-            .SingleOrDefaultAsync(candidate => candidate.Id == rowId, cancellationToken)
+        return await rows.FindWithCellTypesAsync(rowId, withOptions: true, cancellationToken)
             ?? throw new NotFoundException($"Row {rowId} was not found.");
     }
 }

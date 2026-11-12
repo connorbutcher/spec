@@ -9,7 +9,7 @@ namespace PUSpecSheet.Application.Sheets.Revisions;
 /// are written as those two cases so SQL Server answers them from those indexes. Asking only for
 /// "not superseded" matches neither index, and reads every revision the items have ever had.
 /// </summary>
-internal static class SheetRevisionQueryExtensions
+public static class SheetRevisionQueryExtensions
 {
     /// <summary>Each item's current published revision.</summary>
     public static IQueryable<TRevision> Current<TRevision>(this IQueryable<TRevision> revisions)
@@ -63,6 +63,29 @@ internal static class SheetRevisionQueryExtensions
     {
         return revisions.Current()
             .Concat(revisions.Drafts());
+    }
+
+    /// <summary>
+    /// The revisions a view can show. The live view (no moment) needs every revision that hasn't been
+    /// replaced, which is the current published one and any drafts. A past view needs the one published
+    /// revision whose range covers the moment, which is what the (item, published, superseded) indexes are for.
+    /// </summary>
+    public static IQueryable<TRevision> InView<TRevision>(this IQueryable<TRevision> revisions, DateTime? moment)
+        where TRevision : class, ISheetRevision
+    {
+        return moment is { } at
+            ? revisions.Where(revision => revision.Status == RevisionStatus.Published
+                && revision.PublishedAtUtc <= at
+                && (revision.SupersededAtUtc == null || revision.SupersededAtUtc > at))
+            : revisions.CurrentAndDrafts();
+    }
+
+    /// <summary>Every revision published up to the moment, or ever when there is none.</summary>
+    public static IQueryable<TRevision> PublishedUpTo<TRevision>(this IQueryable<TRevision> revisions, DateTime? moment)
+        where TRevision : class, ISheetRevision
+    {
+        return revisions.Where(revision => revision.Status == RevisionStatus.Published
+            && (moment == null || revision.PublishedAtUtc <= moment));
     }
 
     /// <summary>What a user sees of each item: its current published revision and their own draft of it.</summary>

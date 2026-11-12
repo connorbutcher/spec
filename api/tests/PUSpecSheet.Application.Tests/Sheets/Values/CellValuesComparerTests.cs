@@ -1,5 +1,4 @@
 using PUSpecSheet.Application.Sheets.Values;
-using PUSpecSheet.Data.Values;
 using PUSpecSheet.Domain.CellTypes.InstanceSettings;
 
 namespace PUSpecSheet.Application.Tests.Sheets.Values;

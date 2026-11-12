@@ -1,6 +1,5 @@
-using Microsoft.EntityFrameworkCore;
+using PUSpecSheet.Application.Persistence.Users;
 using PUSpecSheet.Application.Users;
-using PUSpecSheet.Data;
 using PUSpecSheet.Domain.Users;
 
 namespace PUSpecSheet.Application.Seeding;
@@ -10,7 +9,7 @@ namespace PUSpecSheet.Application.Seeding;
 /// people: the developer user everyone runs as, and the two extra development users. A user that doesn't
 /// exist falls back to the developer.
 /// </summary>
-public sealed class ShowcaseUsers(PuSpecSheetDbContext db, BackgroundUser backgroundUser)
+public sealed class ShowcaseUsers(IUserRepository users, BackgroundUser backgroundUser)
 {
     public const string Developer = WellKnownUsers.DeveloperUserName;
     public const string EngineerTwo = "engineer2";
@@ -24,9 +23,7 @@ public sealed class ShowcaseUsers(PuSpecSheetDbContext db, BackgroundUser backgr
         if (ids is null)
         {
             string[] userNames = [Developer, EngineerTwo, EngineerThree];
-            ids = await db.Users
-                .Where(user => userNames.Contains(user.UserName))
-                .ToDictionaryAsync(user => user.UserName, user => user.Id, StringComparer.OrdinalIgnoreCase, cancellationToken);
+            ids = await users.GetIdsByUserNameAsync(userNames, cancellationToken);
         }
 
         backgroundUser.UserId = ids.TryGetValue(userName, out var id) ? id : WellKnownUsers.DeveloperId;

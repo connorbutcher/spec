@@ -1,0 +1,48 @@
+using System.Linq.Expressions;
+using Microsoft.EntityFrameworkCore;
+using PUSpecSheet.Application.Persistence.Sheets;
+using PUSpecSheet.Application.Sheets.Removal;
+using PUSpecSheet.Application.Sheets.Revisions;
+using PUSpecSheet.Domain.Sheets;
+
+namespace PUSpecSheet.Data.Repositories.Sheets.Revisions;
+
+public sealed class SheetTableRevisionRepository(PuSpecSheetDbContext db)
+    : SheetRevisionRepository<SheetTableRevision>(db), ISheetTableRevisionRepository
+{
+    protected override DbSet<SheetTableRevision> Revisions => Db.SheetTableRevisions;
+
+    protected override Expression<Func<SheetTableRevision, int>> ItemId => revision => revision.SheetTableId;
+
+    public async Task<List<SheetTableRevision>> ListVisibleOnSheetAsync(int sheetId, int userId, CancellationToken cancellationToken)
+    {
+        return await Db.SheetTableRevisions
+            .Where(revision => revision.SheetTable.SheetId == sheetId)
+            .VisibleTo(userId)
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<List<PendingRemoval>> ListPendingRemovalsAsync(int tableId, CancellationToken cancellationToken)
+    {
+        return await Db.SheetTableRevisions
+            .Where(revision => revision.SheetTableId == tableId && revision.Status == RevisionStatus.Draft && revision.IsDeleted)
+            .Select(revision => new PendingRemoval(RemovedContainer.Table, revision.AuthorUserId, revision.SheetSubmissionId != null))
+            .ToListAsync(cancellationToken);
+    }
+
+    protected override IQueryable<SheetTableRevision> OfItems(IReadOnlyCollection<int> itemIds)
+    {
+        return Db.SheetTableRevisions.Where(revision => itemIds.Contains(revision.SheetTableId));
+    }
+
+    protected override IQueryable<SheetTableRevision> OfItem(int itemId)
+    {
+        return Db.SheetTableRevisions.Where(revision => revision.SheetTableId == itemId);
+    }
+
+    protected override void SetItem(SheetTableRevision revision, int itemId)
+    {
+        revision.SheetTableId = itemId;
+    }
+}

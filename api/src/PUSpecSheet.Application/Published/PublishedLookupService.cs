@@ -1,17 +1,18 @@
-using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Application.Common;
+using PUSpecSheet.Application.Persistence.Published;
+using PUSpecSheet.Application.Persistence.Templates;
 using PUSpecSheet.Contracts.Published;
-using PUSpecSheet.Data;
 
 namespace PUSpecSheet.Application.Published;
 
 public sealed class PublishedLookupService(
-    PuSpecSheetDbContext db,
+    IPublishedSheetRepository sheets,
+    ITemplateCellRepository templateCells,
     PublishedVersionResolver resolver,
-    PublishedLookupHitReader hitReader,
-    PublishedStructureReader structureReader,
-    PublishedLookupCellReader cellReader,
-    PublishedKindValueReader valueReader,
+    IPublishedLookupHitRepository hitReader,
+    IPublishedStructureRepository structureReader,
+    IPublishedLookupCellRepository cellReader,
+    IPublishedKindValueRepository valueReader,
     PublishedLookupCache cache) : IPublishedLookupService
 {
     public async Task<PublishedLookupResolution> ResolveAsync(
@@ -26,13 +27,13 @@ public sealed class PublishedLookupService(
         if (sheetPublicId is { } publicId)
         {
             var version = await resolver.ResolveAsync(publicId, point, cancellationToken);
-            hits = await hitReader.Query(criteria, version.PublishedAtUtc, version.SheetId).ToListAsync(cancellationToken);
+            hits = await hitReader.ListAsync(criteria, version.PublishedAtUtc, version.SheetId, cancellationToken);
             versions = new Dictionary<int, ResolvedSheetVersion> { [version.SheetId] = version };
         }
         else
         {
             var moment = point.AtUtc ?? DateTime.UtcNow;
-            hits = await hitReader.Query(criteria, moment, null).ToListAsync(cancellationToken);
+            hits = await hitReader.ListAsync(criteria, moment, null, cancellationToken);
             versions = await VersionsAsync(hits, moment, cancellationToken);
             hits = hits.Where(hit => versions.ContainsKey(hit.SheetId)).ToList();
         }
@@ -80,7 +81,7 @@ public sealed class PublishedLookupService(
             }
 
             var sectionIds = PublishedLookupAssembler.ScopeSections(hit, structure);
-            var cells = await cellReader.Query(version, hit, sectionIds).ToListAsync(cancellationToken);
+            var cells = await cellReader.ListAroundHitAsync(version, hit, sectionIds, cancellationToken);
             var values = await valueReader.ReadAsync(cells, wholeSheet: null, cancellationToken);
             cellCount += cells.Count;
 
@@ -109,11 +110,7 @@ public sealed class PublishedLookupService(
             .ToDictionary(group => group.Key, group => group.First().SheetPublicId);
         var sheetIds = publicIds.Keys.ToList();
 
-        var versions = await db.SheetVersions
-            .AsNoTracking()
-            .Where(version => sheetIds.Contains(version.SheetId) && version.PublishedAtUtc <= moment)
-            .Select(version => new { version.SheetId, version.VersionNumber, version.PublishedAtUtc })
-            .ToListAsync(cancellationToken);
+        var versions = await sheets.ListVersionsUpToAsync(sheetIds, moment, cancellationToken);
 
         foreach (var version in versions.OrderBy(version => version.VersionNumber))
         {
@@ -130,7 +127,7 @@ public sealed class PublishedLookupService(
     /// <summary>A key nobody has given to a cell is a mistake in the request, not an empty answer.</summary>
     private async Task EnsureKeyExistsAsync(string key, CancellationToken cancellationToken)
     {
-        if (!await db.TemplateCells.AnyAsync(cell => cell.LookupKey == key, cancellationToken))
+        if (!await templateCells.LookupKeyExistsAsync(key, cancellationToken))
         {
             throw new InvalidRequestException($"No template cell has the lookup key \"{key}\".");
         }

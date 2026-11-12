@@ -1,4 +1,3 @@
-using PUSpecSheet.Data.Values;
 using PUSpecSheet.Domain.CellTypes;
 
 namespace PUSpecSheet.Application.Sheets.Values;

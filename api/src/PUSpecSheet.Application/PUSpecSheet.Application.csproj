@@ -2,13 +2,15 @@
   <ItemGroup>
     <ProjectReference Include="..\PUSpecSheet.Domain\PUSpecSheet.Domain.csproj" />
     <ProjectReference Include="..\PUSpecSheet.Contracts\PUSpecSheet.Contracts.csproj" />
-    <ProjectReference Include="..\PUSpecSheet.Data\PUSpecSheet.Data.csproj" />
+  </ItemGroup>
+  <!-- No EF Core here: the use cases reach the database only through the repositories in Persistence,
+       which PUSpecSheet.Data implements. -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="10.0.14" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.14" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.14" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="PUSpecSheet.Application.Tests" />
-  </ItemGroup>
-  <!-- Transitional: see PUSpecSheet.Data.csproj. -->
-  <ItemGroup>
-    <Compile Include="..\PUSpecSheet.Data\Repositories\**\*.cs;..\PUSpecSheet.Data\UnitOfWork\**\*.cs" LinkBase="DataTransition" />
   </ItemGroup>
 </Project>

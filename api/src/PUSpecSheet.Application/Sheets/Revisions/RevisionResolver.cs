@@ -2,7 +2,7 @@ using PUSpecSheet.Domain.Sheets;
 
 namespace PUSpecSheet.Application.Sheets.Revisions;
 
-internal static class RevisionResolver
+public static class RevisionResolver
 {
     /// <summary>
     /// Works out what each item shows for <paramref name="currentUserId"/>, from its current published

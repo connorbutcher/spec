@@ -1,20 +1,21 @@
-using Microsoft.EntityFrameworkCore;
+using PUSpecSheet.Application.Persistence;
+using PUSpecSheet.Application.Persistence.Sheets;
+using PUSpecSheet.Application.Persistence.Users;
 using PUSpecSheet.Application.Sheets.Revisions;
 using PUSpecSheet.Application.Sheets.Values;
 using PUSpecSheet.Application.Users;
-using PUSpecSheet.Data;
 using PUSpecSheet.Domain.Sheets;
 
 namespace PUSpecSheet.Application.Sheets.Drafts;
 
-public sealed class RowDrafts(PuSpecSheetDbContext db, ICurrentUser currentUser, RowValueStore valueStore) : DraftGateway<SheetRowRevision>(db, currentUser)
+public sealed class RowDrafts(
+    ISheetRowRevisionRepository revisions,
+    IUserRepository users,
+    IUnitOfWork unitOfWork,
+    ICurrentUser currentUser,
+    IRowValueRepository values) : DraftGateway<SheetRowRevision>(revisions, users, unitOfWork, currentUser)
 {
     protected override string Subject => "This row";
-
-    protected override IQueryable<SheetRowRevision> CurrentAndDrafts(IReadOnlyCollection<int> itemIds)
-    {
-        return Db.SheetRowRevisions.Where(revision => itemIds.Contains(revision.SheetRowId)).CurrentAndDrafts();
-    }
 
     protected override int ItemIdOf(SheetRowRevision revision)
     {
@@ -35,23 +36,10 @@ public sealed class RowDrafts(PuSpecSheetDbContext db, ICurrentUser currentUser,
         }
 
         var revisionIds = sameStructure.SelectMany(pair => new[] { pair.Draft.Id, pair.Current.Id }).ToList();
-        var values = await valueStore.LoadAsync(revisionIds, cancellationToken);
+        var held = await values.LoadAsync(revisionIds, cancellationToken);
         return sameStructure
-            .Where(pair => CellValuesComparer.Same(values.GetValueOrDefault(pair.Draft.Id), values.GetValueOrDefault(pair.Current.Id)))
+            .Where(pair => CellValuesComparer.Same(held.GetValueOrDefault(pair.Draft.Id), held.GetValueOrDefault(pair.Current.Id)))
             .Select(pair => pair.Draft)
             .ToHashSet();
-    }
-
-    protected override async Task<int> LastRevisionNumberAsync(int itemId, CancellationToken cancellationToken)
-    {
-        return await Db.SheetRowRevisions
-            .Where(revision => revision.SheetRowId == itemId)
-            .MaxAsync(revision => (int?)revision.RevisionNumber, cancellationToken) ?? 0;
-    }
-
-    protected override void Add(SheetRowRevision revision, int itemId)
-    {
-        revision.SheetRowId = itemId;
-        Db.SheetRowRevisions.Add(revision);
     }
 }

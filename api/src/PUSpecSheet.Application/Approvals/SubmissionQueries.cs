@@ -1,13 +1,16 @@
-using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Application.Common;
+using PUSpecSheet.Application.Persistence.Approvals;
+using PUSpecSheet.Application.Persistence.Sheets;
 using PUSpecSheet.Contracts.Approvals;
-using PUSpecSheet.Data;
 using PUSpecSheet.Domain.Approvals;
 
 namespace PUSpecSheet.Application.Approvals;
 
 /// <summary>Reads submissions for the screens that list them: an approver's inbox, a submitter's own, a sheet's pending ones.</summary>
-public sealed class SubmissionQueries(PuSpecSheetDbContext db, TimeProvider clock)
+public sealed class SubmissionQueries(
+    ISheetSubmissionRepository submissions,
+    SheetRevisionRepositories revisions,
+    TimeProvider clock)
 {
     /// <summary>How far back a submitter's decided submissions are still listed, so a rejection's reason can be read.</summary>
     private static readonly TimeSpan DecidedKeptFor = TimeSpan.FromDays(30);
@@ -15,40 +18,25 @@ public sealed class SubmissionQueries(PuSpecSheetDbContext db, TimeProvider cloc
     /// <summary>Pending submissions waiting for <paramref name="userId"/>'s decision, oldest first.</summary>
     public Task<IReadOnlyList<SheetSubmissionDto>> AwaitingDecisionOfAsync(int userId, CancellationToken cancellationToken)
     {
-        return ListAsync(
-            db.SheetSubmissions
-                .Where(submission => submission.Status == SubmissionStatus.Pending
-                    && submission.Approvers.Any(approver => approver.UserId == userId && approver.Decision == ApprovalDecision.Pending))
-                .OrderBy(submission => submission.SubmittedAtUtc),
-            cancellationToken);
+        return ToDtosAsync(submissions.ListAwaitingDecisionOfAsync(userId, cancellationToken), cancellationToken);
     }
 
     /// <summary>What <paramref name="userId"/> submitted that is still pending or was decided recently, newest first.</summary>
     public Task<IReadOnlyList<SheetSubmissionDto>> SubmittedByAsync(int userId, CancellationToken cancellationToken)
     {
         var since = clock.GetUtcNow().UtcDateTime - DecidedKeptFor;
-        return ListAsync(
-            db.SheetSubmissions
-                .Where(submission => submission.SubmittedByUserId == userId
-                    && (submission.Status == SubmissionStatus.Pending || submission.DecidedAtUtc >= since))
-                .OrderByDescending(submission => submission.SubmittedAtUtc)
-                .Take(50),
-            cancellationToken);
+        return ToDtosAsync(submissions.ListSubmittedByAsync(userId, since, cancellationToken), cancellationToken);
     }
 
     /// <summary>The sheet's submissions waiting for approval, oldest first.</summary>
     public Task<IReadOnlyList<SheetSubmissionDto>> PendingOnSheetAsync(int sheetId, CancellationToken cancellationToken)
     {
-        return ListAsync(
-            db.SheetSubmissions
-                .Where(submission => submission.SheetId == sheetId && submission.Status == SubmissionStatus.Pending)
-                .OrderBy(submission => submission.SubmittedAtUtc),
-            cancellationToken);
+        return ToDtosAsync(submissions.ListPendingOnSheetAsync(sheetId, cancellationToken), cancellationToken);
     }
 
     public async Task<SheetSubmissionDto> GetAsync(int submissionId, CancellationToken cancellationToken)
     {
-        var found = await ListAsync(db.SheetSubmissions.Where(submission => submission.Id == submissionId), cancellationToken);
+        var found = await ToDtosAsync(submissions.ListByIdAsync(submissionId, cancellationToken), cancellationToken);
         return found.SingleOrDefault() ?? throw new NotFoundException($"Submission {submissionId} was not found.");
     }
 
@@ -58,16 +46,7 @@ public sealed class SubmissionQueries(PuSpecSheetDbContext db, TimeProvider cloc
     /// </summary>
     public async Task EnsureCanReviewAsync(int sheetId, int submissionId, int userId, CancellationToken cancellationToken)
     {
-        var submission = await db.SheetSubmissions
-            .AsNoTracking()
-            .Where(candidate => candidate.Id == submissionId && candidate.SheetId == sheetId)
-            .Select(candidate => new
-            {
-                candidate.Status,
-                candidate.SubmittedByUserId,
-                IsApprover = candidate.Approvers.Any(approver => approver.UserId == userId),
-            })
-            .SingleOrDefaultAsync(cancellationToken)
+        var submission = await submissions.FindReviewAccessAsync(sheetId, submissionId, userId, cancellationToken)
             ?? throw new NotFoundException($"Submission {submissionId} was not found on this sheet.");
         if (submission.SubmittedByUserId != userId && !submission.IsApprover)
         {
@@ -80,19 +59,11 @@ public sealed class SubmissionQueries(PuSpecSheetDbContext db, TimeProvider cloc
         }
     }
 
-    private async Task<IReadOnlyList<SheetSubmissionDto>> ListAsync(IQueryable<SheetSubmission> query, CancellationToken cancellationToken)
+    private async Task<IReadOnlyList<SheetSubmissionDto>> ToDtosAsync(Task<List<SheetSubmission>> loading, CancellationToken cancellationToken)
     {
-        var submissions = await query
-            .AsNoTracking()
-            .AsSplitQuery()
-            .Include(submission => submission.Sheet).ThenInclude(sheet => sheet.Phase)
-            .Include(submission => submission.Sheet).ThenInclude(sheet => sheet.SheetType)
-            .Include(submission => submission.SubmittedBy)
-            .Include(submission => submission.SheetVersion)
-            .Include(submission => submission.Approvers).ThenInclude(approver => approver.User)
-            .ToListAsync(cancellationToken);
-        var counts = await CountChangesAsync(submissions.Select(submission => submission.Id).ToList(), cancellationToken);
-        return submissions
+        var loaded = await loading;
+        var counts = await CountChangesAsync(loaded.Select(submission => submission.Id).ToList(), cancellationToken);
+        return loaded
             .Select(submission => ToDto(submission, counts.GetValueOrDefault(submission.Id) ?? new SubmissionChangeCountsDto(0, 0, 0, 0)))
             .ToList();
     }
@@ -105,10 +76,10 @@ public sealed class SubmissionQueries(PuSpecSheetDbContext db, TimeProvider cloc
             return [];
         }
 
-        var tables = await CountAsync(db.SheetTableRevisions.Select(revision => revision.SheetSubmissionId), ids, cancellationToken);
-        var sections = await CountAsync(db.SheetSectionRevisions.Select(revision => revision.SheetSubmissionId), ids, cancellationToken);
-        var rows = await CountAsync(db.SheetRowRevisions.Select(revision => revision.SheetSubmissionId), ids, cancellationToken);
-        var blocks = await CountAsync(db.SheetColumnBlockRevisions.Select(revision => revision.SheetSubmissionId), ids, cancellationToken);
+        var tables = await revisions.Tables.CountBySubmissionAsync(ids, cancellationToken);
+        var sections = await revisions.Sections.CountBySubmissionAsync(ids, cancellationToken);
+        var rows = await revisions.Rows.CountBySubmissionAsync(ids, cancellationToken);
+        var blocks = await revisions.ColumnBlocks.CountBySubmissionAsync(ids, cancellationToken);
         return ids.ToDictionary(
             id => id,
             id => new SubmissionChangeCountsDto(
@@ -118,14 +89,6 @@ public sealed class SubmissionQueries(PuSpecSheetDbContext db, TimeProvider cloc
                 blocks.GetValueOrDefault(id)));
     }
 
-    private static async Task<Dictionary<int, int>> CountAsync(IQueryable<int?> submissionIds, List<int> ids, CancellationToken cancellationToken)
-    {
-        return await submissionIds
-            .Where(id => id != null && ids.Contains(id.Value))
-            .GroupBy(id => id!.Value)
-            .Select(group => new { group.Key, Count = group.Count() })
-            .ToDictionaryAsync(entry => entry.Key, entry => entry.Count, cancellationToken);
-    }
 
     private static SheetSubmissionDto ToDto(SheetSubmission submission, SubmissionChangeCountsDto changes)
     {

@@ -1,53 +1,34 @@
-using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Application.Common;
+using PUSpecSheet.Application.Persistence.Published;
 using PUSpecSheet.Contracts.Published;
-using PUSpecSheet.Data;
 
 namespace PUSpecSheet.Application.Published;
 
 public sealed class PublishedSheetQueryService(
-    PuSpecSheetDbContext db,
+    IPublishedSheetRepository sheets,
     PublishedVersionResolver resolver,
-    PublishedStructureReader structureReader,
-    PublishedCellReader cellReader,
-    PublishedValueReader valueReader,
+    IPublishedStructureRepository structureReader,
+    IPublishedCellRepository cellReader,
+    IPublishedValueRepository valueReader,
     PublishedSheetCache cache) : IPublishedSheetQueryService
 {
     public async Task<PublishedSheetReferenceDto> FindAsync(string phaseCode, int sheetTypeId, CancellationToken cancellationToken)
     {
-        return await db.Sheets
-            .AsNoTracking()
-            .Where(sheet => sheet.Phase.Code == phaseCode && sheet.SheetTypeId == sheetTypeId)
-            .Select(sheet => new PublishedSheetReferenceDto(
-                sheet.PublicId,
-                sheet.Phase.Code,
-                sheet.SheetTypeId,
-                sheet.Versions.Max(version => (int?)version.VersionNumber)))
-            .SingleOrDefaultAsync(cancellationToken)
+        return await sheets.FindReferenceAsync(phaseCode, sheetTypeId, cancellationToken)
             ?? throw new NotFoundException($"Phase {phaseCode} has no sheet of type {sheetTypeId}.");
     }
 
     public async Task<IReadOnlyList<PublishedVersionDto>> VersionsAsync(Guid sheetPublicId, CancellationToken cancellationToken)
     {
-        var versions = await db.SheetVersions
-            .AsNoTracking()
-            .Where(version => version.Sheet.PublicId == sheetPublicId)
-            .OrderBy(version => version.VersionNumber)
-            .Select(version => new { version.VersionNumber, version.PublishedAtUtc, version.Note })
-            .ToListAsync(cancellationToken);
+        var versions = await sheets.ListVersionsAsync(sheetPublicId, cancellationToken);
 
         if (versions.Count == 0
-            && !await db.Sheets.AnyAsync(sheet => sheet.PublicId == sheetPublicId, cancellationToken))
+            && !await sheets.ExistsAsync(sheetPublicId, cancellationToken))
         {
             throw new NotFoundException($"Sheet {sheetPublicId} was not found.");
         }
 
-        return versions
-            .Select(version => new PublishedVersionDto(
-                version.VersionNumber,
-                DateTime.SpecifyKind(version.PublishedAtUtc, DateTimeKind.Utc),
-                version.Note))
-            .ToList();
+        return versions;
     }
 
     public Task<ResolvedSheetVersion> ResolveAsync(Guid sheetPublicId, PublishedVersionPoint point, CancellationToken cancellationToken)

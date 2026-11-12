@@ -1,12 +1,12 @@
-using Microsoft.EntityFrameworkCore;
+using PUSpecSheet.Application.Persistence.Published;
 using PUSpecSheet.Contracts.Published;
 
 namespace PUSpecSheet.Application.Published;
 
 public sealed class PublishedRowsService(
-    PublishedStructureReader structureReader,
-    PublishedLookupCellReader cellReader,
-    PublishedKindValueReader valueReader,
+    IPublishedStructureRepository structureReader,
+    IPublishedLookupCellRepository cellReader,
+    IPublishedKindValueRepository valueReader,
     PublishedRowsCache cache) : IPublishedRowsService
 {
     public async Task<PublishedRowsDto> ReadAsync(ResolvedSheetVersion version, PublishedRowsSelection selection, CancellationToken cancellationToken)
@@ -23,14 +23,14 @@ public sealed class PublishedRowsService(
 
         if (selection.IsEverything)
         {
-            var all = await cellReader.QuerySheet(version).ToListAsync(cancellationToken);
+            var all = await cellReader.ListOnSheetAsync(version, cancellationToken);
             var allValues = await valueReader.ReadAsync(all, wholeSheet: version, cancellationToken);
             rows = PublishedRowsAssembler.Assemble(version, selection, structure, all, all, allValues);
             cellCount = all.Count;
         }
         else
         {
-            var cells = await cellReader.QueryRows(version, [.. selection.Rows]).ToListAsync(cancellationToken);
+            var cells = await cellReader.ListInRowsAsync(version, [.. selection.Rows], cancellationToken);
             var headers = await HeadersAsync(version, structure, cells, cancellationToken);
             var read = cells
                 .Concat(headers.Where(cell => cell.ColumnBlockId is not null))
@@ -64,6 +64,6 @@ public sealed class PublishedRowsService(
 
         return tableIds.Count == 0
             ? []
-            : await cellReader.QueryHeaders(version, tableIds).ToListAsync(cancellationToken);
+            : await cellReader.ListHeadersAsync(version, tableIds, cancellationToken);
     }
 }

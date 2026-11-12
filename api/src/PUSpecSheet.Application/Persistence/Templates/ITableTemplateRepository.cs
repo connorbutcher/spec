@@ -45,6 +45,18 @@ public interface ITableTemplateRepository
     /// <summary>Which of the versions a sheet table is built from.</summary>
     Task<List<int>> GetVersionIdsInUseAsync(IReadOnlyCollection<int> versionIds, CancellationToken cancellationToken);
 
+    /// <summary>The template, read only, when it is for the sheet type; null otherwise.</summary>
+    Task<TableTemplate?> FindForSheetTypeAsync(int id, int sheetTypeId, CancellationToken cancellationToken);
+
+    /// <summary>A sheet type's templates, read only, in display order then name.</summary>
+    Task<List<TableTemplate>> ListForSheetTypeAsync(int sheetTypeId, CancellationToken cancellationToken);
+
+    /// <summary>The template's latest version, read only. The template must have one.</summary>
+    Task<TableTemplateVersion> GetLatestVersionAsync(int templateId, CancellationToken cancellationToken);
+
+    /// <summary>The latest version number of each of the templates, by template id.</summary>
+    Task<Dictionary<int, int>> GetLatestVersionNumbersAsync(IReadOnlyCollection<int> templateIds, CancellationToken cancellationToken);
+
     void Add(TableTemplate tableTemplate);
 
     void Remove(TableTemplate tableTemplate);

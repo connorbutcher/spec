@@ -59,6 +59,13 @@ public sealed class UserRepository(PuSpecSheetDbContext db) : IUserRepository
             .ToDictionaryAsync(user => user.Id, user => user.DisplayName, cancellationToken);
     }
 
+    public async Task<Dictionary<string, int>> GetIdsByUserNameAsync(IReadOnlyCollection<string> userNames, CancellationToken cancellationToken)
+    {
+        return await db.Users
+            .Where(user => userNames.Contains(user.UserName))
+            .ToDictionaryAsync(user => user.UserName, user => user.Id, StringComparer.OrdinalIgnoreCase, cancellationToken);
+    }
+
     public async Task<List<ApproverDto>> ListApproversAsync(int excludedUserId, CancellationToken cancellationToken)
     {
         return await Approvers()

@@ -12,6 +12,12 @@ public interface IUnitOfWork
     Task SaveChangesAsync(CancellationToken cancellationToken);
 
     /// <summary>
+    /// Saves, returning false instead of throwing when the database refuses the change (such as a row someone
+    /// else inserted at the same moment). The refused entities stay tracked; detach them before going on.
+    /// </summary>
+    Task<bool> TrySaveChangesAsync(CancellationToken cancellationToken);
+
+    /// <summary>
     /// Saves, turning a clash with someone else's change made at the same moment (a stale row version,
     /// or two people taking the same lock or revision number) into a conflict the screen can explain.
     /// </summary>

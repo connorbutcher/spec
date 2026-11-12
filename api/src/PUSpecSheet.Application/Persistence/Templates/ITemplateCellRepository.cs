@@ -23,6 +23,12 @@ public interface ITemplateCellRepository
     /// <summary>Deletes the column block's cells straight in the database.</summary>
     Task DeleteInColumnBlockAsync(int columnBlockId, CancellationToken cancellationToken);
 
+    /// <summary>The cells asked for, read only.</summary>
+    Task<List<TemplateCell>> ListAsync(IReadOnlyCollection<int> ids, CancellationToken cancellationToken);
+
+    /// <summary>Whether any template cell has the lookup key.</summary>
+    Task<bool> LookupKeyExistsAsync(string key, CancellationToken cancellationToken);
+
     void Add(TemplateCell cell);
 
     void Remove(TemplateCell cell);

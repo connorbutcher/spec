@@ -33,5 +33,8 @@ public interface IPhaseRepository
     /// <summary>Whether the phase offers the sheet type.</summary>
     Task<bool> HasSheetTypeAsync(int phaseId, int sheetTypeId, CancellationToken cancellationToken);
 
+    /// <summary>The phases with any of the codes, with their sheet types, tracked for editing.</summary>
+    Task<List<Phase>> ListByCodesForEditAsync(IReadOnlyCollection<string> codes, CancellationToken cancellationToken);
+
     void Add(Phase phase);
 }

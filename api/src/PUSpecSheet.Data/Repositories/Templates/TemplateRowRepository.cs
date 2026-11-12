@@ -59,6 +59,23 @@ public sealed class TemplateRowRepository(PuSpecSheetDbContext db) : ITemplateRo
             .SingleOrDefaultAsync(cancellationToken);
     }
 
+    public async Task<TemplateRow?> FindInSectionWithCellsAsync(int id, int sectionId, CancellationToken cancellationToken)
+    {
+        return await db.TemplateRows
+            .AsNoTracking()
+            .Include(row => row.Cells)
+            .SingleOrDefaultAsync(row => row.Id == id && row.TemplateSectionId == sectionId, cancellationToken);
+    }
+
+    public async Task<List<TemplateRow>> ListWithCellsInVersionsAsync(IReadOnlyCollection<int> versionIds, CancellationToken cancellationToken)
+    {
+        return await db.TemplateRows
+            .AsNoTracking()
+            .Include(row => row.Cells)
+            .Where(row => versionIds.Contains(row.TemplateSection.TableTemplateVersionId))
+            .ToListAsync(cancellationToken);
+    }
+
     public void Add(TemplateRow row)
     {
         db.TemplateRows.Add(row);

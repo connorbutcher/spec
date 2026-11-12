@@ -1,5 +1,7 @@
-using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Application.Common;
+using PUSpecSheet.Application.Persistence;
+using PUSpecSheet.Application.Persistence.Sheets;
+using PUSpecSheet.Application.Persistence.Templates;
 using PUSpecSheet.Application.Sheets.Drafts;
 using PUSpecSheet.Application.Sheets.Reading;
 using PUSpecSheet.Application.Sheets.Removal;
@@ -8,13 +10,16 @@ using PUSpecSheet.Application.Sheets.Layout;
 using PUSpecSheet.Application.Users;
 using PUSpecSheet.Contracts.Common;
 using PUSpecSheet.Contracts.Sheets;
-using PUSpecSheet.Data;
 using PUSpecSheet.Domain.Sheets;
 
 namespace PUSpecSheet.Application.Sheets;
 
 public sealed class SheetTableService(
-    PuSpecSheetDbContext db,
+    ISheetRepository sheets,
+    ISheetTableRepository tables,
+    ISheetTableRevisionRepository tableRevisions,
+    TemplateRepositories templates,
+    IUnitOfWork unitOfWork,
     TableDrafts drafts,
     SheetInstantiator instantiator,
     ISheetCellFiller filler,
@@ -24,22 +29,14 @@ public sealed class SheetTableService(
 {
     public async Task<SheetDto> AddAsync(int sheetId, AddSheetTableRequest request, CancellationToken cancellationToken)
     {
-        var sheet = await db.Sheets
-            .AsNoTracking()
-            .SingleOrDefaultAsync(candidate => candidate.Id == sheetId, cancellationToken)
+        var sheet = await sheets.FindAsync(sheetId, cancellationToken)
             ?? throw new NotFoundException($"Sheet {sheetId} was not found.");
 
-        var template = await db.TableTemplates
-            .AsNoTracking()
-            .SingleOrDefaultAsync(candidate => candidate.Id == request.TableTemplateId && candidate.SheetTypeId == sheet.SheetTypeId, cancellationToken)
+        var template = await templates.Templates.FindForSheetTypeAsync(request.TableTemplateId, sheet.SheetTypeId, cancellationToken)
             ?? throw new InvalidRequestException("That table template isn't for this kind of sheet.");
 
-        var version = await db.TableTemplateVersions
-            .AsNoTracking()
-            .Where(candidate => candidate.TableTemplateId == template.Id)
-            .OrderByDescending(candidate => candidate.VersionNumber)
-            .FirstAsync(cancellationToken);
-        var tree = await TemplateTree.LoadAsync(db, version.Id, cancellationToken);
+        var version = await templates.Templates.GetLatestVersionAsync(template.Id, cancellationToken);
+        var tree = await TemplateTree.LoadAsync(templates.Sections, templates.ColumnBlocks, version.Id, cancellationToken);
 
         var orders = await VisibleTableOrdersAsync(sheetId, excludingTableId: null, cancellationToken);
         var table = new SheetTable { SheetId = sheetId, TableTemplateVersionId = version.Id };
@@ -56,8 +53,8 @@ public sealed class SheetTableService(
         instantiator.AddStartingSections(table, tree);
         instantiator.AddStartingColumnBlocks(table, tree);
 
-        db.SheetTables.Add(table);
-        await db.SaveSheetChangesAsync(cancellationToken);
+        tables.Add(table);
+        await unitOfWork.SaveSheetChangesAsync(cancellationToken);
         await filler.FillAsync(table.Id, cancellationToken);
         return await reader.ReadLiveAsync(sheetId, cancellationToken);
     }
@@ -68,7 +65,7 @@ public sealed class SheetTableService(
         var draft = await MyDraftAsync(tableId, state, cancellationToken);
         draft.Title = string.IsNullOrWhiteSpace(request.Title) ? null : request.Title.Trim();
 
-        await db.SaveSheetChangesAsync(cancellationToken);
+        await unitOfWork.SaveSheetChangesAsync(cancellationToken);
         await drafts.ReleaseIfUnchangedAsync(tableId, cancellationToken);
         return await reader.ReadLiveAsync(await SheetIdOfAsync(tableId, cancellationToken), cancellationToken);
     }
@@ -84,10 +81,10 @@ public sealed class SheetTableService(
         var draft = await MyDraftAsync(tableId, state, cancellationToken);
         draft.DisplayOrder = order;
 
-        await db.SaveSheetChangesAsync(cancellationToken);
+        await unitOfWork.SaveSheetChangesAsync(cancellationToken);
         await drafts.ReleaseIfUnchangedAsync(tableId, cancellationToken);
         await drafts.ReleaseRestoredOrderAsync(
-            await db.SheetTables.Where(candidate => candidate.SheetId == sheetId).Select(candidate => candidate.Id).ToListAsync(cancellationToken),
+            await tables.ListIdsOnSheetAsync(sheetId, cancellationToken),
             cancellationToken);
         return await reader.ReadLiveAsync(sheetId, cancellationToken);
     }
@@ -102,13 +99,13 @@ public sealed class SheetTableService(
         if (state.IsNew)
         {
             // Only its author ever saw it, so there's no history to keep.
-            await db.SheetTables.Where(table => table.Id == tableId).ExecuteDeleteAsync(cancellationToken);
+            await tables.DeleteAsync(tableId, cancellationToken);
         }
         else
         {
             var draft = await MyDraftAsync(tableId, state, cancellationToken);
             draft.IsDeleted = true;
-            await db.SaveSheetChangesAsync(cancellationToken);
+            await unitOfWork.SaveSheetChangesAsync(cancellationToken);
         }
 
         return await reader.ReadLiveAsync(sheetId, cancellationToken);
@@ -128,10 +125,7 @@ public sealed class SheetTableService(
 
     private async Task<int> SheetIdOfAsync(int tableId, CancellationToken cancellationToken)
     {
-        return await db.SheetTables
-            .Where(table => table.Id == tableId)
-            .Select(table => (int?)table.SheetId)
-            .SingleOrDefaultAsync(cancellationToken)
+        return await tables.FindSheetIdAsync(tableId, cancellationToken)
             ?? throw new NotFoundException($"Table {tableId} was not found.");
     }
 
@@ -139,11 +133,7 @@ public sealed class SheetTableService(
     private async Task<IReadOnlyList<int>> VisibleTableOrdersAsync(int sheetId, int? excludingTableId, CancellationToken cancellationToken)
     {
         var me = currentUser.UserId;
-        var revisions = await db.SheetTableRevisions
-            .Where(revision => revision.SheetTable.SheetId == sheetId)
-            .VisibleTo(me)
-            .AsNoTracking()
-            .ToListAsync(cancellationToken);
+        var revisions = await tableRevisions.ListVisibleOnSheetAsync(sheetId, me, cancellationToken);
 
         return RevisionResolver.Resolve(revisions, revision => revision.SheetTableId, me)
             .Where(entry => entry.Key != excludingTableId && RevisionResolver.IsVisible(entry.Value))

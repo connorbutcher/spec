@@ -1,9 +1,6 @@
-using Microsoft.EntityFrameworkCore;
-using PUSpecSheet.Application.Sheets.Revisions;
+using PUSpecSheet.Application.Persistence.Sheets;
 using PUSpecSheet.Application.Users;
 using PUSpecSheet.Contracts.Sheets;
-using PUSpecSheet.Data;
-using PUSpecSheet.Domain.Sheets;
 
 namespace PUSpecSheet.Application.Sheets.Drafts;
 
@@ -14,8 +11,11 @@ namespace PUSpecSheet.Application.Sheets.Drafts;
 /// drafts, or everyone's ahead of a publish of everything.
 /// </summary>
 public sealed class DraftSweeper(
-    PuSpecSheetDbContext db,
     ICurrentUser currentUser,
+    ISheetTableRevisionRepository tableRevisions,
+    ISheetSectionRevisionRepository sectionRevisions,
+    ISheetRowRevisionRepository rowRevisions,
+    ISheetColumnBlockRevisionRepository columnBlockRevisions,
     TableDrafts tables,
     SectionDrafts sections,
     RowDrafts rows,
@@ -31,31 +31,16 @@ public sealed class DraftSweeper(
         var me = currentUser.UserId;
         var everyone = scope == PublishScope.All;
 
-        var rowIds = await HavingAnEarlierRevision(db.RowRevisionsOf(sheetId).DraftsIn(scope, me))
-            .Select(revision => revision.SheetRowId)
-            .ToListAsync(cancellationToken);
+        var rowIds = await rowRevisions.ListItemIdsWithRevisableDraftsAsync(sheetId, scope, me, cancellationToken);
         await rows.ReleaseUnchangedAsync(rowIds, everyone, cancellationToken);
 
-        var sectionIds = await HavingAnEarlierRevision(db.SectionRevisionsOf(sheetId).DraftsIn(scope, me))
-            .Select(revision => revision.SheetSectionId)
-            .ToListAsync(cancellationToken);
+        var sectionIds = await sectionRevisions.ListItemIdsWithRevisableDraftsAsync(sheetId, scope, me, cancellationToken);
         await sections.ReleaseUnchangedAsync(sectionIds, everyone, cancellationToken);
 
-        var tableIds = await HavingAnEarlierRevision(db.TableRevisionsOf(sheetId).DraftsIn(scope, me))
-            .Select(revision => revision.SheetTableId)
-            .ToListAsync(cancellationToken);
+        var tableIds = await tableRevisions.ListItemIdsWithRevisableDraftsAsync(sheetId, scope, me, cancellationToken);
         await tables.ReleaseUnchangedAsync(tableIds, everyone, cancellationToken);
 
-        var columnBlockIds = await HavingAnEarlierRevision(db.ColumnBlockRevisionsOf(sheetId).DraftsIn(scope, me))
-            .Select(revision => revision.SheetColumnBlockId)
-            .ToListAsync(cancellationToken);
+        var columnBlockIds = await columnBlockRevisions.ListItemIdsWithRevisableDraftsAsync(sheetId, scope, me, cancellationToken);
         await columnBlocks.ReleaseUnchangedAsync(columnBlockIds, everyone, cancellationToken);
-    }
-
-    /// <summary>Only an item with an earlier revision has something to return to.</summary>
-    private static IQueryable<TRevision> HavingAnEarlierRevision<TRevision>(IQueryable<TRevision> drafts)
-        where TRevision : class, ISheetRevision
-    {
-        return drafts.Where(revision => revision.RevisionNumber > 1);
     }
 }

@@ -23,6 +23,12 @@ public interface ITemplateRowRepository
     /// <summary>Where a new cell in the row (and column block, if any) goes; null when there is no such row.</summary>
     Task<TemplateCellTarget?> FindCellTargetAsync(int rowId, int? columnBlockId, CancellationToken cancellationToken);
 
+    /// <summary>The row with its cells, read only, when it is in the template section; null otherwise.</summary>
+    Task<TemplateRow?> FindInSectionWithCellsAsync(int id, int sectionId, CancellationToken cancellationToken);
+
+    /// <summary>Every row of the versions with its cells, read only.</summary>
+    Task<List<TemplateRow>> ListWithCellsInVersionsAsync(IReadOnlyCollection<int> versionIds, CancellationToken cancellationToken);
+
     void Add(TemplateRow row);
 
     void Remove(TemplateRow row);

@@ -1,12 +1,13 @@
-using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Application.Common;
+using PUSpecSheet.Application.Persistence.Sheets;
+using PUSpecSheet.Application.Persistence.Users;
 using PUSpecSheet.Contracts.Sheets.Collaboration;
-using PUSpecSheet.Data;
 
 namespace PUSpecSheet.Application.Sheets.Collaboration;
 
 public sealed class SheetPresenceService(
-    PuSpecSheetDbContext db,
+    ISheetRepository sheets,
+    IUserRepository userRepository,
     SheetPresenceTracker tracker,
     RowTakeoverStore takeovers,
     LiveRowCheckoutTracker checkouts,
@@ -15,15 +16,12 @@ public sealed class SheetPresenceService(
 {
     public async Task<SheetLiveStateDto> JoinAsync(string connectionId, int sheetId, int userId, CancellationToken cancellationToken)
     {
-        if (!await db.Sheets.AnyAsync(sheet => sheet.Id == sheetId, cancellationToken))
+        if (!await sheets.ExistsAsync(sheetId, cancellationToken))
         {
             throw new NotFoundException($"Sheet {sheetId} was not found.");
         }
 
-        var displayName = await db.Users
-            .Where(user => user.Id == userId && user.IsActive)
-            .Select(user => user.DisplayName)
-            .SingleOrDefaultAsync(cancellationToken)
+        var displayName = await userRepository.FindActiveDisplayNameAsync(userId, cancellationToken)
             ?? throw new NotFoundException($"User {userId} was not found.");
 
         tracker.Join(connectionId, new SheetConnection(sheetId, userId, displayName));

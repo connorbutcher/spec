@@ -1,5 +1,4 @@
-using Microsoft.EntityFrameworkCore;
-using PUSpecSheet.Data;
+using PUSpecSheet.Application.Persistence.Templates;
 using PUSpecSheet.Domain.Templates;
 
 namespace PUSpecSheet.Application.Sheets.Layout;
@@ -20,20 +19,15 @@ public sealed class TemplateTree
         byParent = sections.ToLookup(section => section.ParentSectionId);
     }
 
-    public static async Task<TemplateTree> LoadAsync(PuSpecSheetDbContext db, int versionId, CancellationToken cancellationToken)
+    public static async Task<TemplateTree> LoadAsync(
+        ITemplateSectionRepository sections,
+        ITemplateColumnBlockRepository columnBlocks,
+        int versionId,
+        CancellationToken cancellationToken)
     {
-        var sections = await db.TemplateSections
-            .AsNoTracking()
-            .Include(section => section.Rows)
-            .ThenInclude(row => row.Cells)
-            .Where(section => section.TableTemplateVersionId == versionId)
-            .AsSplitQuery()
-            .ToListAsync(cancellationToken);
-        var columnBlocks = await db.TemplateColumnBlocks
-            .AsNoTracking()
-            .Where(block => block.TableTemplateVersionId == versionId)
-            .ToListAsync(cancellationToken);
-        return new TemplateTree(sections, columnBlocks);
+        return new TemplateTree(
+            await sections.ListForLayoutAsync(versionId, cancellationToken),
+            await columnBlocks.ListAsync(versionId, cancellationToken));
     }
 
     /// <summary>The version's column blocks, left to right. Empty for a vertical table.</summary>

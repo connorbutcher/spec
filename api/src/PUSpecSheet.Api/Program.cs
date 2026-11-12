@@ -10,7 +10,6 @@ using PUSpecSheet.Application.DependencyInjection;
 using PUSpecSheet.Application.Seeding;
 using PUSpecSheet.Data;
 using PUSpecSheet.Data.DependencyInjection;
-using PUSpecSheet.Data.Repositories;
 using PUSpecSheet.Data.Seeding;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -34,7 +33,6 @@ builder.Services.AddPuSpecSheetCors(builder.Configuration);
 builder.Services.AddPuSpecSheetResponseCompression(builder.Configuration);
 
 builder.Services.AddPuSpecSheetData(connectionString);
-builder.Services.AddPuSpecSheetRepositories();
 builder.Services.AddPuSpecSheetApplication();
 
 // Multi-user editing: who has each sheet open, live checkouts and takeover requests, over SignalR.

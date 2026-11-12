@@ -37,6 +37,15 @@ public interface ICellTypeRepository
     /// <summary>Clears the configuration overrides of every template cell of the type, straight in the database.</summary>
     Task ClearConfigurationOverridesAsync(int cellTypeId, CancellationToken cancellationToken);
 
+    /// <summary>Every cell type with its options, read only, by id.</summary>
+    Task<Dictionary<int, CellType>> GetAllWithOptionsByIdAsync(CancellationToken cancellationToken);
+
+    /// <summary>Which of the names cell types already have.</summary>
+    Task<List<string>> ListNamesInUseAsync(IReadOnlyCollection<string> names, CancellationToken cancellationToken);
+
+    /// <summary>The cell types with any of the names, with their options, read only.</summary>
+    Task<List<CellType>> ListByNamesAsync(IReadOnlyCollection<string> names, CancellationToken cancellationToken);
+
     void Add(CellType cellType);
 
     void Remove(CellType cellType);

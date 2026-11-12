@@ -1,12 +1,14 @@
-using Microsoft.EntityFrameworkCore;
+using PUSpecSheet.Application.Persistence.Sheets;
 using PUSpecSheet.Application.Sheets.Revisions;
 using PUSpecSheet.Application.Users;
-using PUSpecSheet.Data;
 
 namespace PUSpecSheet.Application.Sheets.Layout;
 
 /// <summary>Answers questions about a table's sections as the current user sees them.</summary>
-public sealed class LiveSectionQuery(PuSpecSheetDbContext db, ICurrentUser currentUser)
+public sealed class LiveSectionQuery(
+    ISheetSectionRepository sheetSections,
+    ISheetSectionRevisionRepository revisions,
+    ICurrentUser currentUser)
 {
     /// <summary>
     /// The table's section copies that exist for the user: published and not removed, or drafted by them,
@@ -15,18 +17,10 @@ public sealed class LiveSectionQuery(PuSpecSheetDbContext db, ICurrentUser curre
     public async Task<IReadOnlyList<LiveSection>> VisibleAsync(int tableId, CancellationToken cancellationToken)
     {
         var me = currentUser.UserId;
-        var sections = await db.SheetSections
-            .AsNoTracking()
-            .Where(section => section.SheetTableId == tableId)
-            .Select(section => new { section.Id, section.TemplateSectionId, section.ParentSheetSectionId })
-            .ToListAsync(cancellationToken);
+        var sections = await sheetSections.ListPlacesOnTableAsync(tableId, cancellationToken);
 
-        var revisions = await db.SheetSectionRevisions
-            .Where(revision => revision.SheetSection.SheetTableId == tableId)
-            .VisibleTo(me)
-            .AsNoTracking()
-            .ToListAsync(cancellationToken);
-        var resolved = RevisionResolver.Resolve(revisions, revision => revision.SheetSectionId, me);
+        var visible = await revisions.ListVisibleOnTableAsync(tableId, me, cancellationToken);
+        var resolved = RevisionResolver.Resolve(visible, revision => revision.SheetSectionId, me);
 
         var own = sections
             .Where(section => RevisionResolver.IsVisible(resolved.GetValueOrDefault(section.Id)))
@@ -53,20 +47,16 @@ public sealed class LiveSectionQuery(PuSpecSheetDbContext db, ICurrentUser curre
     /// <summary>The ids of a section and everything inside it, whether or not anyone can currently see them.</summary>
     public async Task<IReadOnlyCollection<int>> SubtreeIdsAsync(int tableId, int rootSectionId, CancellationToken cancellationToken)
     {
-        var parents = await db.SheetSections
-            .AsNoTracking()
-            .Where(section => section.SheetTableId == tableId)
-            .Select(section => new { section.Id, section.ParentSheetSectionId })
-            .ToListAsync(cancellationToken);
+        var parents = await sheetSections.GetParentsOnTableAsync(tableId, cancellationToken);
 
         var ids = new HashSet<int> { rootSectionId };
         var added = true;
         while (added)
         {
             added = false;
-            foreach (var section in parents)
+            foreach (var (id, parentId) in parents)
             {
-                if (section.ParentSheetSectionId is { } parent && ids.Contains(parent) && ids.Add(section.Id))
+                if (parentId is { } parent && ids.Contains(parent) && ids.Add(id))
                 {
                     added = true;
                 }

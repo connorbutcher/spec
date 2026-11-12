@@ -1,5 +1,6 @@
-using Microsoft.EntityFrameworkCore;
-using PUSpecSheet.Data;
+using PUSpecSheet.Application.Persistence;
+using PUSpecSheet.Application.Persistence.Phases;
+using PUSpecSheet.Application.Persistence.SheetTypes;
 using PUSpecSheet.Domain.Phases;
 
 namespace PUSpecSheet.Application.Seeding;
@@ -9,7 +10,10 @@ namespace PUSpecSheet.Application.Seeding;
 /// (the sub-phases under V6), and each is given the Specification, Parts and PFKs sheet types. Phases that
 /// already exist keep everything else they have.
 /// </summary>
-public sealed class ShowcasePhases(PuSpecSheetDbContext db)
+public sealed class ShowcasePhases(
+    IPhaseRepository phaseRepository,
+    ISheetTypeRepository sheetTypes,
+    IUnitOfWork unitOfWork)
 {
     public const string V6 = "V6";
     public const string A2 = "01-A2";
@@ -27,17 +31,14 @@ public sealed class ShowcasePhases(PuSpecSheetDbContext db)
     /// <summary>The id of each showcase phase by code.</summary>
     public async Task<IReadOnlyDictionary<string, int>> EnsureAsync(CancellationToken cancellationToken)
     {
-        var phases = await db.Phases
-            .Include(phase => phase.SheetTypes)
-            .Where(phase => Codes.Contains(phase.Code))
-            .ToListAsync(cancellationToken);
+        var phases = await phaseRepository.ListByCodesForEditAsync(Codes, cancellationToken);
 
         var build = phases.SingleOrDefault(phase => phase.Code == V6);
         if (build is null)
         {
-            var order = await db.Phases.Where(phase => phase.ParentPhaseId == null).MaxAsync(phase => (int?)phase.DisplayOrder, cancellationToken) ?? 0;
+            var order = await phaseRepository.GetLastDisplayOrderAsync(null, cancellationToken) ?? 0;
             build = new Phase { Code = V6, Description = "V6 build", DisplayOrder = order + 1 };
-            db.Phases.Add(build);
+            phaseRepository.Add(build);
             phases.Add(build);
         }
 
@@ -46,16 +47,13 @@ public sealed class ShowcasePhases(PuSpecSheetDbContext db)
             if (phases.All(phase => phase.Code != Codes[index]))
             {
                 var phase = new Phase { Code = Codes[index], DisplayOrder = index, ParentPhase = build };
-                db.Phases.Add(phase);
+                phaseRepository.Add(phase);
                 phases.Add(phase);
             }
         }
 
         string[] sheetTypeNames = [SpecificationSheetType, PartsSheetType, PfksSheetType];
-        var sheetTypeIds = await db.SheetTypes
-            .Where(sheetType => sheetTypeNames.Contains(sheetType.Name))
-            .Select(sheetType => sheetType.Id)
-            .ToListAsync(cancellationToken);
+        var sheetTypeIds = await sheetTypes.ListIdsByNamesAsync(sheetTypeNames, cancellationToken);
         foreach (var phase in phases)
         {
             foreach (var sheetTypeId in sheetTypeIds.Where(id => phase.SheetTypes.All(link => link.SheetTypeId != id)))
@@ -64,7 +62,7 @@ public sealed class ShowcasePhases(PuSpecSheetDbContext db)
             }
         }
 
-        await db.SaveChangesAsync(cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
         return phases.ToDictionary(phase => phase.Code, phase => phase.Id);
     }
 }

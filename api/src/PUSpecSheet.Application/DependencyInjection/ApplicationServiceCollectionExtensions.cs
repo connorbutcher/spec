@@ -1,6 +1,8 @@
 using Microsoft.Extensions.DependencyInjection;
 using PUSpecSheet.Application.Approvals;
 using PUSpecSheet.Application.CellTypes;
+using PUSpecSheet.Application.Persistence.Sheets;
+using PUSpecSheet.Application.Persistence.Templates;
 using PUSpecSheet.Application.Phases;
 using PUSpecSheet.Application.Published;
 using PUSpecSheet.Application.Seeding;
@@ -15,6 +17,10 @@ public static class ApplicationServiceCollectionExtensions
 {
     public static IServiceCollection AddPuSpecSheetApplication(this IServiceCollection services)
     {
+        services.AddScoped<SheetStructureRepositories>();
+        services.AddScoped<SheetRevisionRepositories>();
+        services.AddScoped<TemplateRepositories>();
+
         services.AddScoped<ISheetTypeService, SheetTypeService>();
         services.AddScoped<IPhaseService, PhaseService>();
         services.AddScoped<IUserAccessService, UserAccessService>();

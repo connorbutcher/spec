@@ -40,6 +40,22 @@ public sealed class SheetTypeRepository(PuSpecSheetDbContext db) : ISheetTypeRep
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<int> GetIdByNameAsync(string name, CancellationToken cancellationToken)
+    {
+        return await db.SheetTypes
+            .Where(sheetType => sheetType.Name == name)
+            .Select(sheetType => sheetType.Id)
+            .SingleAsync(cancellationToken);
+    }
+
+    public async Task<List<int>> ListIdsByNamesAsync(IReadOnlyCollection<string> names, CancellationToken cancellationToken)
+    {
+        return await db.SheetTypes
+            .Where(sheetType => names.Contains(sheetType.Name))
+            .Select(sheetType => sheetType.Id)
+            .ToListAsync(cancellationToken);
+    }
+
     public void Add(SheetType sheetType)
     {
         db.SheetTypes.Add(sheetType);

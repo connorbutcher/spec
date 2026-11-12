@@ -129,6 +129,42 @@ public sealed class TableTemplateRepository(PuSpecSheetDbContext db) : ITableTem
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<TableTemplate?> FindForSheetTypeAsync(int id, int sheetTypeId, CancellationToken cancellationToken)
+    {
+        return await db.TableTemplates
+            .AsNoTracking()
+            .SingleOrDefaultAsync(candidate => candidate.Id == id && candidate.SheetTypeId == sheetTypeId, cancellationToken);
+    }
+
+    public async Task<List<TableTemplate>> ListForSheetTypeAsync(int sheetTypeId, CancellationToken cancellationToken)
+    {
+        return await db.TableTemplates
+            .AsNoTracking()
+            .Where(template => template.SheetTypeId == sheetTypeId)
+            .OrderBy(template => template.DisplayOrder)
+            .ThenBy(template => template.Name)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<TableTemplateVersion> GetLatestVersionAsync(int templateId, CancellationToken cancellationToken)
+    {
+        return await db.TableTemplateVersions
+            .AsNoTracking()
+            .Where(candidate => candidate.TableTemplateId == templateId)
+            .OrderByDescending(candidate => candidate.VersionNumber)
+            .FirstAsync(cancellationToken);
+    }
+
+    public async Task<Dictionary<int, int>> GetLatestVersionNumbersAsync(IReadOnlyCollection<int> templateIds, CancellationToken cancellationToken)
+    {
+        return await db.TableTemplateVersions
+            .AsNoTracking()
+            .Where(version => templateIds.Contains(version.TableTemplateId))
+            .GroupBy(version => version.TableTemplateId)
+            .Select(group => new { TemplateId = group.Key, Latest = group.Max(version => version.VersionNumber) })
+            .ToDictionaryAsync(entry => entry.TemplateId, entry => entry.Latest, cancellationToken);
+    }
+
     public void Add(TableTemplate tableTemplate)
     {
         db.TableTemplates.Add(tableTemplate);

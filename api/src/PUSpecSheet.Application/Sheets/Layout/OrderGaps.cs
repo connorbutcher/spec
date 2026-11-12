@@ -6,7 +6,7 @@ namespace PUSpecSheet.Application.Sheets.Layout;
 /// Display orders on sheets are spaced out so that moving one item only needs a new value for that
 /// item, not for its siblings (which would lock them all). Items go between their new neighbours.
 /// </summary>
-internal static class OrderGaps
+public static class OrderGaps
 {
     public const int Spacing = 1024;
 

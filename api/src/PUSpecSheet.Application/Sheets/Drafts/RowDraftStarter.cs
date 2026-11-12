@@ -1,9 +1,8 @@
+using PUSpecSheet.Application.Persistence;
+using PUSpecSheet.Application.Persistence.Sheets;
 using PUSpecSheet.Application.Sheets.Collaboration;
 using PUSpecSheet.Application.Sheets.Removal;
-using PUSpecSheet.Application.Sheets.Revisions;
-using PUSpecSheet.Application.Sheets.Values;
 using PUSpecSheet.Application.Users;
-using PUSpecSheet.Data;
 using PUSpecSheet.Domain.Sheets;
 
 namespace PUSpecSheet.Application.Sheets.Drafts;
@@ -13,11 +12,11 @@ namespace PUSpecSheet.Application.Sheets.Drafts;
 /// row's values, settings or place goes through here, so the rules for taking a row are in one place.
 /// </summary>
 public sealed class RowDraftStarter(
-    PuSpecSheetDbContext db,
+    IUnitOfWork unitOfWork,
     RowDrafts drafts,
     LiveRowCheckoutGuard liveCheckouts,
     IRemovalInProgressGuard removals,
-    RowValueStore valueStore,
+    IRowValueRepository values,
     ICurrentUser currentUser)
 {
     /// <summary>
@@ -43,10 +42,10 @@ public sealed class RowDraftStarter(
             return draft;
         }
 
-        await db.SaveSheetChangesAsync(cancellationToken);
+        await unitOfWork.SaveSheetChangesAsync(cancellationToken);
         if (state.Current is { } current)
         {
-            await valueStore.CopyAsync(current.Id, draft.Id, cancellationToken);
+            await values.CopyAsync(current.Id, draft.Id, cancellationToken);
         }
 
         return draft;

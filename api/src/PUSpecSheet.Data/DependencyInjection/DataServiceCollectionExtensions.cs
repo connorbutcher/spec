@@ -1,12 +1,13 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
+using PUSpecSheet.Data.Repositories;
 
 namespace PUSpecSheet.Data.DependencyInjection;
 
 public static class DataServiceCollectionExtensions
 {
-    /// <summary>Registers the <see cref="PuSpecSheetDbContext"/> against SQL Server.</summary>
+    /// <summary>Registers the <see cref="PuSpecSheetDbContext"/> against SQL Server, the unit of work and every repository.</summary>
     public static IServiceCollection AddPuSpecSheetData(this IServiceCollection services, string connectionString)
     {
         services.AddDbContext<PuSpecSheetDbContext>(options =>
@@ -21,6 +22,6 @@ public static class DataServiceCollectionExtensions
             options.ConfigureWarnings(warnings => warnings.Ignore(SqlServerEventId.SavepointsDisabledBecauseOfMARS));
         });
 
-        return services;
+        return services.AddPuSpecSheetRepositories();
     }
 }

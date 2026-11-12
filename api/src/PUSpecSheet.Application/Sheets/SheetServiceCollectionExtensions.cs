@@ -14,12 +14,10 @@ public static class SheetServiceCollectionExtensions
     /// <summary>Registers the services that read and change sheets, their tables, sections and rows.</summary>
     public static IServiceCollection AddPuSpecSheetSheets(this IServiceCollection services)
     {
-        services.AddScoped<RowValueStore>();
         services.AddSingleton<SheetChangeHistoryCache>();
         services.AddScoped<SheetChangeHistoryLoader>();
         services.AddScoped<SheetSnapshotLoader>();
         services.AddScoped<SheetReader>();
-        services.AddScoped<ISheetItemLocator, SheetItemLocator>();
         services.AddScoped<SheetInstantiator>();
         services.AddScoped<LiveSectionQuery>();
         services.AddScoped<TableDrafts>();
@@ -32,8 +30,8 @@ public static class SheetServiceCollectionExtensions
         services.AddScoped<LinkedDropdownValueRule>();
         services.AddScoped<ColumnBlockDrafts>();
         services.AddScoped<DraftSweeper>();
+        services.AddScoped<SheetDraftSetLoader>();
         services.AddScoped<SheetPublisher>();
-        services.AddScoped<ISheetCellFiller, SheetCellFiller>();
 
         services.AddScoped<ISheetService, SheetService>();
         services.AddScoped<ISheetTableService, SheetTableService>();

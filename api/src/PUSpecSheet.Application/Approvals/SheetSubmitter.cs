@@ -1,8 +1,8 @@
+using PUSpecSheet.Application.Persistence;
+using PUSpecSheet.Application.Persistence.Approvals;
 using PUSpecSheet.Application.Sheets;
-using PUSpecSheet.Application.Sheets.Revisions;
 using PUSpecSheet.Application.Users;
 using PUSpecSheet.Contracts.Approvals;
-using PUSpecSheet.Data;
 using PUSpecSheet.Domain.Approvals;
 
 namespace PUSpecSheet.Application.Approvals;
@@ -13,7 +13,8 @@ namespace PUSpecSheet.Application.Approvals;
 /// locked to their authors, who can't change them until the submission is decided.
 /// </summary>
 public sealed class SheetSubmitter(
-    PuSpecSheetDbContext db,
+    ISheetSubmissionRepository submissions,
+    IUnitOfWork unitOfWork,
     SheetPublisher publisher,
     ApproverDirectory approvers,
     ICurrentUser currentUser,
@@ -39,9 +40,9 @@ public sealed class SheetSubmitter(
             submission.Approvers.Add(new SheetSubmissionApprover { UserId = approverId, Decision = ApprovalDecision.Pending });
         }
 
-        await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
-        db.SheetSubmissions.Add(submission);
-        await db.SaveSheetChangesAsync(cancellationToken);
+        await using var transaction = await unitOfWork.BeginTransactionAsync(cancellationToken);
+        submissions.Add(submission);
+        await unitOfWork.SaveSheetChangesAsync(cancellationToken);
 
         // The drafts' row versions make this fail, as a conflict, if an author saves into one at the same moment.
         foreach (var draft in drafts.All)
@@ -49,7 +50,7 @@ public sealed class SheetSubmitter(
             draft.SheetSubmissionId = submission.Id;
         }
 
-        await db.SaveSheetChangesAsync(cancellationToken);
+        await unitOfWork.SaveSheetChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
         return submission.Id;
     }

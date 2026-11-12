@@ -1,5 +1,5 @@
-using Microsoft.EntityFrameworkCore;
-using PUSpecSheet.Data;
+using PUSpecSheet.Application.Persistence;
+using PUSpecSheet.Application.Persistence.CellTypes;
 using PUSpecSheet.Domain.CellTypes;
 using PUSpecSheet.Domain.CellTypes.Configurations;
 using PUSpecSheet.Domain.CellTypes.LabelledText;
@@ -11,7 +11,7 @@ namespace PUSpecSheet.Application.Seeding;
 /// Makes sure every cell type the showcase uses exists, one of each kind at least, with settings, styles and
 /// options of their own: a cell type that is already there under the same name is used as it is.
 /// </summary>
-public sealed class ShowcaseCellTypes(PuSpecSheetDbContext db)
+public sealed class ShowcaseCellTypes(ICellTypeRepository cellTypeRepository, IUnitOfWork unitOfWork)
 {
     private static readonly CellStyle Right = new() { Align = CellTextAlign.Right };
 
@@ -106,11 +106,8 @@ public sealed class ShowcaseCellTypes(PuSpecSheetDbContext db)
     public async Task<ShowcaseCellTypeCatalog> EnsureAsync(CancellationToken cancellationToken)
     {
         var names = Definitions.Select(definition => definition.Name).ToList();
-        var existing = await db.CellTypes
-            .Where(cellType => names.Contains(cellType.Name))
-            .Select(cellType => cellType.Name)
-            .ToListAsync(cancellationToken);
-        var order = await db.CellTypes.MaxAsync(cellType => (int?)cellType.DisplayOrder, cancellationToken) ?? 0;
+        var existing = await cellTypeRepository.ListNamesInUseAsync(names, cancellationToken);
+        var order = await cellTypeRepository.GetLastDisplayOrderAsync(cancellationToken) ?? 0;
 
         foreach (var definition in Definitions.Where(definition => !existing.Contains(definition.Name, StringComparer.OrdinalIgnoreCase)))
         {
@@ -128,16 +125,12 @@ public sealed class ShowcaseCellTypes(PuSpecSheetDbContext db)
                 cellType.Options.Add(new CellTypeOption { Value = definition.Options[index], DisplayOrder = index + 1 });
             }
 
-            db.CellTypes.Add(cellType);
+            cellTypeRepository.Add(cellType);
         }
 
-        await db.SaveChangesAsync(cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
-        var cellTypes = await db.CellTypes
-            .AsNoTracking()
-            .Include(cellType => cellType.Options)
-            .Where(cellType => names.Contains(cellType.Name))
-            .ToListAsync(cancellationToken);
+        var cellTypes = await cellTypeRepository.ListByNamesAsync(names, cancellationToken);
         return new ShowcaseCellTypeCatalog(cellTypes);
     }
 }

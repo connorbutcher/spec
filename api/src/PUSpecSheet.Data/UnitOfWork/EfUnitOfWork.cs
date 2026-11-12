@@ -16,6 +16,19 @@ public sealed class EfUnitOfWork(PuSpecSheetDbContext db) : IUnitOfWork
         await db.SaveChangesAsync(cancellationToken);
     }
 
+    public async Task<bool> TrySaveChangesAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            await db.SaveChangesAsync(cancellationToken);
+            return true;
+        }
+        catch (DbUpdateException)
+        {
+            return false;
+        }
+    }
+
     public async Task SaveSheetChangesAsync(CancellationToken cancellationToken)
     {
         try

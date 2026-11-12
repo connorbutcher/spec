@@ -1,5 +1,6 @@
-using Microsoft.EntityFrameworkCore;
-using PUSpecSheet.Data;
+using PUSpecSheet.Application.Persistence;
+using PUSpecSheet.Application.Persistence.SheetTypes;
+using PUSpecSheet.Application.Persistence.Templates;
 using PUSpecSheet.Domain.Templates;
 
 namespace PUSpecSheet.Application.Seeding;
@@ -9,24 +10,22 @@ namespace PUSpecSheet.Application.Seeding;
 /// leave them: a new version is a whole new layout, and older versions stay as the sheets built from them
 /// had them.
 /// </summary>
-public sealed class ShowcaseTemplateWriter(PuSpecSheetDbContext db)
+public sealed class ShowcaseTemplateWriter(
+    ISheetTypeRepository sheetTypes,
+    ITableTemplateRepository templates,
+    IUnitOfWork unitOfWork)
 {
     /// <summary>Adds <paramref name="template"/> with its version 1, at the end of its sheet type's list, and returns its id.</summary>
     public async Task<int> CreateAsync(IShowcaseTemplate template, ShowcaseCellTypeCatalog cellTypes, CancellationToken cancellationToken)
     {
-        var sheetTypeId = await db.SheetTypes
-            .Where(sheetType => sheetType.Name == template.SheetTypeName)
-            .Select(sheetType => sheetType.Id)
-            .SingleAsync(cancellationToken);
-        var order = await db.TableTemplates
-            .Where(candidate => candidate.SheetTypeId == sheetTypeId)
-            .MaxAsync(candidate => (int?)candidate.DisplayOrder, cancellationToken) ?? 0;
+        var sheetTypeId = await sheetTypes.GetIdByNameAsync(template.SheetTypeName, cancellationToken);
+        var order = await templates.GetLastDisplayOrderAsync(sheetTypeId, cancellationToken) ?? 0;
 
         var entity = new TableTemplate { SheetTypeId = sheetTypeId, Name = template.Name, DisplayOrder = order + 1 };
         entity.Versions.Add(Lay(template, cellTypes, 1));
-        db.TableTemplates.Add(entity);
-        await db.SaveChangesAsync(cancellationToken);
-        db.ChangeTracker.Clear();
+        templates.Add(entity);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
+        unitOfWork.ClearTracking();
         return entity.Id;
     }
 
@@ -40,9 +39,9 @@ public sealed class ShowcaseTemplateWriter(PuSpecSheetDbContext db)
     {
         var version = Lay(template, cellTypes, versionNumber);
         version.TableTemplateId = templateId;
-        db.TableTemplateVersions.Add(version);
-        await db.SaveChangesAsync(cancellationToken);
-        db.ChangeTracker.Clear();
+        templates.AddVersion(version);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
+        unitOfWork.ClearTracking();
     }
 
     private static TableTemplateVersion Lay(IShowcaseTemplate template, ShowcaseCellTypeCatalog cellTypes, int versionNumber)

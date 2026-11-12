@@ -24,6 +24,9 @@ public interface IUserRepository
     /// <summary>Every user's display name, by user id.</summary>
     Task<Dictionary<int, string>> GetAllDisplayNamesAsync(CancellationToken cancellationToken);
 
+    /// <summary>The ids of the users with any of the user names, by user name, ignoring case.</summary>
+    Task<Dictionary<string, int>> GetIdsByUserNameAsync(IReadOnlyCollection<string> userNames, CancellationToken cancellationToken);
+
     /// <summary>Everyone but <paramref name="excludedUserId"/> who could approve, in name order.</summary>
     Task<List<ApproverDto>> ListApproversAsync(int excludedUserId, CancellationToken cancellationToken);
 

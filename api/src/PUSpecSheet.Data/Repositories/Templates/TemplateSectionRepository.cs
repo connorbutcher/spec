@@ -70,6 +70,25 @@ public sealed class TemplateSectionRepository(PuSpecSheetDbContext db) : ITempla
             .MaxAsync(section => (int?)section.DisplayOrder, cancellationToken);
     }
 
+    public async Task<List<TemplateSection>> ListForLayoutAsync(int versionId, CancellationToken cancellationToken)
+    {
+        return await db.TemplateSections
+            .AsNoTracking()
+            .Include(section => section.Rows)
+            .ThenInclude(row => row.Cells)
+            .Where(section => section.TableTemplateVersionId == versionId)
+            .AsSplitQuery()
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<List<TemplateSection>> ListInVersionsAsync(IReadOnlyCollection<int> versionIds, CancellationToken cancellationToken)
+    {
+        return await db.TemplateSections
+            .AsNoTracking()
+            .Where(section => versionIds.Contains(section.TableTemplateVersionId))
+            .ToListAsync(cancellationToken);
+    }
+
     public void Add(TemplateSection section)
     {
         db.TemplateSections.Add(section);

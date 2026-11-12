@@ -1,12 +1,10 @@
-using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Application.Common;
+using PUSpecSheet.Application.Persistence;
+using PUSpecSheet.Application.Persistence.Sheets;
 using PUSpecSheet.Application.Sheets.Drafts;
 using PUSpecSheet.Application.Sheets.Reading;
-using PUSpecSheet.Application.Sheets.Revisions;
 using PUSpecSheet.Application.Sheets.Values;
 using PUSpecSheet.Contracts.Sheets;
-using PUSpecSheet.Data;
-using PUSpecSheet.Data.Values;
 using PUSpecSheet.Domain.CellTypes;
 using PUSpecSheet.Domain.CellTypes.InstanceSettings;
 using PUSpecSheet.Domain.CellTypes.LabelledText;
@@ -15,10 +13,11 @@ using PUSpecSheet.Domain.Sheets;
 namespace PUSpecSheet.Application.Sheets;
 
 public sealed class SheetCellSettingsService(
-    PuSpecSheetDbContext db,
+    ISheetRowRepository rows,
+    IRowValueRepository values,
+    IUnitOfWork unitOfWork,
     RowDrafts drafts,
     RowDraftStarter draftStarter,
-    RowValueStore valueStore,
     SheetReader reader) : ISheetCellSettingsService
 {
     public async Task<SheetDto> SaveAsync(int rowId, SaveRowCellSettingsRequest request, CancellationToken cancellationToken)
@@ -31,10 +30,10 @@ public sealed class SheetCellSettingsService(
         var cellsById = row.Cells.ToDictionary(cell => cell.Id);
         var wanted = WantedSettings(request, cellsById, sheet);
 
-        await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
+        await using var transaction = await unitOfWork.BeginTransactionAsync(cancellationToken);
         var draft = await draftStarter.StartAsync(rowId, cancellationToken);
         await SaveChangedAsync(draft.Id, wanted, cellsById, cancellationToken);
-        await db.SaveSheetChangesAsync(cancellationToken);
+        await unitOfWork.SaveSheetChangesAsync(cancellationToken);
 
         // Settings put back to what is published leave nothing to publish, so the row is released.
         await drafts.ReleaseIfUnchangedAsync(rowId, cancellationToken);
@@ -70,15 +69,7 @@ public sealed class SheetCellSettingsService(
 
     private async Task<SheetRow> LoadRowAsync(int rowId, CancellationToken cancellationToken)
     {
-        return await db.SheetRows
-            .AsNoTracking()
-            .Include(candidate => candidate.SheetSection)
-            .ThenInclude(section => section.SheetTable)
-            .Include(candidate => candidate.Cells)
-            .ThenInclude(cell => cell.TemplateCell)
-            .ThenInclude(templateCell => templateCell.CellType)
-            .AsSplitQuery()
-            .SingleOrDefaultAsync(candidate => candidate.Id == rowId, cancellationToken)
+        return await rows.FindWithCellTypesAsync(rowId, withOptions: false, cancellationToken)
             ?? throw new NotFoundException($"Row {rowId} was not found.");
     }
 
@@ -89,11 +80,11 @@ public sealed class SheetCellSettingsService(
         Dictionary<int, SheetCell> cellsById,
         CancellationToken cancellationToken)
     {
-        var held = await db.LoadCellValuesAsync(draftId, cancellationToken);
+        var held = await values.LoadAsync(draftId, cancellationToken);
         var changed = wanted
             .Where(entry => held.GetValueOrDefault(entry.Key)?.Settings != entry.Value)
             .ToDictionary(entry => entry.Key, entry => entry.Value);
-        await valueStore.SetSettingsAsync(draftId, changed, cancellationToken);
+        await values.SetSettingsAsync(draftId, changed, cancellationToken);
 
         // A labelled text cell keeps the values of the slots it still has; any other cell starts again.
         foreach (var (cellId, settings) in changed)
@@ -102,7 +93,7 @@ public sealed class SheetCellSettingsService(
             if (templateCell.CellType.Kind == CellKind.LabelledText)
             {
                 var slots = LabelledTextSlots.Effective(CellSettingsResolver.ResolveConfiguration(templateCell), settings);
-                await valueStore.ArrangeSlotsAsync(draftId, cellId, slots, cancellationToken);
+                await values.ArrangeSlotsAsync(draftId, cellId, slots, cancellationToken);
             }
         }
 
@@ -113,6 +104,6 @@ public sealed class SheetCellSettingsService(
                 cellsById[cellId].TemplateCell.CellType.Kind,
                 new CellValueBag()))
             .ToList();
-        await valueStore.SetManyAsync(draftId, cleared, cancellationToken);
+        await values.SetManyAsync(draftId, cleared, cancellationToken);
     }
 }
