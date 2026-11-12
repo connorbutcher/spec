@@ -44,7 +44,7 @@ public static class SheetRevisionQueries
     public static async Task<List<TRevision>> ListSelectedForEditAsync<TRevision>(
         this IQueryable<TRevision> revisions,
         int sheetId,
-        IDraftSelection selection,
+        DraftSelection selection,
         CancellationToken cancellationToken)
         where TRevision : class, ISheetRevision
     {

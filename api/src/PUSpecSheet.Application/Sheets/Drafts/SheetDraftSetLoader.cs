@@ -13,7 +13,7 @@ public sealed class SheetDraftSetLoader
         this.db = db;
     }
 
-    public async Task<SheetDraftSet> LoadAsync(int sheetId, IDraftSelection selection, CancellationToken cancellationToken)
+    public async Task<SheetDraftSet> LoadAsync(int sheetId, DraftSelection selection, CancellationToken cancellationToken)
     {
         return new SheetDraftSet(
             await db.SheetTableRevisions.ListSelectedForEditAsync(sheetId, selection, cancellationToken),

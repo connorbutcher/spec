@@ -148,7 +148,7 @@ public sealed class SheetEditor
     /// <summary>Publishes the current user's drafts as the sheet's next version.</summary>
     public async Task PublishAsync(string note, CancellationToken cancellationToken)
     {
-        Sheet = await sheets.PublishAsync(Sheet.Id, new PublishSheetRequest(note), cancellationToken);
+        Sheet = await sheets.PublishAsync(Sheet.Id, note, PublishScope.Mine, cancellationToken);
     }
 
     /// <summary>Reads the sheet again, as whoever the current user now is.</summary>

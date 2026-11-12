@@ -76,7 +76,7 @@ public sealed class SheetPublisher
         }
 
         await sweeper.SweepAsync(sheetId, scope, cancellationToken);
-        var drafts = await draftLoader.LoadAsync(sheetId, new ScopeDraftSelection(scope, currentUser.UserId), cancellationToken);
+        var drafts = await draftLoader.LoadAsync(sheetId, DraftSelection.InScope(scope, currentUser.UserId), cancellationToken);
         if (drafts.Count == 0)
         {
             throw new InvalidRequestException(scope == PublishScope.All ? "There are no changes to publish." : "You have no changes to publish.");
@@ -95,7 +95,7 @@ public sealed class SheetPublisher
     public async Task<SheetVersion> PublishSubmissionAsync(SheetSubmission submission, CancellationToken cancellationToken)
     {
         var sheet = await FindSheetAsync(submission.SheetId, cancellationToken);
-        var drafts = await draftLoader.LoadAsync(sheet.Id, new SubmissionDraftSelection(submission.Id), cancellationToken);
+        var drafts = await draftLoader.LoadAsync(sheet.Id, DraftSelection.InSubmission(submission.Id), cancellationToken);
         await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
         var version = await PublishDraftsAsync(sheet, drafts, submission.Note, submission.SubmittedByUserId, cancellationToken);
         submission.SheetVersionId = version.Id;

@@ -78,9 +78,9 @@ public sealed class SheetsService : ISheetsService
         return SheetRowsChanges.From(sheet, rowIds);
     }
 
-    public async Task<SheetDto> PublishAsync(int sheetId, PublishSheetRequest request, CancellationToken cancellationToken)
+    public async Task<SheetDto> PublishAsync(int sheetId, string? note, PublishScope scope, CancellationToken cancellationToken)
     {
-        await publisher.PublishAsync(sheetId, request.Note, request.Scope, cancellationToken);
+        await publisher.PublishAsync(sheetId, note, scope, cancellationToken);
         return await reader.ReadLiveAsync(sheetId, cancellationToken);
     }
 

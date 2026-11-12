@@ -22,10 +22,10 @@ public interface ISheetsService
 
     /// <summary>
     /// Publishes drafts on the sheet as its next version straight away, without approval: the current user's
-    /// own, or everyone's when the request asks for <see cref="PublishScope.All"/>. Only start-up seeding uses
+    /// own, or everyone's when <paramref name="scope"/> is <see cref="PublishScope.All"/>. Only start-up seeding uses
     /// this; publishing through the API waits for approval (see <c>ISubmissionsService</c>).
     /// </summary>
-    Task<SheetDto> PublishAsync(int sheetId, PublishSheetRequest request, CancellationToken cancellationToken);
+    Task<SheetDto> PublishAsync(int sheetId, string? note, PublishScope scope, CancellationToken cancellationToken);
 
     /// <summary>Throws away all of the current user's drafts on the sheet, releasing their locks.</summary>
     Task<SheetDto> DiscardDraftsAsync(int sheetId, CancellationToken cancellationToken);
