@@ -146,7 +146,7 @@ describe('SheetGridCell, for a linked dropdown', () => {
   it('shows the value picked from its column, with nothing to flag', async () => {
     await page.render((cell) => {
       page.pointAtPartNumbers(cell);
-      cell.textValue = 'P-1002';
+      cell.value = 'P-1002';
     });
 
     expect(page.host().textContent?.trim()).toBe('P-1002');
@@ -161,7 +161,7 @@ describe('SheetGridCell, for a linked dropdown', () => {
         sourceTemplateCellId: null,
         sourceSheetRowId: PIN_OFFSET_ROW,
       };
-      cell.textValue = '0.9';
+      cell.value = '0.9';
     });
 
     expect(page.host().textContent?.trim()).toBe('0.9');
@@ -173,7 +173,7 @@ describe('SheetGridCell, for a linked dropdown', () => {
   it('keeps a value its column no longer has, and flags it', async () => {
     await page.render((cell) => {
       page.pointAtPartNumbers(cell);
-      cell.textValue = 'P-0999';
+      cell.value = 'P-0999';
     });
 
     expect(page.host().textContent?.trim()).toBe('P-0999');

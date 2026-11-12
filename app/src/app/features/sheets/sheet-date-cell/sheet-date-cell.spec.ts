@@ -21,7 +21,7 @@ class SheetDateCellPage {
 
   public async render(dateValue: string | null): Promise<void> {
     this.fixture = TestBed.createComponent(SheetDateCell);
-    this.fixture.componentRef.setInput('cell', { ...SheetStructureFixture.fixtureCell(1), dateValue });
+    this.fixture.componentRef.setInput('cell', { ...SheetStructureFixture.fixtureCell(1), value: dateValue });
     this.saved = [];
     this.fixture.componentInstance.changed.subscribe((request) => this.saved.push(request));
     await this.fixture.whenStable();
@@ -50,7 +50,7 @@ describe('SheetDateCell', () => {
     page.input().dispatchEvent(new FocusEvent('blur'));
 
     expect(page.saved).toHaveLength(1);
-    expect(page.saved[0].date).toBe('2026-10-01');
+    expect(page.saved[0].value).toBe('2026-10-01');
   });
 
   it('saves nothing when the box is left as it was', async () => {
@@ -68,7 +68,7 @@ describe('SheetDateCell', () => {
     page.input().dispatchEvent(new FocusEvent('blur'));
 
     expect(page.saved).toHaveLength(1);
-    expect(page.saved[0].date).toBeNull();
+    expect(page.saved[0].value).toBeNull();
   });
 
   it('does not save half a date, and puts the saved one back', async () => {

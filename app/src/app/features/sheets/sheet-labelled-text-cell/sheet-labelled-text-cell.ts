@@ -6,6 +6,7 @@ import { LabelledTextSlotsUtil } from '../../templates/labelled-text-slots.util'
 import { CellValueRequest } from '../models/cell-value-request.model';
 import { SheetCell } from '../models/sheet-cell.model';
 import { LabelledTextValueUtil } from '../values/labelled-text-value.util';
+import { CellValueUtil } from '../values/cell-value.util';
 
 /**
  * The editor for a labelled text cell: a PrimeNG text box for each value, with its label beside it. The
@@ -34,7 +35,7 @@ export class SheetLabelledTextCell {
 
   public readonly slots = computed(() => LabelledTextValueUtil.slotsOf(this.cell(), this.configuration()));
 
-  public readonly values = linkedSignal<Record<string, string>>(() => ({ ...(this.cell().slots ?? {}) }));
+  public readonly values = linkedSignal<Record<string, string>>(() => ({ ...(CellValueUtil.slots(this.cell()) ?? {}) }));
 
   public readonly labelColor = computed(() => LabelledTextSlotsUtil.labelColor(this.configuration()));
 
@@ -70,16 +71,16 @@ export class SheetLabelledTextCell {
 
   public commit(): void {
     const values = LabelledTextValueUtil.cleaned(this.slots(), this.values());
-    const saved = LabelledTextValueUtil.cleaned(this.slots(), this.cell().slots ?? {});
+    const saved = LabelledTextValueUtil.cleaned(this.slots(), CellValueUtil.slots(this.cell()) ?? {});
     if (LabelledTextValueUtil.same(values, saved)) {
       this.revert();
       return;
     }
-    this.changed.emit({ sheetCellId: this.cell().id, slots: values });
+    this.changed.emit({ sheetCellId: this.cell().id, value: values });
   }
 
   public revert(): void {
-    this.values.set({ ...(this.cell().slots ?? {}) });
+    this.values.set({ ...(CellValueUtil.slots(this.cell()) ?? {}) });
   }
 
   public ariaLabel(slotLabel: string, index: number): string {

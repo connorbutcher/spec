@@ -42,7 +42,7 @@ export class SheetNumberCell {
   public readonly started = output<void>();
   public readonly changed = output<CellValueRequest>();
 
-  public readonly number = linkedSignal<number | null>(() => this.cell().numberValue);
+  public readonly number = linkedSignal<number | null>(() => CellValueUtil.number(this.cell()));
 
   public readonly inputStyle = CELL_INPUT_STYLE;
 
@@ -76,12 +76,12 @@ export class SheetNumberCell {
 
   public commit(): void {
     const value = this.number();
-    if (value !== this.cell().numberValue) {
+    if (value !== CellValueUtil.number(this.cell())) {
       this.changed.emit(CellValueUtil.valueRequest(this.cell(), 'Number', value));
     }
   }
 
   public revert(): void {
-    this.number.set(this.cell().numberValue);
+    this.number.set(CellValueUtil.number(this.cell()));
   }
 }

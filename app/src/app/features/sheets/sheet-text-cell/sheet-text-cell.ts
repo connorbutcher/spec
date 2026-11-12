@@ -29,7 +29,7 @@ export class SheetTextCell {
   public readonly started = output<void>();
   public readonly changed = output<CellValueRequest>();
 
-  public readonly text = linkedSignal(() => this.cell().textValue ?? '');
+  public readonly text = linkedSignal(() => CellValueUtil.text(this.cell()) ?? '');
 
   public readonly settings = computed(() => {
     const configuration = this.configuration();
@@ -50,7 +50,7 @@ export class SheetTextCell {
     // breaks pasted into a single-line cell become spaces.
     const typed = this.settings()?.multiline ? this.text() : this.text().replace(/\s*[\r\n]+\s*/g, ' ');
     const value = typed.trim();
-    if (value === (this.cell().textValue ?? '').trim()) {
+    if (value === (CellValueUtil.text(this.cell()) ?? '').trim()) {
       this.revert();
       return;
     }
@@ -58,6 +58,6 @@ export class SheetTextCell {
   }
 
   public revert(): void {
-    this.text.set(this.cell().textValue ?? '');
+    this.text.set(CellValueUtil.text(this.cell()) ?? '');
   }
 }

@@ -35,7 +35,7 @@ export class SheetCellValue {
 
   public readonly isCheckbox = computed(() => this.cellType()?.kind === 'Checkbox');
 
-  public readonly isChecked = computed(() => this.cell()?.booleanValue === true);
+  public readonly isChecked = computed(() => this.cell()?.value === true);
 
   /** A text box takes its text style from the cell; the other controls keep their own. */
   public readonly isText = computed(() => this.cellType()?.kind === 'Text');

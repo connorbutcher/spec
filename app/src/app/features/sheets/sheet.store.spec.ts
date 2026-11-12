@@ -199,13 +199,13 @@ describe('SheetStore', () => {
     const row = header.rows[0];
     const cell = row.cells[0];
 
-    const saving = store.saveValues(row.id, [{ sheetCellId: cell.id, text: 'new' }]);
+    const saving = store.saveValues(row.id, [{ sheetCellId: cell.id, value: 'new' }]);
     await SpecHelpers.settle();
     const request = http.expectOne(`/api/sheet-rows/${row.id}/values`);
-    expect(request.request.body).toEqual({ values: [{ sheetCellId: cell.id, text: 'new' }] });
+    expect(request.request.body).toEqual({ values: [{ sheetCellId: cell.id, value: 'new' }] });
     request.flush(
       SpecHelpers.rowsFromServer(sheet, [row.id], (copy) => {
-        copy.tables[0].sections[1].rows[0].cells[0].textValue = 'new';
+        copy.tables[0].sections[1].rows[0].cells[0].value = 'new';
       }),
     );
     await saving;
@@ -213,7 +213,7 @@ describe('SheetStore', () => {
     const after = store.sheet()?.tables[0].sections ?? [];
     expect(after[0]).toBe(group);
     expect(after[1]).not.toBe(header);
-    expect(after[1].rows[0].cells[0].textValue).toBe('new');
+    expect(after[1].rows[0].cells[0].value).toBe('new');
     expect(after[1].rows[0].cells[1]).toBe(row.cells[1]);
   });
 
@@ -252,7 +252,7 @@ describe('SheetStore', () => {
     const row = store.sheet()?.tables[0].sections[1].rows[0];
     const cell = row?.cells[0];
 
-    const saving = store.saveValues(row?.id ?? -1, [{ sheetCellId: cell?.id ?? -1, text: 'x' }]);
+    const saving = store.saveValues(row?.id ?? -1, [{ sheetCellId: cell?.id ?? -1, value: 'x' }]);
     await SpecHelpers.settle();
     http.expectOne(`/api/sheet-rows/${row?.id}/values`).flush(SpecHelpers.rowsFromServer(sheet, [row?.id ?? -1]));
     await saving;
@@ -381,7 +381,7 @@ describe('SheetStore', () => {
   it("waits for the user's own change before refreshing, so an older read never lands on a newer save", async () => {
     const row = sheet.tables[0].sections[1].rows[0];
 
-    const saving = store.saveValues(row.id, [{ sheetCellId: row.cells[0].id, text: 'new' }]);
+    const saving = store.saveValues(row.id, [{ sheetCellId: row.cells[0].id, value: 'new' }]);
     store.refresh();
     store.refresh();
     await SpecHelpers.settle();

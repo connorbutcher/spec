@@ -4,6 +4,7 @@ import { SheetRow } from '../models/sheet-row.model';
 import { SheetSection } from '../models/sheet-section.model';
 import { SheetTable } from '../models/sheet-table.model';
 import { Sheet } from '../models/sheet.model';
+import { CellValueUtil } from '../values/cell-value.util';
 
 export class SheetLabelsUtil {
   /**
@@ -25,7 +26,7 @@ export class SheetLabelsUtil {
 
   /** The text typed into a cell: a text cell's value, or a labelled text cell's first value. */
   public static cellText(cell: SheetCell): string | null {
-    return cell.textValue ?? Object.values(cell.slots ?? {})[0] ?? null;
+    return CellValueUtil.text(cell) ?? Object.values(CellValueUtil.slots(cell) ?? {})[0] ?? null;
   }
 
   /** "v3 · 12 Sep 2026 · A. Smith": which publish changed something, when and by whom. */

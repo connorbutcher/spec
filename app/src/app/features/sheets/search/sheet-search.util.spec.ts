@@ -32,13 +32,13 @@ class SpecHelpers {
       .cells as SheetCell[];
     cells[0].template = { ...cells[0].template, cellTypeId: 4, caption: 'Bore diameter' };
     cells[1].template = { ...cells[1].template, cellTypeId: 1 };
-    cells[1].textValue = 'Bore A';
+    cells[1].value = 'Bore A';
     cells[2].template = { ...cells[2].template, cellTypeId: 2 };
-    cells[2].numberValue = 12.5;
+    cells[2].value = 12.5;
     cells[3].template = { ...cells[3].template, cellTypeId: 3 };
-    cells[3].optionId = 4;
+    cells[3].value = 4;
     cells[4].template = { ...cells[4].template, cellTypeId: 5 };
-    cells[4].dateValue = '2026-11-03';
+    cells[4].value = '2026-11-03';
     return { table, cells };
   }
 

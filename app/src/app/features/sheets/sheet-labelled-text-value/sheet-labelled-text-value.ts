@@ -3,6 +3,7 @@ import { CellConfiguration } from '../../templates/models/cell-configuration';
 import { LabelledTextSlotsUtil } from '../../templates/labelled-text-slots.util';
 import { SheetCell } from '../models/sheet-cell.model';
 import { LabelledTextValueUtil } from '../values/labelled-text-value.util';
+import { CellValueUtil } from '../values/cell-value.util';
 
 /**
  * A labelled text cell as plain content: each value on its own line with its label after it, in the
@@ -21,7 +22,7 @@ export class SheetLabelledTextValue {
 
   public readonly slots = computed(() => LabelledTextValueUtil.slotsOf(this.cell(), this.configuration()));
 
-  public readonly values = computed<Readonly<Record<string, string>>>(() => this.cell().slots ?? {});
+  public readonly values = computed<Readonly<Record<string, string>>>(() => CellValueUtil.slots(this.cell()) ?? {});
 
   public readonly isEmpty = computed(() => this.slots().every((slot) => !this.values()[slot.key]));
 

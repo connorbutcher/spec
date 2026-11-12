@@ -42,7 +42,7 @@ class SheetGridCellPage {
     const table = SheetStructureFixture.fixtureTable();
     const header = table.sections.find((section) => section.role === 'Header');
     const row = header?.rows[0] as SheetRow;
-    row.cells[0].textValue = 'P-1001';
+    row.cells[0].value = 'P-1001';
     const sheet: Sheet = {
       id: 5,
       publicId: 'sheet-5',

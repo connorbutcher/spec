@@ -28,6 +28,7 @@ import { SheetCellMarks } from '../sheet-cell-marks/sheet-cell-marks';
 import { SheetCellValue } from '../sheet-cell-value/sheet-cell-value';
 import { SheetLockUtil } from '../checkouts/sheet-lock.util';
 import { SheetStore } from '../sheet.store';
+import { CellValueUtil } from '../values/cell-value.util';
 
 const FLEX_ALIGNMENT: Readonly<Record<string, string>> = {
   left: 'flex-start',
@@ -201,7 +202,7 @@ export class SheetGridCell {
     const choices = this.linkedChoices();
     return choices === null || this.showsEditor()
       ? null
-      : LinkedDropdownUtil.linkedWarning(choices, this.cell()?.textValue ?? null);
+      : LinkedDropdownUtil.linkedWarning(choices, CellValueUtil.text(this.cell()));
   });
 
   /** The cell's value changed after the version being compared against. */

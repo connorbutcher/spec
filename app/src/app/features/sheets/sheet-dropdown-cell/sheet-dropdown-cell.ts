@@ -27,7 +27,7 @@ export class SheetDropdownCell {
   public readonly started = output<void>();
   public readonly changed = output<CellValueRequest>();
 
-  public readonly optionId = linkedSignal<number | null>(() => this.cell().optionId);
+  public readonly optionId = linkedSignal<number | null>(() => CellValueUtil.optionId(this.cell()));
 
   public readonly options = computed(() =>
     [...this.cellType().options].sort((a, b) => a.displayOrder - b.displayOrder),
@@ -35,7 +35,7 @@ export class SheetDropdownCell {
 
   public choose(value: number | null): void {
     this.optionId.set(value);
-    if (value !== this.cell().optionId) {
+    if (value !== CellValueUtil.optionId(this.cell())) {
       this.changed.emit(CellValueUtil.valueRequest(this.cell(), this.cellType().kind, value));
     }
   }

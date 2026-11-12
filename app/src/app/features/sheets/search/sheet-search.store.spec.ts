@@ -30,7 +30,7 @@ class SheetSearchStorePage {
     this.cells = table.sections.find((section) => section.role === 'Header')?.rows[0]
       .cells as SheetCell[];
     values.forEach((value, i) => {
-      this.cells[i].textValue = value;
+      this.cells[i].value = value;
     });
     return {
       id: 5,

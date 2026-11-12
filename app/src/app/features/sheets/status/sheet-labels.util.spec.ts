@@ -4,7 +4,7 @@ import {
 
 describe('sheet labels', () => {
   it('names a row after the first text typed into it, if there is any', () => {
-    const named = SheetStructureFixture.fixtureRow([SheetStructureFixture.fixtureCell(1), { ...SheetStructureFixture.fixtureCell(2), textValue: 'Stem diameter' }]);
+    const named = SheetStructureFixture.fixtureRow([SheetStructureFixture.fixtureCell(1), { ...SheetStructureFixture.fixtureCell(2), value: 'Stem diameter' }]);
 
     expect(SheetLabelsUtil.rowLabel(named)).toBe('Stem diameter');
     expect(SheetLabelsUtil.rowLabel(SheetStructureFixture.fixtureRow([SheetStructureFixture.fixtureCell(1)]))).toBeNull();
@@ -13,7 +13,7 @@ describe('sheet labels', () => {
   it('names a section after its template, plus the first text typed into it', () => {
     const empty = SheetStructureFixture.fixtureSection('Group', 'Addable', [SheetStructureFixture.fixtureRow([SheetStructureFixture.fixtureCell(1)])]);
     const named = SheetStructureFixture.fixtureSection('Group', 'Addable', [
-      SheetStructureFixture.fixtureRow([SheetStructureFixture.fixtureCell(1), { ...SheetStructureFixture.fixtureCell(2), textValue: 'Intake valve' }]),
+      SheetStructureFixture.fixtureRow([SheetStructureFixture.fixtureCell(1), { ...SheetStructureFixture.fixtureCell(2), value: 'Intake valve' }]),
     ]);
 
     expect(SheetLabelsUtil.sectionLabel(empty)).toBe('Group');

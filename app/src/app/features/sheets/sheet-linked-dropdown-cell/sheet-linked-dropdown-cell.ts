@@ -34,11 +34,11 @@ export class SheetLinkedDropdownCell {
   public readonly started = output<void>();
   public readonly changed = output<CellValueRequest>();
 
-  public readonly value = linkedSignal<string | null>(() => this.cell().textValue);
+  public readonly value = linkedSignal<string | null>(() => CellValueUtil.text(this.cell()));
 
   /** The column's values, with the cell's own value kept in the list if the column no longer has it. */
   public readonly options = computed(() => [
-    ...LinkedDropdownUtil.linkedOptions(this.choices(), this.cell().textValue),
+    ...LinkedDropdownUtil.linkedOptions(this.choices(), CellValueUtil.text(this.cell())),
   ]);
 
   public readonly isReady = computed(() => this.choices().status === 'ready');
@@ -49,7 +49,7 @@ export class SheetLinkedDropdownCell {
 
   public choose(value: string | null): void {
     this.value.set(value);
-    if (value !== this.cell().textValue) {
+    if (value !== CellValueUtil.text(this.cell())) {
       this.changed.emit(CellValueUtil.valueRequest(this.cell(), 'LinkedDropdown', value));
     }
   }

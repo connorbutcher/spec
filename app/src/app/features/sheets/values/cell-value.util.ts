@@ -1,6 +1,7 @@
 import { CellConfiguration } from '../../templates/models/cell-configuration';
 import { CellKind } from '../../templates/models/cell-kind';
 import { CellType } from '../../templates/models/cell-type.model';
+import { CellValue } from '../models/cell-value';
 import { CellValueRequest } from '../models/cell-value-request.model';
 import { SheetCell } from '../models/sheet-cell.model';
 
@@ -21,34 +22,40 @@ export class CellValueUtil {
     return new Date(year, month - 1, day);
   }
 
-  /** A request that sets one cell's value, in the field the cell's kind uses. A null value clears the cell. */
+  /** A text or linked dropdown cell's text, or null when it holds none. */
+  public static text(cell: SheetCell | null | undefined): string | null {
+    return typeof cell?.value === 'string' ? cell.value : null;
+  }
+
+  /** A number cell's number, or null when it holds none. */
+  public static number(cell: SheetCell | null | undefined): number | null {
+    return typeof cell?.value === 'number' ? cell.value : null;
+  }
+
+  /** A date cell's date as `yyyy-MM-dd`, or null when it holds none. */
+  public static date(cell: SheetCell | null | undefined): string | null {
+    return typeof cell?.value === 'string' ? cell.value : null;
+  }
+
+  /** A checkbox's state, or null when it has never been set. */
+  public static boolean(cell: SheetCell | null | undefined): boolean | null {
+    return typeof cell?.value === 'boolean' ? cell.value : null;
+  }
+
+  /** The id of a dropdown cell's chosen option, or null when nothing is chosen. */
+  public static optionId(cell: SheetCell | null | undefined): number | null {
+    return typeof cell?.value === 'number' ? cell.value : null;
+  }
+
+  /** A labelled text cell's values by slot key, such as `{ rh: 'P-1003-R' }`, or null when it holds none. */
+  public static slots(cell: SheetCell | null | undefined): Readonly<Record<string, string>> | null {
+    const value = cell?.value;
+    return typeof value === 'object' && value !== null ? value : null;
+  }
+
+  /** A request that sets one cell's value, in the shape the cell's kind takes. A null value clears the cell. */
   public static valueRequest(cell: SheetCell, kind: CellKind, value: string | number | boolean | Date | null): CellValueRequest {
-    const request: CellValueRequest = { sheetCellId: cell.id };
-    switch (kind) {
-      case 'Text':
-      case 'LinkedDropdown': {
-        request.text = typeof value === 'string' ? value : null;
-        break;
-      }
-      case 'Number': {
-        request.number = typeof value === 'number' ? value : null;
-        break;
-      }
-      case 'Date': {
-        request.date = value instanceof Date ? CellValueUtil.toDateValue(value) : null;
-        break;
-      }
-      case 'Checkbox': {
-        request.boolean = typeof value === 'boolean' ? value : null;
-        break;
-      }
-      case 'TextDropdown':
-      case 'NumberDropdown': {
-        request.optionId = typeof value === 'number' ? value : null;
-        break;
-      }
-    }
-    return request;
+    return { sheetCellId: cell.id, value: CellValueUtil.requestValue(kind, value) };
   }
 
   /** What a value cell shows as plain text when it isn't a control. Empty when it has no value, and for a checkbox. */
@@ -56,23 +63,23 @@ export class CellValueUtil {
     switch (cellType.kind) {
       case 'Text':
       case 'LinkedDropdown': {
-        return cell.textValue ?? '';
+        return CellValueUtil.text(cell) ?? '';
 
       }
       case 'Number': {
         return configuration.kind === 'Number'
-          ? CellValueUtil.formatNumber(cell.numberValue, configuration.decimalPlaces, configuration.unit)
-          : CellValueUtil.formatNumber(cell.numberValue, null, null);
+          ? CellValueUtil.formatNumber(CellValueUtil.number(cell), configuration.decimalPlaces, configuration.unit)
+          : CellValueUtil.formatNumber(CellValueUtil.number(cell), null, null);
       }
       case 'Date': {
-        return cell.dateValue ?? '';
+        return CellValueUtil.date(cell) ?? '';
       }
       case 'TextDropdown':
       case 'NumberDropdown': {
-        return cellType.options.find((option) => option.id === cell.optionId)?.value ?? '';
+        return cellType.options.find((option) => option.id === CellValueUtil.optionId(cell))?.value ?? '';
       }
       case 'LabelledText': {
-        return Object.values(cell.slots ?? {}).join(' / ');
+        return Object.values(CellValueUtil.slots(cell) ?? {}).join(' / ');
       }
       default: {
         return '';
@@ -90,5 +97,29 @@ export class CellValueUtil {
         ? String(value)
         : value.toFixed(decimalPlaces);
     return unit ? `${text} ${unit}` : text;
+  }
+
+  /** A value in the shape the cell's kind takes, or null when it doesn't fit the kind. */
+  private static requestValue(kind: CellKind, value: string | number | boolean | Date | null): CellValue {
+    switch (kind) {
+      case 'Text':
+      case 'LinkedDropdown': {
+        return typeof value === 'string' ? value : null;
+      }
+      case 'Number':
+      case 'TextDropdown':
+      case 'NumberDropdown': {
+        return typeof value === 'number' ? value : null;
+      }
+      case 'Date': {
+        return value instanceof Date ? CellValueUtil.toDateValue(value) : null;
+      }
+      case 'Checkbox': {
+        return typeof value === 'boolean' ? value : null;
+      }
+      default: {
+        return null;
+      }
+    }
   }
 }

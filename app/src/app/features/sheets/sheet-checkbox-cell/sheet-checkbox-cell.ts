@@ -24,7 +24,7 @@ export class SheetCheckboxCell {
   public readonly started = output<void>();
   public readonly changed = output<CellValueRequest>();
 
-  public readonly checked = linkedSignal(() => this.cell().booleanValue ?? false);
+  public readonly checked = linkedSignal(() => CellValueUtil.boolean(this.cell()) ?? false);
 
   /** A click on the cell's empty space. Clicks on the checkbox itself and key presses go through its own change event. */
   public toggleFromCell(event: MouseEvent): void {
@@ -37,7 +37,7 @@ export class SheetCheckboxCell {
   public set(value: boolean): void {
     this.checked.set(value);
     // Unticked is the same as nothing saved, so only a real difference is sent.
-    if (value !== (this.cell().booleanValue ?? false)) {
+    if (value !== (CellValueUtil.boolean(this.cell()) ?? false)) {
       this.changed.emit(CellValueUtil.valueRequest(this.cell(), 'Checkbox', value));
     }
   }

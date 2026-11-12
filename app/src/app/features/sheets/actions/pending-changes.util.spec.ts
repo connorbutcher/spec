@@ -15,7 +15,7 @@ class SpecHelpers {
       lock,
       isPending,
       canRemove: true,
-      cells: [{ textValue: text } as SheetRow['cells'][number]],
+      cells: [{ value: text } as SheetRow['cells'][number]],
       lastChange: null,
     };
   }

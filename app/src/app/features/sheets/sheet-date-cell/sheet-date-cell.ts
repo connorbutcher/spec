@@ -27,7 +27,7 @@ export class SheetDateCell {
   public readonly started = output<void>();
   public readonly changed = output<CellValueRequest>();
 
-  public readonly date = linkedSignal<Date | null>(() => CellValueUtil.fromDateValue(this.cell().dateValue));
+  public readonly date = linkedSignal<Date | null>(() => CellValueUtil.fromDateValue(CellValueUtil.date(this.cell())));
 
   public readonly inputStyle = CELL_INPUT_STYLE;
 
@@ -40,7 +40,7 @@ export class SheetDateCell {
   public leave(event: Event): void {
     const typed = event.target instanceof HTMLInputElement ? event.target.value.trim() : '';
     if (this.date() === null && typed !== '') {
-      this.date.set(CellValueUtil.fromDateValue(this.cell().dateValue));
+      this.date.set(CellValueUtil.fromDateValue(CellValueUtil.date(this.cell())));
       return;
     }
     this.commit();
@@ -49,7 +49,7 @@ export class SheetDateCell {
   public commit(): void {
     const date = this.date();
     const value = date === null ? null : CellValueUtil.toDateValue(date);
-    if (value !== this.cell().dateValue) {
+    if (value !== CellValueUtil.date(this.cell())) {
       this.changed.emit(CellValueUtil.valueRequest(this.cell(), 'Date', date));
     }
   }
