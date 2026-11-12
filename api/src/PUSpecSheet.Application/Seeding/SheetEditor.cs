@@ -11,18 +11,38 @@ namespace PUSpecSheet.Application.Seeding;
 /// that lock what they change, and published versions with history. It keeps the live view the last change
 /// returned and finds tables, sections and column blocks in it by their template names.
 /// </summary>
-public sealed class SheetEditor(
-    SheetDto sheet,
-    ShowcaseCellTypeCatalog cellTypes,
-    ISheetService sheets,
-    ISheetTableService tables,
-    ISheetSectionService sections,
-    ISheetRowService rows,
-    ISheetColumnBlockService columnBlocks,
-    ISheetCellSettingsService cellSettings)
+public sealed class SheetEditor
 {
+    private readonly ShowcaseCellTypeCatalog cellTypes;
+    private readonly ISheetService sheets;
+    private readonly ISheetTableService tables;
+    private readonly ISheetSectionService sections;
+    private readonly ISheetRowService rows;
+    private readonly ISheetColumnBlockService columnBlocks;
+    private readonly ISheetCellSettingsService cellSettings;
+
+    public SheetEditor(
+        SheetDto sheet,
+        ShowcaseCellTypeCatalog cellTypes,
+        ISheetService sheets,
+        ISheetTableService tables,
+        ISheetSectionService sections,
+        ISheetRowService rows,
+        ISheetColumnBlockService columnBlocks,
+        ISheetCellSettingsService cellSettings)
+    {
+        this.cellTypes = cellTypes;
+        this.sheets = sheets;
+        this.tables = tables;
+        this.sections = sections;
+        this.rows = rows;
+        this.columnBlocks = columnBlocks;
+        this.cellSettings = cellSettings;
+        this.Sheet = sheet;
+    }
+
     /// <summary>The sheet as the current user last saw it.</summary>
-    public SheetDto Sheet { get; private set; } = sheet;
+    public SheetDto Sheet { get; private set; }
 
     /// <summary>Adds a table from the latest version of a template, gives it a title and returns its id.</summary>
     public async Task<int> AddTableAsync(int templateId, string title, CancellationToken cancellationToken)

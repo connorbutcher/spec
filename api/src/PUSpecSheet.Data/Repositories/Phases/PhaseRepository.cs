@@ -4,8 +4,15 @@ using PUSpecSheet.Domain.Phases;
 
 namespace PUSpecSheet.Data.Repositories.Phases;
 
-public sealed class PhaseRepository(PuSpecSheetDbContext db) : IPhaseRepository
+public sealed class PhaseRepository : IPhaseRepository
 {
+    private readonly PuSpecSheetDbContext db;
+
+    public PhaseRepository(PuSpecSheetDbContext db)
+    {
+        this.db = db;
+    }
+
     public async Task<List<Phase>> ListWithSheetTypesAsync(CancellationToken cancellationToken)
     {
         return await db.Phases

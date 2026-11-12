@@ -4,18 +4,39 @@ using PUSpecSheet.Contracts.Sheets.Collaboration;
 
 namespace PUSpecSheet.Application.Sheets.Collaboration;
 
-public sealed class RowTakeoverService(
-    IRowCheckouts checkouts,
-    ICurrentUser currentUser,
-    RowTakeoverStore store,
-    SheetPresenceTracker presence,
-    RowTakeoverCloser closer,
-    ISheetLiveNotifier notifier,
-    RowTakeoverOptions options,
-    TimeProvider clock) : IRowTakeoverService
+public sealed class RowTakeoverService : IRowTakeoverService
 {
     private const string NoLongerOpen = "That request is no longer open.";
     private const string UnknownUser = "Another user";
+
+    private readonly IRowCheckouts checkouts;
+    private readonly ICurrentUser currentUser;
+    private readonly RowTakeoverStore store;
+    private readonly SheetPresenceTracker presence;
+    private readonly RowTakeoverCloser closer;
+    private readonly ISheetLiveNotifier notifier;
+    private readonly RowTakeoverOptions options;
+    private readonly TimeProvider clock;
+
+    public RowTakeoverService(
+        IRowCheckouts checkouts,
+        ICurrentUser currentUser,
+        RowTakeoverStore store,
+        SheetPresenceTracker presence,
+        RowTakeoverCloser closer,
+        ISheetLiveNotifier notifier,
+        RowTakeoverOptions options,
+        TimeProvider clock)
+    {
+        this.checkouts = checkouts;
+        this.currentUser = currentUser;
+        this.store = store;
+        this.presence = presence;
+        this.closer = closer;
+        this.notifier = notifier;
+        this.options = options;
+        this.clock = clock;
+    }
 
     public async Task<RowTakeoverAvailabilityDto> GetAvailabilityAsync(int rowId, CancellationToken cancellationToken)
     {

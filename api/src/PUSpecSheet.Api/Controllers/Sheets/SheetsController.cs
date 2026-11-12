@@ -18,8 +18,19 @@ namespace PUSpecSheet.Api.Controllers.Sheets;
 /// </summary>
 [ApiController]
 [Tags(ApiTags.Sheets)]
-public sealed class SheetsController(ISheetService sheets, ISheetTableService tables, ISheetSubmissionService submissions) : ControllerBase
+public sealed class SheetsController : ControllerBase
 {
+    private readonly ISheetService sheets;
+    private readonly ISheetTableService tables;
+    private readonly ISheetSubmissionService submissions;
+
+    public SheetsController(ISheetService sheets, ISheetTableService tables, ISheetSubmissionService submissions)
+    {
+        this.sheets = sheets;
+        this.tables = tables;
+        this.submissions = submissions;
+    }
+
     /// <summary>Open a phase's sheet</summary>
     /// <remarks>
     /// Opens the sheet of a sheet type for a phase, creating it empty the first time. With neither

@@ -10,10 +10,7 @@ namespace PUSpecSheet.Application.Seeding;
 /// (the sub-phases under V6), and each is given the Specification, Parts and PFKs sheet types. Phases that
 /// already exist keep everything else they have.
 /// </summary>
-public sealed class ShowcasePhases(
-    IPhaseRepository phaseRepository,
-    ISheetTypeRepository sheetTypes,
-    IUnitOfWork unitOfWork)
+public sealed class ShowcasePhases
 {
     public const string V6 = "V6";
     public const string A2 = "01-A2";
@@ -27,6 +24,17 @@ public sealed class ShowcasePhases(
 
     /// <summary>Every showcase phase, the build first.</summary>
     public static readonly string[] Codes = [V6, A2, A3, A4, A5];
+
+    private readonly IPhaseRepository phaseRepository;
+    private readonly ISheetTypeRepository sheetTypes;
+    private readonly IUnitOfWork unitOfWork;
+
+    public ShowcasePhases(IPhaseRepository phaseRepository, ISheetTypeRepository sheetTypes, IUnitOfWork unitOfWork)
+    {
+        this.phaseRepository = phaseRepository;
+        this.sheetTypes = sheetTypes;
+        this.unitOfWork = unitOfWork;
+    }
 
     /// <summary>The id of each showcase phase by code.</summary>
     public async Task<IReadOnlyDictionary<string, int>> EnsureAsync(CancellationToken cancellationToken)

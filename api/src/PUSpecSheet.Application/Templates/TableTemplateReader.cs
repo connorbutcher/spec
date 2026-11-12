@@ -8,12 +8,25 @@ namespace PUSpecSheet.Application.Templates;
 /// Loads a template at one version (sections, rows and cells) and returns it as the nested DTO. Every
 /// template change returns this so the UI can replace its copy in one go.
 /// </summary>
-public sealed class TableTemplateReader(
-    ITableTemplateRepository templates,
-    ITemplateSectionRepository sections,
-    ITemplateRowRepository rows,
-    ITemplateColumnBlockRepository columnBlocks)
+public sealed class TableTemplateReader
 {
+    private readonly ITableTemplateRepository templates;
+    private readonly ITemplateSectionRepository sections;
+    private readonly ITemplateRowRepository rows;
+    private readonly ITemplateColumnBlockRepository columnBlocks;
+
+    public TableTemplateReader(
+        ITableTemplateRepository templates,
+        ITemplateSectionRepository sections,
+        ITemplateRowRepository rows,
+        ITemplateColumnBlockRepository columnBlocks)
+    {
+        this.templates = templates;
+        this.sections = sections;
+        this.rows = rows;
+        this.columnBlocks = columnBlocks;
+    }
+
     /// <summary>Reads <paramref name="versionNumber"/>, or the latest version when it's null.</summary>
     public async Task<TableTemplateDto> ReadAsync(int templateId, int? versionNumber, CancellationToken cancellationToken)
     {

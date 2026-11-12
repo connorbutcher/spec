@@ -10,8 +10,15 @@ namespace PUSpecSheet.Api.Controllers.Templates;
 [ApiController]
 [Tags(ApiTags.TableTemplates)]
 [Route("api/table-templates")]
-public sealed class TableTemplatesController(ITableTemplateService templates) : ControllerBase
+public sealed class TableTemplatesController : ControllerBase
 {
+    private readonly ITableTemplateService templates;
+
+    public TableTemplatesController(ITableTemplateService templates)
+    {
+        this.templates = templates;
+    }
+
     /// <summary>List table templates</summary>
     /// <remarks>
     /// A summary of every table template in display order, optionally only those of one sheet type.

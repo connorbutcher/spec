@@ -3,14 +3,36 @@ using PUSpecSheet.Domain.Users;
 namespace PUSpecSheet.Application.Users;
 
 /// <summary>Who a user is and what their roles allow them to do.</summary>
-public sealed record UserAccess(
-    int UserId,
-    string UserName,
-    string DisplayName,
-    bool IsAdministrator,
-    IReadOnlyList<string> Roles,
-    IReadOnlyList<string> Permissions)
+public sealed record UserAccess
 {
+    public UserAccess(
+        int userId,
+        string userName,
+        string displayName,
+        bool isAdministrator,
+        IReadOnlyList<string> roles,
+        IReadOnlyList<string> permissions)
+    {
+        this.UserId = userId;
+        this.UserName = userName;
+        this.DisplayName = displayName;
+        this.IsAdministrator = isAdministrator;
+        this.Roles = roles;
+        this.Permissions = permissions;
+    }
+
+    public int UserId { get; init; }
+
+    public string UserName { get; init; }
+
+    public string DisplayName { get; init; }
+
+    public bool IsAdministrator { get; init; }
+
+    public IReadOnlyList<string> Roles { get; init; }
+
+    public IReadOnlyList<string> Permissions { get; init; }
+
     /// <summary>Whether the user may do what <paramref name="permission"/> names. An administrator may do anything.</summary>
     public bool Has(string permission)
     {

@@ -12,14 +12,31 @@ namespace PUSpecSheet.Application.Approvals;
 /// then tagged with a new pending submission: they stay drafts, so no published view shows them, and stay
 /// locked to their authors, who can't change them until the submission is decided.
 /// </summary>
-public sealed class SheetSubmitter(
-    ISheetSubmissionRepository submissions,
-    IUnitOfWork unitOfWork,
-    SheetPublisher publisher,
-    ApproverDirectory approvers,
-    ICurrentUser currentUser,
-    TimeProvider clock)
+public sealed class SheetSubmitter
 {
+    private readonly ISheetSubmissionRepository submissions;
+    private readonly IUnitOfWork unitOfWork;
+    private readonly SheetPublisher publisher;
+    private readonly ApproverDirectory approvers;
+    private readonly ICurrentUser currentUser;
+    private readonly TimeProvider clock;
+
+    public SheetSubmitter(
+        ISheetSubmissionRepository submissions,
+        IUnitOfWork unitOfWork,
+        SheetPublisher publisher,
+        ApproverDirectory approvers,
+        ICurrentUser currentUser,
+        TimeProvider clock)
+    {
+        this.submissions = submissions;
+        this.unitOfWork = unitOfWork;
+        this.publisher = publisher;
+        this.approvers = approvers;
+        this.currentUser = currentUser;
+        this.clock = clock;
+    }
+
     /// <returns>The new submission's id.</returns>
     public async Task<int> SubmitAsync(int sheetId, SubmitSheetRequest request, CancellationToken cancellationToken)
     {

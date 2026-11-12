@@ -14,14 +14,51 @@ namespace PUSpecSheet.Contracts.Published;
 /// section and its sub-sections (or of the whole table when the cell is in the header), and
 /// <see cref="Headings"/> are the table's own headings.
 /// </summary>
-public sealed record PublishedLookupMatchDto(
-    Guid Sheet,
-    string Phase,
-    int SheetType,
-    int Version,
-    DateTime PublishedAtUtc,
-    Guid Table,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? Title,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? Column,
-    IReadOnlyList<string> Headings,
-    IReadOnlyDictionary<Guid, PublishedRowValuesDto> Rows);
+public sealed record PublishedLookupMatchDto
+{
+    public PublishedLookupMatchDto(
+        Guid sheet,
+        string phase,
+        int sheetType,
+        int version,
+        DateTime publishedAtUtc,
+        Guid table,
+        string? title,
+        string? column,
+        IReadOnlyList<string> headings,
+        IReadOnlyDictionary<Guid, PublishedRowValuesDto> rows)
+    {
+        this.Sheet = sheet;
+        this.Phase = phase;
+        this.SheetType = sheetType;
+        this.Version = version;
+        this.PublishedAtUtc = publishedAtUtc;
+        this.Table = table;
+        this.Title = title;
+        this.Column = column;
+        this.Headings = headings;
+        this.Rows = rows;
+    }
+
+    public Guid Sheet { get; init; }
+
+    public string Phase { get; init; }
+
+    public int SheetType { get; init; }
+
+    public int Version { get; init; }
+
+    public DateTime PublishedAtUtc { get; init; }
+
+    public Guid Table { get; init; }
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Title { get; init; }
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Column { get; init; }
+
+    public IReadOnlyList<string> Headings { get; init; }
+
+    public IReadOnlyDictionary<Guid, PublishedRowValuesDto> Rows { get; init; }
+}

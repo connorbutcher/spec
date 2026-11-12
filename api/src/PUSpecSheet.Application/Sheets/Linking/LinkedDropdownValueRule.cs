@@ -11,8 +11,15 @@ namespace PUSpecSheet.Application.Sheets.Linking;
 /// A value saved into a linked dropdown must be one of the choices its column offers at that moment. A value
 /// already in the cell is left alone if the column later changes: the row only changes when someone edits it.
 /// </summary>
-public sealed class LinkedDropdownValueRule(SheetReader reader)
+public sealed class LinkedDropdownValueRule
 {
+    private readonly SheetReader reader;
+
+    public LinkedDropdownValueRule(SheetReader reader)
+    {
+        this.reader = reader;
+    }
+
     /// <summary>Expects each cell's template cell and cell type to be loaded.</summary>
     /// <exception cref="InvalidRequestException">A value isn't one of its cell's choices, or the cell has no column chosen.</exception>
     public async Task EnsureChoicesAsync(

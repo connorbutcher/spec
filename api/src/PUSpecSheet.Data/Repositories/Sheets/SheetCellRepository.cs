@@ -4,8 +4,15 @@ using PUSpecSheet.Application.Sheets.Values;
 
 namespace PUSpecSheet.Data.Repositories.Sheets;
 
-public sealed class SheetCellRepository(PuSpecSheetDbContext db) : ISheetCellRepository
+public sealed class SheetCellRepository : ISheetCellRepository
 {
+    private readonly PuSpecSheetDbContext db;
+
+    public SheetCellRepository(PuSpecSheetDbContext db)
+    {
+        this.db = db;
+    }
+
     public async Task<List<NewCell>> ListNewCellsAsync(IReadOnlyCollection<int> rowIds, CancellationToken cancellationToken)
     {
         return await db.SheetCells

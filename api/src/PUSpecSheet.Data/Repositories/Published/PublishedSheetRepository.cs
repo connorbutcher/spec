@@ -5,8 +5,15 @@ using PUSpecSheet.Contracts.Published;
 
 namespace PUSpecSheet.Data.Repositories.Published;
 
-public sealed class PublishedSheetRepository(PuSpecSheetDbContext db) : IPublishedSheetRepository
+public sealed class PublishedSheetRepository : IPublishedSheetRepository
 {
+    private readonly PuSpecSheetDbContext db;
+
+    public PublishedSheetRepository(PuSpecSheetDbContext db)
+    {
+        this.db = db;
+    }
+
     public async Task<PublishedSheetReferenceDto?> FindReferenceAsync(string phaseCode, int sheetTypeId, CancellationToken cancellationToken)
     {
         return await db.Sheets

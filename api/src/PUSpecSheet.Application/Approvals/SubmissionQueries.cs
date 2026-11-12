@@ -7,13 +7,21 @@ using PUSpecSheet.Domain.Approvals;
 namespace PUSpecSheet.Application.Approvals;
 
 /// <summary>Reads submissions for the screens that list them: an approver's inbox, a submitter's own, a sheet's pending ones.</summary>
-public sealed class SubmissionQueries(
-    ISheetSubmissionRepository submissions,
-    SheetRevisionRepositories revisions,
-    TimeProvider clock)
+public sealed class SubmissionQueries
 {
     /// <summary>How far back a submitter's decided submissions are still listed, so a rejection's reason can be read.</summary>
     private static readonly TimeSpan DecidedKeptFor = TimeSpan.FromDays(30);
+
+    private readonly ISheetSubmissionRepository submissions;
+    private readonly SheetRevisionRepositories revisions;
+    private readonly TimeProvider clock;
+
+    public SubmissionQueries(ISheetSubmissionRepository submissions, SheetRevisionRepositories revisions, TimeProvider clock)
+    {
+        this.submissions = submissions;
+        this.revisions = revisions;
+        this.clock = clock;
+    }
 
     /// <summary>Pending submissions waiting for <paramref name="userId"/>'s decision, oldest first.</summary>
     public Task<IReadOnlyList<SheetSubmissionDto>> AwaitingDecisionOfAsync(int userId, CancellationToken cancellationToken)

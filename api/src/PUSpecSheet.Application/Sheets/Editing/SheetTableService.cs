@@ -14,19 +14,46 @@ using PUSpecSheet.Domain.Sheets;
 
 namespace PUSpecSheet.Application.Sheets.Editing;
 
-public sealed class SheetTableService(
-    ISheetRepository sheets,
-    ISheetTableRepository tables,
-    ISheetTableRevisionRepository tableRevisions,
-    TemplateRepositories templates,
-    IUnitOfWork unitOfWork,
-    TableDrafts drafts,
-    SheetInstantiator instantiator,
-    ISheetCellFiller filler,
-    SheetReader reader,
-    RemovalContentsGuard contents,
-    ICurrentUser currentUser) : ISheetTableService
+public sealed class SheetTableService : ISheetTableService
 {
+    private readonly ISheetRepository sheets;
+    private readonly ISheetTableRepository tables;
+    private readonly ISheetTableRevisionRepository tableRevisions;
+    private readonly TemplateRepositories templates;
+    private readonly IUnitOfWork unitOfWork;
+    private readonly TableDrafts drafts;
+    private readonly SheetInstantiator instantiator;
+    private readonly ISheetCellFiller filler;
+    private readonly SheetReader reader;
+    private readonly RemovalContentsGuard contents;
+    private readonly ICurrentUser currentUser;
+
+    public SheetTableService(
+        ISheetRepository sheets,
+        ISheetTableRepository tables,
+        ISheetTableRevisionRepository tableRevisions,
+        TemplateRepositories templates,
+        IUnitOfWork unitOfWork,
+        TableDrafts drafts,
+        SheetInstantiator instantiator,
+        ISheetCellFiller filler,
+        SheetReader reader,
+        RemovalContentsGuard contents,
+        ICurrentUser currentUser)
+    {
+        this.sheets = sheets;
+        this.tables = tables;
+        this.tableRevisions = tableRevisions;
+        this.templates = templates;
+        this.unitOfWork = unitOfWork;
+        this.drafts = drafts;
+        this.instantiator = instantiator;
+        this.filler = filler;
+        this.reader = reader;
+        this.contents = contents;
+        this.currentUser = currentUser;
+    }
+
     public async Task<SheetDto> AddAsync(int sheetId, AddSheetTableRequest request, CancellationToken cancellationToken)
     {
         var sheet = await sheets.FindAsync(sheetId, cancellationToken)

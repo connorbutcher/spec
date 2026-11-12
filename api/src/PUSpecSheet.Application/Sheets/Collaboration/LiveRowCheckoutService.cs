@@ -3,14 +3,31 @@ using PUSpecSheet.Application.Sheets.Removal;
 
 namespace PUSpecSheet.Application.Sheets.Collaboration;
 
-public sealed class LiveRowCheckoutService(
-    IRowCheckouts checkouts,
-    SheetPresenceTracker presence,
-    LiveRowCheckoutTracker tracker,
-    IRowTakeoverSettler takeovers,
-    IRemovalInProgressGuard removals,
-    ISheetLiveNotifier notifier) : ILiveRowCheckoutService
+public sealed class LiveRowCheckoutService : ILiveRowCheckoutService
 {
+    private readonly IRowCheckouts checkouts;
+    private readonly SheetPresenceTracker presence;
+    private readonly LiveRowCheckoutTracker tracker;
+    private readonly IRowTakeoverSettler takeovers;
+    private readonly IRemovalInProgressGuard removals;
+    private readonly ISheetLiveNotifier notifier;
+
+    public LiveRowCheckoutService(
+        IRowCheckouts checkouts,
+        SheetPresenceTracker presence,
+        LiveRowCheckoutTracker tracker,
+        IRowTakeoverSettler takeovers,
+        IRemovalInProgressGuard removals,
+        ISheetLiveNotifier notifier)
+    {
+        this.checkouts = checkouts;
+        this.presence = presence;
+        this.tracker = tracker;
+        this.takeovers = takeovers;
+        this.removals = removals;
+        this.notifier = notifier;
+    }
+
     public async Task CheckOutAsync(string connectionId, int rowId, CancellationToken cancellationToken)
     {
         var connection = presence.Find(connectionId)

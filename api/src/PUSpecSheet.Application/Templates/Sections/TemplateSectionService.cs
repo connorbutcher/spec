@@ -7,12 +7,25 @@ using PUSpecSheet.Domain.Templates;
 
 namespace PUSpecSheet.Application.Templates.Sections;
 
-public sealed class TemplateSectionService(
-    ITemplateSectionRepository sections,
-    IUnitOfWork unitOfWork,
-    TableTemplateReader reader,
-    TemplateVersionGuard guard) : ITemplateSectionService
+public sealed class TemplateSectionService : ITemplateSectionService
 {
+    private readonly ITemplateSectionRepository sections;
+    private readonly IUnitOfWork unitOfWork;
+    private readonly TableTemplateReader reader;
+    private readonly TemplateVersionGuard guard;
+
+    public TemplateSectionService(
+        ITemplateSectionRepository sections,
+        IUnitOfWork unitOfWork,
+        TableTemplateReader reader,
+        TemplateVersionGuard guard)
+    {
+        this.sections = sections;
+        this.unitOfWork = unitOfWork;
+        this.reader = reader;
+        this.guard = guard;
+    }
+
     public async Task<TableTemplateDto> CreateAsync(CreateTemplateSectionRequest request, CancellationToken cancellationToken)
     {
         var versionId = request.TableTemplateVersionId;

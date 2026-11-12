@@ -12,14 +12,31 @@ namespace PUSpecSheet.Application.Sheets.Values;
 /// before them, so a column of linked dropdowns is pointed at its table once and not again for every row.
 /// Only settings are carried over, never values.
 /// </summary>
-public sealed class NewRowSettings(
-    ISheetRowRepository rows,
-    ISheetCellRepository cells,
-    ISheetRowRevisionRepository rowRevisions,
-    IRowValueRepository values,
-    IUnitOfWork unitOfWork,
-    ICurrentUser currentUser)
+public sealed class NewRowSettings
 {
+    private readonly ISheetRowRepository rows;
+    private readonly ISheetCellRepository cells;
+    private readonly ISheetRowRevisionRepository rowRevisions;
+    private readonly IRowValueRepository values;
+    private readonly IUnitOfWork unitOfWork;
+    private readonly ICurrentUser currentUser;
+
+    public NewRowSettings(
+        ISheetRowRepository rows,
+        ISheetCellRepository cells,
+        ISheetRowRevisionRepository rowRevisions,
+        IRowValueRepository values,
+        IUnitOfWork unitOfWork,
+        ICurrentUser currentUser)
+    {
+        this.rows = rows;
+        this.cells = cells;
+        this.rowRevisions = rowRevisions;
+        this.values = values;
+        this.unitOfWork = unitOfWork;
+        this.currentUser = currentUser;
+    }
+
     /// <param name="tableId">The table the rows were added to.</param>
     /// <param name="newRowIds">The rows just added, which are still their author's first drafts.</param>
     /// <param name="cancellationToken">Stops the queries.</param>

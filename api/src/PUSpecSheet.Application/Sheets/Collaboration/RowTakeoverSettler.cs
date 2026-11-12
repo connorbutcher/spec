@@ -2,11 +2,19 @@ using PUSpecSheet.Contracts.Sheets.Collaboration;
 
 namespace PUSpecSheet.Application.Sheets.Collaboration;
 
-public sealed class RowTakeoverSettler(
-    RowTakeoverStore store,
-    RowTakeoverCloser closer,
-    TimeProvider clock) : IRowTakeoverSettler
+public sealed class RowTakeoverSettler : IRowTakeoverSettler
 {
+    private readonly RowTakeoverStore store;
+    private readonly RowTakeoverCloser closer;
+    private readonly TimeProvider clock;
+
+    public RowTakeoverSettler(RowTakeoverStore store, RowTakeoverCloser closer, TimeProvider clock)
+    {
+        this.store = store;
+        this.closer = closer;
+        this.clock = clock;
+    }
+
     public async Task GrantOverdueAsync(CancellationToken cancellationToken)
     {
         foreach (var takeover in store.Due(clock.GetUtcNow().UtcDateTime))

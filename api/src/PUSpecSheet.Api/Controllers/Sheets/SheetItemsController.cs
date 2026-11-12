@@ -9,8 +9,15 @@ namespace PUSpecSheet.Api.Controllers.Sheets;
 [ApiController]
 [Tags(ApiTags.SheetItems)]
 [Route("api/sheet-items")]
-public sealed class SheetItemsController(ISheetItemLocator locator) : ControllerBase
+public sealed class SheetItemsController : ControllerBase
 {
+    private readonly ISheetItemLocator locator;
+
+    public SheetItemsController(ISheetItemLocator locator)
+    {
+        this.locator = locator;
+    }
+
     /// <summary>Find a sheet item</summary>
     /// <remarks>
     /// Says what a public identifier belongs to (a sheet, table, section, column block, row or cell) and

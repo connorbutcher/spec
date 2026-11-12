@@ -15,19 +15,46 @@ using PUSpecSheet.Domain.Templates;
 
 namespace PUSpecSheet.Application.Sheets.Editing;
 
-public sealed class SheetColumnBlockService(
-    ISheetTableRepository tables,
-    ISheetColumnBlockRepository columnBlocks,
-    ISheetColumnBlockRevisionRepository columnBlockRevisions,
-    ITemplateColumnBlockRepository templateColumnBlocks,
-    IUnitOfWork unitOfWork,
-    ColumnBlockDrafts drafts,
-    SheetInstantiator instantiator,
-    ISheetCellFiller filler,
-    SheetReader reader,
-    IRemovalInProgressGuard removals,
-    ICurrentUser currentUser) : ISheetColumnBlockService
+public sealed class SheetColumnBlockService : ISheetColumnBlockService
 {
+    private readonly ISheetTableRepository tables;
+    private readonly ISheetColumnBlockRepository columnBlocks;
+    private readonly ISheetColumnBlockRevisionRepository columnBlockRevisions;
+    private readonly ITemplateColumnBlockRepository templateColumnBlocks;
+    private readonly IUnitOfWork unitOfWork;
+    private readonly ColumnBlockDrafts drafts;
+    private readonly SheetInstantiator instantiator;
+    private readonly ISheetCellFiller filler;
+    private readonly SheetReader reader;
+    private readonly IRemovalInProgressGuard removals;
+    private readonly ICurrentUser currentUser;
+
+    public SheetColumnBlockService(
+        ISheetTableRepository tables,
+        ISheetColumnBlockRepository columnBlocks,
+        ISheetColumnBlockRevisionRepository columnBlockRevisions,
+        ITemplateColumnBlockRepository templateColumnBlocks,
+        IUnitOfWork unitOfWork,
+        ColumnBlockDrafts drafts,
+        SheetInstantiator instantiator,
+        ISheetCellFiller filler,
+        SheetReader reader,
+        IRemovalInProgressGuard removals,
+        ICurrentUser currentUser)
+    {
+        this.tables = tables;
+        this.columnBlocks = columnBlocks;
+        this.columnBlockRevisions = columnBlockRevisions;
+        this.templateColumnBlocks = templateColumnBlocks;
+        this.unitOfWork = unitOfWork;
+        this.drafts = drafts;
+        this.instantiator = instantiator;
+        this.filler = filler;
+        this.reader = reader;
+        this.removals = removals;
+        this.currentUser = currentUser;
+    }
+
     public async Task<SheetDto> AddAsync(int tableId, AddSheetColumnBlockRequest request, CancellationToken cancellationToken)
     {
         var table = await tables.FindWithTemplateVersionAsync(tableId, cancellationToken)

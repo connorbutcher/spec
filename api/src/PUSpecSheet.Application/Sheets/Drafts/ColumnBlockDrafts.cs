@@ -6,12 +6,17 @@ using PUSpecSheet.Domain.Sheets;
 
 namespace PUSpecSheet.Application.Sheets.Drafts;
 
-public sealed class ColumnBlockDrafts(
-    ISheetColumnBlockRevisionRepository revisions,
-    IUserRepository users,
-    IUnitOfWork unitOfWork,
-    ICurrentUser currentUser) : DraftGateway<SheetColumnBlockRevision>(revisions, users, unitOfWork, currentUser)
+public sealed class ColumnBlockDrafts : DraftGateway<SheetColumnBlockRevision>
 {
+    public ColumnBlockDrafts(
+        ISheetColumnBlockRevisionRepository revisions,
+        IUserRepository users,
+        IUnitOfWork unitOfWork,
+        ICurrentUser currentUser)
+        : base(revisions, users, unitOfWork, currentUser)
+    {
+    }
+
     protected override string Subject => "This column block";
 
     protected override int ItemIdOf(SheetColumnBlockRevision revision)

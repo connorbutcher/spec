@@ -16,15 +16,34 @@ namespace PUSpecSheet.Application.Sheets.Reading;
 /// drafts; a past view reads only the revisions whose published range covers that moment, which is what
 /// the (item, published, superseded) indexes are for.
 /// </summary>
-public sealed class SheetSnapshotLoader(
-    SheetStructureRepositories sheet,
-    SheetRevisionRepositories revisions,
-    TemplateRepositories templates,
-    ICellTypeRepository cellTypes,
-    IUserRepository users,
-    IRowValueRepository values,
-    SheetChangeHistoryLoader changeLoader)
+public sealed class SheetSnapshotLoader
 {
+    private readonly SheetStructureRepositories sheet;
+    private readonly SheetRevisionRepositories revisions;
+    private readonly TemplateRepositories templates;
+    private readonly ICellTypeRepository cellTypes;
+    private readonly IUserRepository users;
+    private readonly IRowValueRepository values;
+    private readonly SheetChangeHistoryLoader changeLoader;
+
+    public SheetSnapshotLoader(
+        SheetStructureRepositories sheet,
+        SheetRevisionRepositories revisions,
+        TemplateRepositories templates,
+        ICellTypeRepository cellTypes,
+        IUserRepository users,
+        IRowValueRepository values,
+        SheetChangeHistoryLoader changeLoader)
+    {
+        this.sheet = sheet;
+        this.revisions = revisions;
+        this.templates = templates;
+        this.cellTypes = cellTypes;
+        this.users = users;
+        this.values = values;
+        this.changeLoader = changeLoader;
+    }
+
     public async Task<SheetSnapshot> LoadAsync(int sheetId, SheetViewPoint view, int currentUserId, CancellationToken cancellationToken)
     {
         var found = await sheet.Sheets.FindAsync(sheetId, cancellationToken)

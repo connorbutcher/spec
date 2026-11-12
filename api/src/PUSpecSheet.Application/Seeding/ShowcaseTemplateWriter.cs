@@ -10,11 +10,19 @@ namespace PUSpecSheet.Application.Seeding;
 /// leave them: a new version is a whole new layout, and older versions stay as the sheets built from them
 /// had them.
 /// </summary>
-public sealed class ShowcaseTemplateWriter(
-    ISheetTypeRepository sheetTypes,
-    ITableTemplateRepository templates,
-    IUnitOfWork unitOfWork)
+public sealed class ShowcaseTemplateWriter
 {
+    private readonly ISheetTypeRepository sheetTypes;
+    private readonly ITableTemplateRepository templates;
+    private readonly IUnitOfWork unitOfWork;
+
+    public ShowcaseTemplateWriter(ISheetTypeRepository sheetTypes, ITableTemplateRepository templates, IUnitOfWork unitOfWork)
+    {
+        this.sheetTypes = sheetTypes;
+        this.templates = templates;
+        this.unitOfWork = unitOfWork;
+    }
+
     /// <summary>Adds <paramref name="template"/> with its version 1, at the end of its sheet type's list, and returns its id.</summary>
     public async Task<int> CreateAsync(IShowcaseTemplate template, ShowcaseCellTypeCatalog cellTypes, CancellationToken cancellationToken)
     {

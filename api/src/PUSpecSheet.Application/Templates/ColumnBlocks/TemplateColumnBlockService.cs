@@ -9,16 +9,37 @@ using PUSpecSheet.Domain.Templates;
 
 namespace PUSpecSheet.Application.Templates.ColumnBlocks;
 
-public sealed class TemplateColumnBlockService(
-    ITableTemplateRepository templates,
-    ITemplateRowRepository rows,
-    ITemplateCellRepository cells,
-    ITemplateColumnBlockRepository columnBlocks,
-    ICellTypeRepository cellTypes,
-    IUnitOfWork unitOfWork,
-    TableTemplateReader reader,
-    TemplateVersionGuard guard) : ITemplateColumnBlockService
+public sealed class TemplateColumnBlockService : ITemplateColumnBlockService
 {
+    private readonly ITableTemplateRepository templates;
+    private readonly ITemplateRowRepository rows;
+    private readonly ITemplateCellRepository cells;
+    private readonly ITemplateColumnBlockRepository columnBlocks;
+    private readonly ICellTypeRepository cellTypes;
+    private readonly IUnitOfWork unitOfWork;
+    private readonly TableTemplateReader reader;
+    private readonly TemplateVersionGuard guard;
+
+    public TemplateColumnBlockService(
+        ITableTemplateRepository templates,
+        ITemplateRowRepository rows,
+        ITemplateCellRepository cells,
+        ITemplateColumnBlockRepository columnBlocks,
+        ICellTypeRepository cellTypes,
+        IUnitOfWork unitOfWork,
+        TableTemplateReader reader,
+        TemplateVersionGuard guard)
+    {
+        this.templates = templates;
+        this.rows = rows;
+        this.cells = cells;
+        this.columnBlocks = columnBlocks;
+        this.cellTypes = cellTypes;
+        this.unitOfWork = unitOfWork;
+        this.reader = reader;
+        this.guard = guard;
+    }
+
     public async Task<TableTemplateDto> CreateAsync(
         CreateTemplateColumnBlockRequest request,
         CancellationToken cancellationToken)

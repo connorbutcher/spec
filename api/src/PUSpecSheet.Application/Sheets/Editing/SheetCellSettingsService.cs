@@ -12,14 +12,31 @@ using PUSpecSheet.Domain.Sheets;
 
 namespace PUSpecSheet.Application.Sheets.Editing;
 
-public sealed class SheetCellSettingsService(
-    ISheetRowRepository rows,
-    IRowValueRepository values,
-    IUnitOfWork unitOfWork,
-    RowDrafts drafts,
-    RowDraftStarter draftStarter,
-    SheetReader reader) : ISheetCellSettingsService
+public sealed class SheetCellSettingsService : ISheetCellSettingsService
 {
+    private readonly ISheetRowRepository rows;
+    private readonly IRowValueRepository values;
+    private readonly IUnitOfWork unitOfWork;
+    private readonly RowDrafts drafts;
+    private readonly RowDraftStarter draftStarter;
+    private readonly SheetReader reader;
+
+    public SheetCellSettingsService(
+        ISheetRowRepository rows,
+        IRowValueRepository values,
+        IUnitOfWork unitOfWork,
+        RowDrafts drafts,
+        RowDraftStarter draftStarter,
+        SheetReader reader)
+    {
+        this.rows = rows;
+        this.values = values;
+        this.unitOfWork = unitOfWork;
+        this.drafts = drafts;
+        this.draftStarter = draftStarter;
+        this.reader = reader;
+    }
+
     public async Task<SheetDto> SaveAsync(int rowId, SaveRowCellSettingsRequest request, CancellationToken cancellationToken)
     {
         var row = await LoadRowAsync(rowId, cancellationToken);

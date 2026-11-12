@@ -10,8 +10,8 @@ public sealed class SheetLockSignatureTests
     [Fact]
     public void TheSameSheet_SeenByTwoPeople_HasTheSameSignature()
     {
-        var asHolder = Sheet(3, Row(10, new SheetLockDto(1, "Developer", IsMine: true)));
-        var asOther = Sheet(3, Row(10, new SheetLockDto(1, "Developer", IsMine: false)));
+        var asHolder = Sheet(3, Row(10, new SheetLockDto(1, "Developer", isMine: true)));
+        var asOther = Sheet(3, Row(10, new SheetLockDto(1, "Developer", isMine: false)));
 
         Assert.Equal(SheetLockSignature.Of(asHolder), SheetLockSignature.Of(asOther));
     }
@@ -20,7 +20,7 @@ public sealed class SheetLockSignatureTests
     public void CheckingARowOut_ChangesTheSignature()
     {
         var free = Sheet(3, Row(10, null));
-        var held = Sheet(3, Row(10, new SheetLockDto(1, "Developer", IsMine: true)));
+        var held = Sheet(3, Row(10, new SheetLockDto(1, "Developer", isMine: true)));
 
         Assert.NotEqual(SheetLockSignature.Of(free), SheetLockSignature.Of(held));
     }
@@ -28,8 +28,8 @@ public sealed class SheetLockSignatureTests
     [Fact]
     public void HandingARowToSomeoneElse_ChangesTheSignature()
     {
-        var mine = Sheet(3, Row(10, new SheetLockDto(1, "Developer", IsMine: true)));
-        var theirs = Sheet(3, Row(10, new SheetLockDto(2, "Engineer Two", IsMine: false)));
+        var mine = Sheet(3, Row(10, new SheetLockDto(1, "Developer", isMine: true)));
+        var theirs = Sheet(3, Row(10, new SheetLockDto(2, "Engineer Two", isMine: false)));
 
         Assert.NotEqual(SheetLockSignature.Of(mine), SheetLockSignature.Of(theirs));
     }
@@ -44,7 +44,7 @@ public sealed class SheetLockSignatureTests
     public void ARowNobodyElseCanSeeYet_IsLeftOut()
     {
         var without = Sheet(3, Row(10, null));
-        var withPending = Sheet(3, Row(10, null), Row(11, new SheetLockDto(1, "Developer", IsMine: true), isPending: true));
+        var withPending = Sheet(3, Row(10, null), Row(11, new SheetLockDto(1, "Developer", isMine: true), isPending: true));
 
         Assert.Equal(SheetLockSignature.Of(without), SheetLockSignature.Of(withPending));
     }
@@ -52,8 +52,8 @@ public sealed class SheetLockSignatureTests
     [Fact]
     public void WhenOnlyRowsChangeHands_TheyAreNamed()
     {
-        var before = SheetLockSignature.Entries(Sheet(3, Row(10, null), Row(11, new SheetLockDto(1, "Developer", IsMine: true)), Row(12, null)));
-        var after = SheetLockSignature.Entries(Sheet(3, Row(10, new SheetLockDto(2, "Engineer Two", IsMine: false)), Row(11, null), Row(12, null)));
+        var before = SheetLockSignature.Entries(Sheet(3, Row(10, null), Row(11, new SheetLockDto(1, "Developer", isMine: true)), Row(12, null)));
+        var after = SheetLockSignature.Entries(Sheet(3, Row(10, new SheetLockDto(2, "Engineer Two", isMine: false)), Row(11, null), Row(12, null)));
 
         Assert.Equal([10, 11], SheetLockSignature.ChangedRows(before, after));
     }
@@ -61,7 +61,7 @@ public sealed class SheetLockSignatureTests
     [Fact]
     public void WhenAVersionIsPublished_NoRowsAreNamed()
     {
-        var before = SheetLockSignature.Entries(Sheet(3, Row(10, new SheetLockDto(1, "Developer", IsMine: true))));
+        var before = SheetLockSignature.Entries(Sheet(3, Row(10, new SheetLockDto(1, "Developer", isMine: true))));
         var after = SheetLockSignature.Entries(Sheet(4, Row(10, null)));
 
         Assert.Null(SheetLockSignature.ChangedRows(before, after));
@@ -69,7 +69,7 @@ public sealed class SheetLockSignatureTests
 
     private static SheetRowDto Row(int id, SheetLockDto? held, bool isPending = false)
     {
-        return new SheetRowDto(id, Guid.Empty, 1, id, held, isPending, CanRemove: true, [], null);
+        return new SheetRowDto(id, Guid.Empty, 1, id, held, isPending, canRemove: true, [], null);
     }
 
     private static SheetDto Sheet(int latestVersion, params SheetRowDto[] rows)

@@ -5,13 +5,45 @@ namespace PUSpecSheet.Contracts.Sheets;
 /// else means it's read-only until they publish or discard. <see cref="IsPending"/> rows have never
 /// been published, so only their author can see them.
 /// </summary>
-public sealed record SheetRowDto(
-    int Id,
-    Guid PublicId,
-    int TemplateRowId,
-    int DisplayOrder,
-    SheetLockDto? Lock,
-    bool IsPending,
-    bool CanRemove,
-    IReadOnlyList<SheetCellDto> Cells,
-    SheetChangeDto? LastChange);
+public sealed record SheetRowDto
+{
+    public SheetRowDto(
+        int id,
+        Guid publicId,
+        int templateRowId,
+        int displayOrder,
+        SheetLockDto? @lock,
+        bool isPending,
+        bool canRemove,
+        IReadOnlyList<SheetCellDto> cells,
+        SheetChangeDto? lastChange)
+    {
+        this.Id = id;
+        this.PublicId = publicId;
+        this.TemplateRowId = templateRowId;
+        this.DisplayOrder = displayOrder;
+        this.Lock = @lock;
+        this.IsPending = isPending;
+        this.CanRemove = canRemove;
+        this.Cells = cells;
+        this.LastChange = lastChange;
+    }
+
+    public int Id { get; init; }
+
+    public Guid PublicId { get; init; }
+
+    public int TemplateRowId { get; init; }
+
+    public int DisplayOrder { get; init; }
+
+    public SheetLockDto? Lock { get; init; }
+
+    public bool IsPending { get; init; }
+
+    public bool CanRemove { get; init; }
+
+    public IReadOnlyList<SheetCellDto> Cells { get; init; }
+
+    public SheetChangeDto? LastChange { get; init; }
+}

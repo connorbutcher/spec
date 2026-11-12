@@ -9,7 +9,16 @@ namespace PUSpecSheet.Api.Users;
 /// request runs as, such as seeding at start-up, unless that work names someone else through
 /// <see cref="BackgroundUser"/>. Real authentication only has to issue the same claim.
 /// </summary>
-public sealed class DeveloperCurrentUser(IHttpContextAccessor httpContext, BackgroundUser backgroundUser) : ICurrentUser
+public sealed class DeveloperCurrentUser : ICurrentUser
 {
+    private readonly IHttpContextAccessor httpContext;
+    private readonly BackgroundUser backgroundUser;
+
+    public DeveloperCurrentUser(IHttpContextAccessor httpContext, BackgroundUser backgroundUser)
+    {
+        this.httpContext = httpContext;
+        this.backgroundUser = backgroundUser;
+    }
+
     public int UserId => httpContext.HttpContext?.User.FindUserId() ?? backgroundUser.UserId ?? WellKnownUsers.DeveloperId;
 }

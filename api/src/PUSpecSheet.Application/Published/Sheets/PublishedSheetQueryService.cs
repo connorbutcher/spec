@@ -5,14 +5,31 @@ using PUSpecSheet.Contracts.Published;
 
 namespace PUSpecSheet.Application.Published.Sheets;
 
-public sealed class PublishedSheetQueryService(
-    IPublishedSheetRepository sheets,
-    PublishedVersionResolver resolver,
-    IPublishedStructureRepository structureReader,
-    IPublishedCellRepository cellReader,
-    IPublishedValueRepository valueReader,
-    PublishedSheetCache cache) : IPublishedSheetQueryService
+public sealed class PublishedSheetQueryService : IPublishedSheetQueryService
 {
+    private readonly IPublishedSheetRepository sheets;
+    private readonly PublishedVersionResolver resolver;
+    private readonly IPublishedStructureRepository structureReader;
+    private readonly IPublishedCellRepository cellReader;
+    private readonly IPublishedValueRepository valueReader;
+    private readonly PublishedSheetCache cache;
+
+    public PublishedSheetQueryService(
+        IPublishedSheetRepository sheets,
+        PublishedVersionResolver resolver,
+        IPublishedStructureRepository structureReader,
+        IPublishedCellRepository cellReader,
+        IPublishedValueRepository valueReader,
+        PublishedSheetCache cache)
+    {
+        this.sheets = sheets;
+        this.resolver = resolver;
+        this.structureReader = structureReader;
+        this.cellReader = cellReader;
+        this.valueReader = valueReader;
+        this.cache = cache;
+    }
+
     public async Task<PublishedSheetReferenceDto> FindAsync(string phaseCode, int sheetTypeId, CancellationToken cancellationToken)
     {
         return await sheets.FindReferenceAsync(phaseCode, sheetTypeId, cancellationToken)

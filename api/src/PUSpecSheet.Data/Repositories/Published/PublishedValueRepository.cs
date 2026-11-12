@@ -13,8 +13,15 @@ namespace PUSpecSheet.Data.Repositories.Published;
 /// only the cell id and the value. A whole sheet's values are found through the sheet's revisions at the
 /// version; selected cells through the row revisions the cell query found.
 /// </summary>
-public sealed class PublishedValueRepository(PuSpecSheetDbContext db) : IPublishedValueRepository
+public sealed class PublishedValueRepository : IPublishedValueRepository
 {
+    private readonly PuSpecSheetDbContext db;
+
+    public PublishedValueRepository(PuSpecSheetDbContext db)
+    {
+        this.db = db;
+    }
+
     /// <param name="cells">The cells to read values for, as the cell query found them.</param>
     /// <param name="wholeSheet">The version, when the cells are every cell of the sheet, so every value of its revisions is read and not a long list of cells; otherwise null.</param>
     /// <param name="cancellationToken">Stops the queries.</param>

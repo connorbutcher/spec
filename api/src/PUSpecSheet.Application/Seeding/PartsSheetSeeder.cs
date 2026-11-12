@@ -11,7 +11,7 @@ namespace PUSpecSheet.Application.Seeding;
 /// tightened, and engineer3 has a change waiting; the A phases are built from version 2, and A5 is left
 /// with a fifth part the developer hasn't published yet.
 /// </summary>
-public sealed class PartsSheetSeeder(SheetEditorFactory editors, ShowcaseUsers users)
+public sealed class PartsSheetSeeder
 {
     private const int StartingParts = 3;
 
@@ -48,6 +48,15 @@ public sealed class PartsSheetSeeder(SheetEditorFactory editors, ShowcaseUsers u
                 (PartsMatrixTemplate.Check, "Coating adhesion", "QP-131", 0m, 0m, 0m),
             ]),
     ];
+
+    private readonly SheetEditorFactory editors;
+    private readonly ShowcaseUsers users;
+
+    public PartsSheetSeeder(SheetEditorFactory editors, ShowcaseUsers users)
+    {
+        this.editors = editors;
+        this.users = users;
+    }
 
     /// <summary>V6, built from version 1 of the template, which has no fastener rows.</summary>
     public async Task SeedV6Async(ShowcaseContext context, CancellationToken cancellationToken)

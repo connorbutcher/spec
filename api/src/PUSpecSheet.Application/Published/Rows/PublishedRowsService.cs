@@ -5,12 +5,25 @@ using PUSpecSheet.Contracts.Published;
 
 namespace PUSpecSheet.Application.Published.Rows;
 
-public sealed class PublishedRowsService(
-    IPublishedStructureRepository structureReader,
-    IPublishedLookupCellRepository cellReader,
-    IPublishedKindValueRepository valueReader,
-    PublishedRowsCache cache) : IPublishedRowsService
+public sealed class PublishedRowsService : IPublishedRowsService
 {
+    private readonly IPublishedStructureRepository structureReader;
+    private readonly IPublishedLookupCellRepository cellReader;
+    private readonly IPublishedKindValueRepository valueReader;
+    private readonly PublishedRowsCache cache;
+
+    public PublishedRowsService(
+        IPublishedStructureRepository structureReader,
+        IPublishedLookupCellRepository cellReader,
+        IPublishedKindValueRepository valueReader,
+        PublishedRowsCache cache)
+    {
+        this.structureReader = structureReader;
+        this.cellReader = cellReader;
+        this.valueReader = valueReader;
+        this.cache = cache;
+    }
+
     public async Task<PublishedRowsDto> ReadAsync(ResolvedSheetVersion version, PublishedRowsSelection selection, CancellationToken cancellationToken)
     {
         var key = $"{version.SheetPublicId:N}-v{version.VersionNumber}-{selection.Key}";

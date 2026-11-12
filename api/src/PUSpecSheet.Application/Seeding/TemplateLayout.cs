@@ -8,8 +8,17 @@ namespace PUSpecSheet.Application.Seeding;
 /// Lays out one version of a showcase template: its header, addable sections and sub-sections, column
 /// blocks, rows and cells, each numbered in the order it is added. Cell types are named, not given by id.
 /// </summary>
-public sealed class TemplateLayout(TableTemplateVersion version, ShowcaseCellTypeCatalog cellTypes)
+public sealed class TemplateLayout
 {
+    private readonly TableTemplateVersion version;
+    private readonly ShowcaseCellTypeCatalog cellTypes;
+
+    public TemplateLayout(TableTemplateVersion version, ShowcaseCellTypeCatalog cellTypes)
+    {
+        this.version = version;
+        this.cellTypes = cellTypes;
+    }
+
     public TableTemplateVersion Version => version;
 
     /// <summary>The table's one header section.</summary>

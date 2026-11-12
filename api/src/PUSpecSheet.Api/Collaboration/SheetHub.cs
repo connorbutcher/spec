@@ -11,8 +11,17 @@ namespace PUSpecSheet.Api.Collaboration;
 /// looking at and which row its user is in; everything that changes a sheet goes through the HTTP API,
 /// which then tells the connections here. Who a connection is comes from the signed-in user it was opened by.
 /// </summary>
-public sealed class SheetHub(ISheetPresenceService presence, ILiveRowCheckoutService rowCheckouts) : Hub<ISheetHubClient>
+public sealed class SheetHub : Hub<ISheetHubClient>
 {
+    private readonly ISheetPresenceService presence;
+    private readonly ILiveRowCheckoutService rowCheckouts;
+
+    public SheetHub(ISheetPresenceService presence, ILiveRowCheckoutService rowCheckouts)
+    {
+        this.presence = presence;
+        this.rowCheckouts = rowCheckouts;
+    }
+
     /// <summary>Starts watching a sheet, in place of any sheet this connection was watching.</summary>
     public async Task<SheetLiveStateDto> JoinSheet(int sheetId)
     {

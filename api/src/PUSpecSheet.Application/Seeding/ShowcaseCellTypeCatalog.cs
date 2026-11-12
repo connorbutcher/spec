@@ -6,11 +6,17 @@ namespace PUSpecSheet.Application.Seeding;
 /// The cell types the showcase uses, once they exist: each one's id by name, and its kind and dropdown
 /// options by id, so templates can be laid out by name and sheet values written by what they are.
 /// </summary>
-public sealed class ShowcaseCellTypeCatalog(IReadOnlyList<CellType> cellTypes)
+public sealed class ShowcaseCellTypeCatalog
 {
-    private readonly Dictionary<string, CellType> byName = cellTypes.ToDictionary(cellType => cellType.Name, StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, CellType> byName;
 
-    private readonly Dictionary<int, CellType> byId = cellTypes.ToDictionary(cellType => cellType.Id);
+    private readonly Dictionary<int, CellType> byId;
+
+    public ShowcaseCellTypeCatalog(IReadOnlyList<CellType> cellTypes)
+    {
+        this.byName = cellTypes.ToDictionary(cellType => cellType.Name, StringComparer.OrdinalIgnoreCase);
+        this.byId = cellTypes.ToDictionary(cellType => cellType.Id);
+    }
 
     /// <summary>The id of the cell type called <paramref name="name"/>.</summary>
     public int this[string name] => byName[name].Id;

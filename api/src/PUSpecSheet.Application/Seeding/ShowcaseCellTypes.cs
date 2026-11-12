@@ -11,7 +11,7 @@ namespace PUSpecSheet.Application.Seeding;
 /// Makes sure every cell type the showcase uses exists, one of each kind at least, with settings, styles and
 /// options of their own: a cell type that is already there under the same name is used as it is.
 /// </summary>
-public sealed class ShowcaseCellTypes(ICellTypeRepository cellTypeRepository, IUnitOfWork unitOfWork)
+public sealed class ShowcaseCellTypes
 {
     private static readonly CellStyle Right = new() { Align = CellTextAlign.Right };
 
@@ -102,6 +102,15 @@ public sealed class ShowcaseCellTypes(ICellTypeRepository cellTypeRepository, IU
             new CellStyle(),
             []),
     ];
+
+    private readonly ICellTypeRepository cellTypeRepository;
+    private readonly IUnitOfWork unitOfWork;
+
+    public ShowcaseCellTypes(ICellTypeRepository cellTypeRepository, IUnitOfWork unitOfWork)
+    {
+        this.cellTypeRepository = cellTypeRepository;
+        this.unitOfWork = unitOfWork;
+    }
 
     public async Task<ShowcaseCellTypeCatalog> EnsureAsync(CancellationToken cancellationToken)
     {

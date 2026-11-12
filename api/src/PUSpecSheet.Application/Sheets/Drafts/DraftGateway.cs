@@ -13,13 +13,26 @@ namespace PUSpecSheet.Application.Sheets.Drafts;
 /// item's lock: nobody else can change the item until its author publishes or discards it. One subclass
 /// per revision type names it and says what else makes a draft different from what is published.
 /// </summary>
-public abstract class DraftGateway<TRevision>(
-    ISheetRevisionRepository<TRevision> revisions,
-    IUserRepository users,
-    IUnitOfWork unitOfWork,
-    ICurrentUser currentUser)
+public abstract class DraftGateway<TRevision>
     where TRevision : class, ISheetRevision, new()
 {
+    private readonly ISheetRevisionRepository<TRevision> revisions;
+    private readonly IUserRepository users;
+    private readonly IUnitOfWork unitOfWork;
+    private readonly ICurrentUser currentUser;
+
+    protected DraftGateway(
+        ISheetRevisionRepository<TRevision> revisions,
+        IUserRepository users,
+        IUnitOfWork unitOfWork,
+        ICurrentUser currentUser)
+    {
+        this.revisions = revisions;
+        this.users = users;
+        this.unitOfWork = unitOfWork;
+        this.currentUser = currentUser;
+    }
+
     /// <summary>Said in the lock message, e.g. "This row".</summary>
     protected abstract string Subject { get; }
 

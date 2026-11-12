@@ -5,6 +5,17 @@ namespace PUSpecSheet.Application.Seeding;
 /// its drawing reference, the baseline value, how much it changes from one part to the next and, for a
 /// dimension, the allowed spread either side.
 /// </summary>
-public sealed record PartsGroup(
-    string Name,
-    (string Kind, string Characteristic, string Reference, decimal Base, decimal Step, decimal Spread)[] Rows);
+public sealed record PartsGroup
+{
+    public PartsGroup(
+        string name,
+        (string Kind, string Characteristic, string Reference, decimal Base, decimal Step, decimal Spread)[] rows)
+    {
+        this.Name = name;
+        this.Rows = rows;
+    }
+
+    public string Name { get; init; }
+
+    public (string Kind, string Characteristic, string Reference, decimal Base, decimal Step, decimal Spread)[] Rows { get; init; }
+}

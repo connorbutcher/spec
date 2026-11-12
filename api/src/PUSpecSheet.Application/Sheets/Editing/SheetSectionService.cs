@@ -15,21 +15,52 @@ using PUSpecSheet.Domain.Templates;
 
 namespace PUSpecSheet.Application.Sheets.Editing;
 
-public sealed class SheetSectionService(
-    ISheetTableRepository tables,
-    ISheetSectionRepository sections,
-    TemplateRepositories templates,
-    IUnitOfWork unitOfWork,
-    SectionDrafts drafts,
-    LiveSectionQuery liveSections,
-    SheetInstantiator instantiator,
-    ISheetCellFiller filler,
-    NewRowSettings newRowSettings,
-    SheetReader reader,
-    RemovalContentsGuard contents,
-    IRemovalInProgressGuard removals,
-    ICurrentUser currentUser) : ISheetSectionService
+public sealed class SheetSectionService : ISheetSectionService
 {
+    private readonly ISheetTableRepository tables;
+    private readonly ISheetSectionRepository sections;
+    private readonly TemplateRepositories templates;
+    private readonly IUnitOfWork unitOfWork;
+    private readonly SectionDrafts drafts;
+    private readonly LiveSectionQuery liveSections;
+    private readonly SheetInstantiator instantiator;
+    private readonly ISheetCellFiller filler;
+    private readonly NewRowSettings newRowSettings;
+    private readonly SheetReader reader;
+    private readonly RemovalContentsGuard contents;
+    private readonly IRemovalInProgressGuard removals;
+    private readonly ICurrentUser currentUser;
+
+    public SheetSectionService(
+        ISheetTableRepository tables,
+        ISheetSectionRepository sections,
+        TemplateRepositories templates,
+        IUnitOfWork unitOfWork,
+        SectionDrafts drafts,
+        LiveSectionQuery liveSections,
+        SheetInstantiator instantiator,
+        ISheetCellFiller filler,
+        NewRowSettings newRowSettings,
+        SheetReader reader,
+        RemovalContentsGuard contents,
+        IRemovalInProgressGuard removals,
+        ICurrentUser currentUser)
+    {
+        this.tables = tables;
+        this.sections = sections;
+        this.templates = templates;
+        this.unitOfWork = unitOfWork;
+        this.drafts = drafts;
+        this.liveSections = liveSections;
+        this.instantiator = instantiator;
+        this.filler = filler;
+        this.newRowSettings = newRowSettings;
+        this.reader = reader;
+        this.contents = contents;
+        this.removals = removals;
+        this.currentUser = currentUser;
+    }
+
     public async Task<SheetDto> AddAsync(int tableId, AddSheetSectionRequest request, CancellationToken cancellationToken)
     {
         var table = await tables.FindForEditAsync(tableId, cancellationToken)

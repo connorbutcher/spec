@@ -10,8 +10,15 @@ namespace PUSpecSheet.Api.Controllers.ReferenceData;
 [ApiController]
 [Tags(ApiTags.SheetTypes)]
 [Route("api/sheet-types")]
-public sealed class SheetTypesController(ISheetTypeService sheetTypes) : ControllerBase
+public sealed class SheetTypesController : ControllerBase
 {
+    private readonly ISheetTypeService sheetTypes;
+
+    public SheetTypesController(ISheetTypeService sheetTypes)
+    {
+        this.sheetTypes = sheetTypes;
+    }
+
     /// <summary>List sheet types</summary>
     /// <remarks>
     /// The kinds of sheet a phase can have, such as Specification, PFKs or Parts, in display order.

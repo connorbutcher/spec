@@ -10,9 +10,18 @@ namespace PUSpecSheet.Data.Repositories.Sheets;
 /// transaction holding an application lock for the table, so two requests that each add a row or a
 /// block at the same moment can't both insert the same cell or leave a gap.
 /// </summary>
-public sealed class SheetCellFiller(PuSpecSheetDbContext db, IUnitOfWork unitOfWork) : ISheetCellFiller
+public sealed class SheetCellFiller : ISheetCellFiller
 {
     private const int LockTimeoutMilliseconds = 15000;
+
+    private readonly PuSpecSheetDbContext db;
+    private readonly IUnitOfWork unitOfWork;
+
+    public SheetCellFiller(PuSpecSheetDbContext db, IUnitOfWork unitOfWork)
+    {
+        this.db = db;
+        this.unitOfWork = unitOfWork;
+    }
 
     public async Task FillAsync(int tableId, CancellationToken cancellationToken)
     {

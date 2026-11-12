@@ -6,13 +6,26 @@ namespace PUSpecSheet.Api.Collaboration;
 /// Grants the takeover requests nobody answered in time, so a row can't stay stuck with someone who has
 /// walked away from their screen.
 /// </summary>
-public sealed partial class RowTakeoverExpiryWorker(
-    RowTakeoverStore store,
-    TimeProvider clock,
-    IServiceScopeFactory scopes,
-    ILogger<RowTakeoverExpiryWorker> logger) : BackgroundService
+public sealed partial class RowTakeoverExpiryWorker : BackgroundService
 {
     private static readonly TimeSpan CheckEvery = TimeSpan.FromSeconds(2);
+
+    private readonly RowTakeoverStore store;
+    private readonly TimeProvider clock;
+    private readonly IServiceScopeFactory scopes;
+    private readonly ILogger<RowTakeoverExpiryWorker> logger;
+
+    public RowTakeoverExpiryWorker(
+        RowTakeoverStore store,
+        TimeProvider clock,
+        IServiceScopeFactory scopes,
+        ILogger<RowTakeoverExpiryWorker> logger)
+    {
+        this.store = store;
+        this.clock = clock;
+        this.scopes = scopes;
+        this.logger = logger;
+    }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {

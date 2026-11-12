@@ -8,7 +8,7 @@ namespace PUSpecSheet.Application.Seeding;
 /// the very end of the showcase. The A2 to A5 sheets are built from version 2, so they also have surface
 /// finishes: A3 is left with rows locked by engineer2's unpublished changes, and A4 with the developer's own.
 /// </summary>
-public sealed class SpecificationSheetSeeder(SheetEditorFactory editors, ShowcaseUsers users)
+public sealed class SpecificationSheetSeeder
 {
     public const string ShortBlockTitle = "Short block";
     public const string HeadTitle = "Cylinder head and valve train";
@@ -61,6 +61,15 @@ public sealed class SpecificationSheetSeeder(SheetEditorFactory editors, Showcas
     private SheetEditor? v6;
 
     private int v6ShortBlockId;
+
+    private readonly SheetEditorFactory editors;
+    private readonly ShowcaseUsers users;
+
+    public SpecificationSheetSeeder(SheetEditorFactory editors, ShowcaseUsers users)
+    {
+        this.editors = editors;
+        this.users = users;
+    }
 
     /// <summary>V6, built from version 1 of the template: two versions now, the third from <see cref="IssueV6Async"/>.</summary>
     public async Task SeedV6Async(ShowcaseContext context, CancellationToken cancellationToken)

@@ -8,7 +8,12 @@ namespace PUSpecSheet.Application.Sheets.History;
 /// costs more with each version, yet it never changes for a version once published; every read and edit
 /// until the next version, and every look back at an earlier one, reuses it.
 /// </summary>
-public sealed class SheetChangeHistoryCache() : SizedMemoryCache<SheetChangeHistory>(MaximumChanges)
+public sealed class SheetChangeHistoryCache : SizedMemoryCache<SheetChangeHistory>
 {
     private const long MaximumChanges = 1_000_000;
+
+    public SheetChangeHistoryCache()
+        : base(MaximumChanges)
+    {
+    }
 }

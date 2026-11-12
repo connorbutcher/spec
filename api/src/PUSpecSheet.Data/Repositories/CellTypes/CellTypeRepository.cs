@@ -5,8 +5,15 @@ using PUSpecSheet.Domain.CellTypes.Configurations;
 
 namespace PUSpecSheet.Data.Repositories.CellTypes;
 
-public sealed class CellTypeRepository(PuSpecSheetDbContext db) : ICellTypeRepository
+public sealed class CellTypeRepository : ICellTypeRepository
 {
+    private readonly PuSpecSheetDbContext db;
+
+    public CellTypeRepository(PuSpecSheetDbContext db)
+    {
+        this.db = db;
+    }
+
     public async Task<List<CellType>> ListWithOptionsAsync(CancellationToken cancellationToken)
     {
         return await db.CellTypes

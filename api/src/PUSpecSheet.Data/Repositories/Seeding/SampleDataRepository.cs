@@ -9,10 +9,17 @@ namespace PUSpecSheet.Data.Repositories.Seeding;
 /// one of the built-in ones the migrations add. Phases, sheet types, users and permissions are kept. It
 /// runs in one transaction, so a failure leaves the database as it was.
 /// </summary>
-public sealed class SampleDataRepository(PuSpecSheetDbContext db) : ISampleDataRepository
+public sealed class SampleDataRepository : ISampleDataRepository
 {
     // The cell types the migrations seed (see CellTypeConfiguration). Anything above is user-made.
     private const int LastBuiltInCellTypeId = 7;
+
+    private readonly PuSpecSheetDbContext db;
+
+    public SampleDataRepository(PuSpecSheetDbContext db)
+    {
+        this.db = db;
+    }
 
     public async Task ClearAsync(CancellationToken cancellationToken)
     {

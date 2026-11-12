@@ -13,8 +13,15 @@ namespace PUSpecSheet.Api.Controllers.Sheets;
 [Tags(ApiTags.SheetColumnBlocks)]
 [Route("api")]
 [Authorize(Policy = PermissionKeys.SheetsEdit)]
-public sealed class SheetColumnBlocksController(ISheetColumnBlockService columnBlocks) : ControllerBase
+public sealed class SheetColumnBlocksController : ControllerBase
 {
+    private readonly ISheetColumnBlockService columnBlocks;
+
+    public SheetColumnBlocksController(ISheetColumnBlockService columnBlocks)
+    {
+        this.columnBlocks = columnBlocks;
+    }
+
     /// <summary>Add a column block to a table</summary>
     /// <remarks>
     /// Adds a copy of a template column block to the right of the existing ones, within the template's limits. Every row of the table gets its cells in it.

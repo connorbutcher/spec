@@ -26,7 +26,7 @@ internal sealed class FakeRowCheckouts : IRowCheckouts
     public void CheckOut(int rowId, int sheetId, int holderUserId)
     {
         sheetByRow[rowId] = sheetId;
-        checkedOut[rowId] = new RowCheckout(sheetId, holderUserId, HasChanges: false);
+        checkedOut[rowId] = new RowCheckout(sheetId, holderUserId, hasChanges: false);
         liveRows.Remove(rowId);
     }
 

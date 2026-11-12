@@ -18,24 +18,61 @@ using PUSpecSheet.Domain.Templates;
 
 namespace PUSpecSheet.Application.Sheets.Editing;
 
-public sealed class SheetRowService(
-    ISheetSectionRepository sections,
-    ISheetRowRepository rows,
-    ISheetRowRevisionRepository rowRevisions,
-    ITemplateRowRepository templateRows,
-    IRowValueRepository values,
-    IUnitOfWork unitOfWork,
-    RowDrafts drafts,
-    LiveRowCheckoutGuard liveCheckouts,
-    RowDraftStarter draftStarter,
-    LinkedDropdownValueRule linkedValues,
-    NewRowSettings newRowSettings,
-    SheetInstantiator instantiator,
-    ISheetCellFiller filler,
-    SheetReader reader,
-    IRemovalInProgressGuard removals,
-    ICurrentUser currentUser) : ISheetRowService
+public sealed class SheetRowService : ISheetRowService
 {
+    private readonly ISheetSectionRepository sections;
+    private readonly ISheetRowRepository rows;
+    private readonly ISheetRowRevisionRepository rowRevisions;
+    private readonly ITemplateRowRepository templateRows;
+    private readonly IRowValueRepository values;
+    private readonly IUnitOfWork unitOfWork;
+    private readonly RowDrafts drafts;
+    private readonly LiveRowCheckoutGuard liveCheckouts;
+    private readonly RowDraftStarter draftStarter;
+    private readonly LinkedDropdownValueRule linkedValues;
+    private readonly NewRowSettings newRowSettings;
+    private readonly SheetInstantiator instantiator;
+    private readonly ISheetCellFiller filler;
+    private readonly SheetReader reader;
+    private readonly IRemovalInProgressGuard removals;
+    private readonly ICurrentUser currentUser;
+
+    public SheetRowService(
+        ISheetSectionRepository sections,
+        ISheetRowRepository rows,
+        ISheetRowRevisionRepository rowRevisions,
+        ITemplateRowRepository templateRows,
+        IRowValueRepository values,
+        IUnitOfWork unitOfWork,
+        RowDrafts drafts,
+        LiveRowCheckoutGuard liveCheckouts,
+        RowDraftStarter draftStarter,
+        LinkedDropdownValueRule linkedValues,
+        NewRowSettings newRowSettings,
+        SheetInstantiator instantiator,
+        ISheetCellFiller filler,
+        SheetReader reader,
+        IRemovalInProgressGuard removals,
+        ICurrentUser currentUser)
+    {
+        this.sections = sections;
+        this.rows = rows;
+        this.rowRevisions = rowRevisions;
+        this.templateRows = templateRows;
+        this.values = values;
+        this.unitOfWork = unitOfWork;
+        this.drafts = drafts;
+        this.liveCheckouts = liveCheckouts;
+        this.draftStarter = draftStarter;
+        this.linkedValues = linkedValues;
+        this.newRowSettings = newRowSettings;
+        this.instantiator = instantiator;
+        this.filler = filler;
+        this.reader = reader;
+        this.removals = removals;
+        this.currentUser = currentUser;
+    }
+
     public async Task<SheetDto> AddAsync(int sectionId, AddSheetRowRequest request, CancellationToken cancellationToken)
     {
         var section = await sections.FindWithTemplateAndTableAsync(sectionId, cancellationToken)

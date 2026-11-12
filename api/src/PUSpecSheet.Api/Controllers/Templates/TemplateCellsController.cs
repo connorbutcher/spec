@@ -12,8 +12,15 @@ namespace PUSpecSheet.Api.Controllers.Templates;
 [Tags(ApiTags.TemplateCells)]
 [Route("api/template-cells")]
 [Authorize(Policy = PermissionKeys.TemplatesManage)]
-public sealed class TemplateCellsController(ITemplateCellService cells) : ControllerBase
+public sealed class TemplateCellsController : ControllerBase
 {
+    private readonly ITemplateCellService cells;
+
+    public TemplateCellsController(ITemplateCellService cells)
+    {
+        this.cells = cells;
+    }
+
     /// <summary>Add a cell</summary>
     /// <remarks>
     /// Adds a cell to a row, among the row's own cells or, with <c>templateColumnBlockId</c>, among that

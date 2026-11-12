@@ -17,8 +17,17 @@ namespace PUSpecSheet.Api.Controllers.Sheets;
 [Tags(ApiTags.SheetRows)]
 [Route("api/sheet-rows")]
 [Authorize(Policy = PermissionKeys.SheetsEdit)]
-public sealed class SheetRowsController(ISheetRowService rows, ISheetCellSettingsService cellSettings) : ControllerBase
+public sealed class SheetRowsController : ControllerBase
 {
+    private readonly ISheetRowService rows;
+    private readonly ISheetCellSettingsService cellSettings;
+
+    public SheetRowsController(ISheetRowService rows, ISheetCellSettingsService cellSettings)
+    {
+        this.rows = rows;
+        this.cellSettings = cellSettings;
+    }
+
     /// <summary>Lock a row</summary>
     /// <remarks>
     /// Locks the row to you without changing it yet, so nobody else can edit it while you do. The lock is released when you publish or discard.

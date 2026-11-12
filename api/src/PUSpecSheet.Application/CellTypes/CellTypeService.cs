@@ -6,8 +6,17 @@ using PUSpecSheet.Domain.CellTypes;
 
 namespace PUSpecSheet.Application.CellTypes;
 
-public sealed class CellTypeService(ICellTypeRepository cellTypes, IUnitOfWork unitOfWork) : ICellTypeService
+public sealed class CellTypeService : ICellTypeService
 {
+    private readonly ICellTypeRepository cellTypes;
+    private readonly IUnitOfWork unitOfWork;
+
+    public CellTypeService(ICellTypeRepository cellTypes, IUnitOfWork unitOfWork)
+    {
+        this.cellTypes = cellTypes;
+        this.unitOfWork = unitOfWork;
+    }
+
     public async Task<IReadOnlyList<CellTypeDto>> GetAllAsync(CancellationToken cancellationToken)
     {
         var all = await cellTypes.ListWithOptionsAsync(cancellationToken);

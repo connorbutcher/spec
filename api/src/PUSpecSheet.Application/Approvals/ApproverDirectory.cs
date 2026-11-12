@@ -9,8 +9,15 @@ namespace PUSpecSheet.Application.Approvals;
 /// Who can approve submissions: active users holding <see cref="PermissionKeys.SheetsApprove"/>, which every
 /// administrator does. Nobody approves their own submission, so the submitter is never offered.
 /// </summary>
-public sealed class ApproverDirectory(IUserRepository users)
+public sealed class ApproverDirectory
 {
+    private readonly IUserRepository users;
+
+    public ApproverDirectory(IUserRepository users)
+    {
+        this.users = users;
+    }
+
     /// <summary>Everyone but <paramref name="submitterUserId"/> who could approve, by name.</summary>
     public async Task<IReadOnlyList<ApproverDto>> ListAsync(int submitterUserId, CancellationToken cancellationToken)
     {

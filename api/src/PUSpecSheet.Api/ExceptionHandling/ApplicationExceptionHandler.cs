@@ -8,8 +8,15 @@ namespace PUSpecSheet.Api.ExceptionHandling;
 /// Turns application exceptions into ProblemDetails responses with the status they stand for, so
 /// controllers only carry their happy path. Anything unrecognised falls through to the default 500.
 /// </summary>
-public sealed class ApplicationExceptionHandler(IProblemDetailsService problemDetails) : IExceptionHandler
+public sealed class ApplicationExceptionHandler : IExceptionHandler
 {
+    private readonly IProblemDetailsService problemDetails;
+
+    public ApplicationExceptionHandler(IProblemDetailsService problemDetails)
+    {
+        this.problemDetails = problemDetails;
+    }
+
     public async ValueTask<bool> TryHandleAsync(
         HttpContext httpContext,
         Exception exception,

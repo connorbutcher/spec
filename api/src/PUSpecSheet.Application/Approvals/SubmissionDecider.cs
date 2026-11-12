@@ -18,14 +18,31 @@ namespace PUSpecSheet.Application.Approvals;
 /// fail rather than both miss that the other was the last one needed.
 /// </para>
 /// </summary>
-public sealed class SubmissionDecider(
-    ISheetSubmissionRepository submissions,
-    SheetRevisionRepositories revisions,
-    IUnitOfWork unitOfWork,
-    SheetPublisher publisher,
-    ICurrentUser currentUser,
-    TimeProvider clock)
+public sealed class SubmissionDecider
 {
+    private readonly ISheetSubmissionRepository submissions;
+    private readonly SheetRevisionRepositories revisions;
+    private readonly IUnitOfWork unitOfWork;
+    private readonly SheetPublisher publisher;
+    private readonly ICurrentUser currentUser;
+    private readonly TimeProvider clock;
+
+    public SubmissionDecider(
+        ISheetSubmissionRepository submissions,
+        SheetRevisionRepositories revisions,
+        IUnitOfWork unitOfWork,
+        SheetPublisher publisher,
+        ICurrentUser currentUser,
+        TimeProvider clock)
+    {
+        this.submissions = submissions;
+        this.revisions = revisions;
+        this.unitOfWork = unitOfWork;
+        this.publisher = publisher;
+        this.currentUser = currentUser;
+        this.clock = clock;
+    }
+
     /// <returns>The submission as it now stands.</returns>
     public async Task<SheetSubmission> ApproveAsync(int submissionId, CancellationToken cancellationToken)
     {

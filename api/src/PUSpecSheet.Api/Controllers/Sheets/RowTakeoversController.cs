@@ -14,8 +14,15 @@ namespace PUSpecSheet.Api.Controllers.Sheets;
 [ApiController]
 [Tags(ApiTags.SheetRows)]
 [Authorize(Policy = PermissionKeys.SheetsEdit)]
-public sealed class RowTakeoversController(IRowTakeoverService takeovers) : ControllerBase
+public sealed class RowTakeoversController : ControllerBase
 {
+    private readonly IRowTakeoverService takeovers;
+
+    public RowTakeoversController(IRowTakeoverService takeovers)
+    {
+        this.takeovers = takeovers;
+    }
+
     /// <summary>Check whether a row can be taken over</summary>
     /// <remarks>
     /// Says whether you could ask to take over the row right now. When you couldn't, <c>reason</c> says why

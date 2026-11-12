@@ -7,8 +7,17 @@ namespace PUSpecSheet.Application.Sheets.Collaboration;
 /// Stops a change to a row that someone else has clicked into. Their checkout is not a draft, so the
 /// draft rules can't see it; anything that is about to change a row asks here first.
 /// </summary>
-public sealed class LiveRowCheckoutGuard(LiveRowCheckoutTracker tracker, ICurrentUser currentUser)
+public sealed class LiveRowCheckoutGuard
 {
+    private readonly LiveRowCheckoutTracker tracker;
+    private readonly ICurrentUser currentUser;
+
+    public LiveRowCheckoutGuard(LiveRowCheckoutTracker tracker, ICurrentUser currentUser)
+    {
+        this.tracker = tracker;
+        this.currentUser = currentUser;
+    }
+
     /// <exception cref="ConflictException">Someone other than the current user is in the row.</exception>
     public void EnsureNotHeldByOthers(int rowId)
     {

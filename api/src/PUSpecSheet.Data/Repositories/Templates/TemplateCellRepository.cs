@@ -4,8 +4,15 @@ using PUSpecSheet.Domain.Templates;
 
 namespace PUSpecSheet.Data.Repositories.Templates;
 
-public sealed class TemplateCellRepository(PuSpecSheetDbContext db) : ITemplateCellRepository
+public sealed class TemplateCellRepository : ITemplateCellRepository
 {
+    private readonly PuSpecSheetDbContext db;
+
+    public TemplateCellRepository(PuSpecSheetDbContext db)
+    {
+        this.db = db;
+    }
+
     public async Task<TemplateCell?> FindForEditAsync(int id, CancellationToken cancellationToken)
     {
         return await db.TemplateCells

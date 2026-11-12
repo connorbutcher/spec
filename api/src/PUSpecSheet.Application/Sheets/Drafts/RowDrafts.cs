@@ -8,13 +8,21 @@ using PUSpecSheet.Domain.Sheets;
 
 namespace PUSpecSheet.Application.Sheets.Drafts;
 
-public sealed class RowDrafts(
-    ISheetRowRevisionRepository revisions,
-    IUserRepository users,
-    IUnitOfWork unitOfWork,
-    ICurrentUser currentUser,
-    IRowValueRepository values) : DraftGateway<SheetRowRevision>(revisions, users, unitOfWork, currentUser)
+public sealed class RowDrafts : DraftGateway<SheetRowRevision>
 {
+    private readonly IRowValueRepository values;
+
+    public RowDrafts(
+        ISheetRowRevisionRepository revisions,
+        IUserRepository users,
+        IUnitOfWork unitOfWork,
+        ICurrentUser currentUser,
+        IRowValueRepository values)
+        : base(revisions, users, unitOfWork, currentUser)
+    {
+        this.values = values;
+    }
+
     protected override string Subject => "This row";
 
     protected override int ItemIdOf(SheetRowRevision revision)

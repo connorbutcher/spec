@@ -4,8 +4,15 @@ using PUSpecSheet.Domain.Templates;
 
 namespace PUSpecSheet.Data.Repositories.Templates;
 
-public sealed class TemplateRowRepository(PuSpecSheetDbContext db) : ITemplateRowRepository
+public sealed class TemplateRowRepository : ITemplateRowRepository
 {
+    private readonly PuSpecSheetDbContext db;
+
+    public TemplateRowRepository(PuSpecSheetDbContext db)
+    {
+        this.db = db;
+    }
+
     public async Task<List<TemplateRow>> ListWithCellsAsync(int versionId, CancellationToken cancellationToken)
     {
         return await db.TemplateRows

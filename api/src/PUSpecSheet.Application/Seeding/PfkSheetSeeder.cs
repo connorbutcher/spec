@@ -9,7 +9,7 @@ namespace PUSpecSheet.Application.Seeding;
 /// from version 1 of the register and has two versions plus a change engineer2 hasn't published; the A
 /// phases are built from version 2, with an operation note, and A4 is left with the developer's own changes.
 /// </summary>
-public sealed class PfkSheetSeeder(SheetEditorFactory editors, ShowcaseUsers users)
+public sealed class PfkSheetSeeder
 {
     private static readonly (string Id, string Description, DateOnly CalibratedUntil, bool InService)[] Gauges =
     [
@@ -42,6 +42,15 @@ public sealed class PfkSheetSeeder(SheetEditorFactory editors, ShowcaseUsers use
             ("PFK-301", "Cap seating gap", "SC", 0.000m, 0.030m, 10, "G-114", "Pass", null),
             ("PFK-302", "Crankshaft end float", "CC", 0.080m, 0.250m, 1, "G-120", "N/A", "Strip and rebuild; replace the thrust washers."),
         ]);
+
+    private readonly SheetEditorFactory editors;
+    private readonly ShowcaseUsers users;
+
+    public PfkSheetSeeder(SheetEditorFactory editors, ShowcaseUsers users)
+    {
+        this.editors = editors;
+        this.users = users;
+    }
 
     /// <summary>V6, built from version 1 of the register.</summary>
     public async Task SeedV6Async(ShowcaseContext context, CancellationToken cancellationToken)

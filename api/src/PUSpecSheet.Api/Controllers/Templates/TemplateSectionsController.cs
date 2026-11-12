@@ -13,8 +13,15 @@ namespace PUSpecSheet.Api.Controllers.Templates;
 [Tags(ApiTags.TemplateSections)]
 [Route("api/template-sections")]
 [Authorize(Policy = PermissionKeys.TemplatesManage)]
-public sealed class TemplateSectionsController(ITemplateSectionService sections) : ControllerBase
+public sealed class TemplateSectionsController : ControllerBase
 {
+    private readonly ITemplateSectionService sections;
+
+    public TemplateSectionsController(ITemplateSectionService sections)
+    {
+        this.sections = sections;
+    }
+
     /// <summary>Add a section</summary>
     /// <remarks>
     /// Adds a section to the end of a template version's top level, or of a parent section's children.

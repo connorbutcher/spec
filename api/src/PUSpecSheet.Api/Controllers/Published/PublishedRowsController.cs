@@ -19,8 +19,17 @@ namespace PUSpecSheet.Api.Controllers.Published;
 [Tags(ApiTags.PublishedSheets)]
 [Route("api/published/sheets/{sheetPublicId:guid}/versions")]
 [AllowAnonymous]
-public sealed class PublishedRowsController(IPublishedSheetQueryService sheets, IPublishedRowsService rows) : ControllerBase
+public sealed class PublishedRowsController : ControllerBase
 {
+    private readonly IPublishedSheetQueryService sheets;
+    private readonly IPublishedRowsService rows;
+
+    public PublishedRowsController(IPublishedSheetQueryService sheets, IPublishedRowsService rows)
+    {
+        this.sheets = sheets;
+        this.rows = rows;
+    }
+
     /// <summary>Read rows by identifier at a version</summary>
     /// <remarks>
     /// Returns <c>rows</c> as an object with one entry per row, named by the row's identifier, so

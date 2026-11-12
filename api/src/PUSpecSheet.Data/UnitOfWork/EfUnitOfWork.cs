@@ -5,9 +5,16 @@ using PUSpecSheet.Application.Persistence;
 namespace PUSpecSheet.Data.UnitOfWork;
 
 /// <summary>The <see cref="IUnitOfWork"/> over the request's <see cref="PuSpecSheetDbContext"/>.</summary>
-public sealed class EfUnitOfWork(PuSpecSheetDbContext db) : IUnitOfWork
+public sealed class EfUnitOfWork : IUnitOfWork
 {
     private const string ClashMessage = "Someone else changed this at the same moment. Refresh the sheet and try again.";
+
+    private readonly PuSpecSheetDbContext db;
+
+    public EfUnitOfWork(PuSpecSheetDbContext db)
+    {
+        this.db = db;
+    }
 
     public bool HasTransaction => db.Database.CurrentTransaction is not null;
 

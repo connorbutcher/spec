@@ -13,8 +13,17 @@ namespace PUSpecSheet.Api.Controllers.Sheets;
 [Tags(ApiTags.SheetTables)]
 [Route("api/sheet-tables")]
 [Authorize(Policy = PermissionKeys.SheetsEdit)]
-public sealed class SheetTablesController(ISheetTableService tables, ISheetSectionService sections) : ControllerBase
+public sealed class SheetTablesController : ControllerBase
 {
+    private readonly ISheetTableService tables;
+    private readonly ISheetSectionService sections;
+
+    public SheetTablesController(ISheetTableService tables, ISheetSectionService sections)
+    {
+        this.tables = tables;
+        this.sections = sections;
+    }
+
     /// <summary>Set a table's title</summary>
     /// <remarks>
     /// Sets the table's title. An empty title falls back to the template's name.

@@ -7,8 +7,15 @@ namespace PUSpecSheet.Application.Published.Versions;
 /// Finds the published version a caller means, in one query. A sheet only changes when it is published,
 /// so "as it stood at a moment" is the newest version published at or before that moment.
 /// </summary>
-public sealed class PublishedVersionResolver(IPublishedSheetRepository sheets)
+public sealed class PublishedVersionResolver
 {
+    private readonly IPublishedSheetRepository sheets;
+
+    public PublishedVersionResolver(IPublishedSheetRepository sheets)
+    {
+        this.sheets = sheets;
+    }
+
     public async Task<ResolvedSheetVersion> ResolveAsync(
         Guid sheetPublicId,
         PublishedVersionPoint point,

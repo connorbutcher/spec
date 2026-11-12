@@ -12,8 +12,15 @@ namespace PUSpecSheet.Data.Repositories.Published;
 /// version. A match in a column block reads that block's cells, the rows' own cells and the header, and
 /// leaves the table's other blocks alone. A match in a row's own cell reads its sections' rows and the header.
 /// </summary>
-public sealed class PublishedLookupCellRepository(PuSpecSheetDbContext db) : IPublishedLookupCellRepository
+public sealed class PublishedLookupCellRepository : IPublishedLookupCellRepository
 {
+    private readonly PuSpecSheetDbContext db;
+
+    public PublishedLookupCellRepository(PuSpecSheetDbContext db)
+    {
+        this.db = db;
+    }
+
     /// <param name="version">The version of the sheet the match is on.</param>
     /// <param name="hit">The cell that was found.</param>
     /// <param name="sectionIds">The sections whose rows belong to the match, or null for the whole table.</param>

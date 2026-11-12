@@ -7,8 +7,17 @@ namespace PUSpecSheet.Application.Sheets.Collaboration;
 /// (an answer, a withdrawal, the timeout, the row being released or changed) goes through here, so each
 /// ends the same way. The caller has already taken the request out of <see cref="RowTakeoverStore"/>.
 /// </summary>
-public sealed class RowTakeoverCloser(IRowCheckouts checkouts, ISheetLiveNotifier notifier)
+public sealed class RowTakeoverCloser
 {
+    private readonly IRowCheckouts checkouts;
+    private readonly ISheetLiveNotifier notifier;
+
+    public RowTakeoverCloser(IRowCheckouts checkouts, ISheetLiveNotifier notifier)
+    {
+        this.checkouts = checkouts;
+        this.notifier = notifier;
+    }
+
     /// <summary>
     /// Hands the row to the requester and closes the request with <paramref name="status"/>, if the row
     /// can still be handed over. It can't when the holder no longer holds it (closed as released) or has

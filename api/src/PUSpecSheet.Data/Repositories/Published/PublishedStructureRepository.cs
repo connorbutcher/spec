@@ -9,8 +9,15 @@ namespace PUSpecSheet.Data.Repositories.Published;
 /// Reads a sheet's tables, sections and column blocks as they stood at a version: three small queries
 /// that return only the columns needed to place each item and tell whether it had been removed.
 /// </summary>
-public sealed class PublishedStructureRepository(PuSpecSheetDbContext db) : IPublishedStructureRepository
+public sealed class PublishedStructureRepository : IPublishedStructureRepository
 {
+    private readonly PuSpecSheetDbContext db;
+
+    public PublishedStructureRepository(PuSpecSheetDbContext db)
+    {
+        this.db = db;
+    }
+
     public async Task<PublishedStructure> ReadAsync(ResolvedSheetVersion version, CancellationToken cancellationToken)
     {
         var tables = await Tables(version).ToListAsync(cancellationToken);

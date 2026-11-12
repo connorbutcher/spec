@@ -9,7 +9,7 @@ namespace PUSpecSheet.Application.Sheets.Collaboration;
 /// checked out changes nothing for anyone else, so it is not announced. When only rows changed hands, the
 /// announcement names them, so the others read those rows and not the whole sheet.
 /// </summary>
-public sealed class SheetChangeAnnouncer(ISheetLiveNotifier notifier)
+public sealed class SheetChangeAnnouncer
 {
     private readonly Lock gate = new();
     private readonly Dictionary<int, IReadOnlyList<string>> lastSignatures = [];
@@ -19,6 +19,13 @@ public sealed class SheetChangeAnnouncer(ISheetLiveNotifier notifier)
     /// one, not the last seen, so a change a read took note of without telling anyone is still named.
     /// </summary>
     private readonly Dictionary<int, IReadOnlyList<string>> lastAnnounced = [];
+
+    private readonly ISheetLiveNotifier notifier;
+
+    public SheetChangeAnnouncer(ISheetLiveNotifier notifier)
+    {
+        this.notifier = notifier;
+    }
 
     /// <param name="sheet">The live sheet as it stands after the change.</param>
     /// <param name="exceptConnectionId">The connection that made the change, which already has the result.</param>

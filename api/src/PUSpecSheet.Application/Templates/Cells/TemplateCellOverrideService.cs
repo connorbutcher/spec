@@ -10,12 +10,25 @@ using PUSpecSheet.Domain.CellTypes.Styles;
 namespace PUSpecSheet.Application.Templates.Cells;
 
 /// <summary>Saves the configuration and style a template cell changes from its cell type's defaults.</summary>
-public sealed class TemplateCellOverrideService(
-    ITemplateCellRepository cells,
-    IUnitOfWork unitOfWork,
-    TableTemplateReader reader,
-    TemplateVersionGuard guard) : ITemplateCellOverrideService
+public sealed class TemplateCellOverrideService : ITemplateCellOverrideService
 {
+    private readonly ITemplateCellRepository cells;
+    private readonly IUnitOfWork unitOfWork;
+    private readonly TableTemplateReader reader;
+    private readonly TemplateVersionGuard guard;
+
+    public TemplateCellOverrideService(
+        ITemplateCellRepository cells,
+        IUnitOfWork unitOfWork,
+        TableTemplateReader reader,
+        TemplateVersionGuard guard)
+    {
+        this.cells = cells;
+        this.unitOfWork = unitOfWork;
+        this.reader = reader;
+        this.guard = guard;
+    }
+
     public async Task<TableTemplateDto> UpdateAsync(
         int cellId,
         UpdateTemplateCellOverridesRequest request,

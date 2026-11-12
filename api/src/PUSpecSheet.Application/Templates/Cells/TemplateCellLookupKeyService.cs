@@ -12,11 +12,19 @@ namespace PUSpecSheet.Application.Templates.Cells;
 /// isn't held back by <see cref="TemplateVersionGuard"/>: sheets that already use the version can be
 /// looked up as soon as the key is set.
 /// </summary>
-public sealed class TemplateCellLookupKeyService(
-    ITemplateCellRepository cells,
-    IUnitOfWork unitOfWork,
-    TableTemplateReader reader) : ITemplateCellLookupKeyService
+public sealed class TemplateCellLookupKeyService : ITemplateCellLookupKeyService
 {
+    private readonly ITemplateCellRepository cells;
+    private readonly IUnitOfWork unitOfWork;
+    private readonly TableTemplateReader reader;
+
+    public TemplateCellLookupKeyService(ITemplateCellRepository cells, IUnitOfWork unitOfWork, TableTemplateReader reader)
+    {
+        this.cells = cells;
+        this.unitOfWork = unitOfWork;
+        this.reader = reader;
+    }
+
     public async Task<TableTemplateDto> UpdateAsync(
         int cellId,
         UpdateTemplateCellLookupKeyRequest request,

@@ -5,15 +5,34 @@ using PUSpecSheet.Contracts.Sheets.Collaboration;
 
 namespace PUSpecSheet.Application.Sheets.Collaboration;
 
-public sealed class SheetPresenceService(
-    ISheetRepository sheets,
-    IUserRepository userRepository,
-    SheetPresenceTracker tracker,
-    RowTakeoverStore takeovers,
-    LiveRowCheckoutTracker checkouts,
-    ILiveRowCheckoutService rowCheckouts,
-    ISheetLiveNotifier notifier) : ISheetPresenceService
+public sealed class SheetPresenceService : ISheetPresenceService
 {
+    private readonly ISheetRepository sheets;
+    private readonly IUserRepository userRepository;
+    private readonly SheetPresenceTracker tracker;
+    private readonly RowTakeoverStore takeovers;
+    private readonly LiveRowCheckoutTracker checkouts;
+    private readonly ILiveRowCheckoutService rowCheckouts;
+    private readonly ISheetLiveNotifier notifier;
+
+    public SheetPresenceService(
+        ISheetRepository sheets,
+        IUserRepository userRepository,
+        SheetPresenceTracker tracker,
+        RowTakeoverStore takeovers,
+        LiveRowCheckoutTracker checkouts,
+        ILiveRowCheckoutService rowCheckouts,
+        ISheetLiveNotifier notifier)
+    {
+        this.sheets = sheets;
+        this.userRepository = userRepository;
+        this.tracker = tracker;
+        this.takeovers = takeovers;
+        this.checkouts = checkouts;
+        this.rowCheckouts = rowCheckouts;
+        this.notifier = notifier;
+    }
+
     public async Task<SheetLiveStateDto> JoinAsync(string connectionId, int sheetId, int userId, CancellationToken cancellationToken)
     {
         if (!await sheets.ExistsAsync(sheetId, cancellationToken))

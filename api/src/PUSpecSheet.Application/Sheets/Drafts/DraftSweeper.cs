@@ -10,17 +10,40 @@ namespace PUSpecSheet.Application.Sheets.Drafts;
 /// before that, so they don't light up Publish or hold a lock for nothing. It takes the current user's
 /// drafts, or everyone's ahead of a publish of everything.
 /// </summary>
-public sealed class DraftSweeper(
-    ICurrentUser currentUser,
-    ISheetTableRevisionRepository tableRevisions,
-    ISheetSectionRevisionRepository sectionRevisions,
-    ISheetRowRevisionRepository rowRevisions,
-    ISheetColumnBlockRevisionRepository columnBlockRevisions,
-    TableDrafts tables,
-    SectionDrafts sections,
-    RowDrafts rows,
-    ColumnBlockDrafts columnBlocks)
+public sealed class DraftSweeper
 {
+    private readonly ICurrentUser currentUser;
+    private readonly ISheetTableRevisionRepository tableRevisions;
+    private readonly ISheetSectionRevisionRepository sectionRevisions;
+    private readonly ISheetRowRevisionRepository rowRevisions;
+    private readonly ISheetColumnBlockRevisionRepository columnBlockRevisions;
+    private readonly TableDrafts tables;
+    private readonly SectionDrafts sections;
+    private readonly RowDrafts rows;
+    private readonly ColumnBlockDrafts columnBlocks;
+
+    public DraftSweeper(
+        ICurrentUser currentUser,
+        ISheetTableRevisionRepository tableRevisions,
+        ISheetSectionRevisionRepository sectionRevisions,
+        ISheetRowRevisionRepository rowRevisions,
+        ISheetColumnBlockRevisionRepository columnBlockRevisions,
+        TableDrafts tables,
+        SectionDrafts sections,
+        RowDrafts rows,
+        ColumnBlockDrafts columnBlocks)
+    {
+        this.currentUser = currentUser;
+        this.tableRevisions = tableRevisions;
+        this.sectionRevisions = sectionRevisions;
+        this.rowRevisions = rowRevisions;
+        this.columnBlockRevisions = columnBlockRevisions;
+        this.tables = tables;
+        this.sections = sections;
+        this.rows = rows;
+        this.columnBlocks = columnBlocks;
+    }
+
     public Task SweepAsync(int sheetId, CancellationToken cancellationToken)
     {
         return SweepAsync(sheetId, PublishScope.Mine, cancellationToken);

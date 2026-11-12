@@ -18,18 +18,26 @@ namespace PUSpecSheet.Api.Users;
 /// the <see cref="UserQuery"/> query parameter.
 /// </para>
 /// </summary>
-public sealed class DeveloperAuthenticationHandler(
-    IOptionsMonitor<DeveloperAuthenticationOptions> options,
-    ILoggerFactory logger,
-    UrlEncoder encoder,
-    PuSpecSheetDbContext db)
-    : AuthenticationHandler<DeveloperAuthenticationOptions>(options, logger, encoder)
+public sealed class DeveloperAuthenticationHandler
+    : AuthenticationHandler<DeveloperAuthenticationOptions>
 {
     public const string SchemeName = "Developer";
 
     public const string UserHeader = "X-Developer-User";
 
     public const string UserQuery = "developerUser";
+
+    private readonly PuSpecSheetDbContext db;
+
+    public DeveloperAuthenticationHandler(
+        IOptionsMonitor<DeveloperAuthenticationOptions> options,
+        ILoggerFactory logger,
+        UrlEncoder encoder,
+        PuSpecSheetDbContext db)
+        : base(options, logger, encoder)
+    {
+        this.db = db;
+    }
 
     protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
     {

@@ -6,16 +6,37 @@ using PUSpecSheet.Contracts.Published;
 
 namespace PUSpecSheet.Application.Published.Lookups;
 
-public sealed class PublishedLookupService(
-    IPublishedSheetRepository sheets,
-    ITemplateCellRepository templateCells,
-    PublishedVersionResolver resolver,
-    IPublishedLookupHitRepository hitReader,
-    IPublishedStructureRepository structureReader,
-    IPublishedLookupCellRepository cellReader,
-    IPublishedKindValueRepository valueReader,
-    PublishedLookupCache cache) : IPublishedLookupService
+public sealed class PublishedLookupService : IPublishedLookupService
 {
+    private readonly IPublishedSheetRepository sheets;
+    private readonly ITemplateCellRepository templateCells;
+    private readonly PublishedVersionResolver resolver;
+    private readonly IPublishedLookupHitRepository hitReader;
+    private readonly IPublishedStructureRepository structureReader;
+    private readonly IPublishedLookupCellRepository cellReader;
+    private readonly IPublishedKindValueRepository valueReader;
+    private readonly PublishedLookupCache cache;
+
+    public PublishedLookupService(
+        IPublishedSheetRepository sheets,
+        ITemplateCellRepository templateCells,
+        PublishedVersionResolver resolver,
+        IPublishedLookupHitRepository hitReader,
+        IPublishedStructureRepository structureReader,
+        IPublishedLookupCellRepository cellReader,
+        IPublishedKindValueRepository valueReader,
+        PublishedLookupCache cache)
+    {
+        this.sheets = sheets;
+        this.templateCells = templateCells;
+        this.resolver = resolver;
+        this.hitReader = hitReader;
+        this.structureReader = structureReader;
+        this.cellReader = cellReader;
+        this.valueReader = valueReader;
+        this.cache = cache;
+    }
+
     public async Task<PublishedLookupResolution> ResolveAsync(
         PublishedLookupCriteria criteria,
         Guid? sheetPublicId,

@@ -13,8 +13,15 @@ namespace PUSpecSheet.Api.Controllers.Approvals;
 /// </summary>
 [ApiController]
 [Tags(ApiTags.Approvals)]
-public sealed class SubmissionsController(ISheetSubmissionService submissions) : ControllerBase
+public sealed class SubmissionsController : ControllerBase
 {
+    private readonly ISheetSubmissionService submissions;
+
+    public SubmissionsController(ISheetSubmissionService submissions)
+    {
+        this.submissions = submissions;
+    }
+
     /// <summary>List possible approvers</summary>
     /// <remarks>Everyone who can approve changes, apart from you: nobody approves their own.</remarks>
     /// <param name="cancellationToken">Cancels the request.</param>

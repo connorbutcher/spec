@@ -6,12 +6,13 @@ using PUSpecSheet.Domain.Sheets;
 
 namespace PUSpecSheet.Application.Sheets.Drafts;
 
-public sealed class SectionDrafts(
-    ISheetSectionRevisionRepository revisions,
-    IUserRepository users,
-    IUnitOfWork unitOfWork,
-    ICurrentUser currentUser) : DraftGateway<SheetSectionRevision>(revisions, users, unitOfWork, currentUser)
+public sealed class SectionDrafts : DraftGateway<SheetSectionRevision>
 {
+    public SectionDrafts(ISheetSectionRevisionRepository revisions, IUserRepository users, IUnitOfWork unitOfWork, ICurrentUser currentUser)
+        : base(revisions, users, unitOfWork, currentUser)
+    {
+    }
+
     protected override string Subject => "This section";
 
     protected override int ItemIdOf(SheetSectionRevision revision)

@@ -11,7 +11,22 @@ namespace PUSpecSheet.Contracts.Published;
 /// top of the set, such as the part number "P-1003", or the set's identifier when that is empty or used
 /// twice in the table.
 /// </summary>
-public sealed record PublishedRowValuesDto(
-    string Section,
-    IReadOnlyList<object?> Values,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyDictionary<string, IReadOnlyList<object?>>? Columns);
+public sealed record PublishedRowValuesDto
+{
+    public PublishedRowValuesDto(
+        string section,
+        IReadOnlyList<object?> values,
+        IReadOnlyDictionary<string, IReadOnlyList<object?>>? columns)
+    {
+        this.Section = section;
+        this.Values = values;
+        this.Columns = columns;
+    }
+
+    public string Section { get; init; }
+
+    public IReadOnlyList<object?> Values { get; init; }
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public IReadOnlyDictionary<string, IReadOnlyList<object?>>? Columns { get; init; }
+}

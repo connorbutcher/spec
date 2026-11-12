@@ -11,13 +11,28 @@ namespace PUSpecSheet.Application.Sheets.Removal;
 /// is waiting for approval (see <see cref="HeldContents"/>). Both kinds of hold count: a saved draft, and a
 /// row someone has only clicked into.
 /// </summary>
-public sealed class RemovalContentsGuard(
-    SheetRevisionRepositories revisions,
-    ISheetRowRepository rows,
-    IUserRepository users,
-    LiveRowCheckoutTracker liveCheckouts,
-    ICurrentUser currentUser)
+public sealed class RemovalContentsGuard
 {
+    private readonly SheetRevisionRepositories revisions;
+    private readonly ISheetRowRepository rows;
+    private readonly IUserRepository users;
+    private readonly LiveRowCheckoutTracker liveCheckouts;
+    private readonly ICurrentUser currentUser;
+
+    public RemovalContentsGuard(
+        SheetRevisionRepositories revisions,
+        ISheetRowRepository rows,
+        IUserRepository users,
+        LiveRowCheckoutTracker liveCheckouts,
+        ICurrentUser currentUser)
+    {
+        this.revisions = revisions;
+        this.rows = rows;
+        this.users = users;
+        this.liveCheckouts = liveCheckouts;
+        this.currentUser = currentUser;
+    }
+
     /// <summary>Refuses removing the sections given (a section and everything inside it) while they are held.</summary>
     /// <exception cref="ConflictException">Someone else holds something inside, or it is waiting for approval.</exception>
     public async Task EnsureSectionsFreeAsync(IReadOnlyCollection<int> sectionIds, CancellationToken cancellationToken)
@@ -47,7 +62,7 @@ public sealed class RemovalContentsGuard(
         return rowIds
             .Select(liveCheckouts.HolderOf)
             .OfType<LiveRowCheckout>()
-            .Select(holder => new ContainedHold(holder.UserId, AwaitingApproval: false))
+            .Select(holder => new ContainedHold(holder.UserId, awaitingApproval: false))
             .ToList();
     }
 

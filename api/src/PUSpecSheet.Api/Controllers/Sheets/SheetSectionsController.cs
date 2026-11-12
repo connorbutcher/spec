@@ -13,8 +13,17 @@ namespace PUSpecSheet.Api.Controllers.Sheets;
 [Tags(ApiTags.SheetSections)]
 [Route("api/sheet-sections")]
 [Authorize(Policy = PermissionKeys.SheetsEdit)]
-public sealed class SheetSectionsController(ISheetSectionService sections, ISheetRowService rows) : ControllerBase
+public sealed class SheetSectionsController : ControllerBase
 {
+    private readonly ISheetSectionService sections;
+    private readonly ISheetRowService rows;
+
+    public SheetSectionsController(ISheetSectionService sections, ISheetRowService rows)
+    {
+        this.sections = sections;
+        this.rows = rows;
+    }
+
     /// <summary>Move a section</summary>
     /// <remarks>
     /// Moves the section copy to a position among its siblings.

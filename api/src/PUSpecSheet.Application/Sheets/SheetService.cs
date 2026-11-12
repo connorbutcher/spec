@@ -12,17 +12,40 @@ using PUSpecSheet.Domain.Sheets;
 
 namespace PUSpecSheet.Application.Sheets;
 
-public sealed class SheetService(
-    ISheetRepository sheets,
-    SheetRevisionRepositories revisions,
-    IPhaseRepository phases,
-    IUnitOfWork unitOfWork,
-    SheetReader reader,
-    SheetPublisher publisher,
-    DraftSweeper sweeper,
-    SubmissionQueries submissions,
-    ICurrentUser currentUser) : ISheetService
+public sealed class SheetService : ISheetService
 {
+    private readonly ISheetRepository sheets;
+    private readonly SheetRevisionRepositories revisions;
+    private readonly IPhaseRepository phases;
+    private readonly IUnitOfWork unitOfWork;
+    private readonly SheetReader reader;
+    private readonly SheetPublisher publisher;
+    private readonly DraftSweeper sweeper;
+    private readonly SubmissionQueries submissions;
+    private readonly ICurrentUser currentUser;
+
+    public SheetService(
+        ISheetRepository sheets,
+        SheetRevisionRepositories revisions,
+        IPhaseRepository phases,
+        IUnitOfWork unitOfWork,
+        SheetReader reader,
+        SheetPublisher publisher,
+        DraftSweeper sweeper,
+        SubmissionQueries submissions,
+        ICurrentUser currentUser)
+    {
+        this.sheets = sheets;
+        this.revisions = revisions;
+        this.phases = phases;
+        this.unitOfWork = unitOfWork;
+        this.reader = reader;
+        this.publisher = publisher;
+        this.sweeper = sweeper;
+        this.submissions = submissions;
+        this.currentUser = currentUser;
+    }
+
     public async Task<SheetDto> OpenAsync(int phaseId, int sheetTypeId, SheetViewPoint view, CancellationToken cancellationToken)
     {
         var sheetId = await sheets.FindIdAsync(phaseId, sheetTypeId, cancellationToken);

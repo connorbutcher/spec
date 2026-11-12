@@ -11,14 +11,31 @@ namespace PUSpecSheet.Application.Sheets.Drafts;
 /// Starts the current user's draft on a row, which is what locks it to them. Everything that changes a
 /// row's values, settings or place goes through here, so the rules for taking a row are in one place.
 /// </summary>
-public sealed class RowDraftStarter(
-    IUnitOfWork unitOfWork,
-    RowDrafts drafts,
-    LiveRowCheckoutGuard liveCheckouts,
-    IRemovalInProgressGuard removals,
-    IRowValueRepository values,
-    ICurrentUser currentUser)
+public sealed class RowDraftStarter
 {
+    private readonly IUnitOfWork unitOfWork;
+    private readonly RowDrafts drafts;
+    private readonly LiveRowCheckoutGuard liveCheckouts;
+    private readonly IRemovalInProgressGuard removals;
+    private readonly IRowValueRepository values;
+    private readonly ICurrentUser currentUser;
+
+    public RowDraftStarter(
+        IUnitOfWork unitOfWork,
+        RowDrafts drafts,
+        LiveRowCheckoutGuard liveCheckouts,
+        IRemovalInProgressGuard removals,
+        IRowValueRepository values,
+        ICurrentUser currentUser)
+    {
+        this.unitOfWork = unitOfWork;
+        this.drafts = drafts;
+        this.liveCheckouts = liveCheckouts;
+        this.removals = removals;
+        this.values = values;
+        this.currentUser = currentUser;
+    }
+
     /// <summary>
     /// The user's draft on the row. A newly started draft is saved straight away and given a copy of the
     /// published values and settings, so editing carries on from what's published.

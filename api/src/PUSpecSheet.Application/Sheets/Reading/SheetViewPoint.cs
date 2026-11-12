@@ -6,8 +6,18 @@ namespace PUSpecSheet.Application.Sheets.Reading;
 /// Which moment of a sheet to show: the live state (nothing set), the state when a version was published,
 /// the state at a date and time, or the live state with a submission's changes on top, for its approvers.
 /// </summary>
-public sealed record SheetViewPoint(int? VersionNumber, DateTime? AsOfUtc)
+public sealed record SheetViewPoint
 {
+    public SheetViewPoint(int? versionNumber, DateTime? asOfUtc)
+    {
+        this.VersionNumber = versionNumber;
+        this.AsOfUtc = asOfUtc;
+    }
+
+    public int? VersionNumber { get; init; }
+
+    public DateTime? AsOfUtc { get; init; }
+
     public static SheetViewPoint Live { get; } = new(null, null);
 
     /// <summary>The submission whose waiting changes are shown over the published sheet, read-only.</summary>

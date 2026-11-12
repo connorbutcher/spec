@@ -7,9 +7,14 @@ using PUSpecSheet.Domain.Sheets;
 
 namespace PUSpecSheet.Data.Repositories.Sheets.Revisions;
 
-public sealed class SheetColumnBlockRevisionRepository(PuSpecSheetDbContext db)
-    : SheetRevisionRepository<SheetColumnBlockRevision>(db), ISheetColumnBlockRevisionRepository
+public sealed class SheetColumnBlockRevisionRepository
+    : SheetRevisionRepository<SheetColumnBlockRevision>, ISheetColumnBlockRevisionRepository
 {
+    public SheetColumnBlockRevisionRepository(PuSpecSheetDbContext db)
+        : base(db)
+    {
+    }
+
     protected override DbSet<SheetColumnBlockRevision> Revisions => Db.SheetColumnBlockRevisions;
 
     protected override Expression<Func<SheetColumnBlockRevision, int>> ItemId => revision => revision.SheetColumnBlockId;

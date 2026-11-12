@@ -11,8 +11,15 @@ namespace PUSpecSheet.Api.Controllers.ReferenceData;
 [ApiController]
 [Tags(ApiTags.Phases)]
 [Route("api/phases")]
-public sealed class PhasesController(IPhaseService phases) : ControllerBase
+public sealed class PhasesController : ControllerBase
 {
+    private readonly IPhaseService phases;
+
+    public PhasesController(IPhaseService phases)
+    {
+        this.phases = phases;
+    }
+
     /// <summary>List phases</summary>
     /// <remarks>
     /// Every phase as a flat list in display order. Build the tree from <c>parentPhaseId</c>. <c>sheetTypeIds</c> says which sheets a phase can have.

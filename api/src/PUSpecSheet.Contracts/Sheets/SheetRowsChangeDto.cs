@@ -9,16 +9,28 @@ namespace PUSpecSheet.Contracts.Sheets;
 /// rows of their tables that can be linked to. It is what saving a row answers with, and what is read
 /// when someone else has checked rows out or released them, in place of the whole sheet.
 /// </summary>
-/// <param name="SheetId">The sheet's id.</param>
-/// <param name="Rows">The rows asked for that are on the sheet. A row asked for and not listed has gone.</param>
-/// <param name="LatestVersionNumber">The newest version of the sheet, so a reader can tell when it has to read everything.</param>
-/// <param name="MyDraftCount">How many of the viewer's own changes are waiting to be published.</param>
-public sealed record SheetRowsChangeDto(
-    int SheetId,
-    IReadOnlyList<SheetRowDto> Rows,
-    int? LatestVersionNumber,
-    int MyDraftCount)
+public sealed record SheetRowsChangeDto
 {
+    public SheetRowsChangeDto(int sheetId, IReadOnlyList<SheetRowDto> rows, int? latestVersionNumber, int myDraftCount)
+    {
+        this.SheetId = sheetId;
+        this.Rows = rows;
+        this.LatestVersionNumber = latestVersionNumber;
+        this.MyDraftCount = myDraftCount;
+    }
+
+    /// <summary>The sheet's id.</summary>
+    public int SheetId { get; init; }
+
+    /// <summary>The rows asked for that are on the sheet. A row asked for and not listed has gone.</summary>
+    public IReadOnlyList<SheetRowDto> Rows { get; init; }
+
+    /// <summary>The newest version of the sheet, so a reader can tell when it has to read everything.</summary>
+    public int? LatestVersionNumber { get; init; }
+
+    /// <summary>How many of the viewer's own changes are waiting to be published.</summary>
+    public int MyDraftCount { get; init; }
+
     /// <summary>Other people's unpublished changes on the sheet, by person.</summary>
     public IReadOnlyList<SheetDraftSummaryDto> OtherDrafts { get; init; } = [];
 

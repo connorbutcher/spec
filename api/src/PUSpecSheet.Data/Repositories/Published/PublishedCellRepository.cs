@@ -11,8 +11,15 @@ namespace PUSpecSheet.Data.Repositories.Published;
 /// row's revision at that moment. Nothing is loaded as an entity and no template is read beyond the
 /// cell's column (and its caption when labels are asked for).
 /// </summary>
-public sealed class PublishedCellRepository(PuSpecSheetDbContext db) : IPublishedCellRepository
+public sealed class PublishedCellRepository : IPublishedCellRepository
 {
+    private readonly PuSpecSheetDbContext db;
+
+    public PublishedCellRepository(PuSpecSheetDbContext db)
+    {
+        this.db = db;
+    }
+
     /// <param name="version">The version to read.</param>
     /// <param name="scope">What to read, or null for the whole sheet.</param>
     /// <param name="includeCaptions">Whether to read each cell's caption.</param>

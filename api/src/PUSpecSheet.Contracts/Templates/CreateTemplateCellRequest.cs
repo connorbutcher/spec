@@ -8,8 +8,25 @@ namespace PUSpecSheet.Contracts.Templates;
 /// cells from there on move one column right; without it the cell goes after the last one. Without a
 /// <see cref="CellTypeId"/> the cell uses the first Text cell type.
 /// </summary>
-public sealed record CreateTemplateCellRequest(
-    int TemplateRowId,
-    int? CellTypeId = null,
-    [Range(1, 100)] int? Column = null,
-    int? TemplateColumnBlockId = null);
+public sealed record CreateTemplateCellRequest
+{
+    public CreateTemplateCellRequest(
+        int templateRowId,
+        int? cellTypeId = null,
+        [Range(1, 100)] int? column = null,
+        int? templateColumnBlockId = null)
+    {
+        this.TemplateRowId = templateRowId;
+        this.CellTypeId = cellTypeId;
+        this.Column = column;
+        this.TemplateColumnBlockId = templateColumnBlockId;
+    }
+
+    public int TemplateRowId { get; init; }
+
+    public int? CellTypeId { get; init; }
+
+    public int? Column { get; init; }
+
+    public int? TemplateColumnBlockId { get; init; }
+}

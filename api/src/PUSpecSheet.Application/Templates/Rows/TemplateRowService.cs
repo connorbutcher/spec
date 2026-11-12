@@ -8,15 +8,34 @@ using PUSpecSheet.Domain.Templates;
 
 namespace PUSpecSheet.Application.Templates.Rows;
 
-public sealed class TemplateRowService(
-    ITemplateSectionRepository sections,
-    ITemplateRowRepository rows,
-    ITemplateColumnBlockRepository columnBlocks,
-    ICellTypeRepository cellTypes,
-    IUnitOfWork unitOfWork,
-    TableTemplateReader reader,
-    TemplateVersionGuard guard) : ITemplateRowService
+public sealed class TemplateRowService : ITemplateRowService
 {
+    private readonly ITemplateSectionRepository sections;
+    private readonly ITemplateRowRepository rows;
+    private readonly ITemplateColumnBlockRepository columnBlocks;
+    private readonly ICellTypeRepository cellTypes;
+    private readonly IUnitOfWork unitOfWork;
+    private readonly TableTemplateReader reader;
+    private readonly TemplateVersionGuard guard;
+
+    public TemplateRowService(
+        ITemplateSectionRepository sections,
+        ITemplateRowRepository rows,
+        ITemplateColumnBlockRepository columnBlocks,
+        ICellTypeRepository cellTypes,
+        IUnitOfWork unitOfWork,
+        TableTemplateReader reader,
+        TemplateVersionGuard guard)
+    {
+        this.sections = sections;
+        this.rows = rows;
+        this.columnBlocks = columnBlocks;
+        this.cellTypes = cellTypes;
+        this.unitOfWork = unitOfWork;
+        this.reader = reader;
+        this.guard = guard;
+    }
+
     public async Task<TableTemplateDto> CreateAsync(CreateTemplateRowRequest request, CancellationToken cancellationToken)
     {
         var versionId = await sections.FindVersionIdAsync(request.TemplateSectionId, cancellationToken)

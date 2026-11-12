@@ -8,9 +8,16 @@ namespace PUSpecSheet.Api.Authorization;
 /// Answers a request that lacks a permission with a 403 ProblemDetails naming the permission, like the
 /// API's other errors. Every other authorization outcome is handled as usual.
 /// </summary>
-public sealed class PermissionDeniedResultHandler(IProblemDetailsService problemDetails) : IAuthorizationMiddlewareResultHandler
+public sealed class PermissionDeniedResultHandler : IAuthorizationMiddlewareResultHandler
 {
     private readonly AuthorizationMiddlewareResultHandler fallback = new();
+
+    private readonly IProblemDetailsService problemDetails;
+
+    public PermissionDeniedResultHandler(IProblemDetailsService problemDetails)
+    {
+        this.problemDetails = problemDetails;
+    }
 
     public async Task HandleAsync(
         RequestDelegate next,

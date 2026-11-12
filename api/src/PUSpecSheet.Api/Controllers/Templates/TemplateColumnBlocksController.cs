@@ -13,8 +13,15 @@ namespace PUSpecSheet.Api.Controllers.Templates;
 [Tags(ApiTags.TemplateColumnBlocks)]
 [Route("api/template-column-blocks")]
 [Authorize(Policy = PermissionKeys.TemplatesManage)]
-public sealed class TemplateColumnBlocksController(ITemplateColumnBlockService blocks) : ControllerBase
+public sealed class TemplateColumnBlocksController : ControllerBase
 {
+    private readonly ITemplateColumnBlockService blocks;
+
+    public TemplateColumnBlocksController(ITemplateColumnBlockService blocks)
+    {
+        this.blocks = blocks;
+    }
+
     /// <summary>Add a column block</summary>
     /// <remarks>
     /// Adds a column block to the right of a horizontal template version's other blocks. Each row of the version gets one cell in the new block to start with.

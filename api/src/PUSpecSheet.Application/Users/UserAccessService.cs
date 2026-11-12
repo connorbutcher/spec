@@ -3,9 +3,18 @@ using PUSpecSheet.Contracts.Users;
 
 namespace PUSpecSheet.Application.Users;
 
-public sealed class UserAccessService(IUserRepository users, ICurrentUser currentUser) : IUserAccessService
+public sealed class UserAccessService : IUserAccessService
 {
     private UserAccess? current;
+
+    private readonly IUserRepository users;
+    private readonly ICurrentUser currentUser;
+
+    public UserAccessService(IUserRepository users, ICurrentUser currentUser)
+    {
+        this.users = users;
+        this.currentUser = currentUser;
+    }
 
     public async Task<UserAccess> GetCurrentAsync(CancellationToken cancellationToken)
     {

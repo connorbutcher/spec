@@ -4,8 +4,15 @@ using PUSpecSheet.Domain.Approvals;
 
 namespace PUSpecSheet.Data.Repositories.Approvals;
 
-public sealed class SheetSubmissionRepository(PuSpecSheetDbContext db) : ISheetSubmissionRepository
+public sealed class SheetSubmissionRepository : ISheetSubmissionRepository
 {
+    private readonly PuSpecSheetDbContext db;
+
+    public SheetSubmissionRepository(PuSpecSheetDbContext db)
+    {
+        this.db = db;
+    }
+
     public Task<List<SheetSubmission>> ListAwaitingDecisionOfAsync(int userId, CancellationToken cancellationToken)
     {
         return ListAsync(

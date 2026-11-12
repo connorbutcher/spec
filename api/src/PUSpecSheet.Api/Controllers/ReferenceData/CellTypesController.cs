@@ -10,8 +10,15 @@ namespace PUSpecSheet.Api.Controllers.ReferenceData;
 [ApiController]
 [Tags(ApiTags.CellTypes)]
 [Route("api/cell-types")]
-public sealed class CellTypesController(ICellTypeService cellTypes) : ControllerBase
+public sealed class CellTypesController : ControllerBase
 {
+    private readonly ICellTypeService cellTypes;
+
+    public CellTypesController(ICellTypeService cellTypes)
+    {
+        this.cellTypes = cellTypes;
+    }
+
     /// <summary>List cell types</summary>
     /// <remarks>
     /// Every cell type in display order, each with its default configuration, style, dropdown options and how many template cells use it.

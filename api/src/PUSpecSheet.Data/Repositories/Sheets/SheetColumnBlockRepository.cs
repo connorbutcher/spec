@@ -4,8 +4,15 @@ using PUSpecSheet.Domain.Sheets;
 
 namespace PUSpecSheet.Data.Repositories.Sheets;
 
-public sealed class SheetColumnBlockRepository(PuSpecSheetDbContext db) : ISheetColumnBlockRepository
+public sealed class SheetColumnBlockRepository : ISheetColumnBlockRepository
 {
+    private readonly PuSpecSheetDbContext db;
+
+    public SheetColumnBlockRepository(PuSpecSheetDbContext db)
+    {
+        this.db = db;
+    }
+
     public async Task<List<SheetColumnBlock>> ListOnSheetAsync(int sheetId, CancellationToken cancellationToken)
     {
         return await db.SheetColumnBlocks

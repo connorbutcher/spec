@@ -17,8 +17,15 @@ namespace PUSpecSheet.Api.Controllers.Published;
 [Tags(ApiTags.PublishedSheets)]
 [Route("api/published")]
 [AllowAnonymous]
-public sealed class PublishedLookupController(IPublishedLookupService lookup) : ControllerBase
+public sealed class PublishedLookupController : ControllerBase
 {
+    private readonly IPublishedLookupService lookup;
+
+    public PublishedLookupController(IPublishedLookupService lookup)
+    {
+        this.lookup = lookup;
+    }
+
     /// <summary>Look a value up on every sheet</summary>
     /// <remarks>
     /// Finds every published sheet where a cell with the lookup key holds the value, and returns what

@@ -14,8 +14,13 @@ namespace PUSpecSheet.Data;
 /// The EF Core unit of work for the spec sheet database. Entity configurations live in their own
 /// <see cref="IEntityTypeConfiguration{TEntity}"/> classes in this assembly and are picked up here.
 /// </summary>
-public sealed class PuSpecSheetDbContext(DbContextOptions<PuSpecSheetDbContext> options) : DbContext(options)
+public sealed class PuSpecSheetDbContext : DbContext
 {
+    public PuSpecSheetDbContext(DbContextOptions<PuSpecSheetDbContext> options)
+        : base(options)
+    {
+    }
+
     public DbSet<SheetType> SheetTypes => Set<SheetType>();
 
     public DbSet<Phase> Phases => Set<Phase>();

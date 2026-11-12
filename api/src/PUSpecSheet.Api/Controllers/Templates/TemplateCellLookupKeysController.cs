@@ -12,8 +12,15 @@ namespace PUSpecSheet.Api.Controllers.Templates;
 [Tags(ApiTags.TemplateCells)]
 [Route("api/template-cells/{id:int}/lookup-key")]
 [Authorize(Policy = PermissionKeys.TemplatesManage)]
-public sealed class TemplateCellLookupKeysController(ITemplateCellLookupKeyService lookupKeys) : ControllerBase
+public sealed class TemplateCellLookupKeysController : ControllerBase
 {
+    private readonly ITemplateCellLookupKeyService lookupKeys;
+
+    public TemplateCellLookupKeysController(ITemplateCellLookupKeyService lookupKeys)
+    {
+        this.lookupKeys = lookupKeys;
+    }
+
     /// <summary>Set a cell's lookup key</summary>
     /// <remarks>
     /// Names the cell so other applications can find it by the value typed into it, through

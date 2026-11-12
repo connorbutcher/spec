@@ -8,8 +8,23 @@ namespace PUSpecSheet.Contracts.Published;
 /// cell in a set of repeated columns and identifies that set; <see cref="Caption"/> only when labels are
 /// asked for.
 /// </summary>
-public sealed record PublishedCellDto(
-    Guid Id,
-    object Value,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] Guid? Column,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? Caption);
+public sealed record PublishedCellDto
+{
+    public PublishedCellDto(Guid id, object value, Guid? column, string? caption)
+    {
+        this.Id = id;
+        this.Value = value;
+        this.Column = column;
+        this.Caption = caption;
+    }
+
+    public Guid Id { get; init; }
+
+    public object Value { get; init; }
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public Guid? Column { get; init; }
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Caption { get; init; }
+}

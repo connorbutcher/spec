@@ -11,8 +11,15 @@ namespace PUSpecSheet.Data.Repositories.Sheets;
 /// the same value finds the item in the live sheet, in any version and at any date; only an item that is
 /// deleted and created again gets a new one.
 /// </summary>
-public sealed class SheetItemLocator(PuSpecSheetDbContext db) : ISheetItemLocator
+public sealed class SheetItemLocator : ISheetItemLocator
 {
+    private readonly PuSpecSheetDbContext db;
+
+    public SheetItemLocator(PuSpecSheetDbContext db)
+    {
+        this.db = db;
+    }
+
     public async Task<SheetItemReferenceDto> FindAsync(Guid publicId, CancellationToken cancellationToken)
     {
         return await FindSheetAsync(publicId, cancellationToken)

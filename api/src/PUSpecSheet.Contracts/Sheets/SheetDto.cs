@@ -7,20 +7,60 @@ namespace PUSpecSheet.Contracts.Sheets;
 /// drafts on top and other people's locks marked; a past view (by version number or date) is read-only
 /// and shows only what was published then.
 /// </summary>
-public sealed record SheetDto(
-    int Id,
-    Guid PublicId,
-    int PhaseId,
-    int SheetTypeId,
-    bool IsLive,
-    int? ViewedVersionNumber,
-    DateTime? ViewedAsOfUtc,
-    int? LatestVersionNumber,
-    int MyDraftCount,
-    IReadOnlyList<SheetVersionSummaryDto> Versions,
-    IReadOnlyList<SheetTableDto> Tables,
-    IReadOnlyList<AvailableTemplateDto> AvailableTemplates)
+public sealed record SheetDto
 {
+    public SheetDto(
+        int id,
+        Guid publicId,
+        int phaseId,
+        int sheetTypeId,
+        bool isLive,
+        int? viewedVersionNumber,
+        DateTime? viewedAsOfUtc,
+        int? latestVersionNumber,
+        int myDraftCount,
+        IReadOnlyList<SheetVersionSummaryDto> versions,
+        IReadOnlyList<SheetTableDto> tables,
+        IReadOnlyList<AvailableTemplateDto> availableTemplates)
+    {
+        this.Id = id;
+        this.PublicId = publicId;
+        this.PhaseId = phaseId;
+        this.SheetTypeId = sheetTypeId;
+        this.IsLive = isLive;
+        this.ViewedVersionNumber = viewedVersionNumber;
+        this.ViewedAsOfUtc = viewedAsOfUtc;
+        this.LatestVersionNumber = latestVersionNumber;
+        this.MyDraftCount = myDraftCount;
+        this.Versions = versions;
+        this.Tables = tables;
+        this.AvailableTemplates = availableTemplates;
+    }
+
+    public int Id { get; init; }
+
+    public Guid PublicId { get; init; }
+
+    public int PhaseId { get; init; }
+
+    public int SheetTypeId { get; init; }
+
+    public bool IsLive { get; init; }
+
+    public int? ViewedVersionNumber { get; init; }
+
+    public DateTime? ViewedAsOfUtc { get; init; }
+
+    public int? LatestVersionNumber { get; init; }
+
+    public int MyDraftCount { get; init; }
+
+    public IReadOnlyList<SheetVersionSummaryDto> Versions { get; init; }
+
+    public IReadOnlyList<SheetTableDto> Tables { get; init; }
+
+    public IReadOnlyList<AvailableTemplateDto> AvailableTemplates { get; init; }
+
     /// <summary>
     /// Other people's unpublished changes on the sheet, by person. Publishing everything takes these as
     /// well as the viewer's own. Empty for a past view.

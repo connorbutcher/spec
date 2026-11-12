@@ -7,8 +7,19 @@ using PUSpecSheet.Domain.Phases;
 
 namespace PUSpecSheet.Application.Phases;
 
-public sealed class PhaseService(IPhaseRepository phases, ISheetTypeRepository sheetTypes, IUnitOfWork unitOfWork) : IPhaseService
+public sealed class PhaseService : IPhaseService
 {
+    private readonly IPhaseRepository phases;
+    private readonly ISheetTypeRepository sheetTypes;
+    private readonly IUnitOfWork unitOfWork;
+
+    public PhaseService(IPhaseRepository phases, ISheetTypeRepository sheetTypes, IUnitOfWork unitOfWork)
+    {
+        this.phases = phases;
+        this.sheetTypes = sheetTypes;
+        this.unitOfWork = unitOfWork;
+    }
+
     public async Task<IReadOnlyList<PhaseDto>> GetAllAsync(CancellationToken cancellationToken)
     {
         var all = await phases.ListWithSheetTypesAsync(cancellationToken);

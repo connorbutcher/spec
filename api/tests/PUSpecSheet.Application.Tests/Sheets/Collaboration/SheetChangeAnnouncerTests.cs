@@ -75,7 +75,7 @@ public sealed class SheetChangeAnnouncerTests
     {
         if (lockedRow is { } rowId)
         {
-            var row = new SheetRowDto(rowId, Guid.Empty, 1, 1, new SheetLockDto(2, "Engineer Two", IsMine: false), false, CanRemove: true, [], null);
+            var row = new SheetRowDto(rowId, Guid.Empty, 1, 1, new SheetLockDto(2, "Engineer Two", isMine: false), false, canRemove: true, [], null);
             var section = new SheetSectionDto(1, Guid.Empty, 1, "Limits", SectionRole.Header, 1, 1, 1, 1, null, false, false, [row], [], [], [], null);
             var table = new SheetTableDto(1, Guid.Empty, 1, "Limits", 1, TemplateOrientation.Vertical, 0, null, 1, null, false, [section], [], [], []);
             return new SheetDto(SheetId, Guid.Empty, 1, 1, isLive, null, null, latestVersion, 0, [], [table], []);

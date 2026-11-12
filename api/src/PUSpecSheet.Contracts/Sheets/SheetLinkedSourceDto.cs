@@ -6,4 +6,21 @@ namespace PUSpecSheet.Contracts.Sheets;
 /// holds, top to bottom) or a row of it (<see cref="SheetRowId"/> is set: the values in that row after
 /// the one that names it, left to right). Only sources some cell is linked to are listed.
 /// </summary>
-public sealed record SheetLinkedSourceDto(int SheetTableId, int? TemplateCellId, int? SheetRowId, IReadOnlyList<string> Options);
+public sealed record SheetLinkedSourceDto
+{
+    public SheetLinkedSourceDto(int sheetTableId, int? templateCellId, int? sheetRowId, IReadOnlyList<string> options)
+    {
+        this.SheetTableId = sheetTableId;
+        this.TemplateCellId = templateCellId;
+        this.SheetRowId = sheetRowId;
+        this.Options = options;
+    }
+
+    public int SheetTableId { get; init; }
+
+    public int? TemplateCellId { get; init; }
+
+    public int? SheetRowId { get; init; }
+
+    public IReadOnlyList<string> Options { get; init; }
+}

@@ -13,8 +13,15 @@ namespace PUSpecSheet.Api.Controllers.Templates;
 [Tags(ApiTags.TemplateRows)]
 [Route("api/template-rows")]
 [Authorize(Policy = PermissionKeys.TemplatesManage)]
-public sealed class TemplateRowsController(ITemplateRowService rows) : ControllerBase
+public sealed class TemplateRowsController : ControllerBase
 {
+    private readonly ITemplateRowService rows;
+
+    public TemplateRowsController(ITemplateRowService rows)
+    {
+        this.rows = rows;
+    }
+
     /// <summary>Add a row</summary>
     /// <remarks>
     /// Adds a row to a section, at a 1-based position or at the end. The new row copies the columns of <c>copyFromRowId</c>, or of the section's last row when that is null.

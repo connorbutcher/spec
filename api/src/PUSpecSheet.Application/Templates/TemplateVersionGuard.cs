@@ -7,8 +7,15 @@ namespace PUSpecSheet.Application.Templates;
 /// Keeps sheets' layouts stable: only a template's latest version can change, and only while no sheet
 /// table uses it. Changes to a version in use go into a new version instead.
 /// </summary>
-public sealed class TemplateVersionGuard(ITableTemplateRepository templates)
+public sealed class TemplateVersionGuard
 {
+    private readonly ITableTemplateRepository templates;
+
+    public TemplateVersionGuard(ITableTemplateRepository templates)
+    {
+        this.templates = templates;
+    }
+
     public async Task EnsureEditableAsync(int versionId, CancellationToken cancellationToken)
     {
         var version = await templates.FindVersionStateAsync(versionId, cancellationToken);

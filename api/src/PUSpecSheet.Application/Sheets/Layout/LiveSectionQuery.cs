@@ -5,11 +5,19 @@ using PUSpecSheet.Application.Users;
 namespace PUSpecSheet.Application.Sheets.Layout;
 
 /// <summary>Answers questions about a table's sections as the current user sees them.</summary>
-public sealed class LiveSectionQuery(
-    ISheetSectionRepository sheetSections,
-    ISheetSectionRevisionRepository revisions,
-    ICurrentUser currentUser)
+public sealed class LiveSectionQuery
 {
+    private readonly ISheetSectionRepository sheetSections;
+    private readonly ISheetSectionRevisionRepository revisions;
+    private readonly ICurrentUser currentUser;
+
+    public LiveSectionQuery(ISheetSectionRepository sheetSections, ISheetSectionRevisionRepository revisions, ICurrentUser currentUser)
+    {
+        this.sheetSections = sheetSections;
+        this.revisions = revisions;
+        this.currentUser = currentUser;
+    }
+
     /// <summary>
     /// The table's section copies that exist for the user: published and not removed, or drafted by them,
     /// and not inside a removed section. Other people's unpublished drafts don't count.

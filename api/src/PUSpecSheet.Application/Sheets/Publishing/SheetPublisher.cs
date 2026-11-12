@@ -26,18 +26,43 @@ namespace PUSpecSheet.Application.Sheets.Publishing;
 /// drafts for a submission, and <see cref="PublishSubmissionAsync"/> publishes them once it is approved.
 /// </para>
 /// </summary>
-public sealed class SheetPublisher(
-    ISheetRepository sheets,
-    ISheetCellRepository cells,
-    SheetRevisionRepositories revisions,
-    IRowValueRepository values,
-    IUserRepository users,
-    IUnitOfWork unitOfWork,
-    SheetDraftSetLoader draftLoader,
-    DraftSweeper sweeper,
-    ICurrentUser currentUser,
-    TimeProvider clock)
+public sealed class SheetPublisher
 {
+    private readonly ISheetRepository sheets;
+    private readonly ISheetCellRepository cells;
+    private readonly SheetRevisionRepositories revisions;
+    private readonly IRowValueRepository values;
+    private readonly IUserRepository users;
+    private readonly IUnitOfWork unitOfWork;
+    private readonly SheetDraftSetLoader draftLoader;
+    private readonly DraftSweeper sweeper;
+    private readonly ICurrentUser currentUser;
+    private readonly TimeProvider clock;
+
+    public SheetPublisher(
+        ISheetRepository sheets,
+        ISheetCellRepository cells,
+        SheetRevisionRepositories revisions,
+        IRowValueRepository values,
+        IUserRepository users,
+        IUnitOfWork unitOfWork,
+        SheetDraftSetLoader draftLoader,
+        DraftSweeper sweeper,
+        ICurrentUser currentUser,
+        TimeProvider clock)
+    {
+        this.sheets = sheets;
+        this.cells = cells;
+        this.revisions = revisions;
+        this.values = values;
+        this.users = users;
+        this.unitOfWork = unitOfWork;
+        this.draftLoader = draftLoader;
+        this.sweeper = sweeper;
+        this.currentUser = currentUser;
+        this.clock = clock;
+    }
+
     /// <summary>Publishes straight away, without approval. Only start-up seeding does this.</summary>
     /// <exception cref="NotFoundException">The sheet doesn't exist.</exception>
     /// <exception cref="InvalidRequestException">There is nothing to publish, or a required cell is empty.</exception>

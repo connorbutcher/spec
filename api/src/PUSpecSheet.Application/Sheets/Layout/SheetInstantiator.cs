@@ -9,8 +9,15 @@ namespace PUSpecSheet.Application.Sheets.Layout;
 /// sub-sections the template starts with, and so on down. Everything is created as a first draft of the
 /// current user, so it stays invisible to others until they publish.
 /// </summary>
-public sealed class SheetInstantiator(ICurrentUser currentUser)
+public sealed class SheetInstantiator
 {
+    private readonly ICurrentUser currentUser;
+
+    public SheetInstantiator(ICurrentUser currentUser)
+    {
+        this.currentUser = currentUser;
+    }
+
     /// <summary>How many copies of a section a new table or parent starts with. The header is always at least one.</summary>
     public static int StartingCopies(TemplateSection template)
     {

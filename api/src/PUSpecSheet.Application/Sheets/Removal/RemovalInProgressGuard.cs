@@ -4,13 +4,28 @@ using PUSpecSheet.Application.Persistence.Users;
 
 namespace PUSpecSheet.Application.Sheets.Removal;
 
-public sealed class RemovalInProgressGuard(
-    ISheetRowRepository rows,
-    ISheetSectionRepository sections,
-    ISheetTableRevisionRepository tableRevisions,
-    ISheetSectionRevisionRepository sectionRevisions,
-    IUserRepository users) : IRemovalInProgressGuard
+public sealed class RemovalInProgressGuard : IRemovalInProgressGuard
 {
+    private readonly ISheetRowRepository rows;
+    private readonly ISheetSectionRepository sections;
+    private readonly ISheetTableRevisionRepository tableRevisions;
+    private readonly ISheetSectionRevisionRepository sectionRevisions;
+    private readonly IUserRepository users;
+
+    public RemovalInProgressGuard(
+        ISheetRowRepository rows,
+        ISheetSectionRepository sections,
+        ISheetTableRevisionRepository tableRevisions,
+        ISheetSectionRevisionRepository sectionRevisions,
+        IUserRepository users)
+    {
+        this.rows = rows;
+        this.sections = sections;
+        this.tableRevisions = tableRevisions;
+        this.sectionRevisions = sectionRevisions;
+        this.users = users;
+    }
+
     public async Task EnsureRowNotBeingRemovedAsync(int rowId, int userId, CancellationToken cancellationToken)
     {
         var place = await rows.FindPlaceAsync(rowId, cancellationToken);

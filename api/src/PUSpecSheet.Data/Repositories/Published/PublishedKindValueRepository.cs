@@ -10,8 +10,15 @@ namespace PUSpecSheet.Data.Repositories.Published;
 /// Reads the values of cells whose kinds are known, and only asks the value tables those kinds use: rows
 /// of text and numbers cost two queries, not one for every kind of value there is.
 /// </summary>
-public sealed class PublishedKindValueRepository(PuSpecSheetDbContext db) : IPublishedKindValueRepository
+public sealed class PublishedKindValueRepository : IPublishedKindValueRepository
 {
+    private readonly PuSpecSheetDbContext db;
+
+    public PublishedKindValueRepository(PuSpecSheetDbContext db)
+    {
+        this.db = db;
+    }
+
     /// <param name="cells">The cells to read values for.</param>
     /// <param name="wholeSheet">The version, when the cells are every cell of the sheet, so every value of its revisions is read and not a long list of cells; otherwise null.</param>
     /// <param name="cancellationToken">Stops the queries.</param>

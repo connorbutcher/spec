@@ -8,15 +8,34 @@ using PUSpecSheet.Domain.Approvals;
 
 namespace PUSpecSheet.Application.Approvals;
 
-public sealed class SheetSubmissionService(
-    ApproverDirectory approvers,
-    SheetSubmitter submitter,
-    SubmissionDecider decider,
-    SubmissionQueries queries,
-    SheetReader reader,
-    ISheetLiveNotifier notifier,
-    ICurrentUser currentUser) : ISheetSubmissionService
+public sealed class SheetSubmissionService : ISheetSubmissionService
 {
+    private readonly ApproverDirectory approvers;
+    private readonly SheetSubmitter submitter;
+    private readonly SubmissionDecider decider;
+    private readonly SubmissionQueries queries;
+    private readonly SheetReader reader;
+    private readonly ISheetLiveNotifier notifier;
+    private readonly ICurrentUser currentUser;
+
+    public SheetSubmissionService(
+        ApproverDirectory approvers,
+        SheetSubmitter submitter,
+        SubmissionDecider decider,
+        SubmissionQueries queries,
+        SheetReader reader,
+        ISheetLiveNotifier notifier,
+        ICurrentUser currentUser)
+    {
+        this.approvers = approvers;
+        this.submitter = submitter;
+        this.decider = decider;
+        this.queries = queries;
+        this.reader = reader;
+        this.notifier = notifier;
+        this.currentUser = currentUser;
+    }
+
     public Task<IReadOnlyList<ApproverDto>> ApproversAsync(CancellationToken cancellationToken)
     {
         return approvers.ListAsync(currentUser.UserId, cancellationToken);

@@ -8,8 +8,15 @@ namespace PUSpecSheet.Api.Controllers.Users;
 [ApiController]
 [Tags(ApiTags.CurrentUser)]
 [Route("api/me")]
-public sealed class CurrentUserController(IUserAccessService userAccess) : ControllerBase
+public sealed class CurrentUserController : ControllerBase
 {
+    private readonly IUserAccessService userAccess;
+
+    public CurrentUserController(IUserAccessService userAccess)
+    {
+        this.userAccess = userAccess;
+    }
+
     /// <summary>Get the current user</summary>
     /// <remarks>
     /// Who the request runs as, their roles and everything those roles allow. <c>permissions</c> lists the

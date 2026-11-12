@@ -15,9 +15,16 @@ namespace PUSpecSheet.Data.Repositories.Sheets.Revisions;
 /// rather than the whole database. Each subclass names its table and the item a revision belongs to,
 /// which EF needs written against the concrete entity.
 /// </summary>
-public abstract class SheetRevisionRepository<TRevision>(PuSpecSheetDbContext db) : ISheetRevisionRepository<TRevision>
+public abstract class SheetRevisionRepository<TRevision> : ISheetRevisionRepository<TRevision>
     where TRevision : class, ISheetRevision
 {
+    private readonly PuSpecSheetDbContext db;
+
+    protected SheetRevisionRepository(PuSpecSheetDbContext db)
+    {
+        this.db = db;
+    }
+
     protected PuSpecSheetDbContext Db => db;
 
     protected abstract DbSet<TRevision> Revisions { get; }

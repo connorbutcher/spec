@@ -12,8 +12,15 @@ namespace PUSpecSheet.Api.Controllers.Templates;
 [Tags(ApiTags.TemplateCells)]
 [Route("api/template-cells/{id:int}/overrides")]
 [Authorize(Policy = PermissionKeys.TemplatesManage)]
-public sealed class TemplateCellOverridesController(ITemplateCellOverrideService overrides) : ControllerBase
+public sealed class TemplateCellOverridesController : ControllerBase
 {
+    private readonly ITemplateCellOverrideService overrides;
+
+    public TemplateCellOverridesController(ITemplateCellOverrideService overrides)
+    {
+        this.overrides = overrides;
+    }
+
     /// <summary>Set a cell's overrides</summary>
     /// <remarks>
     /// Replaces what the cell changes from its cell type's default configuration and style. Null, or a

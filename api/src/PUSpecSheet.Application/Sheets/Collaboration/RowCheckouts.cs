@@ -8,17 +8,40 @@ using PUSpecSheet.Domain.Sheets;
 
 namespace PUSpecSheet.Application.Sheets.Collaboration;
 
-public sealed class RowCheckouts(
-    ISheetRowRepository rows,
-    ISheetRowRevisionRepository rowRevisions,
-    IRowValueRepository values,
-    IUserRepository users,
-    IUnitOfWork unitOfWork,
-    LiveRowCheckoutTracker live,
-    SheetPresenceTracker presence,
-    ISheetLiveNotifier notifier,
-    TimeProvider clock) : IRowCheckouts
+public sealed class RowCheckouts : IRowCheckouts
 {
+    private readonly ISheetRowRepository rows;
+    private readonly ISheetRowRevisionRepository rowRevisions;
+    private readonly IRowValueRepository values;
+    private readonly IUserRepository users;
+    private readonly IUnitOfWork unitOfWork;
+    private readonly LiveRowCheckoutTracker live;
+    private readonly SheetPresenceTracker presence;
+    private readonly ISheetLiveNotifier notifier;
+    private readonly TimeProvider clock;
+
+    public RowCheckouts(
+        ISheetRowRepository rows,
+        ISheetRowRevisionRepository rowRevisions,
+        IRowValueRepository values,
+        IUserRepository users,
+        IUnitOfWork unitOfWork,
+        LiveRowCheckoutTracker live,
+        SheetPresenceTracker presence,
+        ISheetLiveNotifier notifier,
+        TimeProvider clock)
+    {
+        this.rows = rows;
+        this.rowRevisions = rowRevisions;
+        this.values = values;
+        this.users = users;
+        this.unitOfWork = unitOfWork;
+        this.live = live;
+        this.presence = presence;
+        this.notifier = notifier;
+        this.clock = clock;
+    }
+
     public async Task<RowCheckout?> FindAsync(int rowId, CancellationToken cancellationToken)
     {
         if (await FindDraftAsync(rowId, cancellationToken) is { } drafted)
@@ -28,7 +51,7 @@ public sealed class RowCheckouts(
 
         // Someone who is only in the row has, by definition, changed nothing.
         return live.HolderOf(rowId) is { } holder
-            ? new RowCheckout(holder.SheetId, holder.UserId, HasChanges: false)
+            ? new RowCheckout(holder.SheetId, holder.UserId, hasChanges: false)
             : null;
     }
 

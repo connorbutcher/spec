@@ -5,8 +5,15 @@ using PUSpecSheet.Domain.Users;
 
 namespace PUSpecSheet.Data.Repositories.Users;
 
-public sealed class UserRepository(PuSpecSheetDbContext db) : IUserRepository
+public sealed class UserRepository : IUserRepository
 {
+    private readonly PuSpecSheetDbContext db;
+
+    public UserRepository(PuSpecSheetDbContext db)
+    {
+        this.db = db;
+    }
+
     public async Task<User?> FindWithAccessAsync(int userId, CancellationToken cancellationToken)
     {
         return await db.Users

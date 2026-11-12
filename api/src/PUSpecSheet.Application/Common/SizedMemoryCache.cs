@@ -9,12 +9,17 @@ namespace PUSpecSheet.Application.Common;
 /// nothing has to be cleared; entries only leave when they go unused or the cache is full. Each entry says
 /// how big it is, so a few large ones can't push everything else out unnoticed.
 /// </summary>
-public abstract class SizedMemoryCache<TValue>(long sizeLimit) : IDisposable
+public abstract class SizedMemoryCache<TValue> : IDisposable
     where TValue : class
 {
     private static readonly TimeSpan Unused = TimeSpan.FromMinutes(30);
 
-    private readonly MemoryCache cache = new(new MemoryCacheOptions { SizeLimit = sizeLimit });
+    private readonly MemoryCache cache;
+
+    protected SizedMemoryCache(long sizeLimit)
+    {
+        this.cache = new(new MemoryCacheOptions { SizeLimit = sizeLimit });
+    }
 
     public bool TryGet(string key, [NotNullWhen(true)] out TValue? value)
     {

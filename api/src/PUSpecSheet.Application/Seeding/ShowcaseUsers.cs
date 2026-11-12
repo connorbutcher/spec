@@ -9,13 +9,22 @@ namespace PUSpecSheet.Application.Seeding;
 /// people: the developer user everyone runs as, and the two extra development users. A user that doesn't
 /// exist falls back to the developer.
 /// </summary>
-public sealed class ShowcaseUsers(IUserRepository users, BackgroundUser backgroundUser)
+public sealed class ShowcaseUsers
 {
     public const string Developer = WellKnownUsers.DeveloperUserName;
     public const string EngineerTwo = "engineer2";
     public const string EngineerThree = "engineer3";
 
     private Dictionary<string, int>? ids;
+
+    private readonly IUserRepository users;
+    private readonly BackgroundUser backgroundUser;
+
+    public ShowcaseUsers(IUserRepository users, BackgroundUser backgroundUser)
+    {
+        this.users = users;
+        this.backgroundUser = backgroundUser;
+    }
 
     /// <summary>Makes every change from here on as <paramref name="userName"/>.</summary>
     public async Task ActAsAsync(string userName, CancellationToken cancellationToken)

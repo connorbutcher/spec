@@ -17,8 +17,15 @@ namespace PUSpecSheet.Api.Controllers.Published;
 [Tags(ApiTags.PublishedSheets)]
 [Route("api/published/sheets")]
 [AllowAnonymous]
-public sealed class PublishedSheetsController(IPublishedSheetQueryService sheets) : ControllerBase
+public sealed class PublishedSheetsController : ControllerBase
 {
+    private readonly IPublishedSheetQueryService sheets;
+
+    public PublishedSheetsController(IPublishedSheetQueryService sheets)
+    {
+        this.sheets = sheets;
+    }
+
     /// <summary>Find a sheet</summary>
     /// <remarks>
     /// Finds a sheet's identifier and newest version from its phase code and sheet type. Do this once and

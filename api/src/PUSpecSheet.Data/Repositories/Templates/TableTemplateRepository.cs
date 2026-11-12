@@ -5,8 +5,15 @@ using PUSpecSheet.Domain.Templates;
 
 namespace PUSpecSheet.Data.Repositories.Templates;
 
-public sealed class TableTemplateRepository(PuSpecSheetDbContext db) : ITableTemplateRepository
+public sealed class TableTemplateRepository : ITableTemplateRepository
 {
+    private readonly PuSpecSheetDbContext db;
+
+    public TableTemplateRepository(PuSpecSheetDbContext db)
+    {
+        this.db = db;
+    }
+
     public async Task<List<TableTemplateSummaryDto>> ListSummariesAsync(int? sheetTypeId, CancellationToken cancellationToken)
     {
         var query = db.TableTemplates.AsNoTracking();

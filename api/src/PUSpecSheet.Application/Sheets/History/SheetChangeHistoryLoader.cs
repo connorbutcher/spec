@@ -14,11 +14,19 @@ namespace PUSpecSheet.Application.Sheets.History;
 /// version. A history is therefore kept by sheet and version (see <see cref="SheetChangeHistoryCache"/>),
 /// and every view that lands on the same version, live, by number or by date, shares it.
 /// </remarks>
-public sealed class SheetChangeHistoryLoader(
-    SheetRevisionRepositories revisions,
-    IRowValueRepository values,
-    SheetChangeHistoryCache cache)
+public sealed class SheetChangeHistoryLoader
 {
+    private readonly SheetRevisionRepositories revisions;
+    private readonly IRowValueRepository values;
+    private readonly SheetChangeHistoryCache cache;
+
+    public SheetChangeHistoryLoader(SheetRevisionRepositories revisions, IRowValueRepository values, SheetChangeHistoryCache cache)
+    {
+        this.revisions = revisions;
+        this.values = values;
+        this.cache = cache;
+    }
+
     public async Task<SheetChangeHistory> LoadAsync(
         SheetSnapshot sheet,
         DateTime? moment,

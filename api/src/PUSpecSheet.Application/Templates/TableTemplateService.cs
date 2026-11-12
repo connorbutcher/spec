@@ -8,15 +8,34 @@ using PUSpecSheet.Domain.Templates;
 
 namespace PUSpecSheet.Application.Templates;
 
-public sealed class TableTemplateService(
-    ITableTemplateRepository templates,
-    ITemplateSectionRepository sections,
-    ITemplateColumnBlockRepository columnBlocks,
-    ISheetTypeRepository sheetTypes,
-    IUnitOfWork unitOfWork,
-    TableTemplateReader reader,
-    TemplateVersionGuard guard) : ITableTemplateService
+public sealed class TableTemplateService : ITableTemplateService
 {
+    private readonly ITableTemplateRepository templates;
+    private readonly ITemplateSectionRepository sections;
+    private readonly ITemplateColumnBlockRepository columnBlocks;
+    private readonly ISheetTypeRepository sheetTypes;
+    private readonly IUnitOfWork unitOfWork;
+    private readonly TableTemplateReader reader;
+    private readonly TemplateVersionGuard guard;
+
+    public TableTemplateService(
+        ITableTemplateRepository templates,
+        ITemplateSectionRepository sections,
+        ITemplateColumnBlockRepository columnBlocks,
+        ISheetTypeRepository sheetTypes,
+        IUnitOfWork unitOfWork,
+        TableTemplateReader reader,
+        TemplateVersionGuard guard)
+    {
+        this.templates = templates;
+        this.sections = sections;
+        this.columnBlocks = columnBlocks;
+        this.sheetTypes = sheetTypes;
+        this.unitOfWork = unitOfWork;
+        this.reader = reader;
+        this.guard = guard;
+    }
+
     public async Task<IReadOnlyList<TableTemplateSummaryDto>> GetSummariesAsync(
         int? sheetTypeId,
         CancellationToken cancellationToken)

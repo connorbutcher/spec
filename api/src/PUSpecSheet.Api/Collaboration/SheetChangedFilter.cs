@@ -16,9 +16,18 @@ namespace PUSpecSheet.Api.Collaboration;
 /// check for an answer that isn't a live sheet.
 /// </para>
 /// </summary>
-public sealed partial class SheetChangedFilter(SheetChangeAnnouncer announcer, ILogger<SheetChangedFilter> logger) : IAsyncResultFilter
+public sealed partial class SheetChangedFilter : IAsyncResultFilter
 {
     public const string ConnectionHeader = "X-Sheet-Connection";
+
+    private readonly SheetChangeAnnouncer announcer;
+    private readonly ILogger<SheetChangedFilter> logger;
+
+    public SheetChangedFilter(SheetChangeAnnouncer announcer, ILogger<SheetChangedFilter> logger)
+    {
+        this.announcer = announcer;
+        this.logger = logger;
+    }
 
     public async Task OnResultExecutionAsync(ResultExecutingContext context, ResultExecutionDelegate next)
     {

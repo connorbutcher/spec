@@ -18,20 +18,45 @@ namespace PUSpecSheet.Application.Seeding;
 /// API, and as the note is only written at the end, the next start tries again from a clean database.
 /// </para>
 /// </summary>
-public sealed partial class ShowcaseDataSeeder(
-    ISheetRepository sheets,
-    ISampleDataRepository reset,
-    ShowcaseCellTypes cellTypes,
-    ShowcasePhases phases,
-    ShowcaseTemplateWriter templates,
-    SpecificationSheetSeeder specification,
-    PfkSheetSeeder pfks,
-    PartsSheetSeeder parts,
-    ShowcaseUsers users,
-    ILogger<ShowcaseDataSeeder> logger)
+public sealed partial class ShowcaseDataSeeder
 {
     /// <summary>The note on the showcase's last publish, which marks it as built.</summary>
     public const string CompletedNote = "Issued for V6 build sign-off";
+
+    private readonly ISheetRepository sheets;
+    private readonly ISampleDataRepository reset;
+    private readonly ShowcaseCellTypes cellTypes;
+    private readonly ShowcasePhases phases;
+    private readonly ShowcaseTemplateWriter templates;
+    private readonly SpecificationSheetSeeder specification;
+    private readonly PfkSheetSeeder pfks;
+    private readonly PartsSheetSeeder parts;
+    private readonly ShowcaseUsers users;
+    private readonly ILogger<ShowcaseDataSeeder> logger;
+
+    public ShowcaseDataSeeder(
+        ISheetRepository sheets,
+        ISampleDataRepository reset,
+        ShowcaseCellTypes cellTypes,
+        ShowcasePhases phases,
+        ShowcaseTemplateWriter templates,
+        SpecificationSheetSeeder specification,
+        PfkSheetSeeder pfks,
+        PartsSheetSeeder parts,
+        ShowcaseUsers users,
+        ILogger<ShowcaseDataSeeder> logger)
+    {
+        this.sheets = sheets;
+        this.reset = reset;
+        this.cellTypes = cellTypes;
+        this.phases = phases;
+        this.templates = templates;
+        this.specification = specification;
+        this.pfks = pfks;
+        this.parts = parts;
+        this.users = users;
+        this.logger = logger;
+    }
 
     public async Task SeedAsync(bool rebuild, CancellationToken cancellationToken = default)
     {

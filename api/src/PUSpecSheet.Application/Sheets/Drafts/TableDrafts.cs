@@ -8,12 +8,13 @@ using PUSpecSheet.Domain.Sheets;
 namespace PUSpecSheet.Application.Sheets.Drafts;
 
 /// <summary>Draft handling for sheet tables. A new draft also carries over the table's title.</summary>
-public sealed class TableDrafts(
-    ISheetTableRevisionRepository revisions,
-    IUserRepository users,
-    IUnitOfWork unitOfWork,
-    ICurrentUser currentUser) : DraftGateway<SheetTableRevision>(revisions, users, unitOfWork, currentUser)
+public sealed class TableDrafts : DraftGateway<SheetTableRevision>
 {
+    public TableDrafts(ISheetTableRevisionRepository revisions, IUserRepository users, IUnitOfWork unitOfWork, ICurrentUser currentUser)
+        : base(revisions, users, unitOfWork, currentUser)
+    {
+    }
+
     protected override string Subject => "This table";
 
     protected override int ItemIdOf(SheetTableRevision revision)

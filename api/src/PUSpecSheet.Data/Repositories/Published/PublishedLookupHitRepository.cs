@@ -14,8 +14,15 @@ namespace PUSpecSheet.Data.Repositories.Published;
 /// lookup key and whose row revision was the published one at that moment, so the cost follows how many
 /// cells hold the value and not how much data there is.
 /// </summary>
-public sealed class PublishedLookupHitRepository(PuSpecSheetDbContext db) : IPublishedLookupHitRepository
+public sealed class PublishedLookupHitRepository : IPublishedLookupHitRepository
 {
+    private readonly PuSpecSheetDbContext db;
+
+    public PublishedLookupHitRepository(PuSpecSheetDbContext db)
+    {
+        this.db = db;
+    }
+
     /// <param name="criteria">The key and value to find, and the phase or sheet type to keep to.</param>
     /// <param name="momentUtc">The moment the sheets are read at.</param>
     /// <param name="sheetId">The one sheet to search, or null for every sheet.</param>

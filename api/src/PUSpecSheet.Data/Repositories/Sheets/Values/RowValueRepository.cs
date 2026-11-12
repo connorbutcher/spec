@@ -11,8 +11,15 @@ namespace PUSpecSheet.Data.Repositories.Sheets.Values;
 
 /// <summary>Reads and writes cell values, which live in one typed table per cell kind in the "values" schema, and the
 /// settings chosen for cells on the sheet, which live beside them.</summary>
-public sealed class RowValueRepository(PuSpecSheetDbContext db) : IRowValueRepository
+public sealed class RowValueRepository : IRowValueRepository
 {
+    private readonly PuSpecSheetDbContext db;
+
+    public RowValueRepository(PuSpecSheetDbContext db)
+    {
+        this.db = db;
+    }
+
     /// <summary>Every value of the given row revisions, by revision id and then sheet cell id.</summary>
     public Task<Dictionary<int, Dictionary<int, CellValueBag>>> LoadAsync(
         IReadOnlyCollection<int> revisionIds,
