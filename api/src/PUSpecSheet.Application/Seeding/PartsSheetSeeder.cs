@@ -145,11 +145,11 @@ public sealed class PartsSheetSeeder(SheetEditorFactory editors, ShowcaseUsers u
 
         foreach (var group in editor.Copies(table, null, PartsMatrixTemplate.Group))
         {
-            var spec = Groups.Single(candidate => candidate.Name == Row(group).Cells.Select(cell => cell.TextValue).First(text => text is not null));
+            var spec = Groups.Single(candidate => candidate.Name == Row(group).Cells.Select(cell => cell.Value as string).First(text => text is not null));
             foreach (var (kind, characteristic, _, baseValue, change, spread) in spec.Rows)
             {
                 var copies = editor.Copies(table, group.Id, kind);
-                var copy = copies.FirstOrDefault(candidate => Row(candidate).Cells.Any(cell => cell.TextValue == characteristic));
+                var copy = copies.FirstOrDefault(candidate => Row(candidate).Cells.Any(cell => Equals(cell.Value, characteristic)));
                 if (copy is null)
                 {
                     continue;

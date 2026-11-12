@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text.Json;
 using PUSpecSheet.Contracts.Sheets;
 using PUSpecSheet.Domain.CellTypes;
 
@@ -50,17 +51,17 @@ public static class SheetValues
     private static CellValueRequest Request(int cellId, int cellTypeId, ShowcaseCellTypeCatalog cellTypes, object value)
     {
         var kind = cellTypes.KindOf(cellTypeId);
-        return (kind, value) switch
+        object stored = (kind, value) switch
         {
-            (CellKind.TextDropdown or CellKind.NumberDropdown, _) => new CellValueRequest(cellId, null, null, null, null, cellTypes.OptionId(cellTypeId, OptionText(value))),
-            (CellKind.Number, decimal number) => new CellValueRequest(cellId, null, number, null, null, null),
-            (CellKind.Number, int number) => new CellValueRequest(cellId, null, number, null, null, null),
-            (CellKind.Date, DateOnly date) => new CellValueRequest(cellId, null, null, date, null, null),
-            (CellKind.Checkbox, bool flag) => new CellValueRequest(cellId, null, null, null, flag, null),
-            (CellKind.Text or CellKind.LinkedDropdown, string text) => new CellValueRequest(cellId, text, null, null, null, null),
-            (CellKind.LabelledText, IReadOnlyDictionary<string, string> slots) => new CellValueRequest(cellId, null, null, null, null, null) { Slots = slots },
+            (CellKind.TextDropdown or CellKind.NumberDropdown, _) => cellTypes.OptionId(cellTypeId, OptionText(value)),
+            (CellKind.Number, decimal or int) => value,
+            (CellKind.Date, DateOnly) => value,
+            (CellKind.Checkbox, bool) => value,
+            (CellKind.Text or CellKind.LinkedDropdown, string) => value,
+            (CellKind.LabelledText, IReadOnlyDictionary<string, string>) => value,
             _ => throw new InvalidOperationException($"A {value.GetType().Name} can't go in a {kind} cell."),
         };
+        return new CellValueRequest(cellId, JsonSerializer.SerializeToElement(stored));
     }
 
     private static string OptionText(object value)

@@ -5,6 +5,7 @@ using PUSpecSheet.Application.Sheets.Revisions;
 using PUSpecSheet.Application.Sheets.Values;
 using PUSpecSheet.Contracts.Sheets;
 using PUSpecSheet.Contracts.Templates;
+using PUSpecSheet.Data.Values;
 using PUSpecSheet.Domain.CellTypes;
 using PUSpecSheet.Domain.Sheets;
 using PUSpecSheet.Domain.Templates;
@@ -277,16 +278,11 @@ internal sealed class SheetViewBuilder
             cell.Id,
             cell.PublicId,
             template.Id,
-            value?.Text,
-            value?.Number,
-            value?.Date,
-            value?.Boolean,
-            value?.OptionId,
+            CellValueMapper.ToValue(value),
             cell.SheetColumnBlockId,
             change)
         {
             Settings = value?.Settings,
-            Slots = value?.Slots,
         };
     }
 

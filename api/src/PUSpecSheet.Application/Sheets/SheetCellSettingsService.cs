@@ -6,6 +6,7 @@ using PUSpecSheet.Application.Sheets.Revisions;
 using PUSpecSheet.Application.Sheets.Values;
 using PUSpecSheet.Contracts.Sheets;
 using PUSpecSheet.Data;
+using PUSpecSheet.Data.Values;
 using PUSpecSheet.Domain.CellTypes;
 using PUSpecSheet.Domain.CellTypes.InstanceSettings;
 using PUSpecSheet.Domain.CellTypes.LabelledText;
@@ -88,7 +89,7 @@ public sealed class SheetCellSettingsService(
         Dictionary<int, SheetCell> cellsById,
         CancellationToken cancellationToken)
     {
-        var held = (await valueStore.LoadAsync([draftId], cancellationToken)).GetValueOrDefault(draftId) ?? [];
+        var held = await db.LoadCellValuesAsync(draftId, cancellationToken);
         var changed = wanted
             .Where(entry => held.GetValueOrDefault(entry.Key)?.Settings != entry.Value)
             .ToDictionary(entry => entry.Key, entry => entry.Value);
@@ -110,7 +111,7 @@ public sealed class SheetCellSettingsService(
             .Select(cellId => new CellValueChange(
                 cellId,
                 cellsById[cellId].TemplateCell.CellType.Kind,
-                new CellValueRequest(cellId, null, null, null, null, null)))
+                new CellValueBag()))
             .ToList();
         await valueStore.SetManyAsync(draftId, cleared, cancellationToken);
     }

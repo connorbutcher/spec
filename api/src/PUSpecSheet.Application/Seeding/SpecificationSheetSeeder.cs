@@ -197,7 +197,7 @@ public sealed class SpecificationSheetSeeder(SheetEditorFactory editors, Showcas
     private static async Task AddSystemAsync(SheetEditor editor, int tableId, SpecificationSystem system, int step, CancellationToken cancellationToken)
     {
         var existing = editor.Copies(tableId, null, SpecificationTemplate.System);
-        var section = existing.Count == 1 && Row(existing[0], 0).Cells.All(cell => cell.TextValue is null)
+        var section = existing.Count == 1 && Row(existing[0], 0).Cells.All(cell => cell.Value is not string)
             ? existing[0]
             : await editor.AddSectionAsync(tableId, null, SpecificationTemplate.System, cancellationToken);
         await editor.FillAsync(Row(section, 0), system.Name);

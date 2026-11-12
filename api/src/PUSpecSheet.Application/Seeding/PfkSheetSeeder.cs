@@ -139,7 +139,7 @@ public sealed class PfkSheetSeeder(SheetEditorFactory editors, ShowcaseUsers use
     private static async Task AddOperationAsync(SheetEditor editor, int register, PfkOperation operation, int step, CancellationToken cancellationToken)
     {
         var existing = editor.Copies(register, null, PfkRegisterTemplate.Operation);
-        var section = existing.Count == 1 && Row(existing[0]).Cells.All(cell => cell.TextValue is null)
+        var section = existing.Count == 1 && Row(existing[0]).Cells.All(cell => cell.Value is not string)
             ? existing[0]
             : await editor.AddSectionAsync(register, null, PfkRegisterTemplate.Operation, cancellationToken);
         await editor.FillAsync(Row(section), operation.Name);

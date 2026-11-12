@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
-using PUSpecSheet.Contracts.Sheets;
 using PUSpecSheet.Data;
+using PUSpecSheet.Data.Values;
 using PUSpecSheet.Domain.CellTypes;
 using PUSpecSheet.Domain.CellTypes.InstanceSettings;
 using PUSpecSheet.Domain.CellTypes.LabelledText;
@@ -20,58 +20,12 @@ public sealed class RowValueStore(PuSpecSheetDbContext db)
         return LoadAsync(RowRevisionScope.Of(revisionIds), cancellationToken);
     }
 
-    /// <summary>Every value of the row revisions in scope, by revision id and then sheet cell id.</summary>
-    public async Task<Dictionary<int, Dictionary<int, CellValueBag>>> LoadAsync(
+    /// <summary>Every value of the row revisions in scope, by revision id and then sheet cell id (see <see cref="CellValueQueries"/>).</summary>
+    public Task<Dictionary<int, Dictionary<int, CellValueBag>>> LoadAsync(
         RowRevisionScope revisions,
         CancellationToken cancellationToken)
     {
-        var result = new Dictionary<int, Dictionary<int, CellValueBag>>();
-        if (revisions.IsEmpty)
-        {
-            return result;
-        }
-
-        foreach (var value in await revisions.Apply(db.TextValues.AsNoTracking()).ToListAsync(cancellationToken))
-        {
-            BagFor(result, value).Text = value.Value;
-        }
-
-        foreach (var value in await revisions.Apply(db.NumericValues.AsNoTracking()).ToListAsync(cancellationToken))
-        {
-            BagFor(result, value).Number = value.Value;
-        }
-
-        foreach (var value in await revisions.Apply(db.DateValues.AsNoTracking()).ToListAsync(cancellationToken))
-        {
-            BagFor(result, value).Date = value.Value;
-        }
-
-        foreach (var value in await revisions.Apply(db.BooleanValues.AsNoTracking()).ToListAsync(cancellationToken))
-        {
-            BagFor(result, value).Boolean = value.Value;
-        }
-
-        foreach (var value in await revisions.Apply(db.OptionValues.AsNoTracking()).ToListAsync(cancellationToken))
-        {
-            BagFor(result, value).OptionId = value.CellTypeOptionId;
-        }
-
-        foreach (var value in await revisions.Apply(db.CellSettings.AsNoTracking()).ToListAsync(cancellationToken))
-        {
-            BagFor(result, value).Settings = value.Settings;
-        }
-
-        var slotValues = await revisions.Apply(db.LabelledTextValues.AsNoTracking())
-            .OrderBy(value => value.Position)
-            .ToListAsync(cancellationToken);
-        foreach (var value in slotValues)
-        {
-            var bag = BagFor(result, value);
-            bag.Slots ??= new Dictionary<string, string>(StringComparer.Ordinal);
-            bag.Slots[value.SlotKey] = value.Value;
-        }
-
-        return result;
+        return db.LoadCellValuesAsync(revisions, cancellationToken);
     }
 
     /// <summary>Copies every value of one row revision onto another, so a new draft starts from what is published.</summary>
@@ -246,8 +200,8 @@ public sealed class RowValueStore(PuSpecSheetDbContext db)
         DbSet<TValue> set,
         int revisionId,
         List<CellValueChange> changes,
-        Func<CellValueRequest, bool> hasValue,
-        Action<TValue, CellValueRequest> assign,
+        Func<CellValueBag, bool> hasValue,
+        Action<TValue, CellValueBag> assign,
         CancellationToken cancellationToken)
         where TValue : class, ICellValue, new()
     {
@@ -281,22 +235,5 @@ public sealed class RowValueStore(PuSpecSheetDbContext db)
 
             assign(value, change.Value);
         }
-    }
-
-    private static CellValueBag BagFor(Dictionary<int, Dictionary<int, CellValueBag>> result, ICellValue value)
-    {
-        if (!result.TryGetValue(value.SheetRowRevisionId, out var cells))
-        {
-            cells = [];
-            result[value.SheetRowRevisionId] = cells;
-        }
-
-        if (!cells.TryGetValue(value.SheetCellId, out var bag))
-        {
-            bag = new CellValueBag();
-            cells[value.SheetCellId] = bag;
-        }
-
-        return bag;
     }
 }

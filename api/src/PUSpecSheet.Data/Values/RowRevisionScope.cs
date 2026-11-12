@@ -1,6 +1,6 @@
 using PUSpecSheet.Domain.Values;
 
-namespace PUSpecSheet.Application.Sheets.Values;
+namespace PUSpecSheet.Data.Values;
 
 /// <summary>
 /// Which row revisions to read values for: either a list of ids, or a query over the revisions that SQL

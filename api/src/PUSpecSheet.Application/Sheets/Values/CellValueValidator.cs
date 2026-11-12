@@ -1,5 +1,5 @@
 using PUSpecSheet.Application.Common;
-using PUSpecSheet.Contracts.Sheets;
+using PUSpecSheet.Data.Values;
 using PUSpecSheet.Domain.CellTypes;
 using PUSpecSheet.Domain.CellTypes.Configurations;
 using PUSpecSheet.Domain.CellTypes.LabelledText;
@@ -11,7 +11,7 @@ namespace PUSpecSheet.Application.Sheets.Values;
 internal static class CellValueValidator
 {
     /// <summary>Expects <see cref="TemplateCell.CellType"/> (with its options) to be loaded.</summary>
-    public static void Validate(TemplateCell cell, CellValueRequest request)
+    public static void Validate(TemplateCell cell, CellValueBag request)
     {
         var cellType = cell.CellType;
         var configuration = CellSettingsResolver.ResolveConfiguration(cell);
@@ -55,7 +55,7 @@ internal static class CellValueValidator
         }
     }
 
-    private static void CheckSlots(string name, CellValueRequest request, LabelledTextCellConfiguration? configuration)
+    private static void CheckSlots(string name, CellValueBag request, LabelledTextCellConfiguration? configuration)
     {
         var maxLength = configuration?.MaxLength ?? TextCellConfiguration.LongestMaxLength;
         foreach (var (key, value) in request.Slots ?? new Dictionary<string, string>())

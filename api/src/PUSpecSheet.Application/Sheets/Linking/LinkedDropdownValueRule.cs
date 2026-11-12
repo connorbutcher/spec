@@ -1,6 +1,6 @@
 using PUSpecSheet.Application.Common;
 using PUSpecSheet.Application.Sheets.Reading;
-using PUSpecSheet.Contracts.Sheets;
+using PUSpecSheet.Application.Sheets.Values;
 using PUSpecSheet.Domain.CellTypes;
 using PUSpecSheet.Domain.CellTypes.InstanceSettings;
 using PUSpecSheet.Domain.Sheets;
@@ -18,11 +18,11 @@ public sealed class LinkedDropdownValueRule(SheetReader reader)
     public async Task EnsureChoicesAsync(
         int sheetId,
         IReadOnlyDictionary<int, SheetCell> cellsById,
-        IReadOnlyList<CellValueRequest> values,
+        IReadOnlyList<CellValueChange> values,
         CancellationToken cancellationToken)
     {
         var linked = values
-            .Where(value => !string.IsNullOrWhiteSpace(value.Text)
+            .Where(value => !string.IsNullOrWhiteSpace(value.Value.Text)
                 && cellsById.TryGetValue(value.SheetCellId, out var cell)
                 && cell.TemplateCell.CellType.Kind == CellKind.LinkedDropdown)
             .ToList();
@@ -40,7 +40,7 @@ public sealed class LinkedDropdownValueRule(SheetReader reader)
             var settings = SheetLinks.FindCell(sheet, value.SheetCellId)?.Settings as LinkedDropdownInstanceSettings;
             var options = SheetLinks.OptionsOf(sheet, settings)
                 ?? throw new InvalidRequestException($"Choose where '{name}' takes its choices from first.");
-            if (!options.Contains(value.Text!.Trim(), StringComparer.Ordinal))
+            if (!options.Contains(value.Value.Text!.Trim(), StringComparer.Ordinal))
             {
                 throw new InvalidRequestException($"That isn't one of the choices for '{name}'.");
             }

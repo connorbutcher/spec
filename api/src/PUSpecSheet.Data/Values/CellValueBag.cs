@@ -1,6 +1,6 @@
 using PUSpecSheet.Domain.CellTypes.InstanceSettings;
 
-namespace PUSpecSheet.Application.Sheets.Values;
+namespace PUSpecSheet.Data.Values;
 
 /// <summary>One cell's value, gathered from the typed value tables. Only the value field for its kind is set.</summary>
 public sealed class CellValueBag

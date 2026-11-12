@@ -1,6 +1,6 @@
 using PUSpecSheet.Application.Common;
 using PUSpecSheet.Application.Sheets.Values;
-using PUSpecSheet.Contracts.Sheets;
+using PUSpecSheet.Data.Values;
 using PUSpecSheet.Domain.CellTypes;
 using PUSpecSheet.Domain.CellTypes.Configurations;
 using PUSpecSheet.Domain.Templates;
@@ -109,8 +109,8 @@ public sealed class CellValueValidatorTests
         };
     }
 
-    private static CellValueRequest Value(string? text = null, decimal? number = null, int? optionId = null)
+    private static CellValueBag Value(string? text = null, decimal? number = null, int? optionId = null)
     {
-        return new CellValueRequest(1, text, number, null, null, optionId);
+        return new CellValueBag { Text = text, Number = number, OptionId = optionId };
     }
 }

@@ -78,17 +78,17 @@ public sealed class SheetRowService(
 
         // Check every value before locking the row or changing anything.
         var cellsById = row.Cells.ToDictionary(cell => cell.Id);
-        ValidateValues(request, cellsById);
-        await linkedValues.EnsureChoicesAsync(row.SheetSection.SheetTable.SheetId, cellsById, request.Values, cancellationToken);
+        var changes = ReadValues(request, cellsById);
+        await linkedValues.EnsureChoicesAsync(row.SheetSection.SheetTable.SheetId, cellsById, changes, cancellationToken);
 
         await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
         var draft = await draftStarter.StartAsync(rowId, cancellationToken);
-        var changes = request.Values
-            .Select(value => new CellValueChange(
-                value.SheetCellId,
-                cellsById[value.SheetCellId].TemplateCell.CellType.Kind,
-                value with { Text = value.Text?.Trim(), Slots = SlotValues.Clean(value.Slots) }))
-            .ToList();
+        foreach (var change in changes)
+        {
+            change.Value.Text = change.Value.Text?.Trim();
+            change.Value.Slots = SlotValues.Clean(change.Value.Slots);
+        }
+
         await valueStore.SetManyAsync(draft.Id, changes, cancellationToken);
         await db.SaveSheetChangesAsync(cancellationToken);
 
@@ -212,8 +212,10 @@ public sealed class SheetRowService(
             .ToList();
     }
 
-    private static void ValidateValues(SaveRowValuesRequest request, Dictionary<int, SheetCell> cellsById)
+    /// <summary>Reads each value sent in the shape its cell's kind takes, and checks it against the cell.</summary>
+    private static List<CellValueChange> ReadValues(SaveRowValuesRequest request, Dictionary<int, SheetCell> cellsById)
     {
+        var changes = new List<CellValueChange>();
         foreach (var value in request.Values)
         {
             if (!cellsById.TryGetValue(value.SheetCellId, out var cell))
@@ -221,8 +223,14 @@ public sealed class SheetRowService(
                 throw new InvalidRequestException($"Cell {value.SheetCellId} isn't in this row.");
             }
 
-            CellValueValidator.Validate(cell.TemplateCell, value);
+            var template = cell.TemplateCell;
+            var name = string.IsNullOrWhiteSpace(template.Caption) ? template.CellType.Name : template.Caption;
+            var bag = CellValueMapper.FromRequest(template.CellType.Kind, value.Value, name);
+            CellValueValidator.Validate(template, bag);
+            changes.Add(new CellValueChange(value.SheetCellId, template.CellType.Kind, bag));
         }
+
+        return changes;
     }
 
     private async Task<SheetRow> LoadRowWithCellTypesAsync(int rowId, CancellationToken cancellationToken)

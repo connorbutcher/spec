@@ -57,7 +57,7 @@ public sealed class SheetRowsChangesTests
 
     private static SheetRowDto Row(int id, int templateCellId)
     {
-        var cell = new SheetCellDto(id * 10, Guid.Empty, templateCellId, "x", null, null, null, null, null, null);
+        var cell = new SheetCellDto(id * 10, Guid.Empty, templateCellId, "x", null, null);
         return new SheetRowDto(id, Guid.Empty, 1, 1, null, false, CanRemove: true, [cell], null);
     }
 

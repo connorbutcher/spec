@@ -1,21 +1,13 @@
-using System.ComponentModel.DataAnnotations;
+using System.Text.Json;
 
 namespace PUSpecSheet.Contracts.Sheets;
 
-/// <summary>
-/// A cell's new value. Set the field that matches the cell's kind: text for text cells, number for
-/// number cells, date for date cells, boolean for checkboxes, option for dropdowns (text or number) and
-/// slots for labelled text cells. Leaving it unset clears the cell.
-/// </summary>
-public sealed record CellValueRequest(
-    int SheetCellId,
-    [StringLength(4000)] string? Text,
-    decimal? Number,
-    DateOnly? Date,
-    bool? Boolean,
-    int? OptionId)
-{
-    /// <summary>A labelled text cell's values by slot key, in the cell's order, such as { "rh": "P-1003-R" }. Every value the cell keeps is sent: a slot left out is cleared.</summary>
-    [MaxLength(8)]
-    public IReadOnlyDictionary<string, string>? Slots { get; init; }
-}
+/// <summary>A cell's new value.</summary>
+/// <param name="SheetCellId">The cell to set.</param>
+/// <param name="Value">
+/// The value in the shape the cell's kind takes, the same as <see cref="SheetCellDto.Value"/>: a string for
+/// text and linked dropdown cells, a number for number cells, an ISO date (<c>yyyy-MM-dd</c>) for date cells,
+/// true or false for checkboxes, an option id for text and number dropdowns, and an object of slot key to
+/// text for labelled text cells. Null, or leaving it out, clears the cell.
+/// </param>
+public sealed record CellValueRequest(int SheetCellId, JsonElement? Value);

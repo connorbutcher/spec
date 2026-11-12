@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Application.Sheets.Revisions;
-using PUSpecSheet.Application.Sheets.Values;
 using PUSpecSheet.Data;
+using PUSpecSheet.Data.Values;
 
 namespace PUSpecSheet.Application.Tests.Sheets.Values;
 

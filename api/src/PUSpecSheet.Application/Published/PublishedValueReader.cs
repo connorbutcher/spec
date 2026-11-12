@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
-using PUSpecSheet.Application.Sheets.Values;
 using PUSpecSheet.Data;
+using PUSpecSheet.Data.Values;
 using PUSpecSheet.Domain.Values;
 
 namespace PUSpecSheet.Application.Published;
