@@ -24,13 +24,13 @@ public sealed class RowTakeoverTests
     private readonly RowTakeoverStore store = new();
     private readonly SheetPresenceTracker presence = new();
     private readonly RowTakeoverOptions options = new() { ResponseSeconds = 60 };
-    private readonly RowTakeoverService service;
+    private readonly RowTakeoversService service;
     private readonly RowTakeoverSettler settler;
 
     public RowTakeoverTests()
     {
         var closer = new RowTakeoverCloser(checkouts, notifier);
-        service = new RowTakeoverService(checkouts, currentUser, store, presence, closer, notifier, options, clock);
+        service = new RowTakeoversService(checkouts, currentUser, store, presence, closer, notifier, options, clock);
         settler = new RowTakeoverSettler(store, closer, clock);
 
         checkouts.CheckOut(Row, Sheet, Holder);

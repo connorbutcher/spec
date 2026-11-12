@@ -15,13 +15,11 @@ namespace PUSpecSheet.Api.Controllers.Sheets;
 [Authorize(Policy = PermissionKeys.SheetsEdit)]
 public sealed class SheetTablesController : ControllerBase
 {
-    private readonly ISheetTableService tables;
-    private readonly ISheetSectionService sections;
+    private readonly ISheetTablesService tables;
 
-    public SheetTablesController(ISheetTableService tables, ISheetSectionService sections)
+    public SheetTablesController(ISheetTablesService tables)
     {
         this.tables = tables;
-        this.sections = sections;
     }
 
     /// <summary>Set a table's title</summary>
@@ -82,7 +80,7 @@ public sealed class SheetTablesController : ControllerBase
     [HttpPost("{id:int}/sections")]
     public async Task<ActionResult<SheetDto>> AddSection(int id, AddSheetSectionRequest request, CancellationToken cancellationToken)
     {
-        var result = await sections.AddAsync(id, request, cancellationToken);
+        var result = await tables.AddSectionAsync(id, request, cancellationToken);
         return Ok(result);
     }
 }

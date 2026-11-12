@@ -19,13 +19,11 @@ namespace PUSpecSheet.Api.Controllers.Sheets;
 [Authorize(Policy = PermissionKeys.SheetsEdit)]
 public sealed class SheetRowsController : ControllerBase
 {
-    private readonly ISheetRowService rows;
-    private readonly ISheetCellSettingsService cellSettings;
+    private readonly ISheetRowsService rows;
 
-    public SheetRowsController(ISheetRowService rows, ISheetCellSettingsService cellSettings)
+    public SheetRowsController(ISheetRowsService rows)
     {
         this.rows = rows;
-        this.cellSettings = cellSettings;
     }
 
     /// <summary>Lock a row</summary>
@@ -80,7 +78,7 @@ public sealed class SheetRowsController : ControllerBase
     [HttpPut("{id:int}/cell-settings")]
     public async Task<ActionResult<SheetRowsChangeDto>> SaveCellSettings(int id, SaveRowCellSettingsRequest request, CancellationToken cancellationToken)
     {
-        var result = await cellSettings.SaveAsync(id, request, cancellationToken);
+        var result = await rows.SaveCellSettingsAsync(id, request, cancellationToken);
         return Ok(SheetRowsChanges.From(result, [id]));
     }
 

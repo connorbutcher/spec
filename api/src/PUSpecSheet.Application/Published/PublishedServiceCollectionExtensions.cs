@@ -12,7 +12,7 @@ public static class PublishedServiceCollectionExtensions
     {
         services.AddSingleton<PublishedSheetCache>();
         services.AddScoped<PublishedVersionResolver>();
-        services.AddScoped<IPublishedSheetQueryService, PublishedSheetQueryService>();
+        services.AddScoped<IPublishedSheetsService, PublishedSheetsService>();
         services.AddSingleton<PublishedLookupCache>();
         services.AddScoped<IPublishedLookupService, PublishedLookupService>();
         services.AddSingleton<PublishedRowsCache>();

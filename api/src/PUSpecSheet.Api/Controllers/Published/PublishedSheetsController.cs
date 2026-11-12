@@ -19,9 +19,9 @@ namespace PUSpecSheet.Api.Controllers.Published;
 [AllowAnonymous]
 public sealed class PublishedSheetsController : ControllerBase
 {
-    private readonly IPublishedSheetQueryService sheets;
+    private readonly IPublishedSheetsService sheets;
 
-    public PublishedSheetsController(IPublishedSheetQueryService sheets)
+    public PublishedSheetsController(IPublishedSheetsService sheets)
     {
         this.sheets = sheets;
     }

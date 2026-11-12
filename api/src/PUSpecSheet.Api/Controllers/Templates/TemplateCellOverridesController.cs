@@ -14,9 +14,9 @@ namespace PUSpecSheet.Api.Controllers.Templates;
 [Authorize(Policy = PermissionKeys.TemplatesManage)]
 public sealed class TemplateCellOverridesController : ControllerBase
 {
-    private readonly ITemplateCellOverrideService overrides;
+    private readonly ITemplateCellOverridesService overrides;
 
-    public TemplateCellOverridesController(ITemplateCellOverrideService overrides)
+    public TemplateCellOverridesController(ITemplateCellOverridesService overrides)
     {
         this.overrides = overrides;
     }

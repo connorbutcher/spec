@@ -15,9 +15,9 @@ namespace PUSpecSheet.Api.Controllers.Sheets;
 [Authorize(Policy = PermissionKeys.SheetsEdit)]
 public sealed class SheetColumnBlocksController : ControllerBase
 {
-    private readonly ISheetColumnBlockService columnBlocks;
+    private readonly ISheetColumnBlocksService columnBlocks;
 
-    public SheetColumnBlocksController(ISheetColumnBlockService columnBlocks)
+    public SheetColumnBlocksController(ISheetColumnBlocksService columnBlocks)
     {
         this.columnBlocks = columnBlocks;
     }

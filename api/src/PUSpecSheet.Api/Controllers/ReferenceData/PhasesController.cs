@@ -13,9 +13,9 @@ namespace PUSpecSheet.Api.Controllers.ReferenceData;
 [Route("api/phases")]
 public sealed class PhasesController : ControllerBase
 {
-    private readonly IPhaseService phases;
+    private readonly IPhasesService phases;
 
-    public PhasesController(IPhaseService phases)
+    public PhasesController(IPhasesService phases)
     {
         this.phases = phases;
     }

@@ -14,21 +14,21 @@ namespace PUSpecSheet.Application.Seeding;
 public sealed class SheetEditor
 {
     private readonly ShowcaseCellTypeCatalog cellTypes;
-    private readonly ISheetService sheets;
-    private readonly ISheetTableService tables;
-    private readonly ISheetSectionService sections;
-    private readonly ISheetRowService rows;
-    private readonly ISheetColumnBlockService columnBlocks;
+    private readonly ISheetsService sheets;
+    private readonly ISheetTablesService tables;
+    private readonly ISheetSectionsService sections;
+    private readonly ISheetRowsService rows;
+    private readonly ISheetColumnBlocksService columnBlocks;
     private readonly ISheetCellSettingsService cellSettings;
 
     public SheetEditor(
         SheetDto sheet,
         ShowcaseCellTypeCatalog cellTypes,
-        ISheetService sheets,
-        ISheetTableService tables,
-        ISheetSectionService sections,
-        ISheetRowService rows,
-        ISheetColumnBlockService columnBlocks,
+        ISheetsService sheets,
+        ISheetTablesService tables,
+        ISheetSectionsService sections,
+        ISheetRowsService rows,
+        ISheetColumnBlocksService columnBlocks,
         ISheetCellSettingsService cellSettings)
     {
         this.cellTypes = cellTypes;

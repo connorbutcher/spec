@@ -10,20 +10,20 @@ namespace PUSpecSheet.Application.Seeding;
 public sealed class SheetEditorFactory
 {
     private readonly PuSpecSheetDbContext db;
-    private readonly ISheetService sheets;
-    private readonly ISheetTableService tables;
-    private readonly ISheetSectionService sections;
-    private readonly ISheetRowService rows;
-    private readonly ISheetColumnBlockService columnBlocks;
+    private readonly ISheetsService sheets;
+    private readonly ISheetTablesService tables;
+    private readonly ISheetSectionsService sections;
+    private readonly ISheetRowsService rows;
+    private readonly ISheetColumnBlocksService columnBlocks;
     private readonly ISheetCellSettingsService cellSettings;
 
     public SheetEditorFactory(
         PuSpecSheetDbContext db,
-        ISheetService sheets,
-        ISheetTableService tables,
-        ISheetSectionService sections,
-        ISheetRowService rows,
-        ISheetColumnBlockService columnBlocks,
+        ISheetsService sheets,
+        ISheetTablesService tables,
+        ISheetSectionsService sections,
+        ISheetRowsService rows,
+        ISheetColumnBlocksService columnBlocks,
         ISheetCellSettingsService cellSettings)
     {
         this.db = db;

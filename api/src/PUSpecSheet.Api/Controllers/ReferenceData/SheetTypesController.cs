@@ -12,9 +12,9 @@ namespace PUSpecSheet.Api.Controllers.ReferenceData;
 [Route("api/sheet-types")]
 public sealed class SheetTypesController : ControllerBase
 {
-    private readonly ISheetTypeService sheetTypes;
+    private readonly ISheetTypesService sheetTypes;
 
-    public SheetTypesController(ISheetTypeService sheetTypes)
+    public SheetTypesController(ISheetTypesService sheetTypes)
     {
         this.sheetTypes = sheetTypes;
     }

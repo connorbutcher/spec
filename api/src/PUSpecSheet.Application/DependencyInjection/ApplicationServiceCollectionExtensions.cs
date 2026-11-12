@@ -19,22 +19,22 @@ public static class ApplicationServiceCollectionExtensions
 {
     public static IServiceCollection AddPuSpecSheetApplication(this IServiceCollection services)
     {
-        services.AddScoped<ISheetTypeService, SheetTypeService>();
-        services.AddScoped<IPhaseService, PhaseService>();
+        services.AddScoped<ISheetTypesService, SheetTypesService>();
+        services.AddScoped<IPhasesService, PhasesService>();
         services.AddScoped<IUserAccessService, UserAccessService>();
         services.AddScoped<BackgroundUser>();
 
-        services.AddScoped<ICellTypeService, CellTypeService>();
+        services.AddScoped<ICellTypesService, CellTypesService>();
 
         services.AddScoped<TableTemplateReader>();
         services.AddScoped<TemplateVersionGuard>();
-        services.AddScoped<ITableTemplateService, TableTemplateService>();
-        services.AddScoped<ITemplateSectionService, TemplateSectionService>();
-        services.AddScoped<ITemplateRowService, TemplateRowService>();
-        services.AddScoped<ITemplateCellService, TemplateCellService>();
-        services.AddScoped<ITemplateCellOverrideService, TemplateCellOverrideService>();
-        services.AddScoped<ITemplateCellLookupKeyService, TemplateCellLookupKeyService>();
-        services.AddScoped<ITemplateColumnBlockService, TemplateColumnBlockService>();
+        services.AddScoped<ITableTemplatesService, TableTemplatesService>();
+        services.AddScoped<ITemplateSectionsService, TemplateSectionsService>();
+        services.AddScoped<ITemplateRowsService, TemplateRowsService>();
+        services.AddScoped<ITemplateCellsService, TemplateCellsService>();
+        services.AddScoped<ITemplateCellOverridesService, TemplateCellOverridesService>();
+        services.AddScoped<ITemplateCellLookupKeysService, TemplateCellLookupKeysService>();
+        services.AddScoped<ITemplateColumnBlocksService, TemplateColumnBlocksService>();
 
         services.AddPuSpecSheetSheets();
         services.AddPuSpecSheetApprovals();

@@ -5,7 +5,6 @@ using PUSpecSheet.Api.ApiDocumentation;
 using PUSpecSheet.Api.Published;
 using PUSpecSheet.Application.Common;
 using PUSpecSheet.Application.Published.Rows;
-using PUSpecSheet.Application.Published.Sheets;
 using PUSpecSheet.Application.Published.Versions;
 using PUSpecSheet.Contracts.Published;
 
@@ -21,12 +20,10 @@ namespace PUSpecSheet.Api.Controllers.Published;
 [AllowAnonymous]
 public sealed class PublishedRowsController : ControllerBase
 {
-    private readonly IPublishedSheetQueryService sheets;
     private readonly IPublishedRowsService rows;
 
-    public PublishedRowsController(IPublishedSheetQueryService sheets, IPublishedRowsService rows)
+    public PublishedRowsController(IPublishedRowsService rows)
     {
-        this.sheets = sheets;
         this.rows = rows;
     }
 
@@ -186,7 +183,7 @@ public sealed class PublishedRowsController : ControllerBase
         PublishedRowsSelection selection,
         CancellationToken cancellationToken)
     {
-        var version = await sheets.ResolveAsync(sheetPublicId, point, cancellationToken);
+        var version = await rows.ResolveAsync(sheetPublicId, point, cancellationToken);
         if (CallerHas(version, point, selection, "rows"))
         {
             return StatusCode(StatusCodes.Status304NotModified);
@@ -204,7 +201,7 @@ public sealed class PublishedRowsController : ControllerBase
         CancellationToken cancellationToken)
     {
         var selection = PublishedRowsSelection.One(rowPublicId, columns);
-        var version = await sheets.ResolveAsync(sheetPublicId, point, cancellationToken);
+        var version = await rows.ResolveAsync(sheetPublicId, point, cancellationToken);
         if (CallerHas(version, point, selection, $"rows/{rowPublicId}"))
         {
             return StatusCode(StatusCodes.Status304NotModified);

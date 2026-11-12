@@ -14,9 +14,9 @@ namespace PUSpecSheet.Api.Controllers.Templates;
 [Authorize(Policy = PermissionKeys.TemplatesManage)]
 public sealed class TemplateCellLookupKeysController : ControllerBase
 {
-    private readonly ITemplateCellLookupKeyService lookupKeys;
+    private readonly ITemplateCellLookupKeysService lookupKeys;
 
-    public TemplateCellLookupKeysController(ITemplateCellLookupKeyService lookupKeys)
+    public TemplateCellLookupKeysController(ITemplateCellLookupKeysService lookupKeys)
     {
         this.lookupKeys = lookupKeys;
     }

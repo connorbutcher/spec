@@ -15,9 +15,9 @@ namespace PUSpecSheet.Api.Controllers.Approvals;
 [Tags(ApiTags.Approvals)]
 public sealed class SubmissionsController : ControllerBase
 {
-    private readonly ISheetSubmissionService submissions;
+    private readonly ISubmissionsService submissions;
 
-    public SubmissionsController(ISheetSubmissionService submissions)
+    public SubmissionsController(ISubmissionsService submissions)
     {
         this.submissions = submissions;
     }

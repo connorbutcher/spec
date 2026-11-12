@@ -14,9 +14,9 @@ namespace PUSpecSheet.Api.Controllers.Templates;
 [Authorize(Policy = PermissionKeys.TemplatesManage)]
 public sealed class TemplateCellsController : ControllerBase
 {
-    private readonly ITemplateCellService cells;
+    private readonly ITemplateCellsService cells;
 
-    public TemplateCellsController(ITemplateCellService cells)
+    public TemplateCellsController(ITemplateCellsService cells)
     {
         this.cells = cells;
     }

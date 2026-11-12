@@ -5,7 +5,7 @@ public enum TemplateOrientation
 {
     /// <summary>
     /// Sections stack top to bottom as in a vertical table, and the table also has
-    /// <c>TemplateColumnBlock</c>s that people add copies of left to right, each running through
+    /// TemplateColumnBlocks that people add copies of left to right, each running through
     /// every row.
     /// </summary>
     Horizontal,

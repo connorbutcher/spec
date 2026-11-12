@@ -12,9 +12,9 @@ namespace PUSpecSheet.Api.Controllers.ReferenceData;
 [Route("api/cell-types")]
 public sealed class CellTypesController : ControllerBase
 {
-    private readonly ICellTypeService cellTypes;
+    private readonly ICellTypesService cellTypes;
 
-    public CellTypesController(ICellTypeService cellTypes)
+    public CellTypesController(ICellTypesService cellTypes)
     {
         this.cellTypes = cellTypes;
     }

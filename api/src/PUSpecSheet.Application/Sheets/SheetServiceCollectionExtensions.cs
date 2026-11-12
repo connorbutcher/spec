@@ -22,7 +22,7 @@ public static class SheetServiceCollectionExtensions
         services.AddScoped<SheetReader>();
         services.AddScoped<SheetInstantiator>();
         services.AddScoped<ISheetCellFiller, SheetCellFiller>();
-        services.AddScoped<ISheetItemLocator, SheetItemLocator>();
+        services.AddScoped<ISheetItemsService, SheetItemsService>();
         services.AddScoped<LiveSectionQuery>();
         services.AddScoped<TableDrafts>();
         services.AddScoped<SectionDrafts>();
@@ -37,12 +37,12 @@ public static class SheetServiceCollectionExtensions
         services.AddScoped<SheetDraftSetLoader>();
         services.AddScoped<SheetPublisher>();
 
-        services.AddScoped<ISheetService, SheetService>();
-        services.AddScoped<ISheetTableService, SheetTableService>();
-        services.AddScoped<ISheetSectionService, SheetSectionService>();
-        services.AddScoped<ISheetRowService, SheetRowService>();
+        services.AddScoped<ISheetsService, SheetsService>();
+        services.AddScoped<ISheetTablesService, SheetTablesService>();
+        services.AddScoped<ISheetSectionsService, SheetSectionsService>();
+        services.AddScoped<ISheetRowsService, SheetRowsService>();
         services.AddScoped<ISheetCellSettingsService, SheetCellSettingsService>();
-        services.AddScoped<ISheetColumnBlockService, SheetColumnBlockService>();
+        services.AddScoped<ISheetColumnBlocksService, SheetColumnBlocksService>();
 
         return services;
     }

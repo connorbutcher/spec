@@ -15,9 +15,9 @@ namespace PUSpecSheet.Api.Controllers.Templates;
 [Authorize(Policy = PermissionKeys.TemplatesManage)]
 public sealed class TemplateColumnBlocksController : ControllerBase
 {
-    private readonly ITemplateColumnBlockService blocks;
+    private readonly ITemplateColumnBlocksService blocks;
 
-    public TemplateColumnBlocksController(ITemplateColumnBlockService blocks)
+    public TemplateColumnBlocksController(ITemplateColumnBlocksService blocks)
     {
         this.blocks = blocks;
     }

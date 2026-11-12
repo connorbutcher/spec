@@ -23,7 +23,7 @@ public static class CollaborationServiceCollectionExtensions
         services.AddScoped<ILiveRowCheckoutService, LiveRowCheckoutService>();
         services.AddScoped<LiveRowCheckoutGuard>();
         services.AddScoped<RowTakeoverCloser>();
-        services.AddScoped<IRowTakeoverService, RowTakeoverService>();
+        services.AddScoped<IRowTakeoversService, RowTakeoversService>();
         services.AddScoped<IRowTakeoverSettler, RowTakeoverSettler>();
 
         return services;

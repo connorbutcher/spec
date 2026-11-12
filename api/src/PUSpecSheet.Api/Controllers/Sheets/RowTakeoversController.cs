@@ -16,9 +16,9 @@ namespace PUSpecSheet.Api.Controllers.Sheets;
 [Authorize(Policy = PermissionKeys.SheetsEdit)]
 public sealed class RowTakeoversController : ControllerBase
 {
-    private readonly IRowTakeoverService takeovers;
+    private readonly IRowTakeoversService takeovers;
 
-    public RowTakeoversController(IRowTakeoverService takeovers)
+    public RowTakeoversController(IRowTakeoversService takeovers)
     {
         this.takeovers = takeovers;
     }

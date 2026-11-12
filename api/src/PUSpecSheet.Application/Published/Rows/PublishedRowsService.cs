@@ -10,13 +10,16 @@ public sealed class PublishedRowsService : IPublishedRowsService
 {
     private readonly PuSpecSheetDbContext db;
     private readonly PublishedRowsCache cache;
+    private readonly PublishedVersionResolver resolver;
 
     public PublishedRowsService(
         PuSpecSheetDbContext db,
-        PublishedRowsCache cache)
+        PublishedRowsCache cache,
+        PublishedVersionResolver resolver)
     {
         this.db = db;
         this.cache = cache;
+        this.resolver = resolver;
     }
 
     public async Task<PublishedRowsDto> ReadAsync(ResolvedSheetVersion version, PublishedRowsSelection selection, CancellationToken cancellationToken)
@@ -53,6 +56,11 @@ public sealed class PublishedRowsService : IPublishedRowsService
 
         cache.Set(key, rows, cellCount);
         return rows;
+    }
+
+    public Task<ResolvedSheetVersion> ResolveAsync(Guid sheetPublicId, PublishedVersionPoint point, CancellationToken cancellationToken)
+    {
+        return resolver.ResolveAsync(sheetPublicId, point, cancellationToken);
     }
 
     /// <summary>

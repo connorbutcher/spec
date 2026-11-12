@@ -11,7 +11,7 @@ public static class ApprovalServiceCollectionExtensions
         services.AddScoped<SheetSubmitter>();
         services.AddScoped<SubmissionDecider>();
         services.AddScoped<SubmissionQueries>();
-        services.AddScoped<ISheetSubmissionService, SheetSubmissionService>();
+        services.AddScoped<ISubmissionsService, SubmissionsService>();
 
         return services;
     }

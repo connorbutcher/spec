@@ -11,11 +11,11 @@ namespace PUSpecSheet.Api.Controllers.Sheets;
 [Route("api/sheet-items")]
 public sealed class SheetItemsController : ControllerBase
 {
-    private readonly ISheetItemLocator locator;
+    private readonly ISheetItemsService items;
 
-    public SheetItemsController(ISheetItemLocator locator)
+    public SheetItemsController(ISheetItemsService items)
     {
-        this.locator = locator;
+        this.items = items;
     }
 
     /// <summary>Find a sheet item</summary>
@@ -31,7 +31,7 @@ public sealed class SheetItemsController : ControllerBase
     [HttpGet("{publicId:guid}")]
     public async Task<ActionResult<SheetItemReferenceDto>> Find(Guid publicId, CancellationToken cancellationToken)
     {
-        var result = await locator.FindAsync(publicId, cancellationToken);
+        var result = await items.FindAsync(publicId, cancellationToken);
         return Ok(result);
     }
 }

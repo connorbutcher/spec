@@ -79,7 +79,7 @@ Several people can have a sheet open and edit it at once. A row belongs to someo
 `Sheets/Collaboration` and the SignalR hub in `Api/Collaboration` add four things:
 
 - **Presence.** A browser keeps one connection to `SheetHub` (`/hubs/sheets`) and calls `JoinSheet` for the sheet it has open. `SheetPresenceTracker` holds connections by sheet in memory and everyone on the sheet is told when the list changes.
-- **Live checkouts.** The browser calls `CheckOutRow` on the hub when its user clicks into a row and `ReleaseRow` when they leave (`LiveRowCheckoutService`); everyone on the sheet gets the new list (`CheckoutsChanged`). A tab holds one row at a time. `LiveRowCheckoutGuard` is asked wherever a row is about to be changed (`SheetRowService`), so someone else can't save into a row another person is in.
+- **Live checkouts.** The browser calls `CheckOutRow` on the hub when its user clicks into a row and `ReleaseRow` when they leave (`LiveRowCheckoutService`); everyone on the sheet gets the new list (`CheckoutsChanged`). A tab holds one row at a time. `LiveRowCheckoutGuard` is asked wherever a row is about to be changed (`SheetRowsService`), so someone else can't save into a row another person is in.
 - **Live changes.** Every action that changes a sheet already answers with the refreshed `SheetDto`. `SheetChangedFilter` looks at that answer and, when something other people can see has changed (who a row is checked out to, or the latest version; see `SheetLockSignature`), tells the sheet's group to read it again. The hub sends no sheet data, because each person sees a different view. A new editing endpoint needs nothing extra as long as it returns `SheetDto`.
 - **Takeovers.** Someone can ask for a row that is checked out to another person (`RowTakeoversController`). The holder approves or denies; a request nobody answers within `RowTakeover:ResponseSeconds` (60) is granted, and it is granted straight away when the holder doesn't have the sheet open. Only a row its holder has **not changed** can be taken over: once a row has unpublished changes it stays with whoever made them until they publish or discard, so a takeover never moves anyone's work. Waiting requests are in memory (`RowTakeoverStore`): they last a minute and only matter to connected people.
 
@@ -87,7 +87,7 @@ The takeover code is four small classes, so each rule has one place:
 
 | Class | Its one job |
 | --- | --- |
-| `RowTakeoverService` | What people do: ask, approve, deny, withdraw. Checks who is allowed to. Every reason a request is refused is in `CheckoutToAskForAsync`, which also answers `GET .../takeover-availability`, so the screen and the request can't disagree. |
+| `RowTakeoversService` | What people do: ask, approve, deny, withdraw. Checks who is allowed to. Every reason a request is refused is in `CheckoutToAskForAsync`, which also answers `GET .../takeover-availability`, so the screen and the request can't disagree. |
 | `RowTakeoverSettler` | What nobody does: grants requests that ran out of time (called by `RowTakeoverExpiryWorker`) and closes ones that can no longer succeed because the row was released or changed (called by `SheetChangedFilter`). |
 | `RowTakeoverCloser` | Ends a request, whichever way it ends: hands the row over if it still can be (`ObstacleAsync` says why not), and tells the two people. |
 | `RowCheckouts` (`IRowCheckouts`) | Who holds a row, of either kind, behind one question: the draft in the database (and whether it differs from what is published) or the live checkout. Also moves a row from one person to another. `RowTakeoverTests` swaps it for a fake, so the rules are tested without a database. |
@@ -96,13 +96,13 @@ The takeover code is four small classes, so each rule has one place:
 | --- | --- |
 | Clicking into a row checks it out without saving; leaving, closing the tab or dropping the connection frees it | `LiveRowCheckoutService`, `SheetPresenceService.LeaveAsync` |
 | A row someone else is in, or has changed, can't be entered or changed | `LiveRowCheckoutService.CheckOutAsync`, `LiveRowCheckoutGuard` |
-| A changed row can't be asked for | `RowTakeoverService.CheckoutToAskForAsync` |
+| A changed row can't be asked for | `RowTakeoversService.CheckoutToAskForAsync` |
 | A takeover of a row its holder is only in moves it to the requester's tab | `RowCheckouts.TransferLiveAsync` |
 | A row changed while a request waits stays with its holder (`KeptForChanges`), whether the holder approves, the time runs out, or neither | `RowTakeoverCloser.ObstacleAsync` |
 | What counts as changed: place, existence or any cell value differs from what is published | `RowCheckouts.HasChangesAsync`, the same comparison `RowDrafts` uses to drop a no-op draft |
-| Only the holder answers, only the requester withdraws | `RowTakeoverService.Take` |
-| One waiting request per row; asking twice is the same request | `RowTakeoverStore.TryAdd`, `RowTakeoverService.RequestAsync` |
-| Holder not on the sheet: granted at once. No answer in time: granted | `RowTakeoverService.RequestAsync`, `RowTakeoverSettler.GrantOverdueAsync` |
+| Only the holder answers, only the requester withdraws | `RowTakeoversService.Take` |
+| One waiting request per row; asking twice is the same request | `RowTakeoverStore.TryAdd`, `RowTakeoversService.RequestAsync` |
+| Holder not on the sheet: granted at once. No answer in time: granted | `RowTakeoversService.RequestAsync`, `RowTakeoverSettler.GrantOverdueAsync` |
 
 A request is always taken out of `RowTakeoverStore` before it is settled; that is what stops an answer and the timeout both settling it. To add a way for a request to end, add a `RowTakeoverStatus`, call `RowTakeoverCloser` from the service or the settler, and add its wording to `takeover-notice.util.ts` in the UI.
 

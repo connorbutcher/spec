@@ -15,9 +15,9 @@ namespace PUSpecSheet.Api.Controllers.Templates;
 [Authorize(Policy = PermissionKeys.TemplatesManage)]
 public sealed class TemplateSectionsController : ControllerBase
 {
-    private readonly ITemplateSectionService sections;
+    private readonly ITemplateSectionsService sections;
 
-    public TemplateSectionsController(ITemplateSectionService sections)
+    public TemplateSectionsController(ITemplateSectionsService sections)
     {
         this.sections = sections;
     }

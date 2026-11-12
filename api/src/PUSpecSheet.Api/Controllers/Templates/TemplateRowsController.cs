@@ -15,9 +15,9 @@ namespace PUSpecSheet.Api.Controllers.Templates;
 [Authorize(Policy = PermissionKeys.TemplatesManage)]
 public sealed class TemplateRowsController : ControllerBase
 {
-    private readonly ITemplateRowService rows;
+    private readonly ITemplateRowsService rows;
 
-    public TemplateRowsController(ITemplateRowService rows)
+    public TemplateRowsController(ITemplateRowsService rows)
     {
         this.rows = rows;
     }

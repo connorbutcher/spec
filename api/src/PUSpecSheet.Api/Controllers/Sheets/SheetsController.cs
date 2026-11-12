@@ -2,9 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PUSpecSheet.Api.ApiDocumentation;
-using PUSpecSheet.Application.Approvals;
 using PUSpecSheet.Application.Sheets;
-using PUSpecSheet.Application.Sheets.Editing;
 using PUSpecSheet.Application.Sheets.Reading;
 using PUSpecSheet.Contracts.Approvals;
 using PUSpecSheet.Contracts.Sheets;
@@ -20,15 +18,11 @@ namespace PUSpecSheet.Api.Controllers.Sheets;
 [Tags(ApiTags.Sheets)]
 public sealed class SheetsController : ControllerBase
 {
-    private readonly ISheetService sheets;
-    private readonly ISheetTableService tables;
-    private readonly ISheetSubmissionService submissions;
+    private readonly ISheetsService sheets;
 
-    public SheetsController(ISheetService sheets, ISheetTableService tables, ISheetSubmissionService submissions)
+    public SheetsController(ISheetsService sheets)
     {
         this.sheets = sheets;
-        this.tables = tables;
-        this.submissions = submissions;
     }
 
     /// <summary>Open a phase's sheet</summary>
@@ -121,7 +115,7 @@ public sealed class SheetsController : ControllerBase
     [Authorize(Policy = PermissionKeys.SheetsEdit)]
     public async Task<ActionResult<SheetDto>> AddTable(int id, AddSheetTableRequest request, CancellationToken cancellationToken)
     {
-        var result = await tables.AddAsync(id, request, cancellationToken);
+        var result = await sheets.AddTableAsync(id, request, cancellationToken);
         return Ok(result);
     }
 
@@ -145,7 +139,7 @@ public sealed class SheetsController : ControllerBase
     [Authorize(Policy = PermissionKeys.SheetsPublish)]
     public async Task<ActionResult<SheetDto>> Publish(int id, SubmitSheetRequest request, CancellationToken cancellationToken)
     {
-        var result = await submissions.SubmitAsync(id, request, cancellationToken);
+        var result = await sheets.SubmitAsync(id, request, cancellationToken);
         return Ok(result);
     }
 

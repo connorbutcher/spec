@@ -1,7 +1,7 @@
 namespace PUSpecSheet.Domain.Templates;
 
 /// <summary>
-/// What a <c>TemplateCell.LookupKey</c> can be: a short name that goes in a query string as it is,
+/// What a TemplateCell.LookupKey can be: a short name that goes in a query string as it is,
 /// starting with a letter and then letters, digits, dots, hyphens and underscores.
 /// </summary>
 public static class LookupKeyRules

@@ -15,13 +15,11 @@ namespace PUSpecSheet.Api.Controllers.Sheets;
 [Authorize(Policy = PermissionKeys.SheetsEdit)]
 public sealed class SheetSectionsController : ControllerBase
 {
-    private readonly ISheetSectionService sections;
-    private readonly ISheetRowService rows;
+    private readonly ISheetSectionsService sections;
 
-    public SheetSectionsController(ISheetSectionService sections, ISheetRowService rows)
+    public SheetSectionsController(ISheetSectionsService sections)
     {
         this.sections = sections;
-        this.rows = rows;
     }
 
     /// <summary>Move a section</summary>
@@ -65,7 +63,7 @@ public sealed class SheetSectionsController : ControllerBase
     [HttpPost("{id:int}/rows")]
     public async Task<ActionResult<SheetDto>> AddRow(int id, AddSheetRowRequest request, CancellationToken cancellationToken)
     {
-        var result = await rows.AddAsync(id, request, cancellationToken);
+        var result = await sections.AddRowAsync(id, request, cancellationToken);
         return Ok(result);
     }
 }

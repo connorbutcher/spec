@@ -12,9 +12,9 @@ namespace PUSpecSheet.Api.Controllers.Templates;
 [Route("api/table-templates")]
 public sealed class TableTemplatesController : ControllerBase
 {
-    private readonly ITableTemplateService templates;
+    private readonly ITableTemplatesService templates;
 
-    public TableTemplatesController(ITableTemplateService templates)
+    public TableTemplatesController(ITableTemplatesService templates)
     {
         this.templates = templates;
     }
