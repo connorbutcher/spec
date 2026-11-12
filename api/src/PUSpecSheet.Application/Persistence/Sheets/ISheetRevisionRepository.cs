@@ -1,6 +1,6 @@
 using PUSpecSheet.Application.Sheets.Drafts;
 using PUSpecSheet.Contracts.Sheets;
-using PUSpecSheet.Domain.Sheets;
+using PUSpecSheet.Database.Entities.Sheets;
 
 namespace PUSpecSheet.Application.Persistence.Sheets;
 

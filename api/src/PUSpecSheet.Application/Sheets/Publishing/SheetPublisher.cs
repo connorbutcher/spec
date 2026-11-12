@@ -5,7 +5,8 @@ using PUSpecSheet.Application.Persistence.Users;
 using PUSpecSheet.Application.Sheets.Drafts;
 using PUSpecSheet.Application.Users;
 using PUSpecSheet.Contracts.Sheets;
-using PUSpecSheet.Domain.Approvals;
+using PUSpecSheet.Database.Entities.Approvals;
+using PUSpecSheet.Database.Entities.Sheets;
 using PUSpecSheet.Domain.CellTypes;
 using PUSpecSheet.Domain.Sheets;
 

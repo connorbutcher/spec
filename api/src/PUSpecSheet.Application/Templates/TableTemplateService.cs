@@ -4,6 +4,7 @@ using PUSpecSheet.Application.Persistence.SheetTypes;
 using PUSpecSheet.Application.Persistence.Templates;
 using PUSpecSheet.Application.Templates.Sections;
 using PUSpecSheet.Contracts.Templates;
+using PUSpecSheet.Database.Entities.Templates;
 using PUSpecSheet.Domain.Templates;
 
 namespace PUSpecSheet.Application.Templates;

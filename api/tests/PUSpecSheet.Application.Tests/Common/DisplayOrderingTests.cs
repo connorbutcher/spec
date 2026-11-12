@@ -1,5 +1,5 @@
 using PUSpecSheet.Application.Common;
-using PUSpecSheet.Domain.Templates;
+using PUSpecSheet.Database.Entities.Templates;
 
 namespace PUSpecSheet.Application.Tests.Common;
 

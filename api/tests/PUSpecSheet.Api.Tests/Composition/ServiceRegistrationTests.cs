@@ -5,7 +5,7 @@ using PUSpecSheet.Api.Authorization;
 using PUSpecSheet.Api.Collaboration;
 using PUSpecSheet.Api.Controllers.ReferenceData;
 using PUSpecSheet.Application.DependencyInjection;
-using PUSpecSheet.Data.DependencyInjection;
+using PUSpecSheet.Database.DependencyInjection;
 
 namespace PUSpecSheet.Api.Tests.Composition;
 
@@ -61,7 +61,7 @@ public sealed class ServiceRegistrationTests
         var services = new ServiceCollection();
         services.AddSingleton<IConfiguration>(configuration);
         services.AddLogging();
-        services.AddPuSpecSheetData("Server=unused;Database=unused");
+        services.AddPuSpecSheetDatabase("Server=unused;Database=unused");
         services.AddPuSpecSheetApplication();
         services.AddPuSpecSheetCollaboration(configuration);
         services.AddPuSpecSheetAuthorization();

@@ -1,5 +1,6 @@
 using System.Globalization;
 using PUSpecSheet.Application.Sheets.Values;
+using PUSpecSheet.Database.Entities.CellTypes;
 using PUSpecSheet.Domain.CellTypes;
 using PUSpecSheet.Domain.CellTypes.Configurations;
 

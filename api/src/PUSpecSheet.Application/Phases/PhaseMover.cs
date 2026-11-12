@@ -1,5 +1,5 @@
 using PUSpecSheet.Application.Common;
-using PUSpecSheet.Domain.Phases;
+using PUSpecSheet.Database.Entities.Phases;
 
 namespace PUSpecSheet.Application.Phases;
 

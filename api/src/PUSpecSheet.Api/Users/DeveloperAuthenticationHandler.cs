@@ -4,7 +4,7 @@ using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using PUSpecSheet.Data;
+using PUSpecSheet.Database;
 using PUSpecSheet.Domain.Users;
 
 namespace PUSpecSheet.Api.Users;

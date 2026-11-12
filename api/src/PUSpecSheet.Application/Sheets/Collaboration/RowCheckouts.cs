@@ -4,6 +4,7 @@ using PUSpecSheet.Application.Persistence.Users;
 using PUSpecSheet.Application.Sheets.Drafts;
 using PUSpecSheet.Application.Sheets.Revisions;
 using PUSpecSheet.Application.Sheets.Values;
+using PUSpecSheet.Database.Entities.Sheets;
 using PUSpecSheet.Domain.Sheets;
 
 namespace PUSpecSheet.Application.Sheets.Collaboration;

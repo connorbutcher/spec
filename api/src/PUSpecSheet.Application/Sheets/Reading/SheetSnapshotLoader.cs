@@ -6,8 +6,8 @@ using PUSpecSheet.Application.Persistence.Users;
 using PUSpecSheet.Application.Sheets.History;
 using PUSpecSheet.Application.Sheets.Revisions;
 using PUSpecSheet.Application.Sheets.Values;
-using PUSpecSheet.Domain.Sheets;
-using PUSpecSheet.Domain.Templates;
+using PUSpecSheet.Database.Entities.Sheets;
+using PUSpecSheet.Database.Entities.Templates;
 
 namespace PUSpecSheet.Application.Sheets.Reading;
 

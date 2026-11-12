@@ -1,3 +1,4 @@
+using PUSpecSheet.Application.CellTypes;
 using PUSpecSheet.Application.Common;
 using PUSpecSheet.Application.Persistence;
 using PUSpecSheet.Application.Persistence.Sheets;
@@ -5,10 +6,10 @@ using PUSpecSheet.Application.Sheets.Drafts;
 using PUSpecSheet.Application.Sheets.Reading;
 using PUSpecSheet.Application.Sheets.Values;
 using PUSpecSheet.Contracts.Sheets;
+using PUSpecSheet.Database.Entities.Sheets;
 using PUSpecSheet.Domain.CellTypes;
 using PUSpecSheet.Domain.CellTypes.InstanceSettings;
 using PUSpecSheet.Domain.CellTypes.LabelledText;
-using PUSpecSheet.Domain.Sheets;
 
 namespace PUSpecSheet.Application.Sheets.Editing;
 

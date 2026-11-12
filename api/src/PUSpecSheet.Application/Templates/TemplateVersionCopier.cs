@@ -1,4 +1,4 @@
-using PUSpecSheet.Domain.Templates;
+using PUSpecSheet.Database.Entities.Templates;
 
 namespace PUSpecSheet.Application.Templates;
 

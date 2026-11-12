@@ -3,7 +3,7 @@ using PUSpecSheet.Application.Persistence;
 using PUSpecSheet.Application.Persistence.CellTypes;
 using PUSpecSheet.Application.Persistence.Templates;
 using PUSpecSheet.Contracts.Templates;
-using PUSpecSheet.Domain.Templates;
+using PUSpecSheet.Database.Entities.Templates;
 
 namespace PUSpecSheet.Application.Templates.Cells;
 

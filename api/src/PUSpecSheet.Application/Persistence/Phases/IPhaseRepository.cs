@@ -1,4 +1,4 @@
-using PUSpecSheet.Domain.Phases;
+using PUSpecSheet.Database.Entities.Phases;
 
 namespace PUSpecSheet.Application.Persistence.Phases;
 

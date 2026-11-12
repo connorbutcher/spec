@@ -1,4 +1,5 @@
 using PUSpecSheet.Application.Users;
+using PUSpecSheet.Database.Entities.Users;
 using PUSpecSheet.Domain.Users;
 
 namespace PUSpecSheet.Application.Tests.Users;

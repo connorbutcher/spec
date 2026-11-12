@@ -1,4 +1,6 @@
 using PUSpecSheet.Application.Sheets.Linking;
+using PUSpecSheet.Database.Entities.CellTypes;
+using PUSpecSheet.Database.Entities.Templates;
 using PUSpecSheet.Domain.CellTypes;
 using PUSpecSheet.Domain.Templates;
 

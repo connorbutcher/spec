@@ -1,5 +1,5 @@
 using PUSpecSheet.Application.Persistence.Templates;
-using PUSpecSheet.Domain.Templates;
+using PUSpecSheet.Database.Entities.Templates;
 
 namespace PUSpecSheet.Application.Sheets.Layout;
 

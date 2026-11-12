@@ -10,7 +10,7 @@ using PUSpecSheet.Application.Sheets.Revisions;
 using PUSpecSheet.Application.Users;
 using PUSpecSheet.Contracts.Common;
 using PUSpecSheet.Contracts.Sheets;
-using PUSpecSheet.Domain.Sheets;
+using PUSpecSheet.Database.Entities.Sheets;
 using PUSpecSheet.Domain.Templates;
 
 namespace PUSpecSheet.Application.Sheets.Editing;

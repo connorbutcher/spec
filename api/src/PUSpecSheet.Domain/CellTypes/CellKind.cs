@@ -1,6 +1,6 @@
 namespace PUSpecSheet.Domain.CellTypes;
 
-/// <summary>The built-in behaviour a <see cref="CellType"/> is based on.</summary>
+/// <summary>The built-in behaviour a <c>CellType</c> is based on.</summary>
 public enum CellKind
 {
     /// <summary>Fixed text shown in the template, such as a column header. Stores no value.</summary>
@@ -17,10 +17,10 @@ public enum CellKind
 
     Checkbox,
 
-    /// <summary>A choice from the cell type's text <see cref="CellType.Options"/>.</summary>
+    /// <summary>A choice from the cell type's text <c>CellType.Options</c>.</summary>
     TextDropdown,
 
-    /// <summary>A choice from the cell type's <see cref="CellType.Options"/>, each of which is a number.</summary>
+    /// <summary>A choice from the cell type's <c>CellType.Options</c>, each of which is a number.</summary>
     NumberDropdown,
 
     /// <summary>

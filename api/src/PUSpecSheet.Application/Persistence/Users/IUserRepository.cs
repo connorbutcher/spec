@@ -1,5 +1,5 @@
 using PUSpecSheet.Contracts.Approvals;
-using PUSpecSheet.Domain.Users;
+using PUSpecSheet.Database.Entities.Users;
 
 namespace PUSpecSheet.Application.Persistence.Users;
 

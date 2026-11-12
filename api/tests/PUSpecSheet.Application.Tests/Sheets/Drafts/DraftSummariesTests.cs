@@ -1,5 +1,5 @@
 using PUSpecSheet.Application.Sheets.Drafts;
-using PUSpecSheet.Domain.Sheets;
+using PUSpecSheet.Database.Entities.Sheets;
 
 namespace PUSpecSheet.Application.Tests.Sheets.Drafts;
 

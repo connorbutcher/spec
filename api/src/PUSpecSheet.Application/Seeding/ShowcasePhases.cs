@@ -1,7 +1,7 @@
 using PUSpecSheet.Application.Persistence;
 using PUSpecSheet.Application.Persistence.Phases;
 using PUSpecSheet.Application.Persistence.SheetTypes;
-using PUSpecSheet.Domain.Phases;
+using PUSpecSheet.Database.Entities.Phases;
 
 namespace PUSpecSheet.Application.Seeding;
 

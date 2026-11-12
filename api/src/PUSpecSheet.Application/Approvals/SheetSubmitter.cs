@@ -3,6 +3,7 @@ using PUSpecSheet.Application.Persistence.Approvals;
 using PUSpecSheet.Application.Sheets.Publishing;
 using PUSpecSheet.Application.Users;
 using PUSpecSheet.Contracts.Approvals;
+using PUSpecSheet.Database.Entities.Approvals;
 using PUSpecSheet.Domain.Approvals;
 
 namespace PUSpecSheet.Application.Approvals;

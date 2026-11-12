@@ -2,7 +2,7 @@ using PUSpecSheet.Application.Persistence;
 using PUSpecSheet.Application.Persistence.Sheets;
 using PUSpecSheet.Application.Persistence.Users;
 using PUSpecSheet.Application.Users;
-using PUSpecSheet.Domain.Sheets;
+using PUSpecSheet.Database.Entities.Sheets;
 
 namespace PUSpecSheet.Application.Sheets.Drafts;
 

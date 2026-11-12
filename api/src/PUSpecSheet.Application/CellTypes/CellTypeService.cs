@@ -2,6 +2,7 @@ using PUSpecSheet.Application.Common;
 using PUSpecSheet.Application.Persistence;
 using PUSpecSheet.Application.Persistence.CellTypes;
 using PUSpecSheet.Contracts.CellTypes;
+using PUSpecSheet.Database.Entities.CellTypes;
 using PUSpecSheet.Domain.CellTypes;
 
 namespace PUSpecSheet.Application.CellTypes;

@@ -1,5 +1,5 @@
 using PUSpecSheet.Contracts.SheetTypes;
-using PUSpecSheet.Domain.SheetTypes;
+using PUSpecSheet.Database.Entities.SheetTypes;
 
 namespace PUSpecSheet.Application.Persistence.SheetTypes;
 

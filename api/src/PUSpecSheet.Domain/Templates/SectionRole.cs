@@ -1,6 +1,6 @@
 namespace PUSpecSheet.Domain.Templates;
 
-/// <summary>What a <see cref="TemplateSection"/> is for when a table is filled in on a sheet.</summary>
+/// <summary>What a <c>TemplateSection</c> is for when a table is filled in on a sheet.</summary>
 public enum SectionRole
 {
     /// <summary>

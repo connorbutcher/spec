@@ -5,6 +5,8 @@ using PUSpecSheet.Application.Sheets.Revisions;
 using PUSpecSheet.Application.Sheets.Values;
 using PUSpecSheet.Contracts.Sheets;
 using PUSpecSheet.Contracts.Templates;
+using PUSpecSheet.Database.Entities.Sheets;
+using PUSpecSheet.Database.Entities.Templates;
 using PUSpecSheet.Domain.CellTypes;
 using PUSpecSheet.Domain.Sheets;
 using PUSpecSheet.Domain.Templates;

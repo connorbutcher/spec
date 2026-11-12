@@ -1,8 +1,9 @@
+using PUSpecSheet.Application.CellTypes;
 using PUSpecSheet.Application.Common;
+using PUSpecSheet.Database.Entities.Templates;
 using PUSpecSheet.Domain.CellTypes;
 using PUSpecSheet.Domain.CellTypes.Configurations;
 using PUSpecSheet.Domain.CellTypes.LabelledText;
-using PUSpecSheet.Domain.Templates;
 
 namespace PUSpecSheet.Application.Sheets.Values;
 

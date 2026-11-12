@@ -1,4 +1,4 @@
-using PUSpecSheet.Domain.CellTypes;
+using PUSpecSheet.Database.Entities.CellTypes;
 
 namespace PUSpecSheet.Application.Persistence.CellTypes;
 

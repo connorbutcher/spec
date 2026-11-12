@@ -1,7 +1,7 @@
 using PUSpecSheet.Application.Persistence;
 using PUSpecSheet.Application.Persistence.SheetTypes;
 using PUSpecSheet.Application.Persistence.Templates;
-using PUSpecSheet.Domain.Templates;
+using PUSpecSheet.Database.Entities.Templates;
 
 namespace PUSpecSheet.Application.Seeding;
 

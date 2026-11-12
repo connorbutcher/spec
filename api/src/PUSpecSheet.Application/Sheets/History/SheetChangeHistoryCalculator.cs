@@ -1,5 +1,5 @@
 using PUSpecSheet.Application.Sheets.Values;
-using PUSpecSheet.Domain.Sheets;
+using PUSpecSheet.Database.Entities.Sheets;
 
 namespace PUSpecSheet.Application.Sheets.History;
 

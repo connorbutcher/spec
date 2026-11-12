@@ -3,13 +3,12 @@
     <Project Path="src/PUSpecSheet.Api/PUSpecSheet.Api.csproj" />
     <Project Path="src/PUSpecSheet.Application/PUSpecSheet.Application.csproj" />
     <Project Path="src/PUSpecSheet.Contracts/PUSpecSheet.Contracts.csproj" />
-    <Project Path="src/PUSpecSheet.Data/PUSpecSheet.Data.csproj" />
+    <Project Path="src/PUSpecSheet.Database/PUSpecSheet.Database.csproj" />
     <Project Path="src/PUSpecSheet.Domain/PUSpecSheet.Domain.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/PUSpecSheet.Api.Tests/PUSpecSheet.Api.Tests.csproj" />
     <Project Path="tests/PUSpecSheet.Application.Tests/PUSpecSheet.Application.Tests.csproj" />
-    <Project Path="tests/PUSpecSheet.Data.Tests/PUSpecSheet.Data.Tests.csproj" />
     <Project Path="tests/PUSpecSheet.Domain.Tests/PUSpecSheet.Domain.Tests.csproj" />
   </Folder>
 </Solution>

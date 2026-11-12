@@ -8,9 +8,9 @@ using PUSpecSheet.Api.Cors;
 using PUSpecSheet.Api.ExceptionHandling;
 using PUSpecSheet.Application.DependencyInjection;
 using PUSpecSheet.Application.Seeding;
-using PUSpecSheet.Data;
-using PUSpecSheet.Data.DependencyInjection;
-using PUSpecSheet.Data.Seeding;
+using PUSpecSheet.Database;
+using PUSpecSheet.Database.DependencyInjection;
+using PUSpecSheet.Database.Seeding;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -32,7 +32,7 @@ builder.Services.AddHealthChecks().AddDbContextCheck<PuSpecSheetDbContext>();
 builder.Services.AddPuSpecSheetCors(builder.Configuration);
 builder.Services.AddPuSpecSheetResponseCompression(builder.Configuration);
 
-builder.Services.AddPuSpecSheetData(connectionString);
+builder.Services.AddPuSpecSheetDatabase(connectionString);
 builder.Services.AddPuSpecSheetApplication();
 
 // Multi-user editing: who has each sheet open, live checkouts and takeover requests, over SignalR.

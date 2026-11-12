@@ -1,0 +1,17 @@
+using PUSpecSheet.Database.Entities.Sheets;
+
+namespace PUSpecSheet.Database.Entities.Values;
+
+/// <summary>The value of a checkbox cell.</summary>
+public class BooleanValue : ICellValue
+{
+    public int SheetRowRevisionId { get; set; }
+
+    public SheetRowRevision SheetRowRevision { get; set; } = null!;
+
+    public int SheetCellId { get; set; }
+
+    public SheetCell SheetCell { get; set; } = null!;
+
+    public bool Value { get; set; }
+}

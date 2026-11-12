@@ -4,7 +4,7 @@ using PUSpecSheet.Application.Persistence.CellTypes;
 using PUSpecSheet.Application.Persistence.Templates;
 using PUSpecSheet.Contracts.Common;
 using PUSpecSheet.Contracts.Templates;
-using PUSpecSheet.Domain.Templates;
+using PUSpecSheet.Database.Entities.Templates;
 
 namespace PUSpecSheet.Application.Templates.Rows;
 

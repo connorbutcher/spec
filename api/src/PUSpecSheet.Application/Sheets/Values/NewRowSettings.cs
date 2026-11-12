@@ -2,8 +2,8 @@ using PUSpecSheet.Application.Persistence;
 using PUSpecSheet.Application.Persistence.Sheets;
 using PUSpecSheet.Application.Sheets.Revisions;
 using PUSpecSheet.Application.Users;
+using PUSpecSheet.Database.Entities.Sheets;
 using PUSpecSheet.Domain.CellTypes.InstanceSettings;
-using PUSpecSheet.Domain.Sheets;
 
 namespace PUSpecSheet.Application.Sheets.Values;
 

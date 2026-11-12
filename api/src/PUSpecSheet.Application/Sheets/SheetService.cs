@@ -8,7 +8,7 @@ using PUSpecSheet.Application.Sheets.Publishing;
 using PUSpecSheet.Application.Sheets.Reading;
 using PUSpecSheet.Application.Users;
 using PUSpecSheet.Contracts.Sheets;
-using PUSpecSheet.Domain.Sheets;
+using PUSpecSheet.Database.Entities.Sheets;
 
 namespace PUSpecSheet.Application.Sheets;
 

@@ -1,4 +1,4 @@
-using PUSpecSheet.Domain.Approvals;
+using PUSpecSheet.Database.Entities.Approvals;
 
 namespace PUSpecSheet.Application.Persistence.Approvals;
 

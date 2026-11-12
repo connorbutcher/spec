@@ -2,7 +2,7 @@ using PUSpecSheet.Application.Common;
 using PUSpecSheet.Application.Persistence;
 using PUSpecSheet.Application.Persistence.SheetTypes;
 using PUSpecSheet.Contracts.SheetTypes;
-using PUSpecSheet.Domain.SheetTypes;
+using PUSpecSheet.Database.Entities.SheetTypes;
 
 namespace PUSpecSheet.Application.SheetTypes;
 

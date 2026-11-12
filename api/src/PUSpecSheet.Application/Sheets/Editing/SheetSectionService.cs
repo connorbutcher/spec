@@ -10,7 +10,8 @@ using PUSpecSheet.Application.Sheets.Values;
 using PUSpecSheet.Application.Users;
 using PUSpecSheet.Contracts.Common;
 using PUSpecSheet.Contracts.Sheets;
-using PUSpecSheet.Domain.Sheets;
+using PUSpecSheet.Database.Entities.Sheets;
+using PUSpecSheet.Database.Entities.Templates;
 using PUSpecSheet.Domain.Templates;
 
 namespace PUSpecSheet.Application.Sheets.Editing;

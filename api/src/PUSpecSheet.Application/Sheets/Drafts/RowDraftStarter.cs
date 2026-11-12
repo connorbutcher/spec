@@ -3,7 +3,7 @@ using PUSpecSheet.Application.Persistence.Sheets;
 using PUSpecSheet.Application.Sheets.Collaboration;
 using PUSpecSheet.Application.Sheets.Removal;
 using PUSpecSheet.Application.Users;
-using PUSpecSheet.Domain.Sheets;
+using PUSpecSheet.Database.Entities.Sheets;
 
 namespace PUSpecSheet.Application.Sheets.Drafts;
 

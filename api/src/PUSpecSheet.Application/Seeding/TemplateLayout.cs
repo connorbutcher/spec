@@ -1,3 +1,4 @@
+using PUSpecSheet.Database.Entities.Templates;
 using PUSpecSheet.Domain.CellTypes.Configurations;
 using PUSpecSheet.Domain.CellTypes.Styles;
 using PUSpecSheet.Domain.Templates;
