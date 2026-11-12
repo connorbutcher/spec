@@ -11,6 +11,6 @@
   <ItemGroup>
     <ProjectReference Include="..\PUSpecSheet.Application\PUSpecSheet.Application.csproj" />
     <ProjectReference Include="..\PUSpecSheet.Contracts\PUSpecSheet.Contracts.csproj" />
-    <ProjectReference Include="..\PUSpecSheet.Data\PUSpecSheet.Data.csproj" />
+    <ProjectReference Include="..\PUSpecSheet.Database\PUSpecSheet.Database.csproj" />
   </ItemGroup>
 </Project>
