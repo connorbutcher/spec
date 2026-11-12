@@ -1,4 +1,4 @@
-using PUSpecSheet.Application.Published;
+using PUSpecSheet.Application.Published.Versions;
 using PUSpecSheet.Contracts.Published;
 
 namespace PUSpecSheet.Application.Persistence.Published;

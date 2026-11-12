@@ -2,6 +2,7 @@ using PUSpecSheet.Application.Common;
 using PUSpecSheet.Application.Persistence;
 using PUSpecSheet.Application.Persistence.SheetTypes;
 using PUSpecSheet.Application.Persistence.Templates;
+using PUSpecSheet.Application.Templates.Sections;
 using PUSpecSheet.Contracts.Templates;
 using PUSpecSheet.Domain.Templates;
 

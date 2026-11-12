@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using PUSpecSheet.Application.Published;
+using PUSpecSheet.Application.Published.Sheets;
 using PUSpecSheet.Contracts.Published;
 
 namespace PUSpecSheet.Api.Published;

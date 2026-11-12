@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Application.Persistence.Published;
 using PUSpecSheet.Application.Published;
+using PUSpecSheet.Application.Published.Sheets;
+using PUSpecSheet.Application.Published.Versions;
 using PUSpecSheet.Data.Repositories.Sheets.Values;
 using PUSpecSheet.Domain.Values;
 

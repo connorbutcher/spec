@@ -1,4 +1,4 @@
-using PUSpecSheet.Application.Published;
+using PUSpecSheet.Application.Published.Lookups;
 
 namespace PUSpecSheet.Application.Persistence.Published;
 

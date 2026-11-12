@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Application.Persistence.Published;
-using PUSpecSheet.Application.Published;
+using PUSpecSheet.Application.Published.Lookups;
 using PUSpecSheet.Data.Configurations.Values;
 using PUSpecSheet.Domain.Sheets;
 using PUSpecSheet.Domain.Templates;

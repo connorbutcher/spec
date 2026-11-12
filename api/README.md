@@ -5,28 +5,45 @@ How the API is put together and how to change it. Running it, the linters and th
 ## Projects
 
 ```
-src/PUSpecSheet.Api           ASP.NET Core host. Controllers, authorization, exception handling, OpenAPI, compression, CORS.
-src/PUSpecSheet.Application   Use cases. One folder per feature; services, the queries they run and the rules they apply.
+src/PUSpecSheet.Api           ASP.NET Core host. Controllers (by area), authorization, exception handling, OpenAPI, compression, CORS.
+src/PUSpecSheet.Application   Use cases. One folder per feature: services and the rules they apply. No EF Core: data is
+                              reached through the repository interfaces in Application/Persistence.
 src/PUSpecSheet.Contracts     Request and response records. The only types that cross the HTTP boundary.
-src/PUSpecSheet.Data          EF Core: the DbContext, one configuration class per entity, migrations, seed data.
-src/PUSpecSheet.Domain        Entities, enums and rules that need nothing but themselves.
+src/PUSpecSheet.Data          Everything about the database: the DbContext, one configuration class per entity (by area),
+                              migrations, the repositories and unit of work, development seed data.
+src/PUSpecSheet.Domain        Entities, enums and rules that need nothing but themselves. No EF Core either.
 tests/PUSpecSheet.*.Tests     One test project per source project.
 ```
 
-References go one way: `Api -> Application -> Data -> Domain`. `Contracts` is used by `Api` and `Application` and references `Domain` only for enums and the cell configuration records. Nothing references `Api`.
+References go one way: `Api -> Data -> Application -> Domain`, and `Api -> Application`. `Application` declares what it needs from the database as interfaces; `Data` implements them, so `Application` can't reach the DbContext at all. `Contracts` is used by `Api` and `Application` and references `Domain` only for enums and the cell configuration records. Nothing references `Api`.
+
+### Data access
+
+| Where | What |
+| --- | --- |
+| `Application/Persistence/IUnitOfWork` | Saves (`SaveChangesAsync`, or `SaveSheetChangesAsync`, which turns a clash with someone else's change into a 409), transactions, and the few change-tracking moves a service needs. |
+| `Application/Persistence/<Area>/I...Repository` | One repository per entity or job, grouped by area as the features are (`Sheets`, `Templates`, `Approvals`, `Published`, ...). Methods are named for what they return: `Find...` gives one or null, `List...` a list, `...ForEditAsync` tracked entities to change and save, everything else is read only. |
+| `Data/Repositories/<Area>/...Repository` | The EF Core implementations, in the same folders. Every query in the API is in one of these. |
+| `Data/Repositories/Sheets/Revisions` | `SheetRevisionRepository<TRevision>` writes the revision queries every kind of item shares once; the table, section, row and column block repositories add only what is their own. |
+| `Data/Repositories/RepositoryServiceCollectionExtensions` | Registers them all; `AddPuSpecSheetData` calls it. `ServiceRegistrationTests` fails if a repository or service can't be built. |
+
+The query helpers the repositories share are LINQ only, so they stay with the rules in `Application`: `SheetRevisionQueryExtensions` (which revisions are live, drafts, in view at a moment) and the `IDraftSelection` a publish passes in.
 
 | Folder in `Application` | What it holds |
 | --- | --- |
-| `Sheets` | Reading a sheet, editing it through drafts, publishing. The largest feature; see below. |
-| `Published` | The read-only API other applications call: whole sheets, rows by id, lookups by a keyed value. |
-| `Templates` | Table templates and their versions, sections, rows, cells and column blocks. |
+| `Sheets` | Reading a sheet, editing it through drafts (`Editing`), publishing (`Publishing`). The largest feature; see below. |
+| `Approvals` | Submitting a publish for approval, deciding it, and the lists of submissions. |
+| `Published` | The read-only API other applications call: whole sheets (`Sheets`), rows by id (`Rows`), lookups by a keyed value (`Lookups`), and which version a request means (`Versions`). |
+| `Templates` | Table templates and their versions, with a folder each for sections, rows, cells and column blocks. |
 | `CellTypes`, `Phases`, `SheetTypes`, `Users` | The reference data and who the current user is. |
+| `Persistence` | The unit of work and the repository interfaces, by area. |
+| `Seeding` | The showcase sample data built in Development. |
 | `Common` | The three application exceptions, display ordering and the sized cache. |
 
 ## A request, end to end
 
-1. **Controller** (`Api/Controllers`). Binds the route and body, calls one service method and returns its result. No rules, no `try`/`catch`, no EF. `[ApiController]` turns a request that fails its data annotations into a 400 before the action runs.
-2. **Service** (`Application/<Feature>`). Loads what it needs through `PuSpecSheetDbContext`, applies the rules, saves, and returns a contract record. Anything wrong is thrown as `NotFoundException`, `InvalidRequestException` or `ConflictException`.
+1. **Controller** (`Api/Controllers/<Area>`). Binds the route and body, calls one service method and returns its result. No rules, no `try`/`catch`, no EF. `[ApiController]` turns a request that fails its data annotations into a 400 before the action runs.
+2. **Service** (`Application/<Feature>`). Loads what it needs through repositories, applies the rules, saves through `IUnitOfWork`, and returns a contract record. Anything wrong is thrown as `NotFoundException`, `InvalidRequestException` or `ConflictException`.
 3. **`ApplicationExceptionHandler`** turns those three into 404, 400 and 409 ProblemDetails. `PermissionDeniedResultHandler` does the same for a missing permission (403). Everything else is a 500.
 4. **Mapping** to contracts happens in the service or a `...Mappings` class. Entities never leave `Application`.
 
@@ -40,17 +57,17 @@ A sheet item (table, section, row, column block) is an identity row plus revisio
 - **Publishing makes a version.** `SheetPublisher` turns drafts into published revisions under a new `SheetVersion`, and closes the revisions they replace at the same instant. A published revision is never edited again. The request's `PublishScope` says whose drafts: the publisher's own (`Mine`, the default) or every draft on the sheet (`All`). A draft published for someone else keeps its author, so the change stays in their name while the version is in the publisher's, and their lock goes with it; a draft of theirs that changes nothing is dropped, not published.
 - **Any moment can be read back.** A revision is in force from `PublishedAtUtc` until `SupersededAtUtc`, so "version 3" or "as of last Tuesday" is a range check.
 
-Reading goes `SheetReader` -> `SheetSnapshotLoader` (the queries) -> `SheetViewBuilder` (the tree the screen shows). Every edit returns the refreshed sheet through the same path.
+Reading goes `SheetReader` -> `SheetSnapshotLoader` (which asks the repositories) -> `SheetViewBuilder` (the tree the screen shows). Every edit returns the refreshed sheet through the same path.
 
 Two things to keep when adding queries here:
 
 - Ask for live revisions with `Current()`, `CurrentAndDrafts()` or `VisibleTo(userId)` from `SheetRevisionQueryExtensions`, not `SupersededAtUtc == null`. They match the filtered unique indexes; the bare predicate reads every revision the items have ever had.
-- Find a sheet's revisions by the `SheetId` every revision carries (`TableRevisionsOf(sheetId)` and the others in `SheetScopeQueryExtensions`), not through the item's parents. The (sheet, status) and (sheet, published) indexes lead with it, so the cost follows the sheet's own history; the join through the parents reads every sheet's revisions. A new revision takes its sheet from the revision it follows (`DraftGateway`) or from the item's table (`SheetInstantiator`).
-- Load many items in one query. `DraftGateway.LoadManyAsync`, `ReleaseUnchangedAsync` and `RowValueStore.SetManyAsync` exist so nothing loops over items issuing a query each.
+- Find a sheet's revisions by the `SheetId` every revision carries (`SheetRevisionRepository.OnSheet`), not through the item's parents. The (sheet, status) and (sheet, published) indexes lead with it, so the cost follows the sheet's own history; the join through the parents reads every sheet's revisions. A new revision takes its sheet from the revision it follows (`DraftGateway`) or from the item's table (`SheetInstantiator`).
+- Load many items in one query. `DraftGateway.LoadManyAsync`, `ReleaseUnchangedAsync` and `IRowValueRepository.SetManyAsync` exist so nothing loops over items issuing a query each.
 
-Cell values live in the `values` schema, one table per kind (text, numeric, date, boolean, option), keyed by row revision and cell. `RowValueStore` is the only class that reads or writes them for the editing screens.
+Cell values live in the `values` schema, one table per kind (text, numeric, date, boolean, option), keyed by row revision and cell. `RowValueRepository` is the only class that reads or writes them for the editing screens.
 
-Settings chosen for a cell on the sheet (`CellInstanceSettings`, such as the table and column a linked dropdown reads) live beside the values in `values.CellSettings`, with the same key, and travel with them through `RowValueStore` and `CellValueBag`. That is all it takes for them to follow every draft, publish and history rule above. `SheetCellSettingsService` saves them, and `RowDraftStarter` is the one place a row's draft is started, for values and settings alike. How the linked dropdown works, and how to add another setting or give another kind settings, is in the [root README](../README.md#cell-settings-chosen-on-the-sheet).
+Settings chosen for a cell on the sheet (`CellInstanceSettings`, such as the table and column a linked dropdown reads) live beside the values in `values.CellSettings`, with the same key, and travel with them through `RowValueRepository` and `CellValueBag`. That is all it takes for them to follow every draft, publish and history rule above. `SheetCellSettingsService` saves them, and `RowDraftStarter` is the one place a row's draft is started, for values and settings alike. How the linked dropdown works, and how to add another setting or give another kind settings, is in the [root README](../README.md#cell-settings-chosen-on-the-sheet).
 
 ## Multi-user editing
 
@@ -97,29 +114,30 @@ To try it before sign-in exists, Development seeds two more users (`engineer2`, 
 
 In Development the API builds a showcase on start (`Application/Seeding`, run from `ShowcaseDataSeeder`): templates for Specification ("Engine specification"), PFKs ("Gauges", "PFK register") and Parts ("Parts matrix", horizontal) that use every cell kind, and sheets built from them for V6 and 01-A2 to A5, with published versions by `developer`, `engineer2` and `engineer3` and some of their changes left unpublished, so there are locks to see. Changes are made through the same services the API uses, as whichever user `BackgroundUser` names.
 
-**It clears the database the first time.** Every sheet, template and user-made cell type is deleted first (`SampleDataReset`); phases, sheet types, users and permissions are kept. After that it does nothing while a sheet version with the note `ShowcaseDataSeeder.CompletedNote` exists, so work done on top of it stays. Set `SampleData:Rebuild` to `true` in `appsettings.Development.json` to clear and rebuild on every start until it is set back. A failure is logged and tried again, from a clean database, on the next start.
+**It clears the database the first time.** Every sheet, template and user-made cell type is deleted first (`SampleDataRepository`); phases, sheet types, users and permissions are kept. After that it does nothing while a sheet version with the note `ShowcaseDataSeeder.CompletedNote` exists, so work done on top of it stays. Set `SampleData:Rebuild` to `true` in `appsettings.Development.json` to clear and rebuild on every start until it is set back. A failure is logged and tried again, from a clean database, on the next start.
 
 ## Published API
 
-`Published` reads only published revisions, by public identifier (the GUIDs), never by database id. What a version held never changes, so answers are cached in memory (`PublishedSheetCache`, `PublishedRowsCache`, `PublishedLookupCache`) and served with ETags; `PublishedSheetHttpCache` holds the HTTP side. Its queries project straight to small records (`Published...Record`) and the `...Assembler` classes, which are pure, build the response. The field names and routes of this API are a contract with other applications: change them only on purpose.
+`Published` reads only published revisions, by public identifier (the GUIDs), never by database id. What a version held never changes, so answers are cached in memory (`PublishedSheetCache`, `PublishedRowsCache`, `PublishedLookupCache`) and served with ETags; `PublishedSheetHttpCache` holds the HTTP side. Its repositories (`Data/Repositories/Published`) project straight to small records (`Published...Record`) and the `...Assembler` classes, which are pure, build the response. The field names and routes of this API are a contract with other applications: change them only on purpose.
 
 ## How to
 
 **Add an endpoint to an existing feature**
 
 1. Add the request/response records to `Contracts/<Feature>`, one per file, with data annotations for required fields, lengths and ranges.
-2. Add the method to the service interface and implement it.
+2. Add the method to the service interface and implement it. A query it needs goes on the area's repository: the method on the interface in `Application/Persistence/<Area>`, the EF Core query in `Data/Repositories/<Area>`.
 3. Add the action to the controller with XML comments (`<summary>`, `<remarks>`, `<param>`, `<response>` for each status it can return). 400, 403, 404 and 409 are documented where they apply by `ProblemResponsesConvention`; add `[ProducesResponseType]` only for anything else.
 4. Decide who may call it. An action that changes anything takes `[Authorize(Policy = PermissionKeys.X)]` (on the controller when every action shares it); `EndpointPermissionTests` fails if one is missing. A read needs nothing more: the fallback policy already requires a signed-in user. Only the published API is `[AllowAnonymous]`. A new permission is a constant in `PermissionKeys` (add it to `All`) and a seeded row in `PermissionConfiguration`, which needs a migration.
 
-**Add a feature**: a folder in `Application` with `I<Feature>Service` and its implementation, registered in `ApplicationServiceCollectionExtensions` (or the feature's own `Add...` extension, as `Sheets` and `Published` do); a controller with `[Tags(ApiTags.X)]`, with the tag added to `ApiTags` and `ApiTagCatalog`.
+**Add a feature**: a folder in `Application` with `I<Feature>Service` and its implementation, registered in `ApplicationServiceCollectionExtensions` (or the feature's own `Add...` extension, as `Sheets` and `Published` do); its repositories in `Application/Persistence/<Feature>` and `Data/Repositories/<Feature>`, registered in `RepositoryServiceCollectionExtensions`; a controller in `Api/Controllers/<Feature>` with `[Tags(ApiTags.X)]`, with the tag added to `ApiTags` and `ApiTagCatalog`.
 
 **Add an entity**
 
 1. The class in `Domain/<Area>`.
-2. An `IEntityTypeConfiguration<T>` in `Data/Configurations`: table name, every string length, every foreign key with an explicit `OnDelete`, indexes for the ways it will be queried, and check constraints for rules the database can hold.
+2. An `IEntityTypeConfiguration<T>` in `Data/Configurations/<Area>`: table name, every string length, every foreign key with an explicit `OnDelete`, indexes for the ways it will be queried, and check constraints for rules the database can hold.
 3. A `DbSet` on `PuSpecSheetDbContext`.
-4. A migration, below.
+4. Its repository, as for a feature above.
+5. A migration, below.
 
 **Add a migration**
 

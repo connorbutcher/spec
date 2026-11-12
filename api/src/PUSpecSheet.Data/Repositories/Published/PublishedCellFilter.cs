@@ -1,5 +1,5 @@
 using System.Linq.Expressions;
-using PUSpecSheet.Application.Published;
+using PUSpecSheet.Application.Published.Sheets;
 using PUSpecSheet.Domain.Sheets;
 
 namespace PUSpecSheet.Data.Repositories.Published;

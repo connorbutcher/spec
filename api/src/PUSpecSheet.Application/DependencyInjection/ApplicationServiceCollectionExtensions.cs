@@ -9,6 +9,10 @@ using PUSpecSheet.Application.Seeding;
 using PUSpecSheet.Application.Sheets;
 using PUSpecSheet.Application.SheetTypes;
 using PUSpecSheet.Application.Templates;
+using PUSpecSheet.Application.Templates.Cells;
+using PUSpecSheet.Application.Templates.ColumnBlocks;
+using PUSpecSheet.Application.Templates.Rows;
+using PUSpecSheet.Application.Templates.Sections;
 using PUSpecSheet.Application.Users;
 
 namespace PUSpecSheet.Application.DependencyInjection;

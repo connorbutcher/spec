@@ -1,5 +1,6 @@
 using Microsoft.Net.Http.Headers;
-using PUSpecSheet.Application.Published;
+using PUSpecSheet.Application.Published.Sheets;
+using PUSpecSheet.Application.Published.Versions;
 
 namespace PUSpecSheet.Api.Published;
 

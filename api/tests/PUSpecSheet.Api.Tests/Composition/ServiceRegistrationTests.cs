@@ -3,7 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using PUSpecSheet.Api.Authorization;
 using PUSpecSheet.Api.Collaboration;
-using PUSpecSheet.Api.Controllers;
+using PUSpecSheet.Api.Controllers.ReferenceData;
 using PUSpecSheet.Application.DependencyInjection;
 using PUSpecSheet.Data.DependencyInjection;
 

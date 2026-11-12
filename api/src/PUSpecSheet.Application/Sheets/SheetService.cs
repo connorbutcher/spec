@@ -4,6 +4,7 @@ using PUSpecSheet.Application.Persistence;
 using PUSpecSheet.Application.Persistence.Phases;
 using PUSpecSheet.Application.Persistence.Sheets;
 using PUSpecSheet.Application.Sheets.Drafts;
+using PUSpecSheet.Application.Sheets.Publishing;
 using PUSpecSheet.Application.Sheets.Reading;
 using PUSpecSheet.Application.Users;
 using PUSpecSheet.Contracts.Sheets;

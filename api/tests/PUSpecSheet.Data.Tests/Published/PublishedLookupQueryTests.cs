@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Application.Common;
-using PUSpecSheet.Application.Published;
+using PUSpecSheet.Application.Published.Lookups;
+using PUSpecSheet.Application.Published.Versions;
 using PUSpecSheet.Data.Repositories.Published;
 
 namespace PUSpecSheet.Data.Tests.Published;

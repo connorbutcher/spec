@@ -1,6 +1,6 @@
 using PUSpecSheet.Application.Common;
-using PUSpecSheet.Contracts.Approvals;
 using PUSpecSheet.Application.Persistence.Users;
+using PUSpecSheet.Contracts.Approvals;
 using PUSpecSheet.Domain.Users;
 
 namespace PUSpecSheet.Application.Approvals;

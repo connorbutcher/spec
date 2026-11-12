@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
-using PUSpecSheet.Application.Published;
+using PUSpecSheet.Application.Published.Sheets;
+using PUSpecSheet.Application.Published.Versions;
 using PUSpecSheet.Data.Repositories.Published;
 
 namespace PUSpecSheet.Data.Tests.Published;

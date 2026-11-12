@@ -1,4 +1,5 @@
 using PUSpecSheet.Application.Published;
+using PUSpecSheet.Application.Published.Versions;
 
 namespace PUSpecSheet.Application.Persistence.Published;
 

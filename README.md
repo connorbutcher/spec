@@ -9,7 +9,7 @@ api/                          .NET 10 solution (PUSpecSheet.slnx)
   src/PUSpecSheet.Api           ASP.NET Core host: controllers, middleware, startup
   src/PUSpecSheet.Application   Application services / use cases
   src/PUSpecSheet.Contracts     Request/response DTOs shared with the UI
-  src/PUSpecSheet.Data          EF Core DbContext, entity configurations, migrations (SQL Server)
+  src/PUSpecSheet.Data          EF Core DbContext, entity configurations, migrations, repositories (SQL Server)
   src/PUSpecSheet.Domain        Domain entities and enums
 app/                          Angular 22 UI (PrimeNG)
 database/                     SQL database project mirroring the migrated schema, one script per object (see database/README.md)
@@ -59,7 +59,7 @@ The first kind to use them is the **linked dropdown** (`CellKind.LinkedDropdown`
 | Which columns can be linked to (any value except a checkbox), and what each is called | `LinkableColumns`, sent as `table.linkableColumns` |
 | The choices are the column's values as the viewer sees them, top to bottom, without repeats | `LinkedOptionCollector`, filled by `SheetViewBuilder`, sent in `sheet.linkedSources` with `templateCellId` set |
 | A value must be one of the choices when it is saved | `LinkedDropdownValueRule` |
-| The value is stored as its text (`values.TextValues`), so the published API returns the text | `CellKindExtensions.StoresText`, `PublishedKindValueReader` |
+| The value is stored as its text (`values.TextValues`), so the published API returns the text | `CellKindExtensions.StoresText`, `PublishedKindValueRepository` |
 | A stored value never changes by itself. If its column's value is edited or removed, or the table is removed, the cell keeps what was picked and the sheet flags it until someone picks again | `linked-dropdown.util.ts` (`linkedWarning`) |
 
 The source can instead be **a row** of the table (`SourceSheetRowId` in place of `SourceTemplateCellId`): point the cell at "Pin offset (mm)" and it offers every value in that row. The form's "The choices are the values in" switch picks between a column and a row.
@@ -78,10 +78,10 @@ The second is the **labelled text** cell (`CellKind.LabelledText`): several shor
 | --- | --- |
 | The cell type sets the slots (a fixed `key` and a `label` each), the label colour and the max length; a template cell can override them | `LabelledTextCellConfiguration`, `labelled-text-slots-field` |
 | A sheet can change one cell's slots (relabel, reorder, add, remove); null keeps the template's | `LabelledTextInstanceSettings`, `sheet-labelled-text-slots-form` |
-| Each slot's value is its own row in `values.LabelledTextValues`, keyed by revision, cell and slot key, with `Position` for its order | `LabelledTextValueConfiguration`, `RowValueStore` |
-| Relabelling keeps the values; removing a slot clears its value; reordering moves the values with it | `SheetCellSettingsService`, `RowValueStore.ArrangeSlotsAsync` |
-| A lookup key on the cell finds it by any of its values | `PublishedLookupHitReader` |
-| The published value is an object of slot key to text, `{ "rh": "PU-1001-A", "lh": "PU-1051-A" }`; a column block is named by the first value | `PublishedValueReader.ReadLabelledTextsAsync`, `PublishedValues.Text` |
+| Each slot's value is its own row in `values.LabelledTextValues`, keyed by revision, cell and slot key, with `Position` for its order | `LabelledTextValueConfiguration`, `RowValueRepository` |
+| Relabelling keeps the values; removing a slot clears its value; reordering moves the values with it | `SheetCellSettingsService`, `RowValueRepository.ArrangeSlotsAsync` |
+| A lookup key on the cell finds it by any of its values | `PublishedLookupHitRepository` |
+| The published value is an object of slot key to text, `{ "rh": "PU-1001-A", "lh": "PU-1051-A" }`; a column block is named by the first value | `PublishedValueRepository.ReadLabelledTextsAsync`, `PublishedValues.Text` |
 
 The Parts matrix showcase uses one for its part numbers (the "Part numbers" cell type), and its third part is changed on the sheet to a single value labelled "Both".
 
