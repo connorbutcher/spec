@@ -1,0 +1,61 @@
+using Microsoft.EntityFrameworkCore;
+using PUSpecSheet.Application.Persistence.Templates;
+using PUSpecSheet.Domain.Templates;
+
+namespace PUSpecSheet.Data.Repositories.Templates;
+
+public sealed class TemplateCellRepository(PuSpecSheetDbContext db) : ITemplateCellRepository
+{
+    public async Task<TemplateCell?> FindForEditAsync(int id, CancellationToken cancellationToken)
+    {
+        return await db.TemplateCells
+            .Include(candidate => candidate.TemplateRow)
+            .ThenInclude(row => row.TemplateSection)
+            .SingleOrDefaultAsync(candidate => candidate.Id == id, cancellationToken);
+    }
+
+    public async Task<TemplateCell?> FindWithTypeForEditAsync(int id, CancellationToken cancellationToken)
+    {
+        return await db.TemplateCells
+            .Include(candidate => candidate.CellType)
+            .Include(candidate => candidate.TemplateRow)
+            .ThenInclude(row => row.TemplateSection)
+            .SingleOrDefaultAsync(candidate => candidate.Id == id, cancellationToken);
+    }
+
+    public async Task<bool> ColumnTakenAsync(int rowId, int? columnBlockId, int column, int exceptId, CancellationToken cancellationToken)
+    {
+        return await db.TemplateCells.AnyAsync(
+            other => other.TemplateRowId == rowId
+                && other.TemplateColumnBlockId == columnBlockId
+                && other.Column == column
+                && other.Id != exceptId,
+            cancellationToken);
+    }
+
+    public async Task ShiftRightAsync(int rowId, int? columnBlockId, int fromColumn, CancellationToken cancellationToken)
+    {
+        await db.TemplateCells
+            .Where(cell => cell.TemplateRowId == rowId
+                && cell.TemplateColumnBlockId == columnBlockId
+                && cell.Column >= fromColumn)
+            .ExecuteUpdateAsync(setters => setters.SetProperty(cell => cell.Column, cell => cell.Column + 1), cancellationToken);
+    }
+
+    public async Task DeleteInColumnBlockAsync(int columnBlockId, CancellationToken cancellationToken)
+    {
+        await db.TemplateCells
+            .Where(cell => cell.TemplateColumnBlockId == columnBlockId)
+            .ExecuteDeleteAsync(cancellationToken);
+    }
+
+    public void Add(TemplateCell cell)
+    {
+        db.TemplateCells.Add(cell);
+    }
+
+    public void Remove(TemplateCell cell)
+    {
+        db.TemplateCells.Remove(cell);
+    }
+}

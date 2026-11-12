@@ -1,20 +1,14 @@
-using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Application.Common;
-using PUSpecSheet.Data;
-using PUSpecSheet.Domain.CellTypes;
+using PUSpecSheet.Application.Persistence.CellTypes;
 
 namespace PUSpecSheet.Application.Templates;
 
 /// <summary>Picks the cell type new cells get when none is chosen: the first Text type, else the first type.</summary>
 internal static class DefaultCellType
 {
-    public static async Task<int> GetIdAsync(PuSpecSheetDbContext db, CancellationToken cancellationToken)
+    public static async Task<int> GetIdAsync(ICellTypeRepository cellTypes, CancellationToken cancellationToken)
     {
-        var id = await db.CellTypes
-            .OrderBy(cellType => cellType.Kind == CellKind.Text ? 0 : 1)
-            .ThenBy(cellType => cellType.DisplayOrder)
-            .Select(cellType => (int?)cellType.Id)
-            .FirstOrDefaultAsync(cancellationToken);
+        var id = await cellTypes.FindDefaultIdAsync(cancellationToken);
 
         if (id is null)
         {

@@ -1,5 +1,3 @@
-using Microsoft.EntityFrameworkCore;
-using PUSpecSheet.Data;
 using PUSpecSheet.Domain.Templates;
 
 namespace PUSpecSheet.Application.Templates;
@@ -7,25 +5,16 @@ namespace PUSpecSheet.Application.Templates;
 /// <summary>Deep-copies a template version (column blocks, sections, rows and cells) into the next version number.</summary>
 internal static class TemplateVersionCopier
 {
-    /// <summary>Adds the copy to the context; the caller saves it.</summary>
-    public static async Task<TableTemplateVersion> CopyAsync(
-        PuSpecSheetDbContext db,
+    /// <summary>
+    /// Builds the copy from the source version's <paramref name="sections"/> (with their rows and cells) and
+    /// <paramref name="columnBlocks"/>; the caller adds and saves it.
+    /// </summary>
+    public static TableTemplateVersion Copy(
         TableTemplateVersion source,
         int newVersionNumber,
-        CancellationToken cancellationToken)
+        IReadOnlyList<TemplateSection> sections,
+        IReadOnlyList<TemplateColumnBlock> columnBlocks)
     {
-        var sections = await db.TemplateSections
-            .AsNoTracking()
-            .Where(section => section.TableTemplateVersionId == source.Id)
-            .Include(section => section.Rows)
-            .ThenInclude(row => row.Cells)
-            .ToListAsync(cancellationToken);
-
-        var columnBlocks = await db.TemplateColumnBlocks
-            .AsNoTracking()
-            .Where(block => block.TableTemplateVersionId == source.Id)
-            .ToListAsync(cancellationToken);
-
         var copy = new TableTemplateVersion
         {
             TableTemplateId = source.TableTemplateId,
@@ -42,7 +31,6 @@ internal static class TemplateVersionCopier
             copies[section.Id].ParentSection = copies[section.ParentSectionId!.Value];
         }
 
-        db.TableTemplateVersions.Add(copy);
         return copy;
     }
 

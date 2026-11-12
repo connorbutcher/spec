@@ -1,29 +1,19 @@
-using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Application.Common;
+using PUSpecSheet.Application.Persistence;
+using PUSpecSheet.Application.Persistence.CellTypes;
 using PUSpecSheet.Contracts.CellTypes;
-using PUSpecSheet.Data;
 using PUSpecSheet.Domain.CellTypes;
-using PUSpecSheet.Domain.CellTypes.Configurations;
 
 namespace PUSpecSheet.Application.CellTypes;
 
-public sealed class CellTypeService(PuSpecSheetDbContext db) : ICellTypeService
+public sealed class CellTypeService(ICellTypeRepository cellTypes, IUnitOfWork unitOfWork) : ICellTypeService
 {
     public async Task<IReadOnlyList<CellTypeDto>> GetAllAsync(CancellationToken cancellationToken)
     {
-        var cellTypes = await db.CellTypes
-            .AsNoTracking()
-            .Include(cellType => cellType.Options)
-            .OrderBy(cellType => cellType.DisplayOrder)
-            .ThenBy(cellType => cellType.Name)
-            .ToListAsync(cancellationToken);
+        var all = await cellTypes.ListWithOptionsAsync(cancellationToken);
+        var usage = await cellTypes.CountUsageByTypeAsync(cancellationToken);
 
-        var usage = await db.TemplateCells
-            .GroupBy(cell => cell.CellTypeId)
-            .Select(group => new { CellTypeId = group.Key, Count = group.Count() })
-            .ToDictionaryAsync(entry => entry.CellTypeId, entry => entry.Count, cancellationToken);
-
-        return cellTypes
+        return all
             .Select(cellType => cellType.ToDto(usage.GetValueOrDefault(cellType.Id)))
             .ToList();
     }
@@ -32,12 +22,12 @@ public sealed class CellTypeService(PuSpecSheetDbContext db) : ICellTypeService
     {
         await EnsureNameIsFreeAsync(request.Name, null, cancellationToken);
 
-        var lastOrder = await db.CellTypes.MaxAsync(cellType => (int?)cellType.DisplayOrder, cancellationToken);
+        var lastOrder = await cellTypes.GetLastDisplayOrderAsync(cancellationToken);
         var cellType = new CellType { DisplayOrder = (lastOrder ?? 0) + 1 };
         CellTypeSettings.Apply(request, cellType);
 
-        db.CellTypes.Add(cellType);
-        await db.SaveChangesAsync(cancellationToken);
+        cellTypes.Add(cellType);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return cellType.ToDto(0);
     }
@@ -51,17 +41,13 @@ public sealed class CellTypeService(PuSpecSheetDbContext db) : ICellTypeService
         var kindChanged = request.Kind != cellType.Kind;
         CellTypeSettings.Apply(request, cellType);
 
-        await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
-        await db.SaveChangesAsync(cancellationToken);
+        await using var transaction = await unitOfWork.BeginTransactionAsync(cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         if (kindChanged)
         {
             // Cells' configuration overrides were for the old kind, so they no longer mean anything.
-            await db.TemplateCells
-                .Where(cell => cell.CellTypeId == id && cell.ConfigurationOverride != null)
-                .ExecuteUpdateAsync(
-                    setters => setters.SetProperty(cell => cell.ConfigurationOverride, (CellConfiguration?)null),
-                    cancellationToken);
+            await cellTypes.ClearConfigurationOverridesAsync(id, cancellationToken);
         }
 
         await transaction.CommitAsync(cancellationToken);
@@ -79,15 +65,13 @@ public sealed class CellTypeService(PuSpecSheetDbContext db) : ICellTypeService
             throw new ConflictException($"\"{cellType.Name}\" is used by {cells}. Change those cells to another type first.");
         }
 
-        db.CellTypes.Remove(cellType);
-        await db.SaveChangesAsync(cancellationToken);
+        cellTypes.Remove(cellType);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
     private async Task<CellType> FindAsync(int id, CancellationToken cancellationToken)
     {
-        var cellType = await db.CellTypes
-            .Include(candidate => candidate.Options)
-            .SingleOrDefaultAsync(candidate => candidate.Id == id, cancellationToken);
+        var cellType = await cellTypes.FindForEditAsync(id, cancellationToken);
 
         if (cellType is null)
         {
@@ -100,9 +84,7 @@ public sealed class CellTypeService(PuSpecSheetDbContext db) : ICellTypeService
     private async Task EnsureNameIsFreeAsync(string name, int? exceptId, CancellationToken cancellationToken)
     {
         var trimmed = name.Trim();
-        var taken = await db.CellTypes.AnyAsync(
-            cellType => cellType.Name == trimmed && cellType.Id != exceptId,
-            cancellationToken);
+        var taken = await cellTypes.NameTakenAsync(trimmed, exceptId, cancellationToken);
 
         if (taken)
         {
@@ -119,7 +101,7 @@ public sealed class CellTypeService(PuSpecSheetDbContext db) : ICellTypeService
         SaveCellTypeRequest request,
         CancellationToken cancellationToken)
     {
-        if (request.Kind != cellType.Kind && await HasSheetValuesAsync(cellType.Id, cancellationToken))
+        if (request.Kind != cellType.Kind && await cellTypes.HasSheetCellsAsync(cellType.Id, cancellationToken))
         {
             throw new ConflictException(
                 $"Sheets already have values for \"{cellType.Name}\" cells, so its kind can't change.");
@@ -135,24 +117,14 @@ public sealed class CellTypeService(PuSpecSheetDbContext db) : ICellTypeService
             .ToList();
 
         if (removedIds.Count > 0
-            && await db.OptionValues.AnyAsync(value => removedIds.Contains(value.CellTypeOptionId), cancellationToken))
+            && await cellTypes.AnyOptionChosenAsync(removedIds, cancellationToken))
         {
             throw new ConflictException("An option you removed has been chosen on a sheet, so it has to stay.");
         }
     }
 
-    private async Task<bool> HasSheetValuesAsync(int cellTypeId, CancellationToken cancellationToken)
-    {
-        var cellIds = db.TemplateCells
-            .Where(cell => cell.CellTypeId == cellTypeId)
-            .Select(cell => cell.Id);
-
-        // Values now hang off sheet cells, and a sheet cell exists for every template cell a sheet uses.
-        return await db.SheetCells.AnyAsync(cell => cellIds.Contains(cell.TemplateCellId), cancellationToken);
-    }
-
     private Task<int> CountUsageAsync(int id, CancellationToken cancellationToken)
     {
-        return db.TemplateCells.CountAsync(cell => cell.CellTypeId == id, cancellationToken);
+        return cellTypes.CountUsageAsync(id, cancellationToken);
     }
 }

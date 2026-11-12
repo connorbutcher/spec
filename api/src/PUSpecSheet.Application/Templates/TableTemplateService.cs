@@ -1,13 +1,18 @@
-using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Application.Common;
+using PUSpecSheet.Application.Persistence;
+using PUSpecSheet.Application.Persistence.SheetTypes;
+using PUSpecSheet.Application.Persistence.Templates;
 using PUSpecSheet.Contracts.Templates;
-using PUSpecSheet.Data;
 using PUSpecSheet.Domain.Templates;
 
 namespace PUSpecSheet.Application.Templates;
 
 public sealed class TableTemplateService(
-    PuSpecSheetDbContext db,
+    ITableTemplateRepository templates,
+    ITemplateSectionRepository sections,
+    ITemplateColumnBlockRepository columnBlocks,
+    ISheetTypeRepository sheetTypes,
+    IUnitOfWork unitOfWork,
     TableTemplateReader reader,
     TemplateVersionGuard guard) : ITableTemplateService
 {
@@ -15,29 +20,7 @@ public sealed class TableTemplateService(
         int? sheetTypeId,
         CancellationToken cancellationToken)
     {
-        var query = db.TableTemplates.AsNoTracking();
-        if (sheetTypeId is not null)
-        {
-            query = query.Where(template => template.SheetTypeId == sheetTypeId);
-        }
-
-        return await query
-            .OrderBy(template => template.SheetTypeId)
-            .ThenBy(template => template.DisplayOrder)
-            .ThenBy(template => template.Name)
-            .Select(template => new
-            {
-                template,
-                Latest = template.Versions.OrderByDescending(version => version.VersionNumber).First(),
-            })
-            .Select(entry => new TableTemplateSummaryDto(
-                entry.template.Id,
-                entry.template.SheetTypeId,
-                entry.template.Name,
-                entry.template.DisplayOrder,
-                entry.Latest.VersionNumber,
-                entry.Latest.Orientation))
-            .ToListAsync(cancellationToken);
+        return await templates.ListSummariesAsync(sheetTypeId, cancellationToken);
     }
 
     public Task<TableTemplateDto> GetAsync(int id, int? versionNumber, CancellationToken cancellationToken)
@@ -51,12 +34,10 @@ public sealed class TableTemplateService(
         var name = request.Name.Trim();
         await EnsureNameIsFreeAsync(request.SheetTypeId, name, null, cancellationToken);
 
-        var lastOrder = await db.TableTemplates
-            .Where(template => template.SheetTypeId == request.SheetTypeId)
-            .MaxAsync(template => (int?)template.DisplayOrder, cancellationToken);
+        var lastOrder = await templates.GetLastDisplayOrderAsync(request.SheetTypeId, cancellationToken);
         var template = NewTemplate(request, name, (lastOrder ?? 0) + 1);
-        db.TableTemplates.Add(template);
-        await db.SaveChangesAsync(cancellationToken);
+        templates.Add(template);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return await reader.ReadAsync(template.Id, null, cancellationToken);
     }
@@ -78,9 +59,7 @@ public sealed class TableTemplateService(
         {
             await guard.EnsureEditableAsync(latest.Id, cancellationToken);
 
-            var hasColumnBlocks = await db.TemplateColumnBlocks.AnyAsync(
-                block => block.TableTemplateVersionId == latest.Id,
-                cancellationToken);
+            var hasColumnBlocks = await columnBlocks.AnyAsync(latest.Id, cancellationToken);
             if (request.Orientation != TemplateOrientation.Horizontal && hasColumnBlocks)
             {
                 throw new ConflictException("Only horizontal tables have column blocks. Remove the column blocks first.");
@@ -95,7 +74,7 @@ public sealed class TableTemplateService(
             latest.StickyColumnCount = request.StickyColumnCount;
         }
 
-        await db.SaveChangesAsync(cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
         return await reader.ReadAsync(id, null, cancellationToken);
     }
 
@@ -104,8 +83,13 @@ public sealed class TableTemplateService(
         await FindAsync(id, cancellationToken);
         var latest = await LatestVersionAsync(id, cancellationToken);
 
-        await TemplateVersionCopier.CopyAsync(db, latest, latest.VersionNumber + 1, cancellationToken);
-        await db.SaveChangesAsync(cancellationToken);
+        var copy = TemplateVersionCopier.Copy(
+            latest,
+            latest.VersionNumber + 1,
+            await sections.ListWithRowsAsync(latest.Id, cancellationToken),
+            await columnBlocks.ListAsync(latest.Id, cancellationToken));
+        templates.AddVersion(copy);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return await reader.ReadAsync(id, null, cancellationToken);
     }
@@ -116,20 +100,18 @@ public sealed class TableTemplateService(
         await guard.EnsureTemplateUnusedAsync(id, cancellationToken);
 
         // Versions, sections, rows and cells go with it through the database's cascading deletes.
-        db.TableTemplates.Remove(template);
-        await db.SaveChangesAsync(cancellationToken);
+        templates.Remove(template);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
-        var siblings = await db.TableTemplates
-            .Where(sibling => sibling.SheetTypeId == template.SheetTypeId)
-            .ToListAsync(cancellationToken);
+        var siblings = await templates.ListForEditAsync(template.SheetTypeId, cancellationToken);
 
         DisplayOrdering.Renumber(siblings, sibling => sibling.DisplayOrder, (sibling, order) => sibling.DisplayOrder = order);
-        await db.SaveChangesAsync(cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
     private async Task<TableTemplate> FindAsync(int id, CancellationToken cancellationToken)
     {
-        var template = await db.TableTemplates.FindAsync([id], cancellationToken);
+        var template = await templates.FindForEditAsync(id, cancellationToken);
         if (template is null)
         {
             throw new NotFoundException($"Table template {id} was not found.");
@@ -140,17 +122,12 @@ public sealed class TableTemplateService(
 
     private Task<TableTemplateVersion> LatestVersionAsync(int templateId, CancellationToken cancellationToken)
     {
-        return db.TableTemplateVersions
-            .Where(version => version.TableTemplateId == templateId)
-            .OrderByDescending(version => version.VersionNumber)
-            .FirstAsync(cancellationToken);
+        return templates.GetLatestVersionForEditAsync(templateId, cancellationToken);
     }
 
     private async Task EnsureNameIsFreeAsync(int sheetTypeId, string name, int? exceptId, CancellationToken cancellationToken)
     {
-        var taken = await db.TableTemplates.AnyAsync(
-            template => template.SheetTypeId == sheetTypeId && template.Name == name && template.Id != exceptId,
-            cancellationToken);
+        var taken = await templates.NameTakenAsync(sheetTypeId, name, exceptId, cancellationToken);
 
         if (taken)
         {
@@ -182,7 +159,7 @@ public sealed class TableTemplateService(
 
     private async Task EnsureSheetTypeExistsAsync(int sheetTypeId, CancellationToken cancellationToken)
     {
-        var sheetTypeExists = await db.SheetTypes.AnyAsync(sheetType => sheetType.Id == sheetTypeId, cancellationToken);
+        var sheetTypeExists = await sheetTypes.ExistsAsync(sheetTypeId, cancellationToken);
         if (!sheetTypeExists)
         {
             throw new InvalidRequestException($"Sheet type {sheetTypeId} doesn't exist.");

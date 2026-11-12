@@ -1,31 +1,24 @@
-using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Application.Common;
+using PUSpecSheet.Application.Persistence;
+using PUSpecSheet.Application.Persistence.Phases;
+using PUSpecSheet.Application.Persistence.SheetTypes;
 using PUSpecSheet.Contracts.Phases;
-using PUSpecSheet.Data;
 using PUSpecSheet.Domain.Phases;
 
 namespace PUSpecSheet.Application.Phases;
 
-public sealed class PhaseService(PuSpecSheetDbContext db) : IPhaseService
+public sealed class PhaseService(IPhaseRepository phases, ISheetTypeRepository sheetTypes, IUnitOfWork unitOfWork) : IPhaseService
 {
     public async Task<IReadOnlyList<PhaseDto>> GetAllAsync(CancellationToken cancellationToken)
     {
-        var phases = await db.Phases
-            .AsNoTracking()
-            .Include(phase => phase.SheetTypes)
-            .OrderBy(phase => phase.DisplayOrder)
-            .ThenBy(phase => phase.Code)
-            .ToListAsync(cancellationToken);
+        var all = await phases.ListWithSheetTypesAsync(cancellationToken);
 
-        return phases.Select(phase => phase.ToDto()).ToList();
+        return all.Select(phase => phase.ToDto()).ToList();
     }
 
     public async Task<PhaseDto> GetAsync(int id, CancellationToken cancellationToken)
     {
-        var phase = await db.Phases
-            .AsNoTracking()
-            .Include(candidate => candidate.SheetTypes)
-            .SingleOrDefaultAsync(candidate => candidate.Id == id, cancellationToken);
+        var phase = await phases.FindWithSheetTypesAsync(id, cancellationToken);
 
         if (phase is null)
         {
@@ -38,22 +31,20 @@ public sealed class PhaseService(PuSpecSheetDbContext db) : IPhaseService
     public async Task<PhaseDto> CreateAsync(CreatePhaseRequest request, CancellationToken cancellationToken)
     {
         var code = request.Code.Trim();
-        if (await db.Phases.AnyAsync(phase => phase.Code == code, cancellationToken))
+        if (await phases.CodeExistsAsync(code, cancellationToken))
         {
             throw new ConflictException($"A phase with the code \"{code}\" already exists.");
         }
 
         var parentId = request.ParentPhaseId;
-        if (parentId is not null && !await db.Phases.AnyAsync(phase => phase.Id == parentId, cancellationToken))
+        if (parentId is not null && !await phases.ExistsAsync(parentId.Value, cancellationToken))
         {
             throw new NotFoundException($"Parent phase {parentId} was not found.");
         }
 
         var sheetTypeIds = await ExistingSheetTypeIdsAsync(request.SheetTypeIds ?? [], cancellationToken);
 
-        var lastOrder = await db.Phases
-            .Where(phase => phase.ParentPhaseId == parentId)
-            .MaxAsync(phase => (int?)phase.DisplayOrder, cancellationToken);
+        var lastOrder = await phases.GetLastDisplayOrderAsync(parentId, cancellationToken);
 
         var phase = new Phase
         {
@@ -68,17 +59,15 @@ public sealed class PhaseService(PuSpecSheetDbContext db) : IPhaseService
             phase.SheetTypes.Add(new PhaseSheetType { SheetTypeId = sheetTypeId });
         }
 
-        db.Phases.Add(phase);
-        await db.SaveChangesAsync(cancellationToken);
+        phases.Add(phase);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return phase.ToDto();
     }
 
     public async Task<PhaseDto> SetSheetTypesAsync(int id, SetPhaseSheetTypesRequest request, CancellationToken cancellationToken)
     {
-        var phase = await db.Phases
-            .Include(candidate => candidate.SheetTypes)
-            .SingleOrDefaultAsync(candidate => candidate.Id == id, cancellationToken);
+        var phase = await phases.FindForEditAsync(id, cancellationToken);
 
         if (phase is null)
         {
@@ -100,7 +89,7 @@ public sealed class PhaseService(PuSpecSheetDbContext db) : IPhaseService
             phase.SheetTypes.Add(new PhaseSheetType { SheetTypeId = sheetTypeId });
         }
 
-        await db.SaveChangesAsync(cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return phase.ToDto();
     }
@@ -108,9 +97,7 @@ public sealed class PhaseService(PuSpecSheetDbContext db) : IPhaseService
     public async Task<IReadOnlyList<PhaseDto>> MoveAsync(int id, MovePhaseRequest request, CancellationToken cancellationToken)
     {
         // Every phase is loaded: the move renumbers two groups of siblings and checks the whole chain of parents.
-        var all = await db.Phases
-            .Include(candidate => candidate.SheetTypes)
-            .ToListAsync(cancellationToken);
+        var all = await phases.ListForEditAsync(cancellationToken);
 
         var phase = all.SingleOrDefault(candidate => candidate.Id == id);
         if (phase is null)
@@ -121,7 +108,7 @@ public sealed class PhaseService(PuSpecSheetDbContext db) : IPhaseService
         PhaseMover.Move(all, phase, request.ParentPhaseId, request.Position);
 
         // One save, so the move and both renumberings are stored together or not at all.
-        await db.SaveChangesAsync(cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return all
             .OrderBy(candidate => candidate.DisplayOrder)
@@ -134,10 +121,7 @@ public sealed class PhaseService(PuSpecSheetDbContext db) : IPhaseService
     private async Task<HashSet<int>> ExistingSheetTypeIdsAsync(IReadOnlyList<int> sheetTypeIds, CancellationToken cancellationToken)
     {
         var wanted = sheetTypeIds.ToHashSet();
-        var existing = await db.SheetTypes
-            .Where(sheetType => wanted.Contains(sheetType.Id))
-            .Select(sheetType => sheetType.Id)
-            .ToListAsync(cancellationToken);
+        var existing = await sheetTypes.GetExistingIdsAsync(wanted, cancellationToken);
 
         var missing = wanted.Except(existing).Order().ToList();
         if (missing.Count > 0)
@@ -157,11 +141,7 @@ public sealed class PhaseService(PuSpecSheetDbContext db) : IPhaseService
         }
 
         var removedIds = removed.Select(link => link.SheetTypeId).ToList();
-        var inUse = await db.Sheets
-            .Where(sheet => sheet.PhaseId == phase.Id && removedIds.Contains(sheet.SheetTypeId) && sheet.Tables.Any())
-            .OrderBy(sheet => sheet.SheetType.DisplayOrder)
-            .Select(sheet => sheet.SheetType.Name)
-            .FirstOrDefaultAsync(cancellationToken);
+        var inUse = await phases.FindSheetTypeWithTablesAsync(phase.Id, removedIds, cancellationToken);
 
         if (inUse is not null)
         {

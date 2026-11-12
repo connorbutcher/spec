@@ -1,8 +1,8 @@
-using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Application.CellTypes;
 using PUSpecSheet.Application.Common;
+using PUSpecSheet.Application.Persistence;
+using PUSpecSheet.Application.Persistence.Templates;
 using PUSpecSheet.Contracts.Templates;
-using PUSpecSheet.Data;
 using PUSpecSheet.Domain.CellTypes;
 using PUSpecSheet.Domain.CellTypes.Configurations;
 using PUSpecSheet.Domain.CellTypes.Styles;
@@ -11,7 +11,8 @@ namespace PUSpecSheet.Application.Templates;
 
 /// <summary>Saves the configuration and style a template cell changes from its cell type's defaults.</summary>
 public sealed class TemplateCellOverrideService(
-    PuSpecSheetDbContext db,
+    ITemplateCellRepository cells,
+    IUnitOfWork unitOfWork,
     TableTemplateReader reader,
     TemplateVersionGuard guard) : ITemplateCellOverrideService
 {
@@ -20,11 +21,7 @@ public sealed class TemplateCellOverrideService(
         UpdateTemplateCellOverridesRequest request,
         CancellationToken cancellationToken)
     {
-        var cell = await db.TemplateCells
-            .Include(candidate => candidate.CellType)
-            .Include(candidate => candidate.TemplateRow)
-            .ThenInclude(row => row.TemplateSection)
-            .SingleOrDefaultAsync(candidate => candidate.Id == cellId, cancellationToken);
+        var cell = await cells.FindWithTypeForEditAsync(cellId, cancellationToken);
 
         if (cell is null)
         {
@@ -37,7 +34,7 @@ public sealed class TemplateCellOverrideService(
         cell.ConfigurationOverride = CleanConfiguration(cell.CellType.Kind, request.ConfigurationOverride);
         cell.StyleOverride = CleanStyle(request.StyleOverride);
 
-        await db.SaveChangesAsync(cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
         return await reader.ReadVersionAsync(versionId, cancellationToken);
     }
 

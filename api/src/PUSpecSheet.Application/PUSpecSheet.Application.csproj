@@ -7,4 +7,8 @@
   <ItemGroup>
     <InternalsVisibleTo Include="PUSpecSheet.Application.Tests" />
   </ItemGroup>
+  <!-- Transitional: see PUSpecSheet.Data.csproj. -->
+  <ItemGroup>
+    <Compile Include="..\PUSpecSheet.Data\Repositories\**\*.cs;..\PUSpecSheet.Data\UnitOfWork\**\*.cs" LinkBase="DataTransition" />
+  </ItemGroup>
 </Project>

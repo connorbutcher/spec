@@ -1,7 +1,7 @@
-using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Application.Common;
+using PUSpecSheet.Application.Persistence;
+using PUSpecSheet.Application.Persistence.Templates;
 using PUSpecSheet.Contracts.Templates;
-using PUSpecSheet.Data;
 using PUSpecSheet.Domain.CellTypes;
 using PUSpecSheet.Domain.Templates;
 
@@ -13,7 +13,8 @@ namespace PUSpecSheet.Application.Templates;
 /// looked up as soon as the key is set.
 /// </summary>
 public sealed class TemplateCellLookupKeyService(
-    PuSpecSheetDbContext db,
+    ITemplateCellRepository cells,
+    IUnitOfWork unitOfWork,
     TableTemplateReader reader) : ITemplateCellLookupKeyService
 {
     public async Task<TableTemplateDto> UpdateAsync(
@@ -21,11 +22,7 @@ public sealed class TemplateCellLookupKeyService(
         UpdateTemplateCellLookupKeyRequest request,
         CancellationToken cancellationToken)
     {
-        var cell = await db.TemplateCells
-            .Include(candidate => candidate.CellType)
-            .Include(candidate => candidate.TemplateRow)
-            .ThenInclude(row => row.TemplateSection)
-            .SingleOrDefaultAsync(candidate => candidate.Id == cellId, cancellationToken);
+        var cell = await cells.FindWithTypeForEditAsync(cellId, cancellationToken);
 
         if (cell is null)
         {
@@ -50,7 +47,7 @@ public sealed class TemplateCellLookupKeyService(
 
         cell.LookupKey = key;
 
-        await db.SaveChangesAsync(cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
         return await reader.ReadVersionAsync(cell.TemplateRow.TemplateSection.TableTemplateVersionId, cancellationToken);
     }
 }

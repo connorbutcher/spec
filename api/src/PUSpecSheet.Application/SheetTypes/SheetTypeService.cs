@@ -1,36 +1,31 @@
-using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Application.Common;
+using PUSpecSheet.Application.Persistence;
+using PUSpecSheet.Application.Persistence.SheetTypes;
 using PUSpecSheet.Contracts.SheetTypes;
-using PUSpecSheet.Data;
 using PUSpecSheet.Domain.SheetTypes;
 
 namespace PUSpecSheet.Application.SheetTypes;
 
-public sealed class SheetTypeService(PuSpecSheetDbContext db) : ISheetTypeService
+public sealed class SheetTypeService(ISheetTypeRepository sheetTypes, IUnitOfWork unitOfWork) : ISheetTypeService
 {
     public async Task<IReadOnlyList<SheetTypeDto>> GetAllAsync(CancellationToken cancellationToken)
     {
-        return await db.SheetTypes
-            .AsNoTracking()
-            .OrderBy(sheetType => sheetType.DisplayOrder)
-            .ThenBy(sheetType => sheetType.Name)
-            .Select(sheetType => new SheetTypeDto(sheetType.Id, sheetType.Name, sheetType.DisplayOrder))
-            .ToListAsync(cancellationToken);
+        return await sheetTypes.ListAsync(cancellationToken);
     }
 
     public async Task<SheetTypeDto> CreateAsync(CreateSheetTypeRequest request, CancellationToken cancellationToken)
     {
         var name = request.Name.Trim();
-        if (await db.SheetTypes.AnyAsync(sheetType => sheetType.Name == name, cancellationToken))
+        if (await sheetTypes.NameExistsAsync(name, cancellationToken))
         {
             throw new ConflictException($"A sheet type called \"{name}\" already exists.");
         }
 
-        var lastOrder = await db.SheetTypes.MaxAsync(sheetType => (int?)sheetType.DisplayOrder, cancellationToken);
+        var lastOrder = await sheetTypes.GetLastDisplayOrderAsync(cancellationToken);
         var sheetType = new SheetType { Name = name, DisplayOrder = (lastOrder ?? 0) + 1 };
 
-        db.SheetTypes.Add(sheetType);
-        await db.SaveChangesAsync(cancellationToken);
+        sheetTypes.Add(sheetType);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return new SheetTypeDto(sheetType.Id, sheetType.Name, sheetType.DisplayOrder);
     }

@@ -8,4 +8,9 @@
          and fails restore; 10.0.13 is the first fixed version. Remove once SqlClient asks for a fixed one. -->
     <PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.14" />
   </ItemGroup>
+  <!-- Transitional, while Application still references Data: the repositories are compiled into Application
+       until it stops using the DbContext, then this and the matching include in Application go. -->
+  <ItemGroup>
+    <Compile Remove="Repositories/**;UnitOfWork/**" />
+  </ItemGroup>
 </Project>

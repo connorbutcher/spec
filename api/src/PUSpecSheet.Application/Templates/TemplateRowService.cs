@@ -1,48 +1,45 @@
-using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Application.Common;
+using PUSpecSheet.Application.Persistence;
+using PUSpecSheet.Application.Persistence.CellTypes;
+using PUSpecSheet.Application.Persistence.Templates;
 using PUSpecSheet.Contracts.Common;
 using PUSpecSheet.Contracts.Templates;
-using PUSpecSheet.Data;
 using PUSpecSheet.Domain.Templates;
 
 namespace PUSpecSheet.Application.Templates;
 
 public sealed class TemplateRowService(
-    PuSpecSheetDbContext db,
+    ITemplateSectionRepository sections,
+    ITemplateRowRepository rows,
+    ITemplateColumnBlockRepository columnBlocks,
+    ICellTypeRepository cellTypes,
+    IUnitOfWork unitOfWork,
     TableTemplateReader reader,
     TemplateVersionGuard guard) : ITemplateRowService
 {
     public async Task<TableTemplateDto> CreateAsync(CreateTemplateRowRequest request, CancellationToken cancellationToken)
     {
-        var versionId = await db.TemplateSections
-            .AsNoTracking()
-            .Where(candidate => candidate.Id == request.TemplateSectionId)
-            .Select(candidate => (int?)candidate.TableTemplateVersionId)
-            .SingleOrDefaultAsync(cancellationToken)
+        var versionId = await sections.FindVersionIdAsync(request.TemplateSectionId, cancellationToken)
             ?? throw new NotFoundException($"Section {request.TemplateSectionId} was not found.");
         await guard.EnsureEditableAsync(versionId, cancellationToken);
 
-        var rows = await db.TemplateRows
-            .Include(row => row.Cells)
-            .Where(row => row.TemplateSectionId == request.TemplateSectionId)
-            .OrderBy(row => row.DisplayOrder)
-            .ToListAsync(cancellationToken);
-        var source = CopySource(rows, request.CopyFromRowId);
-        var insertIndex = Math.Clamp((request.Position ?? rows.Count + 1) - 1, 0, rows.Count);
-        var defaultCellTypeId = await DefaultCellType.GetIdAsync(db, cancellationToken);
-        var columnBlockIds = await ColumnBlockIdsAsync(versionId, cancellationToken);
+        var sectionRows = await rows.ListInSectionWithCellsForEditAsync(request.TemplateSectionId, cancellationToken);
+        var source = CopySource(sectionRows, request.CopyFromRowId);
+        var insertIndex = Math.Clamp((request.Position ?? sectionRows.Count + 1) - 1, 0, sectionRows.Count);
+        var defaultCellTypeId = await DefaultCellType.GetIdAsync(cellTypes, cancellationToken);
+        var columnBlockIds = await columnBlocks.ListIdsAsync(versionId, cancellationToken);
 
         var row = new TemplateRow
         {
             TemplateSectionId = request.TemplateSectionId,
-            Cells = NewRowCells.For(rows, source, insertIndex, defaultCellTypeId, columnBlockIds),
+            Cells = NewRowCells.For(sectionRows, source, insertIndex, defaultCellTypeId, columnBlockIds),
         };
 
-        rows.Insert(insertIndex, row);
-        DisplayOrdering.RenumberAsListed(rows, SetOrder);
+        sectionRows.Insert(insertIndex, row);
+        DisplayOrdering.RenumberAsListed(sectionRows, SetOrder);
 
-        db.TemplateRows.Add(row);
-        await db.SaveChangesAsync(cancellationToken);
+        rows.Add(row);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return await reader.ReadVersionAsync(versionId, cancellationToken);
     }
@@ -53,7 +50,7 @@ public sealed class TemplateRowService(
         var siblings = await LoadSiblingsAsync(row, cancellationToken);
 
         DisplayOrdering.Move(siblings, row, request.DisplayOrder, sibling => sibling.DisplayOrder, SetOrder);
-        await db.SaveChangesAsync(cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return await reader.ReadVersionAsync(row.TemplateSection.TableTemplateVersionId, cancellationToken);
     }
@@ -63,9 +60,9 @@ public sealed class TemplateRowService(
         var row = await FindEditableAsync(id, cancellationToken);
         var siblings = await LoadSiblingsAsync(row, cancellationToken);
 
-        db.TemplateRows.Remove(row);
+        rows.Remove(row);
         DisplayOrdering.Renumber(siblings.Where(sibling => sibling.Id != id), sibling => sibling.DisplayOrder, SetOrder);
-        await db.SaveChangesAsync(cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return await reader.ReadVersionAsync(row.TemplateSection.TableTemplateVersionId, cancellationToken);
     }
@@ -77,9 +74,7 @@ public sealed class TemplateRowService(
 
     private async Task<TemplateRow> FindEditableAsync(int id, CancellationToken cancellationToken)
     {
-        var row = await db.TemplateRows
-            .Include(candidate => candidate.TemplateSection)
-            .SingleOrDefaultAsync(candidate => candidate.Id == id, cancellationToken);
+        var row = await rows.FindForEditAsync(id, cancellationToken);
 
         if (row is null)
         {
@@ -92,9 +87,7 @@ public sealed class TemplateRowService(
 
     private Task<List<TemplateRow>> LoadSiblingsAsync(TemplateRow row, CancellationToken cancellationToken)
     {
-        return db.TemplateRows
-            .Where(candidate => candidate.TemplateSectionId == row.TemplateSectionId)
-            .ToListAsync(cancellationToken);
+        return rows.ListInSectionForEditAsync(row.TemplateSectionId, cancellationToken);
     }
 
     /// <summary>The row a new row copies its cells from: the one asked for, or the section's last.</summary>
@@ -107,14 +100,5 @@ public sealed class TemplateRowService(
 
         return rows.SingleOrDefault(candidate => candidate.Id == copyFromId)
             ?? throw new InvalidRequestException($"Row {copyFromId} isn't in this section.");
-    }
-
-    private async Task<List<int>> ColumnBlockIdsAsync(int versionId, CancellationToken cancellationToken)
-    {
-        return await db.TemplateColumnBlocks
-            .Where(block => block.TableTemplateVersionId == versionId)
-            .OrderBy(block => block.DisplayOrder)
-            .Select(block => block.Id)
-            .ToListAsync(cancellationToken);
     }
 }

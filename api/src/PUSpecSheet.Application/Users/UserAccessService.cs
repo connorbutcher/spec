@@ -1,10 +1,9 @@
-using Microsoft.EntityFrameworkCore;
+using PUSpecSheet.Application.Persistence.Users;
 using PUSpecSheet.Contracts.Users;
-using PUSpecSheet.Data;
 
 namespace PUSpecSheet.Application.Users;
 
-public sealed class UserAccessService(PuSpecSheetDbContext db, ICurrentUser currentUser) : IUserAccessService
+public sealed class UserAccessService(IUserRepository users, ICurrentUser currentUser) : IUserAccessService
 {
     private UserAccess? current;
 
@@ -16,14 +15,7 @@ public sealed class UserAccessService(PuSpecSheetDbContext db, ICurrentUser curr
         }
 
         var userId = currentUser.UserId;
-        var user = await db.Users
-            .AsNoTracking()
-            .AsSplitQuery()
-            .Include(candidate => candidate.Roles)
-            .ThenInclude(link => link.Role)
-            .ThenInclude(role => role.Permissions)
-            .ThenInclude(link => link.Permission)
-            .SingleOrDefaultAsync(candidate => candidate.Id == userId, cancellationToken);
+        var user = await users.FindWithAccessAsync(userId, cancellationToken);
 
         current = user is null ? UserAccess.None(userId) : UserAccess.From(user);
         return current;
