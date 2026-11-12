@@ -1,7 +1,7 @@
+using PUSpecSheet.Application.CellTypes.Queries;
 using PUSpecSheet.Application.Common;
-using PUSpecSheet.Application.Persistence;
-using PUSpecSheet.Application.Persistence.CellTypes;
 using PUSpecSheet.Contracts.CellTypes;
+using PUSpecSheet.Database;
 using PUSpecSheet.Database.Entities.CellTypes;
 using PUSpecSheet.Domain.CellTypes;
 
@@ -9,19 +9,17 @@ namespace PUSpecSheet.Application.CellTypes;
 
 public sealed class CellTypeService : ICellTypeService
 {
-    private readonly ICellTypeRepository cellTypes;
-    private readonly IUnitOfWork unitOfWork;
+    private readonly PuSpecSheetDbContext db;
 
-    public CellTypeService(ICellTypeRepository cellTypes, IUnitOfWork unitOfWork)
+    public CellTypeService(PuSpecSheetDbContext db)
     {
-        this.cellTypes = cellTypes;
-        this.unitOfWork = unitOfWork;
+        this.db = db;
     }
 
     public async Task<IReadOnlyList<CellTypeDto>> GetAllAsync(CancellationToken cancellationToken)
     {
-        var all = await cellTypes.ListWithOptionsAsync(cancellationToken);
-        var usage = await cellTypes.CountUsageByTypeAsync(cancellationToken);
+        var all = await CellTypeQueries.ListWithOptionsAsync(db, cancellationToken);
+        var usage = await CellTypeQueries.CountUsageByTypeAsync(db, cancellationToken);
 
         return all
             .Select(cellType => cellType.ToDto(usage.GetValueOrDefault(cellType.Id)))
@@ -32,12 +30,12 @@ public sealed class CellTypeService : ICellTypeService
     {
         await EnsureNameIsFreeAsync(request.Name, null, cancellationToken);
 
-        var lastOrder = await cellTypes.GetLastDisplayOrderAsync(cancellationToken);
+        var lastOrder = await CellTypeQueries.GetLastDisplayOrderAsync(db, cancellationToken);
         var cellType = new CellType { DisplayOrder = (lastOrder ?? 0) + 1 };
         CellTypeSettings.Apply(request, cellType);
 
-        cellTypes.Add(cellType);
-        await unitOfWork.SaveChangesAsync(cancellationToken);
+        db.CellTypes.Add(cellType);
+        await db.SaveChangesAsync(cancellationToken);
 
         return cellType.ToDto(0);
     }
@@ -51,13 +49,13 @@ public sealed class CellTypeService : ICellTypeService
         var kindChanged = request.Kind != cellType.Kind;
         CellTypeSettings.Apply(request, cellType);
 
-        await using var transaction = await unitOfWork.BeginTransactionAsync(cancellationToken);
-        await unitOfWork.SaveChangesAsync(cancellationToken);
+        await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
+        await db.SaveChangesAsync(cancellationToken);
 
         if (kindChanged)
         {
             // Cells' configuration overrides were for the old kind, so they no longer mean anything.
-            await cellTypes.ClearConfigurationOverridesAsync(id, cancellationToken);
+            await CellTypeQueries.ClearConfigurationOverridesAsync(db, id, cancellationToken);
         }
 
         await transaction.CommitAsync(cancellationToken);
@@ -75,13 +73,13 @@ public sealed class CellTypeService : ICellTypeService
             throw new ConflictException($"\"{cellType.Name}\" is used by {cells}. Change those cells to another type first.");
         }
 
-        cellTypes.Remove(cellType);
-        await unitOfWork.SaveChangesAsync(cancellationToken);
+        db.CellTypes.Remove(cellType);
+        await db.SaveChangesAsync(cancellationToken);
     }
 
     private async Task<CellType> FindAsync(int id, CancellationToken cancellationToken)
     {
-        var cellType = await cellTypes.FindForEditAsync(id, cancellationToken);
+        var cellType = await CellTypeQueries.FindForEditAsync(db, id, cancellationToken);
 
         if (cellType is null)
         {
@@ -94,7 +92,7 @@ public sealed class CellTypeService : ICellTypeService
     private async Task EnsureNameIsFreeAsync(string name, int? exceptId, CancellationToken cancellationToken)
     {
         var trimmed = name.Trim();
-        var taken = await cellTypes.NameTakenAsync(trimmed, exceptId, cancellationToken);
+        var taken = await CellTypeQueries.NameTakenAsync(db, trimmed, exceptId, cancellationToken);
 
         if (taken)
         {
@@ -111,7 +109,7 @@ public sealed class CellTypeService : ICellTypeService
         SaveCellTypeRequest request,
         CancellationToken cancellationToken)
     {
-        if (request.Kind != cellType.Kind && await cellTypes.HasSheetCellsAsync(cellType.Id, cancellationToken))
+        if (request.Kind != cellType.Kind && await CellTypeQueries.HasSheetCellsAsync(db, cellType.Id, cancellationToken))
         {
             throw new ConflictException(
                 $"Sheets already have values for \"{cellType.Name}\" cells, so its kind can't change.");
@@ -127,7 +125,7 @@ public sealed class CellTypeService : ICellTypeService
             .ToList();
 
         if (removedIds.Count > 0
-            && await cellTypes.AnyOptionChosenAsync(removedIds, cancellationToken))
+            && await CellTypeQueries.AnyOptionChosenAsync(db, removedIds, cancellationToken))
         {
             throw new ConflictException("An option you removed has been chosen on a sheet, so it has to stay.");
         }
@@ -135,6 +133,6 @@ public sealed class CellTypeService : ICellTypeService
 
     private Task<int> CountUsageAsync(int id, CancellationToken cancellationToken)
     {
-        return cellTypes.CountUsageAsync(id, cancellationToken);
+        return CellTypeQueries.CountUsageAsync(db, id, cancellationToken);
     }
 }

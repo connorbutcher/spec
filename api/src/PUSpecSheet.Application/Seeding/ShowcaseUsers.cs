@@ -1,5 +1,6 @@
-using PUSpecSheet.Application.Persistence.Users;
 using PUSpecSheet.Application.Users;
+using PUSpecSheet.Application.Users.Queries;
+using PUSpecSheet.Database;
 using PUSpecSheet.Domain.Users;
 
 namespace PUSpecSheet.Application.Seeding;
@@ -17,12 +18,12 @@ public sealed class ShowcaseUsers
 
     private Dictionary<string, int>? ids;
 
-    private readonly IUserRepository users;
+    private readonly PuSpecSheetDbContext db;
     private readonly BackgroundUser backgroundUser;
 
-    public ShowcaseUsers(IUserRepository users, BackgroundUser backgroundUser)
+    public ShowcaseUsers(PuSpecSheetDbContext db, BackgroundUser backgroundUser)
     {
-        this.users = users;
+        this.db = db;
         this.backgroundUser = backgroundUser;
     }
 
@@ -32,7 +33,7 @@ public sealed class ShowcaseUsers
         if (ids is null)
         {
             string[] userNames = [Developer, EngineerTwo, EngineerThree];
-            ids = await users.GetIdsByUserNameAsync(userNames, cancellationToken);
+            ids = await UserQueries.GetIdsByUserNameAsync(db, userNames, cancellationToken);
         }
 
         backgroundUser.UserId = ids.TryGetValue(userName, out var id) ? id : WellKnownUsers.DeveloperId;

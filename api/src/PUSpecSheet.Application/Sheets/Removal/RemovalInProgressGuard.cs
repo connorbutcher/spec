@@ -1,34 +1,22 @@
 using PUSpecSheet.Application.Common;
-using PUSpecSheet.Application.Persistence.Sheets;
-using PUSpecSheet.Application.Persistence.Users;
+using PUSpecSheet.Application.Sheets.Queries;
+using PUSpecSheet.Application.Users.Queries;
+using PUSpecSheet.Database;
 
 namespace PUSpecSheet.Application.Sheets.Removal;
 
 public sealed class RemovalInProgressGuard : IRemovalInProgressGuard
 {
-    private readonly ISheetRowRepository rows;
-    private readonly ISheetSectionRepository sections;
-    private readonly ISheetTableRevisionRepository tableRevisions;
-    private readonly ISheetSectionRevisionRepository sectionRevisions;
-    private readonly IUserRepository users;
+    private readonly PuSpecSheetDbContext db;
 
-    public RemovalInProgressGuard(
-        ISheetRowRepository rows,
-        ISheetSectionRepository sections,
-        ISheetTableRevisionRepository tableRevisions,
-        ISheetSectionRevisionRepository sectionRevisions,
-        IUserRepository users)
+    public RemovalInProgressGuard(PuSpecSheetDbContext db)
     {
-        this.rows = rows;
-        this.sections = sections;
-        this.tableRevisions = tableRevisions;
-        this.sectionRevisions = sectionRevisions;
-        this.users = users;
+        this.db = db;
     }
 
     public async Task EnsureRowNotBeingRemovedAsync(int rowId, int userId, CancellationToken cancellationToken)
     {
-        var place = await rows.FindPlaceAsync(rowId, cancellationToken);
+        var place = await SheetRowQueries.FindPlaceAsync(db, rowId, cancellationToken);
         if (place is null)
         {
             return;
@@ -39,7 +27,7 @@ public sealed class RemovalInProgressGuard : IRemovalInProgressGuard
 
     public async Task EnsurePlaceNotBeingRemovedAsync(int tableId, int? sectionId, int userId, CancellationToken cancellationToken)
     {
-        var removals = await tableRevisions.ListPendingRemovalsAsync(tableId, cancellationToken);
+        var removals = await SheetTableRevisionQueries.ListPendingRemovalsAsync(db, tableId, cancellationToken);
         if (sectionId is { } id)
         {
             removals.AddRange(await SectionRemovalsAroundAsync(tableId, id, cancellationToken));
@@ -50,7 +38,7 @@ public sealed class RemovalInProgressGuard : IRemovalInProgressGuard
             return;
         }
 
-        var name = await users.FindDisplayNameAsync(blocking.AuthorUserId, cancellationToken) ?? "another user";
+        var name = await UserQueries.FindDisplayNameAsync(db, blocking.AuthorUserId, cancellationToken) ?? "another user";
         throw new ConflictException(PendingRemovals.RefusalFor(blocking, name));
     }
 
@@ -61,13 +49,13 @@ public sealed class RemovalInProgressGuard : IRemovalInProgressGuard
     /// </summary>
     private async Task<List<PendingRemoval>> SectionRemovalsAroundAsync(int tableId, int sectionId, CancellationToken cancellationToken)
     {
-        var onTable = await sectionRevisions.ListPendingRemovalsOnTableAsync(tableId, cancellationToken);
+        var onTable = await SheetSectionRevisionQueries.ListPendingRemovalsOnTableAsync(db, tableId, cancellationToken);
         if (onTable.Count == 0)
         {
             return [];
         }
 
-        var parentOf = await sections.GetParentsOnTableAsync(tableId, cancellationToken);
+        var parentOf = await SheetSectionQueries.GetParentsOnTableAsync(db, tableId, cancellationToken);
         var around = new HashSet<int>();
         int? next = sectionId;
         while (next is { } current && around.Add(current))

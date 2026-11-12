@@ -1,39 +1,25 @@
 using PUSpecSheet.Application.Common;
-using PUSpecSheet.Application.Persistence.Published;
-using PUSpecSheet.Application.Persistence.Templates;
+using PUSpecSheet.Application.Published.Queries;
 using PUSpecSheet.Application.Published.Versions;
+using PUSpecSheet.Application.Templates.Queries;
 using PUSpecSheet.Contracts.Published;
+using PUSpecSheet.Database;
 
 namespace PUSpecSheet.Application.Published.Lookups;
 
 public sealed class PublishedLookupService : IPublishedLookupService
 {
-    private readonly IPublishedSheetRepository sheets;
-    private readonly ITemplateCellRepository templateCells;
+    private readonly PuSpecSheetDbContext db;
     private readonly PublishedVersionResolver resolver;
-    private readonly IPublishedLookupHitRepository hitReader;
-    private readonly IPublishedStructureRepository structureReader;
-    private readonly IPublishedLookupCellRepository cellReader;
-    private readonly IPublishedKindValueRepository valueReader;
     private readonly PublishedLookupCache cache;
 
     public PublishedLookupService(
-        IPublishedSheetRepository sheets,
-        ITemplateCellRepository templateCells,
+        PuSpecSheetDbContext db,
         PublishedVersionResolver resolver,
-        IPublishedLookupHitRepository hitReader,
-        IPublishedStructureRepository structureReader,
-        IPublishedLookupCellRepository cellReader,
-        IPublishedKindValueRepository valueReader,
         PublishedLookupCache cache)
     {
-        this.sheets = sheets;
-        this.templateCells = templateCells;
+        this.db = db;
         this.resolver = resolver;
-        this.hitReader = hitReader;
-        this.structureReader = structureReader;
-        this.cellReader = cellReader;
-        this.valueReader = valueReader;
         this.cache = cache;
     }
 
@@ -49,13 +35,13 @@ public sealed class PublishedLookupService : IPublishedLookupService
         if (sheetPublicId is { } publicId)
         {
             var version = await resolver.ResolveAsync(publicId, point, cancellationToken);
-            hits = await hitReader.ListAsync(criteria, version.PublishedAtUtc, version.SheetId, cancellationToken);
+            hits = await PublishedLookupHitQueries.ListAsync(db, criteria, version.PublishedAtUtc, version.SheetId, cancellationToken);
             versions = new Dictionary<int, ResolvedSheetVersion> { [version.SheetId] = version };
         }
         else
         {
             var moment = point.AtUtc ?? DateTime.UtcNow;
-            hits = await hitReader.ListAsync(criteria, moment, null, cancellationToken);
+            hits = await PublishedLookupHitQueries.ListAsync(db, criteria, moment, null, cancellationToken);
             versions = await VersionsAsync(hits, moment, cancellationToken);
             hits = hits.Where(hit => versions.ContainsKey(hit.SheetId)).ToList();
         }
@@ -92,7 +78,7 @@ public sealed class PublishedLookupService : IPublishedLookupService
             var version = resolution.Versions[hit.SheetId];
             if (!structures.TryGetValue(hit.SheetId, out var structure))
             {
-                structure = await structureReader.ReadAsync(version, cancellationToken);
+                structure = await PublishedStructureQueries.ReadAsync(db, version, cancellationToken);
                 structures[hit.SheetId] = structure;
             }
 
@@ -103,8 +89,8 @@ public sealed class PublishedLookupService : IPublishedLookupService
             }
 
             var sectionIds = PublishedLookupAssembler.ScopeSections(hit, structure);
-            var cells = await cellReader.ListAroundHitAsync(version, hit, sectionIds, cancellationToken);
-            var values = await valueReader.ReadAsync(cells, wholeSheet: null, cancellationToken);
+            var cells = await PublishedLookupCellQueries.ListAroundHitAsync(db, version, hit, sectionIds, cancellationToken);
+            var values = await PublishedKindValueQueries.ReadAsync(db, cells, wholeSheet: null, cancellationToken);
             cellCount += cells.Count;
 
             matches.Add(PublishedLookupAssembler.Assemble(hit, version, structure, cells, values));
@@ -132,7 +118,7 @@ public sealed class PublishedLookupService : IPublishedLookupService
             .ToDictionary(group => group.Key, group => group.First().SheetPublicId);
         var sheetIds = publicIds.Keys.ToList();
 
-        var versions = await sheets.ListVersionsUpToAsync(sheetIds, moment, cancellationToken);
+        var versions = await PublishedSheetQueries.ListVersionsUpToAsync(db, sheetIds, moment, cancellationToken);
 
         foreach (var version in versions.OrderBy(version => version.VersionNumber))
         {
@@ -149,7 +135,7 @@ public sealed class PublishedLookupService : IPublishedLookupService
     /// <summary>A key nobody has given to a cell is a mistake in the request, not an empty answer.</summary>
     private async Task EnsureKeyExistsAsync(string key, CancellationToken cancellationToken)
     {
-        if (!await templateCells.LookupKeyExistsAsync(key, cancellationToken))
+        if (!await TemplateCellQueries.LookupKeyExistsAsync(db, key, cancellationToken))
         {
             throw new InvalidRequestException($"No template cell has the lookup key \"{key}\".");
         }

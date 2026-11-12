@@ -1,8 +1,9 @@
 using PUSpecSheet.Application.Common;
-using PUSpecSheet.Application.Persistence.Sheets;
-using PUSpecSheet.Application.Persistence.Users;
 using PUSpecSheet.Application.Sheets.Collaboration;
+using PUSpecSheet.Application.Sheets.Queries;
 using PUSpecSheet.Application.Users;
+using PUSpecSheet.Application.Users.Queries;
+using PUSpecSheet.Database;
 
 namespace PUSpecSheet.Application.Sheets.Removal;
 
@@ -13,22 +14,16 @@ namespace PUSpecSheet.Application.Sheets.Removal;
 /// </summary>
 public sealed class RemovalContentsGuard
 {
-    private readonly SheetRevisionRepositories revisions;
-    private readonly ISheetRowRepository rows;
-    private readonly IUserRepository users;
+    private readonly PuSpecSheetDbContext db;
     private readonly LiveRowCheckoutTracker liveCheckouts;
     private readonly ICurrentUser currentUser;
 
     public RemovalContentsGuard(
-        SheetRevisionRepositories revisions,
-        ISheetRowRepository rows,
-        IUserRepository users,
+        PuSpecSheetDbContext db,
         LiveRowCheckoutTracker liveCheckouts,
         ICurrentUser currentUser)
     {
-        this.revisions = revisions;
-        this.rows = rows;
-        this.users = users;
+        this.db = db;
         this.liveCheckouts = liveCheckouts;
         this.currentUser = currentUser;
     }
@@ -38,9 +33,9 @@ public sealed class RemovalContentsGuard
     public async Task EnsureSectionsFreeAsync(IReadOnlyCollection<int> sectionIds, CancellationToken cancellationToken)
     {
         var holds = new List<ContainedHold>();
-        holds.AddRange(await revisions.Sections.ListHoldsAsync(sectionIds, currentUser.UserId, cancellationToken));
-        holds.AddRange(await revisions.Rows.ListHoldsInSectionsAsync(sectionIds, currentUser.UserId, cancellationToken));
-        holds.AddRange(LiveHolds(await rows.ListIdsInSectionsAsync(sectionIds, cancellationToken)));
+        holds.AddRange(await SheetSectionRevisionQueries.ListHoldsAsync(db, sectionIds, currentUser.UserId, cancellationToken));
+        holds.AddRange(await SheetRowRevisionQueries.ListHoldsInSectionsAsync(db, sectionIds, currentUser.UserId, cancellationToken));
+        holds.AddRange(LiveHolds(await SheetRowQueries.ListIdsInSectionsAsync(db, sectionIds, cancellationToken)));
         await ThrowIfHeldAsync("this section", holds, cancellationToken);
     }
 
@@ -49,10 +44,10 @@ public sealed class RemovalContentsGuard
     public async Task EnsureTableFreeAsync(int tableId, CancellationToken cancellationToken)
     {
         var holds = new List<ContainedHold>();
-        holds.AddRange(await revisions.Sections.ListHoldsOnTableAsync(tableId, currentUser.UserId, cancellationToken));
-        holds.AddRange(await revisions.Rows.ListHoldsOnTableAsync(tableId, currentUser.UserId, cancellationToken));
-        holds.AddRange(await revisions.ColumnBlocks.ListHoldsOnTableAsync(tableId, currentUser.UserId, cancellationToken));
-        holds.AddRange(LiveHolds(await rows.ListIdsOnTableAsync(tableId, cancellationToken)));
+        holds.AddRange(await SheetSectionRevisionQueries.ListHoldsOnTableAsync(db, tableId, currentUser.UserId, cancellationToken));
+        holds.AddRange(await SheetRowRevisionQueries.ListHoldsOnTableAsync(db, tableId, currentUser.UserId, cancellationToken));
+        holds.AddRange(await SheetColumnBlockRevisionQueries.ListHoldsOnTableAsync(db, tableId, currentUser.UserId, cancellationToken));
+        holds.AddRange(LiveHolds(await SheetRowQueries.ListIdsOnTableAsync(db, tableId, cancellationToken)));
         await ThrowIfHeldAsync("this table", holds, cancellationToken);
     }
 
@@ -74,7 +69,7 @@ public sealed class RemovalContentsGuard
             return;
         }
 
-        var names = await users.GetDisplayNamesAsync(userIds, cancellationToken);
+        var names = await UserQueries.GetDisplayNamesAsync(db, userIds, cancellationToken);
         if (HeldContents.RefusalFor(subject, holds, currentUser.UserId, names) is { } refusal)
         {
             throw new ConflictException(refusal);

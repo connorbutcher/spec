@@ -1,10 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using PUSpecSheet.Database;
 using PUSpecSheet.Database.Entities.Users;
 using PUSpecSheet.Domain.Users;
-
-using PUSpecSheet.Database;
 
 namespace PUSpecSheet.Application.Tests.Database.Users;
 

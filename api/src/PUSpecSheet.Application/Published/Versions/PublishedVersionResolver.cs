@@ -1,5 +1,6 @@
 using PUSpecSheet.Application.Common;
-using PUSpecSheet.Application.Persistence.Published;
+using PUSpecSheet.Application.Published.Queries;
+using PUSpecSheet.Database;
 
 namespace PUSpecSheet.Application.Published.Versions;
 
@@ -9,11 +10,11 @@ namespace PUSpecSheet.Application.Published.Versions;
 /// </summary>
 public sealed class PublishedVersionResolver
 {
-    private readonly IPublishedSheetRepository sheets;
+    private readonly PuSpecSheetDbContext db;
 
-    public PublishedVersionResolver(IPublishedSheetRepository sheets)
+    public PublishedVersionResolver(PuSpecSheetDbContext db)
     {
-        this.sheets = sheets;
+        this.db = db;
     }
 
     public async Task<ResolvedSheetVersion> ResolveAsync(
@@ -21,7 +22,7 @@ public sealed class PublishedVersionResolver
         PublishedVersionPoint point,
         CancellationToken cancellationToken)
     {
-        var found = await sheets.FindVersionAsync(sheetPublicId, point, cancellationToken)
+        var found = await PublishedSheetQueries.FindVersionAsync(db, sheetPublicId, point, cancellationToken)
             ?? throw new NotFoundException(Describe(sheetPublicId, point));
 
         return new ResolvedSheetVersion(

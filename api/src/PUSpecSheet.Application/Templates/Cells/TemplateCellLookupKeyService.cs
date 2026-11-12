@@ -1,7 +1,7 @@
 using PUSpecSheet.Application.Common;
-using PUSpecSheet.Application.Persistence;
-using PUSpecSheet.Application.Persistence.Templates;
+using PUSpecSheet.Application.Templates.Queries;
 using PUSpecSheet.Contracts.Templates;
+using PUSpecSheet.Database;
 using PUSpecSheet.Domain.CellTypes;
 using PUSpecSheet.Domain.Templates;
 
@@ -14,14 +14,12 @@ namespace PUSpecSheet.Application.Templates.Cells;
 /// </summary>
 public sealed class TemplateCellLookupKeyService : ITemplateCellLookupKeyService
 {
-    private readonly ITemplateCellRepository cells;
-    private readonly IUnitOfWork unitOfWork;
+    private readonly PuSpecSheetDbContext db;
     private readonly TableTemplateReader reader;
 
-    public TemplateCellLookupKeyService(ITemplateCellRepository cells, IUnitOfWork unitOfWork, TableTemplateReader reader)
+    public TemplateCellLookupKeyService(PuSpecSheetDbContext db, TableTemplateReader reader)
     {
-        this.cells = cells;
-        this.unitOfWork = unitOfWork;
+        this.db = db;
         this.reader = reader;
     }
 
@@ -30,7 +28,7 @@ public sealed class TemplateCellLookupKeyService : ITemplateCellLookupKeyService
         UpdateTemplateCellLookupKeyRequest request,
         CancellationToken cancellationToken)
     {
-        var cell = await cells.FindWithTypeForEditAsync(cellId, cancellationToken);
+        var cell = await TemplateCellQueries.FindWithTypeForEditAsync(db, cellId, cancellationToken);
 
         if (cell is null)
         {
@@ -55,7 +53,7 @@ public sealed class TemplateCellLookupKeyService : ITemplateCellLookupKeyService
 
         cell.LookupKey = key;
 
-        await unitOfWork.SaveChangesAsync(cancellationToken);
+        await db.SaveChangesAsync(cancellationToken);
         return await reader.ReadVersionAsync(cell.TemplateRow.TemplateSection.TableTemplateVersionId, cancellationToken);
     }
 }

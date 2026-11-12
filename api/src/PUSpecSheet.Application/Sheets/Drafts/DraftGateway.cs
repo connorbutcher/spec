@@ -1,9 +1,10 @@
+using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Application.Common;
-using PUSpecSheet.Application.Persistence;
-using PUSpecSheet.Application.Persistence.Sheets;
-using PUSpecSheet.Application.Persistence.Users;
+using PUSpecSheet.Application.Sheets.Queries;
 using PUSpecSheet.Application.Sheets.Revisions;
 using PUSpecSheet.Application.Users;
+using PUSpecSheet.Application.Users.Queries;
+using PUSpecSheet.Database;
 using PUSpecSheet.Database.Entities.Sheets;
 using PUSpecSheet.Domain.Sheets;
 
@@ -17,27 +18,36 @@ namespace PUSpecSheet.Application.Sheets.Drafts;
 public abstract class DraftGateway<TRevision>
     where TRevision : class, ISheetRevision, new()
 {
-    private readonly ISheetRevisionRepository<TRevision> revisions;
-    private readonly IUserRepository users;
-    private readonly IUnitOfWork unitOfWork;
+    private readonly PuSpecSheetDbContext db;
     private readonly ICurrentUser currentUser;
 
     protected DraftGateway(
-        ISheetRevisionRepository<TRevision> revisions,
-        IUserRepository users,
-        IUnitOfWork unitOfWork,
+        PuSpecSheetDbContext db,
         ICurrentUser currentUser)
     {
-        this.revisions = revisions;
-        this.users = users;
-        this.unitOfWork = unitOfWork;
+        this.db = db;
         this.currentUser = currentUser;
     }
+
+    /// <summary>The database, for the queries a revision type adds.</summary>
+    protected PuSpecSheetDbContext Db => db;
+
+    /// <summary>Every revision of this type.</summary>
+    protected abstract DbSet<TRevision> Revisions { get; }
 
     /// <summary>Said in the lock message, e.g. "This row".</summary>
     protected abstract string Subject { get; }
 
     protected abstract int ItemIdOf(TRevision revision);
+
+    /// <summary>The revisions of the given items.</summary>
+    protected abstract IQueryable<TRevision> OfItems(IReadOnlyCollection<int> itemIds);
+
+    /// <summary>The revisions of one item.</summary>
+    protected abstract IQueryable<TRevision> OfItem(int itemId);
+
+    /// <summary>Points a new revision at its item.</summary>
+    protected abstract void SetItem(TRevision revision, int itemId);
 
     /// <summary>
     /// The drafts that make no net difference to the published revision they started from, so they needn't be
@@ -88,8 +98,8 @@ public abstract class DraftGateway<TRevision>
             return;
         }
 
-        revisions.RemoveRange(unchanged);
-        await unitOfWork.SaveSheetChangesAsync(cancellationToken);
+        Revisions.RemoveRange(unchanged);
+        await db.SaveSheetChangesAsync(cancellationToken);
     }
 
     /// <summary>
@@ -134,8 +144,8 @@ public abstract class DraftGateway<TRevision>
 
         if (unchanged.Count > 0)
         {
-            revisions.RemoveRange(unchanged);
-            await unitOfWork.SaveSheetChangesAsync(cancellationToken);
+            Revisions.RemoveRange(unchanged);
+            await db.SaveSheetChangesAsync(cancellationToken);
         }
     }
 
@@ -158,7 +168,7 @@ public abstract class DraftGateway<TRevision>
             return new Dictionary<int, DraftState<TRevision>>();
         }
 
-        var loaded = await revisions.ListCurrentAndDraftsForEditAsync(itemIds, cancellationToken);
+        var loaded = await OfItems(itemIds).ListCurrentAndDraftsForEditAsync(cancellationToken);
         return loaded
             .GroupBy(ItemIdOf)
             .ToDictionary(
@@ -194,7 +204,7 @@ public abstract class DraftGateway<TRevision>
         var draft = new TRevision
         {
             SheetId = current.SheetId,
-            RevisionNumber = await revisions.GetLastRevisionNumberAsync(itemId, cancellationToken) + 1,
+            RevisionNumber = await OfItem(itemId).GetLastRevisionNumberAsync(cancellationToken) + 1,
             Status = RevisionStatus.Draft,
             DisplayOrder = current.DisplayOrder,
             IsDeleted = current.IsDeleted,
@@ -202,7 +212,8 @@ public abstract class DraftGateway<TRevision>
             CreatedAtUtc = now,
             UpdatedAtUtc = now,
         };
-        revisions.Add(draft, itemId);
+        SetItem(draft, itemId);
+        Revisions.Add(draft);
         return (draft, true);
     }
 
@@ -250,7 +261,7 @@ public abstract class DraftGateway<TRevision>
 
     private async Task ThrowLockedAsync(int authorUserId, CancellationToken cancellationToken)
     {
-        var name = await users.FindDisplayNameAsync(authorUserId, cancellationToken) ?? "another user";
+        var name = await UserQueries.FindDisplayNameAsync(db, authorUserId, cancellationToken) ?? "another user";
         throw new ConflictException($"{Subject} is being edited by {name}.");
     }
 }

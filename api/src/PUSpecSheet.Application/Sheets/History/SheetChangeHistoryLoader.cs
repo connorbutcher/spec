@@ -1,6 +1,7 @@
 using System.Globalization;
-using PUSpecSheet.Application.Persistence.Sheets;
+using PUSpecSheet.Application.Sheets.Queries;
 using PUSpecSheet.Application.Sheets.Reading;
+using PUSpecSheet.Database;
 
 namespace PUSpecSheet.Application.Sheets.History;
 
@@ -16,14 +17,12 @@ namespace PUSpecSheet.Application.Sheets.History;
 /// </remarks>
 public sealed class SheetChangeHistoryLoader
 {
-    private readonly SheetRevisionRepositories revisions;
-    private readonly IRowValueRepository values;
+    private readonly PuSpecSheetDbContext db;
     private readonly SheetChangeHistoryCache cache;
 
-    public SheetChangeHistoryLoader(SheetRevisionRepositories revisions, IRowValueRepository values, SheetChangeHistoryCache cache)
+    public SheetChangeHistoryLoader(PuSpecSheetDbContext db, SheetChangeHistoryCache cache)
     {
-        this.revisions = revisions;
-        this.values = values;
+        this.db = db;
         this.cache = cache;
     }
 
@@ -62,10 +61,10 @@ public sealed class SheetChangeHistoryLoader
         // Found by the sheet they carry, like the sheet's own revisions (see SheetSnapshotLoader).
         var sheetId = sheet.Sheet.Id;
 
-        var rowRevisions = await revisions.Rows.ListPublishedUpToAsync(sheetId, moment, cancellationToken);
-        var sectionRevisions = await revisions.Sections.ListPublishedUpToAsync(sheetId, moment, cancellationToken);
-        var columnBlockRevisions = await revisions.ColumnBlocks.ListPublishedUpToAsync(sheetId, moment, cancellationToken);
-        var publishedValues = await values.LoadPublishedUpToAsync(sheetId, moment, cancellationToken);
+        var rowRevisions = await db.SheetRowRevisions.ListPublishedUpToAsync(sheetId, moment, cancellationToken);
+        var sectionRevisions = await db.SheetSectionRevisions.ListPublishedUpToAsync(sheetId, moment, cancellationToken);
+        var columnBlockRevisions = await db.SheetColumnBlockRevisions.ListPublishedUpToAsync(sheetId, moment, cancellationToken);
+        var publishedValues = await RowValueQueries.LoadPublishedUpToAsync(db, sheetId, moment, cancellationToken);
 
         return SheetChangeHistoryCalculator.Calculate(
             rowRevisions,

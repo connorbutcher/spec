@@ -1,6 +1,7 @@
 using PUSpecSheet.Application.Common;
-using PUSpecSheet.Application.Persistence.Users;
+using PUSpecSheet.Application.Users.Queries;
 using PUSpecSheet.Contracts.Approvals;
+using PUSpecSheet.Database;
 using PUSpecSheet.Domain.Users;
 
 namespace PUSpecSheet.Application.Approvals;
@@ -11,17 +12,17 @@ namespace PUSpecSheet.Application.Approvals;
 /// </summary>
 public sealed class ApproverDirectory
 {
-    private readonly IUserRepository users;
+    private readonly PuSpecSheetDbContext db;
 
-    public ApproverDirectory(IUserRepository users)
+    public ApproverDirectory(PuSpecSheetDbContext db)
     {
-        this.users = users;
+        this.db = db;
     }
 
     /// <summary>Everyone but <paramref name="submitterUserId"/> who could approve, by name.</summary>
     public async Task<IReadOnlyList<ApproverDto>> ListAsync(int submitterUserId, CancellationToken cancellationToken)
     {
-        return await users.ListApproversAsync(submitterUserId, cancellationToken);
+        return await UserQueries.ListApproversAsync(db, submitterUserId, cancellationToken);
     }
 
     /// <summary>Refuses a choice of approvers that is empty, names the submitter, or names someone who can't approve.</summary>
@@ -42,7 +43,7 @@ public sealed class ApproverDirectory
             throw new InvalidRequestException("You can't approve your own changes. Choose someone else.");
         }
 
-        var eligible = await users.CountApproversAsync(chosen, cancellationToken);
+        var eligible = await UserQueries.CountApproversAsync(db, chosen, cancellationToken);
         if (eligible != chosen.Count)
         {
             throw new InvalidRequestException("Some of the people chosen can't approve changes. Choose again.");

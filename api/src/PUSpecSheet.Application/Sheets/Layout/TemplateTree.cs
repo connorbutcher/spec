@@ -1,4 +1,5 @@
-using PUSpecSheet.Application.Persistence.Templates;
+using PUSpecSheet.Application.Templates.Queries;
+using PUSpecSheet.Database;
 using PUSpecSheet.Database.Entities.Templates;
 
 namespace PUSpecSheet.Application.Sheets.Layout;
@@ -20,14 +21,13 @@ public sealed class TemplateTree
     }
 
     public static async Task<TemplateTree> LoadAsync(
-        ITemplateSectionRepository sections,
-        ITemplateColumnBlockRepository columnBlocks,
+        PuSpecSheetDbContext db,
         int versionId,
         CancellationToken cancellationToken)
     {
         return new TemplateTree(
-            await sections.ListForLayoutAsync(versionId, cancellationToken),
-            await columnBlocks.ListAsync(versionId, cancellationToken));
+            await TemplateSectionQueries.ListForLayoutAsync(db, versionId, cancellationToken),
+            await TemplateColumnBlockQueries.ListAsync(db, versionId, cancellationToken));
     }
 
     /// <summary>The version's column blocks, left to right. Empty for a vertical table.</summary>

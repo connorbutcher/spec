@@ -1,33 +1,24 @@
-using PUSpecSheet.Application.Persistence.Sheets;
+using PUSpecSheet.Application.Sheets.Queries;
+using PUSpecSheet.Database;
 
 namespace PUSpecSheet.Application.Sheets.Drafts;
 
 /// <summary>Loads the drafts of every kind that one publish or submission takes from a sheet, tracked.</summary>
 public sealed class SheetDraftSetLoader
 {
-    private readonly ISheetTableRevisionRepository tables;
-    private readonly ISheetSectionRevisionRepository sections;
-    private readonly ISheetRowRevisionRepository rows;
-    private readonly ISheetColumnBlockRevisionRepository columnBlocks;
+    private readonly PuSpecSheetDbContext db;
 
-    public SheetDraftSetLoader(
-        ISheetTableRevisionRepository tables,
-        ISheetSectionRevisionRepository sections,
-        ISheetRowRevisionRepository rows,
-        ISheetColumnBlockRevisionRepository columnBlocks)
+    public SheetDraftSetLoader(PuSpecSheetDbContext db)
     {
-        this.tables = tables;
-        this.sections = sections;
-        this.rows = rows;
-        this.columnBlocks = columnBlocks;
+        this.db = db;
     }
 
     public async Task<SheetDraftSet> LoadAsync(int sheetId, IDraftSelection selection, CancellationToken cancellationToken)
     {
         return new SheetDraftSet(
-            await tables.ListSelectedForEditAsync(sheetId, selection, cancellationToken),
-            await sections.ListSelectedForEditAsync(sheetId, selection, cancellationToken),
-            await rows.ListSelectedForEditAsync(sheetId, selection, cancellationToken),
-            await columnBlocks.ListSelectedForEditAsync(sheetId, selection, cancellationToken));
+            await db.SheetTableRevisions.ListSelectedForEditAsync(sheetId, selection, cancellationToken),
+            await db.SheetSectionRevisions.ListSelectedForEditAsync(sheetId, selection, cancellationToken),
+            await db.SheetRowRevisions.ListSelectedForEditAsync(sheetId, selection, cancellationToken),
+            await db.SheetColumnBlockRevisions.ListSelectedForEditAsync(sheetId, selection, cancellationToken));
     }
 }

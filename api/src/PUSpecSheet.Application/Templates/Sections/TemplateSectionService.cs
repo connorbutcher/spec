@@ -1,8 +1,8 @@
 using PUSpecSheet.Application.Common;
-using PUSpecSheet.Application.Persistence;
-using PUSpecSheet.Application.Persistence.Templates;
+using PUSpecSheet.Application.Templates.Queries;
 using PUSpecSheet.Contracts.Common;
 using PUSpecSheet.Contracts.Templates;
+using PUSpecSheet.Database;
 using PUSpecSheet.Database.Entities.Templates;
 using PUSpecSheet.Domain.Templates;
 
@@ -10,19 +10,16 @@ namespace PUSpecSheet.Application.Templates.Sections;
 
 public sealed class TemplateSectionService : ITemplateSectionService
 {
-    private readonly ITemplateSectionRepository sections;
-    private readonly IUnitOfWork unitOfWork;
+    private readonly PuSpecSheetDbContext db;
     private readonly TableTemplateReader reader;
     private readonly TemplateVersionGuard guard;
 
     public TemplateSectionService(
-        ITemplateSectionRepository sections,
-        IUnitOfWork unitOfWork,
+        PuSpecSheetDbContext db,
         TableTemplateReader reader,
         TemplateVersionGuard guard)
     {
-        this.sections = sections;
-        this.unitOfWork = unitOfWork;
+        this.db = db;
         this.reader = reader;
         this.guard = guard;
     }
@@ -37,7 +34,7 @@ public sealed class TemplateSectionService : ITemplateSectionService
             await EnsureCanHoldSectionsAsync(versionId, parentId, cancellationToken);
         }
 
-        var lastOrder = await sections.GetLastDisplayOrderAsync(versionId, request.ParentSectionId, cancellationToken);
+        var lastOrder = await TemplateSectionQueries.GetLastDisplayOrderAsync(db, versionId, request.ParentSectionId, cancellationToken);
 
         // The header is created with the table, so every section added here is an addable section.
         var section = new TemplateSection
@@ -49,8 +46,8 @@ public sealed class TemplateSectionService : ITemplateSectionService
         };
         SectionInstanceRules.ApplyNewAddable(section);
 
-        sections.Add(section);
-        await unitOfWork.SaveChangesAsync(cancellationToken);
+        db.TemplateSections.Add(section);
+        await db.SaveChangesAsync(cancellationToken);
         return await reader.ReadVersionAsync(versionId, cancellationToken);
     }
 
@@ -72,7 +69,7 @@ public sealed class TemplateSectionService : ITemplateSectionService
             SectionInstanceRules.ApplyAddable(request, section);
         }
 
-        await unitOfWork.SaveChangesAsync(cancellationToken);
+        await db.SaveChangesAsync(cancellationToken);
 
         return await reader.ReadVersionAsync(section.TableTemplateVersionId, cancellationToken);
     }
@@ -82,10 +79,10 @@ public sealed class TemplateSectionService : ITemplateSectionService
         var section = await FindEditableAsync(id, cancellationToken);
         EnsureNotHeader(section, "move");
 
-        var siblings = await sections.ListSiblingsForEditAsync(section.TableTemplateVersionId, section.ParentSectionId, cancellationToken);
+        var siblings = await TemplateSectionQueries.ListSiblingsForEditAsync(db, section.TableTemplateVersionId, section.ParentSectionId, cancellationToken);
 
         DisplayOrdering.Move(siblings, section, request.DisplayOrder, sibling => sibling.DisplayOrder, SetOrder);
-        await unitOfWork.SaveChangesAsync(cancellationToken);
+        await db.SaveChangesAsync(cancellationToken);
 
         return await reader.ReadVersionAsync(section.TableTemplateVersionId, cancellationToken);
     }
@@ -97,16 +94,16 @@ public sealed class TemplateSectionService : ITemplateSectionService
 
         // Child sections can't cascade in SQL Server (the version already cascades to every section), so
         // the whole subtree is removed here. Rows and cells cascade from their sections.
-        var versionSections = await sections.ListForEditAsync(section.TableTemplateVersionId, cancellationToken);
+        var versionSections = await TemplateSectionQueries.ListForEditAsync(db, section.TableTemplateVersionId, cancellationToken);
 
-        sections.RemoveRange(CollectSubtree(section, versionSections));
+        db.TemplateSections.RemoveRange(CollectSubtree(section, versionSections));
 
         var siblings = versionSections
             .Where(candidate => candidate.ParentSectionId == section.ParentSectionId && candidate.Id != section.Id)
             .ToList();
 
         DisplayOrdering.Renumber(siblings, sibling => sibling.DisplayOrder, SetOrder);
-        await unitOfWork.SaveChangesAsync(cancellationToken);
+        await db.SaveChangesAsync(cancellationToken);
 
         return await reader.ReadVersionAsync(section.TableTemplateVersionId, cancellationToken);
     }
@@ -146,7 +143,7 @@ public sealed class TemplateSectionService : ITemplateSectionService
 
     private async Task EnsureCanHoldSectionsAsync(int versionId, int parentId, CancellationToken cancellationToken)
     {
-        var parentRole = await sections.FindRoleAsync(versionId, parentId, cancellationToken);
+        var parentRole = await TemplateSectionQueries.FindRoleAsync(db, versionId, parentId, cancellationToken);
 
         if (parentRole is null)
         {
@@ -162,7 +159,7 @@ public sealed class TemplateSectionService : ITemplateSectionService
 
     private async Task<TemplateSection> FindEditableAsync(int id, CancellationToken cancellationToken)
     {
-        var section = await sections.FindForEditAsync(id, cancellationToken);
+        var section = await TemplateSectionQueries.FindForEditAsync(db, id, cancellationToken);
         if (section is null)
         {
             throw new NotFoundException($"Section {id} was not found.");

@@ -1,8 +1,8 @@
-using PUSpecSheet.Application.Persistence;
-using PUSpecSheet.Application.Persistence.Approvals;
+using PUSpecSheet.Application.Common;
 using PUSpecSheet.Application.Sheets.Publishing;
 using PUSpecSheet.Application.Users;
 using PUSpecSheet.Contracts.Approvals;
+using PUSpecSheet.Database;
 using PUSpecSheet.Database.Entities.Approvals;
 using PUSpecSheet.Domain.Approvals;
 
@@ -15,23 +15,20 @@ namespace PUSpecSheet.Application.Approvals;
 /// </summary>
 public sealed class SheetSubmitter
 {
-    private readonly ISheetSubmissionRepository submissions;
-    private readonly IUnitOfWork unitOfWork;
+    private readonly PuSpecSheetDbContext db;
     private readonly SheetPublisher publisher;
     private readonly ApproverDirectory approvers;
     private readonly ICurrentUser currentUser;
     private readonly TimeProvider clock;
 
     public SheetSubmitter(
-        ISheetSubmissionRepository submissions,
-        IUnitOfWork unitOfWork,
+        PuSpecSheetDbContext db,
         SheetPublisher publisher,
         ApproverDirectory approvers,
         ICurrentUser currentUser,
         TimeProvider clock)
     {
-        this.submissions = submissions;
-        this.unitOfWork = unitOfWork;
+        this.db = db;
         this.publisher = publisher;
         this.approvers = approvers;
         this.currentUser = currentUser;
@@ -58,9 +55,9 @@ public sealed class SheetSubmitter
             submission.Approvers.Add(new SheetSubmissionApprover { UserId = approverId, Decision = ApprovalDecision.Pending });
         }
 
-        await using var transaction = await unitOfWork.BeginTransactionAsync(cancellationToken);
-        submissions.Add(submission);
-        await unitOfWork.SaveSheetChangesAsync(cancellationToken);
+        await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
+        db.SheetSubmissions.Add(submission);
+        await db.SaveSheetChangesAsync(cancellationToken);
 
         // The drafts' row versions make this fail, as a conflict, if an author saves into one at the same moment.
         foreach (var draft in drafts.All)
@@ -68,7 +65,7 @@ public sealed class SheetSubmitter
             draft.SheetSubmissionId = submission.Id;
         }
 
-        await unitOfWork.SaveSheetChangesAsync(cancellationToken);
+        await db.SaveSheetChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
         return submission.Id;
     }

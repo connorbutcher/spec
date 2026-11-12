@@ -1,6 +1,6 @@
-using PUSpecSheet.Application.Persistence;
-using PUSpecSheet.Application.Persistence.SheetTypes;
-using PUSpecSheet.Application.Persistence.Templates;
+using PUSpecSheet.Application.SheetTypes.Queries;
+using PUSpecSheet.Application.Templates.Queries;
+using PUSpecSheet.Database;
 using PUSpecSheet.Database.Entities.Templates;
 
 namespace PUSpecSheet.Application.Seeding;
@@ -12,28 +12,24 @@ namespace PUSpecSheet.Application.Seeding;
 /// </summary>
 public sealed class ShowcaseTemplateWriter
 {
-    private readonly ISheetTypeRepository sheetTypes;
-    private readonly ITableTemplateRepository templates;
-    private readonly IUnitOfWork unitOfWork;
+    private readonly PuSpecSheetDbContext db;
 
-    public ShowcaseTemplateWriter(ISheetTypeRepository sheetTypes, ITableTemplateRepository templates, IUnitOfWork unitOfWork)
+    public ShowcaseTemplateWriter(PuSpecSheetDbContext db)
     {
-        this.sheetTypes = sheetTypes;
-        this.templates = templates;
-        this.unitOfWork = unitOfWork;
+        this.db = db;
     }
 
     /// <summary>Adds <paramref name="template"/> with its version 1, at the end of its sheet type's list, and returns its id.</summary>
     public async Task<int> CreateAsync(IShowcaseTemplate template, ShowcaseCellTypeCatalog cellTypes, CancellationToken cancellationToken)
     {
-        var sheetTypeId = await sheetTypes.GetIdByNameAsync(template.SheetTypeName, cancellationToken);
-        var order = await templates.GetLastDisplayOrderAsync(sheetTypeId, cancellationToken) ?? 0;
+        var sheetTypeId = await SheetTypeQueries.GetIdByNameAsync(db, template.SheetTypeName, cancellationToken);
+        var order = await TableTemplateQueries.GetLastDisplayOrderAsync(db, sheetTypeId, cancellationToken) ?? 0;
 
         var entity = new TableTemplate { SheetTypeId = sheetTypeId, Name = template.Name, DisplayOrder = order + 1 };
         entity.Versions.Add(Lay(template, cellTypes, 1));
-        templates.Add(entity);
-        await unitOfWork.SaveChangesAsync(cancellationToken);
-        unitOfWork.ClearTracking();
+        db.TableTemplates.Add(entity);
+        await db.SaveChangesAsync(cancellationToken);
+        db.ChangeTracker.Clear();
         return entity.Id;
     }
 
@@ -47,9 +43,9 @@ public sealed class ShowcaseTemplateWriter
     {
         var version = Lay(template, cellTypes, versionNumber);
         version.TableTemplateId = templateId;
-        templates.AddVersion(version);
-        await unitOfWork.SaveChangesAsync(cancellationToken);
-        unitOfWork.ClearTracking();
+        db.TableTemplateVersions.Add(version);
+        await db.SaveChangesAsync(cancellationToken);
+        db.ChangeTracker.Clear();
     }
 
     private static TableTemplateVersion Lay(IShowcaseTemplate template, ShowcaseCellTypeCatalog cellTypes, int versionNumber)

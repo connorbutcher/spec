@@ -1,9 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Application.Common;
 using PUSpecSheet.Application.Published.Lookups;
+using PUSpecSheet.Application.Published.Queries;
 using PUSpecSheet.Application.Published.Versions;
-using PUSpecSheet.Application.Repositories.Published;
-
 using PUSpecSheet.Database;
 
 namespace PUSpecSheet.Application.Tests.Database.Published;
@@ -31,8 +30,7 @@ public sealed class PublishedLookupQueryTests : IDisposable
     [Fact]
     public void FindingAValue_SeeksTheIndexedStartOfTheValueAndChecksTheKeyAndTheMoment()
     {
-        var sql = new PublishedLookupHitRepository(db)
-            .Query(PublishedLookupCriteria.Create("partNumber", "P-1003"), Moment, null)
+        var sql = PublishedLookupHitQueries.Query(db, PublishedLookupCriteria.Create("partNumber", "P-1003"), Moment, null)
             .ToQueryString();
 
         Assert.Contains("[LookupValue] =", sql);
@@ -45,8 +43,7 @@ public sealed class PublishedLookupQueryTests : IDisposable
     [Fact]
     public void FindingAValue_AlsoSeeksEachValueOfLabelledTextCells()
     {
-        var sql = new PublishedLookupHitRepository(db)
-            .Query(PublishedLookupCriteria.Create("partNumber", "P-1003"), Moment, null)
+        var sql = PublishedLookupHitQueries.Query(db, PublishedLookupCriteria.Create("partNumber", "P-1003"), Moment, null)
             .ToQueryString();
 
         Assert.Contains("[values].[TextValues]", sql);
@@ -57,8 +54,7 @@ public sealed class PublishedLookupQueryTests : IDisposable
     [Fact]
     public void FindingAValue_CanKeepToASheetAPhaseAndASheetType()
     {
-        var sql = new PublishedLookupHitRepository(db)
-            .Query(PublishedLookupCriteria.Create("partNumber", "P-1003", "V6", 3), Moment, 7)
+        var sql = PublishedLookupHitQueries.Query(db, PublishedLookupCriteria.Create("partNumber", "P-1003", "V6", 3), Moment, 7)
             .ToQueryString();
 
         var where = sql[sql.LastIndexOf("WHERE", StringComparison.Ordinal)..];
@@ -72,7 +68,7 @@ public sealed class PublishedLookupQueryTests : IDisposable
     {
         var hit = new PublishedLookupHit(7, Version.SheetPublicId, "V6", 3, 4, 10, 1, 2, 6, true);
 
-        var sql = new PublishedLookupCellRepository(db).Query(Version, hit, null).ToQueryString();
+        var sql = PublishedLookupCellQueries.Query(db, Version, hit, null).ToQueryString();
 
         Assert.Contains("[SheetColumnBlockId] IS NULL OR", sql);
         Assert.Contains("[SheetRowRevisions]", sql);
@@ -85,7 +81,7 @@ public sealed class PublishedLookupQueryTests : IDisposable
     {
         var hit = new PublishedLookupHit(7, Version.SheetPublicId, "V6", 1, 4, 50, 11, 23, null, false);
 
-        var sql = new PublishedLookupCellRepository(db).Query(Version, hit, [50, 51]).ToQueryString();
+        var sql = PublishedLookupCellQueries.Query(db, Version, hit, [50, 51]).ToQueryString();
 
         Assert.Contains("[SheetSectionId] IN", sql);
         Assert.Contains("[Role] =", sql);

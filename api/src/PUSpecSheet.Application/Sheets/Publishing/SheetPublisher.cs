@@ -1,10 +1,10 @@
 using PUSpecSheet.Application.Common;
-using PUSpecSheet.Application.Persistence;
-using PUSpecSheet.Application.Persistence.Sheets;
-using PUSpecSheet.Application.Persistence.Users;
 using PUSpecSheet.Application.Sheets.Drafts;
+using PUSpecSheet.Application.Sheets.Queries;
 using PUSpecSheet.Application.Users;
+using PUSpecSheet.Application.Users.Queries;
 using PUSpecSheet.Contracts.Sheets;
+using PUSpecSheet.Database;
 using PUSpecSheet.Database.Entities.Approvals;
 using PUSpecSheet.Database.Entities.Sheets;
 using PUSpecSheet.Domain.CellTypes;
@@ -29,35 +29,20 @@ namespace PUSpecSheet.Application.Sheets.Publishing;
 /// </summary>
 public sealed class SheetPublisher
 {
-    private readonly ISheetRepository sheets;
-    private readonly ISheetCellRepository cells;
-    private readonly SheetRevisionRepositories revisions;
-    private readonly IRowValueRepository values;
-    private readonly IUserRepository users;
-    private readonly IUnitOfWork unitOfWork;
+    private readonly PuSpecSheetDbContext db;
     private readonly SheetDraftSetLoader draftLoader;
     private readonly DraftSweeper sweeper;
     private readonly ICurrentUser currentUser;
     private readonly TimeProvider clock;
 
     public SheetPublisher(
-        ISheetRepository sheets,
-        ISheetCellRepository cells,
-        SheetRevisionRepositories revisions,
-        IRowValueRepository values,
-        IUserRepository users,
-        IUnitOfWork unitOfWork,
+        PuSpecSheetDbContext db,
         SheetDraftSetLoader draftLoader,
         DraftSweeper sweeper,
         ICurrentUser currentUser,
         TimeProvider clock)
     {
-        this.sheets = sheets;
-        this.cells = cells;
-        this.revisions = revisions;
-        this.values = values;
-        this.users = users;
-        this.unitOfWork = unitOfWork;
+        this.db = db;
         this.draftLoader = draftLoader;
         this.sweeper = sweeper;
         this.currentUser = currentUser;
@@ -72,7 +57,7 @@ public sealed class SheetPublisher
     {
         var drafts = await PrepareAsync(sheetId, scope, cancellationToken);
         var sheet = await FindSheetAsync(sheetId, cancellationToken);
-        await using var transaction = await unitOfWork.BeginTransactionAsync(cancellationToken);
+        await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
         await PublishDraftsAsync(sheet, drafts, note, currentUser.UserId, cancellationToken);
         await transaction.CommitAsync(cancellationToken);
     }
@@ -85,7 +70,7 @@ public sealed class SheetPublisher
     /// <exception cref="InvalidRequestException">There is nothing to publish, or a required cell is empty.</exception>
     public async Task<SheetDraftSet> PrepareAsync(int sheetId, PublishScope scope, CancellationToken cancellationToken)
     {
-        if (!await sheets.ExistsAsync(sheetId, cancellationToken))
+        if (!await SheetQueries.ExistsAsync(db, sheetId, cancellationToken))
         {
             throw new NotFoundException($"Sheet {sheetId} was not found.");
         }
@@ -111,17 +96,17 @@ public sealed class SheetPublisher
     {
         var sheet = await FindSheetAsync(submission.SheetId, cancellationToken);
         var drafts = await draftLoader.LoadAsync(sheet.Id, new SubmissionDraftSelection(submission.Id), cancellationToken);
-        await using var transaction = await unitOfWork.BeginTransactionAsync(cancellationToken);
+        await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
         var version = await PublishDraftsAsync(sheet, drafts, submission.Note, submission.SubmittedByUserId, cancellationToken);
         submission.SheetVersionId = version.Id;
-        await unitOfWork.SaveSheetChangesAsync(cancellationToken);
+        await db.SaveSheetChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
         return version;
     }
 
     private async Task<Sheet> FindSheetAsync(int sheetId, CancellationToken cancellationToken)
     {
-        return await sheets.FindForEditAsync(sheetId, cancellationToken)
+        return await SheetQueries.FindForEditAsync(db, sheetId, cancellationToken)
             ?? throw new NotFoundException($"Sheet {sheetId} was not found.");
     }
 
@@ -134,14 +119,14 @@ public sealed class SheetPublisher
         CancellationToken cancellationToken)
     {
         var now = clock.GetUtcNow().UtcDateTime;
-        var lastVersion = await sheets.GetLastVersionNumberAsync(sheet.Id, cancellationToken);
+        var lastVersion = await SheetQueries.GetLastVersionNumberAsync(db, sheet.Id, cancellationToken);
         var version = AddNextVersion(sheet, note, now, publishedByUserId, lastVersion);
 
         // The replaced revisions close their range at the moment the new ones open, before the drafts are
         // published, so the "one current revision per item" index never sees two at once. If the version
         // save below fails, the transaction undoes them.
         await SupersedeReplacedAsync(drafts, now, cancellationToken);
-        await unitOfWork.SaveSheetChangesAsync(cancellationToken);
+        await db.SaveSheetChangesAsync(cancellationToken);
 
         foreach (var draft in drafts.All)
         {
@@ -150,7 +135,7 @@ public sealed class SheetPublisher
             draft.SheetVersionId = version.Id;
         }
 
-        await unitOfWork.SaveSheetChangesAsync(cancellationToken);
+        await db.SaveSheetChangesAsync(cancellationToken);
         return version;
     }
 
@@ -165,11 +150,11 @@ public sealed class SheetPublisher
             PublishedByUserId = publishedByUserId,
             Note = string.IsNullOrWhiteSpace(note) ? null : note.Trim(),
         };
-        sheets.AddVersion(version);
+        db.SheetVersions.Add(version);
 
         // Two people publishing at once would both claim the next number; the sheet's row version makes
         // the second one fail instead. Touching the sheet is what makes the check happen.
-        unitOfWork.MarkModified(sheet);
+        db.MarkModified(sheet);
         return version;
     }
 
@@ -181,10 +166,10 @@ public sealed class SheetPublisher
         var sectionIds = drafts.Sections.Select(draft => draft.SheetSectionId).ToList();
         var rowIds = drafts.Rows.Select(draft => draft.SheetRowId).ToList();
         var columnBlockIds = drafts.ColumnBlocks.Select(draft => draft.SheetColumnBlockId).ToList();
-        await revisions.Tables.SupersedeCurrentAsync(tableIds, now, cancellationToken);
-        await revisions.Sections.SupersedeCurrentAsync(sectionIds, now, cancellationToken);
-        await revisions.Rows.SupersedeCurrentAsync(rowIds, now, cancellationToken);
-        await revisions.ColumnBlocks.SupersedeCurrentAsync(columnBlockIds, now, cancellationToken);
+        await db.SheetTableRevisions.Where(revision => tableIds.Contains(revision.SheetTableId)).SupersedeCurrentAsync(now, cancellationToken);
+        await db.SheetSectionRevisions.Where(revision => sectionIds.Contains(revision.SheetSectionId)).SupersedeCurrentAsync(now, cancellationToken);
+        await db.SheetRowRevisions.Where(revision => rowIds.Contains(revision.SheetRowId)).SupersedeCurrentAsync(now, cancellationToken);
+        await db.SheetColumnBlockRevisions.Where(revision => columnBlockIds.Contains(revision.SheetColumnBlockId)).SupersedeCurrentAsync(now, cancellationToken);
     }
 
     private async Task EnsureRequiredCellsFilledAsync(IReadOnlyList<SheetRowRevision> rowDrafts, CancellationToken cancellationToken)
@@ -206,14 +191,14 @@ public sealed class SheetPublisher
     private async Task<List<int>> RowsWithEmptyRequiredCellsAsync(List<SheetRowRevision> live, CancellationToken cancellationToken)
     {
         var rowIds = live.Select(draft => draft.SheetRowId).ToList();
-        var required = await cells.ListRequiredAsync(rowIds, cancellationToken);
+        var required = await SheetCellQueries.ListRequiredAsync(db, rowIds, cancellationToken);
         var toFill = required.Where(cell => cell.Kind.StoresValue() && cell.Kind != CellKind.Checkbox).ToList();
         if (toFill.Count == 0)
         {
             return [];
         }
 
-        var held = await values.LoadAsync(live.Select(draft => draft.Id).ToList(), cancellationToken);
+        var held = await RowValueQueries.LoadAsync(db, live.Select(draft => draft.Id).ToList(), cancellationToken);
         var revisionByRow = live.ToDictionary(draft => draft.SheetRowId, draft => draft.Id);
         return toFill
             .Where(cell => !(held.GetValueOrDefault(revisionByRow[cell.SheetRowId])?.GetValueOrDefault(cell.Id)?.HasValue ?? false))
@@ -234,7 +219,7 @@ public sealed class SheetPublisher
         }
 
         // The publisher can't fill in or discard someone else's rows, so the way out is different.
-        var names = await users.GetSortedDisplayNamesAsync(otherAuthorIds, cancellationToken);
+        var names = await UserQueries.GetSortedDisplayNamesAsync(db, otherAuthorIds, cancellationToken);
         throw new InvalidRequestException(
             $"{stillEmpty}, in rows being edited by {string.Join(", ", names)}. Publish only your own changes, or ask them to fill those in first.");
     }

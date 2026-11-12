@@ -1,7 +1,8 @@
-using PUSpecSheet.Application.Persistence;
-using PUSpecSheet.Application.Persistence.Sheets;
+using PUSpecSheet.Application.Common;
+using PUSpecSheet.Application.Sheets.Queries;
 using PUSpecSheet.Application.Sheets.Revisions;
 using PUSpecSheet.Application.Users;
+using PUSpecSheet.Database;
 using PUSpecSheet.Database.Entities.Sheets;
 using PUSpecSheet.Domain.CellTypes.InstanceSettings;
 
@@ -14,26 +15,14 @@ namespace PUSpecSheet.Application.Sheets.Values;
 /// </summary>
 public sealed class NewRowSettings
 {
-    private readonly ISheetRowRepository rows;
-    private readonly ISheetCellRepository cells;
-    private readonly ISheetRowRevisionRepository rowRevisions;
-    private readonly IRowValueRepository values;
-    private readonly IUnitOfWork unitOfWork;
+    private readonly PuSpecSheetDbContext db;
     private readonly ICurrentUser currentUser;
 
     public NewRowSettings(
-        ISheetRowRepository rows,
-        ISheetCellRepository cells,
-        ISheetRowRevisionRepository rowRevisions,
-        IRowValueRepository values,
-        IUnitOfWork unitOfWork,
+        PuSpecSheetDbContext db,
         ICurrentUser currentUser)
     {
-        this.rows = rows;
-        this.cells = cells;
-        this.rowRevisions = rowRevisions;
-        this.values = values;
-        this.unitOfWork = unitOfWork;
+        this.db = db;
         this.currentUser = currentUser;
     }
 
@@ -67,10 +56,10 @@ public sealed class NewRowSettings
         }
 
         var earlierRevisionIds = earlierByTemplateRow.Values.ToList();
-        var chosen = await values.ListChosenSettingsAsync(earlierRevisionIds, cancellationToken);
+        var chosen = await RowValueQueries.ListChosenSettingsAsync(db, earlierRevisionIds, cancellationToken);
 
         AddInheritedSettings(newCells, shown, templateRowByRow, earlierByTemplateRow, chosen);
-        await unitOfWork.SaveSheetChangesAsync(cancellationToken);
+        await db.SaveSheetChangesAsync(cancellationToken);
     }
 
     /// <summary>The same for the rows of a newly added section and of the sub-sections it starts with.</summary>
@@ -88,7 +77,7 @@ public sealed class NewRowSettings
 
     private async Task<List<NewCell>> LoadCellsWithSettingsAsync(IReadOnlyCollection<int> newRowIds, CancellationToken cancellationToken)
     {
-        var rowCells = await cells.ListNewCellsAsync(newRowIds, cancellationToken);
+        var rowCells = await SheetCellQueries.ListNewCellsAsync(db, newRowIds, cancellationToken);
         return rowCells.Where(cell => cell.Kind.HasInstanceSettings()).ToList();
     }
 
@@ -96,14 +85,14 @@ public sealed class NewRowSettings
     private async Task<Dictionary<int, int>> LoadTemplateRowsAsync(int tableId, List<NewCell> newCells, CancellationToken cancellationToken)
     {
         var newRows = newCells.Select(cell => cell.SheetRowId).ToHashSet();
-        var templateRowIds = await rows.ListTemplateRowIdsAsync(newRows, cancellationToken);
-        return await rows.GetTemplateRowsOnTableAsync(tableId, templateRowIds, cancellationToken);
+        var templateRowIds = await SheetRowQueries.ListTemplateRowIdsAsync(db, newRows, cancellationToken);
+        return await SheetRowQueries.GetTemplateRowsOnTableAsync(db, tableId, templateRowIds, cancellationToken);
     }
 
     private async Task<Dictionary<int, RevisionResolution<SheetRowRevision>>> ResolveShownAsync(List<int> rowIds, CancellationToken cancellationToken)
     {
         var me = currentUser.UserId;
-        var revisions = await rowRevisions.ListVisibleAsync(rowIds, me, cancellationToken);
+        var revisions = await SheetRowRevisionQueries.ListVisibleAsync(db, rowIds, me, cancellationToken);
         return RevisionResolver.Resolve(revisions, revision => revision.SheetRowId, me);
     }
 
@@ -127,7 +116,7 @@ public sealed class NewRowSettings
                 && candidate.SheetColumnBlockId == cell.SheetColumnBlockId);
             if (match is not null)
             {
-                values.AddSettings(mine.Id, cell.Id, match.Settings);
+                RowValueQueries.AddSettings(db, mine.Id, cell.Id, match.Settings);
             }
         }
     }

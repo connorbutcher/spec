@@ -1,9 +1,8 @@
+using PUSpecSheet.Application.Approvals.Queries;
 using PUSpecSheet.Application.Common;
-using PUSpecSheet.Application.Persistence;
-using PUSpecSheet.Application.Persistence.Approvals;
-using PUSpecSheet.Application.Persistence.Sheets;
 using PUSpecSheet.Application.Sheets.Publishing;
 using PUSpecSheet.Application.Users;
+using PUSpecSheet.Database;
 using PUSpecSheet.Database.Entities.Approvals;
 using PUSpecSheet.Domain.Approvals;
 
@@ -21,24 +20,18 @@ namespace PUSpecSheet.Application.Approvals;
 /// </summary>
 public sealed class SubmissionDecider
 {
-    private readonly ISheetSubmissionRepository submissions;
-    private readonly SheetRevisionRepositories revisions;
-    private readonly IUnitOfWork unitOfWork;
+    private readonly PuSpecSheetDbContext db;
     private readonly SheetPublisher publisher;
     private readonly ICurrentUser currentUser;
     private readonly TimeProvider clock;
 
     public SubmissionDecider(
-        ISheetSubmissionRepository submissions,
-        SheetRevisionRepositories revisions,
-        IUnitOfWork unitOfWork,
+        PuSpecSheetDbContext db,
         SheetPublisher publisher,
         ICurrentUser currentUser,
         TimeProvider clock)
     {
-        this.submissions = submissions;
-        this.revisions = revisions;
-        this.unitOfWork = unitOfWork;
+        this.db = db;
         this.publisher = publisher;
         this.currentUser = currentUser;
         this.clock = clock;
@@ -52,7 +45,7 @@ public sealed class SubmissionDecider
         var now = Now();
         approver.Decision = ApprovalDecision.Approved;
         approver.DecidedAtUtc = now;
-        unitOfWork.MarkModified(submission);
+        db.MarkModified(submission);
 
         if (submission.Approvers.All(candidate => candidate.Decision == ApprovalDecision.Approved))
         {
@@ -62,7 +55,7 @@ public sealed class SubmissionDecider
         }
         else
         {
-            await unitOfWork.SaveSheetChangesAsync(cancellationToken);
+            await db.SaveSheetChangesAsync(cancellationToken);
         }
 
         return submission;
@@ -102,15 +95,15 @@ public sealed class SubmissionDecider
     {
         submission.Status = status;
         submission.DecidedAtUtc = now;
-        await using var transaction = await unitOfWork.BeginTransactionAsync(cancellationToken);
-        await unitOfWork.SaveSheetChangesAsync(cancellationToken);
-        await SubmittedDrafts.ReleaseAsync(revisions, submission.SheetId, submission.Id, cancellationToken);
+        await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
+        await db.SaveSheetChangesAsync(cancellationToken);
+        await SubmittedDrafts.ReleaseAsync(db, submission.SheetId, submission.Id, cancellationToken);
         await transaction.CommitAsync(cancellationToken);
     }
 
     private async Task<SheetSubmission> LoadPendingAsync(int submissionId, CancellationToken cancellationToken)
     {
-        var submission = await submissions.FindWithApproversForEditAsync(submissionId, cancellationToken)
+        var submission = await SheetSubmissionQueries.FindWithApproversForEditAsync(db, submissionId, cancellationToken)
             ?? throw new NotFoundException($"Submission {submissionId} was not found.");
         if (submission.Status != SubmissionStatus.Pending)
         {

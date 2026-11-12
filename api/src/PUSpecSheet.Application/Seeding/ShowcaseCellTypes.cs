@@ -1,5 +1,5 @@
-using PUSpecSheet.Application.Persistence;
-using PUSpecSheet.Application.Persistence.CellTypes;
+using PUSpecSheet.Application.CellTypes.Queries;
+using PUSpecSheet.Database;
 using PUSpecSheet.Database.Entities.CellTypes;
 using PUSpecSheet.Domain.CellTypes;
 using PUSpecSheet.Domain.CellTypes.Configurations;
@@ -104,20 +104,18 @@ public sealed class ShowcaseCellTypes
             []),
     ];
 
-    private readonly ICellTypeRepository cellTypeRepository;
-    private readonly IUnitOfWork unitOfWork;
+    private readonly PuSpecSheetDbContext db;
 
-    public ShowcaseCellTypes(ICellTypeRepository cellTypeRepository, IUnitOfWork unitOfWork)
+    public ShowcaseCellTypes(PuSpecSheetDbContext db)
     {
-        this.cellTypeRepository = cellTypeRepository;
-        this.unitOfWork = unitOfWork;
+        this.db = db;
     }
 
     public async Task<ShowcaseCellTypeCatalog> EnsureAsync(CancellationToken cancellationToken)
     {
         var names = Definitions.Select(definition => definition.Name).ToList();
-        var existing = await cellTypeRepository.ListNamesInUseAsync(names, cancellationToken);
-        var order = await cellTypeRepository.GetLastDisplayOrderAsync(cancellationToken) ?? 0;
+        var existing = await CellTypeQueries.ListNamesInUseAsync(db, names, cancellationToken);
+        var order = await CellTypeQueries.GetLastDisplayOrderAsync(db, cancellationToken) ?? 0;
 
         foreach (var definition in Definitions.Where(definition => !existing.Contains(definition.Name, StringComparer.OrdinalIgnoreCase)))
         {
@@ -135,12 +133,12 @@ public sealed class ShowcaseCellTypes
                 cellType.Options.Add(new CellTypeOption { Value = definition.Options[index], DisplayOrder = index + 1 });
             }
 
-            cellTypeRepository.Add(cellType);
+            db.CellTypes.Add(cellType);
         }
 
-        await unitOfWork.SaveChangesAsync(cancellationToken);
+        await db.SaveChangesAsync(cancellationToken);
 
-        var cellTypes = await cellTypeRepository.ListByNamesAsync(names, cancellationToken);
+        var cellTypes = await CellTypeQueries.ListByNamesAsync(db, names, cancellationToken);
         return new ShowcaseCellTypeCatalog(cellTypes);
     }
 }

@@ -1,8 +1,9 @@
-using PUSpecSheet.Application.Persistence;
-using PUSpecSheet.Application.Persistence.Sheets;
+using PUSpecSheet.Application.Common;
 using PUSpecSheet.Application.Sheets.Collaboration;
+using PUSpecSheet.Application.Sheets.Queries;
 using PUSpecSheet.Application.Sheets.Removal;
 using PUSpecSheet.Application.Users;
+using PUSpecSheet.Database;
 using PUSpecSheet.Database.Entities.Sheets;
 
 namespace PUSpecSheet.Application.Sheets.Drafts;
@@ -13,26 +14,23 @@ namespace PUSpecSheet.Application.Sheets.Drafts;
 /// </summary>
 public sealed class RowDraftStarter
 {
-    private readonly IUnitOfWork unitOfWork;
+    private readonly PuSpecSheetDbContext db;
     private readonly RowDrafts drafts;
     private readonly LiveRowCheckoutGuard liveCheckouts;
     private readonly IRemovalInProgressGuard removals;
-    private readonly IRowValueRepository values;
     private readonly ICurrentUser currentUser;
 
     public RowDraftStarter(
-        IUnitOfWork unitOfWork,
+        PuSpecSheetDbContext db,
         RowDrafts drafts,
         LiveRowCheckoutGuard liveCheckouts,
         IRemovalInProgressGuard removals,
-        IRowValueRepository values,
         ICurrentUser currentUser)
     {
-        this.unitOfWork = unitOfWork;
+        this.db = db;
         this.drafts = drafts;
         this.liveCheckouts = liveCheckouts;
         this.removals = removals;
-        this.values = values;
         this.currentUser = currentUser;
     }
 
@@ -59,10 +57,10 @@ public sealed class RowDraftStarter
             return draft;
         }
 
-        await unitOfWork.SaveSheetChangesAsync(cancellationToken);
+        await db.SaveSheetChangesAsync(cancellationToken);
         if (state.Current is { } current)
         {
-            await values.CopyAsync(current.Id, draft.Id, cancellationToken);
+            await RowValueQueries.CopyAsync(db, current.Id, draft.Id, cancellationToken);
         }
 
         return draft;

@@ -21,6 +21,8 @@ public static class SheetServiceCollectionExtensions
         services.AddScoped<SheetSnapshotLoader>();
         services.AddScoped<SheetReader>();
         services.AddScoped<SheetInstantiator>();
+        services.AddScoped<ISheetCellFiller, SheetCellFiller>();
+        services.AddScoped<ISheetItemLocator, SheetItemLocator>();
         services.AddScoped<LiveSectionQuery>();
         services.AddScoped<TableDrafts>();
         services.AddScoped<SectionDrafts>();

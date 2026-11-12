@@ -1,5 +1,6 @@
-using PUSpecSheet.Application.Persistence.Users;
+using PUSpecSheet.Application.Users.Queries;
 using PUSpecSheet.Contracts.Users;
+using PUSpecSheet.Database;
 
 namespace PUSpecSheet.Application.Users;
 
@@ -7,12 +8,12 @@ public sealed class UserAccessService : IUserAccessService
 {
     private UserAccess? current;
 
-    private readonly IUserRepository users;
+    private readonly PuSpecSheetDbContext db;
     private readonly ICurrentUser currentUser;
 
-    public UserAccessService(IUserRepository users, ICurrentUser currentUser)
+    public UserAccessService(PuSpecSheetDbContext db, ICurrentUser currentUser)
     {
-        this.users = users;
+        this.db = db;
         this.currentUser = currentUser;
     }
 
@@ -24,7 +25,7 @@ public sealed class UserAccessService : IUserAccessService
         }
 
         var userId = currentUser.UserId;
-        var user = await users.FindWithAccessAsync(userId, cancellationToken);
+        var user = await UserQueries.FindWithAccessAsync(db, userId, cancellationToken);
 
         current = user is null ? UserAccess.None(userId) : UserAccess.From(user);
         return current;

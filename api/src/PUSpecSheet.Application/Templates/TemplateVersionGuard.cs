@@ -1,5 +1,6 @@
 using PUSpecSheet.Application.Common;
-using PUSpecSheet.Application.Persistence.Templates;
+using PUSpecSheet.Application.Templates.Queries;
+using PUSpecSheet.Database;
 
 namespace PUSpecSheet.Application.Templates;
 
@@ -9,16 +10,16 @@ namespace PUSpecSheet.Application.Templates;
 /// </summary>
 public sealed class TemplateVersionGuard
 {
-    private readonly ITableTemplateRepository templates;
+    private readonly PuSpecSheetDbContext db;
 
-    public TemplateVersionGuard(ITableTemplateRepository templates)
+    public TemplateVersionGuard(PuSpecSheetDbContext db)
     {
-        this.templates = templates;
+        this.db = db;
     }
 
     public async Task EnsureEditableAsync(int versionId, CancellationToken cancellationToken)
     {
-        var version = await templates.FindVersionStateAsync(versionId, cancellationToken);
+        var version = await TableTemplateQueries.FindVersionStateAsync(db, versionId, cancellationToken);
 
         if (version is null)
         {
@@ -40,7 +41,7 @@ public sealed class TemplateVersionGuard
 
     public async Task EnsureTemplateUnusedAsync(int templateId, CancellationToken cancellationToken)
     {
-        if (await templates.IsUsedAsync(templateId, cancellationToken))
+        if (await TableTemplateQueries.IsUsedAsync(db, templateId, cancellationToken))
         {
             throw new ConflictException("Sheets already use this table, so it can't be deleted.");
         }

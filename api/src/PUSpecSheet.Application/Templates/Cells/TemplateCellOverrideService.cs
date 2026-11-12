@@ -1,8 +1,8 @@
 using PUSpecSheet.Application.CellTypes;
 using PUSpecSheet.Application.Common;
-using PUSpecSheet.Application.Persistence;
-using PUSpecSheet.Application.Persistence.Templates;
+using PUSpecSheet.Application.Templates.Queries;
 using PUSpecSheet.Contracts.Templates;
+using PUSpecSheet.Database;
 using PUSpecSheet.Domain.CellTypes;
 using PUSpecSheet.Domain.CellTypes.Configurations;
 using PUSpecSheet.Domain.CellTypes.Styles;
@@ -12,19 +12,16 @@ namespace PUSpecSheet.Application.Templates.Cells;
 /// <summary>Saves the configuration and style a template cell changes from its cell type's defaults.</summary>
 public sealed class TemplateCellOverrideService : ITemplateCellOverrideService
 {
-    private readonly ITemplateCellRepository cells;
-    private readonly IUnitOfWork unitOfWork;
+    private readonly PuSpecSheetDbContext db;
     private readonly TableTemplateReader reader;
     private readonly TemplateVersionGuard guard;
 
     public TemplateCellOverrideService(
-        ITemplateCellRepository cells,
-        IUnitOfWork unitOfWork,
+        PuSpecSheetDbContext db,
         TableTemplateReader reader,
         TemplateVersionGuard guard)
     {
-        this.cells = cells;
-        this.unitOfWork = unitOfWork;
+        this.db = db;
         this.reader = reader;
         this.guard = guard;
     }
@@ -34,7 +31,7 @@ public sealed class TemplateCellOverrideService : ITemplateCellOverrideService
         UpdateTemplateCellOverridesRequest request,
         CancellationToken cancellationToken)
     {
-        var cell = await cells.FindWithTypeForEditAsync(cellId, cancellationToken);
+        var cell = await TemplateCellQueries.FindWithTypeForEditAsync(db, cellId, cancellationToken);
 
         if (cell is null)
         {
@@ -47,7 +44,7 @@ public sealed class TemplateCellOverrideService : ITemplateCellOverrideService
         cell.ConfigurationOverride = CleanConfiguration(cell.CellType.Kind, request.ConfigurationOverride);
         cell.StyleOverride = CleanStyle(request.StyleOverride);
 
-        await unitOfWork.SaveChangesAsync(cancellationToken);
+        await db.SaveChangesAsync(cancellationToken);
         return await reader.ReadVersionAsync(versionId, cancellationToken);
     }
 

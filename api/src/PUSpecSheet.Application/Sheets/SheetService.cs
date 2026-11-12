@@ -1,23 +1,20 @@
 using PUSpecSheet.Application.Approvals;
 using PUSpecSheet.Application.Common;
-using PUSpecSheet.Application.Persistence;
-using PUSpecSheet.Application.Persistence.Phases;
-using PUSpecSheet.Application.Persistence.Sheets;
+using PUSpecSheet.Application.Phases.Queries;
 using PUSpecSheet.Application.Sheets.Drafts;
 using PUSpecSheet.Application.Sheets.Publishing;
+using PUSpecSheet.Application.Sheets.Queries;
 using PUSpecSheet.Application.Sheets.Reading;
 using PUSpecSheet.Application.Users;
 using PUSpecSheet.Contracts.Sheets;
+using PUSpecSheet.Database;
 using PUSpecSheet.Database.Entities.Sheets;
 
 namespace PUSpecSheet.Application.Sheets;
 
 public sealed class SheetService : ISheetService
 {
-    private readonly ISheetRepository sheets;
-    private readonly SheetRevisionRepositories revisions;
-    private readonly IPhaseRepository phases;
-    private readonly IUnitOfWork unitOfWork;
+    private readonly PuSpecSheetDbContext db;
     private readonly SheetReader reader;
     private readonly SheetPublisher publisher;
     private readonly DraftSweeper sweeper;
@@ -25,20 +22,14 @@ public sealed class SheetService : ISheetService
     private readonly ICurrentUser currentUser;
 
     public SheetService(
-        ISheetRepository sheets,
-        SheetRevisionRepositories revisions,
-        IPhaseRepository phases,
-        IUnitOfWork unitOfWork,
+        PuSpecSheetDbContext db,
         SheetReader reader,
         SheetPublisher publisher,
         DraftSweeper sweeper,
         SubmissionQueries submissions,
         ICurrentUser currentUser)
     {
-        this.sheets = sheets;
-        this.revisions = revisions;
-        this.phases = phases;
-        this.unitOfWork = unitOfWork;
+        this.db = db;
         this.reader = reader;
         this.publisher = publisher;
         this.sweeper = sweeper;
@@ -48,7 +39,7 @@ public sealed class SheetService : ISheetService
 
     public async Task<SheetDto> OpenAsync(int phaseId, int sheetTypeId, SheetViewPoint view, CancellationToken cancellationToken)
     {
-        var sheetId = await sheets.FindIdAsync(phaseId, sheetTypeId, cancellationToken);
+        var sheetId = await SheetQueries.FindIdAsync(db, phaseId, sheetTypeId, cancellationToken);
 
         if (sheetId is null)
         {
@@ -87,21 +78,21 @@ public sealed class SheetService : ISheetService
 
     public async Task<SheetDto> DiscardDraftsAsync(int sheetId, CancellationToken cancellationToken)
     {
-        if (!await sheets.ExistsAsync(sheetId, cancellationToken))
+        if (!await SheetQueries.ExistsAsync(db, sheetId, cancellationToken))
         {
             throw new NotFoundException($"Sheet {sheetId} was not found.");
         }
 
         var me = currentUser.UserId;
-        await using var transaction = await unitOfWork.BeginTransactionAsync(cancellationToken);
+        await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
 
-        await revisions.Rows.DeleteOpenDraftsAsync(sheetId, me, cancellationToken);
-        await revisions.ColumnBlocks.DeleteOpenDraftsAsync(sheetId, me, cancellationToken);
-        await revisions.Sections.DeleteOpenDraftsAsync(sheetId, me, cancellationToken);
-        await revisions.Tables.DeleteOpenDraftsAsync(sheetId, me, cancellationToken);
+        await db.SheetRowRevisions.DeleteOpenDraftsAsync(sheetId, me, cancellationToken);
+        await db.SheetColumnBlockRevisions.DeleteOpenDraftsAsync(sheetId, me, cancellationToken);
+        await db.SheetSectionRevisions.DeleteOpenDraftsAsync(sheetId, me, cancellationToken);
+        await db.SheetTableRevisions.DeleteOpenDraftsAsync(sheetId, me, cancellationToken);
 
         // Items that only ever existed as the user's drafts now have no revisions at all, so they go too.
-        await sheets.DeleteItemsWithoutRevisionsAsync(sheetId, cancellationToken);
+        await SheetQueries.DeleteItemsWithoutRevisionsAsync(db, sheetId, cancellationToken);
 
         await transaction.CommitAsync(cancellationToken);
         return await reader.ReadLiveAsync(sheetId, cancellationToken);
@@ -109,22 +100,22 @@ public sealed class SheetService : ISheetService
 
     private async Task<int> CreateSheetAsync(int phaseId, int sheetTypeId, CancellationToken cancellationToken)
     {
-        var available = await phases.HasSheetTypeAsync(phaseId, sheetTypeId, cancellationToken);
+        var available = await PhaseQueries.HasSheetTypeAsync(db, phaseId, sheetTypeId, cancellationToken);
         if (!available)
         {
             throw new NotFoundException("That sheet type isn't available to that phase.");
         }
 
         var sheet = new Sheet { PhaseId = phaseId, SheetTypeId = sheetTypeId };
-        sheets.Add(sheet);
-        if (await unitOfWork.TrySaveChangesAsync(cancellationToken))
+        db.Sheets.Add(sheet);
+        if (await db.TrySaveChangesAsync(cancellationToken))
         {
             return sheet.Id;
         }
 
         // Someone opened the same sheet at the same moment and created it first.
-        unitOfWork.Detach(sheet);
-        return await sheets.FindIdAsync(phaseId, sheetTypeId, cancellationToken)
+        db.Detach(sheet);
+        return await SheetQueries.FindIdAsync(db, phaseId, sheetTypeId, cancellationToken)
             ?? throw new InvalidOperationException("The sheet could not be created, and nobody else created it either.");
     }
 }

@@ -1,10 +1,9 @@
 using PUSpecSheet.Application.Common;
-using PUSpecSheet.Application.Persistence;
-using PUSpecSheet.Application.Persistence.CellTypes;
-using PUSpecSheet.Application.Persistence.Templates;
+using PUSpecSheet.Application.Templates.Queries;
 using PUSpecSheet.Application.Templates.Sections;
 using PUSpecSheet.Contracts.Common;
 using PUSpecSheet.Contracts.Templates;
+using PUSpecSheet.Database;
 using PUSpecSheet.Database.Entities.Templates;
 using PUSpecSheet.Domain.Templates;
 
@@ -12,31 +11,16 @@ namespace PUSpecSheet.Application.Templates.ColumnBlocks;
 
 public sealed class TemplateColumnBlockService : ITemplateColumnBlockService
 {
-    private readonly ITableTemplateRepository templates;
-    private readonly ITemplateRowRepository rows;
-    private readonly ITemplateCellRepository cells;
-    private readonly ITemplateColumnBlockRepository columnBlocks;
-    private readonly ICellTypeRepository cellTypes;
-    private readonly IUnitOfWork unitOfWork;
+    private readonly PuSpecSheetDbContext db;
     private readonly TableTemplateReader reader;
     private readonly TemplateVersionGuard guard;
 
     public TemplateColumnBlockService(
-        ITableTemplateRepository templates,
-        ITemplateRowRepository rows,
-        ITemplateCellRepository cells,
-        ITemplateColumnBlockRepository columnBlocks,
-        ICellTypeRepository cellTypes,
-        IUnitOfWork unitOfWork,
+        PuSpecSheetDbContext db,
         TableTemplateReader reader,
         TemplateVersionGuard guard)
     {
-        this.templates = templates;
-        this.rows = rows;
-        this.cells = cells;
-        this.columnBlocks = columnBlocks;
-        this.cellTypes = cellTypes;
-        this.unitOfWork = unitOfWork;
+        this.db = db;
         this.reader = reader;
         this.guard = guard;
     }
@@ -49,11 +33,11 @@ public sealed class TemplateColumnBlockService : ITemplateColumnBlockService
         await guard.EnsureEditableAsync(versionId, cancellationToken);
         await EnsureHorizontalAsync(versionId, cancellationToken);
 
-        var lastOrder = await columnBlocks.GetLastDisplayOrderAsync(versionId, cancellationToken);
+        var lastOrder = await TemplateColumnBlockQueries.GetLastDisplayOrderAsync(db, versionId, cancellationToken);
 
-        var rowIds = await rows.ListIdsAsync(versionId, cancellationToken);
+        var rowIds = await TemplateRowQueries.ListIdsAsync(db, versionId, cancellationToken);
 
-        var cellTypeId = await DefaultCellType.GetIdAsync(cellTypes, cancellationToken);
+        var cellTypeId = await DefaultCellType.GetIdAsync(db, cancellationToken);
 
         // A block shows in every row, so each row starts with one cell in it.
         var block = new TemplateColumnBlock
@@ -69,8 +53,8 @@ public sealed class TemplateColumnBlockService : ITemplateColumnBlockService
                 .ToList(),
         };
 
-        columnBlocks.Add(block);
-        await unitOfWork.SaveChangesAsync(cancellationToken);
+        db.TemplateColumnBlocks.Add(block);
+        await db.SaveChangesAsync(cancellationToken);
         return await reader.ReadVersionAsync(versionId, cancellationToken);
     }
 
@@ -88,7 +72,7 @@ public sealed class TemplateColumnBlockService : ITemplateColumnBlockService
         block.InitialInstances = request.InitialInstances;
         block.StickyColumnCount = request.StickyColumnCount;
 
-        await unitOfWork.SaveChangesAsync(cancellationToken);
+        await db.SaveChangesAsync(cancellationToken);
         return await reader.ReadVersionAsync(block.TableTemplateVersionId, cancellationToken);
     }
 
@@ -98,7 +82,7 @@ public sealed class TemplateColumnBlockService : ITemplateColumnBlockService
         var siblings = await LoadSiblingsAsync(block, cancellationToken);
 
         DisplayOrdering.Move(siblings, block, request.DisplayOrder, sibling => sibling.DisplayOrder, SetOrder);
-        await unitOfWork.SaveChangesAsync(cancellationToken);
+        await db.SaveChangesAsync(cancellationToken);
 
         return await reader.ReadVersionAsync(block.TableTemplateVersionId, cancellationToken);
     }
@@ -108,14 +92,14 @@ public sealed class TemplateColumnBlockService : ITemplateColumnBlockService
         var block = await FindEditableAsync(id, cancellationToken);
         var siblings = await LoadSiblingsAsync(block, cancellationToken);
 
-        await using var transaction = await unitOfWork.BeginTransactionAsync(cancellationToken);
+        await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
 
         // The block's cells can't cascade from it (they already cascade from their rows), so they go first.
-        await cells.DeleteInColumnBlockAsync(id, cancellationToken);
+        await TemplateCellQueries.DeleteInColumnBlockAsync(db, id, cancellationToken);
 
-        columnBlocks.Remove(block);
+        db.TemplateColumnBlocks.Remove(block);
         DisplayOrdering.Renumber(siblings.Where(sibling => sibling.Id != id), sibling => sibling.DisplayOrder, SetOrder);
-        await unitOfWork.SaveChangesAsync(cancellationToken);
+        await db.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
 
         return await reader.ReadVersionAsync(block.TableTemplateVersionId, cancellationToken);
@@ -128,7 +112,7 @@ public sealed class TemplateColumnBlockService : ITemplateColumnBlockService
 
     private async Task EnsureHorizontalAsync(int versionId, CancellationToken cancellationToken)
     {
-        var orientation = await templates.GetOrientationAsync(versionId, cancellationToken);
+        var orientation = await TableTemplateQueries.GetOrientationAsync(db, versionId, cancellationToken);
 
         if (orientation != TemplateOrientation.Horizontal)
         {
@@ -138,7 +122,7 @@ public sealed class TemplateColumnBlockService : ITemplateColumnBlockService
 
     private async Task<TemplateColumnBlock> FindEditableAsync(int id, CancellationToken cancellationToken)
     {
-        var block = await columnBlocks.FindForEditAsync(id, cancellationToken);
+        var block = await TemplateColumnBlockQueries.FindForEditAsync(db, id, cancellationToken);
         if (block is null)
         {
             throw new NotFoundException($"Column block {id} was not found.");
@@ -150,6 +134,6 @@ public sealed class TemplateColumnBlockService : ITemplateColumnBlockService
 
     private Task<List<TemplateColumnBlock>> LoadSiblingsAsync(TemplateColumnBlock block, CancellationToken cancellationToken)
     {
-        return columnBlocks.ListForEditAsync(block.TableTemplateVersionId, cancellationToken);
+        return TemplateColumnBlockQueries.ListForEditAsync(db, block.TableTemplateVersionId, cancellationToken);
     }
 }

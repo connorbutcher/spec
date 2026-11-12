@@ -1,14 +1,15 @@
+using PUSpecSheet.Application.CellTypes.Queries;
 using PUSpecSheet.Application.Common;
-using PUSpecSheet.Application.Persistence.CellTypes;
+using PUSpecSheet.Database;
 
 namespace PUSpecSheet.Application.Templates;
 
 /// <summary>Picks the cell type new cells get when none is chosen: the first Text type, else the first type.</summary>
 internal static class DefaultCellType
 {
-    public static async Task<int> GetIdAsync(ICellTypeRepository cellTypes, CancellationToken cancellationToken)
+    public static async Task<int> GetIdAsync(PuSpecSheetDbContext db, CancellationToken cancellationToken)
     {
-        var id = await cellTypes.FindDefaultIdAsync(cancellationToken);
+        var id = await CellTypeQueries.FindDefaultIdAsync(db, cancellationToken);
 
         if (id is null)
         {

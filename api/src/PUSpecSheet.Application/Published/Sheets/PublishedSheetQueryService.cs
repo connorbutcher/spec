@@ -1,47 +1,39 @@
 using PUSpecSheet.Application.Common;
-using PUSpecSheet.Application.Persistence.Published;
+using PUSpecSheet.Application.Published.Queries;
 using PUSpecSheet.Application.Published.Versions;
 using PUSpecSheet.Contracts.Published;
+using PUSpecSheet.Database;
 
 namespace PUSpecSheet.Application.Published.Sheets;
 
 public sealed class PublishedSheetQueryService : IPublishedSheetQueryService
 {
-    private readonly IPublishedSheetRepository sheets;
+    private readonly PuSpecSheetDbContext db;
     private readonly PublishedVersionResolver resolver;
-    private readonly IPublishedStructureRepository structureReader;
-    private readonly IPublishedCellRepository cellReader;
-    private readonly IPublishedValueRepository valueReader;
     private readonly PublishedSheetCache cache;
 
     public PublishedSheetQueryService(
-        IPublishedSheetRepository sheets,
+        PuSpecSheetDbContext db,
         PublishedVersionResolver resolver,
-        IPublishedStructureRepository structureReader,
-        IPublishedCellRepository cellReader,
-        IPublishedValueRepository valueReader,
         PublishedSheetCache cache)
     {
-        this.sheets = sheets;
+        this.db = db;
         this.resolver = resolver;
-        this.structureReader = structureReader;
-        this.cellReader = cellReader;
-        this.valueReader = valueReader;
         this.cache = cache;
     }
 
     public async Task<PublishedSheetReferenceDto> FindAsync(string phaseCode, int sheetTypeId, CancellationToken cancellationToken)
     {
-        return await sheets.FindReferenceAsync(phaseCode, sheetTypeId, cancellationToken)
+        return await PublishedSheetQueries.FindReferenceAsync(db, phaseCode, sheetTypeId, cancellationToken)
             ?? throw new NotFoundException($"Phase {phaseCode} has no sheet of type {sheetTypeId}.");
     }
 
     public async Task<IReadOnlyList<PublishedVersionDto>> VersionsAsync(Guid sheetPublicId, CancellationToken cancellationToken)
     {
-        var versions = await sheets.ListVersionsAsync(sheetPublicId, cancellationToken);
+        var versions = await PublishedSheetQueries.ListVersionsAsync(db, sheetPublicId, cancellationToken);
 
         if (versions.Count == 0
-            && !await sheets.ExistsAsync(sheetPublicId, cancellationToken))
+            && !await PublishedSheetQueries.ExistsAsync(db, sheetPublicId, cancellationToken))
         {
             throw new NotFoundException($"Sheet {sheetPublicId} was not found.");
         }
@@ -62,10 +54,10 @@ public sealed class PublishedSheetQueryService : IPublishedSheetQueryService
             return cached;
         }
 
-        var structure = await structureReader.ReadAsync(version, cancellationToken);
+        var structure = await PublishedStructureQueries.ReadAsync(db, version, cancellationToken);
         var scope = selection.IsEverything ? null : structure.ScopeFor(selection);
-        var cells = await cellReader.ReadAsync(version, scope, selection.IncludeLabels, cancellationToken);
-        var values = await valueReader.ReadAsync(cells, selection.IsEverything ? version : null, cancellationToken);
+        var cells = await PublishedCellQueries.ReadAsync(db, version, scope, selection.IncludeLabels, cancellationToken);
+        var values = await PublishedValueQueries.ReadAsync(db, cells, selection.IsEverything ? version : null, cancellationToken);
 
         var sheet = PublishedSheetAssembler.Assemble(version, selection, structure, cells, values);
         cache.Set(key, sheet, cells.Count);

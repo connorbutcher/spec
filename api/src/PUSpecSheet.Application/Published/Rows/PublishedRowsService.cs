@@ -1,26 +1,21 @@
-using PUSpecSheet.Application.Persistence.Published;
 using PUSpecSheet.Application.Published.Lookups;
+using PUSpecSheet.Application.Published.Queries;
 using PUSpecSheet.Application.Published.Versions;
 using PUSpecSheet.Contracts.Published;
+using PUSpecSheet.Database;
 
 namespace PUSpecSheet.Application.Published.Rows;
 
 public sealed class PublishedRowsService : IPublishedRowsService
 {
-    private readonly IPublishedStructureRepository structureReader;
-    private readonly IPublishedLookupCellRepository cellReader;
-    private readonly IPublishedKindValueRepository valueReader;
+    private readonly PuSpecSheetDbContext db;
     private readonly PublishedRowsCache cache;
 
     public PublishedRowsService(
-        IPublishedStructureRepository structureReader,
-        IPublishedLookupCellRepository cellReader,
-        IPublishedKindValueRepository valueReader,
+        PuSpecSheetDbContext db,
         PublishedRowsCache cache)
     {
-        this.structureReader = structureReader;
-        this.cellReader = cellReader;
-        this.valueReader = valueReader;
+        this.db = db;
         this.cache = cache;
     }
 
@@ -32,26 +27,26 @@ public sealed class PublishedRowsService : IPublishedRowsService
             return cached;
         }
 
-        var structure = await structureReader.ReadAsync(version, cancellationToken);
+        var structure = await PublishedStructureQueries.ReadAsync(db, version, cancellationToken);
         PublishedRowsDto rows;
         int cellCount;
 
         if (selection.IsEverything)
         {
-            var all = await cellReader.ListOnSheetAsync(version, cancellationToken);
-            var allValues = await valueReader.ReadAsync(all, wholeSheet: version, cancellationToken);
+            var all = await PublishedLookupCellQueries.ListOnSheetAsync(db, version, cancellationToken);
+            var allValues = await PublishedKindValueQueries.ReadAsync(db, all, wholeSheet: version, cancellationToken);
             rows = PublishedRowsAssembler.Assemble(version, selection, structure, all, all, allValues);
             cellCount = all.Count;
         }
         else
         {
-            var cells = await cellReader.ListInRowsAsync(version, [.. selection.Rows], cancellationToken);
+            var cells = await PublishedLookupCellQueries.ListInRowsAsync(db, version, [.. selection.Rows], cancellationToken);
             var headers = await HeadersAsync(version, structure, cells, cancellationToken);
             var read = cells
                 .Concat(headers.Where(cell => cell.ColumnBlockId is not null))
                 .DistinctBy(cell => cell.CellId)
                 .ToList();
-            var values = await valueReader.ReadAsync(read, wholeSheet: null, cancellationToken);
+            var values = await PublishedKindValueQueries.ReadAsync(db, read, wholeSheet: null, cancellationToken);
             rows = PublishedRowsAssembler.Assemble(version, selection, structure, cells, headers, values);
             cellCount = read.Count;
         }
@@ -79,6 +74,6 @@ public sealed class PublishedRowsService : IPublishedRowsService
 
         return tableIds.Count == 0
             ? []
-            : await cellReader.ListHeadersAsync(version, tableIds, cancellationToken);
+            : await PublishedLookupCellQueries.ListHeadersAsync(db, version, tableIds, cancellationToken);
     }
 }

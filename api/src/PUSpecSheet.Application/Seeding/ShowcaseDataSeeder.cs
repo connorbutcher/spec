@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Logging;
-using PUSpecSheet.Application.Persistence.Seeding;
-using PUSpecSheet.Application.Persistence.Sheets;
+using PUSpecSheet.Application.Sheets.Queries;
+using PUSpecSheet.Database;
 
 namespace PUSpecSheet.Application.Seeding;
 
@@ -11,7 +11,7 @@ namespace PUSpecSheet.Application.Seeding;
 /// and A2 to A5 with published history by three people, unpublished changes and the locks they hold.
 /// <para>
 /// <b>It clears the database first.</b> Every sheet, template and user-made cell type is deleted (see
-/// <see cref="ISampleDataRepository"/>) and the showcase is built in their place. That happens once: the
+/// <see cref="SampleDataQueries"/>) and the showcase is built in their place. That happens once: the
 /// showcase's last publish carries <see cref="CompletedNote"/>, and while a version with that note exists
 /// nothing is touched again, so work done on top of the showcase is kept. Set <c>SampleData:Rebuild</c> to
 /// true to clear and rebuild it on the next start regardless. A failure is logged instead of stopping the
@@ -23,8 +23,7 @@ public sealed partial class ShowcaseDataSeeder
     /// <summary>The note on the showcase's last publish, which marks it as built.</summary>
     public const string CompletedNote = "Issued for V6 build sign-off";
 
-    private readonly ISheetRepository sheets;
-    private readonly ISampleDataRepository reset;
+    private readonly PuSpecSheetDbContext db;
     private readonly ShowcaseCellTypes cellTypes;
     private readonly ShowcasePhases phases;
     private readonly ShowcaseTemplateWriter templates;
@@ -35,8 +34,7 @@ public sealed partial class ShowcaseDataSeeder
     private readonly ILogger<ShowcaseDataSeeder> logger;
 
     public ShowcaseDataSeeder(
-        ISheetRepository sheets,
-        ISampleDataRepository reset,
+        PuSpecSheetDbContext db,
         ShowcaseCellTypes cellTypes,
         ShowcasePhases phases,
         ShowcaseTemplateWriter templates,
@@ -46,8 +44,7 @@ public sealed partial class ShowcaseDataSeeder
         ShowcaseUsers users,
         ILogger<ShowcaseDataSeeder> logger)
     {
-        this.sheets = sheets;
-        this.reset = reset;
+        this.db = db;
         this.cellTypes = cellTypes;
         this.phases = phases;
         this.templates = templates;
@@ -62,13 +59,13 @@ public sealed partial class ShowcaseDataSeeder
     {
         try
         {
-            if (!rebuild && await sheets.AnyVersionWithNoteAsync(CompletedNote, cancellationToken))
+            if (!rebuild && await SheetQueries.AnyVersionWithNoteAsync(db, CompletedNote, cancellationToken))
             {
                 return;
             }
 
             LogBuilding(logger);
-            await reset.ClearAsync(cancellationToken);
+            await SampleDataQueries.ClearAsync(db, cancellationToken);
             await BuildAsync(cancellationToken);
             LogBuilt(logger);
         }

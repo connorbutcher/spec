@@ -1,15 +1,14 @@
 using PUSpecSheet.Application.Common;
-using PUSpecSheet.Application.Persistence;
-using PUSpecSheet.Application.Persistence.Sheets;
-using PUSpecSheet.Application.Persistence.Templates;
 using PUSpecSheet.Application.Sheets.Drafts;
 using PUSpecSheet.Application.Sheets.Layout;
+using PUSpecSheet.Application.Sheets.Queries;
 using PUSpecSheet.Application.Sheets.Reading;
 using PUSpecSheet.Application.Sheets.Removal;
 using PUSpecSheet.Application.Sheets.Values;
 using PUSpecSheet.Application.Users;
 using PUSpecSheet.Contracts.Common;
 using PUSpecSheet.Contracts.Sheets;
+using PUSpecSheet.Database;
 using PUSpecSheet.Database.Entities.Sheets;
 using PUSpecSheet.Database.Entities.Templates;
 using PUSpecSheet.Domain.Templates;
@@ -18,10 +17,7 @@ namespace PUSpecSheet.Application.Sheets.Editing;
 
 public sealed class SheetSectionService : ISheetSectionService
 {
-    private readonly ISheetTableRepository tables;
-    private readonly ISheetSectionRepository sections;
-    private readonly TemplateRepositories templates;
-    private readonly IUnitOfWork unitOfWork;
+    private readonly PuSpecSheetDbContext db;
     private readonly SectionDrafts drafts;
     private readonly LiveSectionQuery liveSections;
     private readonly SheetInstantiator instantiator;
@@ -33,10 +29,7 @@ public sealed class SheetSectionService : ISheetSectionService
     private readonly ICurrentUser currentUser;
 
     public SheetSectionService(
-        ISheetTableRepository tables,
-        ISheetSectionRepository sections,
-        TemplateRepositories templates,
-        IUnitOfWork unitOfWork,
+        PuSpecSheetDbContext db,
         SectionDrafts drafts,
         LiveSectionQuery liveSections,
         SheetInstantiator instantiator,
@@ -47,10 +40,7 @@ public sealed class SheetSectionService : ISheetSectionService
         IRemovalInProgressGuard removals,
         ICurrentUser currentUser)
     {
-        this.tables = tables;
-        this.sections = sections;
-        this.templates = templates;
-        this.unitOfWork = unitOfWork;
+        this.db = db;
         this.drafts = drafts;
         this.liveSections = liveSections;
         this.instantiator = instantiator;
@@ -64,10 +54,10 @@ public sealed class SheetSectionService : ISheetSectionService
 
     public async Task<SheetDto> AddAsync(int tableId, AddSheetSectionRequest request, CancellationToken cancellationToken)
     {
-        var table = await tables.FindForEditAsync(tableId, cancellationToken)
+        var table = await SheetTableQueries.FindForEditAsync(db, tableId, cancellationToken)
             ?? throw new NotFoundException($"Table {tableId} was not found.");
 
-        var tree = await TemplateTree.LoadAsync(templates.Sections, templates.ColumnBlocks, table.TableTemplateVersionId, cancellationToken);
+        var tree = await TemplateTree.LoadAsync(db, table.TableTemplateVersionId, cancellationToken);
         var template = tree.Find(request.TemplateSectionId)
             ?? throw new InvalidRequestException("That section isn't part of this table's template.");
         if (template.Role == SectionRole.Header)
@@ -81,8 +71,8 @@ public sealed class SheetSectionService : ISheetSectionService
         var section = instantiator.NewSection(table, template, tree, order);
         section.ParentSheetSectionId = request.ParentSheetSectionId;
 
-        sections.Add(section);
-        await unitOfWork.SaveSheetChangesAsync(cancellationToken);
+        db.SheetSections.Add(section);
+        await db.SaveSheetChangesAsync(cancellationToken);
         await filler.FillAsync(tableId, cancellationToken);
         await newRowSettings.InheritAsync(section, cancellationToken);
         return await reader.ReadLiveAsync(table.SheetId, cancellationToken);
@@ -108,10 +98,10 @@ public sealed class SheetSectionService : ISheetSectionService
         var (draft, _) = await drafts.EnsureMineAsync(sectionId, state, cancellationToken);
         draft.DisplayOrder = order;
 
-        await unitOfWork.SaveSheetChangesAsync(cancellationToken);
+        await db.SaveSheetChangesAsync(cancellationToken);
         await drafts.ReleaseIfUnchangedAsync(sectionId, cancellationToken);
         await drafts.ReleaseRestoredOrderAsync(
-            await sections.ListSiblingIdsAsync(section.SheetTableId, section.ParentSheetSectionId, cancellationToken),
+            await SheetSectionQueries.ListSiblingIdsAsync(db, section.SheetTableId, section.ParentSheetSectionId, cancellationToken),
             cancellationToken);
         return await reader.ReadLiveAsync(section.SheetTable.SheetId, cancellationToken);
     }
@@ -150,7 +140,7 @@ public sealed class SheetSectionService : ISheetSectionService
         {
             var (draft, _) = await drafts.EnsureMineAsync(sectionId, state, cancellationToken);
             draft.IsDeleted = true;
-            await unitOfWork.SaveSheetChangesAsync(cancellationToken);
+            await db.SaveSheetChangesAsync(cancellationToken);
         }
 
         return await reader.ReadLiveAsync(sheetId, cancellationToken);
@@ -158,7 +148,7 @@ public sealed class SheetSectionService : ISheetSectionService
 
     private async Task<SheetSection> LoadSectionAsync(int sectionId, CancellationToken cancellationToken)
     {
-        return await sections.FindWithTemplateAndTableAsync(sectionId, cancellationToken)
+        return await SheetSectionQueries.FindWithTemplateAndTableAsync(db, sectionId, cancellationToken)
             ?? throw new NotFoundException($"Section {sectionId} was not found.");
     }
 
@@ -169,13 +159,13 @@ public sealed class SheetSectionService : ISheetSectionService
     private async Task DeleteSubtreeAsync(SheetSection section, CancellationToken cancellationToken)
     {
         var ids = await liveSections.SubtreeIdsAsync(section.SheetTableId, section.Id, cancellationToken);
-        var remaining = await sections.GetParentsAsync(ids, cancellationToken);
+        var remaining = await SheetSectionQueries.GetParentsAsync(db, ids, cancellationToken);
         while (remaining.Count > 0)
         {
             var leaves = remaining.Keys
                 .Where(id => !remaining.ContainsValue(id))
                 .ToList();
-            await sections.DeleteAsync(leaves, cancellationToken);
+            await SheetSectionQueries.DeleteAsync(db, leaves, cancellationToken);
             foreach (var leaf in leaves)
             {
                 remaining.Remove(leaf);
@@ -188,7 +178,7 @@ public sealed class SheetSectionService : ISheetSectionService
     {
         if (parentSheetSectionId is { } parentId)
         {
-            var parent = await sections.FindOnTableAsync(parentId, tableId, cancellationToken)
+            var parent = await SheetSectionQueries.FindOnTableAsync(db, parentId, tableId, cancellationToken)
                 ?? throw new InvalidRequestException("That parent section isn't on this table.");
             if (parent.TemplateSectionId != template.ParentSectionId)
             {

@@ -1,5 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-
 using PUSpecSheet.Domain.Users;
 
 namespace PUSpecSheet.Database.Entities.Users;

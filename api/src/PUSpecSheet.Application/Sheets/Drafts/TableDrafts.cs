@@ -1,8 +1,7 @@
-using PUSpecSheet.Application.Persistence;
-using PUSpecSheet.Application.Persistence.Sheets;
-using PUSpecSheet.Application.Persistence.Users;
+using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Application.Sheets.Revisions;
 using PUSpecSheet.Application.Users;
+using PUSpecSheet.Database;
 using PUSpecSheet.Database.Entities.Sheets;
 
 namespace PUSpecSheet.Application.Sheets.Drafts;
@@ -10,16 +9,33 @@ namespace PUSpecSheet.Application.Sheets.Drafts;
 /// <summary>Draft handling for sheet tables. A new draft also carries over the table's title.</summary>
 public sealed class TableDrafts : DraftGateway<SheetTableRevision>
 {
-    public TableDrafts(ISheetTableRevisionRepository revisions, IUserRepository users, IUnitOfWork unitOfWork, ICurrentUser currentUser)
-        : base(revisions, users, unitOfWork, currentUser)
+    public TableDrafts(PuSpecSheetDbContext db, ICurrentUser currentUser)
+        : base(db, currentUser)
     {
     }
+
+    protected override DbSet<SheetTableRevision> Revisions => Db.SheetTableRevisions;
 
     protected override string Subject => "This table";
 
     protected override int ItemIdOf(SheetTableRevision revision)
     {
         return revision.SheetTableId;
+    }
+
+    protected override IQueryable<SheetTableRevision> OfItems(IReadOnlyCollection<int> itemIds)
+    {
+        return Db.SheetTableRevisions.Where(revision => itemIds.Contains(revision.SheetTableId));
+    }
+
+    protected override IQueryable<SheetTableRevision> OfItem(int itemId)
+    {
+        return Db.SheetTableRevisions.Where(revision => revision.SheetTableId == itemId);
+    }
+
+    protected override void SetItem(SheetTableRevision revision, int itemId)
+    {
+        revision.SheetTableId = itemId;
     }
 
     /// <summary>A table is unchanged when its place, existence and title are.</summary>

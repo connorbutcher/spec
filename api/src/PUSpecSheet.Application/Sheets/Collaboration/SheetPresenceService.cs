@@ -1,14 +1,14 @@
 using PUSpecSheet.Application.Common;
-using PUSpecSheet.Application.Persistence.Sheets;
-using PUSpecSheet.Application.Persistence.Users;
+using PUSpecSheet.Application.Sheets.Queries;
+using PUSpecSheet.Application.Users.Queries;
 using PUSpecSheet.Contracts.Sheets.Collaboration;
+using PUSpecSheet.Database;
 
 namespace PUSpecSheet.Application.Sheets.Collaboration;
 
 public sealed class SheetPresenceService : ISheetPresenceService
 {
-    private readonly ISheetRepository sheets;
-    private readonly IUserRepository userRepository;
+    private readonly PuSpecSheetDbContext db;
     private readonly SheetPresenceTracker tracker;
     private readonly RowTakeoverStore takeovers;
     private readonly LiveRowCheckoutTracker checkouts;
@@ -16,16 +16,14 @@ public sealed class SheetPresenceService : ISheetPresenceService
     private readonly ISheetLiveNotifier notifier;
 
     public SheetPresenceService(
-        ISheetRepository sheets,
-        IUserRepository userRepository,
+        PuSpecSheetDbContext db,
         SheetPresenceTracker tracker,
         RowTakeoverStore takeovers,
         LiveRowCheckoutTracker checkouts,
         ILiveRowCheckoutService rowCheckouts,
         ISheetLiveNotifier notifier)
     {
-        this.sheets = sheets;
-        this.userRepository = userRepository;
+        this.db = db;
         this.tracker = tracker;
         this.takeovers = takeovers;
         this.checkouts = checkouts;
@@ -35,12 +33,12 @@ public sealed class SheetPresenceService : ISheetPresenceService
 
     public async Task<SheetLiveStateDto> JoinAsync(string connectionId, int sheetId, int userId, CancellationToken cancellationToken)
     {
-        if (!await sheets.ExistsAsync(sheetId, cancellationToken))
+        if (!await SheetQueries.ExistsAsync(db, sheetId, cancellationToken))
         {
             throw new NotFoundException($"Sheet {sheetId} was not found.");
         }
 
-        var displayName = await userRepository.FindActiveDisplayNameAsync(userId, cancellationToken)
+        var displayName = await UserQueries.FindActiveDisplayNameAsync(db, userId, cancellationToken)
             ?? throw new NotFoundException($"User {userId} was not found.");
 
         tracker.Join(connectionId, new SheetConnection(sheetId, userId, displayName));
