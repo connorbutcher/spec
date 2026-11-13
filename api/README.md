@@ -135,7 +135,7 @@ In Development the API builds a showcase on start (`Application/Seeding`, run fr
 **Add a table** (database first: the SQL comes first)
 
 1. The table in the SQL database project: a script in `database/<schema>/Tables` (the schemas are listed in database/README.md; a new schema also needs its `database/Security/<schema>.sql`) with its keys, every foreign key with its `ON DELETE`, indexes for the ways it will be queried, and check constraints for rules the database can hold. Reference rows every database needs go in `database/Script.PostDeployment.sql`. Build and deploy it with `./database/deploy.ps1`.
-2. The entity class, `Db<Name>`, in `src/PUSpecSheet.Database/Models/<Area>` (namespace `PUSpecSheet.Database.Models.<Area>`), beside the models it relates to.
+2. The entity class, `Db<Name>`, in `src/PUSpecSheet.Database/Models/<Area>` (namespace `PUSpecSheet.Database.Models.<Area>`), beside the models it relates to. Columns come first (keys and foreign keys, then the rest), then any class-typed columns stored through a value conversion, then the navigations at the bottom: references, then collections. Navigations are `virtual`.
 3. An `IEntityTypeConfiguration<Db<Name>>` in `Database/Configurations/<Area>` that maps it onto the table, matching the script. Only what EF Core uses at runtime: table name, keys, relationships with their `OnDelete`, string lengths and unicode, value conversions, database-generated values (defaults, computed columns, `IsRowVersion`) and unique indexes (EF orders inserts and deletes around them). Check constraints and plain indexes live only in the SQL project.
 4. A `DbSet` on `PuSpecSheetDbContext`.
 

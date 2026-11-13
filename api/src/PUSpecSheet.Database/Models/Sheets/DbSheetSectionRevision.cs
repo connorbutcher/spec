@@ -14,8 +14,6 @@ public class DbSheetSectionRevision : IDbSheetRevision
 
     public int SheetSectionId { get; set; }
 
-    public DbSheetSection SheetSection { get; set; } = null!;
-
     /// <summary>
     /// The sheet the item is on, copied onto every revision so that "this sheet at a moment" is one index
     /// seek rather than a join through the item's parents. An item never moves to another sheet.
@@ -36,8 +34,6 @@ public class DbSheetSectionRevision : IDbSheetRevision
     /// <summary>Who made the change; for a draft, who holds the lock.</summary>
     public int AuthorUserId { get; set; }
 
-    public DbUser Author { get; set; } = null!;
-
     public DateTime CreatedAtUtc { get; set; }
 
     public DateTime UpdatedAtUtc { get; set; }
@@ -56,11 +52,15 @@ public class DbSheetSectionRevision : IDbSheetRevision
 
     public int? SheetVersionId { get; set; }
 
-    public DbSheetVersion? SheetVersion { get; set; }
-
     /// <summary>
     /// The publish waiting for approval that this draft is part of. While set, the draft is frozen: nobody,
     /// its author included, can change, discard or hand it on. Kept once published, to say which approval did it.
     /// </summary>
     public int? SheetSubmissionId { get; set; }
+
+    public virtual DbSheetSection SheetSection { get; set; } = null!;
+
+    public virtual DbUser Author { get; set; } = null!;
+
+    public virtual DbSheetVersion? SheetVersion { get; set; }
 }

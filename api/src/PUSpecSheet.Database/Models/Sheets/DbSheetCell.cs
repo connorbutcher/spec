@@ -16,11 +16,7 @@ public class DbSheetCell
 
     public int SheetRowId { get; set; }
 
-    public DbSheetRow SheetRow { get; set; } = null!;
-
     public int TemplateCellId { get; set; }
-
-    public DbTemplateCell TemplateCell { get; set; } = null!;
 
     /// <summary>
     /// The column block copy the cell belongs to, for a cell of a <see cref="DbTemplateColumnBlock"/>; null
@@ -28,5 +24,9 @@ public class DbSheetCell
     /// </summary>
     public int? SheetColumnBlockId { get; set; }
 
-    public DbSheetColumnBlock? SheetColumnBlock { get; set; }
+    public virtual DbSheetRow SheetRow { get; set; } = null!;
+
+    public virtual DbTemplateCell TemplateCell { get; set; } = null!;
+
+    public virtual DbSheetColumnBlock? SheetColumnBlock { get; set; }
 }

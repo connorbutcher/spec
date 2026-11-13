@@ -12,8 +12,6 @@ public class DbSheetVersion
 
     public int SheetId { get; set; }
 
-    public DbSheet Sheet { get; set; } = null!;
-
     /// <summary>1, 2, 3… within the sheet.</summary>
     public int VersionNumber { get; set; }
 
@@ -21,18 +19,20 @@ public class DbSheetVersion
 
     public int PublishedByUserId { get; set; }
 
-    public DbUser PublishedBy { get; set; } = null!;
-
     public string? Note { get; set; }
 
+    public virtual DbSheet Sheet { get; set; } = null!;
+
+    public virtual DbUser PublishedBy { get; set; } = null!;
+
     /// <summary>The table revisions (titles, tables added, moved or removed) published in this version.</summary>
-    public ICollection<DbSheetTableRevision> TableRevisions { get; set; } = [];
+    public virtual ICollection<DbSheetTableRevision> TableRevisions { get; set; } = [];
 
     /// <summary>The section revisions (sections added, moved or removed) published in this version.</summary>
-    public ICollection<DbSheetSectionRevision> SectionRevisions { get; set; } = [];
+    public virtual ICollection<DbSheetSectionRevision> SectionRevisions { get; set; } = [];
 
     /// <summary>The column block revisions (blocks added, moved or removed) published in this version.</summary>
-    public ICollection<DbSheetColumnBlockRevision> ColumnBlockRevisions { get; set; } = [];
+    public virtual ICollection<DbSheetColumnBlockRevision> ColumnBlockRevisions { get; set; } = [];
 
-    public ICollection<DbSheetRowRevision> RowRevisions { get; set; } = [];
+    public virtual ICollection<DbSheetRowRevision> RowRevisions { get; set; } = [];
 }

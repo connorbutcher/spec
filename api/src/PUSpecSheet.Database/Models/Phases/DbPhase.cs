@@ -18,10 +18,10 @@ public class DbPhase
 
     public int? ParentPhaseId { get; set; }
 
-    public DbPhase? ParentPhase { get; set; }
+    public virtual DbPhase? ParentPhase { get; set; }
 
-    public ICollection<DbPhase> ChildPhases { get; set; } = [];
+    public virtual ICollection<DbPhase> ChildPhases { get; set; } = [];
 
     /// <summary>The sheet types selected as available to this phase. Not inherited from the parent.</summary>
-    public ICollection<DbPhaseSheetType> SheetTypes { get; set; } = [];
+    public virtual ICollection<DbPhaseSheetType> SheetTypes { get; set; } = [];
 }

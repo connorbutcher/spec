@@ -10,9 +10,9 @@ public interface IDbCellValue
 {
     int SheetRowRevisionId { get; set; }
 
-    DbSheetRowRevision SheetRowRevision { get; set; }
-
     int SheetCellId { get; set; }
+
+    DbSheetRowRevision SheetRowRevision { get; set; }
 
     DbSheetCell SheetCell { get; set; }
 }

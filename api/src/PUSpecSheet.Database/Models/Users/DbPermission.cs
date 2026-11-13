@@ -14,5 +14,5 @@ public class DbPermission
 
     public string Description { get; set; } = string.Empty;
 
-    public ICollection<DbRolePermission> Roles { get; set; } = [];
+    public virtual ICollection<DbRolePermission> Roles { get; set; } = [];
 }

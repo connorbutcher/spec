@@ -14,14 +14,10 @@ public class DbSheetSubmission
 
     public int SheetId { get; set; }
 
-    public DbSheet Sheet { get; set; } = null!;
-
     /// <summary>The note the version will carry once approved.</summary>
     public string? Note { get; set; }
 
     public int SubmittedByUserId { get; set; }
-
-    public DbUser SubmittedBy { get; set; } = null!;
 
     public DateTime SubmittedAtUtc { get; set; }
 
@@ -33,10 +29,14 @@ public class DbSheetSubmission
     /// <summary>The version the approval published.</summary>
     public int? SheetVersionId { get; set; }
 
-    public DbSheetVersion? SheetVersion { get; set; }
-
     /// <summary>Concurrency token: two approvers deciding at the same moment can't both finish it.</summary>
     public byte[] RowVersion { get; set; } = [];
 
-    public ICollection<DbSheetSubmissionApprover> Approvers { get; set; } = [];
+    public virtual DbSheet Sheet { get; set; } = null!;
+
+    public virtual DbUser SubmittedBy { get; set; } = null!;
+
+    public virtual DbSheetVersion? SheetVersion { get; set; }
+
+    public virtual ICollection<DbSheetSubmissionApprover> Approvers { get; set; } = [];
 }

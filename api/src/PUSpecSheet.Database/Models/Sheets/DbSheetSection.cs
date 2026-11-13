@@ -16,21 +16,21 @@ public class DbSheetSection
 
     public int SheetTableId { get; set; }
 
-    public DbSheetTable SheetTable { get; set; } = null!;
-
     public int TemplateSectionId { get; set; }
-
-    public DbTemplateSection TemplateSection { get; set; } = null!;
 
     public int? ParentSheetSectionId { get; set; }
 
-    public DbSheetSection? ParentSheetSection { get; set; }
-
-    public ICollection<DbSheetSection> ChildSheetSections { get; set; } = [];
-
     public DateTime CreatedAtUtc { get; set; }
 
-    public ICollection<DbSheetSectionRevision> Revisions { get; set; } = [];
+    public virtual DbSheetTable SheetTable { get; set; } = null!;
 
-    public ICollection<DbSheetRow> Rows { get; set; } = [];
+    public virtual DbTemplateSection TemplateSection { get; set; } = null!;
+
+    public virtual DbSheetSection? ParentSheetSection { get; set; }
+
+    public virtual ICollection<DbSheetSection> ChildSheetSections { get; set; } = [];
+
+    public virtual ICollection<DbSheetSectionRevision> Revisions { get; set; } = [];
+
+    public virtual ICollection<DbSheetRow> Rows { get; set; } = [];
 }

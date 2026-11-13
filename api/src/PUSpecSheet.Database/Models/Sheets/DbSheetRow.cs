@@ -15,15 +15,15 @@ public class DbSheetRow
 
     public int SheetSectionId { get; set; }
 
-    public DbSheetSection SheetSection { get; set; } = null!;
-
     public int TemplateRowId { get; set; }
-
-    public DbTemplateRow TemplateRow { get; set; } = null!;
 
     public DateTime CreatedAtUtc { get; set; }
 
-    public ICollection<DbSheetCell> Cells { get; set; } = [];
+    public virtual DbSheetSection SheetSection { get; set; } = null!;
 
-    public ICollection<DbSheetRowRevision> Revisions { get; set; } = [];
+    public virtual DbTemplateRow TemplateRow { get; set; } = null!;
+
+    public virtual ICollection<DbSheetCell> Cells { get; set; } = [];
+
+    public virtual ICollection<DbSheetRowRevision> Revisions { get; set; } = [];
 }

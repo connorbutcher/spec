@@ -16,11 +16,7 @@ public class DbSheet
 
     public int PhaseId { get; set; }
 
-    public DbPhase Phase { get; set; } = null!;
-
     public int SheetTypeId { get; set; }
-
-    public DbSheetType SheetType { get; set; } = null!;
 
     public DateTime CreatedAtUtc { get; set; }
 
@@ -30,8 +26,12 @@ public class DbSheet
     /// </summary>
     public byte[] RowVersion { get; set; } = [];
 
-    public ICollection<DbSheetTable> Tables { get; set; } = [];
+    public virtual DbPhase Phase { get; set; } = null!;
+
+    public virtual DbSheetType SheetType { get; set; } = null!;
+
+    public virtual ICollection<DbSheetTable> Tables { get; set; } = [];
 
     /// <summary>The numbered publishes of this sheet, oldest first.</summary>
-    public ICollection<DbSheetVersion> Versions { get; set; } = [];
+    public virtual ICollection<DbSheetVersion> Versions { get; set; } = [];
 }

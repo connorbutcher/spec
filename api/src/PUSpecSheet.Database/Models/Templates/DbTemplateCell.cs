@@ -17,12 +17,8 @@ public class DbTemplateCell
 
     public int TemplateRowId { get; set; }
 
-    public DbTemplateRow TemplateRow { get; set; } = null!;
-
     /// <summary>The column block the cell belongs to, or null for the row's own cells, which come before the blocks.</summary>
     public int? TemplateColumnBlockId { get; set; }
-
-    public DbTemplateColumnBlock? TemplateColumnBlock { get; set; }
 
     /// <summary>The 1-based column the cell starts on, within its column block when it has one.</summary>
     public int Column { get; set; }
@@ -33,13 +29,17 @@ public class DbTemplateCell
 
     public int CellTypeId { get; set; }
 
-    public DbCellType CellType { get; set; } = null!;
-
     /// <summary>The text of a heading or group cell, or the prompt shown in an input cell.</summary>
     public string? Caption { get; set; }
 
     /// <summary>Whether the cell must be filled in on a sheet. Ignored for heading and group cells.</summary>
     public bool IsRequired { get; set; }
+
+    /// <summary>
+    /// The name other applications look this cell up by, such as "partNumber", or null when it can't be
+    /// looked up. See <see cref="LookupKeyRules"/>. It is carried into each new version of the template.
+    /// </summary>
+    public string? LookupKey { get; set; }
 
     /// <summary>
     /// The settings this cell changes from its cell type's <see cref="DbCellType.Configuration"/>, or null
@@ -50,9 +50,9 @@ public class DbTemplateCell
     /// <summary>The style values this cell changes from its cell type's <see cref="DbCellType.Style"/>.</summary>
     public CellStyle? StyleOverride { get; set; }
 
-    /// <summary>
-    /// The name other applications look this cell up by, such as "partNumber", or null when it can't be
-    /// looked up. See <see cref="LookupKeyRules"/>. It is carried into each new version of the template.
-    /// </summary>
-    public string? LookupKey { get; set; }
+    public virtual DbTemplateRow TemplateRow { get; set; } = null!;
+
+    public virtual DbTemplateColumnBlock? TemplateColumnBlock { get; set; }
+
+    public virtual DbCellType CellType { get; set; } = null!;
 }

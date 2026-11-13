@@ -10,11 +10,7 @@ public class DbLabelledTextValue : IDbCellValue
 {
     public int SheetRowRevisionId { get; set; }
 
-    public DbSheetRowRevision SheetRowRevision { get; set; } = null!;
-
     public int SheetCellId { get; set; }
-
-    public DbSheetCell SheetCell { get; set; } = null!;
 
     /// <summary>The slot's key, such as "rh".</summary>
     public string SlotKey { get; set; } = string.Empty;
@@ -23,4 +19,8 @@ public class DbLabelledTextValue : IDbCellValue
     public int Position { get; set; }
 
     public string Value { get; set; } = string.Empty;
+
+    public virtual DbSheetRowRevision SheetRowRevision { get; set; } = null!;
+
+    public virtual DbSheetCell SheetCell { get; set; } = null!;
 }

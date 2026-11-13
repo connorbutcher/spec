@@ -11,5 +11,5 @@ public class DbSheetType
 
     public int DisplayOrder { get; set; }
 
-    public ICollection<DbPhaseSheetType> Phases { get; set; } = [];
+    public virtual ICollection<DbPhaseSheetType> Phases { get; set; } = [];
 }

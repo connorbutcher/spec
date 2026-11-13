@@ -13,8 +13,6 @@ public class DbTemplateColumnBlock
 
     public int TableTemplateVersionId { get; set; }
 
-    public DbTableTemplateVersion TableTemplateVersion { get; set; } = null!;
-
     public string Name { get; set; } = string.Empty;
 
     /// <summary>Order among the version's column blocks, left to right.</summary>
@@ -35,5 +33,7 @@ public class DbTemplateColumnBlock
     /// </summary>
     public int StickyColumnCount { get; set; }
 
-    public ICollection<DbTemplateCell> Cells { get; set; } = [];
+    public virtual DbTableTemplateVersion TableTemplateVersion { get; set; } = null!;
+
+    public virtual ICollection<DbTemplateCell> Cells { get; set; } = [];
 }

@@ -18,5 +18,5 @@ public class DbUser
     public DateTime CreatedAtUtc { get; set; }
 
     /// <summary>The roles the user has, which decide what the user is allowed to do.</summary>
-    public ICollection<DbUserRole> Roles { get; set; } = [];
+    public virtual ICollection<DbUserRole> Roles { get; set; } = [];
 }

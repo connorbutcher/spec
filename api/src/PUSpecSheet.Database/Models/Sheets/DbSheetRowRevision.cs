@@ -15,8 +15,6 @@ public class DbSheetRowRevision : IDbSheetRevision
 
     public int SheetRowId { get; set; }
 
-    public DbSheetRow SheetRow { get; set; } = null!;
-
     /// <summary>
     /// The sheet the item is on, copied onto every revision so that "this sheet at a moment" is one index
     /// seek rather than a join through the item's parents. An item never moves to another sheet.
@@ -35,8 +33,6 @@ public class DbSheetRowRevision : IDbSheetRevision
 
     /// <summary>Who made the change; for a draft, who holds the row's lock.</summary>
     public int AuthorUserId { get; set; }
-
-    public DbUser Author { get; set; } = null!;
 
     public DateTime CreatedAtUtc { get; set; }
 
@@ -57,29 +53,33 @@ public class DbSheetRowRevision : IDbSheetRevision
 
     public int? SheetVersionId { get; set; }
 
-    public DbSheetVersion? SheetVersion { get; set; }
-
     /// <summary>
     /// The publish waiting for approval that this draft is part of. While set, the draft is frozen: nobody,
     /// its author included, can change, discard or hand it on. Kept once published, to say which approval did it.
     /// </summary>
     public int? SheetSubmissionId { get; set; }
 
+    public virtual DbSheetRow SheetRow { get; set; } = null!;
+
+    public virtual DbUser Author { get; set; } = null!;
+
+    public virtual DbSheetVersion? SheetVersion { get; set; }
+
     // The revision's cell values, one typed table per cell kind in the "cell" schema.
 
-    public ICollection<DbTextValue> TextValues { get; set; } = [];
+    public virtual ICollection<DbTextValue> TextValues { get; set; } = [];
 
-    public ICollection<DbNumericValue> NumericValues { get; set; } = [];
+    public virtual ICollection<DbNumericValue> NumericValues { get; set; } = [];
 
-    public ICollection<DbDateValue> DateValues { get; set; } = [];
+    public virtual ICollection<DbDateValue> DateValues { get; set; } = [];
 
-    public ICollection<DbBooleanValue> BooleanValues { get; set; } = [];
+    public virtual ICollection<DbBooleanValue> BooleanValues { get; set; } = [];
 
-    public ICollection<DbOptionValue> OptionValues { get; set; } = [];
+    public virtual ICollection<DbOptionValue> OptionValues { get; set; } = [];
 
     /// <summary>The values of labelled text cells, one for each slot that holds something.</summary>
-    public ICollection<DbLabelledTextValue> LabelledTextValues { get; set; } = [];
+    public virtual ICollection<DbLabelledTextValue> LabelledTextValues { get; set; } = [];
 
     /// <summary>The settings chosen on the sheet for the revision's cells, kept beside their values.</summary>
-    public ICollection<DbCellSettingsValue> CellSettings { get; set; } = [];
+    public virtual ICollection<DbCellSettingsValue> CellSettings { get; set; } = [];
 }

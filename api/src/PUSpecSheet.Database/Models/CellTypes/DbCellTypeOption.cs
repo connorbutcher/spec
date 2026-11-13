@@ -7,9 +7,9 @@ public class DbCellTypeOption
 
     public int CellTypeId { get; set; }
 
-    public DbCellType CellType { get; set; } = null!;
-
     public string Value { get; set; } = string.Empty;
 
     public int DisplayOrder { get; set; }
+
+    public virtual DbCellType CellType { get; set; } = null!;
 }

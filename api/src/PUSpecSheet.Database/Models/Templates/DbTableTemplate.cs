@@ -12,13 +12,13 @@ public class DbTableTemplate
 
     public int SheetTypeId { get; set; }
 
-    public DbSheetType SheetType { get; set; } = null!;
-
     /// <summary>The template name, unique within its sheet type.</summary>
     public string Name { get; set; } = string.Empty;
 
     /// <summary>Order among the templates of the same sheet type.</summary>
     public int DisplayOrder { get; set; }
 
-    public ICollection<DbTableTemplateVersion> Versions { get; set; } = [];
+    public virtual DbSheetType SheetType { get; set; } = null!;
+
+    public virtual ICollection<DbTableTemplateVersion> Versions { get; set; } = [];
 }

@@ -17,15 +17,15 @@ public class DbSheetColumnBlock
 
     public int SheetTableId { get; set; }
 
-    public DbSheetTable SheetTable { get; set; } = null!;
-
     public int TemplateColumnBlockId { get; set; }
-
-    public DbTemplateColumnBlock TemplateColumnBlock { get; set; } = null!;
 
     public DateTime CreatedAtUtc { get; set; }
 
-    public ICollection<DbSheetColumnBlockRevision> Revisions { get; set; } = [];
+    public virtual DbSheetTable SheetTable { get; set; } = null!;
 
-    public ICollection<DbSheetCell> Cells { get; set; } = [];
+    public virtual DbTemplateColumnBlock TemplateColumnBlock { get; set; } = null!;
+
+    public virtual ICollection<DbSheetColumnBlockRevision> Revisions { get; set; } = [];
+
+    public virtual ICollection<DbSheetCell> Cells { get; set; } = [];
 }

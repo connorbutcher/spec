@@ -15,19 +15,19 @@ public class DbSheetTable
 
     public int SheetId { get; set; }
 
-    public DbSheet Sheet { get; set; } = null!;
-
     /// <summary>The template version the table was built from. The table keeps this layout.</summary>
     public int TableTemplateVersionId { get; set; }
 
-    public DbTableTemplateVersion TableTemplateVersion { get; set; } = null!;
-
     public DateTime CreatedAtUtc { get; set; }
 
-    public ICollection<DbSheetTableRevision> Revisions { get; set; } = [];
+    public virtual DbSheet Sheet { get; set; } = null!;
 
-    public ICollection<DbSheetSection> Sections { get; set; } = [];
+    public virtual DbTableTemplateVersion TableTemplateVersion { get; set; } = null!;
+
+    public virtual ICollection<DbSheetTableRevision> Revisions { get; set; } = [];
+
+    public virtual ICollection<DbSheetSection> Sections { get; set; } = [];
 
     /// <summary>The copies of the template's column blocks, for a horizontal table.</summary>
-    public ICollection<DbSheetColumnBlock> ColumnBlocks { get; set; } = [];
+    public virtual ICollection<DbSheetColumnBlock> ColumnBlocks { get; set; } = [];
 }

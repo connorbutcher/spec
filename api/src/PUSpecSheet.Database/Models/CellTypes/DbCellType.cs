@@ -27,5 +27,5 @@ public class DbCellType
     public CellStyle Style { get; set; } = new();
 
     /// <summary>Dropdown kinds only: the choices, in display order.</summary>
-    public ICollection<DbCellTypeOption> Options { get; set; } = [];
+    public virtual ICollection<DbCellTypeOption> Options { get; set; } = [];
 }

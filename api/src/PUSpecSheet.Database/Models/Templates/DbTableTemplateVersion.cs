@@ -13,8 +13,6 @@ public class DbTableTemplateVersion
 
     public int TableTemplateId { get; set; }
 
-    public DbTableTemplate TableTemplate { get; set; } = null!;
-
     /// <summary>1 for the first version, counting up within the template.</summary>
     public int VersionNumber { get; set; }
 
@@ -28,9 +26,11 @@ public class DbTableTemplateVersion
 
     public DateTime CreatedAtUtc { get; set; }
 
+    public virtual DbTableTemplate TableTemplate { get; set; } = null!;
+
     /// <summary>Every section in this version, at all levels of the tree.</summary>
-    public ICollection<DbTemplateSection> Sections { get; set; } = [];
+    public virtual ICollection<DbTemplateSection> Sections { get; set; } = [];
 
     /// <summary>The column blocks people add copies of across a horizontal table. Vertical tables have none.</summary>
-    public ICollection<DbTemplateColumnBlock> ColumnBlocks { get; set; } = [];
+    public virtual ICollection<DbTemplateColumnBlock> ColumnBlocks { get; set; } = [];
 }

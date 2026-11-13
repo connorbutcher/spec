@@ -7,9 +7,9 @@ public class DbRolePermission
 {
     public int RoleId { get; set; }
 
-    public DbRole Role { get; set; } = null!;
-
     public int PermissionId { get; set; }
 
-    public DbPermission Permission { get; set; } = null!;
+    public virtual DbRole Role { get; set; } = null!;
+
+    public virtual DbPermission Permission { get; set; } = null!;
 }

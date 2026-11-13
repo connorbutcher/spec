@@ -8,11 +8,7 @@ public class DbSheetSubmissionApprover
 {
     public int SheetSubmissionId { get; set; }
 
-    public DbSheetSubmission SheetSubmission { get; set; } = null!;
-
     public int UserId { get; set; }
-
-    public DbUser User { get; set; } = null!;
 
     public ApprovalDecision Decision { get; set; }
 
@@ -20,4 +16,8 @@ public class DbSheetSubmissionApprover
 
     /// <summary>Why they rejected it; required for a rejection.</summary>
     public string? Reason { get; set; }
+
+    public virtual DbSheetSubmission SheetSubmission { get; set; } = null!;
+
+    public virtual DbUser User { get; set; } = null!;
 }

@@ -10,10 +10,10 @@ public class DbTemplateRow
 
     public int TemplateSectionId { get; set; }
 
-    public DbTemplateSection TemplateSection { get; set; } = null!;
-
     /// <summary>Order among the rows of the same section.</summary>
     public int DisplayOrder { get; set; }
 
-    public ICollection<DbTemplateCell> Cells { get; set; } = [];
+    public virtual DbTemplateSection TemplateSection { get; set; } = null!;
+
+    public virtual ICollection<DbTemplateCell> Cells { get; set; } = [];
 }

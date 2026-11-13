@@ -15,7 +15,7 @@ public class DbRole
     /// The permissions this role grants. The Administrator role (<see cref="WellKnownRoles.AdministratorId"/>)
     /// grants every permission without listing any.
     /// </summary>
-    public ICollection<DbRolePermission> Permissions { get; set; } = [];
+    public virtual ICollection<DbRolePermission> Permissions { get; set; } = [];
 
-    public ICollection<DbUserRole> Users { get; set; } = [];
+    public virtual ICollection<DbUserRole> Users { get; set; } = [];
 }

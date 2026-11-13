@@ -14,13 +14,7 @@ public class DbTemplateSection
 
     public int TableTemplateVersionId { get; set; }
 
-    public DbTableTemplateVersion TableTemplateVersion { get; set; } = null!;
-
     public int? ParentSectionId { get; set; }
-
-    public DbTemplateSection? ParentSection { get; set; }
-
-    public ICollection<DbTemplateSection> ChildSections { get; set; } = [];
 
     public string Name { get; set; } = string.Empty;
 
@@ -39,6 +33,12 @@ public class DbTemplateSection
     /// <summary>How many copies a table starts with when it's added to a sheet.</summary>
     public int InitialInstances { get; set; }
 
+    public virtual DbTableTemplateVersion TableTemplateVersion { get; set; } = null!;
+
+    public virtual DbTemplateSection? ParentSection { get; set; }
+
+    public virtual ICollection<DbTemplateSection> ChildSections { get; set; } = [];
+
     /// <summary>This section's own rows, shown before its child sections.</summary>
-    public ICollection<DbTemplateRow> Rows { get; set; } = [];
+    public virtual ICollection<DbTemplateRow> Rows { get; set; } = [];
 }
