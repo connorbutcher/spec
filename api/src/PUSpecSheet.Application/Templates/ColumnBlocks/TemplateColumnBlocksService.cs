@@ -4,7 +4,6 @@ using PUSpecSheet.Application.Templates.Sections;
 using PUSpecSheet.Contracts.Common;
 using PUSpecSheet.Contracts.Templates;
 using PUSpecSheet.Database;
-using PUSpecSheet.Database.Entities.Templates;
 using PUSpecSheet.Domain.Templates;
 
 namespace PUSpecSheet.Application.Templates.ColumnBlocks;
@@ -40,7 +39,7 @@ public sealed class TemplateColumnBlocksService : ITemplateColumnBlocksService
         var cellTypeId = await DefaultCellType.GetIdAsync(db, cancellationToken);
 
         // A block shows in every row, so each row starts with one cell in it.
-        var block = new TemplateColumnBlock
+        var block = new DbTemplateColumnBlock
         {
             TableTemplateVersionId = versionId,
             Name = request.Name.Trim(),
@@ -49,7 +48,7 @@ public sealed class TemplateColumnBlocksService : ITemplateColumnBlocksService
             MaxInstances = null,
             InitialInstances = 1,
             Cells = rowIds
-                .Select(rowId => new TemplateCell { TemplateRowId = rowId, Column = 1, CellTypeId = cellTypeId })
+                .Select(rowId => new DbTemplateCell { TemplateRowId = rowId, Column = 1, CellTypeId = cellTypeId })
                 .ToList(),
         };
 
@@ -105,7 +104,7 @@ public sealed class TemplateColumnBlocksService : ITemplateColumnBlocksService
         return await reader.ReadVersionAsync(block.TableTemplateVersionId, cancellationToken);
     }
 
-    private static void SetOrder(TemplateColumnBlock block, int order)
+    private static void SetOrder(DbTemplateColumnBlock block, int order)
     {
         block.DisplayOrder = order;
     }
@@ -120,7 +119,7 @@ public sealed class TemplateColumnBlocksService : ITemplateColumnBlocksService
         }
     }
 
-    private async Task<TemplateColumnBlock> FindEditableAsync(int id, CancellationToken cancellationToken)
+    private async Task<DbTemplateColumnBlock> FindEditableAsync(int id, CancellationToken cancellationToken)
     {
         var block = await TemplateColumnBlockQueries.FindForEditAsync(db, id, cancellationToken);
         if (block is null)
@@ -132,7 +131,7 @@ public sealed class TemplateColumnBlocksService : ITemplateColumnBlocksService
         return block;
     }
 
-    private Task<List<TemplateColumnBlock>> LoadSiblingsAsync(TemplateColumnBlock block, CancellationToken cancellationToken)
+    private Task<List<DbTemplateColumnBlock>> LoadSiblingsAsync(DbTemplateColumnBlock block, CancellationToken cancellationToken)
     {
         return TemplateColumnBlockQueries.ListForEditAsync(db, block.TableTemplateVersionId, cancellationToken);
     }

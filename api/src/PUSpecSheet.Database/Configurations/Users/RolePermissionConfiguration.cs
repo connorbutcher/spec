@@ -1,12 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using PUSpecSheet.Database.Entities.Users;
 
 namespace PUSpecSheet.Database.Configurations.Users;
 
-public sealed class RolePermissionConfiguration : IEntityTypeConfiguration<RolePermission>
+public sealed class RolePermissionConfiguration : IEntityTypeConfiguration<DbRolePermission>
 {
-    public void Configure(EntityTypeBuilder<RolePermission> builder)
+    public void Configure(EntityTypeBuilder<DbRolePermission> builder)
     {
         builder.ToTable("RolePermissions");
 

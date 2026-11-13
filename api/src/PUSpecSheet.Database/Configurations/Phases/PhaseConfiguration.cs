@@ -1,12 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using PUSpecSheet.Database.Entities.Phases;
 
 namespace PUSpecSheet.Database.Configurations.Phases;
 
-public sealed class PhaseConfiguration : IEntityTypeConfiguration<Phase>
+public sealed class PhaseConfiguration : IEntityTypeConfiguration<DbPhase>
 {
-    public void Configure(EntityTypeBuilder<Phase> builder)
+    public void Configure(EntityTypeBuilder<DbPhase> builder)
     {
         builder.ToTable("Phases", table =>
         {

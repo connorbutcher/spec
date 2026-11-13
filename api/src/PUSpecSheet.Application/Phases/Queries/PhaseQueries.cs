@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Database;
-using PUSpecSheet.Database.Entities.Phases;
 
 namespace PUSpecSheet.Application.Phases.Queries;
 
@@ -8,7 +7,7 @@ namespace PUSpecSheet.Application.Phases.Queries;
 public static class PhaseQueries
 {
     /// <summary>Every phase with its sheet types, read only, in display order then code.</summary>
-    public static async Task<List<Phase>> ListWithSheetTypesAsync(PuSpecSheetDbContext db, CancellationToken cancellationToken)
+    public static async Task<List<DbPhase>> ListWithSheetTypesAsync(PuSpecSheetDbContext db, CancellationToken cancellationToken)
     {
         return await db.Phases
             .AsNoTracking()
@@ -19,7 +18,7 @@ public static class PhaseQueries
     }
 
     /// <summary>Every phase with its sheet types, tracked for editing.</summary>
-    public static async Task<List<Phase>> ListForEditAsync(PuSpecSheetDbContext db, CancellationToken cancellationToken)
+    public static async Task<List<DbPhase>> ListForEditAsync(PuSpecSheetDbContext db, CancellationToken cancellationToken)
     {
         return await db.Phases
             .Include(candidate => candidate.SheetTypes)
@@ -27,7 +26,7 @@ public static class PhaseQueries
     }
 
     /// <summary>The phase with its sheet types, read only; null when there is no such phase.</summary>
-    public static async Task<Phase?> FindWithSheetTypesAsync(PuSpecSheetDbContext db, int id, CancellationToken cancellationToken)
+    public static async Task<DbPhase?> FindWithSheetTypesAsync(PuSpecSheetDbContext db, int id, CancellationToken cancellationToken)
     {
         return await db.Phases
             .AsNoTracking()
@@ -36,7 +35,7 @@ public static class PhaseQueries
     }
 
     /// <summary>The phase with its sheet types, tracked for editing; null when there is no such phase.</summary>
-    public static async Task<Phase?> FindForEditAsync(PuSpecSheetDbContext db, int id, CancellationToken cancellationToken)
+    public static async Task<DbPhase?> FindForEditAsync(PuSpecSheetDbContext db, int id, CancellationToken cancellationToken)
     {
         return await db.Phases
             .Include(candidate => candidate.SheetTypes)
@@ -82,7 +81,7 @@ public static class PhaseQueries
     }
 
     /// <summary>The phases with any of the codes, with their sheet types, tracked for editing.</summary>
-    public static async Task<List<Phase>> ListByCodesForEditAsync(PuSpecSheetDbContext db, IReadOnlyCollection<string> codes, CancellationToken cancellationToken)
+    public static async Task<List<DbPhase>> ListByCodesForEditAsync(PuSpecSheetDbContext db, IReadOnlyCollection<string> codes, CancellationToken cancellationToken)
     {
         return await db.Phases
             .Include(phase => phase.SheetTypes)

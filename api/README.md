@@ -9,9 +9,10 @@ src/PUSpecSheet.Api           ASP.NET Core host. Controllers (by area), authoriz
 src/PUSpecSheet.Application   Use cases. One folder per feature: services and the rules they apply. No EF Core: data is
                               reached through the repository interfaces in Application/Persistence.
 src/PUSpecSheet.Contracts     Request and response records. The only types that cross the HTTP boundary.
-src/PUSpecSheet.Data          Everything about the database: the DbContext, one configuration class per entity (by area),
-                              migrations, the repositories and unit of work, development seed data.
-src/PUSpecSheet.Domain        Entities, enums and rules that need nothing but themselves. No EF Core either.
+src/PUSpecSheet.Database      The EF Core side of the database (database first): the DbContext, the Db* entity classes
+                              (DbSheet, DbSheetRowRevision, ...), one configuration class per entity (by area), and
+                              development seed data. No migrations: the schema is owned by the SQL project in database/.
+src/PUSpecSheet.Domain        Enums, configuration records and rules that need nothing but themselves. No EF Core either.
 tests/PUSpecSheet.*.Tests     One test project per source project.
 ```
 
@@ -127,39 +128,25 @@ In Development the API builds a showcase on start (`Application/Seeding`, run fr
 1. Add the request/response records to `Contracts/<Feature>`, one per file, with data annotations for required fields, lengths and ranges.
 2. Add the method to the service interface and implement it. A query it needs goes on the area's repository: the method on the interface in `Application/Persistence/<Area>`, the EF Core query in `Data/Repositories/<Area>`.
 3. Add the action to the controller with XML comments (`<summary>`, `<remarks>`, `<param>`, `<response>` for each status it can return). 400, 403, 404 and 409 are documented where they apply by `ProblemResponsesConvention`; add `[ProducesResponseType]` only for anything else.
-4. Decide who may call it. An action that changes anything takes `[Authorize(Policy = PermissionKeys.X)]` (on the controller when every action shares it); `EndpointPermissionTests` fails if one is missing. A read needs nothing more: the fallback policy already requires a signed-in user. Only the published API is `[AllowAnonymous]`. A new permission is a constant in `PermissionKeys` (add it to `All`) and a seeded row in `PermissionConfiguration`, which needs a migration.
+4. Decide who may call it. An action that changes anything takes `[Authorize(Policy = PermissionKeys.X)]` (on the controller when every action shares it); `EndpointPermissionTests` fails if one is missing. A read needs nothing more: the fallback policy already requires a signed-in user. Only the published API is `[AllowAnonymous]`. A new permission is a constant in `PermissionKeys` (add it to `All`) and a row in the Permissions block of `database/Script.PostDeployment.sql`, added on the next deploy.
 
 **Add a feature**: a folder in `Application` with `I<Feature>Service` and its implementation, registered in `ApplicationServiceCollectionExtensions` (or the feature's own `Add...` extension, as `Sheets` and `Published` do); its repositories in `Application/Persistence/<Feature>` and `Data/Repositories/<Feature>`, registered in `RepositoryServiceCollectionExtensions`; a controller in `Api/Controllers/<Feature>` with `[Tags(ApiTags.X)]`, with the tag added to `ApiTags` and `ApiTagCatalog`.
 
-**Add an entity**
+**Add a table** (database first: the SQL comes first)
 
-1. The class in `Domain/<Area>`.
-2. An `IEntityTypeConfiguration<T>` in `Data/Configurations/<Area>`: table name, every string length, every foreign key with an explicit `OnDelete`, indexes for the ways it will be queried, and check constraints for rules the database can hold.
-3. A `DbSet` on `PuSpecSheetDbContext`.
-4. Its repository, as for a feature above.
-5. A migration, below.
+1. The table in the SQL database project: a script in `database/dbo/Tables` (or `database/values/Tables`) with its keys, every foreign key with its `ON DELETE`, indexes for the ways it will be queried, and check constraints for rules the database can hold. Reference rows every database needs go in `database/Script.PostDeployment.sql`. Build and deploy it with `./database/deploy.ps1`.
+2. The entity class, `Db<Name>`, in the root of `src/PUSpecSheet.Database` (namespace `PUSpecSheet.Database`).
+3. An `IEntityTypeConfiguration<Db<Name>>` in `Database/Configurations/<Area>` that maps it onto the table: table name, string lengths, defaults, keys, relationships and indexes, matching the script.
+4. A `DbSet` on `PuSpecSheetDbContext`.
 
-**Add a migration**
-
-```bash
-dotnet ef migrations add AddSomething --project src/PUSpecSheet.Data --startup-project src/PUSpecSheet.Api --configuration Release
-```
-
-Name it for what it does. Read the generated file before committing: one migration per change, nothing unrelated in it. The API applies migrations on start in Development. Then bring the database project back in step and commit its scripts with the migration:
-
-```powershell
-./database/refresh.ps1
-./database/compare.ps1
-```
-
-`dotnet ef migrations has-pending-model-changes` (same project arguments) confirms the snapshot matches the model.
+**Change a table**: change its script, deploy, then the `Db*` entity and its configuration. `./database/compare.ps1` shows what a deploy would change in a database without changing it.
 
 ## Conventions
 
 The build enforces the mechanical ones and fails on any analyzer warning: braces always, file-scoped namespaces, explicit accessibility, one type per file named after it. The rest are by review:
 
 - Services, records and helpers are `sealed` (or `static`) unless designed for inheritance; entities are plain classes for EF. Dependencies come in through primary constructors.
-- A service does one job. When a method repeats itself for tables, sections, rows and column blocks, the shared part belongs in a generic helper constrained to `ISheetRevision` (see `SheetPublisher.SupersedeAsync`).
+- A service does one job. When a method repeats itself for tables, sections, rows and column blocks, the shared part belongs in a generic helper constrained to `IDbSheetRevision` (see `SheetPublisher.SupersedeAsync`).
 - Reads use `AsNoTracking()` and project to what they need. Writes that span statements use a transaction and `SaveSheetChangesAsync`, which turns a concurrency clash into a 409.
 - Text from a request is trimmed, and blank optional text is stored as null.
 - XML comments say why, or what a caller must know. They don't restate the name.
@@ -174,6 +161,6 @@ Tests run without a database. Three kinds:
 
 - **Rules as pure functions.** Logic is kept out of the classes that query (`SheetChangeHistoryCalculator`, `SheetCellPlanner`, `OrderGaps`, `PhaseMover`, the published assemblers) so it can be tested with plain objects. New logic should follow the same split.
 - **SQL shape.** `PublishedQueryTranslationTests` and `SheetRevisionQueryTranslationTests` build a context with no server and assert on `ToQueryString()`, which catches a query that stops translating, pulls extra columns or stops matching an index.
-- **Model.** `PUSpecSheet.Data.Tests` checks the EF model itself (public ids, seeded permissions).
+- **Model.** The tests in `Application.Tests/Database` check the EF model itself (public ids), and `PermissionSeedTests` checks the post-deployment script seeds every permission.
 
 What they don't cover is anything that needs real SQL Server behaviour: the publish transaction, draft locking under concurrency, cascade deletes. Those have been checked by replaying a scripted scenario against a scratch copy of the database and comparing every response before and after a change.

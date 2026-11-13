@@ -1,4 +1,4 @@
-using PUSpecSheet.Database.Entities.Sheets;
+using PUSpecSheet.Database;
 
 namespace PUSpecSheet.Application.Sheets.Drafts;
 
@@ -6,10 +6,10 @@ namespace PUSpecSheet.Application.Sheets.Drafts;
 public sealed record SheetDraftSet
 {
     public SheetDraftSet(
-        IReadOnlyList<SheetTableRevision> tables,
-        IReadOnlyList<SheetSectionRevision> sections,
-        IReadOnlyList<SheetRowRevision> rows,
-        IReadOnlyList<SheetColumnBlockRevision> columnBlocks)
+        IReadOnlyList<DbSheetTableRevision> tables,
+        IReadOnlyList<DbSheetSectionRevision> sections,
+        IReadOnlyList<DbSheetRowRevision> rows,
+        IReadOnlyList<DbSheetColumnBlockRevision> columnBlocks)
     {
         this.Tables = tables;
         this.Sections = sections;
@@ -17,15 +17,15 @@ public sealed record SheetDraftSet
         this.ColumnBlocks = columnBlocks;
     }
 
-    public IReadOnlyList<SheetTableRevision> Tables { get; init; }
+    public IReadOnlyList<DbSheetTableRevision> Tables { get; init; }
 
-    public IReadOnlyList<SheetSectionRevision> Sections { get; init; }
+    public IReadOnlyList<DbSheetSectionRevision> Sections { get; init; }
 
-    public IReadOnlyList<SheetRowRevision> Rows { get; init; }
+    public IReadOnlyList<DbSheetRowRevision> Rows { get; init; }
 
-    public IReadOnlyList<SheetColumnBlockRevision> ColumnBlocks { get; init; }
+    public IReadOnlyList<DbSheetColumnBlockRevision> ColumnBlocks { get; init; }
 
-    public IReadOnlyList<ISheetRevision> All => [.. Tables, .. Sections, .. Rows, .. ColumnBlocks];
+    public IReadOnlyList<IDbSheetRevision> All => [.. Tables, .. Sections, .. Rows, .. ColumnBlocks];
 
     public int Count => Tables.Count + Sections.Count + Rows.Count + ColumnBlocks.Count;
 }

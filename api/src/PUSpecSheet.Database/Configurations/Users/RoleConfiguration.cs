@@ -1,13 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using PUSpecSheet.Database.Entities.Users;
-using PUSpecSheet.Domain.Users;
 
 namespace PUSpecSheet.Database.Configurations.Users;
 
-public sealed class RoleConfiguration : IEntityTypeConfiguration<Role>
+public sealed class RoleConfiguration : IEntityTypeConfiguration<DbRole>
 {
-    public void Configure(EntityTypeBuilder<Role> builder)
+    public void Configure(EntityTypeBuilder<DbRole> builder)
     {
         builder.ToTable("Roles");
 
@@ -22,13 +20,5 @@ public sealed class RoleConfiguration : IEntityTypeConfiguration<Role>
 
         builder.Property(role => role.Description)
             .HasMaxLength(500);
-
-        // The administrator role has no rows in RolePermissions: holding it implies every permission.
-        builder.HasData(new Role
-        {
-            Id = WellKnownRoles.AdministratorId,
-            Name = WellKnownRoles.AdministratorName,
-            Description = "Can do everything. Every permission is implied, including ones added later.",
-        });
     }
 }

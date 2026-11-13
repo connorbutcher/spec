@@ -1,6 +1,6 @@
 using PUSpecSheet.Application.Common;
 using PUSpecSheet.Contracts.Templates;
-using PUSpecSheet.Database.Entities.Templates;
+using PUSpecSheet.Database;
 using PUSpecSheet.Domain.Templates;
 
 namespace PUSpecSheet.Application.Templates.Sections;
@@ -9,7 +9,7 @@ namespace PUSpecSheet.Application.Templates.Sections;
 internal static class SectionInstanceRules
 {
     /// <summary>The header is always exactly one copy; its counts can't change.</summary>
-    public static void ApplyHeader(TemplateSection section)
+    public static void ApplyHeader(DbTemplateSection section)
     {
         section.Role = SectionRole.Header;
         section.MinInstances = 1;
@@ -18,7 +18,7 @@ internal static class SectionInstanceRules
     }
 
     /// <summary>Applies an addable section's counts, which must satisfy min &lt;= starts with &lt;= max.</summary>
-    public static void ApplyAddable(UpdateTemplateSectionRequest request, TemplateSection section)
+    public static void ApplyAddable(UpdateTemplateSectionRequest request, DbTemplateSection section)
     {
         EnsureValid(request.MinInstances, request.MaxInstances, request.InitialInstances);
 
@@ -29,7 +29,7 @@ internal static class SectionInstanceRules
     }
 
     /// <summary>The counts a new addable section starts with: none until someone adds one on a sheet.</summary>
-    public static void ApplyNewAddable(TemplateSection section)
+    public static void ApplyNewAddable(DbTemplateSection section)
     {
         section.Role = SectionRole.Addable;
         section.MinInstances = 0;

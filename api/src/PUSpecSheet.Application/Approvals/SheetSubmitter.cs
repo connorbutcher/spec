@@ -3,7 +3,6 @@ using PUSpecSheet.Application.Sheets.Publishing;
 using PUSpecSheet.Application.Users;
 using PUSpecSheet.Contracts.Approvals;
 using PUSpecSheet.Database;
-using PUSpecSheet.Database.Entities.Approvals;
 using PUSpecSheet.Domain.Approvals;
 
 namespace PUSpecSheet.Application.Approvals;
@@ -42,7 +41,7 @@ public sealed class SheetSubmitter
         var approverIds = await approvers.EnsureEligibleAsync(request.ApproverUserIds, me, cancellationToken);
         var drafts = await publisher.PrepareAsync(sheetId, request.Scope, cancellationToken);
 
-        var submission = new SheetSubmission
+        var submission = new DbSheetSubmission
         {
             SheetId = sheetId,
             Note = string.IsNullOrWhiteSpace(request.Note) ? null : request.Note.Trim(),
@@ -52,7 +51,7 @@ public sealed class SheetSubmitter
         };
         foreach (var approverId in approverIds)
         {
-            submission.Approvers.Add(new SheetSubmissionApprover { UserId = approverId, Decision = ApprovalDecision.Pending });
+            submission.Approvers.Add(new DbSheetSubmissionApprover { UserId = approverId, Decision = ApprovalDecision.Pending });
         }
 
         await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);

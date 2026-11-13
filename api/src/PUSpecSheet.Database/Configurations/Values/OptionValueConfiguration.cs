@@ -1,14 +1,13 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using PUSpecSheet.Database.Entities.Values;
 
 namespace PUSpecSheet.Database.Configurations.Values;
 
-public sealed class OptionValueConfiguration : CellValueConfiguration<OptionValue>
+public sealed class OptionValueConfiguration : CellValueConfiguration<DbOptionValue>
 {
     protected override string TableName => "OptionValues";
 
-    protected override void ConfigureValue(EntityTypeBuilder<OptionValue> builder)
+    protected override void ConfigureValue(EntityTypeBuilder<DbOptionValue> builder)
     {
         builder.HasOne(value => value.SheetRowRevision)
             .WithMany(revision => revision.OptionValues)

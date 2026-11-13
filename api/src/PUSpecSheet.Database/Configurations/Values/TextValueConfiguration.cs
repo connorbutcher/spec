@@ -1,10 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using PUSpecSheet.Database.Entities.Values;
 
 namespace PUSpecSheet.Database.Configurations.Values;
 
-public sealed class TextValueConfiguration : CellValueConfiguration<TextValue>
+public sealed class TextValueConfiguration : CellValueConfiguration<DbTextValue>
 {
     /// <summary>
     /// The shadow property holding the start of the value, which is what a lookup by value seeks on. The
@@ -17,7 +16,7 @@ public sealed class TextValueConfiguration : CellValueConfiguration<TextValue>
 
     protected override string TableName => "TextValues";
 
-    protected override void ConfigureValue(EntityTypeBuilder<TextValue> builder)
+    protected override void ConfigureValue(EntityTypeBuilder<DbTextValue> builder)
     {
         builder.Property(value => value.Value)
             .IsRequired()
@@ -29,7 +28,7 @@ public sealed class TextValueConfiguration : CellValueConfiguration<TextValue>
             .HasComputedColumnSql($"CONVERT(nvarchar({LookupValueLength}), LEFT([Value], {LookupValueLength}))", stored: true);
 
         builder.HasIndex(LookupValue)
-            .IncludeProperties(nameof(TextValue.SheetCellId), nameof(TextValue.SheetRowRevisionId))
+            .IncludeProperties(nameof(DbTextValue.SheetCellId), nameof(DbTextValue.SheetRowRevisionId))
             .HasDatabaseName("IX_TextValues_LookupValue");
 
         builder.HasOne(value => value.SheetRowRevision)

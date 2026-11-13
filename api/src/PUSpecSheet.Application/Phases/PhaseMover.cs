@@ -1,5 +1,5 @@
 using PUSpecSheet.Application.Common;
-using PUSpecSheet.Database.Entities.Phases;
+using PUSpecSheet.Database;
 
 namespace PUSpecSheet.Application.Phases;
 
@@ -12,7 +12,7 @@ internal static class PhaseMover
     /// the ones it leaves, 1..n. <paramref name="all"/> is every phase, including the one moved. A phase
     /// can't go under itself or anything beneath it.
     /// </summary>
-    public static void Move(IReadOnlyCollection<Phase> all, Phase phase, int? newParentId, int position)
+    public static void Move(IReadOnlyCollection<DbPhase> all, DbPhase phase, int? newParentId, int position)
     {
         if (newParentId is { } parentId)
         {
@@ -39,7 +39,7 @@ internal static class PhaseMover
     }
 
     /// <summary>Whether <paramref name="candidateId"/> is <paramref name="rootId"/> or sits anywhere beneath it.</summary>
-    public static bool IsInSubtree(IReadOnlyCollection<Phase> all, int rootId, int candidateId)
+    public static bool IsInSubtree(IReadOnlyCollection<DbPhase> all, int rootId, int candidateId)
     {
         var parents = all.ToDictionary(phase => phase.Id, phase => phase.ParentPhaseId);
         var seen = new HashSet<int>();
@@ -59,7 +59,7 @@ internal static class PhaseMover
     }
 
     /// <summary>The phases under a parent as they are listed: by display order, then code.</summary>
-    private static List<Phase> SiblingsUnder(IReadOnlyCollection<Phase> all, int? parentId)
+    private static List<DbPhase> SiblingsUnder(IReadOnlyCollection<DbPhase> all, int? parentId)
     {
         return all
             .Where(candidate => candidate.ParentPhaseId == parentId)
@@ -68,12 +68,12 @@ internal static class PhaseMover
             .ToList();
     }
 
-    private static int GetOrder(Phase phase)
+    private static int GetOrder(DbPhase phase)
     {
         return phase.DisplayOrder;
     }
 
-    private static void SetOrder(Phase phase, int order)
+    private static void SetOrder(DbPhase phase, int order)
     {
         phase.DisplayOrder = order;
     }

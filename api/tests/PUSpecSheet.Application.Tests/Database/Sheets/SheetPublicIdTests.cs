@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore.Metadata;
-using PUSpecSheet.Database.Entities.Sheets;
+using PUSpecSheet.Database;
 
 namespace PUSpecSheet.Application.Tests.Database.Sheets;
 
@@ -12,25 +12,25 @@ public sealed class SheetPublicIdTests
 {
     public static TheoryData<Type> Items => new()
     {
-        typeof(Sheet),
-        typeof(SheetTable),
-        typeof(SheetSection),
-        typeof(SheetRow),
-        typeof(SheetCell),
+        typeof(DbSheet),
+        typeof(DbSheetTable),
+        typeof(DbSheetSection),
+        typeof(DbSheetRow),
+        typeof(DbSheetCell),
     };
 
     public static TheoryData<Type> Revisions => new()
     {
-        typeof(SheetTableRevision),
-        typeof(SheetSectionRevision),
-        typeof(SheetRowRevision),
+        typeof(DbSheetTableRevision),
+        typeof(DbSheetSectionRevision),
+        typeof(DbSheetRowRevision),
     };
 
     [Theory]
     [MemberData(nameof(Items))]
     public void PublicId_IsGeneratedOnInsertAndNeverChanged(Type item)
     {
-        var property = SheetModelFixture.Model.FindEntityType(item)!.FindProperty(nameof(SheetRow.PublicId))!;
+        var property = SheetModelFixture.Model.FindEntityType(item)!.FindProperty(nameof(DbSheetRow.PublicId))!;
 
         Assert.Equal(ValueGenerated.OnAdd, property.ValueGenerated);
         Assert.Equal(PropertySaveBehavior.Throw, property.GetAfterSaveBehavior());
@@ -41,7 +41,7 @@ public sealed class SheetPublicIdTests
     public void PublicId_IsUnique(Type item)
     {
         var entity = SheetModelFixture.Model.FindEntityType(item)!;
-        var property = entity.FindProperty(nameof(SheetRow.PublicId))!;
+        var property = entity.FindProperty(nameof(DbSheetRow.PublicId))!;
 
         Assert.Contains(entity.GetIndexes(), index => index.IsUnique && index.Properties.SequenceEqual([property]));
     }
@@ -50,13 +50,13 @@ public sealed class SheetPublicIdTests
     [MemberData(nameof(Revisions))]
     public void Revisions_CannotMintAnIdentityOfTheirOwn(Type revision)
     {
-        Assert.Null(SheetModelFixture.Model.FindEntityType(revision)!.FindProperty(nameof(SheetRow.PublicId)));
+        Assert.Null(SheetModelFixture.Model.FindEntityType(revision)!.FindProperty(nameof(DbSheetRow.PublicId)));
     }
 
     [Theory]
-    [InlineData(typeof(SheetTableRevision), nameof(SheetTableRevision.SheetTableId))]
-    [InlineData(typeof(SheetSectionRevision), nameof(SheetSectionRevision.SheetSectionId))]
-    [InlineData(typeof(SheetRowRevision), nameof(SheetRowRevision.SheetRowId))]
+    [InlineData(typeof(DbSheetTableRevision), nameof(DbSheetTableRevision.SheetTableId))]
+    [InlineData(typeof(DbSheetSectionRevision), nameof(DbSheetSectionRevision.SheetSectionId))]
+    [InlineData(typeof(DbSheetRowRevision), nameof(DbSheetRowRevision.SheetRowId))]
     public void Revisions_PointAtTheItemTheyAreAVersionOf(Type revision, string itemKey)
     {
         var entity = SheetModelFixture.Model.FindEntityType(revision)!;

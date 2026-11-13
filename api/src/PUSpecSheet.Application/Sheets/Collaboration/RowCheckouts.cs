@@ -5,7 +5,6 @@ using PUSpecSheet.Application.Sheets.Revisions;
 using PUSpecSheet.Application.Sheets.Values;
 using PUSpecSheet.Application.Users.Queries;
 using PUSpecSheet.Database;
-using PUSpecSheet.Database.Entities.Sheets;
 using PUSpecSheet.Domain.Sheets;
 
 namespace PUSpecSheet.Application.Sheets.Collaboration;
@@ -130,7 +129,7 @@ public sealed class RowCheckouts : IRowCheckouts
     /// is worth keeping (<see cref="RowDrafts"/>): its place, its existence and every cell's value. A row
     /// that has never been published is all change.
     /// </summary>
-    private async Task<bool> HasChangesAsync(SheetRowRevision draft, SheetRowRevision? published, CancellationToken cancellationToken)
+    private async Task<bool> HasChangesAsync(DbSheetRowRevision draft, DbSheetRowRevision? published, CancellationToken cancellationToken)
     {
         if (published is null || !SheetRevisionComparer.SameStructure(draft, published))
         {

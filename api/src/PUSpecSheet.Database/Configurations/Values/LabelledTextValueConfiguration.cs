@@ -1,11 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using PUSpecSheet.Database.Entities.Values;
 using PUSpecSheet.Domain.CellTypes.LabelledText;
 
 namespace PUSpecSheet.Database.Configurations.Values;
 
-public sealed class LabelledTextValueConfiguration : CellValueConfiguration<LabelledTextValue>
+public sealed class LabelledTextValueConfiguration : CellValueConfiguration<DbLabelledTextValue>
 {
     /// <summary>The shadow property holding the start of the value, which a lookup by value seeks on, as for text values.</summary>
     public const string LookupValue = TextValueConfiguration.LookupValue;
@@ -13,12 +12,12 @@ public sealed class LabelledTextValueConfiguration : CellValueConfiguration<Labe
     protected override string TableName => "LabelledTextValues";
 
     /// <summary>A labelled text cell holds one value for each of its slots.</summary>
-    protected override void ConfigureKey(EntityTypeBuilder<LabelledTextValue> builder)
+    protected override void ConfigureKey(EntityTypeBuilder<DbLabelledTextValue> builder)
     {
         builder.HasKey(value => new { value.SheetRowRevisionId, value.SheetCellId, value.SlotKey });
     }
 
-    protected override void ConfigureValue(EntityTypeBuilder<LabelledTextValue> builder)
+    protected override void ConfigureValue(EntityTypeBuilder<DbLabelledTextValue> builder)
     {
         builder.Property(value => value.SlotKey)
             .IsRequired()
@@ -36,7 +35,7 @@ public sealed class LabelledTextValueConfiguration : CellValueConfiguration<Labe
             .HasComputedColumnSql($"CONVERT(nvarchar({length}), LEFT([Value], {length}))", stored: true);
 
         builder.HasIndex(LookupValue)
-            .IncludeProperties(nameof(LabelledTextValue.SheetCellId), nameof(LabelledTextValue.SheetRowRevisionId))
+            .IncludeProperties(nameof(DbLabelledTextValue.SheetCellId), nameof(DbLabelledTextValue.SheetRowRevisionId))
             .HasDatabaseName("IX_LabelledTextValues_LookupValue");
 
         builder.HasOne(value => value.SheetRowRevision)

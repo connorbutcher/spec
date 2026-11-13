@@ -1,18 +1,12 @@
 using Microsoft.EntityFrameworkCore;
-using PUSpecSheet.Database.Entities.Approvals;
-using PUSpecSheet.Database.Entities.CellTypes;
-using PUSpecSheet.Database.Entities.Phases;
-using PUSpecSheet.Database.Entities.Sheets;
-using PUSpecSheet.Database.Entities.SheetTypes;
-using PUSpecSheet.Database.Entities.Templates;
-using PUSpecSheet.Database.Entities.Users;
-using PUSpecSheet.Database.Entities.Values;
 
 namespace PUSpecSheet.Database;
 
 /// <summary>
-/// The EF Core unit of work for the spec sheet database. Entity configurations live in their own
-/// <see cref="IEntityTypeConfiguration{TEntity}"/> classes in this assembly and are picked up here.
+/// The EF Core unit of work for the spec sheet database. The database is built database first: the schema is
+/// owned by the SQL database project in <c>database/</c>, and the <c>Db*</c> entities and their
+/// <see cref="IEntityTypeConfiguration{TEntity}"/> mappings in this assembly describe it to EF Core. A schema
+/// change is made in the SQL project first, then mirrored here.
 /// </summary>
 public sealed class PuSpecSheetDbContext : DbContext
 {
@@ -21,77 +15,77 @@ public sealed class PuSpecSheetDbContext : DbContext
     {
     }
 
-    public DbSet<SheetType> SheetTypes => Set<SheetType>();
+    public DbSet<DbSheetType> SheetTypes => Set<DbSheetType>();
 
-    public DbSet<Phase> Phases => Set<Phase>();
+    public DbSet<DbPhase> Phases => Set<DbPhase>();
 
-    public DbSet<PhaseSheetType> PhaseSheetTypes => Set<PhaseSheetType>();
+    public DbSet<DbPhaseSheetType> PhaseSheetTypes => Set<DbPhaseSheetType>();
 
-    public DbSet<CellType> CellTypes => Set<CellType>();
+    public DbSet<DbCellType> CellTypes => Set<DbCellType>();
 
-    public DbSet<CellTypeOption> CellTypeOptions => Set<CellTypeOption>();
+    public DbSet<DbCellTypeOption> CellTypeOptions => Set<DbCellTypeOption>();
 
-    public DbSet<TableTemplate> TableTemplates => Set<TableTemplate>();
+    public DbSet<DbTableTemplate> TableTemplates => Set<DbTableTemplate>();
 
-    public DbSet<TableTemplateVersion> TableTemplateVersions => Set<TableTemplateVersion>();
+    public DbSet<DbTableTemplateVersion> TableTemplateVersions => Set<DbTableTemplateVersion>();
 
-    public DbSet<TemplateSection> TemplateSections => Set<TemplateSection>();
+    public DbSet<DbTemplateSection> TemplateSections => Set<DbTemplateSection>();
 
-    public DbSet<TemplateRow> TemplateRows => Set<TemplateRow>();
+    public DbSet<DbTemplateRow> TemplateRows => Set<DbTemplateRow>();
 
-    public DbSet<TemplateCell> TemplateCells => Set<TemplateCell>();
+    public DbSet<DbTemplateCell> TemplateCells => Set<DbTemplateCell>();
 
-    public DbSet<TemplateColumnBlock> TemplateColumnBlocks => Set<TemplateColumnBlock>();
+    public DbSet<DbTemplateColumnBlock> TemplateColumnBlocks => Set<DbTemplateColumnBlock>();
 
-    public DbSet<User> Users => Set<User>();
+    public DbSet<DbUser> Users => Set<DbUser>();
 
-    public DbSet<Role> Roles => Set<Role>();
+    public DbSet<DbRole> Roles => Set<DbRole>();
 
-    public DbSet<Permission> Permissions => Set<Permission>();
+    public DbSet<DbPermission> Permissions => Set<DbPermission>();
 
-    public DbSet<RolePermission> RolePermissions => Set<RolePermission>();
+    public DbSet<DbRolePermission> RolePermissions => Set<DbRolePermission>();
 
-    public DbSet<UserRole> UserRoles => Set<UserRole>();
+    public DbSet<DbUserRole> UserRoles => Set<DbUserRole>();
 
-    public DbSet<Sheet> Sheets => Set<Sheet>();
+    public DbSet<DbSheet> Sheets => Set<DbSheet>();
 
-    public DbSet<SheetVersion> SheetVersions => Set<SheetVersion>();
+    public DbSet<DbSheetVersion> SheetVersions => Set<DbSheetVersion>();
 
-    public DbSet<SheetSubmission> SheetSubmissions => Set<SheetSubmission>();
+    public DbSet<DbSheetSubmission> SheetSubmissions => Set<DbSheetSubmission>();
 
-    public DbSet<SheetSubmissionApprover> SheetSubmissionApprovers => Set<SheetSubmissionApprover>();
+    public DbSet<DbSheetSubmissionApprover> SheetSubmissionApprovers => Set<DbSheetSubmissionApprover>();
 
-    public DbSet<SheetTable> SheetTables => Set<SheetTable>();
+    public DbSet<DbSheetTable> SheetTables => Set<DbSheetTable>();
 
-    public DbSet<SheetTableRevision> SheetTableRevisions => Set<SheetTableRevision>();
+    public DbSet<DbSheetTableRevision> SheetTableRevisions => Set<DbSheetTableRevision>();
 
-    public DbSet<SheetSection> SheetSections => Set<SheetSection>();
+    public DbSet<DbSheetSection> SheetSections => Set<DbSheetSection>();
 
-    public DbSet<SheetSectionRevision> SheetSectionRevisions => Set<SheetSectionRevision>();
+    public DbSet<DbSheetSectionRevision> SheetSectionRevisions => Set<DbSheetSectionRevision>();
 
-    public DbSet<SheetColumnBlock> SheetColumnBlocks => Set<SheetColumnBlock>();
+    public DbSet<DbSheetColumnBlock> SheetColumnBlocks => Set<DbSheetColumnBlock>();
 
-    public DbSet<SheetColumnBlockRevision> SheetColumnBlockRevisions => Set<SheetColumnBlockRevision>();
+    public DbSet<DbSheetColumnBlockRevision> SheetColumnBlockRevisions => Set<DbSheetColumnBlockRevision>();
 
-    public DbSet<SheetRow> SheetRows => Set<SheetRow>();
+    public DbSet<DbSheetRow> SheetRows => Set<DbSheetRow>();
 
-    public DbSet<SheetCell> SheetCells => Set<SheetCell>();
+    public DbSet<DbSheetCell> SheetCells => Set<DbSheetCell>();
 
-    public DbSet<SheetRowRevision> SheetRowRevisions => Set<SheetRowRevision>();
+    public DbSet<DbSheetRowRevision> SheetRowRevisions => Set<DbSheetRowRevision>();
 
-    public DbSet<TextValue> TextValues => Set<TextValue>();
+    public DbSet<DbTextValue> TextValues => Set<DbTextValue>();
 
-    public DbSet<NumericValue> NumericValues => Set<NumericValue>();
+    public DbSet<DbNumericValue> NumericValues => Set<DbNumericValue>();
 
-    public DbSet<DateValue> DateValues => Set<DateValue>();
+    public DbSet<DbDateValue> DateValues => Set<DbDateValue>();
 
-    public DbSet<BooleanValue> BooleanValues => Set<BooleanValue>();
+    public DbSet<DbBooleanValue> BooleanValues => Set<DbBooleanValue>();
 
-    public DbSet<OptionValue> OptionValues => Set<OptionValue>();
+    public DbSet<DbOptionValue> OptionValues => Set<DbOptionValue>();
 
-    public DbSet<CellSettingsValue> CellSettings => Set<CellSettingsValue>();
+    public DbSet<DbCellSettingsValue> CellSettings => Set<DbCellSettingsValue>();
 
-    public DbSet<LabelledTextValue> LabelledTextValues => Set<LabelledTextValue>();
+    public DbSet<DbLabelledTextValue> LabelledTextValues => Set<DbLabelledTextValue>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

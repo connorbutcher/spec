@@ -5,7 +5,6 @@ using PUSpecSheet.Application.Sheets.Revisions;
 using PUSpecSheet.Application.Users;
 using PUSpecSheet.Application.Users.Queries;
 using PUSpecSheet.Database;
-using PUSpecSheet.Database.Entities.Sheets;
 using PUSpecSheet.Domain.Sheets;
 
 namespace PUSpecSheet.Application.Sheets.Drafts;
@@ -16,7 +15,7 @@ namespace PUSpecSheet.Application.Sheets.Drafts;
 /// per revision type names it and says what else makes a draft different from what is published.
 /// </summary>
 public abstract class DraftGateway<TRevision>
-    where TRevision : class, ISheetRevision, new()
+    where TRevision : class, IDbSheetRevision, new()
 {
     private readonly PuSpecSheetDbContext db;
     private readonly ICurrentUser currentUser;

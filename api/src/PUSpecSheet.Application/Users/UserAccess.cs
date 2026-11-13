@@ -1,4 +1,4 @@
-using PUSpecSheet.Database.Entities.Users;
+using PUSpecSheet.Database;
 using PUSpecSheet.Domain.Users;
 
 namespace PUSpecSheet.Application.Users;
@@ -51,7 +51,7 @@ public sealed record UserAccess
     /// to be loaded. The Administrator role is recognised as a role and gives every permission, whatever
     /// is listed against it; an inactive user has no roles to speak of.
     /// </summary>
-    public static UserAccess From(User user)
+    public static UserAccess From(DbUser user)
     {
         var roles = user.IsActive
             ? user.Roles.Select(link => link.Role).OrderBy(role => role.Name, StringComparer.OrdinalIgnoreCase).ToList()

@@ -7,8 +7,6 @@ using PUSpecSheet.Application.Sheets.Values;
 using PUSpecSheet.Application.Templates.Queries;
 using PUSpecSheet.Application.Users.Queries;
 using PUSpecSheet.Database;
-using PUSpecSheet.Database.Entities.Sheets;
-using PUSpecSheet.Database.Entities.Templates;
 
 namespace PUSpecSheet.Application.Sheets.Reading;
 
@@ -82,7 +80,7 @@ public sealed class SheetSnapshotLoader
         return snapshot with { Changes = await changeLoader.LoadAsync(snapshot, moment, cancellationToken) };
     }
 
-    private static (DateTime? Moment, int? VersionNumber) ResolveMoment(SheetViewPoint view, IReadOnlyList<SheetVersion> versions)
+    private static (DateTime? Moment, int? VersionNumber) ResolveMoment(SheetViewPoint view, IReadOnlyList<DbSheetVersion> versions)
     {
         if (view.VersionNumber is { } number)
         {
@@ -99,7 +97,7 @@ public sealed class SheetSnapshotLoader
         Func<TRevision, int> itemId,
         SheetViewPoint view,
         int currentUserId)
-        where TRevision : class, ISheetRevision
+        where TRevision : class, IDbSheetRevision
     {
         // Reviewing a submission shows its drafts and nobody else's, the reviewer's own included.
         return view.ReviewedSubmissionId is { } submissionId
@@ -112,7 +110,7 @@ public sealed class SheetSnapshotLoader
     /// aren't among them in one more query. Joining them into the rows' query instead would read and build
     /// each template cell again for every cell made from it.
     /// </summary>
-    private async Task AttachTemplateCellsAsync(List<SheetRow> rows, List<TemplateRow> templateRows, CancellationToken cancellationToken)
+    private async Task AttachTemplateCellsAsync(List<DbSheetRow> rows, List<DbTemplateRow> templateRows, CancellationToken cancellationToken)
     {
         var templateCells = templateRows.SelectMany(row => row.Cells).ToDictionary(cell => cell.Id);
         var cells = rows.SelectMany(row => row.Cells).ToList();
@@ -142,7 +140,7 @@ public sealed class SheetSnapshotLoader
     /// </summary>
     private async Task<Dictionary<int, Dictionary<int, CellValueBag>>> LoadShownValuesAsync(
         int sheetId,
-        Dictionary<int, RevisionResolution<SheetRowRevision>> rowRevisions,
+        Dictionary<int, RevisionResolution<DbSheetRowRevision>> rowRevisions,
         DateTime? moment,
         CancellationToken cancellationToken)
     {

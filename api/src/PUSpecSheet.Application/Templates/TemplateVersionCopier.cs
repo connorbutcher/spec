@@ -1,4 +1,4 @@
-using PUSpecSheet.Database.Entities.Templates;
+using PUSpecSheet.Database;
 
 namespace PUSpecSheet.Application.Templates;
 
@@ -9,13 +9,13 @@ internal static class TemplateVersionCopier
     /// Builds the copy from the source version's <paramref name="sections"/> (with their rows and cells) and
     /// <paramref name="columnBlocks"/>; the caller adds and saves it.
     /// </summary>
-    public static TableTemplateVersion Copy(
-        TableTemplateVersion source,
+    public static DbTableTemplateVersion Copy(
+        DbTableTemplateVersion source,
         int newVersionNumber,
-        IReadOnlyList<TemplateSection> sections,
-        IReadOnlyList<TemplateColumnBlock> columnBlocks)
+        IReadOnlyList<DbTemplateSection> sections,
+        IReadOnlyList<DbTemplateColumnBlock> columnBlocks)
     {
-        var copy = new TableTemplateVersion
+        var copy = new DbTableTemplateVersion
         {
             TableTemplateId = source.TableTemplateId,
             VersionNumber = newVersionNumber,
@@ -34,9 +34,9 @@ internal static class TemplateVersionCopier
         return copy;
     }
 
-    private static TemplateColumnBlock CopyColumnBlock(TemplateColumnBlock block, TableTemplateVersion version)
+    private static DbTemplateColumnBlock CopyColumnBlock(DbTemplateColumnBlock block, DbTableTemplateVersion version)
     {
-        var copy = new TemplateColumnBlock
+        var copy = new DbTemplateColumnBlock
         {
             TableTemplateVersion = version,
             Name = block.Name,
@@ -51,12 +51,12 @@ internal static class TemplateVersionCopier
         return copy;
     }
 
-    private static TemplateSection CopySection(
-        TemplateSection section,
-        TableTemplateVersion version,
-        Dictionary<int, TemplateColumnBlock> blockCopies)
+    private static DbTemplateSection CopySection(
+        DbTemplateSection section,
+        DbTableTemplateVersion version,
+        Dictionary<int, DbTemplateColumnBlock> blockCopies)
     {
-        var copy = new TemplateSection
+        var copy = new DbTemplateSection
         {
             TableTemplateVersion = version,
             Name = section.Name,
@@ -66,11 +66,11 @@ internal static class TemplateVersionCopier
             MaxInstances = section.MaxInstances,
             InitialInstances = section.InitialInstances,
             Rows = section.Rows
-                .Select(row => new TemplateRow
+                .Select(row => new DbTemplateRow
                 {
                     DisplayOrder = row.DisplayOrder,
                     Cells = row.Cells
-                        .Select(cell => new TemplateCell
+                        .Select(cell => new DbTemplateCell
                         {
                             TemplateColumnBlock = cell.TemplateColumnBlockId is int blockId ? blockCopies[blockId] : null,
                             Column = cell.Column,

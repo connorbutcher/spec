@@ -1,12 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using PUSpecSheet.Database.Entities.SheetTypes;
 
 namespace PUSpecSheet.Database.Configurations.SheetTypes;
 
-public sealed class SheetTypeConfiguration : IEntityTypeConfiguration<SheetType>
+public sealed class SheetTypeConfiguration : IEntityTypeConfiguration<DbSheetType>
 {
-    public void Configure(EntityTypeBuilder<SheetType> builder)
+    public void Configure(EntityTypeBuilder<DbSheetType> builder)
     {
         builder.ToTable("SheetTypes");
 
@@ -18,13 +17,5 @@ public sealed class SheetTypeConfiguration : IEntityTypeConfiguration<SheetType>
 
         builder.HasIndex(sheetType => sheetType.Name)
             .IsUnique();
-
-        builder.HasData(
-            new SheetType { Id = 1, Name = "Specification", DisplayOrder = 1 },
-            new SheetType { Id = 2, Name = "Parts", DisplayOrder = 2 },
-            new SheetType { Id = 3, Name = "PFKs", DisplayOrder = 3 },
-            new SheetType { Id = 4, Name = "Engine Specifications", DisplayOrder = 4 },
-            new SheetType { Id = 5, Name = "Confirmation", DisplayOrder = 5 },
-            new SheetType { Id = 6, Name = "Torque Sheet", DisplayOrder = 6 });
     }
 }

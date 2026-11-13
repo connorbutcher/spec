@@ -1,4 +1,4 @@
-using PUSpecSheet.Database.Entities.CellTypes;
+using PUSpecSheet.Database;
 using PUSpecSheet.Domain.CellTypes;
 
 namespace PUSpecSheet.Application.Seeding;
@@ -9,11 +9,11 @@ namespace PUSpecSheet.Application.Seeding;
 /// </summary>
 public sealed class ShowcaseCellTypeCatalog
 {
-    private readonly Dictionary<string, CellType> byName;
+    private readonly Dictionary<string, DbCellType> byName;
 
-    private readonly Dictionary<int, CellType> byId;
+    private readonly Dictionary<int, DbCellType> byId;
 
-    public ShowcaseCellTypeCatalog(IReadOnlyList<CellType> cellTypes)
+    public ShowcaseCellTypeCatalog(IReadOnlyList<DbCellType> cellTypes)
     {
         this.byName = cellTypes.ToDictionary(cellType => cellType.Name, StringComparer.OrdinalIgnoreCase);
         this.byId = cellTypes.ToDictionary(cellType => cellType.Id);

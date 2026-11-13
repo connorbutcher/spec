@@ -1,6 +1,5 @@
 using PUSpecSheet.Application.Sheets.Linking;
-using PUSpecSheet.Database.Entities.CellTypes;
-using PUSpecSheet.Database.Entities.Templates;
+using PUSpecSheet.Database;
 using PUSpecSheet.Domain.CellTypes;
 using PUSpecSheet.Domain.Templates;
 
@@ -14,17 +13,17 @@ public sealed class LinkableColumnsTests
     private const int Number = 3;
     private const int Checkbox = 4;
 
-    private static readonly Dictionary<int, CellType> CellTypes = new()
+    private static readonly Dictionary<int, DbCellType> CellTypes = new()
     {
-        [Heading] = new CellType { Id = Heading, Name = "Heading", Kind = CellKind.Heading },
-        [Text] = new CellType { Id = Text, Name = "Text", Kind = CellKind.Text },
-        [Number] = new CellType { Id = Number, Name = "Number", Kind = CellKind.Number },
-        [Checkbox] = new CellType { Id = Checkbox, Name = "Checkbox", Kind = CellKind.Checkbox },
+        [Heading] = new DbCellType { Id = Heading, Name = "Heading", Kind = CellKind.Heading },
+        [Text] = new DbCellType { Id = Text, Name = "Text", Kind = CellKind.Text },
+        [Number] = new DbCellType { Id = Number, Name = "Number", Kind = CellKind.Number },
+        [Checkbox] = new DbCellType { Id = Checkbox, Name = "Checkbox", Kind = CellKind.Checkbox },
     };
 
-    private static readonly TemplateSection Header = new() { Id = 1, Name = "Header", Role = SectionRole.Header, DisplayOrder = 1 };
-    private static readonly TemplateSection Parts = new() { Id = 2, Name = "Parts", Role = SectionRole.Addable, DisplayOrder = 2 };
-    private static readonly TemplateSection Spares = new() { Id = 3, Name = "Spares", Role = SectionRole.Addable, DisplayOrder = 3 };
+    private static readonly DbTemplateSection Header = new() { Id = 1, Name = "Header", Role = SectionRole.Header, DisplayOrder = 1 };
+    private static readonly DbTemplateSection Parts = new() { Id = 2, Name = "Parts", Role = SectionRole.Addable, DisplayOrder = 2 };
+    private static readonly DbTemplateSection Spares = new() { Id = 3, Name = "Spares", Role = SectionRole.Addable, DisplayOrder = 3 };
 
     [Fact]
     public void AColumn_IsNamedByItsCaptionThenItsLookupKeyThenTheHeadingAboveItThenItsCellType()
@@ -92,7 +91,7 @@ public sealed class LinkableColumnsTests
     [Fact]
     public void RowsOfAnotherTemplateVersion_AreLeftOut()
     {
-        var elsewhere = new TemplateSection { Id = 99, Name = "Elsewhere", Role = SectionRole.Addable };
+        var elsewhere = new DbTemplateSection { Id = 99, Name = "Elsewhere", Role = SectionRole.Addable };
         var rows = new[] { Row(1, Parts, Cell(20, Text, 1)), Row(2, elsewhere, Cell(30, Text, 1)) };
 
         var columns = LinkableColumns.For([Parts], rows, CellTypes);
@@ -100,14 +99,14 @@ public sealed class LinkableColumnsTests
         Assert.Equal([20], columns.Select(column => column.TemplateCellId));
     }
 
-    private static TemplateRow Row(int id, TemplateSection section, params TemplateCell[] cells)
+    private static DbTemplateRow Row(int id, DbTemplateSection section, params DbTemplateCell[] cells)
     {
-        return new TemplateRow { Id = id, TemplateSectionId = section.Id, DisplayOrder = id, Cells = cells };
+        return new DbTemplateRow { Id = id, TemplateSectionId = section.Id, DisplayOrder = id, Cells = cells };
     }
 
-    private static TemplateCell Cell(int id, int cellTypeId, int column, string? caption = null, string? lookupKey = null, int columnSpan = 1, int? blockId = null)
+    private static DbTemplateCell Cell(int id, int cellTypeId, int column, string? caption = null, string? lookupKey = null, int columnSpan = 1, int? blockId = null)
     {
-        return new TemplateCell
+        return new DbTemplateCell
         {
             Id = id,
             CellTypeId = cellTypeId,

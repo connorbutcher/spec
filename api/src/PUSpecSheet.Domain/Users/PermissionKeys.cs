@@ -2,8 +2,8 @@ namespace PUSpecSheet.Domain.Users;
 
 /// <summary>
 /// The key of every permission. Each one is also a row in the Permissions table and the name of the
-/// API's authorization policy for it. To add one, add its key here, to <see cref="All"/> and to the
-/// Permissions seed data, then create a migration.
+/// API's authorization policy for it. To add one, add its key here, to <see cref="All"/> and a row for it in
+/// the Permissions block of database/Script.PostDeployment.sql, then deploy the database project.
 /// </summary>
 public static class PermissionKeys
 {

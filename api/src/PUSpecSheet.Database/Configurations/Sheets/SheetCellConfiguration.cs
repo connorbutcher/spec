@@ -1,12 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using PUSpecSheet.Database.Entities.Sheets;
 
 namespace PUSpecSheet.Database.Configurations.Sheets;
 
-public sealed class SheetCellConfiguration : IEntityTypeConfiguration<SheetCell>
+public sealed class SheetCellConfiguration : IEntityTypeConfiguration<DbSheetCell>
 {
-    public void Configure(EntityTypeBuilder<SheetCell> builder)
+    public void Configure(EntityTypeBuilder<DbSheetCell> builder)
     {
         ConfigureTable(builder);
         ConfigureProperties(builder);
@@ -14,19 +13,19 @@ public sealed class SheetCellConfiguration : IEntityTypeConfiguration<SheetCell>
         ConfigureRelationships(builder);
     }
 
-    private static void ConfigureTable(EntityTypeBuilder<SheetCell> builder)
+    private static void ConfigureTable(EntityTypeBuilder<DbSheetCell> builder)
     {
         builder.ToTable("SheetCells");
 
         builder.HasKey(cell => cell.Id);
     }
 
-    private static void ConfigureProperties(EntityTypeBuilder<SheetCell> builder)
+    private static void ConfigureProperties(EntityTypeBuilder<DbSheetCell> builder)
     {
         builder.HasPublicId(cell => cell.PublicId);
     }
 
-    private static void ConfigureIndexes(EntityTypeBuilder<SheetCell> builder)
+    private static void ConfigureIndexes(EntityTypeBuilder<DbSheetCell> builder)
     {
         // One cell per template cell in each row, and per column block copy for a block's cells. No
         // filter, so the row's own cells (no block) are unique too.
@@ -37,7 +36,7 @@ public sealed class SheetCellConfiguration : IEntityTypeConfiguration<SheetCell>
         builder.HasIndex(cell => cell.SheetColumnBlockId);
     }
 
-    private static void ConfigureRelationships(EntityTypeBuilder<SheetCell> builder)
+    private static void ConfigureRelationships(EntityTypeBuilder<DbSheetCell> builder)
     {
         builder.HasOne(cell => cell.SheetRow)
             .WithMany(row => row.Cells)

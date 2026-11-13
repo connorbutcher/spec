@@ -10,7 +10,6 @@ using PUSpecSheet.Application.Users;
 using PUSpecSheet.Contracts.Common;
 using PUSpecSheet.Contracts.Sheets;
 using PUSpecSheet.Database;
-using PUSpecSheet.Database.Entities.Sheets;
 using PUSpecSheet.Domain.Sheets;
 
 namespace PUSpecSheet.Application.Sheets.Editing;
@@ -58,8 +57,8 @@ public sealed class SheetTablesService : ISheetTablesService
         var tree = await TemplateTree.LoadAsync(db, version.Id, cancellationToken);
 
         var orders = await VisibleTableOrdersAsync(sheetId, excludingTableId: null, cancellationToken);
-        var table = new SheetTable { SheetId = sheetId, TableTemplateVersionId = version.Id };
-        table.Revisions.Add(new SheetTableRevision
+        var table = new DbSheetTable { SheetId = sheetId, TableTemplateVersionId = version.Id };
+        table.Revisions.Add(new DbSheetTableRevision
         {
             SheetId = sheetId,
             RevisionNumber = 1,
@@ -136,7 +135,7 @@ public sealed class SheetTablesService : ISheetTablesService
     }
 
     /// <summary>The user's draft on the table, carrying over the published title when it's newly started.</summary>
-    private async Task<SheetTableRevision> MyDraftAsync(int tableId, DraftState<SheetTableRevision> state, CancellationToken cancellationToken)
+    private async Task<DbSheetTableRevision> MyDraftAsync(int tableId, DraftState<DbSheetTableRevision> state, CancellationToken cancellationToken)
     {
         var (draft, created) = await drafts.EnsureMineAsync(tableId, state, cancellationToken);
         if (created)

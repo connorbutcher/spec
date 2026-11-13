@@ -1,6 +1,6 @@
 using PUSpecSheet.Application.Sheets.Linking;
 using PUSpecSheet.Application.Sheets.Values;
-using PUSpecSheet.Database.Entities.CellTypes;
+using PUSpecSheet.Database;
 using PUSpecSheet.Domain.CellTypes;
 using PUSpecSheet.Domain.CellTypes.Configurations;
 using PUSpecSheet.Domain.CellTypes.InstanceSettings;
@@ -92,11 +92,11 @@ public sealed class LinkedOptionsTests
     [Fact]
     public void AValue_ReadsAsAChoiceTheWayItsKindIsWritten()
     {
-        var dropdown = new CellType { Kind = CellKind.TextDropdown, Options = [new CellTypeOption { Id = 7, Value = "Pass" }] };
+        var dropdown = new DbCellType { Kind = CellKind.TextDropdown, Options = [new DbCellTypeOption { Id = 7, Value = "Pass" }] };
 
         Assert.Equal("P-1001", LinkedOptionText.Of(new CellValueBag { Text = " P-1001 " }, Type(CellKind.Text)));
         Assert.Equal("P-1001", LinkedOptionText.Of(new CellValueBag { Text = "P-1001" }, Type(CellKind.LinkedDropdown)));
-        Assert.Equal("12.5", LinkedOptionText.Of(new CellValueBag { Number = 12.5000000000m }, new CellType { Kind = CellKind.Number, Configuration = new NumberCellConfiguration() }));
+        Assert.Equal("12.5", LinkedOptionText.Of(new CellValueBag { Number = 12.5000000000m }, new DbCellType { Kind = CellKind.Number, Configuration = new NumberCellConfiguration() }));
         Assert.Equal("2026-10-08", LinkedOptionText.Of(new CellValueBag { Date = new DateOnly(2026, 10, 8) }, Type(CellKind.Date)));
         Assert.Equal("Pass", LinkedOptionText.Of(new CellValueBag { OptionId = 7 }, dropdown));
     }
@@ -104,7 +104,7 @@ public sealed class LinkedOptionsTests
     [Fact]
     public void ANumber_ReadsToItsCellsDecimalPlaces_AsItDoesOnTheSheet()
     {
-        var twoPlaces = new CellType { Kind = CellKind.Number, Configuration = new NumberCellConfiguration { DecimalPlaces = 2 } };
+        var twoPlaces = new DbCellType { Kind = CellKind.Number, Configuration = new NumberCellConfiguration { DecimalPlaces = 2 } };
 
         Assert.Equal("0.80", LinkedOptionText.Of(new CellValueBag { Number = 0.8m }, twoPlaces));
         Assert.Equal("82.00", LinkedOptionText.Of(new CellValueBag { Number = 82m }, twoPlaces));
@@ -119,8 +119,8 @@ public sealed class LinkedOptionsTests
         Assert.Null(LinkedOptionText.Of(new CellValueBag { Boolean = true }, Type(CellKind.Checkbox)));
     }
 
-    private static CellType Type(CellKind kind)
+    private static DbCellType Type(CellKind kind)
     {
-        return new CellType { Kind = kind };
+        return new DbCellType { Kind = kind };
     }
 }

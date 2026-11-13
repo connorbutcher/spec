@@ -1,12 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using PUSpecSheet.Database.Entities.CellTypes;
 
 namespace PUSpecSheet.Database.Configurations.CellTypes;
 
-public sealed class CellTypeOptionConfiguration : IEntityTypeConfiguration<CellTypeOption>
+public sealed class CellTypeOptionConfiguration : IEntityTypeConfiguration<DbCellTypeOption>
 {
-    public void Configure(EntityTypeBuilder<CellTypeOption> builder)
+    public void Configure(EntityTypeBuilder<DbCellTypeOption> builder)
     {
         builder.ToTable("CellTypeOptions");
 
@@ -23,10 +22,5 @@ public sealed class CellTypeOptionConfiguration : IEntityTypeConfiguration<CellT
             .WithMany(cellType => cellType.Options)
             .HasForeignKey(option => option.CellTypeId)
             .OnDelete(DeleteBehavior.Cascade);
-
-        builder.HasData(
-            new CellTypeOption { Id = 1, CellTypeId = CellTypeSeedIds.PassFail, Value = "Pass", DisplayOrder = 1 },
-            new CellTypeOption { Id = 2, CellTypeId = CellTypeSeedIds.PassFail, Value = "Fail", DisplayOrder = 2 },
-            new CellTypeOption { Id = 3, CellTypeId = CellTypeSeedIds.PassFail, Value = "N/A", DisplayOrder = 3 });
     }
 }

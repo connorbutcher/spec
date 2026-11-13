@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Database;
-using PUSpecSheet.Database.Entities.Templates;
 
 namespace PUSpecSheet.Application.Templates.Queries;
 
@@ -8,7 +7,7 @@ namespace PUSpecSheet.Application.Templates.Queries;
 public static class TemplateRowQueries
 {
     /// <summary>Every row of a version with its cells, read only.</summary>
-    public static async Task<List<TemplateRow>> ListWithCellsAsync(PuSpecSheetDbContext db, int versionId, CancellationToken cancellationToken)
+    public static async Task<List<DbTemplateRow>> ListWithCellsAsync(PuSpecSheetDbContext db, int versionId, CancellationToken cancellationToken)
     {
         return await db.TemplateRows
             .AsNoTracking()
@@ -27,7 +26,7 @@ public static class TemplateRowQueries
     }
 
     /// <summary>A section's rows with their cells, in display order, tracked for editing.</summary>
-    public static async Task<List<TemplateRow>> ListInSectionWithCellsForEditAsync(PuSpecSheetDbContext db, int sectionId, CancellationToken cancellationToken)
+    public static async Task<List<DbTemplateRow>> ListInSectionWithCellsForEditAsync(PuSpecSheetDbContext db, int sectionId, CancellationToken cancellationToken)
     {
         return await db.TemplateRows
             .Include(row => row.Cells)
@@ -37,7 +36,7 @@ public static class TemplateRowQueries
     }
 
     /// <summary>A section's rows, tracked for editing.</summary>
-    public static async Task<List<TemplateRow>> ListInSectionForEditAsync(PuSpecSheetDbContext db, int sectionId, CancellationToken cancellationToken)
+    public static async Task<List<DbTemplateRow>> ListInSectionForEditAsync(PuSpecSheetDbContext db, int sectionId, CancellationToken cancellationToken)
     {
         return await db.TemplateRows
             .Where(candidate => candidate.TemplateSectionId == sectionId)
@@ -45,7 +44,7 @@ public static class TemplateRowQueries
     }
 
     /// <summary>The row with its section, tracked for editing; null when there is no such row.</summary>
-    public static async Task<TemplateRow?> FindForEditAsync(PuSpecSheetDbContext db, int id, CancellationToken cancellationToken)
+    public static async Task<DbTemplateRow?> FindForEditAsync(PuSpecSheetDbContext db, int id, CancellationToken cancellationToken)
     {
         return await db.TemplateRows
             .Include(candidate => candidate.TemplateSection)
@@ -67,7 +66,7 @@ public static class TemplateRowQueries
     }
 
     /// <summary>The row with its cells, read only, when it is in the template section; null otherwise.</summary>
-    public static async Task<TemplateRow?> FindInSectionWithCellsAsync(PuSpecSheetDbContext db, int id, int sectionId, CancellationToken cancellationToken)
+    public static async Task<DbTemplateRow?> FindInSectionWithCellsAsync(PuSpecSheetDbContext db, int id, int sectionId, CancellationToken cancellationToken)
     {
         return await db.TemplateRows
             .AsNoTracking()
@@ -76,7 +75,7 @@ public static class TemplateRowQueries
     }
 
     /// <summary>Every row of the versions with its cells, read only.</summary>
-    public static async Task<List<TemplateRow>> ListWithCellsInVersionsAsync(PuSpecSheetDbContext db, IReadOnlyCollection<int> versionIds, CancellationToken cancellationToken)
+    public static async Task<List<DbTemplateRow>> ListWithCellsInVersionsAsync(PuSpecSheetDbContext db, IReadOnlyCollection<int> versionIds, CancellationToken cancellationToken)
     {
         return await db.TemplateRows
             .AsNoTracking()

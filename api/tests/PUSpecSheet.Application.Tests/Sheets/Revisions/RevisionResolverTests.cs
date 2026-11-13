@@ -1,5 +1,5 @@
 using PUSpecSheet.Application.Sheets.Revisions;
-using PUSpecSheet.Database.Entities.Sheets;
+using PUSpecSheet.Database;
 using PUSpecSheet.Domain.Sheets;
 
 namespace PUSpecSheet.Application.Tests.Sheets.Revisions;
@@ -83,21 +83,21 @@ public sealed class RevisionResolverTests
     [Fact]
     public void NothingAtAll_IsNotVisible()
     {
-        Assert.False(RevisionResolver.IsVisible<SheetRowRevision>(null));
+        Assert.False(RevisionResolver.IsVisible<DbSheetRowRevision>(null));
     }
 
-    private static Dictionary<int, RevisionResolution<SheetRowRevision>> Resolve(params SheetRowRevision[] revisions)
+    private static Dictionary<int, RevisionResolution<DbSheetRowRevision>> Resolve(params DbSheetRowRevision[] revisions)
     {
         return RevisionResolver.Resolve(revisions, revision => revision.SheetRowId, Me);
     }
 
-    private static SheetRowRevision Published(int rowId)
+    private static DbSheetRowRevision Published(int rowId)
     {
-        return new SheetRowRevision { SheetRowId = rowId, Status = RevisionStatus.Published, AuthorUserId = SomeoneElse };
+        return new DbSheetRowRevision { SheetRowId = rowId, Status = RevisionStatus.Published, AuthorUserId = SomeoneElse };
     }
 
-    private static SheetRowRevision Draft(int rowId, int author)
+    private static DbSheetRowRevision Draft(int rowId, int author)
     {
-        return new SheetRowRevision { SheetRowId = rowId, Status = RevisionStatus.Draft, AuthorUserId = author };
+        return new DbSheetRowRevision { SheetRowId = rowId, Status = RevisionStatus.Draft, AuthorUserId = author };
     }
 }

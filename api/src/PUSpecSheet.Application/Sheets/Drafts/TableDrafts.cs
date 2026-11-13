@@ -2,45 +2,44 @@ using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Application.Sheets.Revisions;
 using PUSpecSheet.Application.Users;
 using PUSpecSheet.Database;
-using PUSpecSheet.Database.Entities.Sheets;
 
 namespace PUSpecSheet.Application.Sheets.Drafts;
 
 /// <summary>Draft handling for sheet tables. A new draft also carries over the table's title.</summary>
-public sealed class TableDrafts : DraftGateway<SheetTableRevision>
+public sealed class TableDrafts : DraftGateway<DbSheetTableRevision>
 {
     public TableDrafts(PuSpecSheetDbContext db, ICurrentUser currentUser)
         : base(db, currentUser)
     {
     }
 
-    protected override DbSet<SheetTableRevision> Revisions => Db.SheetTableRevisions;
+    protected override DbSet<DbSheetTableRevision> Revisions => Db.SheetTableRevisions;
 
     protected override string Subject => "This table";
 
-    protected override int ItemIdOf(SheetTableRevision revision)
+    protected override int ItemIdOf(DbSheetTableRevision revision)
     {
         return revision.SheetTableId;
     }
 
-    protected override IQueryable<SheetTableRevision> OfItems(IReadOnlyCollection<int> itemIds)
+    protected override IQueryable<DbSheetTableRevision> OfItems(IReadOnlyCollection<int> itemIds)
     {
         return Db.SheetTableRevisions.Where(revision => itemIds.Contains(revision.SheetTableId));
     }
 
-    protected override IQueryable<SheetTableRevision> OfItem(int itemId)
+    protected override IQueryable<DbSheetTableRevision> OfItem(int itemId)
     {
         return Db.SheetTableRevisions.Where(revision => revision.SheetTableId == itemId);
     }
 
-    protected override void SetItem(SheetTableRevision revision, int itemId)
+    protected override void SetItem(DbSheetTableRevision revision, int itemId)
     {
         revision.SheetTableId = itemId;
     }
 
     /// <summary>A table is unchanged when its place, existence and title are.</summary>
-    protected override Task<HashSet<SheetTableRevision>> UnchangedAsync(
-        IReadOnlyList<(SheetTableRevision Draft, SheetTableRevision Current)> pairs,
+    protected override Task<HashSet<DbSheetTableRevision>> UnchangedAsync(
+        IReadOnlyList<(DbSheetTableRevision Draft, DbSheetTableRevision Current)> pairs,
         CancellationToken cancellationToken)
     {
         return Task.FromResult(pairs

@@ -1,4 +1,4 @@
-using PUSpecSheet.Database.Entities.Templates;
+using PUSpecSheet.Database;
 using PUSpecSheet.Domain.CellTypes.Configurations;
 using PUSpecSheet.Domain.CellTypes.Styles;
 using PUSpecSheet.Domain.Templates;
@@ -118,12 +118,12 @@ public sealed class PartsMatrixTemplate : IShowcaseTemplate
         }
     }
 
-    private static TemplateCell Characteristic(TemplateLayout layout)
+    private static DbTemplateCell Characteristic(TemplateLayout layout)
     {
         return layout.Cell(ShowcaseCellTypeNames.Text, 1, "Characteristic", lookupKey: "characteristic");
     }
 
-    private static TemplateCell Reference(TemplateLayout layout)
+    private static DbTemplateCell Reference(TemplateLayout layout)
     {
         return layout.Cell(ShowcaseCellTypeNames.Text, 2, "Drawing ref.", style: new CellStyle { TextColor = "#475569" });
     }

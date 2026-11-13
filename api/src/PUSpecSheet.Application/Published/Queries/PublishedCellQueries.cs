@@ -2,7 +2,6 @@ using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Application.Published.Sheets;
 using PUSpecSheet.Application.Published.Versions;
 using PUSpecSheet.Database;
-using PUSpecSheet.Database.Entities.Sheets;
 using PUSpecSheet.Domain.Sheets;
 
 namespace PUSpecSheet.Application.Published.Queries;
@@ -52,7 +51,7 @@ public static class PublishedCellQueries
     }
 
     // The sheet on the revision lets SQL Server find the revisions through the (sheet, published) index.
-    private static IQueryable<PublishedCellRecord> WithCaptions(IQueryable<SheetCell> cells, ResolvedSheetVersion version)
+    private static IQueryable<PublishedCellRecord> WithCaptions(IQueryable<DbSheetCell> cells, ResolvedSheetVersion version)
     {
         var sheetId = version.SheetId;
         var moment = version.PublishedAtUtc;
@@ -75,7 +74,7 @@ public static class PublishedCellQueries
                 cell.TemplateCell.Caption));
     }
 
-    private static IQueryable<PublishedCellRecord> WithoutCaptions(IQueryable<SheetCell> cells, ResolvedSheetVersion version)
+    private static IQueryable<PublishedCellRecord> WithoutCaptions(IQueryable<DbSheetCell> cells, ResolvedSheetVersion version)
     {
         var sheetId = version.SheetId;
         var moment = version.PublishedAtUtc;

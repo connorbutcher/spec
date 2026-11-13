@@ -1,5 +1,5 @@
 using PUSpecSheet.Contracts.Templates;
-using PUSpecSheet.Database.Entities.Templates;
+using PUSpecSheet.Database;
 
 namespace PUSpecSheet.Application.Templates;
 
@@ -10,13 +10,13 @@ internal static class TableTemplateMappings
     /// loaded) and its column blocks, to the nested DTO.
     /// </summary>
     public static TableTemplateDto ToDto(
-        this TableTemplate template,
-        TableTemplateVersion version,
+        this DbTableTemplate template,
+        DbTableTemplateVersion version,
         bool isEditable,
         IReadOnlyList<TableTemplateVersionSummaryDto> versions,
-        IReadOnlyList<TemplateSection> sections,
-        IReadOnlyList<TemplateRow> rows,
-        IReadOnlyList<TemplateColumnBlock> columnBlocks)
+        IReadOnlyList<DbTemplateSection> sections,
+        IReadOnlyList<DbTemplateRow> rows,
+        IReadOnlyList<DbTemplateColumnBlock> columnBlocks)
     {
         var sectionsByParent = sections.ToLookup(section => section.ParentSectionId);
         var rowsBySection = rows.ToLookup(row => row.TemplateSectionId);
@@ -48,8 +48,8 @@ internal static class TableTemplateMappings
 
     private static List<TemplateSectionDto> MapSections(
         int? parentId,
-        ILookup<int?, TemplateSection> sectionsByParent,
-        ILookup<int, TemplateRow> rowsBySection)
+        ILookup<int?, DbTemplateSection> sectionsByParent,
+        ILookup<int, DbTemplateRow> rowsBySection)
     {
         return sectionsByParent[parentId]
             .OrderBy(section => section.DisplayOrder)
@@ -70,7 +70,7 @@ internal static class TableTemplateMappings
             .ToList();
     }
 
-    private static TemplateRowDto ToDto(this TemplateRow row)
+    private static TemplateRowDto ToDto(this DbTemplateRow row)
     {
         var cells = row.Cells
             .OrderBy(cell => cell.TemplateColumnBlockId ?? 0)

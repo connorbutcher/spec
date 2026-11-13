@@ -1,6 +1,6 @@
 using PUSpecSheet.Application.Common;
 using PUSpecSheet.Application.Phases;
-using PUSpecSheet.Database.Entities.Phases;
+using PUSpecSheet.Database;
 
 namespace PUSpecSheet.Application.Tests.Phases;
 
@@ -18,7 +18,7 @@ public sealed class PhaseMoverTests
     private const int Top = 6;
     private const int Rig = 7;
 
-    private readonly List<Phase> phases =
+    private readonly List<DbPhase> phases =
     [
         Phase(V6, "V6", null, 1),
         Phase(A2, "01-A2", V6, 1),
@@ -119,12 +119,12 @@ public sealed class PhaseMoverTests
         Assert.True(PhaseMover.IsInSubtree(phases, A2, A3));
     }
 
-    private static Phase Phase(int id, string code, int? parentId, int order)
+    private static DbPhase Phase(int id, string code, int? parentId, int order)
     {
-        return new Phase { Id = id, Code = code, ParentPhaseId = parentId, DisplayOrder = order };
+        return new DbPhase { Id = id, Code = code, ParentPhaseId = parentId, DisplayOrder = order };
     }
 
-    private Phase Find(int id)
+    private DbPhase Find(int id)
     {
         return phases.Single(phase => phase.Id == id);
     }
@@ -139,7 +139,7 @@ public sealed class PhaseMoverTests
         return Under(parentId).Select(phase => phase.DisplayOrder).ToArray();
     }
 
-    private IEnumerable<Phase> Under(int? parentId)
+    private IEnumerable<DbPhase> Under(int? parentId)
     {
         return phases.Where(phase => phase.ParentPhaseId == parentId).OrderBy(phase => phase.DisplayOrder);
     }

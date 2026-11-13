@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using PUSpecSheet.Database.Entities.Users;
 using PUSpecSheet.Domain.Users;
 
 namespace PUSpecSheet.Database.Seeding;
@@ -26,8 +25,8 @@ public static class DevelopmentUserSeeder
 
         foreach (var (userName, displayName) in Users.Where(user => !existing.Contains(user.UserName, StringComparer.OrdinalIgnoreCase)))
         {
-            var user = new User { UserName = userName, DisplayName = displayName, CreatedAtUtc = DateTime.UtcNow };
-            user.Roles.Add(new UserRole { RoleId = WellKnownRoles.AdministratorId });
+            var user = new DbUser { UserName = userName, DisplayName = displayName, CreatedAtUtc = DateTime.UtcNow };
+            user.Roles.Add(new DbUserRole { RoleId = WellKnownRoles.AdministratorId });
             db.Users.Add(user);
         }
 

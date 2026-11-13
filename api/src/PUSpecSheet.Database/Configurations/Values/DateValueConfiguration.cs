@@ -1,14 +1,13 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using PUSpecSheet.Database.Entities.Values;
 
 namespace PUSpecSheet.Database.Configurations.Values;
 
-public sealed class DateValueConfiguration : CellValueConfiguration<DateValue>
+public sealed class DateValueConfiguration : CellValueConfiguration<DbDateValue>
 {
     protected override string TableName => "DateValues";
 
-    protected override void ConfigureValue(EntityTypeBuilder<DateValue> builder)
+    protected override void ConfigureValue(EntityTypeBuilder<DbDateValue> builder)
     {
         builder.Property(value => value.Value)
             .HasColumnType("date");

@@ -1,5 +1,4 @@
 using System.Text.Json.Serialization;
-using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Api.ApiDocumentation;
 using PUSpecSheet.Api.Authorization;
 using PUSpecSheet.Api.Collaboration;
@@ -45,12 +44,17 @@ var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
-    // Creates the database on first run, applies any pending migrations and adds sample phases, users and
-    // the showcase sample data. The showcase clears the sheets and templates the first time it runs (or
-    // every start while SampleData:Rebuild is true): see ShowcaseDataSeeder.
+    // The database is deployed from the SQL database project (database/deploy.ps1), not created here. This adds
+    // sample phases, users and the showcase sample data. The showcase clears the sheets and templates the first
+    // time it runs (or every start while SampleData:Rebuild is true): see ShowcaseDataSeeder.
     using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<PuSpecSheetDbContext>();
-    await db.Database.MigrateAsync();
+    if (!await db.Database.CanConnectAsync())
+    {
+        throw new InvalidOperationException(
+            "Can't reach the PUSpecSheet database. Deploy it from the SQL database project first: ./database/deploy.ps1");
+    }
+
     await DevelopmentDataSeeder.SeedAsync(db);
     await DevelopmentUserSeeder.SeedAsync(db);
     await scope.ServiceProvider.GetRequiredService<ShowcaseDataSeeder>().SeedAsync(app.Configuration.GetValue<bool>("SampleData:Rebuild"));

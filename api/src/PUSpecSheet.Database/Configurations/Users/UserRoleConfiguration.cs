@@ -1,13 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using PUSpecSheet.Database.Entities.Users;
-using PUSpecSheet.Domain.Users;
 
 namespace PUSpecSheet.Database.Configurations.Users;
 
-public sealed class UserRoleConfiguration : IEntityTypeConfiguration<UserRole>
+public sealed class UserRoleConfiguration : IEntityTypeConfiguration<DbUserRole>
 {
-    public void Configure(EntityTypeBuilder<UserRole> builder)
+    public void Configure(EntityTypeBuilder<DbUserRole> builder)
     {
         builder.ToTable("UserRoles");
 
@@ -23,12 +21,5 @@ public sealed class UserRoleConfiguration : IEntityTypeConfiguration<UserRole>
             .WithMany(role => role.Users)
             .HasForeignKey(link => link.RoleId)
             .OnDelete(DeleteBehavior.Restrict);
-
-        // The developer user is an administrator, so everything keeps working until sign-in is added.
-        builder.HasData(new UserRole
-        {
-            UserId = WellKnownUsers.DeveloperId,
-            RoleId = WellKnownRoles.AdministratorId,
-        });
     }
 }

@@ -1,5 +1,5 @@
 using PUSpecSheet.Application.Sheets.Drafts;
-using PUSpecSheet.Database.Entities.Sheets;
+using PUSpecSheet.Database;
 
 namespace PUSpecSheet.Application.Tests.Sheets.Drafts;
 
@@ -15,11 +15,11 @@ public sealed class DraftSummariesTests
     [Fact]
     public void MyCount_IsOnlyMyDrafts_OfEveryKind()
     {
-        ISheetRevision[] drafts =
+        IDbSheetRevision[] drafts =
         [
-            new SheetRowRevision { AuthorUserId = Me },
-            new SheetTableRevision { AuthorUserId = Me },
-            new SheetRowRevision { AuthorUserId = Asha },
+            new DbSheetRowRevision { AuthorUserId = Me },
+            new DbSheetTableRevision { AuthorUserId = Me },
+            new DbSheetRowRevision { AuthorUserId = Asha },
         ];
 
         Assert.Equal(2, DraftSummaries.CountOf(drafts, Me));
@@ -28,12 +28,12 @@ public sealed class DraftSummariesTests
     [Fact]
     public void OtherPeoplesDrafts_AreCountedByPerson_InNameOrder_WithoutMine()
     {
-        ISheetRevision[] drafts =
+        IDbSheetRevision[] drafts =
         [
-            new SheetRowRevision { AuthorUserId = Ben },
-            new SheetRowRevision { AuthorUserId = Me },
-            new SheetSectionRevision { AuthorUserId = Asha },
-            new SheetColumnBlockRevision { AuthorUserId = Asha },
+            new DbSheetRowRevision { AuthorUserId = Ben },
+            new DbSheetRowRevision { AuthorUserId = Me },
+            new DbSheetSectionRevision { AuthorUserId = Asha },
+            new DbSheetColumnBlockRevision { AuthorUserId = Asha },
         ];
 
         var others = DraftSummaries.OfOthers(drafts, Me, userId => Names[userId]);
@@ -44,7 +44,7 @@ public sealed class DraftSummariesTests
     [Fact]
     public void WithOnlyMyOwnDrafts_NobodyElseIsListed()
     {
-        ISheetRevision[] drafts = [new SheetRowRevision { AuthorUserId = Me }];
+        IDbSheetRevision[] drafts = [new DbSheetRowRevision { AuthorUserId = Me }];
 
         Assert.Empty(DraftSummaries.OfOthers(drafts, Me, userId => Names[userId]));
     }

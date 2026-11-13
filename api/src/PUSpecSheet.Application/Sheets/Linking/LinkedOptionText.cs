@@ -1,6 +1,6 @@
 using System.Globalization;
 using PUSpecSheet.Application.Sheets.Values;
-using PUSpecSheet.Database.Entities.CellTypes;
+using PUSpecSheet.Database;
 using PUSpecSheet.Domain.CellTypes;
 using PUSpecSheet.Domain.CellTypes.Configurations;
 
@@ -13,7 +13,7 @@ internal static class LinkedOptionText
     /// <param name="value">The cell's value.</param>
     /// <param name="cellType">The cell's type, with its options.</param>
     /// <param name="cellOverride">The settings the cell changes from its type's, which can set a number's decimal places.</param>
-    public static string? Of(CellValueBag? value, CellType cellType, CellConfiguration? cellOverride = null)
+    public static string? Of(CellValueBag? value, DbCellType cellType, CellConfiguration? cellOverride = null)
     {
         if (value is null)
         {

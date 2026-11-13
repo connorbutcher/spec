@@ -1,6 +1,6 @@
 using System.Globalization;
 using PUSpecSheet.Application.Common;
-using PUSpecSheet.Database.Entities.CellTypes;
+using PUSpecSheet.Database;
 using PUSpecSheet.Domain.CellTypes;
 
 namespace PUSpecSheet.Application.CellTypes;
@@ -51,7 +51,7 @@ internal static class CellTypeOptions
     /// Makes the cell type's options match <paramref name="values"/> in order, keeping existing option
     /// records whose value matches (ignoring case) so their ids survive.
     /// </summary>
-    public static void Sync(CellType cellType, IReadOnlyList<string> values)
+    public static void Sync(DbCellType cellType, IReadOnlyList<string> values)
     {
         var existing = cellType.Options.ToList();
 
@@ -63,7 +63,7 @@ internal static class CellTypeOptions
 
             if (match is null)
             {
-                cellType.Options.Add(new CellTypeOption { Value = value, DisplayOrder = index + 1 });
+                cellType.Options.Add(new DbCellTypeOption { Value = value, DisplayOrder = index + 1 });
             }
             else
             {

@@ -2,7 +2,6 @@ using PUSpecSheet.Application.CellTypes.Queries;
 using PUSpecSheet.Application.Common;
 using PUSpecSheet.Contracts.CellTypes;
 using PUSpecSheet.Database;
-using PUSpecSheet.Database.Entities.CellTypes;
 using PUSpecSheet.Domain.CellTypes;
 
 namespace PUSpecSheet.Application.CellTypes;
@@ -31,7 +30,7 @@ public sealed class CellTypesService : ICellTypesService
         await EnsureNameIsFreeAsync(request.Name, null, cancellationToken);
 
         var lastOrder = await CellTypeQueries.GetLastDisplayOrderAsync(db, cancellationToken);
-        var cellType = new CellType { DisplayOrder = (lastOrder ?? 0) + 1 };
+        var cellType = new DbCellType { DisplayOrder = (lastOrder ?? 0) + 1 };
         CellTypeSettings.Apply(request, cellType);
 
         db.CellTypes.Add(cellType);
@@ -77,7 +76,7 @@ public sealed class CellTypesService : ICellTypesService
         await db.SaveChangesAsync(cancellationToken);
     }
 
-    private async Task<CellType> FindAsync(int id, CancellationToken cancellationToken)
+    private async Task<DbCellType> FindAsync(int id, CancellationToken cancellationToken)
     {
         var cellType = await CellTypeQueries.FindForEditAsync(db, id, cancellationToken);
 
@@ -105,7 +104,7 @@ public sealed class CellTypesService : ICellTypesService
     /// already hold sheet values can't change kind, and an option chosen on a sheet can't be removed.
     /// </summary>
     private async Task EnsureSheetValuesKeepMeaningAsync(
-        CellType cellType,
+        DbCellType cellType,
         SaveCellTypeRequest request,
         CancellationToken cancellationToken)
     {

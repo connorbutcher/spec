@@ -1,14 +1,14 @@
 using PUSpecSheet.Application.Sheets.Revisions;
-using PUSpecSheet.Database.Entities.Sheets;
+using PUSpecSheet.Database;
 
 namespace PUSpecSheet.Application.Tests.Sheets.Revisions;
 
 /// <summary>What counts as a draft that differs from what is published, for order, removal and titles.</summary>
 public sealed class SheetRevisionComparerTests
 {
-    private static SheetRowRevision Revision(int order, bool deleted = false)
+    private static DbSheetRowRevision Revision(int order, bool deleted = false)
     {
-        return new SheetRowRevision { DisplayOrder = order, IsDeleted = deleted };
+        return new DbSheetRowRevision { DisplayOrder = order, IsDeleted = deleted };
     }
 
     [Fact]

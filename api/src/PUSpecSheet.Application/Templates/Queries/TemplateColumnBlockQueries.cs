@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Database;
-using PUSpecSheet.Database.Entities.Templates;
 
 namespace PUSpecSheet.Application.Templates.Queries;
 
@@ -8,7 +7,7 @@ namespace PUSpecSheet.Application.Templates.Queries;
 public static class TemplateColumnBlockQueries
 {
     /// <summary>A version's column blocks, read only.</summary>
-    public static async Task<List<TemplateColumnBlock>> ListAsync(PuSpecSheetDbContext db, int versionId, CancellationToken cancellationToken)
+    public static async Task<List<DbTemplateColumnBlock>> ListAsync(PuSpecSheetDbContext db, int versionId, CancellationToken cancellationToken)
     {
         return await db.TemplateColumnBlocks
             .AsNoTracking()
@@ -17,7 +16,7 @@ public static class TemplateColumnBlockQueries
     }
 
     /// <summary>A version's column blocks, tracked for editing.</summary>
-    public static async Task<List<TemplateColumnBlock>> ListForEditAsync(PuSpecSheetDbContext db, int versionId, CancellationToken cancellationToken)
+    public static async Task<List<DbTemplateColumnBlock>> ListForEditAsync(PuSpecSheetDbContext db, int versionId, CancellationToken cancellationToken)
     {
         return await db.TemplateColumnBlocks
             .Where(candidate => candidate.TableTemplateVersionId == versionId)
@@ -35,7 +34,7 @@ public static class TemplateColumnBlockQueries
     }
 
     /// <summary>The column block, tracked for editing; null when there is no such block.</summary>
-    public static async Task<TemplateColumnBlock?> FindForEditAsync(PuSpecSheetDbContext db, int id, CancellationToken cancellationToken)
+    public static async Task<DbTemplateColumnBlock?> FindForEditAsync(PuSpecSheetDbContext db, int id, CancellationToken cancellationToken)
     {
         return await db.TemplateColumnBlocks.FindAsync([id], cancellationToken);
     }
@@ -64,7 +63,7 @@ public static class TemplateColumnBlockQueries
     }
 
     /// <summary>The column block, read only, when it is part of the version; null otherwise.</summary>
-    public static async Task<TemplateColumnBlock?> FindInVersionAsync(PuSpecSheetDbContext db, int id, int versionId, CancellationToken cancellationToken)
+    public static async Task<DbTemplateColumnBlock?> FindInVersionAsync(PuSpecSheetDbContext db, int id, int versionId, CancellationToken cancellationToken)
     {
         return await db.TemplateColumnBlocks
             .AsNoTracking()
@@ -74,7 +73,7 @@ public static class TemplateColumnBlockQueries
     }
 
     /// <summary>Every column block of the versions, read only.</summary>
-    public static async Task<List<TemplateColumnBlock>> ListInVersionsAsync(PuSpecSheetDbContext db, IReadOnlyCollection<int> versionIds, CancellationToken cancellationToken)
+    public static async Task<List<DbTemplateColumnBlock>> ListInVersionsAsync(PuSpecSheetDbContext db, IReadOnlyCollection<int> versionIds, CancellationToken cancellationToken)
     {
         return await db.TemplateColumnBlocks
             .AsNoTracking()

@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Database;
-using PUSpecSheet.Database.Entities.Sheets;
 
 namespace PUSpecSheet.Application.Sheets.Queries;
 
@@ -8,7 +7,7 @@ namespace PUSpecSheet.Application.Sheets.Queries;
 public static class SheetTableQueries
 {
     /// <summary>The sheet's tables with the template version and template each is built from, read only.</summary>
-    public static async Task<List<SheetTable>> ListOnSheetAsync(PuSpecSheetDbContext db, int sheetId, CancellationToken cancellationToken)
+    public static async Task<List<DbSheetTable>> ListOnSheetAsync(PuSpecSheetDbContext db, int sheetId, CancellationToken cancellationToken)
     {
         return await db.SheetTables
             .AsNoTracking()
@@ -19,13 +18,13 @@ public static class SheetTableQueries
     }
 
     /// <summary>The table, tracked for editing; null when there is no such table.</summary>
-    public static async Task<SheetTable?> FindForEditAsync(PuSpecSheetDbContext db, int id, CancellationToken cancellationToken)
+    public static async Task<DbSheetTable?> FindForEditAsync(PuSpecSheetDbContext db, int id, CancellationToken cancellationToken)
     {
         return await db.SheetTables.SingleOrDefaultAsync(candidate => candidate.Id == id, cancellationToken);
     }
 
     /// <summary>The table with its template version, read only; null when there is no such table.</summary>
-    public static async Task<SheetTable?> FindWithTemplateVersionAsync(PuSpecSheetDbContext db, int id, CancellationToken cancellationToken)
+    public static async Task<DbSheetTable?> FindWithTemplateVersionAsync(PuSpecSheetDbContext db, int id, CancellationToken cancellationToken)
     {
         return await db.SheetTables
             .AsNoTracking()

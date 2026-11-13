@@ -3,7 +3,6 @@ using PUSpecSheet.Application.Sheets.Queries;
 using PUSpecSheet.Application.Sheets.Revisions;
 using PUSpecSheet.Application.Users;
 using PUSpecSheet.Database;
-using PUSpecSheet.Database.Entities.Sheets;
 using PUSpecSheet.Domain.CellTypes.InstanceSettings;
 
 namespace PUSpecSheet.Application.Sheets.Values;
@@ -63,12 +62,12 @@ public sealed class NewRowSettings
     }
 
     /// <summary>The same for the rows of a newly added section and of the sub-sections it starts with.</summary>
-    public Task InheritAsync(SheetSection newSection, CancellationToken cancellationToken)
+    public Task InheritAsync(DbSheetSection newSection, CancellationToken cancellationToken)
     {
         return InheritAsync(newSection.SheetTableId, RowIdsOf(newSection).ToList(), cancellationToken);
     }
 
-    private static IEnumerable<int> RowIdsOf(SheetSection section)
+    private static IEnumerable<int> RowIdsOf(DbSheetSection section)
     {
         return section.Rows
             .Select(row => row.Id)
@@ -89,7 +88,7 @@ public sealed class NewRowSettings
         return await SheetRowQueries.GetTemplateRowsOnTableAsync(db, tableId, templateRowIds, cancellationToken);
     }
 
-    private async Task<Dictionary<int, RevisionResolution<SheetRowRevision>>> ResolveShownAsync(List<int> rowIds, CancellationToken cancellationToken)
+    private async Task<Dictionary<int, RevisionResolution<DbSheetRowRevision>>> ResolveShownAsync(List<int> rowIds, CancellationToken cancellationToken)
     {
         var me = currentUser.UserId;
         var revisions = await SheetRowRevisionQueries.ListVisibleAsync(db, rowIds, me, cancellationToken);
@@ -98,7 +97,7 @@ public sealed class NewRowSettings
 
     private void AddInheritedSettings(
         List<NewCell> newCells,
-        Dictionary<int, RevisionResolution<SheetRowRevision>> shown,
+        Dictionary<int, RevisionResolution<DbSheetRowRevision>> shown,
         Dictionary<int, int> templateRowByRow,
         Dictionary<int, int> earlierByTemplateRow,
         List<ChosenSettings> chosen)

@@ -1,12 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using PUSpecSheet.Database.Entities.Templates;
 
 namespace PUSpecSheet.Database.Configurations.Templates;
 
-public sealed class TemplateRowConfiguration : IEntityTypeConfiguration<TemplateRow>
+public sealed class TemplateRowConfiguration : IEntityTypeConfiguration<DbTemplateRow>
 {
-    public void Configure(EntityTypeBuilder<TemplateRow> builder)
+    public void Configure(EntityTypeBuilder<DbTemplateRow> builder)
     {
         builder.ToTable("TemplateRows");
 

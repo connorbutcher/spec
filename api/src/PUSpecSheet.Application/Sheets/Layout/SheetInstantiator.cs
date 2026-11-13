@@ -1,6 +1,5 @@
 using PUSpecSheet.Application.Users;
-using PUSpecSheet.Database.Entities.Sheets;
-using PUSpecSheet.Database.Entities.Templates;
+using PUSpecSheet.Database;
 using PUSpecSheet.Domain.Sheets;
 using PUSpecSheet.Domain.Templates;
 
@@ -21,7 +20,7 @@ public sealed class SheetInstantiator
     }
 
     /// <summary>How many copies of a section a new table or parent starts with. The header is always at least one.</summary>
-    public static int StartingCopies(TemplateSection template)
+    public static int StartingCopies(DbTemplateSection template)
     {
         var minimum = template.Role == SectionRole.Header ? 1 : 0;
         return Math.Max(minimum, template.InitialInstances);
@@ -31,7 +30,7 @@ public sealed class SheetInstantiator
     /// Adds the sections a new table starts with (the header, plus any addable sections that start with
     /// copies) to <paramref name="table"/>.
     /// </summary>
-    public void AddStartingSections(SheetTable table, TemplateTree tree)
+    public void AddStartingSections(DbSheetTable table, TemplateTree tree)
     {
         var order = 0;
         foreach (var template in tree.ChildrenOf(null))
@@ -45,13 +44,13 @@ public sealed class SheetInstantiator
     }
 
     /// <summary>How many copies of a column block a new horizontal table starts with.</summary>
-    public static int StartingCopies(TemplateColumnBlock template)
+    public static int StartingCopies(DbTemplateColumnBlock template)
     {
         return Math.Max(template.MinInstances, template.InitialInstances);
     }
 
     /// <summary>Adds the column block copies a new horizontal table starts with to <paramref name="table"/>.</summary>
-    public void AddStartingColumnBlocks(SheetTable table, TemplateTree tree)
+    public void AddStartingColumnBlocks(DbSheetTable table, TemplateTree tree)
     {
         var order = 0;
         foreach (var template in tree.ColumnBlocks)
@@ -65,16 +64,16 @@ public sealed class SheetInstantiator
     }
 
     /// <summary>A new copy of a template column block, as its author's first draft. Its cells are added by the cell filler.</summary>
-    public SheetColumnBlock NewColumnBlock(int tableId, int sheetId, TemplateColumnBlock template, int displayOrder)
+    public DbSheetColumnBlock NewColumnBlock(int tableId, int sheetId, DbTemplateColumnBlock template, int displayOrder)
     {
         return NewColumnBlock(tableId, sheetId, template, displayOrder, null);
     }
 
     /// <summary>A new copy of a template section, with its rows and its starting sub-sections.</summary>
-    public SheetSection NewSection(SheetTable table, TemplateSection template, TemplateTree tree, int displayOrder)
+    public DbSheetSection NewSection(DbSheetTable table, DbTemplateSection template, TemplateTree tree, int displayOrder)
     {
-        var section = new SheetSection { SheetTable = table, TemplateSectionId = template.Id };
-        section.Revisions.Add(new SheetSectionRevision
+        var section = new DbSheetSection { SheetTable = table, TemplateSectionId = template.Id };
+        section.Revisions.Add(new DbSheetSectionRevision
         {
             SheetId = table.SheetId,
             RevisionNumber = 1,
@@ -109,9 +108,9 @@ public sealed class SheetInstantiator
         return section;
     }
 
-    private SheetColumnBlock NewColumnBlock(int tableId, int sheetId, TemplateColumnBlock template, int displayOrder, SheetTable? table)
+    private DbSheetColumnBlock NewColumnBlock(int tableId, int sheetId, DbTemplateColumnBlock template, int displayOrder, DbSheetTable? table)
     {
-        var block = new SheetColumnBlock { TemplateColumnBlockId = template.Id };
+        var block = new DbSheetColumnBlock { TemplateColumnBlockId = template.Id };
         if (table is null)
         {
             block.SheetTableId = tableId;
@@ -121,7 +120,7 @@ public sealed class SheetInstantiator
             block.SheetTable = table;
         }
 
-        block.Revisions.Add(new SheetColumnBlockRevision
+        block.Revisions.Add(new DbSheetColumnBlockRevision
         {
             SheetId = sheetId,
             RevisionNumber = 1,
@@ -139,15 +138,15 @@ public sealed class SheetInstantiator
     /// column blocks are added by the cell filler, since they depend on how many copies the table has. The
     /// caller attaches the row to its section.
     /// </summary>
-    public SheetRow NewRow(TemplateRow templateRow, int sheetId, int displayOrder)
+    public DbSheetRow NewRow(DbTemplateRow templateRow, int sheetId, int displayOrder)
     {
-        var row = new SheetRow { TemplateRowId = templateRow.Id };
+        var row = new DbSheetRow { TemplateRowId = templateRow.Id };
         foreach (var templateCell in templateRow.Cells.Where(cell => cell.TemplateColumnBlockId is null).OrderBy(cell => cell.Column).ThenBy(cell => cell.Id))
         {
-            row.Cells.Add(new SheetCell { TemplateCellId = templateCell.Id });
+            row.Cells.Add(new DbSheetCell { TemplateCellId = templateCell.Id });
         }
 
-        row.Revisions.Add(new SheetRowRevision
+        row.Revisions.Add(new DbSheetRowRevision
         {
             SheetId = sheetId,
             RevisionNumber = 1,

@@ -3,7 +3,6 @@ using PUSpecSheet.Application.Common;
 using PUSpecSheet.Application.Templates.Queries;
 using PUSpecSheet.Contracts.Templates;
 using PUSpecSheet.Database;
-using PUSpecSheet.Database.Entities.Templates;
 
 namespace PUSpecSheet.Application.Templates.Cells;
 
@@ -44,7 +43,7 @@ public sealed class TemplateCellsService : ITemplateCellsService
             await MakeRoomAsync(request, column, cancellationToken);
         }
 
-        db.TemplateCells.Add(new TemplateCell
+        db.TemplateCells.Add(new DbTemplateCell
         {
             TemplateRowId = request.TemplateRowId,
             TemplateColumnBlockId = request.TemplateColumnBlockId,
@@ -95,7 +94,7 @@ public sealed class TemplateCellsService : ITemplateCellsService
         return await reader.ReadVersionAsync(cell.TemplateRow.TemplateSection.TableTemplateVersionId, cancellationToken);
     }
 
-    private async Task<TemplateCell> FindEditableAsync(int id, CancellationToken cancellationToken)
+    private async Task<DbTemplateCell> FindEditableAsync(int id, CancellationToken cancellationToken)
     {
         var cell = await TemplateCellQueries.FindForEditAsync(db, id, cancellationToken);
 

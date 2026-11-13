@@ -1,7 +1,6 @@
 using PUSpecSheet.Application.SheetTypes.Queries;
 using PUSpecSheet.Application.Templates.Queries;
 using PUSpecSheet.Database;
-using PUSpecSheet.Database.Entities.Templates;
 
 namespace PUSpecSheet.Application.Seeding;
 
@@ -25,7 +24,7 @@ public sealed class ShowcaseTemplateWriter
         var sheetTypeId = await SheetTypeQueries.GetIdByNameAsync(db, template.SheetTypeName, cancellationToken);
         var order = await TableTemplateQueries.GetLastDisplayOrderAsync(db, sheetTypeId, cancellationToken) ?? 0;
 
-        var entity = new TableTemplate { SheetTypeId = sheetTypeId, Name = template.Name, DisplayOrder = order + 1 };
+        var entity = new DbTableTemplate { SheetTypeId = sheetTypeId, Name = template.Name, DisplayOrder = order + 1 };
         entity.Versions.Add(Lay(template, cellTypes, 1));
         db.TableTemplates.Add(entity);
         await db.SaveChangesAsync(cancellationToken);
@@ -48,9 +47,9 @@ public sealed class ShowcaseTemplateWriter
         db.ChangeTracker.Clear();
     }
 
-    private static TableTemplateVersion Lay(IShowcaseTemplate template, ShowcaseCellTypeCatalog cellTypes, int versionNumber)
+    private static DbTableTemplateVersion Lay(IShowcaseTemplate template, ShowcaseCellTypeCatalog cellTypes, int versionNumber)
     {
-        var version = new TableTemplateVersion
+        var version = new DbTableTemplateVersion
         {
             VersionNumber = versionNumber,
             Orientation = template.Orientation,

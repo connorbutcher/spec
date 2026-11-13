@@ -2,7 +2,6 @@ using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Application.Sheets.Revisions;
 using PUSpecSheet.Application.Sheets.Values;
 using PUSpecSheet.Database;
-using PUSpecSheet.Database.Entities.Values;
 using PUSpecSheet.Domain.CellTypes;
 using PUSpecSheet.Domain.CellTypes.InstanceSettings;
 using PUSpecSheet.Domain.CellTypes.LabelledText;
@@ -64,7 +63,7 @@ public static class RowValueQueries
     /// <summary>Adds settings for a cell in a revision. The caller saves.</summary>
     public static void AddSettings(PuSpecSheetDbContext db, int revisionId, int cellId, CellInstanceSettings settings)
     {
-        db.CellSettings.Add(new CellSettingsValue { SheetRowRevisionId = revisionId, SheetCellId = cellId, Settings = settings });
+        db.CellSettings.Add(new DbCellSettingsValue { SheetRowRevisionId = revisionId, SheetCellId = cellId, Settings = settings });
     }
 
     /// <summary>Every value of the row revisions in scope, by revision id and then sheet cell id (see <see cref="CellValueQueries"/>).</summary>
@@ -184,7 +183,7 @@ public static class RowValueQueries
             {
                 if (!held.TryGetValue(key, out var value))
                 {
-                    value = new LabelledTextValue { SheetRowRevisionId = revisionId, SheetCellId = change.SheetCellId, SlotKey = key };
+                    value = new DbLabelledTextValue { SheetRowRevisionId = revisionId, SheetCellId = change.SheetCellId, SlotKey = key };
                     db.LabelledTextValues.Add(value);
                 }
 
@@ -223,7 +222,7 @@ public static class RowValueQueries
 
             if (value is null)
             {
-                value = new CellSettingsValue { SheetRowRevisionId = revisionId, SheetCellId = cellId };
+                value = new DbCellSettingsValue { SheetRowRevisionId = revisionId, SheetCellId = cellId };
                 db.CellSettings.Add(value);
             }
 
@@ -252,7 +251,7 @@ public static class RowValueQueries
         Func<CellValueBag, bool> hasValue,
         Action<TValue, CellValueBag> assign,
         CancellationToken cancellationToken)
-        where TValue : class, ICellValue, new()
+        where TValue : class, IDbCellValue, new()
     {
         if (changes.Count == 0)
         {

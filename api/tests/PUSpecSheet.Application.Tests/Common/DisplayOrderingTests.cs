@@ -1,5 +1,5 @@
 using PUSpecSheet.Application.Common;
-using PUSpecSheet.Database.Entities.Templates;
+using PUSpecSheet.Database;
 
 namespace PUSpecSheet.Application.Tests.Common;
 
@@ -34,8 +34,8 @@ public sealed class DisplayOrderingTests
         Assert.Equal([1, 2, 3], rows.Select(row => row.DisplayOrder).Order());
     }
 
-    private static List<TemplateSection> Rows(params (string Name, int Order)[] items)
+    private static List<DbTemplateSection> Rows(params (string Name, int Order)[] items)
     {
-        return items.Select(item => new TemplateSection { Name = item.Name, DisplayOrder = item.Order }).ToList();
+        return items.Select(item => new DbTemplateSection { Name = item.Name, DisplayOrder = item.Order }).ToList();
     }
 }

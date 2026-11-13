@@ -1,12 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using PUSpecSheet.Database.Entities.Templates;
 
 namespace PUSpecSheet.Database.Configurations.Templates;
 
-public sealed class TemplateSectionConfiguration : IEntityTypeConfiguration<TemplateSection>
+public sealed class TemplateSectionConfiguration : IEntityTypeConfiguration<DbTemplateSection>
 {
-    public void Configure(EntityTypeBuilder<TemplateSection> builder)
+    public void Configure(EntityTypeBuilder<DbTemplateSection> builder)
     {
         ConfigureTable(builder);
         ConfigureProperties(builder);
@@ -14,7 +13,7 @@ public sealed class TemplateSectionConfiguration : IEntityTypeConfiguration<Temp
         ConfigureRelationships(builder);
     }
 
-    private static void ConfigureTable(EntityTypeBuilder<TemplateSection> builder)
+    private static void ConfigureTable(EntityTypeBuilder<DbTemplateSection> builder)
     {
         builder.ToTable("TemplateSections", table =>
         {
@@ -34,7 +33,7 @@ public sealed class TemplateSectionConfiguration : IEntityTypeConfiguration<Temp
         builder.HasKey(section => section.Id);
     }
 
-    private static void ConfigureProperties(EntityTypeBuilder<TemplateSection> builder)
+    private static void ConfigureProperties(EntityTypeBuilder<DbTemplateSection> builder)
     {
         builder.Property(section => section.Name)
             .IsRequired()
@@ -46,7 +45,7 @@ public sealed class TemplateSectionConfiguration : IEntityTypeConfiguration<Temp
             .HasMaxLength(20);
     }
 
-    private static void ConfigureIndexes(EntityTypeBuilder<TemplateSection> builder)
+    private static void ConfigureIndexes(EntityTypeBuilder<DbTemplateSection> builder)
     {
         builder.HasIndex(section => section.TableTemplateVersionId);
 
@@ -56,7 +55,7 @@ public sealed class TemplateSectionConfiguration : IEntityTypeConfiguration<Temp
             .HasFilter("[Role] = 'Header'");
     }
 
-    private static void ConfigureRelationships(EntityTypeBuilder<TemplateSection> builder)
+    private static void ConfigureRelationships(EntityTypeBuilder<DbTemplateSection> builder)
     {
         // Deleting a version removes all of its sections in one go.
         builder.HasOne(section => section.TableTemplateVersion)

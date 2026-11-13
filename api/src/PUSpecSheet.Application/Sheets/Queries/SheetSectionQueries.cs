@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Database;
-using PUSpecSheet.Database.Entities.Sheets;
 
 namespace PUSpecSheet.Application.Sheets.Queries;
 
@@ -8,7 +7,7 @@ namespace PUSpecSheet.Application.Sheets.Queries;
 public static class SheetSectionQueries
 {
     /// <summary>The sections of the sheet's tables with the template section each copies, read only.</summary>
-    public static async Task<List<SheetSection>> ListOnSheetAsync(PuSpecSheetDbContext db, int sheetId, CancellationToken cancellationToken)
+    public static async Task<List<DbSheetSection>> ListOnSheetAsync(PuSpecSheetDbContext db, int sheetId, CancellationToken cancellationToken)
     {
         return await db.SheetSections
             .AsNoTracking()
@@ -18,7 +17,7 @@ public static class SheetSectionQueries
     }
 
     /// <summary>The section with its template section and table, read only; null when there is no such section.</summary>
-    public static async Task<SheetSection?> FindWithTemplateAndTableAsync(PuSpecSheetDbContext db, int id, CancellationToken cancellationToken)
+    public static async Task<DbSheetSection?> FindWithTemplateAndTableAsync(PuSpecSheetDbContext db, int id, CancellationToken cancellationToken)
     {
         return await db.SheetSections
             .AsNoTracking()
@@ -28,7 +27,7 @@ public static class SheetSectionQueries
     }
 
     /// <summary>The section, read only, when it is on the table; null otherwise.</summary>
-    public static async Task<SheetSection?> FindOnTableAsync(PuSpecSheetDbContext db, int id, int tableId, CancellationToken cancellationToken)
+    public static async Task<DbSheetSection?> FindOnTableAsync(PuSpecSheetDbContext db, int id, int tableId, CancellationToken cancellationToken)
     {
         return await db.SheetSections
             .AsNoTracking()

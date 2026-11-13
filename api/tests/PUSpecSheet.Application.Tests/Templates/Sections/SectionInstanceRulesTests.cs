@@ -1,7 +1,7 @@
 using PUSpecSheet.Application.Common;
 using PUSpecSheet.Application.Templates.Sections;
 using PUSpecSheet.Contracts.Templates;
-using PUSpecSheet.Database.Entities.Templates;
+using PUSpecSheet.Database;
 using PUSpecSheet.Domain.Templates;
 
 namespace PUSpecSheet.Application.Tests.Templates.Sections;
@@ -31,7 +31,7 @@ public sealed class SectionInstanceRulesTests
     [Fact]
     public void TheHeader_IsAlwaysExactlyOne()
     {
-        var section = new TemplateSection { MinInstances = 0, MaxInstances = 9, InitialInstances = 4 };
+        var section = new DbTemplateSection { MinInstances = 0, MaxInstances = 9, InitialInstances = 4 };
 
         SectionInstanceRules.ApplyHeader(section);
 
@@ -42,7 +42,7 @@ public sealed class SectionInstanceRulesTests
     [Fact]
     public void ANewAddableSection_IsOptionalAndUnlimited()
     {
-        var section = new TemplateSection();
+        var section = new DbTemplateSection();
 
         SectionInstanceRules.ApplyNewAddable(section);
 
@@ -53,7 +53,7 @@ public sealed class SectionInstanceRulesTests
     [Fact]
     public void AnAddableSection_TakesTheRequestedLimits_OnceTheyAreChecked()
     {
-        var section = new TemplateSection();
+        var section = new DbTemplateSection();
 
         SectionInstanceRules.ApplyAddable(new UpdateTemplateSectionRequest("Body", 1, 4, 2), section);
         Assert.Equal((1, 4, 2), (section.MinInstances, section.MaxInstances, section.InitialInstances));

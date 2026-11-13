@@ -6,7 +6,6 @@ using PUSpecSheet.Application.Sheets.Reading;
 using PUSpecSheet.Application.Sheets.Values;
 using PUSpecSheet.Contracts.Sheets;
 using PUSpecSheet.Database;
-using PUSpecSheet.Database.Entities.Sheets;
 using PUSpecSheet.Domain.CellTypes;
 using PUSpecSheet.Domain.CellTypes.InstanceSettings;
 using PUSpecSheet.Domain.CellTypes.LabelledText;
@@ -55,7 +54,7 @@ public sealed class SheetCellSettingsService : ISheetCellSettingsService
 
     private static Dictionary<int, CellInstanceSettings?> WantedSettings(
         SaveRowCellSettingsRequest request,
-        Dictionary<int, SheetCell> cellsById,
+        Dictionary<int, DbSheetCell> cellsById,
         SheetDto sheet)
     {
         var wanted = new Dictionary<int, CellInstanceSettings?>();
@@ -73,13 +72,13 @@ public sealed class SheetCellSettingsService : ISheetCellSettingsService
         return wanted;
     }
 
-    private static string NameOf(SheetCell cell)
+    private static string NameOf(DbSheetCell cell)
     {
         var template = cell.TemplateCell;
         return string.IsNullOrWhiteSpace(template.Caption) ? template.CellType.Name : template.Caption;
     }
 
-    private async Task<SheetRow> LoadRowAsync(int rowId, CancellationToken cancellationToken)
+    private async Task<DbSheetRow> LoadRowAsync(int rowId, CancellationToken cancellationToken)
     {
         return await SheetRowQueries.FindWithCellTypesAsync(db, rowId, withOptions: false, cancellationToken)
             ?? throw new NotFoundException($"Row {rowId} was not found.");
@@ -89,7 +88,7 @@ public sealed class SheetCellSettingsService : ISheetCellSettingsService
     private async Task SaveChangedAsync(
         int draftId,
         Dictionary<int, CellInstanceSettings?> wanted,
-        Dictionary<int, SheetCell> cellsById,
+        Dictionary<int, DbSheetCell> cellsById,
         CancellationToken cancellationToken)
     {
         var held = await RowValueQueries.LoadAsync(db, draftId, cancellationToken);

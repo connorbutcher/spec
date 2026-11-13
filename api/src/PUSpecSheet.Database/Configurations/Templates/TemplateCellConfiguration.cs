@@ -1,14 +1,13 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using PUSpecSheet.Database.Conversions;
-using PUSpecSheet.Database.Entities.Templates;
 using PUSpecSheet.Domain.Templates;
 
 namespace PUSpecSheet.Database.Configurations.Templates;
 
-public sealed class TemplateCellConfiguration : IEntityTypeConfiguration<TemplateCell>
+public sealed class TemplateCellConfiguration : IEntityTypeConfiguration<DbTemplateCell>
 {
-    public void Configure(EntityTypeBuilder<TemplateCell> builder)
+    public void Configure(EntityTypeBuilder<DbTemplateCell> builder)
     {
         ConfigureTable(builder);
         ConfigureProperties(builder);
@@ -16,7 +15,7 @@ public sealed class TemplateCellConfiguration : IEntityTypeConfiguration<Templat
         ConfigureRelationships(builder);
     }
 
-    private static void ConfigureTable(EntityTypeBuilder<TemplateCell> builder)
+    private static void ConfigureTable(EntityTypeBuilder<DbTemplateCell> builder)
     {
         builder.ToTable("TemplateCells", table =>
         {
@@ -28,7 +27,7 @@ public sealed class TemplateCellConfiguration : IEntityTypeConfiguration<Templat
         builder.HasKey(cell => cell.Id);
     }
 
-    private static void ConfigureProperties(EntityTypeBuilder<TemplateCell> builder)
+    private static void ConfigureProperties(EntityTypeBuilder<DbTemplateCell> builder)
     {
         builder.Property(cell => cell.RowSpan)
             .HasDefaultValue(1);
@@ -49,7 +48,7 @@ public sealed class TemplateCellConfiguration : IEntityTypeConfiguration<Templat
             .HasMaxLength(LookupKeyRules.MaxLength);
     }
 
-    private static void ConfigureIndexes(EntityTypeBuilder<TemplateCell> builder)
+    private static void ConfigureIndexes(EntityTypeBuilder<DbTemplateCell> builder)
     {
         // Finding the cells that answer to a lookup key; most cells have none.
         builder.HasIndex(cell => cell.LookupKey)
@@ -62,7 +61,7 @@ public sealed class TemplateCellConfiguration : IEntityTypeConfiguration<Templat
             .HasFilter(null);
     }
 
-    private static void ConfigureRelationships(EntityTypeBuilder<TemplateCell> builder)
+    private static void ConfigureRelationships(EntityTypeBuilder<DbTemplateCell> builder)
     {
         builder.HasOne(cell => cell.TemplateRow)
             .WithMany(row => row.Cells)

@@ -1,12 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using PUSpecSheet.Database.Entities.Phases;
 
 namespace PUSpecSheet.Database.Configurations.Phases;
 
-public sealed class PhaseSheetTypeConfiguration : IEntityTypeConfiguration<PhaseSheetType>
+public sealed class PhaseSheetTypeConfiguration : IEntityTypeConfiguration<DbPhaseSheetType>
 {
-    public void Configure(EntityTypeBuilder<PhaseSheetType> builder)
+    public void Configure(EntityTypeBuilder<DbPhaseSheetType> builder)
     {
         builder.ToTable("PhaseSheetTypes");
 

@@ -2,7 +2,6 @@ using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Application.Sheets.Removal;
 using PUSpecSheet.Application.Sheets.Revisions;
 using PUSpecSheet.Database;
-using PUSpecSheet.Database.Entities.Sheets;
 using PUSpecSheet.Domain.Sheets;
 
 namespace PUSpecSheet.Application.Sheets.Queries;
@@ -11,7 +10,7 @@ namespace PUSpecSheet.Application.Sheets.Queries;
 public static class SheetTableRevisionQueries
 {
     /// <summary>What the user sees of the sheet's tables: each one's current published revision and their own draft, read only.</summary>
-    public static async Task<List<SheetTableRevision>> ListVisibleOnSheetAsync(PuSpecSheetDbContext db, int sheetId, int userId, CancellationToken cancellationToken)
+    public static async Task<List<DbSheetTableRevision>> ListVisibleOnSheetAsync(PuSpecSheetDbContext db, int sheetId, int userId, CancellationToken cancellationToken)
     {
         return await db.SheetTableRevisions
             .Where(revision => revision.SheetTable.SheetId == sheetId)

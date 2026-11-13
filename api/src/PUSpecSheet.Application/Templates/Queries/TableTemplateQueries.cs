@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Contracts.Templates;
 using PUSpecSheet.Database;
-using PUSpecSheet.Database.Entities.Templates;
 using PUSpecSheet.Domain.Templates;
 
 namespace PUSpecSheet.Application.Templates.Queries;
@@ -38,7 +37,7 @@ public static class TableTemplateQueries
     }
 
     /// <summary>The template, read only; null when there is no such template.</summary>
-    public static async Task<TableTemplate?> FindAsync(PuSpecSheetDbContext db, int id, CancellationToken cancellationToken)
+    public static async Task<DbTableTemplate?> FindAsync(PuSpecSheetDbContext db, int id, CancellationToken cancellationToken)
     {
         return await db.TableTemplates
             .AsNoTracking()
@@ -46,13 +45,13 @@ public static class TableTemplateQueries
     }
 
     /// <summary>The template, tracked for editing; null when there is no such template.</summary>
-    public static async Task<TableTemplate?> FindForEditAsync(PuSpecSheetDbContext db, int id, CancellationToken cancellationToken)
+    public static async Task<DbTableTemplate?> FindForEditAsync(PuSpecSheetDbContext db, int id, CancellationToken cancellationToken)
     {
         return await db.TableTemplates.FindAsync([id], cancellationToken);
     }
 
     /// <summary>A sheet type's templates, tracked for editing.</summary>
-    public static async Task<List<TableTemplate>> ListForEditAsync(PuSpecSheetDbContext db, int sheetTypeId, CancellationToken cancellationToken)
+    public static async Task<List<DbTableTemplate>> ListForEditAsync(PuSpecSheetDbContext db, int sheetTypeId, CancellationToken cancellationToken)
     {
         return await db.TableTemplates
             .Where(template => template.SheetTypeId == sheetTypeId)
@@ -84,7 +83,7 @@ public static class TableTemplateQueries
     }
 
     /// <summary>The template's versions, read only, oldest first.</summary>
-    public static async Task<List<TableTemplateVersion>> ListVersionsAsync(PuSpecSheetDbContext db, int templateId, CancellationToken cancellationToken)
+    public static async Task<List<DbTableTemplateVersion>> ListVersionsAsync(PuSpecSheetDbContext db, int templateId, CancellationToken cancellationToken)
     {
         return await db.TableTemplateVersions
             .AsNoTracking()
@@ -94,7 +93,7 @@ public static class TableTemplateQueries
     }
 
     /// <summary>The template's latest version, tracked for editing.</summary>
-    public static async Task<TableTemplateVersion> GetLatestVersionForEditAsync(PuSpecSheetDbContext db, int templateId, CancellationToken cancellationToken)
+    public static async Task<DbTableTemplateVersion> GetLatestVersionForEditAsync(PuSpecSheetDbContext db, int templateId, CancellationToken cancellationToken)
     {
         return await db.TableTemplateVersions
             .Where(version => version.TableTemplateId == templateId)
@@ -145,7 +144,7 @@ public static class TableTemplateQueries
     }
 
     /// <summary>The template, read only, when it is for the sheet type; null otherwise.</summary>
-    public static async Task<TableTemplate?> FindForSheetTypeAsync(PuSpecSheetDbContext db, int id, int sheetTypeId, CancellationToken cancellationToken)
+    public static async Task<DbTableTemplate?> FindForSheetTypeAsync(PuSpecSheetDbContext db, int id, int sheetTypeId, CancellationToken cancellationToken)
     {
         return await db.TableTemplates
             .AsNoTracking()
@@ -153,7 +152,7 @@ public static class TableTemplateQueries
     }
 
     /// <summary>A sheet type's templates, read only, in display order then name.</summary>
-    public static async Task<List<TableTemplate>> ListForSheetTypeAsync(PuSpecSheetDbContext db, int sheetTypeId, CancellationToken cancellationToken)
+    public static async Task<List<DbTableTemplate>> ListForSheetTypeAsync(PuSpecSheetDbContext db, int sheetTypeId, CancellationToken cancellationToken)
     {
         return await db.TableTemplates
             .AsNoTracking()
@@ -164,7 +163,7 @@ public static class TableTemplateQueries
     }
 
     /// <summary>The template's latest version, read only. The template must have one.</summary>
-    public static async Task<TableTemplateVersion> GetLatestVersionAsync(PuSpecSheetDbContext db, int templateId, CancellationToken cancellationToken)
+    public static async Task<DbTableTemplateVersion> GetLatestVersionAsync(PuSpecSheetDbContext db, int templateId, CancellationToken cancellationToken)
     {
         return await db.TableTemplateVersions
             .AsNoTracking()

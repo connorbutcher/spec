@@ -1,4 +1,4 @@
-using PUSpecSheet.Database.Entities.Sheets;
+using PUSpecSheet.Database;
 using PUSpecSheet.Domain.Sheets;
 
 namespace PUSpecSheet.Application.Sheets.Revisions;
@@ -13,7 +13,7 @@ public static class RevisionResolver
         IEnumerable<TRevision> revisions,
         Func<TRevision, int> itemId,
         int currentUserId)
-        where TRevision : class, ISheetRevision
+        where TRevision : class, IDbSheetRevision
     {
         return Resolve(revisions, itemId, draft => draft.AuthorUserId == currentUserId);
     }
@@ -26,7 +26,7 @@ public static class RevisionResolver
         IEnumerable<TRevision> revisions,
         Func<TRevision, int> itemId,
         Func<TRevision, bool> showsDraft)
-        where TRevision : class, ISheetRevision
+        where TRevision : class, IDbSheetRevision
     {
         var result = new Dictionary<int, RevisionResolution<TRevision>>();
         foreach (var group in revisions.GroupBy(itemId))
@@ -42,7 +42,7 @@ public static class RevisionResolver
 
     /// <summary>Whether the resolution has something to show that isn't a removal.</summary>
     public static bool IsVisible<TRevision>(RevisionResolution<TRevision>? resolution)
-        where TRevision : class, ISheetRevision
+        where TRevision : class, IDbSheetRevision
     {
         return resolution?.Shown is { IsDeleted: false };
     }

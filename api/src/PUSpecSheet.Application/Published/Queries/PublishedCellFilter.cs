@@ -1,6 +1,6 @@
 using System.Linq.Expressions;
 using PUSpecSheet.Application.Published.Sheets;
-using PUSpecSheet.Database.Entities.Sheets;
+using PUSpecSheet.Database;
 
 namespace PUSpecSheet.Application.Published.Queries;
 
@@ -10,9 +10,9 @@ namespace PUSpecSheet.Application.Published.Queries;
 /// </summary>
 internal static class PublishedCellFilter
 {
-    public static Expression<Func<SheetCell, bool>>? For(PublishedSelectionScope scope)
+    public static Expression<Func<DbSheetCell, bool>>? For(PublishedSelectionScope scope)
     {
-        var terms = new List<Expression<Func<SheetCell, bool>>>();
+        var terms = new List<Expression<Func<DbSheetCell, bool>>>();
 
         if (scope.TableIds.Count > 0)
         {
@@ -50,6 +50,6 @@ internal static class PublishedCellFilter
             body = Expression.OrElse(body, new ParameterReplacer(term.Parameters[0], parameter).Visit(term.Body));
         }
 
-        return Expression.Lambda<Func<SheetCell, bool>>(body, parameter);
+        return Expression.Lambda<Func<DbSheetCell, bool>>(body, parameter);
     }
 }

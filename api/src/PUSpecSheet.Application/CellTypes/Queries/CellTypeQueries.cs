@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Database;
-using PUSpecSheet.Database.Entities.CellTypes;
 using PUSpecSheet.Domain.CellTypes;
 using PUSpecSheet.Domain.CellTypes.Configurations;
 
@@ -10,7 +9,7 @@ namespace PUSpecSheet.Application.CellTypes.Queries;
 public static class CellTypeQueries
 {
     /// <summary>Every cell type with its options, read only, in display order then name.</summary>
-    public static async Task<List<CellType>> ListWithOptionsAsync(PuSpecSheetDbContext db, CancellationToken cancellationToken)
+    public static async Task<List<DbCellType>> ListWithOptionsAsync(PuSpecSheetDbContext db, CancellationToken cancellationToken)
     {
         return await db.CellTypes
             .AsNoTracking()
@@ -21,7 +20,7 @@ public static class CellTypeQueries
     }
 
     /// <summary>The cell type with its options, tracked for editing; null when there is no such type.</summary>
-    public static async Task<CellType?> FindForEditAsync(PuSpecSheetDbContext db, int id, CancellationToken cancellationToken)
+    public static async Task<DbCellType?> FindForEditAsync(PuSpecSheetDbContext db, int id, CancellationToken cancellationToken)
     {
         return await db.CellTypes
             .Include(candidate => candidate.Options)
@@ -100,7 +99,7 @@ public static class CellTypeQueries
     }
 
     /// <summary>Every cell type with its options, read only, by id.</summary>
-    public static async Task<Dictionary<int, CellType>> GetAllWithOptionsByIdAsync(PuSpecSheetDbContext db, CancellationToken cancellationToken)
+    public static async Task<Dictionary<int, DbCellType>> GetAllWithOptionsByIdAsync(PuSpecSheetDbContext db, CancellationToken cancellationToken)
     {
         return await db.CellTypes
             .AsNoTracking()
@@ -118,7 +117,7 @@ public static class CellTypeQueries
     }
 
     /// <summary>The cell types with any of the names, with their options, read only.</summary>
-    public static async Task<List<CellType>> ListByNamesAsync(PuSpecSheetDbContext db, IReadOnlyCollection<string> names, CancellationToken cancellationToken)
+    public static async Task<List<DbCellType>> ListByNamesAsync(PuSpecSheetDbContext db, IReadOnlyCollection<string> names, CancellationToken cancellationToken)
     {
         return await db.CellTypes
             .AsNoTracking()

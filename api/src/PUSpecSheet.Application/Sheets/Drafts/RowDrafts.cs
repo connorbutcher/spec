@@ -4,44 +4,43 @@ using PUSpecSheet.Application.Sheets.Revisions;
 using PUSpecSheet.Application.Sheets.Values;
 using PUSpecSheet.Application.Users;
 using PUSpecSheet.Database;
-using PUSpecSheet.Database.Entities.Sheets;
 
 namespace PUSpecSheet.Application.Sheets.Drafts;
 
-public sealed class RowDrafts : DraftGateway<SheetRowRevision>
+public sealed class RowDrafts : DraftGateway<DbSheetRowRevision>
 {
     public RowDrafts(PuSpecSheetDbContext db, ICurrentUser currentUser)
         : base(db, currentUser)
     {
     }
 
-    protected override DbSet<SheetRowRevision> Revisions => Db.SheetRowRevisions;
+    protected override DbSet<DbSheetRowRevision> Revisions => Db.SheetRowRevisions;
 
     protected override string Subject => "This row";
 
-    protected override int ItemIdOf(SheetRowRevision revision)
+    protected override int ItemIdOf(DbSheetRowRevision revision)
     {
         return revision.SheetRowId;
     }
 
-    protected override IQueryable<SheetRowRevision> OfItems(IReadOnlyCollection<int> itemIds)
+    protected override IQueryable<DbSheetRowRevision> OfItems(IReadOnlyCollection<int> itemIds)
     {
         return Db.SheetRowRevisions.Where(revision => itemIds.Contains(revision.SheetRowId));
     }
 
-    protected override IQueryable<SheetRowRevision> OfItem(int itemId)
+    protected override IQueryable<DbSheetRowRevision> OfItem(int itemId)
     {
         return Db.SheetRowRevisions.Where(revision => revision.SheetRowId == itemId);
     }
 
-    protected override void SetItem(SheetRowRevision revision, int itemId)
+    protected override void SetItem(DbSheetRowRevision revision, int itemId)
     {
         revision.SheetRowId = itemId;
     }
 
     /// <summary>A row is unchanged when its place and existence are, and every cell holds what is published.</summary>
-    protected override async Task<HashSet<SheetRowRevision>> UnchangedAsync(
-        IReadOnlyList<(SheetRowRevision Draft, SheetRowRevision Current)> pairs,
+    protected override async Task<HashSet<DbSheetRowRevision>> UnchangedAsync(
+        IReadOnlyList<(DbSheetRowRevision Draft, DbSheetRowRevision Current)> pairs,
         CancellationToken cancellationToken)
     {
         var sameStructure = pairs

@@ -1,13 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using PUSpecSheet.Database.Entities.Approvals;
-using PUSpecSheet.Database.Entities.Sheets;
 
 namespace PUSpecSheet.Database.Configurations.Sheets;
 
-public sealed class SheetTableRevisionConfiguration : IEntityTypeConfiguration<SheetTableRevision>
+public sealed class SheetTableRevisionConfiguration : IEntityTypeConfiguration<DbSheetTableRevision>
 {
-    public void Configure(EntityTypeBuilder<SheetTableRevision> builder)
+    public void Configure(EntityTypeBuilder<DbSheetTableRevision> builder)
     {
         ConfigureTable(builder);
         ConfigureProperties(builder);
@@ -15,7 +13,7 @@ public sealed class SheetTableRevisionConfiguration : IEntityTypeConfiguration<S
         ConfigureRelationships(builder);
     }
 
-    private static void ConfigureTable(EntityTypeBuilder<SheetTableRevision> builder)
+    private static void ConfigureTable(EntityTypeBuilder<DbSheetTableRevision> builder)
     {
         builder.ToTable("SheetTableRevisions", table =>
         {
@@ -39,7 +37,7 @@ public sealed class SheetTableRevisionConfiguration : IEntityTypeConfiguration<S
         builder.HasKey(revision => revision.Id);
     }
 
-    private static void ConfigureProperties(EntityTypeBuilder<SheetTableRevision> builder)
+    private static void ConfigureProperties(EntityTypeBuilder<DbSheetTableRevision> builder)
     {
         builder.Property(revision => revision.RowVersion)
             .IsRowVersion();
@@ -57,7 +55,7 @@ public sealed class SheetTableRevisionConfiguration : IEntityTypeConfiguration<S
             .HasDefaultValueSql("SYSUTCDATETIME()");
     }
 
-    private static void ConfigureIndexes(EntityTypeBuilder<SheetTableRevision> builder)
+    private static void ConfigureIndexes(EntityTypeBuilder<DbSheetTableRevision> builder)
     {
         // The current state: at most one published, not-yet-superseded revision per table.
         builder.HasIndex(revision => revision.SheetTableId, "UX_SheetTableRevisions_OneCurrentPerTable")
@@ -92,10 +90,10 @@ public sealed class SheetTableRevisionConfiguration : IEntityTypeConfiguration<S
             .IncludeProperties(revision => new { revision.SupersededAtUtc, revision.SheetTableId, revision.AuthorUserId });
     }
 
-    private static void ConfigureRelationships(EntityTypeBuilder<SheetTableRevision> builder)
+    private static void ConfigureRelationships(EntityTypeBuilder<DbSheetTableRevision> builder)
     {
         // Copied from the item's sheet. Items already reach the sheet through their parents, so this can't cascade as well.
-        builder.HasOne<Sheet>()
+        builder.HasOne<DbSheet>()
             .WithMany()
             .HasForeignKey(revision => revision.SheetId)
             .OnDelete(DeleteBehavior.NoAction);
@@ -112,7 +110,7 @@ public sealed class SheetTableRevisionConfiguration : IEntityTypeConfiguration<S
 
         // Versions and tables both sit under the sheet, so this can't cascade as well.
         // The publish awaiting approval the draft is part of. Submissions sit under the sheet too, so no cascade.
-        builder.HasOne<SheetSubmission>()
+        builder.HasOne<DbSheetSubmission>()
             .WithMany()
             .HasForeignKey(revision => revision.SheetSubmissionId)
             .OnDelete(DeleteBehavior.NoAction);

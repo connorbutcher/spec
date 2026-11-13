@@ -3,7 +3,6 @@ using PUSpecSheet.Application.Published.Sheets;
 using PUSpecSheet.Application.Published.Versions;
 using PUSpecSheet.Application.Sheets.Queries;
 using PUSpecSheet.Database;
-using PUSpecSheet.Database.Entities.Values;
 
 namespace PUSpecSheet.Application.Published.Queries;
 
@@ -66,7 +65,7 @@ public static class PublishedValueQueries
         IQueryable<TValue> values,
         RowRevisionScope revisions,
         List<int>? cellIds)
-        where TValue : class, ICellValue
+        where TValue : class, IDbCellValue
     {
         var scoped = revisions.Apply(values.AsNoTracking());
         return cellIds is null ? scoped : scoped.Where(value => cellIds.Contains(value.SheetCellId));

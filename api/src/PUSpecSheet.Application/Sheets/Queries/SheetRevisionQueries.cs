@@ -4,7 +4,7 @@ using PUSpecSheet.Application.Sheets.Drafts;
 using PUSpecSheet.Application.Sheets.Removal;
 using PUSpecSheet.Application.Sheets.Revisions;
 using PUSpecSheet.Contracts.Sheets;
-using PUSpecSheet.Database.Entities.Sheets;
+using PUSpecSheet.Database;
 using PUSpecSheet.Domain.Sheets;
 
 namespace PUSpecSheet.Application.Sheets.Queries;
@@ -24,7 +24,7 @@ public static class SheetRevisionQueries
         int sheetId,
         DateTime? moment,
         CancellationToken cancellationToken)
-        where TRevision : class, ISheetRevision
+        where TRevision : class, IDbSheetRevision
     {
         return await revisions.OnSheet(sheetId).InView(moment).AsNoTracking().ToListAsync(cancellationToken);
     }
@@ -35,7 +35,7 @@ public static class SheetRevisionQueries
         int sheetId,
         DateTime? moment,
         CancellationToken cancellationToken)
-        where TRevision : class, ISheetRevision
+        where TRevision : class, IDbSheetRevision
     {
         return await revisions.OnSheet(sheetId).PublishedUpTo(moment).AsNoTracking().ToListAsync(cancellationToken);
     }
@@ -46,7 +46,7 @@ public static class SheetRevisionQueries
         int sheetId,
         DraftSelection selection,
         CancellationToken cancellationToken)
-        where TRevision : class, ISheetRevision
+        where TRevision : class, IDbSheetRevision
     {
         return await selection.Apply(revisions.OnSheet(sheetId)).ToListAsync(cancellationToken);
     }
@@ -62,7 +62,7 @@ public static class SheetRevisionQueries
         int userId,
         Expression<Func<TRevision, int>> itemId,
         CancellationToken cancellationToken)
-        where TRevision : class, ISheetRevision
+        where TRevision : class, IDbSheetRevision
     {
         // Only an item with an earlier revision has something to return to.
         return await revisions.OnSheet(sheetId)
@@ -76,7 +76,7 @@ public static class SheetRevisionQueries
     public static async Task<List<TRevision>> ListCurrentAndDraftsForEditAsync<TRevision>(
         this IQueryable<TRevision> itemRevisions,
         CancellationToken cancellationToken)
-        where TRevision : class, ISheetRevision
+        where TRevision : class, IDbSheetRevision
     {
         return await itemRevisions.CurrentAndDrafts().ToListAsync(cancellationToken);
     }
@@ -85,7 +85,7 @@ public static class SheetRevisionQueries
     public static async Task<int> GetLastRevisionNumberAsync<TRevision>(
         this IQueryable<TRevision> itemRevisions,
         CancellationToken cancellationToken)
-        where TRevision : class, ISheetRevision
+        where TRevision : class, IDbSheetRevision
     {
         return await itemRevisions.MaxAsync(revision => (int?)revision.RevisionNumber, cancellationToken) ?? 0;
     }
@@ -95,7 +95,7 @@ public static class SheetRevisionQueries
         this IQueryable<TRevision> itemRevisions,
         DateTime supersededAtUtc,
         CancellationToken cancellationToken)
-        where TRevision : class, ISheetRevision
+        where TRevision : class, IDbSheetRevision
     {
         await itemRevisions.Current().ExecuteUpdateAsync(
             setters => setters.SetProperty(revision => revision.SupersededAtUtc, supersededAtUtc),
@@ -108,7 +108,7 @@ public static class SheetRevisionQueries
         int sheetId,
         int submissionId,
         CancellationToken cancellationToken)
-        where TRevision : class, ISheetRevision
+        where TRevision : class, IDbSheetRevision
     {
         await revisions.OnSheet(sheetId).InSubmission(submissionId).ExecuteUpdateAsync(
             setters => setters.SetProperty(revision => revision.SheetSubmissionId, (int?)null),
@@ -121,7 +121,7 @@ public static class SheetRevisionQueries
         int sheetId,
         int userId,
         CancellationToken cancellationToken)
-        where TRevision : class, ISheetRevision
+        where TRevision : class, IDbSheetRevision
     {
         await revisions.OnSheet(sheetId).OpenDraftsOf(userId).ExecuteDeleteAsync(cancellationToken);
     }
@@ -131,7 +131,7 @@ public static class SheetRevisionQueries
         this IQueryable<TRevision> revisions,
         IReadOnlyCollection<int> submissionIds,
         CancellationToken cancellationToken)
-        where TRevision : class, ISheetRevision
+        where TRevision : class, IDbSheetRevision
     {
         return await revisions
             .Select(revision => revision.SheetSubmissionId)
@@ -149,7 +149,7 @@ public static class SheetRevisionQueries
         this IQueryable<TRevision> revisions,
         int userId,
         CancellationToken cancellationToken)
-        where TRevision : class, ISheetRevision
+        where TRevision : class, IDbSheetRevision
     {
         return await revisions
             .Where(revision => revision.Status == RevisionStatus.Draft && (revision.AuthorUserId != userId || revision.SheetSubmissionId != null))
@@ -158,7 +158,7 @@ public static class SheetRevisionQueries
     }
 
     private static IQueryable<TRevision> OnSheet<TRevision>(this IQueryable<TRevision> revisions, int sheetId)
-        where TRevision : class, ISheetRevision
+        where TRevision : class, IDbSheetRevision
     {
         return revisions.Where(revision => revision.SheetId == sheetId);
     }

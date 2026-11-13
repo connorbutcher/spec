@@ -2,7 +2,6 @@ using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Application.Published.Lookups;
 using PUSpecSheet.Application.Published.Versions;
 using PUSpecSheet.Database;
-using PUSpecSheet.Database.Entities.Sheets;
 using PUSpecSheet.Domain.Sheets;
 using PUSpecSheet.Domain.Templates;
 
@@ -110,7 +109,7 @@ public static class PublishedLookupCellQueries
         return Project(cells, version);
     }
 
-    private static IQueryable<PublishedLookupCellRecord> Project(IQueryable<SheetCell> cells, ResolvedSheetVersion version)
+    private static IQueryable<PublishedLookupCellRecord> Project(IQueryable<DbSheetCell> cells, ResolvedSheetVersion version)
     {
         // The sheet on the revision lets SQL Server find the revisions through the (sheet, published) index.
         var sheetId = version.SheetId;

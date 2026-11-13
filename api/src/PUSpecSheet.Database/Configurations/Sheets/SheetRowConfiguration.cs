@@ -1,12 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using PUSpecSheet.Database.Entities.Sheets;
 
 namespace PUSpecSheet.Database.Configurations.Sheets;
 
-public sealed class SheetRowConfiguration : IEntityTypeConfiguration<SheetRow>
+public sealed class SheetRowConfiguration : IEntityTypeConfiguration<DbSheetRow>
 {
-    public void Configure(EntityTypeBuilder<SheetRow> builder)
+    public void Configure(EntityTypeBuilder<DbSheetRow> builder)
     {
         builder.ToTable("SheetRows");
 

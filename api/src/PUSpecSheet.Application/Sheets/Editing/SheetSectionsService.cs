@@ -9,8 +9,6 @@ using PUSpecSheet.Application.Users;
 using PUSpecSheet.Contracts.Common;
 using PUSpecSheet.Contracts.Sheets;
 using PUSpecSheet.Database;
-using PUSpecSheet.Database.Entities.Sheets;
-using PUSpecSheet.Database.Entities.Templates;
 using PUSpecSheet.Domain.Templates;
 
 namespace PUSpecSheet.Application.Sheets.Editing;
@@ -154,7 +152,7 @@ public sealed class SheetSectionsService : ISheetSectionsService
         return rows.AddAsync(sectionId, request, cancellationToken);
     }
 
-    private async Task<SheetSection> LoadSectionAsync(int sectionId, CancellationToken cancellationToken)
+    private async Task<DbSheetSection> LoadSectionAsync(int sectionId, CancellationToken cancellationToken)
     {
         return await SheetSectionQueries.FindWithTemplateAndTableAsync(db, sectionId, cancellationToken)
             ?? throw new NotFoundException($"Section {sectionId} was not found.");
@@ -164,7 +162,7 @@ public sealed class SheetSectionsService : ISheetSectionsService
     /// Deletes a section only its author ever saw, along with its sub-sections. A section can't cascade
     /// to its own children in SQL Server, so they're deleted deepest first.
     /// </summary>
-    private async Task DeleteSubtreeAsync(SheetSection section, CancellationToken cancellationToken)
+    private async Task DeleteSubtreeAsync(DbSheetSection section, CancellationToken cancellationToken)
     {
         var ids = await liveSections.SubtreeIdsAsync(section.SheetTableId, section.Id, cancellationToken);
         var remaining = await SheetSectionQueries.GetParentsAsync(db, ids, cancellationToken);
@@ -182,7 +180,7 @@ public sealed class SheetSectionsService : ISheetSectionsService
     }
 
     /// <summary>A section goes under a copy of its template's parent, or at the top level when it has none.</summary>
-    private async Task EnsureParentFitsAsync(int tableId, TemplateSection template, int? parentSheetSectionId, CancellationToken cancellationToken)
+    private async Task EnsureParentFitsAsync(int tableId, DbTemplateSection template, int? parentSheetSectionId, CancellationToken cancellationToken)
     {
         if (parentSheetSectionId is { } parentId)
         {
@@ -200,7 +198,7 @@ public sealed class SheetSectionsService : ISheetSectionsService
     }
 
     /// <summary>The display order for a new copy after its siblings, refused once the template's maximum is reached.</summary>
-    private async Task<int> NextOrderWithinLimitAsync(int tableId, TemplateSection template, int? parentSheetSectionId, CancellationToken cancellationToken)
+    private async Task<int> NextOrderWithinLimitAsync(int tableId, DbTemplateSection template, int? parentSheetSectionId, CancellationToken cancellationToken)
     {
         var siblings = (await liveSections.VisibleAsync(tableId, cancellationToken))
             .Where(section => section.ParentSheetSectionId == parentSheetSectionId)

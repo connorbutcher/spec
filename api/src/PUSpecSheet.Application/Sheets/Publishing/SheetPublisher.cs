@@ -5,8 +5,6 @@ using PUSpecSheet.Application.Users;
 using PUSpecSheet.Application.Users.Queries;
 using PUSpecSheet.Contracts.Sheets;
 using PUSpecSheet.Database;
-using PUSpecSheet.Database.Entities.Approvals;
-using PUSpecSheet.Database.Entities.Sheets;
 using PUSpecSheet.Domain.CellTypes;
 using PUSpecSheet.Domain.Sheets;
 
@@ -92,7 +90,7 @@ public sealed class SheetPublisher
     /// saved in the same transaction, so the submission and the version can't disagree.
     /// </summary>
     /// <exception cref="ConflictException">Someone else published the sheet, or decided the submission, at the same moment.</exception>
-    public async Task<SheetVersion> PublishSubmissionAsync(SheetSubmission submission, CancellationToken cancellationToken)
+    public async Task<DbSheetVersion> PublishSubmissionAsync(DbSheetSubmission submission, CancellationToken cancellationToken)
     {
         var sheet = await FindSheetAsync(submission.SheetId, cancellationToken);
         var drafts = await draftLoader.LoadAsync(sheet.Id, DraftSelection.InSubmission(submission.Id), cancellationToken);
@@ -104,15 +102,15 @@ public sealed class SheetPublisher
         return version;
     }
 
-    private async Task<Sheet> FindSheetAsync(int sheetId, CancellationToken cancellationToken)
+    private async Task<DbSheet> FindSheetAsync(int sheetId, CancellationToken cancellationToken)
     {
         return await SheetQueries.FindForEditAsync(db, sheetId, cancellationToken)
             ?? throw new NotFoundException($"Sheet {sheetId} was not found.");
     }
 
     /// <summary>Publishes the drafts as the sheet's next version, inside the caller's transaction.</summary>
-    private async Task<SheetVersion> PublishDraftsAsync(
-        Sheet sheet,
+    private async Task<DbSheetVersion> PublishDraftsAsync(
+        DbSheet sheet,
         SheetDraftSet drafts,
         string? note,
         int publishedByUserId,
@@ -140,9 +138,9 @@ public sealed class SheetPublisher
     }
 
     /// <summary>Adds the sheet's next version, numbered one after its last.</summary>
-    private SheetVersion AddNextVersion(Sheet sheet, string? note, DateTime now, int publishedByUserId, int lastVersion)
+    private DbSheetVersion AddNextVersion(DbSheet sheet, string? note, DateTime now, int publishedByUserId, int lastVersion)
     {
-        var version = new SheetVersion
+        var version = new DbSheetVersion
         {
             SheetId = sheet.Id,
             VersionNumber = lastVersion + 1,
@@ -172,7 +170,7 @@ public sealed class SheetPublisher
         await db.SheetColumnBlockRevisions.Where(revision => columnBlockIds.Contains(revision.SheetColumnBlockId)).SupersedeCurrentAsync(now, cancellationToken);
     }
 
-    private async Task EnsureRequiredCellsFilledAsync(IReadOnlyList<SheetRowRevision> rowDrafts, CancellationToken cancellationToken)
+    private async Task EnsureRequiredCellsFilledAsync(IReadOnlyList<DbSheetRowRevision> rowDrafts, CancellationToken cancellationToken)
     {
         var live = rowDrafts.Where(draft => !draft.IsDeleted).ToList();
         if (live.Count == 0)
@@ -188,7 +186,7 @@ public sealed class SheetPublisher
     }
 
     /// <summary>The row of each required cell left empty in the drafts, once per cell.</summary>
-    private async Task<List<int>> RowsWithEmptyRequiredCellsAsync(List<SheetRowRevision> live, CancellationToken cancellationToken)
+    private async Task<List<int>> RowsWithEmptyRequiredCellsAsync(List<DbSheetRowRevision> live, CancellationToken cancellationToken)
     {
         var rowIds = live.Select(draft => draft.SheetRowId).ToList();
         var required = await SheetCellQueries.ListRequiredAsync(db, rowIds, cancellationToken);
@@ -206,7 +204,7 @@ public sealed class SheetPublisher
             .ToList();
     }
 
-    private async Task ThrowRequiredCellsEmptyAsync(List<SheetRowRevision> live, List<int> emptyRowIds, CancellationToken cancellationToken)
+    private async Task ThrowRequiredCellsEmptyAsync(List<DbSheetRowRevision> live, List<int> emptyRowIds, CancellationToken cancellationToken)
     {
         var empty = emptyRowIds.Count;
         var stillEmpty = $"{empty} required {(empty == 1 ? "cell is" : "cells are")} still empty";

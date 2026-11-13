@@ -1,4 +1,4 @@
-using PUSpecSheet.Database.Entities.Values;
+using PUSpecSheet.Database;
 
 namespace PUSpecSheet.Application.Sheets.Queries;
 
@@ -40,7 +40,7 @@ public sealed class RowRevisionScope
 
     /// <summary>The values held by these revisions.</summary>
     public IQueryable<TValue> Apply<TValue>(IQueryable<TValue> values)
-        where TValue : class, ICellValue
+        where TValue : class, IDbCellValue
     {
         if (query is not null)
         {

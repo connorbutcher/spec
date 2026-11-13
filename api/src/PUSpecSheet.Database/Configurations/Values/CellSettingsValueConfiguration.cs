@@ -1,15 +1,14 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using PUSpecSheet.Database.Conversions;
-using PUSpecSheet.Database.Entities.Values;
 
 namespace PUSpecSheet.Database.Configurations.Values;
 
-public sealed class CellSettingsValueConfiguration : CellValueConfiguration<CellSettingsValue>
+public sealed class CellSettingsValueConfiguration : CellValueConfiguration<DbCellSettingsValue>
 {
     protected override string TableName => "CellSettings";
 
-    protected override void ConfigureValue(EntityTypeBuilder<CellSettingsValue> builder)
+    protected override void ConfigureValue(EntityTypeBuilder<DbCellSettingsValue> builder)
     {
         // JSON, so a new setting never needs a new column.
         builder.Property(value => value.Settings)

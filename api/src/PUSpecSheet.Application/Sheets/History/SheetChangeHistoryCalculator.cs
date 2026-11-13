@@ -1,5 +1,5 @@
 using PUSpecSheet.Application.Sheets.Values;
-using PUSpecSheet.Database.Entities.Sheets;
+using PUSpecSheet.Database;
 
 namespace PUSpecSheet.Application.Sheets.History;
 
@@ -17,9 +17,9 @@ internal static class SheetChangeHistoryCalculator
     /// <param name="rowSections">The section each row is in, by row id.</param>
     /// <param name="sectionParents">The parent of each section (null at the top), by section id.</param>
     public static SheetChangeHistory Calculate(
-        IReadOnlyList<SheetRowRevision> rowRevisions,
-        IReadOnlyList<SheetSectionRevision> sectionRevisions,
-        IReadOnlyList<SheetColumnBlockRevision> columnBlockRevisions,
+        IReadOnlyList<DbSheetRowRevision> rowRevisions,
+        IReadOnlyList<DbSheetSectionRevision> sectionRevisions,
+        IReadOnlyList<DbSheetColumnBlockRevision> columnBlockRevisions,
         IReadOnlyDictionary<int, Dictionary<int, CellValueBag>> values,
         IReadOnlyDictionary<int, int> versionNumbers,
         IReadOnlyDictionary<int, int> rowSections,
@@ -53,12 +53,12 @@ internal static class SheetChangeHistoryCalculator
 
     private static void RecordRow(
         SheetChangeHistory history,
-        IGrouping<int, SheetRowRevision> row,
+        IGrouping<int, DbSheetRowRevision> row,
         IReadOnlyDictionary<int, Dictionary<int, CellValueBag>> values,
         IReadOnlyDictionary<int, int> versionNumbers,
         IReadOnlyDictionary<int, int> rowSections)
     {
-        SheetRowRevision? previous = null;
+        DbSheetRowRevision? previous = null;
         foreach (var revision in row.OrderBy(candidate => candidate.RevisionNumber))
         {
             if (ChangeOf(revision, versionNumbers) is { } change)
@@ -85,8 +85,8 @@ internal static class SheetChangeHistoryCalculator
     /// <summary>Records the change against each cell whose value differs from the previous revision's.</summary>
     private static bool RecordCells(
         SheetChangeHistory history,
-        SheetRowRevision revision,
-        SheetRowRevision? previous,
+        DbSheetRowRevision revision,
+        DbSheetRowRevision? previous,
         IReadOnlyDictionary<int, Dictionary<int, CellValueBag>> values,
         SheetChange change)
     {
@@ -105,7 +105,7 @@ internal static class SheetChangeHistoryCalculator
         return cellsChanged;
     }
 
-    private static SheetChange? ChangeOf(ISheetRevision revision, IReadOnlyDictionary<int, int> versionNumbers)
+    private static SheetChange? ChangeOf(IDbSheetRevision revision, IReadOnlyDictionary<int, int> versionNumbers)
     {
         if (revision.SheetVersionId is not { } versionId
             || revision.PublishedAtUtc is not { } at

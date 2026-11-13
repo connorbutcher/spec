@@ -2,7 +2,6 @@ using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Application.Published.Lookups;
 using PUSpecSheet.Database;
 using PUSpecSheet.Database.Configurations.Values;
-using PUSpecSheet.Database.Entities.Values;
 using PUSpecSheet.Domain.Sheets;
 using PUSpecSheet.Domain.Templates;
 
@@ -51,7 +50,7 @@ public static class PublishedLookupHitQueries
     }
 
     private static IQueryable<TValue> Narrow<TValue>(IQueryable<TValue> values, PublishedLookupCriteria criteria, int? sheetId)
-        where TValue : class, ICellValue
+        where TValue : class, IDbCellValue
     {
         if (sheetId is { } id)
         {
@@ -80,7 +79,7 @@ public static class PublishedLookupHitQueries
         string lookupColumn,
         PublishedLookupCriteria criteria,
         DateTime momentUtc)
-        where TValue : class, ICellValue
+        where TValue : class, IDbCellValue
     {
         var key = criteria.Key;
         var value = criteria.Value;
@@ -91,7 +90,7 @@ public static class PublishedLookupHitQueries
         return set
             .AsNoTracking()
             .Where(found => EF.Property<string>(found, lookupColumn) == start
-                && EF.Property<string>(found, nameof(TextValue.Value)) == value
+                && EF.Property<string>(found, nameof(DbTextValue.Value)) == value
                 && found.SheetCell.TemplateCell.LookupKey == key
                 && found.SheetRowRevision.Status == RevisionStatus.Published
                 && found.SheetRowRevision.PublishedAtUtc <= momentUtc

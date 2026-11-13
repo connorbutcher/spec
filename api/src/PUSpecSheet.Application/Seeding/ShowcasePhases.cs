@@ -1,7 +1,6 @@
 using PUSpecSheet.Application.Phases.Queries;
 using PUSpecSheet.Application.SheetTypes.Queries;
 using PUSpecSheet.Database;
-using PUSpecSheet.Database.Entities.Phases;
 
 namespace PUSpecSheet.Application.Seeding;
 
@@ -41,7 +40,7 @@ public sealed class ShowcasePhases
         if (build is null)
         {
             var order = await PhaseQueries.GetLastDisplayOrderAsync(db, null, cancellationToken) ?? 0;
-            build = new Phase { Code = V6, Description = "V6 build", DisplayOrder = order + 1 };
+            build = new DbPhase { Code = V6, Description = "V6 build", DisplayOrder = order + 1 };
             db.Phases.Add(build);
             phases.Add(build);
         }
@@ -50,7 +49,7 @@ public sealed class ShowcasePhases
         {
             if (phases.All(phase => phase.Code != Codes[index]))
             {
-                var phase = new Phase { Code = Codes[index], DisplayOrder = index, ParentPhase = build };
+                var phase = new DbPhase { Code = Codes[index], DisplayOrder = index, ParentPhase = build };
                 db.Phases.Add(phase);
                 phases.Add(phase);
             }
@@ -62,7 +61,7 @@ public sealed class ShowcasePhases
         {
             foreach (var sheetTypeId in sheetTypeIds.Where(id => phase.SheetTypes.All(link => link.SheetTypeId != id)))
             {
-                phase.SheetTypes.Add(new PhaseSheetType { SheetTypeId = sheetTypeId });
+                phase.SheetTypes.Add(new DbPhaseSheetType { SheetTypeId = sheetTypeId });
             }
         }
 

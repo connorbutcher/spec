@@ -9,13 +9,13 @@ api/                          .NET 10 solution (PUSpecSheet.slnx)
   src/PUSpecSheet.Api           ASP.NET Core host: controllers, middleware, startup
   src/PUSpecSheet.Application   Application services / use cases
   src/PUSpecSheet.Contracts     Request/response DTOs shared with the UI
-  src/PUSpecSheet.Data          EF Core DbContext, entity configurations, migrations, repositories (SQL Server)
-  src/PUSpecSheet.Domain        Domain entities and enums
+  src/PUSpecSheet.Database      EF Core DbContext, the Db* entities and their mappings (SQL Server, database first)
+  src/PUSpecSheet.Domain        Domain enums, configuration records and rules
 app/                          Angular 22 UI (PrimeNG)
-database/                     SQL database project mirroring the migrated schema, one script per object (see database/README.md)
+database/                     SQL database project: the source of truth for the schema, one script per object (see database/README.md)
 ```
 
-Project references flow one way: `Api -> Application -> Data -> Domain`, with `Contracts` referenced by `Api` and `Application`. How the API is put together, and how to add an endpoint, entity or migration, is in [api/README.md](api/README.md).
+Project references flow one way: `Api -> Application -> Database -> Domain`, with `Contracts` referenced by `Api` and `Application`. How the API is put together, and how to add an endpoint or a table, is in [api/README.md](api/README.md).
 
 ## Conventions
 
@@ -26,7 +26,11 @@ Both linters fail on any violation, so a clean run means these standards hold.
 
 ## Running
 
-Database: SQL Server LocalDB, database `PUSpecSheet` (connection string in `api/src/PUSpecSheet.Api/appsettings.json`). In Development the API applies migrations on startup, which also creates the database.
+Database: SQL Server LocalDB, database `PUSpecSheet` (connection string in `api/src/PUSpecSheet.Api/appsettings.json`). The application is database first: create or update the database by deploying the SQL database project, before starting the API and again whenever the schema changes:
+
+```powershell
+./database/deploy.ps1
+```
 
 ```bash
 dotnet run --project api/src/PUSpecSheet.Api --launch-profile http
@@ -111,8 +115,6 @@ dotnet build api/PUSpecSheet.slnx --artifacts-path api/.lint-build
 cd app && npm run lint && npm run build && npx ng test --watch=false
 ```
 
-## Migrations
+## Schema changes
 
-```bash
-dotnet ef migrations add <Name> --project api/src/PUSpecSheet.Data --startup-project api/src/PUSpecSheet.Api
-```
+The schema lives in the SQL database project, not in EF Core: there are no migrations. Change the table scripts in `database/`, deploy them with `./database/deploy.ps1`, then mirror the change in the matching `Db*` entity and its configuration in `api/src/PUSpecSheet.Database`. See [database/README.md](database/README.md#changing-the-schema).

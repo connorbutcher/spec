@@ -4,7 +4,7 @@ using PUSpecSheet.Application.Users;
 using PUSpecSheet.Contracts.Approvals;
 using PUSpecSheet.Contracts.Sheets;
 using PUSpecSheet.Contracts.Sheets.Collaboration;
-using PUSpecSheet.Database.Entities.Approvals;
+using PUSpecSheet.Database;
 using PUSpecSheet.Domain.Approvals;
 
 namespace PUSpecSheet.Application.Approvals;
@@ -85,7 +85,7 @@ public sealed class SubmissionsService : ISubmissionsService
     /// Once a submission is decided, its locks have changed (released to their authors, or published), so
     /// everyone with the sheet open reads it again. A single approval among several changes nothing they see.
     /// </summary>
-    private async Task<SheetSubmissionDto> AfterDecisionAsync(SheetSubmission submission, CancellationToken cancellationToken)
+    private async Task<SheetSubmissionDto> AfterDecisionAsync(DbSheetSubmission submission, CancellationToken cancellationToken)
     {
         if (submission.Status != SubmissionStatus.Pending)
         {

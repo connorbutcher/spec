@@ -4,7 +4,6 @@ using PUSpecSheet.Application.Sheets.Queries;
 using PUSpecSheet.Application.Sheets.Removal;
 using PUSpecSheet.Application.Users;
 using PUSpecSheet.Database;
-using PUSpecSheet.Database.Entities.Sheets;
 
 namespace PUSpecSheet.Application.Sheets.Drafts;
 
@@ -38,7 +37,7 @@ public sealed class RowDraftStarter
     /// The user's draft on the row. A newly started draft is saved straight away and given a copy of the
     /// published values and settings, so editing carries on from what's published.
     /// </summary>
-    public async Task<SheetRowRevision> StartAsync(int rowId, CancellationToken cancellationToken)
+    public async Task<DbSheetRowRevision> StartAsync(int rowId, CancellationToken cancellationToken)
     {
         // Someone who has only clicked into the row holds it too, though they have no draft yet.
         liveCheckouts.EnsureNotHeldByOthers(rowId);

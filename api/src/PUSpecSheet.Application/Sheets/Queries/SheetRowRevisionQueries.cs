@@ -2,7 +2,6 @@ using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Application.Sheets.Removal;
 using PUSpecSheet.Application.Sheets.Revisions;
 using PUSpecSheet.Database;
-using PUSpecSheet.Database.Entities.Sheets;
 using PUSpecSheet.Domain.Sheets;
 
 namespace PUSpecSheet.Application.Sheets.Queries;
@@ -11,7 +10,7 @@ namespace PUSpecSheet.Application.Sheets.Queries;
 public static class SheetRowRevisionQueries
 {
     /// <summary>What the user sees of the section's rows: each one's current published revision and their own draft, read only.</summary>
-    public static async Task<List<SheetRowRevision>> ListVisibleInSectionAsync(PuSpecSheetDbContext db, int sectionId, int userId, CancellationToken cancellationToken)
+    public static async Task<List<DbSheetRowRevision>> ListVisibleInSectionAsync(PuSpecSheetDbContext db, int sectionId, int userId, CancellationToken cancellationToken)
     {
         return await db.SheetRowRevisions
             .Where(revision => revision.SheetRow.SheetSectionId == sectionId)
@@ -21,7 +20,7 @@ public static class SheetRowRevisionQueries
     }
 
     /// <summary>What the user sees of the rows: each one's current published revision and their own draft, read only.</summary>
-    public static async Task<List<SheetRowRevision>> ListVisibleAsync(PuSpecSheetDbContext db, IReadOnlyCollection<int> rowIds, int userId, CancellationToken cancellationToken)
+    public static async Task<List<DbSheetRowRevision>> ListVisibleAsync(PuSpecSheetDbContext db, IReadOnlyCollection<int> rowIds, int userId, CancellationToken cancellationToken)
     {
         return await db.SheetRowRevisions
             .Where(revision => rowIds.Contains(revision.SheetRowId))
@@ -31,7 +30,7 @@ public static class SheetRowRevisionQueries
     }
 
     /// <summary>The row's current published revision and its draft, whoever holds it, read only.</summary>
-    public static async Task<List<SheetRowRevision>> ListCurrentAndDraftAsync(PuSpecSheetDbContext db, int rowId, CancellationToken cancellationToken)
+    public static async Task<List<DbSheetRowRevision>> ListCurrentAndDraftAsync(PuSpecSheetDbContext db, int rowId, CancellationToken cancellationToken)
     {
         return await db.SheetRowRevisions
             .Where(revision => revision.SheetRowId == rowId)
@@ -41,7 +40,7 @@ public static class SheetRowRevisionQueries
     }
 
     /// <summary>The row's draft, tracked; null when it has none.</summary>
-    public static async Task<SheetRowRevision?> FindDraftForEditAsync(PuSpecSheetDbContext db, int rowId, CancellationToken cancellationToken)
+    public static async Task<DbSheetRowRevision?> FindDraftForEditAsync(PuSpecSheetDbContext db, int rowId, CancellationToken cancellationToken)
     {
         return await db.SheetRowRevisions
             .SingleOrDefaultAsync(

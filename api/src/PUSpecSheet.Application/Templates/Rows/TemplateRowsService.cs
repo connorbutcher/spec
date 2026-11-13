@@ -3,7 +3,6 @@ using PUSpecSheet.Application.Templates.Queries;
 using PUSpecSheet.Contracts.Common;
 using PUSpecSheet.Contracts.Templates;
 using PUSpecSheet.Database;
-using PUSpecSheet.Database.Entities.Templates;
 
 namespace PUSpecSheet.Application.Templates.Rows;
 
@@ -35,7 +34,7 @@ public sealed class TemplateRowsService : ITemplateRowsService
         var defaultCellTypeId = await DefaultCellType.GetIdAsync(db, cancellationToken);
         var columnBlockIds = await TemplateColumnBlockQueries.ListIdsAsync(db, versionId, cancellationToken);
 
-        var row = new TemplateRow
+        var row = new DbTemplateRow
         {
             TemplateSectionId = request.TemplateSectionId,
             Cells = NewRowCells.For(sectionRows, source, insertIndex, defaultCellTypeId, columnBlockIds),
@@ -73,12 +72,12 @@ public sealed class TemplateRowsService : ITemplateRowsService
         return await reader.ReadVersionAsync(row.TemplateSection.TableTemplateVersionId, cancellationToken);
     }
 
-    private static void SetOrder(TemplateRow row, int order)
+    private static void SetOrder(DbTemplateRow row, int order)
     {
         row.DisplayOrder = order;
     }
 
-    private async Task<TemplateRow> FindEditableAsync(int id, CancellationToken cancellationToken)
+    private async Task<DbTemplateRow> FindEditableAsync(int id, CancellationToken cancellationToken)
     {
         var row = await TemplateRowQueries.FindForEditAsync(db, id, cancellationToken);
 
@@ -91,13 +90,13 @@ public sealed class TemplateRowsService : ITemplateRowsService
         return row;
     }
 
-    private Task<List<TemplateRow>> LoadSiblingsAsync(TemplateRow row, CancellationToken cancellationToken)
+    private Task<List<DbTemplateRow>> LoadSiblingsAsync(DbTemplateRow row, CancellationToken cancellationToken)
     {
         return TemplateRowQueries.ListInSectionForEditAsync(db, row.TemplateSectionId, cancellationToken);
     }
 
     /// <summary>The row a new row copies its cells from: the one asked for, or the section's last.</summary>
-    private static TemplateRow? CopySource(List<TemplateRow> rows, int? copyFromRowId)
+    private static DbTemplateRow? CopySource(List<DbTemplateRow> rows, int? copyFromRowId)
     {
         if (copyFromRowId is not int copyFromId)
         {

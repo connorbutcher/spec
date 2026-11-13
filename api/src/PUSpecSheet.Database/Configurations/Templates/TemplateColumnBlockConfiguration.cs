@@ -1,12 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using PUSpecSheet.Database.Entities.Templates;
 
 namespace PUSpecSheet.Database.Configurations.Templates;
 
-public sealed class TemplateColumnBlockConfiguration : IEntityTypeConfiguration<TemplateColumnBlock>
+public sealed class TemplateColumnBlockConfiguration : IEntityTypeConfiguration<DbTemplateColumnBlock>
 {
-    public void Configure(EntityTypeBuilder<TemplateColumnBlock> builder)
+    public void Configure(EntityTypeBuilder<DbTemplateColumnBlock> builder)
     {
         builder.ToTable("TemplateColumnBlocks", table =>
         {

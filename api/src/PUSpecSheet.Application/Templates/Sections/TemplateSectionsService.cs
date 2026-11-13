@@ -3,7 +3,6 @@ using PUSpecSheet.Application.Templates.Queries;
 using PUSpecSheet.Contracts.Common;
 using PUSpecSheet.Contracts.Templates;
 using PUSpecSheet.Database;
-using PUSpecSheet.Database.Entities.Templates;
 using PUSpecSheet.Domain.Templates;
 
 namespace PUSpecSheet.Application.Templates.Sections;
@@ -37,7 +36,7 @@ public sealed class TemplateSectionsService : ITemplateSectionsService
         var lastOrder = await TemplateSectionQueries.GetLastDisplayOrderAsync(db, versionId, request.ParentSectionId, cancellationToken);
 
         // The header is created with the table, so every section added here is an addable section.
-        var section = new TemplateSection
+        var section = new DbTemplateSection
         {
             TableTemplateVersionId = versionId,
             ParentSectionId = request.ParentSectionId,
@@ -108,11 +107,11 @@ public sealed class TemplateSectionsService : ITemplateSectionsService
         return await reader.ReadVersionAsync(section.TableTemplateVersionId, cancellationToken);
     }
 
-    private static List<TemplateSection> CollectSubtree(TemplateSection root, IReadOnlyList<TemplateSection> sections)
+    private static List<DbTemplateSection> CollectSubtree(DbTemplateSection root, IReadOnlyList<DbTemplateSection> sections)
     {
         var childrenByParent = sections.ToLookup(section => section.ParentSectionId);
-        var subtree = new List<TemplateSection>();
-        var pending = new Stack<TemplateSection>([root]);
+        var subtree = new List<DbTemplateSection>();
+        var pending = new Stack<DbTemplateSection>([root]);
 
         while (pending.Count > 0)
         {
@@ -127,13 +126,13 @@ public sealed class TemplateSectionsService : ITemplateSectionsService
         return subtree;
     }
 
-    private static void SetOrder(TemplateSection section, int order)
+    private static void SetOrder(DbTemplateSection section, int order)
     {
         section.DisplayOrder = order;
     }
 
     /// <summary>The header is part of every table: it can't be moved or removed on its own.</summary>
-    private static void EnsureNotHeader(TemplateSection section, string action)
+    private static void EnsureNotHeader(DbTemplateSection section, string action)
     {
         if (section.Role == SectionRole.Header)
         {
@@ -157,7 +156,7 @@ public sealed class TemplateSectionsService : ITemplateSectionsService
         }
     }
 
-    private async Task<TemplateSection> FindEditableAsync(int id, CancellationToken cancellationToken)
+    private async Task<DbTemplateSection> FindEditableAsync(int id, CancellationToken cancellationToken)
     {
         var section = await TemplateSectionQueries.FindForEditAsync(db, id, cancellationToken);
         if (section is null)

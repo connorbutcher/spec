@@ -1,4 +1,4 @@
-using PUSpecSheet.Database.Entities.Templates;
+using PUSpecSheet.Database;
 using PUSpecSheet.Domain.CellTypes.Configurations;
 using PUSpecSheet.Domain.CellTypes.Styles;
 using PUSpecSheet.Domain.Templates;
@@ -11,27 +11,27 @@ namespace PUSpecSheet.Application.Seeding;
 /// </summary>
 public sealed class TemplateLayout
 {
-    private readonly TableTemplateVersion version;
+    private readonly DbTableTemplateVersion version;
     private readonly ShowcaseCellTypeCatalog cellTypes;
 
-    public TemplateLayout(TableTemplateVersion version, ShowcaseCellTypeCatalog cellTypes)
+    public TemplateLayout(DbTableTemplateVersion version, ShowcaseCellTypeCatalog cellTypes)
     {
         this.version = version;
         this.cellTypes = cellTypes;
     }
 
-    public TableTemplateVersion Version => version;
+    public DbTableTemplateVersion Version => version;
 
     /// <summary>The table's one header section.</summary>
-    public TemplateSection Header()
+    public DbTemplateSection Header()
     {
-        return Add(new TemplateSection { Name = "Header", Role = SectionRole.Header, MinInstances = 1, MaxInstances = 1, InitialInstances = 1 }, null);
+        return Add(new DbTemplateSection { Name = "Header", Role = SectionRole.Header, MinInstances = 1, MaxInstances = 1, InitialInstances = 1 }, null);
     }
 
     /// <summary>An addable section at the top level, or inside <paramref name="parent"/>.</summary>
-    public TemplateSection Section(string name, TemplateSection? parent, int minimum = 0, int? maximum = null, int initial = 0)
+    public DbTemplateSection Section(string name, DbTemplateSection? parent, int minimum = 0, int? maximum = null, int initial = 0)
     {
-        var section = new TemplateSection
+        var section = new DbTemplateSection
         {
             Name = name,
             Role = SectionRole.Addable,
@@ -43,9 +43,9 @@ public sealed class TemplateLayout
     }
 
     /// <summary>A column block people add copies of across a horizontal table, to the right of the ones before it.</summary>
-    public TemplateColumnBlock Block(string name, int minimum, int? maximum, int initial, int stickyColumns = 0)
+    public DbTemplateColumnBlock Block(string name, int minimum, int? maximum, int initial, int stickyColumns = 0)
     {
-        var block = new TemplateColumnBlock
+        var block = new DbTemplateColumnBlock
         {
             Name = name,
             DisplayOrder = version.ColumnBlocks.Count + 1,
@@ -59,14 +59,14 @@ public sealed class TemplateLayout
     }
 
     /// <summary>A row at the end of <paramref name="section"/>'s own rows.</summary>
-    public TemplateRow Row(TemplateSection section, params TemplateCell[] cells)
+    public DbTemplateRow Row(DbTemplateSection section, params DbTemplateCell[] cells)
     {
         if (!version.Sections.Contains(section))
         {
             throw new InvalidOperationException($"'{section.Name}' isn't a section of this template version.");
         }
 
-        var row = new TemplateRow { DisplayOrder = section.Rows.Count + 1 };
+        var row = new DbTemplateRow { DisplayOrder = section.Rows.Count + 1 };
         foreach (var cell in cells)
         {
             row.Cells.Add(cell);
@@ -77,19 +77,19 @@ public sealed class TemplateLayout
     }
 
     /// <summary>A cell of the cell type called <paramref name="cellType"/>, starting on <paramref name="column"/>.</summary>
-    public TemplateCell Cell(
+    public DbTemplateCell Cell(
         string cellType,
         int column,
         string? caption = null,
         int columnSpan = 1,
         int rowSpan = 1,
-        TemplateColumnBlock? block = null,
+        DbTemplateColumnBlock? block = null,
         CellStyle? style = null,
         CellConfiguration? configuration = null,
         string? lookupKey = null,
         bool required = false)
     {
-        return new TemplateCell
+        return new DbTemplateCell
         {
             CellTypeId = cellTypes[cellType],
             Column = column,
@@ -104,7 +104,7 @@ public sealed class TemplateLayout
         };
     }
 
-    private TemplateSection Add(TemplateSection section, TemplateSection? parent)
+    private DbTemplateSection Add(DbTemplateSection section, DbTemplateSection? parent)
     {
         section.DisplayOrder = parent is null
             ? version.Sections.Count(candidate => candidate.ParentSection is null) + 1

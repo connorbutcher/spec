@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Database;
-using PUSpecSheet.Database.Entities.Sheets;
 
 namespace PUSpecSheet.Application.Sheets.Queries;
 
@@ -8,7 +7,7 @@ namespace PUSpecSheet.Application.Sheets.Queries;
 public static class SheetQueries
 {
     /// <summary>The sheet, read only; null when there is no such sheet.</summary>
-    public static async Task<Sheet?> FindAsync(PuSpecSheetDbContext db, int id, CancellationToken cancellationToken)
+    public static async Task<DbSheet?> FindAsync(PuSpecSheetDbContext db, int id, CancellationToken cancellationToken)
     {
         return await db.Sheets
             .AsNoTracking()
@@ -16,7 +15,7 @@ public static class SheetQueries
     }
 
     /// <summary>The sheet, tracked for editing; null when there is no such sheet.</summary>
-    public static async Task<Sheet?> FindForEditAsync(PuSpecSheetDbContext db, int id, CancellationToken cancellationToken)
+    public static async Task<DbSheet?> FindForEditAsync(PuSpecSheetDbContext db, int id, CancellationToken cancellationToken)
     {
         return await db.Sheets.SingleOrDefaultAsync(candidate => candidate.Id == id, cancellationToken);
     }
@@ -36,7 +35,7 @@ public static class SheetQueries
     }
 
     /// <summary>The sheet's versions with who published each, read only, oldest first.</summary>
-    public static async Task<List<SheetVersion>> ListVersionsAsync(PuSpecSheetDbContext db, int sheetId, CancellationToken cancellationToken)
+    public static async Task<List<DbSheetVersion>> ListVersionsAsync(PuSpecSheetDbContext db, int sheetId, CancellationToken cancellationToken)
     {
         return await db.SheetVersions
             .AsNoTracking()

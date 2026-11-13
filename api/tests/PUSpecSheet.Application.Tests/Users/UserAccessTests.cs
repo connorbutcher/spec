@@ -1,5 +1,5 @@
 using PUSpecSheet.Application.Users;
-using PUSpecSheet.Database.Entities.Users;
+using PUSpecSheet.Database;
 using PUSpecSheet.Domain.Users;
 
 namespace PUSpecSheet.Application.Tests.Users;
@@ -85,23 +85,23 @@ public sealed class UserAccessTests
         Assert.False(UserAccess.None(42).Has(PermissionKeys.PhasesManage));
     }
 
-    private static User UserWith(params Role[] roles)
+    private static DbUser UserWith(params DbRole[] roles)
     {
-        var user = new User { Id = 5, UserName = "tester", DisplayName = "Tester" };
+        var user = new DbUser { Id = 5, UserName = "tester", DisplayName = "Tester" };
         foreach (var role in roles)
         {
-            user.Roles.Add(new UserRole { User = user, UserId = user.Id, Role = role, RoleId = role.Id });
+            user.Roles.Add(new DbUserRole { User = user, UserId = user.Id, Role = role, RoleId = role.Id });
         }
 
         return user;
     }
 
-    private static Role Role(int id, string name, params string[] permissions)
+    private static DbRole Role(int id, string name, params string[] permissions)
     {
-        var role = new Role { Id = id, Name = name };
+        var role = new DbRole { Id = id, Name = name };
         foreach (var key in permissions)
         {
-            role.Permissions.Add(new RolePermission { Role = role, RoleId = id, Permission = new Permission { Key = key } });
+            role.Permissions.Add(new DbRolePermission { Role = role, RoleId = id, Permission = new DbPermission { Key = key } });
         }
 
         return role;

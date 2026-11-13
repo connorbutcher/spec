@@ -1,19 +1,19 @@
 using PUSpecSheet.Contracts.Sheets;
-using PUSpecSheet.Database.Entities.Sheets;
+using PUSpecSheet.Database;
 
 namespace PUSpecSheet.Application.Sheets.Drafts;
 
 /// <summary>Counts a sheet's drafts by who holds them, which is what the publish choice shows.</summary>
 internal static class DraftSummaries
 {
-    public static int CountOf(IEnumerable<ISheetRevision> drafts, int userId)
+    public static int CountOf(IEnumerable<IDbSheetRevision> drafts, int userId)
     {
         return drafts.Count(draft => draft.AuthorUserId == userId);
     }
 
     /// <summary>Everyone but <paramref name="userId"/> who holds a draft, by name, with how many they hold.</summary>
     public static List<SheetDraftSummaryDto> OfOthers(
-        IEnumerable<ISheetRevision> drafts,
+        IEnumerable<IDbSheetRevision> drafts,
         int userId,
         Func<int, string> userName)
     {

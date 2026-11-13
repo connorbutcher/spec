@@ -1,12 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using PUSpecSheet.Database.Entities.Approvals;
 
 namespace PUSpecSheet.Database.Configurations.Approvals;
 
-public sealed class SheetSubmissionConfiguration : IEntityTypeConfiguration<SheetSubmission>
+public sealed class SheetSubmissionConfiguration : IEntityTypeConfiguration<DbSheetSubmission>
 {
-    public void Configure(EntityTypeBuilder<SheetSubmission> builder)
+    public void Configure(EntityTypeBuilder<DbSheetSubmission> builder)
     {
         ConfigureTable(builder);
         ConfigureProperties(builder);
@@ -14,7 +13,7 @@ public sealed class SheetSubmissionConfiguration : IEntityTypeConfiguration<Shee
         ConfigureRelationships(builder);
     }
 
-    private static void ConfigureTable(EntityTypeBuilder<SheetSubmission> builder)
+    private static void ConfigureTable(EntityTypeBuilder<DbSheetSubmission> builder)
     {
         builder.ToTable("SheetSubmissions", table =>
         {
@@ -32,7 +31,7 @@ public sealed class SheetSubmissionConfiguration : IEntityTypeConfiguration<Shee
         builder.HasKey(submission => submission.Id);
     }
 
-    private static void ConfigureProperties(EntityTypeBuilder<SheetSubmission> builder)
+    private static void ConfigureProperties(EntityTypeBuilder<DbSheetSubmission> builder)
     {
         builder.Property(submission => submission.RowVersion)
             .IsRowVersion();
@@ -44,14 +43,14 @@ public sealed class SheetSubmissionConfiguration : IEntityTypeConfiguration<Shee
             .HasMaxLength(1000);
     }
 
-    private static void ConfigureIndexes(EntityTypeBuilder<SheetSubmission> builder)
+    private static void ConfigureIndexes(EntityTypeBuilder<DbSheetSubmission> builder)
     {
         // A sheet's pending submissions, and a submitter's own.
         builder.HasIndex(submission => new { submission.SheetId, submission.Status });
         builder.HasIndex(submission => new { submission.SubmittedByUserId, submission.Status });
     }
 
-    private static void ConfigureRelationships(EntityTypeBuilder<SheetSubmission> builder)
+    private static void ConfigureRelationships(EntityTypeBuilder<DbSheetSubmission> builder)
     {
         builder.HasOne(submission => submission.Sheet)
             .WithMany()

@@ -1,13 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using PUSpecSheet.Database.Entities.Approvals;
-using PUSpecSheet.Database.Entities.Sheets;
 
 namespace PUSpecSheet.Database.Configurations.Sheets;
 
-public sealed class SheetColumnBlockRevisionConfiguration : IEntityTypeConfiguration<SheetColumnBlockRevision>
+public sealed class SheetColumnBlockRevisionConfiguration : IEntityTypeConfiguration<DbSheetColumnBlockRevision>
 {
-    public void Configure(EntityTypeBuilder<SheetColumnBlockRevision> builder)
+    public void Configure(EntityTypeBuilder<DbSheetColumnBlockRevision> builder)
     {
         ConfigureTable(builder);
         ConfigureProperties(builder);
@@ -15,7 +13,7 @@ public sealed class SheetColumnBlockRevisionConfiguration : IEntityTypeConfigura
         ConfigureRelationships(builder);
     }
 
-    private static void ConfigureTable(EntityTypeBuilder<SheetColumnBlockRevision> builder)
+    private static void ConfigureTable(EntityTypeBuilder<DbSheetColumnBlockRevision> builder)
     {
         builder.ToTable("SheetColumnBlockRevisions", table =>
         {
@@ -39,7 +37,7 @@ public sealed class SheetColumnBlockRevisionConfiguration : IEntityTypeConfigura
         builder.HasKey(revision => revision.Id);
     }
 
-    private static void ConfigureProperties(EntityTypeBuilder<SheetColumnBlockRevision> builder)
+    private static void ConfigureProperties(EntityTypeBuilder<DbSheetColumnBlockRevision> builder)
     {
         builder.Property(revision => revision.RowVersion)
             .IsRowVersion();
@@ -54,7 +52,7 @@ public sealed class SheetColumnBlockRevisionConfiguration : IEntityTypeConfigura
             .HasDefaultValueSql("SYSUTCDATETIME()");
     }
 
-    private static void ConfigureIndexes(EntityTypeBuilder<SheetColumnBlockRevision> builder)
+    private static void ConfigureIndexes(EntityTypeBuilder<DbSheetColumnBlockRevision> builder)
     {
         // The current state: at most one published, not-yet-superseded revision per block.
         builder.HasIndex(revision => revision.SheetColumnBlockId, "UX_SheetColumnBlockRevisions_OneCurrentPerBlock")
@@ -89,10 +87,10 @@ public sealed class SheetColumnBlockRevisionConfiguration : IEntityTypeConfigura
             .IncludeProperties(revision => new { revision.SupersededAtUtc, revision.SheetColumnBlockId, revision.AuthorUserId });
     }
 
-    private static void ConfigureRelationships(EntityTypeBuilder<SheetColumnBlockRevision> builder)
+    private static void ConfigureRelationships(EntityTypeBuilder<DbSheetColumnBlockRevision> builder)
     {
         // Copied from the item's sheet. Items already reach the sheet through their parents, so this can't cascade as well.
-        builder.HasOne<Sheet>()
+        builder.HasOne<DbSheet>()
             .WithMany()
             .HasForeignKey(revision => revision.SheetId)
             .OnDelete(DeleteBehavior.NoAction);
@@ -109,7 +107,7 @@ public sealed class SheetColumnBlockRevisionConfiguration : IEntityTypeConfigura
 
         // Versions and blocks both sit under the sheet, so this can't cascade as well.
         // The publish awaiting approval the draft is part of. Submissions sit under the sheet too, so no cascade.
-        builder.HasOne<SheetSubmission>()
+        builder.HasOne<DbSheetSubmission>()
             .WithMany()
             .HasForeignKey(revision => revision.SheetSubmissionId)
             .OnDelete(DeleteBehavior.NoAction);

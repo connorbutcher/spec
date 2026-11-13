@@ -1,12 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using PUSpecSheet.Database.Entities.Approvals;
 
 namespace PUSpecSheet.Database.Configurations.Approvals;
 
-public sealed class SheetSubmissionApproverConfiguration : IEntityTypeConfiguration<SheetSubmissionApprover>
+public sealed class SheetSubmissionApproverConfiguration : IEntityTypeConfiguration<DbSheetSubmissionApprover>
 {
-    public void Configure(EntityTypeBuilder<SheetSubmissionApprover> builder)
+    public void Configure(EntityTypeBuilder<DbSheetSubmissionApprover> builder)
     {
         builder.ToTable("SheetSubmissionApprovers", table =>
         {

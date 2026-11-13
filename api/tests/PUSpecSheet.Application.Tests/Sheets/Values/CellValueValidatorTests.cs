@@ -1,7 +1,6 @@
 using PUSpecSheet.Application.Common;
 using PUSpecSheet.Application.Sheets.Values;
-using PUSpecSheet.Database.Entities.CellTypes;
-using PUSpecSheet.Database.Entities.Templates;
+using PUSpecSheet.Database;
 using PUSpecSheet.Domain.CellTypes;
 using PUSpecSheet.Domain.CellTypes.Configurations;
 
@@ -70,7 +69,7 @@ public sealed class CellValueValidatorTests
     public void ADropdown_OnlyTakesOneOfItsOwnOptions(CellKind kind)
     {
         var cell = Cell(kind, CellConfigurations.CreateEmpty(kind));
-        cell.CellType.Options.Add(new CellTypeOption { Id = 3, Value = "1" });
+        cell.CellType.Options.Add(new DbCellTypeOption { Id = 3, Value = "1" });
 
         CellValueValidator.Validate(cell, Value(optionId: 3));
         Assert.Throws<InvalidRequestException>(() => CellValueValidator.Validate(cell, Value(optionId: 4)));
@@ -101,11 +100,11 @@ public sealed class CellValueValidatorTests
         Assert.StartsWith("'Bore'", named.Message);
     }
 
-    private static TemplateCell Cell(CellKind kind, CellConfiguration configuration)
+    private static DbTemplateCell Cell(CellKind kind, CellConfiguration configuration)
     {
-        return new TemplateCell
+        return new DbTemplateCell
         {
-            CellType = new CellType { Name = $"{kind} type", Kind = kind, Configuration = configuration },
+            CellType = new DbCellType { Name = $"{kind} type", Kind = kind, Configuration = configuration },
         };
     }
 

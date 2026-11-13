@@ -1,12 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using PUSpecSheet.Database.Entities.Templates;
 
 namespace PUSpecSheet.Database.Configurations.Templates;
 
-public sealed class TableTemplateVersionConfiguration : IEntityTypeConfiguration<TableTemplateVersion>
+public sealed class TableTemplateVersionConfiguration : IEntityTypeConfiguration<DbTableTemplateVersion>
 {
-    public void Configure(EntityTypeBuilder<TableTemplateVersion> builder)
+    public void Configure(EntityTypeBuilder<DbTableTemplateVersion> builder)
     {
         builder.ToTable("TableTemplateVersions", table =>
         {

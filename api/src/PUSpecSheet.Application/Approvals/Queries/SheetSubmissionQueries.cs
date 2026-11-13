@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Database;
-using PUSpecSheet.Database.Entities.Approvals;
 using PUSpecSheet.Domain.Approvals;
 
 namespace PUSpecSheet.Application.Approvals.Queries;
@@ -12,7 +11,7 @@ namespace PUSpecSheet.Application.Approvals.Queries;
 public static class SheetSubmissionQueries
 {
     /// <summary>The pending submissions waiting for the user's decision, oldest first.</summary>
-    public static Task<List<SheetSubmission>> ListAwaitingDecisionOfAsync(PuSpecSheetDbContext db, int userId, CancellationToken cancellationToken)
+    public static Task<List<DbSheetSubmission>> ListAwaitingDecisionOfAsync(PuSpecSheetDbContext db, int userId, CancellationToken cancellationToken)
     {
         return ListAsync(
             db.SheetSubmissions
@@ -23,7 +22,7 @@ public static class SheetSubmissionQueries
     }
 
     /// <summary>The user's submissions that are pending or were decided since the moment, newest first, at most 50.</summary>
-    public static Task<List<SheetSubmission>> ListSubmittedByAsync(PuSpecSheetDbContext db, int userId, DateTime decidedSince, CancellationToken cancellationToken)
+    public static Task<List<DbSheetSubmission>> ListSubmittedByAsync(PuSpecSheetDbContext db, int userId, DateTime decidedSince, CancellationToken cancellationToken)
     {
         return ListAsync(
             db.SheetSubmissions
@@ -35,7 +34,7 @@ public static class SheetSubmissionQueries
     }
 
     /// <summary>The sheet's pending submissions, oldest first.</summary>
-    public static Task<List<SheetSubmission>> ListPendingOnSheetAsync(PuSpecSheetDbContext db, int sheetId, CancellationToken cancellationToken)
+    public static Task<List<DbSheetSubmission>> ListPendingOnSheetAsync(PuSpecSheetDbContext db, int sheetId, CancellationToken cancellationToken)
     {
         return ListAsync(
             db.SheetSubmissions
@@ -45,7 +44,7 @@ public static class SheetSubmissionQueries
     }
 
     /// <summary>The submission with everything a list shows, read only; empty when there is no such submission.</summary>
-    public static Task<List<SheetSubmission>> ListByIdAsync(PuSpecSheetDbContext db, int id, CancellationToken cancellationToken)
+    public static Task<List<DbSheetSubmission>> ListByIdAsync(PuSpecSheetDbContext db, int id, CancellationToken cancellationToken)
     {
         return ListAsync(db.SheetSubmissions.Where(submission => submission.Id == id), cancellationToken);
     }
@@ -64,14 +63,14 @@ public static class SheetSubmissionQueries
     }
 
     /// <summary>The submission with its approvers, tracked for deciding; null when there is no such submission.</summary>
-    public static async Task<SheetSubmission?> FindWithApproversForEditAsync(PuSpecSheetDbContext db, int id, CancellationToken cancellationToken)
+    public static async Task<DbSheetSubmission?> FindWithApproversForEditAsync(PuSpecSheetDbContext db, int id, CancellationToken cancellationToken)
     {
         return await db.SheetSubmissions
             .Include(candidate => candidate.Approvers)
             .SingleOrDefaultAsync(candidate => candidate.Id == id, cancellationToken);
     }
 
-    private static async Task<List<SheetSubmission>> ListAsync(IQueryable<SheetSubmission> query, CancellationToken cancellationToken)
+    private static async Task<List<DbSheetSubmission>> ListAsync(IQueryable<DbSheetSubmission> query, CancellationToken cancellationToken)
     {
         return await query
             .AsNoTracking()

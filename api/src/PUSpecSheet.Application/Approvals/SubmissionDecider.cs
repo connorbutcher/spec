@@ -3,7 +3,6 @@ using PUSpecSheet.Application.Common;
 using PUSpecSheet.Application.Sheets.Publishing;
 using PUSpecSheet.Application.Users;
 using PUSpecSheet.Database;
-using PUSpecSheet.Database.Entities.Approvals;
 using PUSpecSheet.Domain.Approvals;
 
 namespace PUSpecSheet.Application.Approvals;
@@ -38,7 +37,7 @@ public sealed class SubmissionDecider
     }
 
     /// <returns>The submission as it now stands.</returns>
-    public async Task<SheetSubmission> ApproveAsync(int submissionId, CancellationToken cancellationToken)
+    public async Task<DbSheetSubmission> ApproveAsync(int submissionId, CancellationToken cancellationToken)
     {
         var submission = await LoadPendingAsync(submissionId, cancellationToken);
         var approver = MyPendingDecision(submission);
@@ -61,7 +60,7 @@ public sealed class SubmissionDecider
         return submission;
     }
 
-    public async Task<SheetSubmission> RejectAsync(int submissionId, string reason, CancellationToken cancellationToken)
+    public async Task<DbSheetSubmission> RejectAsync(int submissionId, string reason, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(reason))
         {
@@ -78,7 +77,7 @@ public sealed class SubmissionDecider
         return submission;
     }
 
-    public async Task<SheetSubmission> WithdrawAsync(int submissionId, CancellationToken cancellationToken)
+    public async Task<DbSheetSubmission> WithdrawAsync(int submissionId, CancellationToken cancellationToken)
     {
         var submission = await LoadPendingAsync(submissionId, cancellationToken);
         if (submission.SubmittedByUserId != currentUser.UserId)
@@ -91,7 +90,7 @@ public sealed class SubmissionDecider
     }
 
     /// <summary>Ends the submission without publishing and hands its drafts back to their authors.</summary>
-    private async Task CloseAsync(SheetSubmission submission, SubmissionStatus status, DateTime now, CancellationToken cancellationToken)
+    private async Task CloseAsync(DbSheetSubmission submission, SubmissionStatus status, DateTime now, CancellationToken cancellationToken)
     {
         submission.Status = status;
         submission.DecidedAtUtc = now;
@@ -101,7 +100,7 @@ public sealed class SubmissionDecider
         await transaction.CommitAsync(cancellationToken);
     }
 
-    private async Task<SheetSubmission> LoadPendingAsync(int submissionId, CancellationToken cancellationToken)
+    private async Task<DbSheetSubmission> LoadPendingAsync(int submissionId, CancellationToken cancellationToken)
     {
         var submission = await SheetSubmissionQueries.FindWithApproversForEditAsync(db, submissionId, cancellationToken)
             ?? throw new NotFoundException($"Submission {submissionId} was not found.");
@@ -113,7 +112,7 @@ public sealed class SubmissionDecider
         return submission;
     }
 
-    private SheetSubmissionApprover MyPendingDecision(SheetSubmission submission)
+    private DbSheetSubmissionApprover MyPendingDecision(DbSheetSubmission submission)
     {
         var me = currentUser.UserId;
         var approver = submission.Approvers.SingleOrDefault(candidate => candidate.UserId == me)

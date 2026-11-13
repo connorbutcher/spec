@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using PUSpecSheet.Database.Entities.Values;
 
 namespace PUSpecSheet.Database.Configurations.Values;
 
@@ -9,7 +8,7 @@ namespace PUSpecSheet.Database.Configurations.Values;
 /// revision (removed with it) and a sheet cell, and holds one value per revision and cell, which is its key.
 /// </summary>
 public abstract class CellValueConfiguration<TValue> : IEntityTypeConfiguration<TValue>
-    where TValue : class, ICellValue
+    where TValue : class, IDbCellValue
 {
     public void Configure(EntityTypeBuilder<TValue> builder)
     {

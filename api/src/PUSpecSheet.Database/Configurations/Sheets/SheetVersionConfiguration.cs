@@ -1,12 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using PUSpecSheet.Database.Entities.Sheets;
 
 namespace PUSpecSheet.Database.Configurations.Sheets;
 
-public sealed class SheetVersionConfiguration : IEntityTypeConfiguration<SheetVersion>
+public sealed class SheetVersionConfiguration : IEntityTypeConfiguration<DbSheetVersion>
 {
-    public void Configure(EntityTypeBuilder<SheetVersion> builder)
+    public void Configure(EntityTypeBuilder<DbSheetVersion> builder)
     {
         builder.ToTable("SheetVersions", table =>
         {

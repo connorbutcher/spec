@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using PUSpecSheet.Database.Entities.Phases;
 
 namespace PUSpecSheet.Database.Seeding;
 
@@ -28,9 +27,9 @@ public static class DevelopmentDataSeeder
         await db.SaveChangesAsync(cancellationToken);
     }
 
-    private static Phase CreatePhase(string code, string? description, int displayOrder, int[] sheetTypeIds)
+    private static DbPhase CreatePhase(string code, string? description, int displayOrder, int[] sheetTypeIds)
     {
-        var phase = new Phase
+        var phase = new DbPhase
         {
             Code = code,
             Description = description,
@@ -39,7 +38,7 @@ public static class DevelopmentDataSeeder
 
         foreach (var sheetTypeId in sheetTypeIds)
         {
-            phase.SheetTypes.Add(new PhaseSheetType { SheetTypeId = sheetTypeId });
+            phase.SheetTypes.Add(new DbPhaseSheetType { SheetTypeId = sheetTypeId });
         }
 
         return phase;

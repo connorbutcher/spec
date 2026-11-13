@@ -13,7 +13,6 @@ using PUSpecSheet.Application.Users;
 using PUSpecSheet.Contracts.Common;
 using PUSpecSheet.Contracts.Sheets;
 using PUSpecSheet.Database;
-using PUSpecSheet.Database.Entities.Sheets;
 using PUSpecSheet.Domain.Templates;
 
 namespace PUSpecSheet.Application.Sheets.Editing;
@@ -225,7 +224,7 @@ public sealed class SheetRowsService : ISheetRowsService
     }
 
     /// <summary>Reads each value sent in the shape its cell's kind takes, and checks it against the cell.</summary>
-    private static List<CellValueChange> ReadValues(SaveRowValuesRequest request, Dictionary<int, SheetCell> cellsById)
+    private static List<CellValueChange> ReadValues(SaveRowValuesRequest request, Dictionary<int, DbSheetCell> cellsById)
     {
         var changes = new List<CellValueChange>();
         foreach (var value in request.Values)
@@ -245,7 +244,7 @@ public sealed class SheetRowsService : ISheetRowsService
         return changes;
     }
 
-    private async Task<SheetRow> LoadRowWithCellTypesAsync(int rowId, CancellationToken cancellationToken)
+    private async Task<DbSheetRow> LoadRowWithCellTypesAsync(int rowId, CancellationToken cancellationToken)
     {
         return await SheetRowQueries.FindWithCellTypesAsync(db, rowId, withOptions: true, cancellationToken)
             ?? throw new NotFoundException($"Row {rowId} was not found.");

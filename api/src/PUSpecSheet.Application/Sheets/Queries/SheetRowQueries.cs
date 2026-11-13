@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Database;
-using PUSpecSheet.Database.Entities.Sheets;
 
 namespace PUSpecSheet.Application.Sheets.Queries;
 
@@ -11,7 +10,7 @@ public static class SheetRowQueries
     /// The sheet's rows with their cells, read only. The cells' template cells are not loaded: the caller
     /// attaches them from template rows it reads anyway, rather than reading each again for every cell.
     /// </summary>
-    public static async Task<List<SheetRow>> ListOnSheetAsync(PuSpecSheetDbContext db, int sheetId, CancellationToken cancellationToken)
+    public static async Task<List<DbSheetRow>> ListOnSheetAsync(PuSpecSheetDbContext db, int sheetId, CancellationToken cancellationToken)
     {
         return await db.SheetRows
             .AsNoTracking()
@@ -24,7 +23,7 @@ public static class SheetRowQueries
     /// The row with its section and table, and its cells with their template cells and cell types (and the
     /// types' options when asked), read only; null when there is no such row.
     /// </summary>
-    public static async Task<SheetRow?> FindWithCellTypesAsync(PuSpecSheetDbContext db, int id, bool withOptions, CancellationToken cancellationToken)
+    public static async Task<DbSheetRow?> FindWithCellTypesAsync(PuSpecSheetDbContext db, int id, bool withOptions, CancellationToken cancellationToken)
     {
         var query = db.SheetRows
             .AsNoTracking()
@@ -33,7 +32,7 @@ public static class SheetRowQueries
         var withTypes = query.Include(candidate => candidate.Cells)
             .ThenInclude(cell => cell.TemplateCell)
             .ThenInclude(templateCell => templateCell.CellType);
-        IQueryable<SheetRow> withCells = withOptions
+        IQueryable<DbSheetRow> withCells = withOptions
             ? withTypes.ThenInclude(cellType => cellType.Options)
             : withTypes;
         return await withCells
@@ -42,7 +41,7 @@ public static class SheetRowQueries
     }
 
     /// <summary>The row with its section, the section's template section and table, read only; null when there is no such row.</summary>
-    public static async Task<SheetRow?> FindWithSectionAsync(PuSpecSheetDbContext db, int id, CancellationToken cancellationToken)
+    public static async Task<DbSheetRow?> FindWithSectionAsync(PuSpecSheetDbContext db, int id, CancellationToken cancellationToken)
     {
         return await db.SheetRows
             .AsNoTracking()

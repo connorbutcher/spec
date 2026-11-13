@@ -2,7 +2,6 @@ using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Application.Common;
 using PUSpecSheet.Contracts.Sheets;
 using PUSpecSheet.Database;
-using PUSpecSheet.Database.Entities.Sheets;
 using PUSpecSheet.Domain.Sheets;
 
 namespace PUSpecSheet.Application.Sheets.Reading;
@@ -36,7 +35,7 @@ public sealed class SheetItemsService : ISheetItemsService
         SheetItemKind kind,
         Guid publicId,
         int id,
-        Sheet sheet,
+        DbSheet sheet,
         int? tableId,
         int? sectionId,
         int? rowId,

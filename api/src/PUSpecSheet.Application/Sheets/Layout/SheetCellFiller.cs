@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Application.Common;
 using PUSpecSheet.Database;
-using PUSpecSheet.Database.Entities.Sheets;
 
 namespace PUSpecSheet.Application.Sheets.Layout;
 
@@ -51,7 +50,7 @@ public sealed class SheetCellFiller : ISheetCellFiller
         var missing = await PlanMissingCellsAsync(tableId, cancellationToken);
         if (missing.Count > 0)
         {
-            db.SheetCells.AddRange(missing.Select(cell => new SheetCell
+            db.SheetCells.AddRange(missing.Select(cell => new DbSheetCell
             {
                 SheetRowId = cell.SheetRowId,
                 TemplateCellId = cell.TemplateCellId,

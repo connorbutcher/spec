@@ -1,7 +1,7 @@
 using PUSpecSheet.Application.Common;
 using PUSpecSheet.Application.Sheets.Reading;
 using PUSpecSheet.Application.Sheets.Values;
-using PUSpecSheet.Database.Entities.Sheets;
+using PUSpecSheet.Database;
 using PUSpecSheet.Domain.CellTypes;
 using PUSpecSheet.Domain.CellTypes.InstanceSettings;
 
@@ -24,7 +24,7 @@ public sealed class LinkedDropdownValueRule
     /// <exception cref="InvalidRequestException">A value isn't one of its cell's choices, or the cell has no column chosen.</exception>
     public async Task EnsureChoicesAsync(
         int sheetId,
-        IReadOnlyDictionary<int, SheetCell> cellsById,
+        IReadOnlyDictionary<int, DbSheetCell> cellsById,
         IReadOnlyList<CellValueChange> values,
         CancellationToken cancellationToken)
     {

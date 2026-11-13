@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Application.Sheets.Values;
 using PUSpecSheet.Database;
-using PUSpecSheet.Database.Entities.Values;
 
 namespace PUSpecSheet.Application.Sheets.Queries;
 
@@ -80,7 +79,7 @@ public static class CellValueQueries
         return values.GetValueOrDefault(rowRevisionId) ?? [];
     }
 
-    private static CellValueBag BagFor(Dictionary<int, Dictionary<int, CellValueBag>> result, ICellValue value)
+    private static CellValueBag BagFor(Dictionary<int, Dictionary<int, CellValueBag>> result, IDbCellValue value)
     {
         if (!result.TryGetValue(value.SheetRowRevisionId, out var cells))
         {

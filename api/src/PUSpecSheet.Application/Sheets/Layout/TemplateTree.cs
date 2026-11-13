@@ -1,16 +1,15 @@
 using PUSpecSheet.Application.Templates.Queries;
 using PUSpecSheet.Database;
-using PUSpecSheet.Database.Entities.Templates;
 
 namespace PUSpecSheet.Application.Sheets.Layout;
 
 /// <summary>One template version's sections with their rows and cells, for building sheet content from it.</summary>
 public sealed class TemplateTree
 {
-    private readonly Dictionary<int, TemplateSection> byId;
-    private readonly ILookup<int?, TemplateSection> byParent;
+    private readonly Dictionary<int, DbTemplateSection> byId;
+    private readonly ILookup<int?, DbTemplateSection> byParent;
 
-    private TemplateTree(List<TemplateSection> sections, List<TemplateColumnBlock> columnBlocks)
+    private TemplateTree(List<DbTemplateSection> sections, List<DbTemplateColumnBlock> columnBlocks)
     {
         ColumnBlocks = columnBlocks
             .OrderBy(block => block.DisplayOrder)
@@ -31,15 +30,15 @@ public sealed class TemplateTree
     }
 
     /// <summary>The version's column blocks, left to right. Empty for a vertical table.</summary>
-    public IReadOnlyList<TemplateColumnBlock> ColumnBlocks { get; }
+    public IReadOnlyList<DbTemplateColumnBlock> ColumnBlocks { get; }
 
-    public TemplateSection? Find(int templateSectionId)
+    public DbTemplateSection? Find(int templateSectionId)
     {
         return byId.GetValueOrDefault(templateSectionId);
     }
 
     /// <summary>The sections directly under a section (or the top-level ones for null), in template order.</summary>
-    public IReadOnlyList<TemplateSection> ChildrenOf(int? parentTemplateSectionId)
+    public IReadOnlyList<DbTemplateSection> ChildrenOf(int? parentTemplateSectionId)
     {
         return byParent[parentTemplateSectionId]
             .OrderBy(section => section.DisplayOrder)

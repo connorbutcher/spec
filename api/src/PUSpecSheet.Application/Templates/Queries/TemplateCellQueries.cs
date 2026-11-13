@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Database;
-using PUSpecSheet.Database.Entities.Templates;
 
 namespace PUSpecSheet.Application.Templates.Queries;
 
@@ -8,7 +7,7 @@ namespace PUSpecSheet.Application.Templates.Queries;
 public static class TemplateCellQueries
 {
     /// <summary>The cell with its row and the row's section, tracked for editing; null when there is no such cell.</summary>
-    public static async Task<TemplateCell?> FindForEditAsync(PuSpecSheetDbContext db, int id, CancellationToken cancellationToken)
+    public static async Task<DbTemplateCell?> FindForEditAsync(PuSpecSheetDbContext db, int id, CancellationToken cancellationToken)
     {
         return await db.TemplateCells
             .Include(candidate => candidate.TemplateRow)
@@ -17,7 +16,7 @@ public static class TemplateCellQueries
     }
 
     /// <summary>The cell with its cell type, row and the row's section, tracked for editing; null when there is no such cell.</summary>
-    public static async Task<TemplateCell?> FindWithTypeForEditAsync(PuSpecSheetDbContext db, int id, CancellationToken cancellationToken)
+    public static async Task<DbTemplateCell?> FindWithTypeForEditAsync(PuSpecSheetDbContext db, int id, CancellationToken cancellationToken)
     {
         return await db.TemplateCells
             .Include(candidate => candidate.CellType)
@@ -59,7 +58,7 @@ public static class TemplateCellQueries
     }
 
     /// <summary>The cells asked for, read only.</summary>
-    public static async Task<List<TemplateCell>> ListAsync(PuSpecSheetDbContext db, IReadOnlyCollection<int> ids, CancellationToken cancellationToken)
+    public static async Task<List<DbTemplateCell>> ListAsync(PuSpecSheetDbContext db, IReadOnlyCollection<int> ids, CancellationToken cancellationToken)
     {
         return await db.TemplateCells.AsNoTracking().Where(cell => ids.Contains(cell.Id)).ToListAsync(cancellationToken);
     }

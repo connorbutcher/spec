@@ -1,4 +1,4 @@
-using PUSpecSheet.Database.Entities.Sheets;
+using PUSpecSheet.Database;
 
 namespace PUSpecSheet.Application.Sheets.Revisions;
 
@@ -6,7 +6,7 @@ namespace PUSpecSheet.Application.Sheets.Revisions;
 public static class SheetRevisionComparer
 {
     /// <summary>The same place in the order and the same existence (neither removed nor restored).</summary>
-    public static bool SameStructure(ISheetRevision draft, ISheetRevision current)
+    public static bool SameStructure(IDbSheetRevision draft, IDbSheetRevision current)
     {
         return draft.DisplayOrder == current.DisplayOrder && draft.IsDeleted == current.IsDeleted;
     }

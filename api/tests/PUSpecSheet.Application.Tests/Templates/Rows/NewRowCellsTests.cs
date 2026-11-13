@@ -1,5 +1,5 @@
 using PUSpecSheet.Application.Templates.Rows;
-using PUSpecSheet.Database.Entities.Templates;
+using PUSpecSheet.Database;
 
 namespace PUSpecSheet.Application.Tests.Templates.Rows;
 
@@ -25,8 +25,8 @@ public sealed class NewRowCellsTests
     public void CopyingARow_TakesItsLayoutAndTypes_ButNotItsCaptionsOrSettings()
     {
         var source = Row(
-            new TemplateCell { Column = 1, ColumnSpan = 2, CellTypeId = 5, Caption = "Bore", IsRequired = true, LookupKey = "bore" },
-            new TemplateCell { Column = 1, CellTypeId = 6, TemplateColumnBlockId = 10 });
+            new DbTemplateCell { Column = 1, ColumnSpan = 2, CellTypeId = 5, Caption = "Bore", IsRequired = true, LookupKey = "bore" },
+            new DbTemplateCell { Column = 1, CellTypeId = 6, TemplateColumnBlockId = 10 });
 
         var cells = NewRowCells.For([source], source, 1, DefaultCellType, [10]);
 
@@ -42,8 +42,8 @@ public sealed class NewRowCellsTests
     public void ACellSpanningDownFromARowAbove_LeavesNoCellUnderIt()
     {
         var tall = Row(
-            new TemplateCell { Column = 1, RowSpan = 2, CellTypeId = 5 },
-            new TemplateCell { Column = 2, CellTypeId = 5 });
+            new DbTemplateCell { Column = 1, RowSpan = 2, CellTypeId = 5 },
+            new DbTemplateCell { Column = 2, CellTypeId = 5 });
 
         var cells = NewRowCells.For([tall], tall, 1, DefaultCellType, []);
 
@@ -53,7 +53,7 @@ public sealed class NewRowCellsTests
     [Fact]
     public void ASpanThatEndsBeforeTheNewRow_CoversNothing()
     {
-        var tall = Row(new TemplateCell { Column = 1, RowSpan = 2, CellTypeId = 5 });
+        var tall = Row(new DbTemplateCell { Column = 1, RowSpan = 2, CellTypeId = 5 });
         var below = Row();
 
         var cells = NewRowCells.For([tall, below], tall, 2, DefaultCellType, []);
@@ -61,8 +61,8 @@ public sealed class NewRowCellsTests
         Assert.Equal([1], cells.Select(cell => cell.Column));
     }
 
-    private static TemplateRow Row(params TemplateCell[] cells)
+    private static DbTemplateRow Row(params DbTemplateCell[] cells)
     {
-        return new TemplateRow { Cells = cells.ToList() };
+        return new DbTemplateRow { Cells = cells.ToList() };
     }
 }

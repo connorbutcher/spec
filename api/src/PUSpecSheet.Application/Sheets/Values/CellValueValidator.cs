@@ -1,6 +1,6 @@
 using PUSpecSheet.Application.CellTypes;
 using PUSpecSheet.Application.Common;
-using PUSpecSheet.Database.Entities.Templates;
+using PUSpecSheet.Database;
 using PUSpecSheet.Domain.CellTypes;
 using PUSpecSheet.Domain.CellTypes.Configurations;
 using PUSpecSheet.Domain.CellTypes.LabelledText;
@@ -10,8 +10,8 @@ namespace PUSpecSheet.Application.Sheets.Values;
 /// <summary>Checks a new cell value against its cell's kind and the settings its cell type and cell give it.</summary>
 internal static class CellValueValidator
 {
-    /// <summary>Expects <see cref="TemplateCell.CellType"/> (with its options) to be loaded.</summary>
-    public static void Validate(TemplateCell cell, CellValueBag request)
+    /// <summary>Expects <see cref="DbTemplateCell.CellType"/> (with its options) to be loaded.</summary>
+    public static void Validate(DbTemplateCell cell, CellValueBag request)
     {
         var cellType = cell.CellType;
         var configuration = CellSettingsResolver.ResolveConfiguration(cell);

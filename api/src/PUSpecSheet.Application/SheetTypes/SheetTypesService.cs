@@ -2,7 +2,6 @@ using PUSpecSheet.Application.Common;
 using PUSpecSheet.Application.SheetTypes.Queries;
 using PUSpecSheet.Contracts.SheetTypes;
 using PUSpecSheet.Database;
-using PUSpecSheet.Database.Entities.SheetTypes;
 
 namespace PUSpecSheet.Application.SheetTypes;
 
@@ -29,7 +28,7 @@ public sealed class SheetTypesService : ISheetTypesService
         }
 
         var lastOrder = await SheetTypeQueries.GetLastDisplayOrderAsync(db, cancellationToken);
-        var sheetType = new SheetType { Name = name, DisplayOrder = (lastOrder ?? 0) + 1 };
+        var sheetType = new DbSheetType { Name = name, DisplayOrder = (lastOrder ?? 0) + 1 };
 
         db.SheetTypes.Add(sheetType);
         await db.SaveChangesAsync(cancellationToken);

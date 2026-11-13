@@ -1,6 +1,6 @@
 using PUSpecSheet.Application.Sheets.History;
 using PUSpecSheet.Application.Sheets.Values;
-using PUSpecSheet.Database.Entities.Sheets;
+using PUSpecSheet.Database;
 using PUSpecSheet.Domain.Sheets;
 
 namespace PUSpecSheet.Application.Tests.Sheets.History;
@@ -87,7 +87,7 @@ public sealed class SheetChangeHistoryCalculatorTests
     public void ASubSectionChange_MarksItsParent_ButNeverOverAnyNewerChange()
     {
         var rowAddedToParent = Row(9, revisionNumber: 1, version: 3);
-        var subSection = new SheetSectionRevision
+        var subSection = new DbSheetSectionRevision
         {
             Id = nextRevisionId++,
             SheetSectionId = Section,
@@ -133,9 +133,9 @@ public sealed class SheetChangeHistoryCalculatorTests
     }
 
     private static SheetChangeHistory Calculate(
-        IReadOnlyList<SheetRowRevision> rows,
-        IReadOnlyList<SheetSectionRevision>? sections = null,
-        IReadOnlyList<SheetColumnBlockRevision>? columnBlocks = null,
+        IReadOnlyList<DbSheetRowRevision> rows,
+        IReadOnlyList<DbSheetSectionRevision>? sections = null,
+        IReadOnlyList<DbSheetColumnBlockRevision>? columnBlocks = null,
         Dictionary<int, Dictionary<int, CellValueBag>>? values = null,
         Dictionary<int, int>? rowSections = null)
     {
@@ -149,9 +149,9 @@ public sealed class SheetChangeHistoryCalculatorTests
             SectionParents);
     }
 
-    private SheetRowRevision Row(int rowId, int revisionNumber, int version, int displayOrder = 1024)
+    private DbSheetRowRevision Row(int rowId, int revisionNumber, int version, int displayOrder = 1024)
     {
-        return new SheetRowRevision
+        return new DbSheetRowRevision
         {
             Id = nextRevisionId++,
             SheetRowId = rowId,
@@ -164,9 +164,9 @@ public sealed class SheetChangeHistoryCalculatorTests
         };
     }
 
-    private SheetColumnBlockRevision Block(int blockId, int version)
+    private DbSheetColumnBlockRevision Block(int blockId, int version)
     {
-        return new SheetColumnBlockRevision
+        return new DbSheetColumnBlockRevision
         {
             Id = nextRevisionId++,
             SheetColumnBlockId = blockId,

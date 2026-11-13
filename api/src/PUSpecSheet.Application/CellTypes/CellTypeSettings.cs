@@ -1,6 +1,6 @@
 using PUSpecSheet.Application.Common;
 using PUSpecSheet.Contracts.CellTypes;
-using PUSpecSheet.Database.Entities.CellTypes;
+using PUSpecSheet.Database;
 using PUSpecSheet.Domain.CellTypes;
 using PUSpecSheet.Domain.CellTypes.Configurations;
 using PUSpecSheet.Domain.CellTypes.Styles;
@@ -13,7 +13,7 @@ namespace PUSpecSheet.Application.CellTypes;
 /// </summary>
 internal static class CellTypeSettings
 {
-    public static void Apply(SaveCellTypeRequest request, CellType cellType)
+    public static void Apply(SaveCellTypeRequest request, DbCellType cellType)
     {
         cellType.Name = request.Name.Trim();
         cellType.Kind = request.Kind;

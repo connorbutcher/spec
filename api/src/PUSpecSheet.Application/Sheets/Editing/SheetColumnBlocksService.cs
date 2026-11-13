@@ -10,7 +10,6 @@ using PUSpecSheet.Application.Users;
 using PUSpecSheet.Contracts.Common;
 using PUSpecSheet.Contracts.Sheets;
 using PUSpecSheet.Database;
-using PUSpecSheet.Database.Entities.Sheets;
 using PUSpecSheet.Domain.Templates;
 
 namespace PUSpecSheet.Application.Sheets.Editing;
@@ -129,7 +128,7 @@ public sealed class SheetColumnBlocksService : ISheetColumnBlocksService
         return await reader.ReadLiveAsync(sheetId, cancellationToken);
     }
 
-    private async Task<SheetColumnBlock> LoadAsync(int columnBlockId, CancellationToken cancellationToken)
+    private async Task<DbSheetColumnBlock> LoadAsync(int columnBlockId, CancellationToken cancellationToken)
     {
         return await SheetColumnBlockQueries.FindWithTemplateAndTableAsync(db, columnBlockId, cancellationToken)
             ?? throw new NotFoundException($"Column block {columnBlockId} was not found.");

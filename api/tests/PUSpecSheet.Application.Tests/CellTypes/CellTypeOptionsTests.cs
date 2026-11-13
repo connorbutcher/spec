@@ -1,6 +1,6 @@
 using PUSpecSheet.Application.CellTypes;
 using PUSpecSheet.Application.Common;
-using PUSpecSheet.Database.Entities.CellTypes;
+using PUSpecSheet.Database;
 using PUSpecSheet.Domain.CellTypes;
 
 namespace PUSpecSheet.Application.Tests.CellTypes;
@@ -46,13 +46,13 @@ public sealed class CellTypeOptionsTests
     [Fact]
     public void Sync_KeepsTheIdOfAnOptionThatStays_SoValuesChosenOnSheetsStillPointAtIt()
     {
-        var cellType = new CellType
+        var cellType = new DbCellType
         {
             Options =
             [
-                new CellTypeOption { Id = 1, Value = "Pass", DisplayOrder = 1 },
-                new CellTypeOption { Id = 2, Value = "Fail", DisplayOrder = 2 },
-                new CellTypeOption { Id = 3, Value = "N/A", DisplayOrder = 3 },
+                new DbCellTypeOption { Id = 1, Value = "Pass", DisplayOrder = 1 },
+                new DbCellTypeOption { Id = 2, Value = "Fail", DisplayOrder = 2 },
+                new DbCellTypeOption { Id = 3, Value = "N/A", DisplayOrder = 3 },
             ],
         };
 

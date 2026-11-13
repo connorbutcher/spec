@@ -1,6 +1,5 @@
 using PUSpecSheet.Application.CellTypes.Queries;
 using PUSpecSheet.Database;
-using PUSpecSheet.Database.Entities.CellTypes;
 using PUSpecSheet.Domain.CellTypes;
 using PUSpecSheet.Domain.CellTypes.Configurations;
 using PUSpecSheet.Domain.CellTypes.LabelledText;
@@ -119,7 +118,7 @@ public sealed class ShowcaseCellTypes
 
         foreach (var definition in Definitions.Where(definition => !existing.Contains(definition.Name, StringComparer.OrdinalIgnoreCase)))
         {
-            var cellType = new CellType
+            var cellType = new DbCellType
             {
                 Name = definition.Name,
                 Kind = definition.Kind,
@@ -130,7 +129,7 @@ public sealed class ShowcaseCellTypes
             };
             for (var index = 0; index < definition.Options.Length; index++)
             {
-                cellType.Options.Add(new CellTypeOption { Value = definition.Options[index], DisplayOrder = index + 1 });
+                cellType.Options.Add(new DbCellTypeOption { Value = definition.Options[index], DisplayOrder = index + 1 });
             }
 
             db.CellTypes.Add(cellType);

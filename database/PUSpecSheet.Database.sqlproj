@@ -7,7 +7,7 @@
     <ModelCollation>1033, CI</ModelCollation>
     <ProjectGuid>31D03113-4809-4874-9937-F45344A57D50</ProjectGuid>
   </PropertyGroup>
-  <!-- Database options as EF Core / LocalDB created them, so a compare reports schema changes only. -->
+  <!-- Database options, as LocalDB creates a database, so a compare reports schema changes only. -->
   <PropertyGroup>
     <DefaultCollation>SQL_Latin1_General_CP1_CI_AS</DefaultCollation>
     <AnsiNullDefault>False</AnsiNullDefault>
@@ -29,4 +29,9 @@
     <QueryStoreMaxStorageSize>1000</QueryStoreMaxStorageSize>
     <QueryStoreStaleQueryThreshold>30</QueryStoreStaleQueryThreshold>
   </PropertyGroup>
+  <!-- Reference data (sheet types, cell types, permissions, the administrator role and developer user), run after
+       every deployment. -->
+  <ItemGroup>
+    <PostDeploy Include="Script.PostDeployment.sql" />
+  </ItemGroup>
 </Project>

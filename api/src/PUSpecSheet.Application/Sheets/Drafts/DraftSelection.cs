@@ -1,6 +1,6 @@
 using PUSpecSheet.Application.Sheets.Revisions;
 using PUSpecSheet.Contracts.Sheets;
-using PUSpecSheet.Database.Entities.Sheets;
+using PUSpecSheet.Database;
 
 namespace PUSpecSheet.Application.Sheets.Drafts;
 
@@ -34,7 +34,7 @@ public sealed class DraftSelection
     }
 
     public IQueryable<TRevision> Apply<TRevision>(IQueryable<TRevision> revisions)
-        where TRevision : class, ISheetRevision
+        where TRevision : class, IDbSheetRevision
     {
         return submissionId is { } id
             ? revisions.InSubmission(id)

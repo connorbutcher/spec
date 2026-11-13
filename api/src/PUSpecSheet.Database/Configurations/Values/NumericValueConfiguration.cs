@@ -1,14 +1,13 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using PUSpecSheet.Database.Entities.Values;
 
 namespace PUSpecSheet.Database.Configurations.Values;
 
-public sealed class NumericValueConfiguration : CellValueConfiguration<NumericValue>
+public sealed class NumericValueConfiguration : CellValueConfiguration<DbNumericValue>
 {
     protected override string TableName => "NumericValues";
 
-    protected override void ConfigureValue(EntityTypeBuilder<NumericValue> builder)
+    protected override void ConfigureValue(EntityTypeBuilder<DbNumericValue> builder)
     {
         // Up to 18 digits before the point and 10 after: room for large limits and fine tolerances.
         builder.Property(value => value.Value)

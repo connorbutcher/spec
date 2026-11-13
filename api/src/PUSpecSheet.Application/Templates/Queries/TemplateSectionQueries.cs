@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Database;
-using PUSpecSheet.Database.Entities.Templates;
 using PUSpecSheet.Domain.Templates;
 
 namespace PUSpecSheet.Application.Templates.Queries;
@@ -9,7 +8,7 @@ namespace PUSpecSheet.Application.Templates.Queries;
 public static class TemplateSectionQueries
 {
     /// <summary>A version's sections, read only.</summary>
-    public static async Task<List<TemplateSection>> ListAsync(PuSpecSheetDbContext db, int versionId, CancellationToken cancellationToken)
+    public static async Task<List<DbTemplateSection>> ListAsync(PuSpecSheetDbContext db, int versionId, CancellationToken cancellationToken)
     {
         return await db.TemplateSections
             .AsNoTracking()
@@ -18,7 +17,7 @@ public static class TemplateSectionQueries
     }
 
     /// <summary>A version's sections with their rows and cells, read only.</summary>
-    public static async Task<List<TemplateSection>> ListWithRowsAsync(PuSpecSheetDbContext db, int versionId, CancellationToken cancellationToken)
+    public static async Task<List<DbTemplateSection>> ListWithRowsAsync(PuSpecSheetDbContext db, int versionId, CancellationToken cancellationToken)
     {
         return await db.TemplateSections
             .AsNoTracking()
@@ -29,7 +28,7 @@ public static class TemplateSectionQueries
     }
 
     /// <summary>A version's sections, tracked for editing.</summary>
-    public static async Task<List<TemplateSection>> ListForEditAsync(PuSpecSheetDbContext db, int versionId, CancellationToken cancellationToken)
+    public static async Task<List<DbTemplateSection>> ListForEditAsync(PuSpecSheetDbContext db, int versionId, CancellationToken cancellationToken)
     {
         return await db.TemplateSections
             .Where(candidate => candidate.TableTemplateVersionId == versionId)
@@ -37,7 +36,7 @@ public static class TemplateSectionQueries
     }
 
     /// <summary>The sections under one parent (or at the top level) of a version, tracked for editing.</summary>
-    public static async Task<List<TemplateSection>> ListSiblingsForEditAsync(PuSpecSheetDbContext db, int versionId, int? parentSectionId, CancellationToken cancellationToken)
+    public static async Task<List<DbTemplateSection>> ListSiblingsForEditAsync(PuSpecSheetDbContext db, int versionId, int? parentSectionId, CancellationToken cancellationToken)
     {
         return await db.TemplateSections
             .Where(candidate => candidate.TableTemplateVersionId == versionId
@@ -46,7 +45,7 @@ public static class TemplateSectionQueries
     }
 
     /// <summary>The section, tracked for editing; null when there is no such section.</summary>
-    public static async Task<TemplateSection?> FindForEditAsync(PuSpecSheetDbContext db, int id, CancellationToken cancellationToken)
+    public static async Task<DbTemplateSection?> FindForEditAsync(PuSpecSheetDbContext db, int id, CancellationToken cancellationToken)
     {
         return await db.TemplateSections.FindAsync([id], cancellationToken);
     }
@@ -81,7 +80,7 @@ public static class TemplateSectionQueries
     }
 
     /// <summary>A version's sections with their rows and cells, read only, for laying sheet content out from it.</summary>
-    public static async Task<List<TemplateSection>> ListForLayoutAsync(PuSpecSheetDbContext db, int versionId, CancellationToken cancellationToken)
+    public static async Task<List<DbTemplateSection>> ListForLayoutAsync(PuSpecSheetDbContext db, int versionId, CancellationToken cancellationToken)
     {
         return await db.TemplateSections
             .AsNoTracking()
@@ -93,7 +92,7 @@ public static class TemplateSectionQueries
     }
 
     /// <summary>Every section of the versions, read only.</summary>
-    public static async Task<List<TemplateSection>> ListInVersionsAsync(PuSpecSheetDbContext db, IReadOnlyCollection<int> versionIds, CancellationToken cancellationToken)
+    public static async Task<List<DbTemplateSection>> ListInVersionsAsync(PuSpecSheetDbContext db, IReadOnlyCollection<int> versionIds, CancellationToken cancellationToken)
     {
         return await db.TemplateSections
             .AsNoTracking()

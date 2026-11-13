@@ -1,12 +1,12 @@
 using PUSpecSheet.Contracts.CellTypes;
-using PUSpecSheet.Database.Entities.CellTypes;
+using PUSpecSheet.Database;
 
 namespace PUSpecSheet.Application.CellTypes;
 
 internal static class CellTypeMappings
 {
-    /// <summary>Maps a cell type to its DTO. Expects <see cref="CellType.Options"/> to be loaded.</summary>
-    public static CellTypeDto ToDto(this CellType cellType, int usageCount)
+    /// <summary>Maps a cell type to its DTO. Expects <see cref="DbCellType.Options"/> to be loaded.</summary>
+    public static CellTypeDto ToDto(this DbCellType cellType, int usageCount)
     {
         var options = cellType.Options
             .OrderBy(option => option.DisplayOrder)

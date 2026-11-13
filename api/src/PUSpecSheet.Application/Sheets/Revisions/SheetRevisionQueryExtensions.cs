@@ -1,5 +1,5 @@
 using PUSpecSheet.Contracts.Sheets;
-using PUSpecSheet.Database.Entities.Sheets;
+using PUSpecSheet.Database;
 using PUSpecSheet.Domain.Sheets;
 
 namespace PUSpecSheet.Application.Sheets.Revisions;
@@ -14,14 +14,14 @@ public static class SheetRevisionQueryExtensions
 {
     /// <summary>Each item's current published revision.</summary>
     public static IQueryable<TRevision> Current<TRevision>(this IQueryable<TRevision> revisions)
-        where TRevision : class, ISheetRevision
+        where TRevision : class, IDbSheetRevision
     {
         return revisions.Where(revision => revision.Status == RevisionStatus.Published && revision.SupersededAtUtc == null);
     }
 
     /// <summary>Every draft, whoever holds it.</summary>
     public static IQueryable<TRevision> Drafts<TRevision>(this IQueryable<TRevision> revisions)
-        where TRevision : class, ISheetRevision
+        where TRevision : class, IDbSheetRevision
     {
         return revisions.Where(revision => revision.Status == RevisionStatus.Draft);
     }
@@ -31,7 +31,7 @@ public static class SheetRevisionQueryExtensions
     /// are left out, as they belong to their submission until it is decided.
     /// </summary>
     public static IQueryable<TRevision> DraftsIn<TRevision>(this IQueryable<TRevision> revisions, PublishScope scope, int publisherUserId)
-        where TRevision : class, ISheetRevision
+        where TRevision : class, IDbSheetRevision
     {
         var drafts = scope == PublishScope.All ? revisions.Drafts() : revisions.DraftsOf(publisherUserId);
         return drafts.Where(revision => revision.SheetSubmissionId == null);
@@ -39,28 +39,28 @@ public static class SheetRevisionQueryExtensions
 
     /// <summary>The drafts one user holds that aren't waiting for approval, so they can still change or discard them.</summary>
     public static IQueryable<TRevision> OpenDraftsOf<TRevision>(this IQueryable<TRevision> revisions, int userId)
-        where TRevision : class, ISheetRevision
+        where TRevision : class, IDbSheetRevision
     {
         return revisions.DraftsOf(userId).Where(revision => revision.SheetSubmissionId == null);
     }
 
     /// <summary>The drafts waiting for approval in one submission.</summary>
     public static IQueryable<TRevision> InSubmission<TRevision>(this IQueryable<TRevision> revisions, int submissionId)
-        where TRevision : class, ISheetRevision
+        where TRevision : class, IDbSheetRevision
     {
         return revisions.Where(revision => revision.Status == RevisionStatus.Draft && revision.SheetSubmissionId == submissionId);
     }
 
     /// <summary>The drafts one user holds.</summary>
     public static IQueryable<TRevision> DraftsOf<TRevision>(this IQueryable<TRevision> revisions, int userId)
-        where TRevision : class, ISheetRevision
+        where TRevision : class, IDbSheetRevision
     {
         return revisions.Where(revision => revision.Status == RevisionStatus.Draft && revision.AuthorUserId == userId);
     }
 
     /// <summary>Each item's current published revision and its draft, whoever holds it.</summary>
     public static IQueryable<TRevision> CurrentAndDrafts<TRevision>(this IQueryable<TRevision> revisions)
-        where TRevision : class, ISheetRevision
+        where TRevision : class, IDbSheetRevision
     {
         return revisions.Current()
             .Concat(revisions.Drafts());
@@ -72,7 +72,7 @@ public static class SheetRevisionQueryExtensions
     /// revision whose range covers the moment, which is what the (item, published, superseded) indexes are for.
     /// </summary>
     public static IQueryable<TRevision> InView<TRevision>(this IQueryable<TRevision> revisions, DateTime? moment)
-        where TRevision : class, ISheetRevision
+        where TRevision : class, IDbSheetRevision
     {
         return moment is { } at
             ? revisions.Where(revision => revision.Status == RevisionStatus.Published
@@ -83,7 +83,7 @@ public static class SheetRevisionQueryExtensions
 
     /// <summary>Every revision published up to the moment, or ever when there is none.</summary>
     public static IQueryable<TRevision> PublishedUpTo<TRevision>(this IQueryable<TRevision> revisions, DateTime? moment)
-        where TRevision : class, ISheetRevision
+        where TRevision : class, IDbSheetRevision
     {
         return revisions.Where(revision => revision.Status == RevisionStatus.Published
             && (moment == null || revision.PublishedAtUtc <= moment));
@@ -91,7 +91,7 @@ public static class SheetRevisionQueryExtensions
 
     /// <summary>What a user sees of each item: its current published revision and their own draft of it.</summary>
     public static IQueryable<TRevision> VisibleTo<TRevision>(this IQueryable<TRevision> revisions, int userId)
-        where TRevision : class, ISheetRevision
+        where TRevision : class, IDbSheetRevision
     {
         return revisions.Current()
             .Concat(revisions.DraftsOf(userId));

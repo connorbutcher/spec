@@ -10,7 +10,6 @@ using PUSpecSheet.Application.Users;
 using PUSpecSheet.Contracts.Approvals;
 using PUSpecSheet.Contracts.Sheets;
 using PUSpecSheet.Database;
-using PUSpecSheet.Database.Entities.Sheets;
 
 namespace PUSpecSheet.Application.Sheets;
 
@@ -124,7 +123,7 @@ public sealed class SheetsService : ISheetsService
             throw new NotFoundException("That sheet type isn't available to that phase.");
         }
 
-        var sheet = new Sheet { PhaseId = phaseId, SheetTypeId = sheetTypeId };
+        var sheet = new DbSheet { PhaseId = phaseId, SheetTypeId = sheetTypeId };
         db.Sheets.Add(sheet);
         if (await db.TrySaveChangesAsync(cancellationToken))
         {

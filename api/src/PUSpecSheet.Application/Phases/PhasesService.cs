@@ -3,7 +3,6 @@ using PUSpecSheet.Application.Phases.Queries;
 using PUSpecSheet.Application.SheetTypes.Queries;
 using PUSpecSheet.Contracts.Phases;
 using PUSpecSheet.Database;
-using PUSpecSheet.Database.Entities.Phases;
 
 namespace PUSpecSheet.Application.Phases;
 
@@ -53,7 +52,7 @@ public sealed class PhasesService : IPhasesService
 
         var lastOrder = await PhaseQueries.GetLastDisplayOrderAsync(db, parentId, cancellationToken);
 
-        var phase = new Phase
+        var phase = new DbPhase
         {
             Code = code,
             Description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description.Trim(),
@@ -63,7 +62,7 @@ public sealed class PhasesService : IPhasesService
 
         foreach (var sheetTypeId in sheetTypeIds)
         {
-            phase.SheetTypes.Add(new PhaseSheetType { SheetTypeId = sheetTypeId });
+            phase.SheetTypes.Add(new DbPhaseSheetType { SheetTypeId = sheetTypeId });
         }
 
         db.Phases.Add(phase);
@@ -93,7 +92,7 @@ public sealed class PhasesService : IPhasesService
         var current = phase.SheetTypes.Select(link => link.SheetTypeId).ToHashSet();
         foreach (var sheetTypeId in wanted.Where(sheetTypeId => !current.Contains(sheetTypeId)))
         {
-            phase.SheetTypes.Add(new PhaseSheetType { SheetTypeId = sheetTypeId });
+            phase.SheetTypes.Add(new DbPhaseSheetType { SheetTypeId = sheetTypeId });
         }
 
         await db.SaveChangesAsync(cancellationToken);
@@ -140,7 +139,7 @@ public sealed class PhasesService : IPhasesService
     }
 
     /// <summary>A sheet type can't be taken away from a phase once its sheet there has tables: they would be stranded.</summary>
-    private async Task EnsureSheetsAreEmptyAsync(Phase phase, List<PhaseSheetType> removed, CancellationToken cancellationToken)
+    private async Task EnsureSheetsAreEmptyAsync(DbPhase phase, List<DbPhaseSheetType> removed, CancellationToken cancellationToken)
     {
         if (removed.Count == 0)
         {

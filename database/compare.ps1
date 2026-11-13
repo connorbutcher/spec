@@ -1,13 +1,13 @@
 <#
 .SYNOPSIS
-    Builds this project and compares it with an EF-migrated database.
+    Builds this project and lists what deploying it would change in a database.
 
 .DESCRIPTION
     Runs a SqlPackage deploy report (nothing is changed in the database) from the
     built dacpac to the database, including objects that exist only in the
-    database, and lists every difference. The EF migrations history table is left
-    out of the project on purpose, so it is ignored here. Exits with 1 when there
-    are differences.
+    database, and lists every difference. Databases first created by the old EF
+    Core migrations still carry their migrations history table; it is ignored
+    here. Exits with 1 when there are differences.
 
 .EXAMPLE
     ./compare.ps1

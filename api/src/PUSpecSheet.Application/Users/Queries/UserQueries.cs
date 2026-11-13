@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Contracts.Approvals;
 using PUSpecSheet.Database;
-using PUSpecSheet.Database.Entities.Users;
 using PUSpecSheet.Domain.Users;
 
 namespace PUSpecSheet.Application.Users.Queries;
@@ -10,7 +9,7 @@ namespace PUSpecSheet.Application.Users.Queries;
 public static class UserQueries
 {
     /// <summary>The user with their roles and each role's permissions, read only; null when there is no such user.</summary>
-    public static async Task<User?> FindWithAccessAsync(PuSpecSheetDbContext db, int userId, CancellationToken cancellationToken)
+    public static async Task<DbUser?> FindWithAccessAsync(PuSpecSheetDbContext db, int userId, CancellationToken cancellationToken)
     {
         return await db.Users
             .AsNoTracking()
@@ -94,7 +93,7 @@ public static class UserQueries
     }
 
     /// <summary>Active users holding <see cref="PermissionKeys.SheetsApprove"/>, which every administrator does.</summary>
-    private static IQueryable<User> Approvers(PuSpecSheetDbContext db)
+    private static IQueryable<DbUser> Approvers(PuSpecSheetDbContext db)
     {
         return db.Users.Where(user => user.IsActive && user.Roles.Any(link =>
             link.RoleId == WellKnownRoles.AdministratorId

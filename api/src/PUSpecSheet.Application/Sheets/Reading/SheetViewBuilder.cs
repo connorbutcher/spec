@@ -5,8 +5,7 @@ using PUSpecSheet.Application.Sheets.Revisions;
 using PUSpecSheet.Application.Sheets.Values;
 using PUSpecSheet.Contracts.Sheets;
 using PUSpecSheet.Contracts.Templates;
-using PUSpecSheet.Database.Entities.Sheets;
-using PUSpecSheet.Database.Entities.Templates;
+using PUSpecSheet.Database;
 using PUSpecSheet.Domain.CellTypes;
 using PUSpecSheet.Domain.Sheets;
 using PUSpecSheet.Domain.Templates;
@@ -22,9 +21,9 @@ internal sealed class SheetViewBuilder
 {
     private readonly SheetSnapshot snapshot;
     private readonly int currentUserId;
-    private readonly Dictionary<int, List<SheetSection>> topLevelByTable;
-    private readonly Dictionary<int, List<SheetSection>> childrenByParent;
-    private readonly Dictionary<int, List<SheetRow>> rowsBySection;
+    private readonly Dictionary<int, List<DbSheetSection>> topLevelByTable;
+    private readonly Dictionary<int, List<DbSheetSection>> childrenByParent;
+    private readonly Dictionary<int, List<DbSheetRow>> rowsBySection;
     private readonly HashSet<int> hiddenColumnBlockIds;
     private readonly Dictionary<int, int> tableBySection;
     private readonly Dictionary<int, List<SheetLinkableColumnDto>> linkableColumnsByVersion = [];
@@ -130,7 +129,7 @@ internal sealed class SheetViewBuilder
             .ToList();
     }
 
-    private SheetTableDto BuildTable(SheetTable table)
+    private SheetTableDto BuildTable(DbSheetTable table)
     {
         var resolution = snapshot.TableRevisions[table.Id];
         var version = table.TableTemplateVersion;
@@ -182,7 +181,7 @@ internal sealed class SheetViewBuilder
         return columns;
     }
 
-    private SheetSectionDto BuildSection(SheetSection section, IReadOnlyList<SheetSection> siblings)
+    private SheetSectionDto BuildSection(DbSheetSection section, IReadOnlyList<DbSheetSection> siblings)
     {
         var resolution = snapshot.SectionRevisions[section.Id];
         var template = section.TemplateSection;
@@ -222,7 +221,7 @@ internal sealed class SheetViewBuilder
             ChangeOf(snapshot.Changes.Sections, section.Id));
     }
 
-    private SheetRowDto BuildRow(SheetRow row, bool inHeader)
+    private SheetRowDto BuildRow(DbSheetRow row, bool inHeader)
     {
         var resolution = snapshot.RowRevisions[row.Id];
         var shown = resolution.Shown!;
@@ -257,7 +256,7 @@ internal sealed class SheetViewBuilder
             ChangeOf(snapshot.Changes.Rows, row.Id));
     }
 
-    private SheetCellDto BuildCell(SheetCell cell, CellValueBag? value, SheetChangeDto? change)
+    private SheetCellDto BuildCell(DbSheetCell cell, CellValueBag? value, SheetChangeDto? change)
     {
         var template = cell.TemplateCell;
         if (!templateCells.ContainsKey(template.Id))
@@ -288,7 +287,7 @@ internal sealed class SheetViewBuilder
     }
 
     /// <summary>Adds a visible cell's value to the choices of its column, when a linked dropdown is pointed at it.</summary>
-    private void OfferToLinkedDropdowns(int tableId, SheetCell cell, CellValueBag? value)
+    private void OfferToLinkedDropdowns(int tableId, DbSheetCell cell, CellValueBag? value)
     {
         if (linkedOptions.Wants(tableId, cell.TemplateCellId)
             && snapshot.CellTypes.TryGetValue(cell.TemplateCell.CellTypeId, out var cellType)
@@ -303,7 +302,7 @@ internal sealed class SheetViewBuilder
     /// is pointed at it adds its other values to that dropdown's choices. The values are read left to right:
     /// the row's own cells, then each set of repeated columns.
     /// </summary>
-    private void OfferRowToLinkedDropdowns(int tableId, SheetRow row, List<SheetCell> cells, Dictionary<int, CellValueBag>? values)
+    private void OfferRowToLinkedDropdowns(int tableId, DbSheetRow row, List<DbSheetCell> cells, Dictionary<int, CellValueBag>? values)
     {
         var texts = cells
             .OrderBy(cell => cell.SheetColumnBlockId is { } blockId ? 1 + columnBlockOrder.GetValueOrDefault(blockId) : 0)
@@ -330,7 +329,7 @@ internal sealed class SheetViewBuilder
         }
     }
 
-    private List<SheetColumnBlockDto> BuildColumnBlocks(SheetTable table)
+    private List<SheetColumnBlockDto> BuildColumnBlocks(DbSheetTable table)
     {
         var visible = snapshot.ColumnBlocks
             .Where(block => block.SheetTableId == table.Id
@@ -385,7 +384,7 @@ internal sealed class SheetViewBuilder
     }
 
     /// <summary>The kinds of section that can be added under a parent (or the table), with their current counts.</summary>
-    private List<AddableSectionDto> AddableSectionsUnder(int versionId, int? parentTemplateSectionId, IReadOnlyList<SheetSection> existingCopies)
+    private List<AddableSectionDto> AddableSectionsUnder(int versionId, int? parentTemplateSectionId, IReadOnlyList<DbSheetSection> existingCopies)
     {
         return snapshot.TemplateSections
             .Where(template => template.TableTemplateVersionId == versionId
@@ -417,7 +416,7 @@ internal sealed class SheetViewBuilder
             .ToList();
     }
 
-    private static string RowLabel(TemplateRow row, int position)
+    private static string RowLabel(DbTemplateRow row, int position)
     {
         var caption = row.Cells
             .OrderBy(cell => cell.Column)
@@ -443,7 +442,7 @@ internal sealed class SheetViewBuilder
     }
 
     private SheetLockDto? LockOf<TRevision>(RevisionResolution<TRevision> resolution)
-        where TRevision : class, ISheetRevision
+        where TRevision : class, IDbSheetRevision
     {
         if (resolution.Draft is not { } draft)
         {
@@ -461,7 +460,7 @@ internal sealed class SheetViewBuilder
     /// is number 1, so a draft with that number is the item's very first.
     /// </summary>
     private static bool IsPending<TRevision>(RevisionResolution<TRevision> resolution)
-        where TRevision : class, ISheetRevision
+        where TRevision : class, IDbSheetRevision
     {
         return resolution.Shown is { Status: RevisionStatus.Draft, RevisionNumber: 1 };
     }
@@ -470,13 +469,13 @@ internal sealed class SheetViewBuilder
     /// Every draft on the sheet that can still be published, whoever holds it. A past view has none, and drafts
     /// already waiting for approval belong to their submission.
     /// </summary>
-    private IEnumerable<ISheetRevision> Drafts()
+    private IEnumerable<IDbSheetRevision> Drafts()
     {
-        return snapshot.TableRevisions.Values.Select(resolution => (ISheetRevision?)resolution.Draft)
+        return snapshot.TableRevisions.Values.Select(resolution => (IDbSheetRevision?)resolution.Draft)
             .Concat(snapshot.SectionRevisions.Values.Select(resolution => resolution.Draft))
             .Concat(snapshot.RowRevisions.Values.Select(resolution => resolution.Draft))
             .Concat(snapshot.ColumnBlockRevisions.Values.Select(resolution => resolution.Draft))
-            .OfType<ISheetRevision>()
+            .OfType<IDbSheetRevision>()
             .Where(draft => draft.SheetSubmissionId is null);
     }
 

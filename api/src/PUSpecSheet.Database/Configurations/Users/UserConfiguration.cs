@@ -1,28 +1,25 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using PUSpecSheet.Database.Entities.Users;
-using PUSpecSheet.Domain.Users;
 
 namespace PUSpecSheet.Database.Configurations.Users;
 
-public sealed class UserConfiguration : IEntityTypeConfiguration<User>
+public sealed class UserConfiguration : IEntityTypeConfiguration<DbUser>
 {
-    public void Configure(EntityTypeBuilder<User> builder)
+    public void Configure(EntityTypeBuilder<DbUser> builder)
     {
         ConfigureTable(builder);
         ConfigureProperties(builder);
         ConfigureIndexes(builder);
-        ConfigureSeedData(builder);
     }
 
-    private static void ConfigureTable(EntityTypeBuilder<User> builder)
+    private static void ConfigureTable(EntityTypeBuilder<DbUser> builder)
     {
         builder.ToTable("Users");
 
         builder.HasKey(user => user.Id);
     }
 
-    private static void ConfigureProperties(EntityTypeBuilder<User> builder)
+    private static void ConfigureProperties(EntityTypeBuilder<DbUser> builder)
     {
         builder.Property(user => user.UserName)
             .IsRequired()
@@ -39,22 +36,9 @@ public sealed class UserConfiguration : IEntityTypeConfiguration<User>
             .HasDefaultValueSql("SYSUTCDATETIME()");
     }
 
-    private static void ConfigureIndexes(EntityTypeBuilder<User> builder)
+    private static void ConfigureIndexes(EntityTypeBuilder<DbUser> builder)
     {
         builder.HasIndex(user => user.UserName)
             .IsUnique();
-    }
-
-    private static void ConfigureSeedData(EntityTypeBuilder<User> builder)
-    {
-        // Everything runs as this user until sign-in is added.
-        builder.HasData(new User
-        {
-            Id = WellKnownUsers.DeveloperId,
-            UserName = WellKnownUsers.DeveloperUserName,
-            DisplayName = "Developer",
-            IsActive = true,
-            CreatedAtUtc = new DateTime(2026, 9, 28, 0, 0, 0, DateTimeKind.Utc),
-        });
     }
 }

@@ -1,12 +1,12 @@
 using PUSpecSheet.Contracts.Phases;
-using PUSpecSheet.Database.Entities.Phases;
+using PUSpecSheet.Database;
 
 namespace PUSpecSheet.Application.Phases;
 
 internal static class PhaseMappings
 {
-    /// <summary>Maps a phase to its DTO. Expects <see cref="Phase.SheetTypes"/> to be loaded.</summary>
-    public static PhaseDto ToDto(this Phase phase)
+    /// <summary>Maps a phase to its DTO. Expects <see cref="DbPhase.SheetTypes"/> to be loaded.</summary>
+    public static PhaseDto ToDto(this DbPhase phase)
     {
         var sheetTypeIds = phase.SheetTypes
             .Select(link => link.SheetTypeId)

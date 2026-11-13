@@ -1,32 +1,21 @@
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Metadata;
-using PUSpecSheet.Database;
-using PUSpecSheet.Database.Entities.Users;
+using System.Text.RegularExpressions;
 using PUSpecSheet.Domain.Users;
 
 namespace PUSpecSheet.Application.Tests.Database.Users;
 
-/// <summary>The roles and permissions every database starts with.</summary>
-public sealed class PermissionSeedTests : IDisposable
+/// <summary>
+/// The roles and permissions every database starts with, added by the database project's post-deployment
+/// script (database/Script.PostDeployment.sql).
+/// </summary>
+public sealed partial class PermissionSeedTests
 {
-    private readonly PuSpecSheetDbContext db = new(
-        new DbContextOptionsBuilder<PuSpecSheetDbContext>()
-            .UseSqlServer("Server=unused;Database=unused")
-            .Options);
-
-    /// <summary>The model as migrations see it, which is the one that carries seed data.</summary>
-    private IModel Model => db.GetService<IDesignTimeModel>().Model;
-
-    public void Dispose()
-    {
-        db.Dispose();
-    }
+    private static readonly string Script = File.ReadAllText(FindPostDeploymentScript()).ReplaceLineEndings("\n");
 
     [Fact]
     public void EveryPermissionKey_HasARowInThePermissionsTable()
     {
-        var seeded = SeedValues<Permission>(nameof(Permission.Key)).Cast<string>().Order(StringComparer.Ordinal);
+        var block = Block("Permissions");
+        var seeded = PermissionRow().Matches(block).Select(match => match.Groups["key"].Value).Order(StringComparer.Ordinal);
 
         Assert.Equal(PermissionKeys.All.Order(StringComparer.Ordinal), seeded);
     }
@@ -34,21 +23,49 @@ public sealed class PermissionSeedTests : IDisposable
     [Fact]
     public void TheDeveloperUser_IsAnAdministrator()
     {
-        var link = Assert.Single(Model.FindEntityType(typeof(UserRole))!.GetSeedData());
-
-        Assert.Equal(WellKnownUsers.DeveloperId, link[nameof(UserRole.UserId)]);
-        Assert.Equal(WellKnownRoles.AdministratorId, link[nameof(UserRole.RoleId)]);
+        Assert.Contains(
+            $"INSERT INTO [dbo].[Users] ([Id], [UserName], [DisplayName], [IsActive], [CreatedAtUtc])\nSELECT {WellKnownUsers.DeveloperId}, N'{WellKnownUsers.DeveloperUserName}'",
+            Script,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            $"INSERT INTO [dbo].[UserRoles] ([UserId], [RoleId])\nSELECT {WellKnownUsers.DeveloperId}, {WellKnownRoles.AdministratorId}",
+            Script,
+            StringComparison.Ordinal);
     }
 
     [Fact]
     public void TheAdministratorRole_IsSeededWithNoPermissionsListed()
     {
-        Assert.Equal([WellKnownRoles.AdministratorId], SeedValues<Role>(nameof(Role.Id)).Cast<int>());
-        Assert.Empty(Model.FindEntityType(typeof(RolePermission))!.GetSeedData());
+        Assert.Contains(
+            $"INSERT INTO [dbo].[Roles] ([Id], [Name], [Description])\nSELECT {WellKnownRoles.AdministratorId}, N'{WellKnownRoles.AdministratorName}'",
+            Script,
+            StringComparison.Ordinal);
+        Assert.DoesNotContain("[RolePermissions]", Script, StringComparison.Ordinal);
     }
 
-    private IEnumerable<object?> SeedValues<T>(string property)
+    /// <summary>The script's statements for one table, from its IDENTITY_INSERT ON to its OFF.</summary>
+    private static string Block(string table)
     {
-        return Model.FindEntityType(typeof(T))!.GetSeedData().Select(row => row[property]);
+        var start = Script.IndexOf($"SET IDENTITY_INSERT [dbo].[{table}] ON;", StringComparison.Ordinal);
+        var end = Script.IndexOf($"SET IDENTITY_INSERT [dbo].[{table}] OFF;", StringComparison.Ordinal);
+        Assert.True(start >= 0 && end > start, $"The post-deployment script has no {table} block.");
+        return Script[start..end];
     }
+
+    private static string FindPostDeploymentScript()
+    {
+        for (var directory = new DirectoryInfo(AppContext.BaseDirectory); directory is not null; directory = directory.Parent)
+        {
+            var script = Path.Combine(directory.FullName, "database", "Script.PostDeployment.sql");
+            if (File.Exists(script))
+            {
+                return script;
+            }
+        }
+
+        throw new FileNotFoundException("database/Script.PostDeployment.sql wasn't found above the test output folder.");
+    }
+
+    [GeneratedRegex(@"^\s*\(\d+, N'(?<key>[^']+)', N'", RegexOptions.Multiline)]
+    private static partial Regex PermissionRow();
 }

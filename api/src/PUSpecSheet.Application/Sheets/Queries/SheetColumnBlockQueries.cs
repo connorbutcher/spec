@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Database;
-using PUSpecSheet.Database.Entities.Sheets;
 
 namespace PUSpecSheet.Application.Sheets.Queries;
 
@@ -8,7 +7,7 @@ namespace PUSpecSheet.Application.Sheets.Queries;
 public static class SheetColumnBlockQueries
 {
     /// <summary>The column blocks of the sheet's tables with the template column block each copies, read only.</summary>
-    public static async Task<List<SheetColumnBlock>> ListOnSheetAsync(PuSpecSheetDbContext db, int sheetId, CancellationToken cancellationToken)
+    public static async Task<List<DbSheetColumnBlock>> ListOnSheetAsync(PuSpecSheetDbContext db, int sheetId, CancellationToken cancellationToken)
     {
         return await db.SheetColumnBlocks
             .AsNoTracking()
@@ -18,7 +17,7 @@ public static class SheetColumnBlockQueries
     }
 
     /// <summary>The column block with its template column block and table, read only; null when there is no such block.</summary>
-    public static async Task<SheetColumnBlock?> FindWithTemplateAndTableAsync(PuSpecSheetDbContext db, int id, CancellationToken cancellationToken)
+    public static async Task<DbSheetColumnBlock?> FindWithTemplateAndTableAsync(PuSpecSheetDbContext db, int id, CancellationToken cancellationToken)
     {
         return await db.SheetColumnBlocks
             .AsNoTracking()

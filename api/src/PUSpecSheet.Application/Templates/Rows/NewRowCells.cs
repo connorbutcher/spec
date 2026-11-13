@@ -1,4 +1,4 @@
-using PUSpecSheet.Database.Entities.Templates;
+using PUSpecSheet.Database;
 
 namespace PUSpecSheet.Application.Templates.Rows;
 
@@ -11,9 +11,9 @@ internal static class NewRowCells
     /// <paramref name="insertIndex"/> (0-based). A section without rows starts with one cell of
     /// <paramref name="defaultCellTypeId"/>, plus one in each of <paramref name="columnBlockIds"/>.
     /// </summary>
-    public static List<TemplateCell> For(
-        IReadOnlyList<TemplateRow> orderedRows,
-        TemplateRow? source,
+    public static List<DbTemplateCell> For(
+        IReadOnlyList<DbTemplateRow> orderedRows,
+        DbTemplateRow? source,
         int insertIndex,
         int defaultCellTypeId,
         IReadOnlyList<int> columnBlockIds)
@@ -23,7 +23,7 @@ internal static class NewRowCells
             return columnBlockIds
                 .Select(blockId => (int?)blockId)
                 .Prepend(null)
-                .Select(blockId => new TemplateCell
+                .Select(blockId => new DbTemplateCell
                 {
                     TemplateColumnBlockId = blockId,
                     Column = 1,
@@ -37,7 +37,7 @@ internal static class NewRowCells
         return source.Cells
             .Where(cell => !Enumerable.Range(cell.Column, cell.ColumnSpan)
                 .Any(column => covered.Contains((cell.TemplateColumnBlockId, column))))
-            .Select(cell => new TemplateCell
+            .Select(cell => new DbTemplateCell
             {
                 TemplateColumnBlockId = cell.TemplateColumnBlockId,
                 Column = cell.Column,
@@ -51,7 +51,7 @@ internal static class NewRowCells
     /// The columns, by column block (null for the row's own cells), that cells in rows before
     /// <paramref name="rowIndex"/> (0-based) span down into it.
     /// </summary>
-    private static HashSet<(int? BlockId, int Column)> CoveredColumns(IReadOnlyList<TemplateRow> orderedRows, int rowIndex)
+    private static HashSet<(int? BlockId, int Column)> CoveredColumns(IReadOnlyList<DbTemplateRow> orderedRows, int rowIndex)
     {
         var covered = new HashSet<(int? BlockId, int Column)>();
         for (var index = 0; index < Math.Min(rowIndex, orderedRows.Count); index++)

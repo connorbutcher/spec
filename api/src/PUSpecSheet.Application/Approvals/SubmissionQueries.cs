@@ -3,7 +3,6 @@ using PUSpecSheet.Application.Common;
 using PUSpecSheet.Application.Sheets.Queries;
 using PUSpecSheet.Contracts.Approvals;
 using PUSpecSheet.Database;
-using PUSpecSheet.Database.Entities.Approvals;
 using PUSpecSheet.Domain.Approvals;
 
 namespace PUSpecSheet.Application.Approvals;
@@ -67,7 +66,7 @@ public sealed class SubmissionQueries
         }
     }
 
-    private async Task<IReadOnlyList<SheetSubmissionDto>> ToDtosAsync(Task<List<SheetSubmission>> loading, CancellationToken cancellationToken)
+    private async Task<IReadOnlyList<SheetSubmissionDto>> ToDtosAsync(Task<List<DbSheetSubmission>> loading, CancellationToken cancellationToken)
     {
         var loaded = await loading;
         var counts = await CountChangesAsync(loaded.Select(submission => submission.Id).ToList(), cancellationToken);
@@ -97,7 +96,7 @@ public sealed class SubmissionQueries
                 blocks.GetValueOrDefault(id)));
     }
 
-    private static SheetSubmissionDto ToDto(SheetSubmission submission, SubmissionChangeCountsDto changes)
+    private static SheetSubmissionDto ToDto(DbSheetSubmission submission, SubmissionChangeCountsDto changes)
     {
         return new SheetSubmissionDto(
             submission.Id,

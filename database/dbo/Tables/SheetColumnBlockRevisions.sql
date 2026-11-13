@@ -13,12 +13,14 @@ CREATE TABLE [dbo].[SheetColumnBlockRevisions] (
     [RowVersion]         ROWVERSION    NOT NULL,
     [SheetVersionId]     INT           NULL,
     [SheetId]            INT           NOT NULL,
+    [SheetSubmissionId]  INT           NULL,
     CONSTRAINT [PK_SheetColumnBlockRevisions] PRIMARY KEY CLUSTERED ([Id] ASC),
     CONSTRAINT [CK_SheetColumnBlockRevisions_PublishedAt] CHECK ([Status]=(0) AND [PublishedAtUtc] IS NULL OR [Status]=(1) AND [PublishedAtUtc] IS NOT NULL),
     CONSTRAINT [CK_SheetColumnBlockRevisions_RevisionNumber] CHECK ([RevisionNumber]>=(1)),
     CONSTRAINT [CK_SheetColumnBlockRevisions_Status] CHECK ([Status]=(1) OR [Status]=(0)),
     CONSTRAINT [CK_SheetColumnBlockRevisions_SupersededAt] CHECK ([SupersededAtUtc] IS NULL OR [Status]=(1) AND [SupersededAtUtc]>=[PublishedAtUtc]),
     CONSTRAINT [FK_SheetColumnBlockRevisions_SheetColumnBlocks_SheetColumnBlockId] FOREIGN KEY ([SheetColumnBlockId]) REFERENCES [dbo].[SheetColumnBlocks] ([Id]) ON DELETE CASCADE,
+    CONSTRAINT [FK_SheetColumnBlockRevisions_SheetSubmissions_SheetSubmissionId] FOREIGN KEY ([SheetSubmissionId]) REFERENCES [dbo].[SheetSubmissions] ([Id]),
     CONSTRAINT [FK_SheetColumnBlockRevisions_Sheets_SheetId] FOREIGN KEY ([SheetId]) REFERENCES [dbo].[Sheets] ([Id]),
     CONSTRAINT [FK_SheetColumnBlockRevisions_SheetVersions_SheetVersionId] FOREIGN KEY ([SheetVersionId]) REFERENCES [dbo].[SheetVersions] ([Id]),
     CONSTRAINT [FK_SheetColumnBlockRevisions_Users_AuthorUserId] FOREIGN KEY ([AuthorUserId]) REFERENCES [dbo].[Users] ([Id])
@@ -74,6 +76,12 @@ GO
 
 CREATE UNIQUE NONCLUSTERED INDEX [UX_SheetColumnBlockRevisions_OneDraftPerBlock]
     ON [dbo].[SheetColumnBlockRevisions]([SheetColumnBlockId] ASC) WHERE ([Status]=(0));
+
+
+GO
+
+CREATE NONCLUSTERED INDEX [IX_SheetColumnBlockRevisions_SheetSubmissionId]
+    ON [dbo].[SheetColumnBlockRevisions]([SheetSubmissionId] ASC);
 
 
 GO

@@ -1,7 +1,7 @@
 using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
-using PUSpecSheet.Database.Entities.Values;
+using PUSpecSheet.Database;
 
 namespace PUSpecSheet.Application.Sheets.Queries;
 
@@ -16,13 +16,13 @@ public static class RowValueCopySql
     /// <summary>The value tables, in the order they are copied.</summary>
     private static readonly Type[] ValueTypes =
     [
-        typeof(TextValue),
-        typeof(NumericValue),
-        typeof(DateValue),
-        typeof(BooleanValue),
-        typeof(OptionValue),
-        typeof(CellSettingsValue),
-        typeof(LabelledTextValue),
+        typeof(DbTextValue),
+        typeof(DbNumericValue),
+        typeof(DbDateValue),
+        typeof(DbBooleanValue),
+        typeof(DbOptionValue),
+        typeof(DbCellSettingsValue),
+        typeof(DbLabelledTextValue),
     ];
 
     /// <summary>The batch, with <c>{0}</c> the revision copied from and <c>{1}</c> the one copied to.</summary>
@@ -34,9 +34,9 @@ public static class RowValueCopySql
             var entity = model.FindEntityType(type)
                 ?? throw new InvalidOperationException($"{type.Name} is not in the model.");
             var table = StoreObjectIdentifier.Table(entity.GetTableName()!, entity.GetSchema());
-            var revision = Column(entity, nameof(ICellValue.SheetRowRevisionId), table);
+            var revision = Column(entity, nameof(IDbCellValue.SheetRowRevisionId), table);
             var copied = entity.GetProperties()
-                .Where(property => property.Name != nameof(ICellValue.SheetRowRevisionId)
+                .Where(property => property.Name != nameof(IDbCellValue.SheetRowRevisionId)
                     && property.GetComputedColumnSql(table) is null)
                 .Select(property => Quote(property.GetColumnName(table)!))
                 .ToList();

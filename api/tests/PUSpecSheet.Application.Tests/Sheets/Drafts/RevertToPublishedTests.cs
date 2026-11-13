@@ -2,7 +2,7 @@ using PUSpecSheet.Application.Sheets.Drafts;
 using PUSpecSheet.Application.Sheets.Layout;
 using PUSpecSheet.Application.Sheets.Revisions;
 using PUSpecSheet.Application.Sheets.Values;
-using PUSpecSheet.Database.Entities.Sheets;
+using PUSpecSheet.Database;
 
 namespace PUSpecSheet.Application.Tests.Sheets.Drafts;
 
@@ -47,17 +47,17 @@ public sealed class RevertToPublishedTests
     }
 
     /// <summary>Anything with a place in an order: rows, sections, tables and column blocks.</summary>
-    public static TheoryData<string, ISheetRevision, ISheetRevision> RevisionsOfEveryKind => new()
+    public static TheoryData<string, IDbSheetRevision, IDbSheetRevision> RevisionsOfEveryKind => new()
     {
-        { "Row", new SheetRowRevision { DisplayOrder = 2048 }, new SheetRowRevision { DisplayOrder = 2048 } },
-        { "Section", new SheetSectionRevision { DisplayOrder = 2048 }, new SheetSectionRevision { DisplayOrder = 2048 } },
-        { "Table", new SheetTableRevision { DisplayOrder = 2048 }, new SheetTableRevision { DisplayOrder = 2048 } },
-        { "Column block", new SheetColumnBlockRevision { DisplayOrder = 2048 }, new SheetColumnBlockRevision { DisplayOrder = 2048 } },
+        { "Row", new DbSheetRowRevision { DisplayOrder = 2048 }, new DbSheetRowRevision { DisplayOrder = 2048 } },
+        { "Section", new DbSheetSectionRevision { DisplayOrder = 2048 }, new DbSheetSectionRevision { DisplayOrder = 2048 } },
+        { "Table", new DbSheetTableRevision { DisplayOrder = 2048 }, new DbSheetTableRevision { DisplayOrder = 2048 } },
+        { "Column block", new DbSheetColumnBlockRevision { DisplayOrder = 2048 }, new DbSheetColumnBlockRevision { DisplayOrder = 2048 } },
     };
 
     [Theory]
     [MemberData(nameof(RevisionsOfEveryKind))]
-    public void AnItemMovedAwayAndBack_IsBackWhereItWasPublished(string kind, ISheetRevision published, ISheetRevision draft)
+    public void AnItemMovedAwayAndBack_IsBackWhereItWasPublished(string kind, IDbSheetRevision published, IDbSheetRevision draft)
     {
         Assert.NotEmpty(kind);
         int[] others = [1024, 3072];

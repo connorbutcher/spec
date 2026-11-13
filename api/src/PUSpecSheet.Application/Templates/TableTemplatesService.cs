@@ -4,7 +4,6 @@ using PUSpecSheet.Application.Templates.Queries;
 using PUSpecSheet.Application.Templates.Sections;
 using PUSpecSheet.Contracts.Templates;
 using PUSpecSheet.Database;
-using PUSpecSheet.Database.Entities.Templates;
 using PUSpecSheet.Domain.Templates;
 
 namespace PUSpecSheet.Application.Templates;
@@ -118,7 +117,7 @@ public sealed class TableTemplatesService : ITableTemplatesService
         await db.SaveChangesAsync(cancellationToken);
     }
 
-    private async Task<TableTemplate> FindAsync(int id, CancellationToken cancellationToken)
+    private async Task<DbTableTemplate> FindAsync(int id, CancellationToken cancellationToken)
     {
         var template = await TableTemplateQueries.FindForEditAsync(db, id, cancellationToken);
         if (template is null)
@@ -129,7 +128,7 @@ public sealed class TableTemplatesService : ITableTemplatesService
         return template;
     }
 
-    private Task<TableTemplateVersion> LatestVersionAsync(int templateId, CancellationToken cancellationToken)
+    private Task<DbTableTemplateVersion> LatestVersionAsync(int templateId, CancellationToken cancellationToken)
     {
         return TableTemplateQueries.GetLatestVersionForEditAsync(db, templateId, cancellationToken);
     }
@@ -145,18 +144,18 @@ public sealed class TableTemplatesService : ITableTemplatesService
     }
 
     /// <summary>A template whose first version holds only its header, the one section every table always has.</summary>
-    private static TableTemplate NewTemplate(CreateTableTemplateRequest request, string name, int displayOrder)
+    private static DbTableTemplate NewTemplate(CreateTableTemplateRequest request, string name, int displayOrder)
     {
-        var header = new TemplateSection { Name = "Header", DisplayOrder = 1 };
+        var header = new DbTemplateSection { Name = "Header", DisplayOrder = 1 };
         SectionInstanceRules.ApplyHeader(header);
-        return new TableTemplate
+        return new DbTableTemplate
         {
             SheetTypeId = request.SheetTypeId,
             Name = name,
             DisplayOrder = displayOrder,
             Versions =
             [
-                new TableTemplateVersion
+                new DbTableTemplateVersion
                 {
                     VersionNumber = 1,
                     Orientation = request.Orientation,

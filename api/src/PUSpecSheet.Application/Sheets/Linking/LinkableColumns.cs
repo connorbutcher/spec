@@ -1,6 +1,5 @@
 using PUSpecSheet.Contracts.Sheets;
-using PUSpecSheet.Database.Entities.CellTypes;
-using PUSpecSheet.Database.Entities.Templates;
+using PUSpecSheet.Database;
 using PUSpecSheet.Domain.CellTypes;
 using PUSpecSheet.Domain.Templates;
 
@@ -16,9 +15,9 @@ internal static class LinkableColumns
     /// <param name="rows">The rows of those sections, with their cells.</param>
     /// <param name="cellTypes">Every cell type, by id.</param>
     public static List<SheetLinkableColumnDto> For(
-        IReadOnlyCollection<TemplateSection> sections,
-        IReadOnlyCollection<TemplateRow> rows,
-        IReadOnlyDictionary<int, CellType> cellTypes)
+        IReadOnlyCollection<DbTemplateSection> sections,
+        IReadOnlyCollection<DbTemplateRow> rows,
+        IReadOnlyDictionary<int, DbCellType> cellTypes)
     {
         var sectionsById = sections.ToDictionary(section => section.Id);
         var ordered = rows
@@ -31,7 +30,7 @@ internal static class LinkableColumns
             .ToList();
 
         var headings = Headings(ordered, sectionsById, cellTypes);
-        var columns = new List<(TemplateCell Cell, string Label, string Section)>();
+        var columns = new List<(DbTemplateCell Cell, string Label, string Section)>();
         foreach (var row in ordered)
         {
             foreach (var cell in row.Cells.OrderBy(cell => cell.TemplateColumnBlockId ?? 0).ThenBy(cell => cell.Column).ThenBy(cell => cell.Id))
@@ -62,9 +61,9 @@ internal static class LinkableColumns
 
     /// <summary>The header's heading text over each column, by column block and column.</summary>
     private static Dictionary<(int? BlockId, int Column), string> Headings(
-        List<TemplateRow> rows,
-        Dictionary<int, TemplateSection> sectionsById,
-        IReadOnlyDictionary<int, CellType> cellTypes)
+        List<DbTemplateRow> rows,
+        Dictionary<int, DbTemplateSection> sectionsById,
+        IReadOnlyDictionary<int, DbCellType> cellTypes)
     {
         var headings = new Dictionary<(int? BlockId, int Column), string>();
         foreach (var cell in rows
