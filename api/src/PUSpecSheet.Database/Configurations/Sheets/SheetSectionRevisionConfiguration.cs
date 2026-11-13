@@ -17,7 +17,7 @@ public sealed class SheetSectionRevisionConfiguration : IEntityTypeConfiguration
 
     private static void ConfigureTable(EntityTypeBuilder<DbSheetSectionRevision> builder)
     {
-        builder.ToTable("SheetSectionRevisions");
+        builder.ToTable("SheetSectionRevisions", DatabaseSchemas.Spec);
 
         builder.HasKey(revision => revision.Id);
     }

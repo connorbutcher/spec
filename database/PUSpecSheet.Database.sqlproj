@@ -34,4 +34,9 @@
   <ItemGroup>
     <PostDeploy Include="Script.PostDeployment.sql" />
   </ItemGroup>
+  <!-- Moves of existing tables between schemas, so a deploy to an existing database moves them (keeping their rows)
+       instead of dropping and recreating them. -->
+  <ItemGroup>
+    <RefactorLog Include="PUSpecSheet.Database.refactorlog" />
+  </ItemGroup>
 </Project>

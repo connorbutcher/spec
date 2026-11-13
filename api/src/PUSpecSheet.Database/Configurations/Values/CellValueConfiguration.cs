@@ -5,7 +5,7 @@ using PUSpecSheet.Database.Models.Values;
 namespace PUSpecSheet.Database.Configurations.Values;
 
 /// <summary>
-/// The mapping every typed value table shares: it lives in the "values" schema, belongs to a row
+/// The mapping every typed value table shares: it lives in the "cell" schema, belongs to a row
 /// revision (removed with it) and a sheet cell, and holds one value per revision and cell, which is its key.
 /// </summary>
 public abstract class CellValueConfiguration<TValue> : IEntityTypeConfiguration<TValue>
@@ -13,7 +13,7 @@ public abstract class CellValueConfiguration<TValue> : IEntityTypeConfiguration<
 {
     public void Configure(EntityTypeBuilder<TValue> builder)
     {
-        builder.ToTable(TableName, DatabaseSchemas.Values);
+        builder.ToTable(TableName, DatabaseSchemas.Cell);
 
         // A value is only ever found by its revision and cell, so that pair is the key and the table is
         // stored in that order: a revision's values sit together and are read without a second lookup.

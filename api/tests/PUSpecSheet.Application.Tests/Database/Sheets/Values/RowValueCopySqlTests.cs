@@ -27,14 +27,14 @@ public sealed class RowValueCopySqlTests : IDisposable
         var sql = RowValueCopySql.Build(db.Model);
 
         Assert.Contains(
-            "INSERT INTO [values].[TextValues] ([SheetRowRevisionId], [SheetCellId], [Value]) SELECT {1}, [SheetCellId], [Value] FROM [values].[TextValues] WHERE [SheetRowRevisionId] = {0};",
+            "INSERT INTO [cell].[TextValues] ([SheetRowRevisionId], [SheetCellId], [Value]) SELECT {1}, [SheetCellId], [Value] FROM [cell].[TextValues] WHERE [SheetRowRevisionId] = {0};",
             sql);
-        Assert.Contains("INSERT INTO [values].[NumericValues] ([SheetRowRevisionId], [SheetCellId], [Value])", sql);
-        Assert.Contains("INSERT INTO [values].[DateValues] ([SheetRowRevisionId], [SheetCellId], [Value])", sql);
-        Assert.Contains("INSERT INTO [values].[BooleanValues] ([SheetRowRevisionId], [SheetCellId], [Value])", sql);
-        Assert.Contains("INSERT INTO [values].[OptionValues] ([SheetRowRevisionId], [SheetCellId], [CellTypeOptionId])", sql);
-        Assert.Contains("INSERT INTO [values].[CellSettings] ([SheetRowRevisionId], [SheetCellId], [Settings])", sql);
-        Assert.Contains("INSERT INTO [values].[LabelledTextValues] ([SheetRowRevisionId], [SheetCellId], [SlotKey], [Position], [Value])", sql);
+        Assert.Contains("INSERT INTO [cell].[NumericValues] ([SheetRowRevisionId], [SheetCellId], [Value])", sql);
+        Assert.Contains("INSERT INTO [cell].[DateValues] ([SheetRowRevisionId], [SheetCellId], [Value])", sql);
+        Assert.Contains("INSERT INTO [cell].[BooleanValues] ([SheetRowRevisionId], [SheetCellId], [Value])", sql);
+        Assert.Contains("INSERT INTO [cell].[OptionValues] ([SheetRowRevisionId], [SheetCellId], [CellTypeOptionId])", sql);
+        Assert.Contains("INSERT INTO [cell].[CellSettings] ([SheetRowRevisionId], [SheetCellId], [Settings])", sql);
+        Assert.Contains("INSERT INTO [cell].[LabelledTextValues] ([SheetRowRevisionId], [SheetCellId], [SlotKey], [Position], [Value])", sql);
         Assert.Equal(7, sql.Split("INSERT INTO").Length - 1);
     }
 

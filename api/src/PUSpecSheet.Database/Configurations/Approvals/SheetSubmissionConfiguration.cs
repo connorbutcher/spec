@@ -15,7 +15,7 @@ public sealed class SheetSubmissionConfiguration : IEntityTypeConfiguration<DbSh
 
     private static void ConfigureTable(EntityTypeBuilder<DbSheetSubmission> builder)
     {
-        builder.ToTable("SheetSubmissions");
+        builder.ToTable("SheetSubmissions", DatabaseSchemas.Approval);
 
         builder.HasKey(submission => submission.Id);
     }

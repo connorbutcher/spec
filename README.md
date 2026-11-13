@@ -52,7 +52,7 @@ Endpoint text comes from the XML comments on the controller actions (`<summary>`
 
 Most of what a cell is comes from its template: its cell type, and that type's configuration and style with the cell's overrides. Some settings can only be chosen once the cell is on a sheet, because they point at something on that sheet. These are **instance settings**, and they work the same way for every kind that has them:
 
-- They are one JSON document per cell, `CellInstanceSettings`, whose `kind` names the cell kind (like `CellConfiguration`). It is stored in `values.CellSettings`, keyed by row revision and cell exactly like a value, so settings are part of the row: changing them starts the user's draft, they are published, discarded and put back with the row, they show in the change marks, and a past version shows the settings it had.
+- They are one JSON document per cell, `CellInstanceSettings`, whose `kind` names the cell kind (like `CellConfiguration`). It is stored in `cell.CellSettings`, keyed by row revision and cell exactly like a value, so settings are part of the row: changing them starts the user's draft, they are published, discarded and put back with the row, they show in the change marks, and a past version shows the settings it had.
 - `PUT api/sheet-rows/{id}/cell-settings` saves them. A cell whose settings change loses its value, which was chosen under the old ones (a labelled text cell only loses the values of slots it no longer has). A new row starts with the settings of the row of the same kind added to its table before it.
 - In the UI, a kind that has them gets a button beside its editor (`sheet-cell-settings`) that opens that kind's form in a popover.
 
@@ -63,7 +63,7 @@ The first kind to use them is the **linked dropdown** (`CellKind.LinkedDropdown`
 | Which columns can be linked to (any value except a checkbox), and what each is called | `LinkableColumns`, sent as `table.linkableColumns` |
 | The choices are the column's values as the viewer sees them, top to bottom, without repeats | `LinkedOptionCollector`, filled by `SheetViewBuilder`, sent in `sheet.linkedSources` with `templateCellId` set |
 | A value must be one of the choices when it is saved | `LinkedDropdownValueRule` |
-| The value is stored as its text (`values.TextValues`), so the published API returns the text | `CellKindExtensions.StoresText`, `PublishedKindValueRepository` |
+| The value is stored as its text (`cell.TextValues`), so the published API returns the text | `CellKindExtensions.StoresText`, `PublishedKindValueRepository` |
 | A stored value never changes by itself. If its column's value is edited or removed, or the table is removed, the cell keeps what was picked and the sheet flags it until someone picks again | `linked-dropdown.util.ts` (`linkedWarning`) |
 
 The source can instead be **a row** of the table (`SourceSheetRowId` in place of `SourceTemplateCellId`): point the cell at "Pin offset (mm)" and it offers every value in that row. The form's "The choices are the values in" switch picks between a column and a row.
@@ -82,7 +82,7 @@ The second is the **labelled text** cell (`CellKind.LabelledText`): several shor
 | --- | --- |
 | The cell type sets the slots (a fixed `key` and a `label` each), the label colour and the max length; a template cell can override them | `LabelledTextCellConfiguration`, `labelled-text-slots-field` |
 | A sheet can change one cell's slots (relabel, reorder, add, remove); null keeps the template's | `LabelledTextInstanceSettings`, `sheet-labelled-text-slots-form` |
-| Each slot's value is its own row in `values.LabelledTextValues`, keyed by revision, cell and slot key, with `Position` for its order | `LabelledTextValueConfiguration`, `RowValueRepository` |
+| Each slot's value is its own row in `cell.LabelledTextValues`, keyed by revision, cell and slot key, with `Position` for its order | `LabelledTextValueConfiguration`, `RowValueRepository` |
 | Relabelling keeps the values; removing a slot clears its value; reordering moves the values with it | `SheetCellSettingsService`, `RowValueRepository.ArrangeSlotsAsync` |
 | A lookup key on the cell finds it by any of its values | `PublishedLookupHitRepository` |
 | The published value is an object of slot key to text, `{ "rh": "PU-1001-A", "lh": "PU-1051-A" }`; a column block is named by the first value | `PublishedValueRepository.ReadLabelledTextsAsync`, `PublishedValues.Text` |

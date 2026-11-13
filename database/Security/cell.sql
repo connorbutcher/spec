@@ -1,0 +1,6 @@
+CREATE SCHEMA [cell]
+    AUTHORIZATION [dbo];
+
+
+GO
+

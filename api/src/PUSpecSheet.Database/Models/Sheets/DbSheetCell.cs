@@ -5,7 +5,7 @@ namespace PUSpecSheet.Database.Models.Sheets;
 /// <summary>
 /// One cell of a sheet row, laid out from a <see cref="DbTemplateCell"/>. The cell itself never changes,
 /// so its <see cref="PublicId"/> finds it in every version; its value in each row revision lives in the
-/// typed tables of the "values" schema.
+/// typed tables of the "cell" schema.
 /// </summary>
 public class DbSheetCell
 {

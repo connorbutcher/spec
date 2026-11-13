@@ -16,7 +16,7 @@ public sealed class TemplateSectionConfiguration : IEntityTypeConfiguration<DbTe
 
     private static void ConfigureTable(EntityTypeBuilder<DbTemplateSection> builder)
     {
-        builder.ToTable("TemplateSections");
+        builder.ToTable("TemplateSections", DatabaseSchemas.Template);
 
         builder.HasKey(section => section.Id);
     }

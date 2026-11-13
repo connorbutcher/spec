@@ -9,7 +9,7 @@ using PUSpecSheet.Domain.CellTypes.LabelledText;
 
 namespace PUSpecSheet.Application.Sheets.Queries;
 
-/// <summary>Reads and writes cell values, which live in one typed table per cell kind in the "values" schema, and the
+/// <summary>Reads and writes cell values, which live in one typed table per cell kind in the "cell" schema, and the
 /// settings chosen for cells on the sheet, which live beside them.</summary>
 public static class RowValueQueries
 {

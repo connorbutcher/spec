@@ -8,7 +8,7 @@ public sealed class SheetVersionConfiguration : IEntityTypeConfiguration<DbSheet
 {
     public void Configure(EntityTypeBuilder<DbSheetVersion> builder)
     {
-        builder.ToTable("SheetVersions");
+        builder.ToTable("SheetVersions", DatabaseSchemas.Spec);
 
         builder.HasKey(version => version.Id);
 

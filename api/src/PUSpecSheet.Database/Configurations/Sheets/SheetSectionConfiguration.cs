@@ -8,7 +8,7 @@ public sealed class SheetSectionConfiguration : IEntityTypeConfiguration<DbSheet
 {
     public void Configure(EntityTypeBuilder<DbSheetSection> builder)
     {
-        builder.ToTable("SheetSections");
+        builder.ToTable("SheetSections", DatabaseSchemas.Spec);
 
         builder.HasKey(section => section.Id);
 

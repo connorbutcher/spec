@@ -65,7 +65,7 @@ public class DbSheetRowRevision : IDbSheetRevision
     /// </summary>
     public int? SheetSubmissionId { get; set; }
 
-    // The revision's cell values, one typed table per cell kind in the "values" schema.
+    // The revision's cell values, one typed table per cell kind in the "cell" schema.
 
     public ICollection<DbTextValue> TextValues { get; set; } = [];
 

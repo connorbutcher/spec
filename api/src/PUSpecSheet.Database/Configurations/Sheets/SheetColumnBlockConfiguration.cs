@@ -8,7 +8,7 @@ public sealed class SheetColumnBlockConfiguration : IEntityTypeConfiguration<DbS
 {
     public void Configure(EntityTypeBuilder<DbSheetColumnBlock> builder)
     {
-        builder.ToTable("SheetColumnBlocks");
+        builder.ToTable("SheetColumnBlocks", DatabaseSchemas.Spec);
 
         builder.HasKey(block => block.Id);
 

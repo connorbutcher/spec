@@ -8,7 +8,7 @@ public sealed class TableTemplateConfiguration : IEntityTypeConfiguration<DbTabl
 {
     public void Configure(EntityTypeBuilder<DbTableTemplate> builder)
     {
-        builder.ToTable("TableTemplates");
+        builder.ToTable("TableTemplates", DatabaseSchemas.Template);
 
         builder.HasKey(template => template.Id);
 

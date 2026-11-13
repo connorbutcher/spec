@@ -10,9 +10,9 @@ BEGIN TRANSACTION;
 
 -- Sheet types --------------------------------------------------------------------------------------------------------
 
-SET IDENTITY_INSERT [dbo].[SheetTypes] ON;
+SET IDENTITY_INSERT [setup].[SheetTypes] ON;
 
-INSERT INTO [dbo].[SheetTypes] ([Id], [Name], [DisplayOrder])
+INSERT INTO [setup].[SheetTypes] ([Id], [Name], [DisplayOrder])
 SELECT [source].[Id], [source].[Name], [source].[DisplayOrder]
 FROM (VALUES
     (1, N'Specification', 1),
@@ -22,15 +22,15 @@ FROM (VALUES
     (5, N'Confirmation', 5),
     (6, N'Torque Sheet', 6)
 ) AS [source] ([Id], [Name], [DisplayOrder])
-WHERE NOT EXISTS (SELECT 1 FROM [dbo].[SheetTypes] AS [target] WHERE [target].[Id] = [source].[Id]);
+WHERE NOT EXISTS (SELECT 1 FROM [setup].[SheetTypes] AS [target] WHERE [target].[Id] = [source].[Id]);
 
-SET IDENTITY_INSERT [dbo].[SheetTypes] OFF;
+SET IDENTITY_INSERT [setup].[SheetTypes] OFF;
 
 -- Cell types: one per kind plus a sample dropdown. Users can edit or add to these. ------------------------------------
 
-SET IDENTITY_INSERT [dbo].[CellTypes] ON;
+SET IDENTITY_INSERT [template].[CellTypes] ON;
 
-INSERT INTO [dbo].[CellTypes] ([Id], [Name], [Kind], [Description], [DisplayOrder], [Configuration], [Style])
+INSERT INTO [template].[CellTypes] ([Id], [Name], [Kind], [Description], [DisplayOrder], [Configuration], [Style])
 SELECT [source].[Id], [source].[Name], [source].[Kind], [source].[Description], [source].[DisplayOrder], [source].[Configuration], [source].[Style]
 FROM (VALUES
     (1, N'Heading', N'Heading', N'Fixed text such as a column header.', 1, N'{"kind":"Heading"}', N'{"bold":true}'),
@@ -41,29 +41,29 @@ FROM (VALUES
     (6, N'Pass / Fail', N'TextDropdown', NULL, 6, N'{"kind":"TextDropdown"}', N'{}'),
     (7, N'Group', N'Group', N'A caption that groups the cells around it.', 7, N'{"kind":"Group"}', N'{"bold":true,"backgroundColor":"#f1f5f9"}')
 ) AS [source] ([Id], [Name], [Kind], [Description], [DisplayOrder], [Configuration], [Style])
-WHERE NOT EXISTS (SELECT 1 FROM [dbo].[CellTypes] AS [target] WHERE [target].[Id] = [source].[Id]);
+WHERE NOT EXISTS (SELECT 1 FROM [template].[CellTypes] AS [target] WHERE [target].[Id] = [source].[Id]);
 
-SET IDENTITY_INSERT [dbo].[CellTypes] OFF;
+SET IDENTITY_INSERT [template].[CellTypes] OFF;
 
-SET IDENTITY_INSERT [dbo].[CellTypeOptions] ON;
+SET IDENTITY_INSERT [template].[CellTypeOptions] ON;
 
-INSERT INTO [dbo].[CellTypeOptions] ([Id], [CellTypeId], [Value], [DisplayOrder])
+INSERT INTO [template].[CellTypeOptions] ([Id], [CellTypeId], [Value], [DisplayOrder])
 SELECT [source].[Id], [source].[CellTypeId], [source].[Value], [source].[DisplayOrder]
 FROM (VALUES
     (1, 6, N'Pass', 1),
     (2, 6, N'Fail', 2),
     (3, 6, N'N/A', 3)
 ) AS [source] ([Id], [CellTypeId], [Value], [DisplayOrder])
-WHERE NOT EXISTS (SELECT 1 FROM [dbo].[CellTypeOptions] AS [target] WHERE [target].[Id] = [source].[Id])
-    AND EXISTS (SELECT 1 FROM [dbo].[CellTypes] AS [cellType] WHERE [cellType].[Id] = [source].[CellTypeId]);
+WHERE NOT EXISTS (SELECT 1 FROM [template].[CellTypeOptions] AS [target] WHERE [target].[Id] = [source].[Id])
+    AND EXISTS (SELECT 1 FROM [template].[CellTypes] AS [cellType] WHERE [cellType].[Id] = [source].[CellTypeId]);
 
-SET IDENTITY_INSERT [dbo].[CellTypeOptions] OFF;
+SET IDENTITY_INSERT [template].[CellTypeOptions] OFF;
 
 -- Permissions: one row per key in PermissionKeys ---------------------------------------------------------------------
 
-SET IDENTITY_INSERT [dbo].[Permissions] ON;
+SET IDENTITY_INSERT [auth].[Permissions] ON;
 
-MERGE INTO [dbo].[Permissions] AS [target]
+MERGE INTO [auth].[Permissions] AS [target]
 USING (VALUES
     (1, N'phases.manage', N'Add phases and choose which sheet types each phase has.'),
     (2, N'sheetTypes.manage', N'Add sheet types.'),
@@ -79,31 +79,39 @@ WHEN MATCHED AND ([target].[Key] <> [source].[Key] OR [target].[Description] <> 
 WHEN NOT MATCHED BY TARGET THEN
     INSERT ([Id], [Key], [Description]) VALUES ([source].[Id], [source].[Key], [source].[Description]);
 
-SET IDENTITY_INSERT [dbo].[Permissions] OFF;
+SET IDENTITY_INSERT [auth].[Permissions] OFF;
 
 -- Roles: the administrator role has no rows in RolePermissions, holding it implies every permission ------------------
 
-SET IDENTITY_INSERT [dbo].[Roles] ON;
+SET IDENTITY_INSERT [auth].[Roles] ON;
 
-INSERT INTO [dbo].[Roles] ([Id], [Name], [Description])
+INSERT INTO [auth].[Roles] ([Id], [Name], [Description])
 SELECT 1, N'Administrator', N'Can do everything. Every permission is implied, including ones added later.'
-WHERE NOT EXISTS (SELECT 1 FROM [dbo].[Roles] WHERE [Id] = 1);
+WHERE NOT EXISTS (SELECT 1 FROM [auth].[Roles] WHERE [Id] = 1);
 
-SET IDENTITY_INSERT [dbo].[Roles] OFF;
+SET IDENTITY_INSERT [auth].[Roles] OFF;
 
 -- Users: everything runs as the developer user, an administrator, until sign-in is added ---------------------------
 
-SET IDENTITY_INSERT [dbo].[Users] ON;
+SET IDENTITY_INSERT [auth].[Users] ON;
 
-INSERT INTO [dbo].[Users] ([Id], [UserName], [DisplayName], [IsActive], [CreatedAtUtc])
+INSERT INTO [auth].[Users] ([Id], [UserName], [DisplayName], [IsActive], [CreatedAtUtc])
 SELECT 1, N'developer', N'Developer', 1, '2026-09-28T00:00:00'
-WHERE NOT EXISTS (SELECT 1 FROM [dbo].[Users] WHERE [Id] = 1);
+WHERE NOT EXISTS (SELECT 1 FROM [auth].[Users] WHERE [Id] = 1);
 
-SET IDENTITY_INSERT [dbo].[Users] OFF;
+SET IDENTITY_INSERT [auth].[Users] OFF;
 
-INSERT INTO [dbo].[UserRoles] ([UserId], [RoleId])
+INSERT INTO [auth].[UserRoles] ([UserId], [RoleId])
 SELECT 1, 1
-WHERE NOT EXISTS (SELECT 1 FROM [dbo].[UserRoles] WHERE [UserId] = 1 AND [RoleId] = 1);
+WHERE NOT EXISTS (SELECT 1 FROM [auth].[UserRoles] WHERE [UserId] = 1 AND [RoleId] = 1);
 
 COMMIT TRANSACTION;
+GO
+
+-- The cell-value tables used to live in a [values] schema; once they have moved to [cell], drop it if it is empty.
+IF SCHEMA_ID(N'values') IS NOT NULL
+    AND NOT EXISTS (SELECT 1 FROM sys.objects WHERE [schema_id] = SCHEMA_ID(N'values'))
+BEGIN
+    EXEC (N'DROP SCHEMA [values]');
+END
 GO

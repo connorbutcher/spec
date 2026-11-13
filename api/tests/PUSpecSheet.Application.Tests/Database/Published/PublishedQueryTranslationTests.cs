@@ -116,7 +116,7 @@ public sealed class PublishedQueryTranslationTests : IDisposable
             .Select(value => new { value.SheetCellId, value.Value })
             .ToQueryString();
 
-        Assert.Contains("[values].[NumericValues]", sql);
+        Assert.Contains("[cell].[NumericValues]", sql);
         Assert.Contains("[SheetId] = @sheetId", sql);
         Assert.Contains("[IsDeleted] = CAST(0 AS bit)", sql);
         Assert.Contains("[SupersededAtUtc] > @momentUtc", sql);

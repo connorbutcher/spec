@@ -66,9 +66,9 @@ Two things to keep when adding queries here:
 - Find a sheet's revisions by the `SheetId` every revision carries (`SheetRevisionRepository.OnSheet`), not through the item's parents. The (sheet, status) and (sheet, published) indexes lead with it, so the cost follows the sheet's own history; the join through the parents reads every sheet's revisions. A new revision takes its sheet from the revision it follows (`DraftGateway`) or from the item's table (`SheetInstantiator`).
 - Load many items in one query. `DraftGateway.LoadManyAsync`, `ReleaseUnchangedAsync` and `IRowValueRepository.SetManyAsync` exist so nothing loops over items issuing a query each.
 
-Cell values live in the `values` schema, one table per kind (text, numeric, date, boolean, option), keyed by row revision and cell. `RowValueRepository` is the only class that reads or writes them for the editing screens.
+Cell values live in the `cell` schema, one table per kind (text, numeric, date, boolean, option), keyed by row revision and cell. `RowValueRepository` is the only class that reads or writes them for the editing screens.
 
-Settings chosen for a cell on the sheet (`CellInstanceSettings`, such as the table and column a linked dropdown reads) live beside the values in `values.CellSettings`, with the same key, and travel with them through `RowValueRepository` and `CellValueBag`. That is all it takes for them to follow every draft, publish and history rule above. `SheetCellSettingsService` saves them, and `RowDraftStarter` is the one place a row's draft is started, for values and settings alike. How the linked dropdown works, and how to add another setting or give another kind settings, is in the [root README](../README.md#cell-settings-chosen-on-the-sheet).
+Settings chosen for a cell on the sheet (`CellInstanceSettings`, such as the table and column a linked dropdown reads) live beside the values in `cell.CellSettings`, with the same key, and travel with them through `RowValueRepository` and `CellValueBag`. That is all it takes for them to follow every draft, publish and history rule above. `SheetCellSettingsService` saves them, and `RowDraftStarter` is the one place a row's draft is started, for values and settings alike. How the linked dropdown works, and how to add another setting or give another kind settings, is in the [root README](../README.md#cell-settings-chosen-on-the-sheet).
 
 ## Multi-user editing
 
@@ -134,7 +134,7 @@ In Development the API builds a showcase on start (`Application/Seeding`, run fr
 
 **Add a table** (database first: the SQL comes first)
 
-1. The table in the SQL database project: a script in `database/dbo/Tables` (or `database/values/Tables`) with its keys, every foreign key with its `ON DELETE`, indexes for the ways it will be queried, and check constraints for rules the database can hold. Reference rows every database needs go in `database/Script.PostDeployment.sql`. Build and deploy it with `./database/deploy.ps1`.
+1. The table in the SQL database project: a script in `database/<schema>/Tables` (the schemas are listed in database/README.md; a new schema also needs its `database/Security/<schema>.sql`) with its keys, every foreign key with its `ON DELETE`, indexes for the ways it will be queried, and check constraints for rules the database can hold. Reference rows every database needs go in `database/Script.PostDeployment.sql`. Build and deploy it with `./database/deploy.ps1`.
 2. The entity class, `Db<Name>`, in `src/PUSpecSheet.Database/Models/<Area>` (namespace `PUSpecSheet.Database.Models.<Area>`), beside the models it relates to.
 3. An `IEntityTypeConfiguration<Db<Name>>` in `Database/Configurations/<Area>` that maps it onto the table, matching the script. Only what EF Core uses at runtime: table name, keys, relationships with their `OnDelete`, string lengths and unicode, value conversions, database-generated values (defaults, computed columns, `IsRowVersion`) and unique indexes (EF orders inserts and deletes around them). Check constraints and plain indexes live only in the SQL project.
 4. A `DbSet` on `PuSpecSheetDbContext`.

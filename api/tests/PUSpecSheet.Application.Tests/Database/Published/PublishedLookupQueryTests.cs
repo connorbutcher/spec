@@ -46,8 +46,8 @@ public sealed class PublishedLookupQueryTests : IDisposable
         var sql = PublishedLookupHitQueries.Query(db, PublishedLookupCriteria.Create("partNumber", "P-1003"), Moment, null)
             .ToQueryString();
 
-        Assert.Contains("[values].[TextValues]", sql);
-        Assert.Contains("[values].[LabelledTextValues]", sql);
+        Assert.Contains("[cell].[TextValues]", sql);
+        Assert.Contains("[cell].[LabelledTextValues]", sql);
         Assert.Contains("UNION ALL", sql);
     }
 

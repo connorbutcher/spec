@@ -7,7 +7,7 @@ namespace PUSpecSheet.Application.Sheets.Queries;
 
 /// <summary>
 /// The one place a cell is joined to the value its row revision holds. Values live in one typed table per
-/// cell kind in the "values" schema, keyed by row revision and sheet cell, because the row is what is
+/// cell kind in the "cell" schema, keyed by row revision and sheet cell, because the row is what is
 /// versioned and locked; everything above this reads them as one <see cref="CellValueBag"/> per cell.
 /// </summary>
 public static class CellValueQueries

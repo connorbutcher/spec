@@ -8,7 +8,7 @@ public sealed class PhaseSheetTypeConfiguration : IEntityTypeConfiguration<DbPha
 {
     public void Configure(EntityTypeBuilder<DbPhaseSheetType> builder)
     {
-        builder.ToTable("PhaseSheetTypes");
+        builder.ToTable("PhaseSheetTypes", DatabaseSchemas.Setup);
 
         builder.HasKey(link => new { link.PhaseId, link.SheetTypeId });
 

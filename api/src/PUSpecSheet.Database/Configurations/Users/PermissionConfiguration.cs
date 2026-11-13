@@ -15,7 +15,7 @@ public sealed class PermissionConfiguration : IEntityTypeConfiguration<DbPermiss
 
     private static void ConfigureTable(EntityTypeBuilder<DbPermission> builder)
     {
-        builder.ToTable("Permissions");
+        builder.ToTable("Permissions", DatabaseSchemas.Auth);
 
         builder.HasKey(permission => permission.Id);
     }

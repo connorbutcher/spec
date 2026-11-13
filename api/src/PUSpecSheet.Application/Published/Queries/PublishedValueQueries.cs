@@ -8,7 +8,7 @@ using PUSpecSheet.Database.Models.Values;
 namespace PUSpecSheet.Application.Published.Queries;
 
 /// <summary>
-/// Reads cell values from the typed tables of the "values" schema, by sheet cell id. Each query returns
+/// Reads cell values from the typed tables of the "cell" schema, by sheet cell id. Each query returns
 /// only the cell id and the value. A whole sheet's values are found through the sheet's revisions at the
 /// version; selected cells through the row revisions the cell query found.
 /// </summary>

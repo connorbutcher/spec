@@ -8,7 +8,7 @@ public sealed class PhaseConfiguration : IEntityTypeConfiguration<DbPhase>
 {
     public void Configure(EntityTypeBuilder<DbPhase> builder)
     {
-        builder.ToTable("Phases");
+        builder.ToTable("Phases", DatabaseSchemas.Setup);
 
         builder.HasKey(phase => phase.Id);
 

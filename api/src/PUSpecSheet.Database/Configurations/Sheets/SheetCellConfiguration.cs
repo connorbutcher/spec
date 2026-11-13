@@ -16,7 +16,7 @@ public sealed class SheetCellConfiguration : IEntityTypeConfiguration<DbSheetCel
 
     private static void ConfigureTable(EntityTypeBuilder<DbSheetCell> builder)
     {
-        builder.ToTable("SheetCells");
+        builder.ToTable("SheetCells", DatabaseSchemas.Spec);
 
         builder.HasKey(cell => cell.Id);
     }

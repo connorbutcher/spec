@@ -8,7 +8,7 @@ public sealed class SheetSubmissionApproverConfiguration : IEntityTypeConfigurat
 {
     public void Configure(EntityTypeBuilder<DbSheetSubmissionApprover> builder)
     {
-        builder.ToTable("SheetSubmissionApprovers");
+        builder.ToTable("SheetSubmissionApprovers", DatabaseSchemas.Approval);
 
         builder.HasKey(approver => new { approver.SheetSubmissionId, approver.UserId });
 

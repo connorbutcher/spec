@@ -17,7 +17,7 @@ public sealed class SheetColumnBlockRevisionConfiguration : IEntityTypeConfigura
 
     private static void ConfigureTable(EntityTypeBuilder<DbSheetColumnBlockRevision> builder)
     {
-        builder.ToTable("SheetColumnBlockRevisions");
+        builder.ToTable("SheetColumnBlockRevisions", DatabaseSchemas.Spec);
 
         builder.HasKey(revision => revision.Id);
     }

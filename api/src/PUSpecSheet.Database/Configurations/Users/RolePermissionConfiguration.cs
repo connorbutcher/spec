@@ -8,7 +8,7 @@ public sealed class RolePermissionConfiguration : IEntityTypeConfiguration<DbRol
 {
     public void Configure(EntityTypeBuilder<DbRolePermission> builder)
     {
-        builder.ToTable("RolePermissions");
+        builder.ToTable("RolePermissions", DatabaseSchemas.Auth);
 
         builder.HasKey(link => new { link.RoleId, link.PermissionId });
 

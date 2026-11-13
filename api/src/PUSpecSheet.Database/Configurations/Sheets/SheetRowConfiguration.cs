@@ -8,7 +8,7 @@ public sealed class SheetRowConfiguration : IEntityTypeConfiguration<DbSheetRow>
 {
     public void Configure(EntityTypeBuilder<DbSheetRow> builder)
     {
-        builder.ToTable("SheetRows");
+        builder.ToTable("SheetRows", DatabaseSchemas.Spec);
 
         builder.HasKey(row => row.Id);
 

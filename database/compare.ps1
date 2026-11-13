@@ -6,8 +6,9 @@
     Runs a SqlPackage deploy report (nothing is changed in the database) from the
     built dacpac to the database, including objects that exist only in the
     database, and lists every difference. Databases first created by the old EF
-    Core migrations still carry their migrations history table; it is ignored
-    here. Exits with 1 when there are differences.
+    Core migrations still carry their migrations history table, and SqlPackage
+    keeps a [dbo].[__RefactorLog] of the refactorings it has applied; both are
+    ignored here. Exits with 1 when there are differences.
 
 .EXAMPLE
     ./compare.ps1
@@ -46,7 +47,7 @@ try {
     $differences = @(
         foreach ($operation in $xml.DeploymentReport.Operations.Operation) {
             foreach ($item in $operation.Item) {
-                if ($item.Value -ne '[dbo].[__EFMigrationsHistory]') {
+                if ($item.Value -notin '[dbo].[__EFMigrationsHistory]', '[dbo].[__RefactorLog]') {
                     '{0,-12} {1,-28} {2}' -f $operation.Name, $item.Type, $item.Value
                 }
             }
