@@ -1,5 +1,6 @@
 using PUSpecSheet.Application.Published.Versions;
 using PUSpecSheet.Database;
+using PUSpecSheet.Database.Models.Sheets;
 using PUSpecSheet.Domain.Sheets;
 
 namespace PUSpecSheet.Application.Published.Queries;

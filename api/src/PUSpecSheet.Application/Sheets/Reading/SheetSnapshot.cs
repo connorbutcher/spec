@@ -1,7 +1,9 @@
 using PUSpecSheet.Application.Sheets.History;
 using PUSpecSheet.Application.Sheets.Revisions;
 using PUSpecSheet.Application.Sheets.Values;
-using PUSpecSheet.Database;
+using PUSpecSheet.Database.Models.CellTypes;
+using PUSpecSheet.Database.Models.Sheets;
+using PUSpecSheet.Database.Models.Templates;
 
 namespace PUSpecSheet.Application.Sheets.Reading;
 

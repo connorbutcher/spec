@@ -4,6 +4,7 @@ using PUSpecSheet.Application.Sheets.Queries;
 using PUSpecSheet.Application.Sheets.Removal;
 using PUSpecSheet.Application.Users;
 using PUSpecSheet.Database;
+using PUSpecSheet.Database.Models.Sheets;
 
 namespace PUSpecSheet.Application.Sheets.Drafts;
 

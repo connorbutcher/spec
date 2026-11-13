@@ -1,5 +1,6 @@
 using PUSpecSheet.Contracts.Sheets;
-using PUSpecSheet.Database;
+using PUSpecSheet.Database.Models.CellTypes;
+using PUSpecSheet.Database.Models.Templates;
 using PUSpecSheet.Domain.CellTypes;
 using PUSpecSheet.Domain.Templates;
 

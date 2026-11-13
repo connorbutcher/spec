@@ -1,7 +1,7 @@
 using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
-using PUSpecSheet.Database;
+using PUSpecSheet.Database.Models.Values;
 
 namespace PUSpecSheet.Application.Sheets.Queries;
 

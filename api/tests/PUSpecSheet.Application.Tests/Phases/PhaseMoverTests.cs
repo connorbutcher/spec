@@ -1,6 +1,6 @@
 using PUSpecSheet.Application.Common;
 using PUSpecSheet.Application.Phases;
-using PUSpecSheet.Database;
+using PUSpecSheet.Database.Models.Phases;
 
 namespace PUSpecSheet.Application.Tests.Phases;
 

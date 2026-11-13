@@ -4,6 +4,7 @@ using PUSpecSheet.Application.Templates.Queries;
 using PUSpecSheet.Application.Templates.Sections;
 using PUSpecSheet.Contracts.Templates;
 using PUSpecSheet.Database;
+using PUSpecSheet.Database.Models.Templates;
 using PUSpecSheet.Domain.Templates;
 
 namespace PUSpecSheet.Application.Templates;

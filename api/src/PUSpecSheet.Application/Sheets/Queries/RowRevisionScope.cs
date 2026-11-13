@@ -1,4 +1,4 @@
-using PUSpecSheet.Database;
+using PUSpecSheet.Database.Models.Values;
 
 namespace PUSpecSheet.Application.Sheets.Queries;
 

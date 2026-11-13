@@ -5,6 +5,7 @@ using PUSpecSheet.Application.Sheets.Revisions;
 using PUSpecSheet.Application.Sheets.Values;
 using PUSpecSheet.Application.Users.Queries;
 using PUSpecSheet.Database;
+using PUSpecSheet.Database.Models.Sheets;
 using PUSpecSheet.Domain.Sheets;
 
 namespace PUSpecSheet.Application.Sheets.Collaboration;

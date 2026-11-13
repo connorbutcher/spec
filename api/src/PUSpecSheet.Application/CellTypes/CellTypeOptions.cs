@@ -1,6 +1,6 @@
 using System.Globalization;
 using PUSpecSheet.Application.Common;
-using PUSpecSheet.Database;
+using PUSpecSheet.Database.Models.CellTypes;
 using PUSpecSheet.Domain.CellTypes;
 
 namespace PUSpecSheet.Application.CellTypes;

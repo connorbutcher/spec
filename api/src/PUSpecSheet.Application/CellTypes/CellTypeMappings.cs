@@ -1,5 +1,5 @@
 using PUSpecSheet.Contracts.CellTypes;
-using PUSpecSheet.Database;
+using PUSpecSheet.Database.Models.CellTypes;
 
 namespace PUSpecSheet.Application.CellTypes;
 

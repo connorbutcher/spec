@@ -1,4 +1,12 @@
 using Microsoft.EntityFrameworkCore;
+using PUSpecSheet.Database.Models.Approvals;
+using PUSpecSheet.Database.Models.CellTypes;
+using PUSpecSheet.Database.Models.Phases;
+using PUSpecSheet.Database.Models.Sheets;
+using PUSpecSheet.Database.Models.SheetTypes;
+using PUSpecSheet.Database.Models.Templates;
+using PUSpecSheet.Database.Models.Users;
+using PUSpecSheet.Database.Models.Values;
 
 namespace PUSpecSheet.Database;
 

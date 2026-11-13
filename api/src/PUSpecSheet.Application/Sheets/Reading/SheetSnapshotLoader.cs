@@ -7,6 +7,8 @@ using PUSpecSheet.Application.Sheets.Values;
 using PUSpecSheet.Application.Templates.Queries;
 using PUSpecSheet.Application.Users.Queries;
 using PUSpecSheet.Database;
+using PUSpecSheet.Database.Models.Sheets;
+using PUSpecSheet.Database.Models.Templates;
 
 namespace PUSpecSheet.Application.Sheets.Reading;
 

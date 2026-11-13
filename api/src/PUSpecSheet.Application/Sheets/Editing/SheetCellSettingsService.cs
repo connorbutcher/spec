@@ -6,6 +6,7 @@ using PUSpecSheet.Application.Sheets.Reading;
 using PUSpecSheet.Application.Sheets.Values;
 using PUSpecSheet.Contracts.Sheets;
 using PUSpecSheet.Database;
+using PUSpecSheet.Database.Models.Sheets;
 using PUSpecSheet.Domain.CellTypes;
 using PUSpecSheet.Domain.CellTypes.InstanceSettings;
 using PUSpecSheet.Domain.CellTypes.LabelledText;

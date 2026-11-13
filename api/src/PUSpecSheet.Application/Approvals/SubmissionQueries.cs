@@ -3,6 +3,7 @@ using PUSpecSheet.Application.Common;
 using PUSpecSheet.Application.Sheets.Queries;
 using PUSpecSheet.Contracts.Approvals;
 using PUSpecSheet.Database;
+using PUSpecSheet.Database.Models.Approvals;
 using PUSpecSheet.Domain.Approvals;
 
 namespace PUSpecSheet.Application.Approvals;

@@ -4,7 +4,7 @@ using PUSpecSheet.Application.Users;
 using PUSpecSheet.Contracts.Approvals;
 using PUSpecSheet.Contracts.Sheets;
 using PUSpecSheet.Contracts.Sheets.Collaboration;
-using PUSpecSheet.Database;
+using PUSpecSheet.Database.Models.Approvals;
 using PUSpecSheet.Domain.Approvals;
 
 namespace PUSpecSheet.Application.Approvals;

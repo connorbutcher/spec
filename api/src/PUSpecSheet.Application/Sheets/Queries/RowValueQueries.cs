@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Application.Sheets.Revisions;
 using PUSpecSheet.Application.Sheets.Values;
 using PUSpecSheet.Database;
+using PUSpecSheet.Database.Models.Values;
 using PUSpecSheet.Domain.CellTypes;
 using PUSpecSheet.Domain.CellTypes.InstanceSettings;
 using PUSpecSheet.Domain.CellTypes.LabelledText;

@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using PUSpecSheet.Database.Models.Approvals;
 
 namespace PUSpecSheet.Database.Configurations.Approvals;
 

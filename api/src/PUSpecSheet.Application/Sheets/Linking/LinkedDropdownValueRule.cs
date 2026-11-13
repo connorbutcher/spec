@@ -1,7 +1,7 @@
 using PUSpecSheet.Application.Common;
 using PUSpecSheet.Application.Sheets.Reading;
 using PUSpecSheet.Application.Sheets.Values;
-using PUSpecSheet.Database;
+using PUSpecSheet.Database.Models.Sheets;
 using PUSpecSheet.Domain.CellTypes;
 using PUSpecSheet.Domain.CellTypes.InstanceSettings;
 

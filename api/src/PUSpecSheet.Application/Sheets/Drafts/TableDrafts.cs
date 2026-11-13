@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Application.Sheets.Revisions;
 using PUSpecSheet.Application.Users;
 using PUSpecSheet.Database;
+using PUSpecSheet.Database.Models.Sheets;
 
 namespace PUSpecSheet.Application.Sheets.Drafts;
 

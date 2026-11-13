@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using PUSpecSheet.Database.Conversions;
+using PUSpecSheet.Database.Models.Values;
 
 namespace PUSpecSheet.Database.Configurations.Values;
 

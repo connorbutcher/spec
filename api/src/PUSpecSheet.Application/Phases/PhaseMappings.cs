@@ -1,5 +1,5 @@
 using PUSpecSheet.Contracts.Phases;
-using PUSpecSheet.Database;
+using PUSpecSheet.Database.Models.Phases;
 
 namespace PUSpecSheet.Application.Phases;
 

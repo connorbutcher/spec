@@ -10,6 +10,7 @@ using PUSpecSheet.Application.Users;
 using PUSpecSheet.Contracts.Approvals;
 using PUSpecSheet.Contracts.Sheets;
 using PUSpecSheet.Database;
+using PUSpecSheet.Database.Models.Sheets;
 
 namespace PUSpecSheet.Application.Sheets;
 

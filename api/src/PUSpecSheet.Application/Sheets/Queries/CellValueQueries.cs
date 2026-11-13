@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Application.Sheets.Values;
 using PUSpecSheet.Database;
+using PUSpecSheet.Database.Models.Values;
 
 namespace PUSpecSheet.Application.Sheets.Queries;
 

@@ -1,6 +1,7 @@
 using PUSpecSheet.Application.SheetTypes.Queries;
 using PUSpecSheet.Application.Templates.Queries;
 using PUSpecSheet.Database;
+using PUSpecSheet.Database.Models.Templates;
 
 namespace PUSpecSheet.Application.Seeding;
 

@@ -1,4 +1,4 @@
-using PUSpecSheet.Database;
+using PUSpecSheet.Database.Models.Sheets;
 using PUSpecSheet.Domain.Sheets;
 
 namespace PUSpecSheet.Application.Sheets.Revisions;

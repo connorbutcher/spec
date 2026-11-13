@@ -1,6 +1,6 @@
 using PUSpecSheet.Application.Common;
 using PUSpecSheet.Contracts.Templates;
-using PUSpecSheet.Database;
+using PUSpecSheet.Database.Models.Templates;
 using PUSpecSheet.Domain.Templates;
 
 namespace PUSpecSheet.Application.Templates.Sections;

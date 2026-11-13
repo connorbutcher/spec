@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Database;
+using PUSpecSheet.Database.Models.Approvals;
 using PUSpecSheet.Domain.Approvals;
 
 namespace PUSpecSheet.Application.Approvals.Queries;

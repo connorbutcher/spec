@@ -10,8 +10,8 @@ src/PUSpecSheet.Application   Use cases. One folder per feature: services and th
                               reached through the repository interfaces in Application/Persistence.
 src/PUSpecSheet.Contracts     Request and response records. The only types that cross the HTTP boundary.
 src/PUSpecSheet.Database      The EF Core side of the database (database first): the DbContext, the Db* entity classes
-                              (DbSheet, DbSheetRowRevision, ...), one configuration class per entity (by area), and
-                              development seed data. No migrations: the schema is owned by the SQL project in database/.
+                              (DbSheet, DbSheetRowRevision, ...) in Models/<Area>, one configuration class per entity
+                              in Configurations/<Area>, and development seed data. No migrations: the schema is owned by the SQL project in database/.
 src/PUSpecSheet.Domain        Enums, configuration records and rules that need nothing but themselves. No EF Core either.
 tests/PUSpecSheet.*.Tests     One test project per source project.
 ```
@@ -135,7 +135,7 @@ In Development the API builds a showcase on start (`Application/Seeding`, run fr
 **Add a table** (database first: the SQL comes first)
 
 1. The table in the SQL database project: a script in `database/dbo/Tables` (or `database/values/Tables`) with its keys, every foreign key with its `ON DELETE`, indexes for the ways it will be queried, and check constraints for rules the database can hold. Reference rows every database needs go in `database/Script.PostDeployment.sql`. Build and deploy it with `./database/deploy.ps1`.
-2. The entity class, `Db<Name>`, in the root of `src/PUSpecSheet.Database` (namespace `PUSpecSheet.Database`).
+2. The entity class, `Db<Name>`, in `src/PUSpecSheet.Database/Models/<Area>` (namespace `PUSpecSheet.Database.Models.<Area>`), beside the models it relates to.
 3. An `IEntityTypeConfiguration<Db<Name>>` in `Database/Configurations/<Area>` that maps it onto the table: table name, string lengths, defaults, keys, relationships and indexes, matching the script.
 4. A `DbSet` on `PuSpecSheetDbContext`.
 

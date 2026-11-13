@@ -1,5 +1,5 @@
 using PUSpecSheet.Contracts.Templates;
-using PUSpecSheet.Database;
+using PUSpecSheet.Database.Models.Templates;
 
 namespace PUSpecSheet.Application.Templates;
 

@@ -2,7 +2,7 @@ using PUSpecSheet.Application.Sheets.Drafts;
 using PUSpecSheet.Application.Sheets.Layout;
 using PUSpecSheet.Application.Sheets.Revisions;
 using PUSpecSheet.Application.Sheets.Values;
-using PUSpecSheet.Database;
+using PUSpecSheet.Database.Models.Sheets;
 
 namespace PUSpecSheet.Application.Tests.Sheets.Drafts;
 

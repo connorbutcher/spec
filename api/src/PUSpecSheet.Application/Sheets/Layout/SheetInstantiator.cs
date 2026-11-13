@@ -1,5 +1,6 @@
 using PUSpecSheet.Application.Users;
-using PUSpecSheet.Database;
+using PUSpecSheet.Database.Models.Sheets;
+using PUSpecSheet.Database.Models.Templates;
 using PUSpecSheet.Domain.Sheets;
 using PUSpecSheet.Domain.Templates;
 

@@ -3,6 +3,7 @@ using PUSpecSheet.Application.Published.Sheets;
 using PUSpecSheet.Application.Published.Versions;
 using PUSpecSheet.Application.Sheets.Queries;
 using PUSpecSheet.Database;
+using PUSpecSheet.Database.Models.Values;
 
 namespace PUSpecSheet.Application.Published.Queries;
 

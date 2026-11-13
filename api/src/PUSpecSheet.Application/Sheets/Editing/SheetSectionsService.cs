@@ -9,6 +9,8 @@ using PUSpecSheet.Application.Users;
 using PUSpecSheet.Contracts.Common;
 using PUSpecSheet.Contracts.Sheets;
 using PUSpecSheet.Database;
+using PUSpecSheet.Database.Models.Sheets;
+using PUSpecSheet.Database.Models.Templates;
 using PUSpecSheet.Domain.Templates;
 
 namespace PUSpecSheet.Application.Sheets.Editing;

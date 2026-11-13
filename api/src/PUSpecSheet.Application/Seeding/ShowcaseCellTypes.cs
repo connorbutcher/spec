@@ -1,5 +1,6 @@
 using PUSpecSheet.Application.CellTypes.Queries;
 using PUSpecSheet.Database;
+using PUSpecSheet.Database.Models.CellTypes;
 using PUSpecSheet.Domain.CellTypes;
 using PUSpecSheet.Domain.CellTypes.Configurations;
 using PUSpecSheet.Domain.CellTypes.LabelledText;

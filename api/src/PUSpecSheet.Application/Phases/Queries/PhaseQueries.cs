@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Database;
+using PUSpecSheet.Database.Models.Phases;
 
 namespace PUSpecSheet.Application.Phases.Queries;
 

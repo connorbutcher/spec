@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using PUSpecSheet.Database.Models.Values;
 using PUSpecSheet.Domain.CellTypes.LabelledText;
 
 namespace PUSpecSheet.Database.Configurations.Values;

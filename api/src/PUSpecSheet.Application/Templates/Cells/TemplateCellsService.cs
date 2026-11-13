@@ -3,6 +3,7 @@ using PUSpecSheet.Application.Common;
 using PUSpecSheet.Application.Templates.Queries;
 using PUSpecSheet.Contracts.Templates;
 using PUSpecSheet.Database;
+using PUSpecSheet.Database.Models.Templates;
 
 namespace PUSpecSheet.Application.Templates.Cells;
 

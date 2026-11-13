@@ -1,6 +1,6 @@
 using System.Linq.Expressions;
 using PUSpecSheet.Application.Published.Sheets;
-using PUSpecSheet.Database;
+using PUSpecSheet.Database.Models.Sheets;
 
 namespace PUSpecSheet.Application.Published.Queries;
 

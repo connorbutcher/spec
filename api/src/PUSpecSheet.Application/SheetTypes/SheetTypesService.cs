@@ -2,6 +2,7 @@ using PUSpecSheet.Application.Common;
 using PUSpecSheet.Application.SheetTypes.Queries;
 using PUSpecSheet.Contracts.SheetTypes;
 using PUSpecSheet.Database;
+using PUSpecSheet.Database.Models.SheetTypes;
 
 namespace PUSpecSheet.Application.SheetTypes;
 
