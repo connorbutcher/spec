@@ -8,16 +8,7 @@ public sealed class TemplateColumnBlockConfiguration : IEntityTypeConfiguration<
 {
     public void Configure(EntityTypeBuilder<DbTemplateColumnBlock> builder)
     {
-        builder.ToTable("TemplateColumnBlocks", table =>
-        {
-            // 0 <= min <= initial <= max, and a max of at least 1.
-            table.HasCheckConstraint(
-                "CK_TemplateColumnBlocks_Instances",
-                "[MinInstances] >= 0 AND [InitialInstances] >= [MinInstances]"
-                + " AND ([MaxInstances] IS NULL OR ([MaxInstances] >= 1 AND [MaxInstances] >= [InitialInstances]))");
-
-            table.HasCheckConstraint("CK_TemplateColumnBlocks_StickyColumnCount", "[StickyColumnCount] >= 0");
-        });
+        builder.ToTable("TemplateColumnBlocks");
 
         builder.HasKey(block => block.Id);
 

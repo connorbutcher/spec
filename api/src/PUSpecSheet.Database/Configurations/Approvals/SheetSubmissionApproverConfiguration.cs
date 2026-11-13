@@ -8,15 +8,7 @@ public sealed class SheetSubmissionApproverConfiguration : IEntityTypeConfigurat
 {
     public void Configure(EntityTypeBuilder<DbSheetSubmissionApprover> builder)
     {
-        builder.ToTable("SheetSubmissionApprovers", table =>
-        {
-            table.HasCheckConstraint("CK_SheetSubmissionApprovers_Decision", "[Decision] IN (0, 1, 2)");
-
-            // A rejection always says why.
-            table.HasCheckConstraint(
-                "CK_SheetSubmissionApprovers_Reason",
-                "[Decision] <> 2 OR (LEN([Reason]) > 0)");
-        });
+        builder.ToTable("SheetSubmissionApprovers");
 
         builder.HasKey(approver => new { approver.SheetSubmissionId, approver.UserId });
 
@@ -25,9 +17,6 @@ public sealed class SheetSubmissionApproverConfiguration : IEntityTypeConfigurat
 
         builder.Property(approver => approver.Reason)
             .HasMaxLength(1000);
-
-        // What each person has waiting for them.
-        builder.HasIndex(approver => new { approver.UserId, approver.Decision });
 
         builder.HasOne(approver => approver.SheetSubmission)
             .WithMany(submission => submission.Approvers)

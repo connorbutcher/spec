@@ -28,10 +28,6 @@ public sealed class TextValueConfiguration : CellValueConfiguration<DbTextValue>
             .HasMaxLength(LookupValueLength)
             .HasComputedColumnSql($"CONVERT(nvarchar({LookupValueLength}), LEFT([Value], {LookupValueLength}))", stored: true);
 
-        builder.HasIndex(LookupValue)
-            .IncludeProperties(nameof(DbTextValue.SheetCellId), nameof(DbTextValue.SheetRowRevisionId))
-            .HasDatabaseName("IX_TextValues_LookupValue");
-
         builder.HasOne(value => value.SheetRowRevision)
             .WithMany(revision => revision.TextValues)
             .HasForeignKey(value => value.SheetRowRevisionId)

@@ -16,20 +16,7 @@ public sealed class TemplateSectionConfiguration : IEntityTypeConfiguration<DbTe
 
     private static void ConfigureTable(EntityTypeBuilder<DbTemplateSection> builder)
     {
-        builder.ToTable("TemplateSections", table =>
-        {
-            // 0 <= min <= initial <= max, and a max of at least 1.
-            table.HasCheckConstraint(
-                "CK_TemplateSections_Instances",
-                "[MinInstances] >= 0 AND [InitialInstances] >= [MinInstances]"
-                + " AND ([MaxInstances] IS NULL OR ([MaxInstances] >= 1 AND [MaxInstances] >= [InitialInstances]))");
-
-            // The header is top-level and always exactly one copy.
-            table.HasCheckConstraint(
-                "CK_TemplateSections_Header",
-                "[Role] <> 'Header' OR ([ParentSectionId] IS NULL AND [MinInstances] = 1"
-                + " AND [MaxInstances] = 1 AND [InitialInstances] = 1)");
-        });
+        builder.ToTable("TemplateSections");
 
         builder.HasKey(section => section.Id);
     }
@@ -48,9 +35,7 @@ public sealed class TemplateSectionConfiguration : IEntityTypeConfiguration<DbTe
 
     private static void ConfigureIndexes(EntityTypeBuilder<DbTemplateSection> builder)
     {
-        builder.HasIndex(section => section.TableTemplateVersionId);
-
-        // A table version has one header and only one. A named index, so it stays separate from the one above.
+        // A table version has one header and only one.
         builder.HasIndex(section => section.TableTemplateVersionId, "UX_TemplateSections_OneHeaderPerVersion")
             .IsUnique()
             .HasFilter("[Role] = 'Header'");

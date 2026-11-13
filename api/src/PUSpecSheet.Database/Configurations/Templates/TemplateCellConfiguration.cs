@@ -18,12 +18,7 @@ public sealed class TemplateCellConfiguration : IEntityTypeConfiguration<DbTempl
 
     private static void ConfigureTable(EntityTypeBuilder<DbTemplateCell> builder)
     {
-        builder.ToTable("TemplateCells", table =>
-        {
-            table.HasCheckConstraint("CK_TemplateCells_Column", "[Column] >= 1");
-            table.HasCheckConstraint("CK_TemplateCells_RowSpan", "[RowSpan] >= 1");
-            table.HasCheckConstraint("CK_TemplateCells_ColumnSpan", "[ColumnSpan] >= 1");
-        });
+        builder.ToTable("TemplateCells");
 
         builder.HasKey(cell => cell.Id);
     }
@@ -51,10 +46,6 @@ public sealed class TemplateCellConfiguration : IEntityTypeConfiguration<DbTempl
 
     private static void ConfigureIndexes(EntityTypeBuilder<DbTemplateCell> builder)
     {
-        // Finding the cells that answer to a lookup key; most cells have none.
-        builder.HasIndex(cell => cell.LookupKey)
-            .HasFilter("[LookupKey] IS NOT NULL");
-
         // Only one cell can start at a given column of a row's own cells, or of one column block in a row.
         // No filter, so the row's own cells (no block) are unique among themselves too.
         builder.HasIndex(cell => new { cell.TemplateRowId, cell.TemplateColumnBlockId, cell.Column })

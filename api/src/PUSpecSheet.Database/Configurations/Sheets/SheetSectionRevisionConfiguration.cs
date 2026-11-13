@@ -17,24 +17,7 @@ public sealed class SheetSectionRevisionConfiguration : IEntityTypeConfiguration
 
     private static void ConfigureTable(EntityTypeBuilder<DbSheetSectionRevision> builder)
     {
-        builder.ToTable("SheetSectionRevisions", table =>
-        {
-            // Draft or published, nothing else: the queries for live revisions rely on there being only two.
-            table.HasCheckConstraint("CK_SheetSectionRevisions_Status", "[Status] IN (0, 1)");
-
-            // An item's first revision is number 1.
-            table.HasCheckConstraint("CK_SheetSectionRevisions_RevisionNumber", "[RevisionNumber] >= 1");
-
-            // A published revision always has a publish time; a draft never does.
-            table.HasCheckConstraint(
-                "CK_SheetSectionRevisions_PublishedAt",
-                "([Status] = 0 AND [PublishedAtUtc] IS NULL) OR ([Status] = 1 AND [PublishedAtUtc] IS NOT NULL)");
-
-            // Only a published revision can be superseded, and never before it was published.
-            table.HasCheckConstraint(
-                "CK_SheetSectionRevisions_SupersededAt",
-                "[SupersededAtUtc] IS NULL OR ([Status] = 1 AND [SupersededAtUtc] >= [PublishedAtUtc])");
-        });
+        builder.ToTable("SheetSectionRevisions");
 
         builder.HasKey(revision => revision.Id);
     }
@@ -68,25 +51,6 @@ public sealed class SheetSectionRevisionConfiguration : IEntityTypeConfiguration
         builder.HasIndex(revision => revision.SheetSectionId, "UX_SheetSectionRevisions_OneDraftPerSection")
             .IsUnique()
             .HasFilter("[Status] = 0");
-
-        // "As of" a moment: the revision whose [PublishedAtUtc, SupersededAtUtc) range covers it.
-        builder.HasIndex(revision => new { revision.SheetSectionId, revision.PublishedAtUtc })
-            .IncludeProperties(revision => revision.SupersededAtUtc)
-            .HasFilter("[Status] = 1")
-            .HasDatabaseName("IX_SheetSectionRevisions_Published");
-
-        builder.HasIndex(revision => new { revision.AuthorUserId, revision.Status });
-
-        // "This sheet at a moment", for the published API and past views: one range seek on the sheet, whose
-        // cost follows this sheet's history rather than every sheet's.
-        builder.HasIndex(revision => new { revision.SheetId, revision.PublishedAtUtc })
-            .IncludeProperties(revision => new { revision.SupersededAtUtc, revision.IsDeleted, revision.DisplayOrder, revision.SheetSectionId })
-            .HasFilter("[Status] = 1")
-            .HasDatabaseName("IX_SheetSectionRevisions_SheetPublished");
-
-        // The live sheet: its items' current revisions (published, not superseded) and their drafts.
-        builder.HasIndex(revision => new { revision.SheetId, revision.Status })
-            .IncludeProperties(revision => new { revision.SupersededAtUtc, revision.SheetSectionId, revision.AuthorUserId });
     }
 
     private static void ConfigureRelationships(EntityTypeBuilder<DbSheetSectionRevision> builder)

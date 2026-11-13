@@ -35,10 +35,6 @@ public sealed class LabelledTextValueConfiguration : CellValueConfiguration<DbLa
             .HasMaxLength(length)
             .HasComputedColumnSql($"CONVERT(nvarchar({length}), LEFT([Value], {length}))", stored: true);
 
-        builder.HasIndex(LookupValue)
-            .IncludeProperties(nameof(DbLabelledTextValue.SheetCellId), nameof(DbLabelledTextValue.SheetRowRevisionId))
-            .HasDatabaseName("IX_LabelledTextValues_LookupValue");
-
         builder.HasOne(value => value.SheetRowRevision)
             .WithMany(revision => revision.LabelledTextValues)
             .HasForeignKey(value => value.SheetRowRevisionId)

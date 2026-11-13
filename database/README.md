@@ -41,7 +41,7 @@ The project also opens in Visual Studio (SSDT) and in the SQL Database Projects 
 
 1. Change the scripts here (add a column to the table's script, add a new file for a new table, ...) and `dotnet build database`.
 2. Deploy to your local database with `./database/deploy.ps1`.
-3. Mirror the change in EF Core: the `Db*` entity in `api/src/PUSpecSheet.Database/Models/<Area>` and its configuration in `Configurations/<Area>`. Column names, types, lengths, keys, defaults and relationships there must match the scripts.
+3. Mirror the change in EF Core: the `Db*` entity in `api/src/PUSpecSheet.Database/Models/<Area>` and its configuration in `Configurations/<Area>`. Column names, types, lengths, keys, defaults, relationships and unique indexes there must match the scripts; check constraints and plain indexes are only in the scripts.
 
 ## Reference data
 

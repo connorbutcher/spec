@@ -33,8 +33,6 @@ public sealed class SheetCellConfiguration : IEntityTypeConfiguration<DbSheetCel
         builder.HasIndex(cell => new { cell.SheetRowId, cell.TemplateCellId, cell.SheetColumnBlockId })
             .IsUnique()
             .HasFilter(null);
-
-        builder.HasIndex(cell => cell.SheetColumnBlockId);
     }
 
     private static void ConfigureRelationships(EntityTypeBuilder<DbSheetCell> builder)

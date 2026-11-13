@@ -10,24 +10,12 @@ public sealed class SheetSubmissionConfiguration : IEntityTypeConfiguration<DbSh
     {
         ConfigureTable(builder);
         ConfigureProperties(builder);
-        ConfigureIndexes(builder);
         ConfigureRelationships(builder);
     }
 
     private static void ConfigureTable(EntityTypeBuilder<DbSheetSubmission> builder)
     {
-        builder.ToTable("SheetSubmissions", table =>
-        {
-            table.HasCheckConstraint("CK_SheetSubmissions_Status", "[Status] IN (0, 1, 2, 3)");
-
-            // Only a decided submission has a decision time, and only an approved one has a version.
-            table.HasCheckConstraint(
-                "CK_SheetSubmissions_DecidedAt",
-                "([Status] = 0 AND [DecidedAtUtc] IS NULL) OR ([Status] <> 0 AND [DecidedAtUtc] IS NOT NULL)");
-            table.HasCheckConstraint(
-                "CK_SheetSubmissions_Version",
-                "[SheetVersionId] IS NULL OR [Status] = 1");
-        });
+        builder.ToTable("SheetSubmissions");
 
         builder.HasKey(submission => submission.Id);
     }
@@ -42,13 +30,6 @@ public sealed class SheetSubmissionConfiguration : IEntityTypeConfiguration<DbSh
 
         builder.Property(submission => submission.Note)
             .HasMaxLength(1000);
-    }
-
-    private static void ConfigureIndexes(EntityTypeBuilder<DbSheetSubmission> builder)
-    {
-        // A sheet's pending submissions, and a submitter's own.
-        builder.HasIndex(submission => new { submission.SheetId, submission.Status });
-        builder.HasIndex(submission => new { submission.SubmittedByUserId, submission.Status });
     }
 
     private static void ConfigureRelationships(EntityTypeBuilder<DbSheetSubmission> builder)
