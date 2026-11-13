@@ -18,7 +18,7 @@ public sealed class TemplateCellConfiguration : IEntityTypeConfiguration<DbTempl
 
     private static void ConfigureTable(EntityTypeBuilder<DbTemplateCell> builder)
     {
-        builder.ToTable("TemplateCells", DatabaseSchemas.Template);
+        builder.ToTable("TemplateCells", DatabaseSchemas.Design);
 
         builder.HasKey(cell => cell.Id);
     }

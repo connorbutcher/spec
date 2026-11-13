@@ -7,7 +7,7 @@ public static class DatabaseSchemas
     public const string Spec = "spec";
 
     /// <summary>Table templates and their versions, sections, rows, cells and column blocks, and the cell types they use.</summary>
-    public const string Template = "template";
+    public const string Design = "design";
 
     /// <summary>Drafts submitted for publishing and the approvers deciding them.</summary>
     public const string Approval = "approval";

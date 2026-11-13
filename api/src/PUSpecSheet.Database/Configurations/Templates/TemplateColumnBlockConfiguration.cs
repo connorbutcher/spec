@@ -8,7 +8,7 @@ public sealed class TemplateColumnBlockConfiguration : IEntityTypeConfiguration<
 {
     public void Configure(EntityTypeBuilder<DbTemplateColumnBlock> builder)
     {
-        builder.ToTable("TemplateColumnBlocks", DatabaseSchemas.Template);
+        builder.ToTable("TemplateColumnBlocks", DatabaseSchemas.Design);
 
         builder.HasKey(block => block.Id);
 

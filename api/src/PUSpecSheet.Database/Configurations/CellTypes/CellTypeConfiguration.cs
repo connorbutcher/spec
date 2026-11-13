@@ -16,7 +16,7 @@ public sealed class CellTypeConfiguration : IEntityTypeConfiguration<DbCellType>
 
     private static void ConfigureTable(EntityTypeBuilder<DbCellType> builder)
     {
-        builder.ToTable("CellTypes", DatabaseSchemas.Template);
+        builder.ToTable("CellTypes", DatabaseSchemas.Design);
 
         builder.HasKey(cellType => cellType.Id);
     }

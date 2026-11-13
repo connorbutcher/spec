@@ -8,7 +8,7 @@ CREATE TABLE [spec].[SheetSections] (
     CONSTRAINT [PK_SheetSections] PRIMARY KEY CLUSTERED ([Id] ASC),
     CONSTRAINT [FK_SheetSections_SheetSections_ParentSheetSectionId] FOREIGN KEY ([ParentSheetSectionId]) REFERENCES [spec].[SheetSections] ([Id]),
     CONSTRAINT [FK_SheetSections_SheetTables_SheetTableId] FOREIGN KEY ([SheetTableId]) REFERENCES [spec].[SheetTables] ([Id]) ON DELETE CASCADE,
-    CONSTRAINT [FK_SheetSections_TemplateSections_TemplateSectionId] FOREIGN KEY ([TemplateSectionId]) REFERENCES [template].[TemplateSections] ([Id])
+    CONSTRAINT [FK_SheetSections_TemplateSections_TemplateSectionId] FOREIGN KEY ([TemplateSectionId]) REFERENCES [design].[TemplateSections] ([Id])
 );
 
 

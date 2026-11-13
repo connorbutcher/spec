@@ -6,7 +6,7 @@ CREATE TABLE [spec].[SheetColumnBlocks] (
     [CreatedAtUtc]          DATETIME2 (7)    DEFAULT (sysutcdatetime()) NOT NULL,
     CONSTRAINT [PK_SheetColumnBlocks] PRIMARY KEY CLUSTERED ([Id] ASC),
     CONSTRAINT [FK_SheetColumnBlocks_SheetTables_SheetTableId] FOREIGN KEY ([SheetTableId]) REFERENCES [spec].[SheetTables] ([Id]) ON DELETE CASCADE,
-    CONSTRAINT [FK_SheetColumnBlocks_TemplateColumnBlocks_TemplateColumnBlockId] FOREIGN KEY ([TemplateColumnBlockId]) REFERENCES [template].[TemplateColumnBlocks] ([Id])
+    CONSTRAINT [FK_SheetColumnBlocks_TemplateColumnBlocks_TemplateColumnBlockId] FOREIGN KEY ([TemplateColumnBlockId]) REFERENCES [design].[TemplateColumnBlocks] ([Id])
 );
 
 

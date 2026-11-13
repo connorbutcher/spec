@@ -6,7 +6,7 @@ CREATE TABLE [spec].[SheetTables] (
     [PublicId]               UNIQUEIDENTIFIER DEFAULT (newsequentialid()) NOT NULL,
     CONSTRAINT [PK_SheetTables] PRIMARY KEY CLUSTERED ([Id] ASC),
     CONSTRAINT [FK_SheetTables_Sheets_SheetId] FOREIGN KEY ([SheetId]) REFERENCES [spec].[Sheets] ([Id]) ON DELETE CASCADE,
-    CONSTRAINT [FK_SheetTables_TableTemplateVersions_TableTemplateVersionId] FOREIGN KEY ([TableTemplateVersionId]) REFERENCES [template].[TableTemplateVersions] ([Id])
+    CONSTRAINT [FK_SheetTables_TableTemplateVersions_TableTemplateVersionId] FOREIGN KEY ([TableTemplateVersionId]) REFERENCES [design].[TableTemplateVersions] ([Id])
 );
 
 

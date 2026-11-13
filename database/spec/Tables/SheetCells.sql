@@ -7,7 +7,7 @@ CREATE TABLE [spec].[SheetCells] (
     CONSTRAINT [PK_SheetCells] PRIMARY KEY CLUSTERED ([Id] ASC),
     CONSTRAINT [FK_SheetCells_SheetColumnBlocks_SheetColumnBlockId] FOREIGN KEY ([SheetColumnBlockId]) REFERENCES [spec].[SheetColumnBlocks] ([Id]),
     CONSTRAINT [FK_SheetCells_SheetRows_SheetRowId] FOREIGN KEY ([SheetRowId]) REFERENCES [spec].[SheetRows] ([Id]) ON DELETE CASCADE,
-    CONSTRAINT [FK_SheetCells_TemplateCells_TemplateCellId] FOREIGN KEY ([TemplateCellId]) REFERENCES [template].[TemplateCells] ([Id])
+    CONSTRAINT [FK_SheetCells_TemplateCells_TemplateCellId] FOREIGN KEY ([TemplateCellId]) REFERENCES [design].[TemplateCells] ([Id])
 );
 
 

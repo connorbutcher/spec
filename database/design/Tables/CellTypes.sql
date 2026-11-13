@@ -1,4 +1,4 @@
-CREATE TABLE [template].[CellTypes] (
+CREATE TABLE [design].[CellTypes] (
     [Id]            INT            IDENTITY (1, 1) NOT NULL,
     [Name]          NVARCHAR (100) NOT NULL,
     [Kind]          NVARCHAR (20)  NOT NULL,
@@ -13,7 +13,7 @@ CREATE TABLE [template].[CellTypes] (
 GO
 
 CREATE UNIQUE NONCLUSTERED INDEX [IX_CellTypes_Name]
-    ON [template].[CellTypes]([Name] ASC);
+    ON [design].[CellTypes]([Name] ASC);
 
 
 GO

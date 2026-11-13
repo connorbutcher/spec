@@ -8,7 +8,7 @@ public sealed class CellTypeOptionConfiguration : IEntityTypeConfiguration<DbCel
 {
     public void Configure(EntityTypeBuilder<DbCellTypeOption> builder)
     {
-        builder.ToTable("CellTypeOptions", DatabaseSchemas.Template);
+        builder.ToTable("CellTypeOptions", DatabaseSchemas.Design);
 
         builder.HasKey(option => option.Id);
 

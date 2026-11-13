@@ -1,4 +1,4 @@
-CREATE SCHEMA [template]
+CREATE SCHEMA [design]
     AUTHORIZATION [dbo];
 
 

@@ -1,4 +1,4 @@
-CREATE TABLE [template].[TemplateCells] (
+CREATE TABLE [design].[TemplateCells] (
     [Id]                    INT            IDENTITY (1, 1) NOT NULL,
     [TemplateRowId]         INT            NOT NULL,
     [Column]                INT            NOT NULL,
@@ -15,34 +15,34 @@ CREATE TABLE [template].[TemplateCells] (
     CONSTRAINT [CK_TemplateCells_Column] CHECK ([Column]>=(1)),
     CONSTRAINT [CK_TemplateCells_ColumnSpan] CHECK ([ColumnSpan]>=(1)),
     CONSTRAINT [CK_TemplateCells_RowSpan] CHECK ([RowSpan]>=(1)),
-    CONSTRAINT [FK_TemplateCells_CellTypes_CellTypeId] FOREIGN KEY ([CellTypeId]) REFERENCES [template].[CellTypes] ([Id]),
-    CONSTRAINT [FK_TemplateCells_TemplateColumnBlocks_TemplateColumnBlockId] FOREIGN KEY ([TemplateColumnBlockId]) REFERENCES [template].[TemplateColumnBlocks] ([Id]),
-    CONSTRAINT [FK_TemplateCells_TemplateRows_TemplateRowId] FOREIGN KEY ([TemplateRowId]) REFERENCES [template].[TemplateRows] ([Id]) ON DELETE CASCADE
+    CONSTRAINT [FK_TemplateCells_CellTypes_CellTypeId] FOREIGN KEY ([CellTypeId]) REFERENCES [design].[CellTypes] ([Id]),
+    CONSTRAINT [FK_TemplateCells_TemplateColumnBlocks_TemplateColumnBlockId] FOREIGN KEY ([TemplateColumnBlockId]) REFERENCES [design].[TemplateColumnBlocks] ([Id]),
+    CONSTRAINT [FK_TemplateCells_TemplateRows_TemplateRowId] FOREIGN KEY ([TemplateRowId]) REFERENCES [design].[TemplateRows] ([Id]) ON DELETE CASCADE
 );
 
 
 GO
 
 CREATE NONCLUSTERED INDEX [IX_TemplateCells_TemplateColumnBlockId]
-    ON [template].[TemplateCells]([TemplateColumnBlockId] ASC);
+    ON [design].[TemplateCells]([TemplateColumnBlockId] ASC);
 
 
 GO
 
 CREATE UNIQUE NONCLUSTERED INDEX [IX_TemplateCells_TemplateRowId_TemplateColumnBlockId_Column]
-    ON [template].[TemplateCells]([TemplateRowId] ASC, [TemplateColumnBlockId] ASC, [Column] ASC);
+    ON [design].[TemplateCells]([TemplateRowId] ASC, [TemplateColumnBlockId] ASC, [Column] ASC);
 
 
 GO
 
 CREATE NONCLUSTERED INDEX [IX_TemplateCells_LookupKey]
-    ON [template].[TemplateCells]([LookupKey] ASC) WHERE ([LookupKey] IS NOT NULL);
+    ON [design].[TemplateCells]([LookupKey] ASC) WHERE ([LookupKey] IS NOT NULL);
 
 
 GO
 
 CREATE NONCLUSTERED INDEX [IX_TemplateCells_CellTypeId]
-    ON [template].[TemplateCells]([CellTypeId] ASC);
+    ON [design].[TemplateCells]([CellTypeId] ASC);
 
 
 GO

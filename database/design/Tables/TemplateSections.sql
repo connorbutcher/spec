@@ -1,4 +1,4 @@
-CREATE TABLE [template].[TemplateSections] (
+CREATE TABLE [design].[TemplateSections] (
     [Id]                     INT            IDENTITY (1, 1) NOT NULL,
     [TableTemplateVersionId] INT            NOT NULL,
     [ParentSectionId]        INT            NULL,
@@ -11,27 +11,27 @@ CREATE TABLE [template].[TemplateSections] (
     CONSTRAINT [PK_TemplateSections] PRIMARY KEY CLUSTERED ([Id] ASC),
     CONSTRAINT [CK_TemplateSections_Header] CHECK ([Role]<>'Header' OR [ParentSectionId] IS NULL AND [MinInstances]=(1) AND [MaxInstances]=(1) AND [InitialInstances]=(1)),
     CONSTRAINT [CK_TemplateSections_Instances] CHECK ([MinInstances]>=(0) AND [InitialInstances]>=[MinInstances] AND ([MaxInstances] IS NULL OR [MaxInstances]>=(1) AND [MaxInstances]>=[InitialInstances])),
-    CONSTRAINT [FK_TemplateSections_TableTemplateVersions_TableTemplateVersionId] FOREIGN KEY ([TableTemplateVersionId]) REFERENCES [template].[TableTemplateVersions] ([Id]) ON DELETE CASCADE,
-    CONSTRAINT [FK_TemplateSections_TemplateSections_ParentSectionId] FOREIGN KEY ([ParentSectionId]) REFERENCES [template].[TemplateSections] ([Id])
+    CONSTRAINT [FK_TemplateSections_TableTemplateVersions_TableTemplateVersionId] FOREIGN KEY ([TableTemplateVersionId]) REFERENCES [design].[TableTemplateVersions] ([Id]) ON DELETE CASCADE,
+    CONSTRAINT [FK_TemplateSections_TemplateSections_ParentSectionId] FOREIGN KEY ([ParentSectionId]) REFERENCES [design].[TemplateSections] ([Id])
 );
 
 
 GO
 
 CREATE NONCLUSTERED INDEX [IX_TemplateSections_ParentSectionId]
-    ON [template].[TemplateSections]([ParentSectionId] ASC);
+    ON [design].[TemplateSections]([ParentSectionId] ASC);
 
 
 GO
 
 CREATE UNIQUE NONCLUSTERED INDEX [UX_TemplateSections_OneHeaderPerVersion]
-    ON [template].[TemplateSections]([TableTemplateVersionId] ASC) WHERE ([Role]='Header');
+    ON [design].[TemplateSections]([TableTemplateVersionId] ASC) WHERE ([Role]='Header');
 
 
 GO
 
 CREATE NONCLUSTERED INDEX [IX_TemplateSections_TableTemplateVersionId]
-    ON [template].[TemplateSections]([TableTemplateVersionId] ASC);
+    ON [design].[TemplateSections]([TableTemplateVersionId] ASC);
 
 
 GO

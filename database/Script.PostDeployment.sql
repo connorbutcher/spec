@@ -28,9 +28,9 @@ SET IDENTITY_INSERT [setup].[SheetTypes] OFF;
 
 -- Cell types: one per kind plus a sample dropdown. Users can edit or add to these. ------------------------------------
 
-SET IDENTITY_INSERT [template].[CellTypes] ON;
+SET IDENTITY_INSERT [design].[CellTypes] ON;
 
-INSERT INTO [template].[CellTypes] ([Id], [Name], [Kind], [Description], [DisplayOrder], [Configuration], [Style])
+INSERT INTO [design].[CellTypes] ([Id], [Name], [Kind], [Description], [DisplayOrder], [Configuration], [Style])
 SELECT [source].[Id], [source].[Name], [source].[Kind], [source].[Description], [source].[DisplayOrder], [source].[Configuration], [source].[Style]
 FROM (VALUES
     (1, N'Heading', N'Heading', N'Fixed text such as a column header.', 1, N'{"kind":"Heading"}', N'{"bold":true}'),
@@ -41,23 +41,23 @@ FROM (VALUES
     (6, N'Pass / Fail', N'TextDropdown', NULL, 6, N'{"kind":"TextDropdown"}', N'{}'),
     (7, N'Group', N'Group', N'A caption that groups the cells around it.', 7, N'{"kind":"Group"}', N'{"bold":true,"backgroundColor":"#f1f5f9"}')
 ) AS [source] ([Id], [Name], [Kind], [Description], [DisplayOrder], [Configuration], [Style])
-WHERE NOT EXISTS (SELECT 1 FROM [template].[CellTypes] AS [target] WHERE [target].[Id] = [source].[Id]);
+WHERE NOT EXISTS (SELECT 1 FROM [design].[CellTypes] AS [target] WHERE [target].[Id] = [source].[Id]);
 
-SET IDENTITY_INSERT [template].[CellTypes] OFF;
+SET IDENTITY_INSERT [design].[CellTypes] OFF;
 
-SET IDENTITY_INSERT [template].[CellTypeOptions] ON;
+SET IDENTITY_INSERT [design].[CellTypeOptions] ON;
 
-INSERT INTO [template].[CellTypeOptions] ([Id], [CellTypeId], [Value], [DisplayOrder])
+INSERT INTO [design].[CellTypeOptions] ([Id], [CellTypeId], [Value], [DisplayOrder])
 SELECT [source].[Id], [source].[CellTypeId], [source].[Value], [source].[DisplayOrder]
 FROM (VALUES
     (1, 6, N'Pass', 1),
     (2, 6, N'Fail', 2),
     (3, 6, N'N/A', 3)
 ) AS [source] ([Id], [CellTypeId], [Value], [DisplayOrder])
-WHERE NOT EXISTS (SELECT 1 FROM [template].[CellTypeOptions] AS [target] WHERE [target].[Id] = [source].[Id])
-    AND EXISTS (SELECT 1 FROM [template].[CellTypes] AS [cellType] WHERE [cellType].[Id] = [source].[CellTypeId]);
+WHERE NOT EXISTS (SELECT 1 FROM [design].[CellTypeOptions] AS [target] WHERE [target].[Id] = [source].[Id])
+    AND EXISTS (SELECT 1 FROM [design].[CellTypes] AS [cellType] WHERE [cellType].[Id] = [source].[CellTypeId]);
 
-SET IDENTITY_INSERT [template].[CellTypeOptions] OFF;
+SET IDENTITY_INSERT [design].[CellTypeOptions] OFF;
 
 -- Permissions: one row per key in PermissionKeys ---------------------------------------------------------------------
 
@@ -106,12 +106,4 @@ SELECT 1, 1
 WHERE NOT EXISTS (SELECT 1 FROM [auth].[UserRoles] WHERE [UserId] = 1 AND [RoleId] = 1);
 
 COMMIT TRANSACTION;
-GO
-
--- The cell-value tables used to live in a [values] schema; once they have moved to [cell], drop it if it is empty.
-IF SCHEMA_ID(N'values') IS NOT NULL
-    AND NOT EXISTS (SELECT 1 FROM sys.objects WHERE [schema_id] = SCHEMA_ID(N'values'))
-BEGIN
-    EXEC (N'DROP SCHEMA [values]');
-END
 GO

@@ -34,9 +34,9 @@
   <ItemGroup>
     <PostDeploy Include="Script.PostDeployment.sql" />
   </ItemGroup>
-  <!-- Moves of existing tables between schemas, so a deploy to an existing database moves them (keeping their rows)
-       instead of dropping and recreating them. -->
+  <!-- One-time scripts are run by hand against existing databases; they are not part of the schema. -->
   <ItemGroup>
-    <RefactorLog Include="PUSpecSheet.Database.refactorlog" />
+    <Build Remove="OneTime\**" />
+    <None Include="OneTime\**" />
   </ItemGroup>
 </Project>

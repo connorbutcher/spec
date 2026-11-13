@@ -10,7 +10,7 @@ dotnet-tools.json                  pins SqlPackage as a local dotnet tool
 deploy.ps1                         build, then deploy the project to a database (creating it if needed)
 compare.ps1                        build, then list what a deploy would change in a database
 Script.PostDeployment.sql          reference data, run after every deployment
-PUSpecSheet.Database.refactorlog   table moves between schemas, so a deploy keeps their rows
+OneTime/*.sql                      scripts run once by hand against existing databases; not part of the build
 <schema>/Tables/*.sql              one file per table: columns, keys, constraints, indexes
 Security/<schema>.sql              the schemas themselves
 ```
@@ -54,13 +54,20 @@ The project also opens in Visual Studio (SSDT) and in the SQL Database Projects 
 | Schema | Holds |
 | --- | --- |
 | `spec` | Sheets and everything on them: tables, sections, rows, column blocks, cells, their revisions and the published versions. |
-| `template` | Table templates and their versions, sections, rows, cells and column blocks, and the cell types they use. |
+| `design` | Table templates and their versions, sections, rows, cells and column blocks, and the cell types they use. |
 | `cell` | The values entered in sheet cells, one table per kind, and the settings chosen for cells on the sheet. |
 | `approval` | Drafts submitted for publishing and their approvers. |
 | `auth` | Users, roles and permissions. |
 | `setup` | Phases and sheet types. |
 
-Existing databases had these tables in `dbo` and `values`. `PUSpecSheet.Database.refactorlog` records each move, so deploying to one of them moves the tables with their rows instead of dropping and recreating them; the post-deployment script then drops the empty `values` schema.
+Databases created before this layout have their tables in `dbo` and `values` (or `template`, briefly). Move them once, before the next deploy, with the one-time script; it creates the schemas, moves every table with `ALTER SCHEMA ... TRANSFER` (rows, keys, indexes and constraints go with it), drops the emptied old schemas, runs in one transaction and is safe to run twice:
+
+```powershell
+sqlcmd -S "(localdb)\MSSQLLocalDB" -d PUSpecSheet -b -i database/OneTime/MoveTablesToSchemas.sql
+./database/deploy.ps1
+```
+
+Without it, a deploy would see the old tables as ones to drop and the new ones as ones to create, and stop rather than lose the data.
 
 ### Phases and sheet types (`setup` schema)
 
@@ -70,18 +77,18 @@ Existing databases had these tables in `dbo` and `values`. `PUSpecSheet.Database
 | `setup.SheetTypes` | Kinds of sheet (Specification, PFKs, Parts, ...). |
 | `setup.PhaseSheetTypes` | Which sheet types a phase uses. Composite key (`PhaseId`, `SheetTypeId`). |
 
-### Templates (`template` schema)
+### Templates (`design` schema)
 
 | Table | Purpose |
 | --- | --- |
-| `template.TableTemplates` | A named table layout belonging to a sheet type. |
-| `template.TableTemplateVersions` | Numbered versions of a template: orientation and sticky column count. |
-| `template.TemplateSections` | Sections of a template version, nestable (`ParentSectionId`), with a `Role` and min/max/initial instance counts. Filtered unique index allows one `Header` section per version. |
-| `template.TemplateColumnBlocks` | Repeatable groups of columns with instance limits. |
-| `template.TemplateRows` | Rows within a template section. |
-| `template.TemplateCells` | Cells of a template row: position, spans, caption, cell type, overrides, optional `LookupKey` (filtered index where not null). |
-| `template.CellTypes` | Cell types (`Kind`, `Configuration`, `Style`). |
-| `template.CellTypeOptions` | The choices of an option-kind cell type. |
+| `design.TableTemplates` | A named table layout belonging to a sheet type. |
+| `design.TableTemplateVersions` | Numbered versions of a template: orientation and sticky column count. |
+| `design.TemplateSections` | Sections of a template version, nestable (`ParentSectionId`), with a `Role` and min/max/initial instance counts. Filtered unique index allows one `Header` section per version. |
+| `design.TemplateColumnBlocks` | Repeatable groups of columns with instance limits. |
+| `design.TemplateRows` | Rows within a template section. |
+| `design.TemplateCells` | Cells of a template row: position, spans, caption, cell type, overrides, optional `LookupKey` (filtered index where not null). |
+| `design.CellTypes` | Cell types (`Kind`, `Configuration`, `Style`). |
+| `design.CellTypeOptions` | The choices of an option-kind cell type. |
 
 ### Sheets and revisions (`spec` schema)
 
@@ -109,7 +116,7 @@ One table per value kind. Each has the composite primary key (`SheetRowRevisionI
 | `cell.NumericValues` | Numeric value. |
 | `cell.DateValues` | Date value. |
 | `cell.BooleanValues` | Boolean value. |
-| `cell.OptionValues` | Reference to a `template.CellTypeOptions` row. |
+| `cell.OptionValues` | Reference to a `design.CellTypeOptions` row. |
 | `cell.LabelledTextValues` | One row per slot of a labelled text cell, keyed by revision, cell and `SlotKey`, with its `Position`; `LookupValue` is computed and indexed as for text. |
 | `cell.CellSettings` | The settings chosen on the sheet for a cell (which table a linked dropdown reads, for example), as JSON whose `kind` names the cell kind. Same key as the value tables, so they are versioned with the row. |
 

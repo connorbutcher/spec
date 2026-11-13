@@ -1,4 +1,4 @@
-CREATE TABLE [template].[TableTemplates] (
+CREATE TABLE [design].[TableTemplates] (
     [Id]           INT            IDENTITY (1, 1) NOT NULL,
     [SheetTypeId]  INT            NOT NULL,
     [Name]         NVARCHAR (100) NOT NULL,
@@ -11,7 +11,7 @@ CREATE TABLE [template].[TableTemplates] (
 GO
 
 CREATE UNIQUE NONCLUSTERED INDEX [IX_TableTemplates_SheetTypeId_Name]
-    ON [template].[TableTemplates]([SheetTypeId] ASC, [Name] ASC);
+    ON [design].[TableTemplates]([SheetTypeId] ASC, [Name] ASC);
 
 
 GO
