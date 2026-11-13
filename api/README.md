@@ -14,6 +14,7 @@ src/PUSpecSheet.Database      The EF Core side of the database (database first):
                               in Configurations/<Area>, and development seed data. No migrations: the schema is owned by the SQL project in database/.
 src/PUSpecSheet.Domain        Enums, configuration records and rules that need nothing but themselves. No EF Core either.
 tests/PUSpecSheet.*.Tests     One test project per source project.
+tools/PUSpecSheet.Migrator    One-off console tool that moves sheets from the old flat layout onto revisions; see its README.
 ```
 
 References go one way: `Api -> Data -> Application -> Domain`, and `Api -> Application`. `Application` declares what it needs from the database as interfaces; `Data` implements them, so `Application` can't reach the DbContext at all. `Contracts` is used by `Api` and `Application` and references `Domain` only for enums and the cell configuration records. Nothing references `Api`.

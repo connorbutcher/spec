@@ -10,4 +10,8 @@
          and fails restore; 10.0.13 is the first fixed version. Remove once SqlClient asks for a fixed one. -->
     <PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.14" />
   </ItemGroup>
+  <ItemGroup>
+    <!-- The legacy migration reads and writes cell settings JSON the same way the converter does (CellJson). -->
+    <InternalsVisibleTo Include="PUSpecSheet.Migrator" />
+  </ItemGroup>
 </Project>

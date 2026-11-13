@@ -69,6 +69,8 @@ sqlcmd -S "(localdb)\MSSQLLocalDB" -d PUSpecSheet -b -i database/OneTime/MoveTab
 
 Without it, a deploy would see the old tables as ones to drop and the new ones as ones to create, and stop rather than lose the data.
 
+Databases still on the flat layout, where every version of a sheet is a whole copy of it, need their sheets migrated. `OneTime/MoveFlatTablesToLegacy.sql` moves the flat sheet and value tables into a `legacy` schema. Then a deploy creates the revision tables beside them, and the migrator in `api/tools/PUSpecSheet.Migrator` rebuilds each sheet's history as revisions and checks it against every copy. Its README has the steps.
+
 ### Phases and sheet types (`setup` schema)
 
 | Table | Purpose |

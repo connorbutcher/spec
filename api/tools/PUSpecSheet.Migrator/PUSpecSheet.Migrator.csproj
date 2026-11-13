@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- One-off tool: moves sheets from the legacy flat layout (every version a whole copy of the sheet) onto the
+       revision tables. See README.md. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\PUSpecSheet.Application\PUSpecSheet.Application.csproj" />
+    <ProjectReference Include="..\..\src\PUSpecSheet.Database\PUSpecSheet.Database.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="10.0.14" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="PUSpecSheet.Migrator.Tests" />
+  </ItemGroup>
+</Project>

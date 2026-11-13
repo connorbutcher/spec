@@ -10,5 +10,9 @@
     <Project Path="tests/PUSpecSheet.Api.Tests/PUSpecSheet.Api.Tests.csproj" />
     <Project Path="tests/PUSpecSheet.Application.Tests/PUSpecSheet.Application.Tests.csproj" />
     <Project Path="tests/PUSpecSheet.Domain.Tests/PUSpecSheet.Domain.Tests.csproj" />
+    <Project Path="tests/PUSpecSheet.Migrator.Tests/PUSpecSheet.Migrator.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tools/">
+    <Project Path="tools/PUSpecSheet.Migrator/PUSpecSheet.Migrator.csproj" />
   </Folder>
 </Solution>
