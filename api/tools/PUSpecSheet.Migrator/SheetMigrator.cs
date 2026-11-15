@@ -36,11 +36,20 @@ internal sealed class SheetMigrator
         await using var db = createTarget();
         if (await db.Sheets.AnyAsync(sheet => sheet.PublicId == legacySheet.PublicId, cancellationToken))
         {
-            logger.Skipped(legacySheet.Id, legacySheet.PublicId);
+            logger.Skipped(legacySheet.Name, legacySheet.PublicId);
             return SheetOutcome.Skipped;
         }
 
-        var copies = await legacy.LoadCopiesAsync(legacySheet.Id, cancellationToken);
+        IReadOnlyList<LegacyCopy> copies;
+        try
+        {
+            copies = await legacy.LoadCopiesAsync(legacySheet, cancellationToken);
+        }
+        catch (MigrationException exception)
+        {
+            logger.CantMigrate(legacySheet.Name, exception.Message);
+            return SheetOutcome.Failed;
+        }
 
         // Disposing the transaction without committing it rolls everything back.
         await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
@@ -62,18 +71,18 @@ internal sealed class SheetMigrator
         }
         catch (MigrationException exception)
         {
-            logger.CantMigrate(legacySheet.Id, exception.Message);
+            logger.CantMigrate(legacySheet.Name, exception.Message);
             return SheetOutcome.Failed;
         }
         catch (DbUpdateException exception)
         {
-            logger.SaveFailed(legacySheet.Id, exception);
+            logger.SaveFailed(legacySheet.Name, exception);
             return SheetOutcome.Failed;
         }
 
         foreach (var warning in built.Warnings)
         {
-            logger.SheetWarning(legacySheet.Id, warning);
+            logger.SheetWarning(legacySheet.Name, warning);
         }
 
         var revisions = CountRevisions(built.Sheet);
@@ -87,7 +96,7 @@ internal sealed class SheetMigrator
             if (SheetVerifier.Difference(check.Expected, actual) is { } difference)
             {
                 var which = check.MomentUtc is null ? "the working copy (drafts)" : $"version {check.VersionNumber}";
-                logger.Mismatch(legacySheet.Id, which, difference);
+                logger.Mismatch(legacySheet.Name, which, difference);
                 matches = false;
             }
         }
@@ -98,7 +107,7 @@ internal sealed class SheetMigrator
             await transaction.CommitAsync(cancellationToken);
         }
 
-        logger.Done(legacySheet.Id, copies.Count, built.Sheet.Versions.Count, revisions, outcome);
+        logger.Done(legacySheet.Name, copies.Count, built.Sheet.Versions.Count, revisions, outcome);
         return outcome;
     }
 

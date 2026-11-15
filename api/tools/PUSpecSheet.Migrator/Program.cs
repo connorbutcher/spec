@@ -24,18 +24,25 @@ Console.CancelKeyPress += (_, eventArgs) =>
     cancellation.Cancel();
 };
 
-await using var legacyConnection = new SqlConnection(options.LegacyConnectionString);
-await legacyConnection.OpenAsync(cancellation.Token);
-var reader = new LegacySheetReader(legacyConnection);
-
 var targetOptions = new DbContextOptionsBuilder<PuSpecSheetDbContext>()
     .UseSqlServer(options.TargetConnectionString)
     .ConfigureWarnings(warnings => warnings.Ignore(SqlServerEventId.SavepointsDisabledBecauseOfMARS))
     .Options;
+
+DesignLookup design;
+await using (var designDb = new PuSpecSheetDbContext(targetOptions))
+{
+    design = await DesignLookup.LoadAsync(designDb, cancellation.Token);
+}
+
+await using var legacyConnection = new SqlConnection(options.LegacyConnectionString);
+await legacyConnection.OpenAsync(cancellation.Token);
+var reader = new LegacySheetReader(legacyConnection, design);
+
 var migrator = new SheetMigrator(() => new PuSpecSheetDbContext(targetOptions), reader, options.Commit, logger);
 
 var sheets = (await reader.ListSheetsAsync(cancellation.Token))
-    .Where(sheet => options.SheetIds.Count == 0 || options.SheetIds.Contains(sheet.Id))
+    .Where(sheet => options.PhaseIds.Count == 0 || options.PhaseIds.Contains(sheet.PhaseId))
     .ToList();
 logger.Starting(sheets.Count, options.Commit ? "keeping what is migrated" : "dry run, nothing is kept");
 

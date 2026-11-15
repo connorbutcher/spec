@@ -16,8 +16,6 @@ internal sealed record LegacyCopy
 
     public int UserId { get; init; }
 
-    public string? Note { get; init; }
-
     public SheetSnapshot Snapshot { get; init; } = new();
 
     public bool IsWorkingCopy => PublishedAtUtc is null;

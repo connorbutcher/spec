@@ -10,7 +10,7 @@ internal sealed record MigratorOptions
 
           --legacy <connection string>   the database holding the [legacy] tables (required)
           --target <connection string>   the database to migrate into; defaults to --legacy
-          --sheet <legacy sheet id>      migrate only this sheet; may be given more than once
+          --phase <phase id>             migrate only this phase's sheets; may be given more than once
           --commit                       keep the migrated sheets; without it every sheet is migrated,
                                          checked and rolled back (a dry run)
         """;
@@ -19,8 +19,8 @@ internal sealed record MigratorOptions
 
     public string TargetConnectionString { get; init; } = string.Empty;
 
-    /// <summary>The legacy sheets to migrate; every one when empty.</summary>
-    public IReadOnlySet<int> SheetIds { get; init; } = new HashSet<int>();
+    /// <summary>The phases whose sheets to migrate; every phase's when empty.</summary>
+    public IReadOnlySet<int> PhaseIds { get; init; } = new HashSet<int>();
 
     /// <summary>Whether to keep what was migrated. Without it each sheet is rolled back once checked.</summary>
     public bool Commit { get; init; }
@@ -30,7 +30,7 @@ internal sealed record MigratorOptions
     {
         string? legacy = null;
         string? target = null;
-        var sheetIds = new HashSet<int>();
+        var phaseIds = new HashSet<int>();
         var commit = false;
 
         for (var index = 0; index < args.Count; index++)
@@ -46,8 +46,8 @@ internal sealed record MigratorOptions
                     target = value;
                     index++;
                     break;
-                case "--sheet" when int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var sheetId):
-                    sheetIds.Add(sheetId);
+                case "--phase" when int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var phaseId):
+                    phaseIds.Add(phaseId);
                     index++;
                     break;
                 case "--commit":
@@ -67,7 +67,7 @@ internal sealed record MigratorOptions
         {
             LegacyConnectionString = legacy,
             TargetConnectionString = string.IsNullOrWhiteSpace(target) ? legacy : target,
-            SheetIds = sheetIds,
+            PhaseIds = phaseIds,
             Commit = commit,
         };
     }

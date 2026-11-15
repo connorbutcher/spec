@@ -79,7 +79,6 @@ internal sealed class SheetHistoryBuilder
                 VersionNumber = copy.VersionNumber,
                 PublishedAtUtc = at,
                 PublishedByUserId = copy.UserId,
-                Note = copy.Note,
             };
             sheet.Versions.Add(version);
 
@@ -108,6 +107,12 @@ internal sealed class SheetHistoryBuilder
         if (duplicate is not null)
         {
             throw new MigrationException($"It has more than one version {duplicate.Key}.");
+        }
+
+        if (working.Count == 1 && published.Count > 0 && working[0].VersionNumber <= published[^1].VersionNumber)
+        {
+            throw new MigrationException(
+                $"Its unpublished copy is version {working[0].VersionNumber}, but version {published[^1].VersionNumber} is published; an unpublished copy must come after every published one.");
         }
 
         if (published.Count > 0 && published[0].VersionNumber < 1)
@@ -459,7 +464,8 @@ internal sealed class SheetHistoryBuilder
 
     /// <summary>
     /// Gives each identity row the public id its item had in the latest copy it was in, so links into the
-    /// current sheet keep working. A public id already taken by another item gets a new one instead.
+    /// current sheet keep working. An item with no public id (<see cref="Guid.Empty"/>), or one already taken by
+    /// another item, gets a new one instead.
     /// </summary>
     private void KeepPublicIds()
     {
@@ -474,7 +480,11 @@ internal sealed class SheetHistoryBuilder
 
             var fresh = Guid.NewGuid();
             used.Add(fresh);
-            warnings.Add($"The public id {publicId} of a {what} was used more than once; it was given {fresh}.");
+            if (publicId != Guid.Empty)
+            {
+                warnings.Add($"The public id {publicId} of a {what} was used more than once; it was given {fresh}.");
+            }
+
             return fresh;
         }
 

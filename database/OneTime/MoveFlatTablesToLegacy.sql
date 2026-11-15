@@ -33,13 +33,11 @@ DECLARE @moves TABLE ([Table] sysname NOT NULL PRIMARY KEY);
 
 INSERT INTO @moves ([Table])
 VALUES
-    (N'Sheets'),
-    (N'SheetVersions'),
-    (N'SheetTables'),
-    (N'SheetSections'),
-    (N'SheetColumnBlocks'),
-    (N'SheetRows'),
-    (N'SheetCells'),
+    (N'PUSpecSheet'),
+    (N'Table'),
+    (N'TableGroup'),
+    (N'TableRow'),
+    (N'Cell'),
     (N'TextValues'),
     (N'NumericValues'),
     (N'DateValues'),

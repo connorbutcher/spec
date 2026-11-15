@@ -144,6 +144,14 @@ public sealed class SheetHistoryBuilderTests
             legacy.Copy(2, null, "b")));
     }
 
+    [Fact]
+    public void AnUnpublishedCopyOlderThanAPublishedOne_CantBeMigrated()
+    {
+        Assert.Throws<MigrationException>(() => Build(
+            legacy.Copy(1, null, "a"),
+            legacy.Copy(2, Monday, "b")));
+    }
+
     private static BuiltSheet Build(params LegacyCopy[] copies)
     {
         return SheetHistoryBuilder.Build(new DbSheet { Id = 7 }, copies, Now);
