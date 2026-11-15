@@ -36,6 +36,8 @@ Each sheet is done in its own transaction:
 5. **Check** it (`Verification/`). The sheet is read back as of every version, and with its drafts, and each is compared with its legacy copy. The comparison renders both as text listing tables, sections, rows and cell contents in display order, with no ids. The first difference is logged.
 6. **Commit** only if every check matched and `--commit` was given. Otherwise it rolls back.
 
+Approvals aren't migrated. Migrated versions have no `SheetSubmission`, and their revisions have no `SheetSubmissionId`. This is the same as the versions start-up seeding publishes, and the app shows them as published without an approval record.
+
 Version numbers are kept. If two versions have the same publish time, or one is older than the version before it, the later one is moved to one tick after the earlier, and a warning is logged. Otherwise "as of" a time couldn't tell them apart.
 
 ## The legacy layout
@@ -59,7 +61,7 @@ How it maps onto the new layout:
 - **Sheets:** all `PUSpecSheet` rows with the same phase and sheet type are versions of one sheet. The migrated sheet keeps the latest version's public id.
 - **Published or working copy:** a row with `Published = 1` becomes a version, published at `PublishedAt` (taken as UTC) by `PublishedById`. A row without it is the working copy, which becomes drafts held by `CreatedById`. A sheet can have only one working copy.
 - **Templates:** a table becomes a copy of the latest version of its `TableTemplateId`. Groups become sections, and `GroupTemplateId`, `RowTemplateId` and `TemplateCellId` are used as the new layout's template ids.
-- **Order:** legacy items have no order of their own. Among one parent's items, they're placed by their template's display order, then by id, 1024 apart. The template orders come from the target's design tables.
+- **Order:** legacy items have no order of their own. Among one parent's items, they're placed by their template's display order, then by id. The template orders come from the target's design tables. Like the app, an item keeps the order it was published with while that still fits, and a new item goes between its neighbours (`Building/OrderKeeper`). That way an inserted row doesn't give every row below it a new order and a new revision.
 - **Ids:** legacy tables, groups, rows and cells have no public ids, so they get new ones. The legacy layout has no column blocks, so none are made.
 
 ## Tests

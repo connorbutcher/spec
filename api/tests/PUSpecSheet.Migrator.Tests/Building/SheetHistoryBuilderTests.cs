@@ -70,12 +70,11 @@ public sealed class SheetHistoryBuilderTests
         var rows = Rows(built);
         Assert.Equal(3, rows.Count);
 
-        // "a" keeps its place; "c" moves down, so it has a second revision for its new order; "b" is new.
-        var revisionCounts = rows
-            .ToDictionary(row => row.Revisions.OrderBy(revision => revision.RevisionNumber).Last().TextValues.Single().Value, row => row.Revisions.Count);
-        Assert.Equal(1, revisionCounts["a"]);
-        Assert.Equal(1, revisionCounts["b"]);
-        Assert.Equal(2, revisionCounts["c"]);
+        // Only "b" is new; "a" and "c" keep their orders, so neither gets another revision.
+        Assert.All(rows, row => Assert.Single(row.Revisions));
+        var orders = rows
+            .ToDictionary(row => row.Revisions.Single().TextValues.Single().Value, row => row.Revisions.Single().DisplayOrder);
+        Assert.True(orders["a"] < orders["b"] && orders["b"] < orders["c"]);
     }
 
     [Fact]

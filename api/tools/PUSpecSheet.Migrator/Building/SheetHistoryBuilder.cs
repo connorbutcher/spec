@@ -129,9 +129,19 @@ internal sealed class SheetHistoryBuilder
         var keys = assigner.Assign(snapshot);
         var context = new WriteContext(version, at, copy.UserId);
 
+        // Orders already published are kept where they still fit, so a moved neighbour doesn't make an item look changed.
+        var tableOrders = KeepOrders(snapshot.Tables, table => table.Id, table => table.DisplayOrder, _ => 0, table => ExistingOrder(tables, keys.Tables[table.Id]));
+        var sectionOrders = KeepOrders(
+            snapshot.Sections,
+            section => section.Id,
+            section => section.DisplayOrder,
+            section => (section.TableId, section.ParentSectionId),
+            section => ExistingOrder(sections, keys.Sections[section.Id]));
+        var rowOrders = KeepOrders(snapshot.Rows, row => row.Id, row => row.DisplayOrder, row => row.SectionId, row => ExistingOrder(rows, keys.Rows[row.Id]));
+
         foreach (var table in snapshot.Tables)
         {
-            ApplyTable(context, keys, table);
+            ApplyTable(context, keys, table with { DisplayOrder = tableOrders[table.Id] });
         }
 
         foreach (var block in snapshot.ColumnBlocks)
@@ -141,12 +151,12 @@ internal sealed class SheetHistoryBuilder
 
         foreach (var section in ParentsFirst(snapshot.Sections))
         {
-            ApplySection(context, keys, section);
+            ApplySection(context, keys, section with { DisplayOrder = sectionOrders[section.Id] });
         }
 
         foreach (var row in snapshot.Rows)
         {
-            ApplyRow(context, snapshot, keys, row);
+            ApplyRow(context, snapshot, keys, row with { DisplayOrder = rowOrders[row.Id] });
         }
 
         RemoveMissing(context, keys);
@@ -155,6 +165,36 @@ internal sealed class SheetHistoryBuilder
         {
             previousKeys = keys;
         }
+    }
+
+    /// <summary>The display order of each item, by id, given by <see cref="OrderKeeper"/> among its siblings.</summary>
+    private static Dictionary<int, int> KeepOrders<TItem, TParent>(
+        IEnumerable<TItem> items,
+        Func<TItem, int> id,
+        Func<TItem, int> copyOrder,
+        Func<TItem, TParent> parent,
+        Func<TItem, int?> existingOrder)
+    {
+        var orders = new Dictionary<int, int>();
+        foreach (var siblings in items.GroupBy(parent))
+        {
+            var sorted = siblings.OrderBy(copyOrder).ThenBy(id).ToList();
+            var kept = OrderKeeper.Assign(sorted.Select(existingOrder).ToList());
+            for (var index = 0; index < sorted.Count; index++)
+            {
+                orders[id(sorted[index])] = kept[index];
+            }
+        }
+
+        return orders;
+    }
+
+    /// <summary>The order an item's last published revision gives it, or null when it has none.</summary>
+    private static int? ExistingOrder<TIdentity, TRevision>(Dictionary<int, ItemTrack<TIdentity, TRevision>> tracks, int key)
+        where TIdentity : class
+        where TRevision : class, IDbSheetRevision
+    {
+        return tracks.TryGetValue(key, out var track) && track.LastPublished is { IsDeleted: false } last ? last.DisplayOrder : null;
     }
 
     private void ApplyTable(WriteContext context, SnapshotKeys keys, SnapshotTable table)
