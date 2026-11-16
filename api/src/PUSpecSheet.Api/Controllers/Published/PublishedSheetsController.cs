@@ -31,19 +31,48 @@ public sealed class PublishedSheetsController : ControllerBase
     /// Finds a sheet's identifier and newest version from its phase code and sheet type. Do this once and
     /// keep the identifier: it never changes. <c>latestVersion</c> is null for a sheet nothing has been
     /// published on yet.
+    ///
+    /// A sheet type with identifiers (see <c>identifiers</c> in <c>GET /api/sheet-types</c>) can have many
+    /// sheets in a phase: name the one you want by adding its identifier values to the query string by key,
+    /// such as <c>&amp;serialNumber=ESN-1</c>. Text and options match without regard to case; numbers and
+    /// dates match however they are written. An empty value asks for a sheet without one.
     /// </remarks>
     /// <param name="phase" example="V6">The phase's code, as shown in the phase tree.</param>
     /// <param name="sheetType" example="1">The sheet type's id, from <c>GET /api/sheet-types</c>.</param>
     /// <param name="cancellationToken">Cancels the request.</param>
     /// <response code="200">The sheet's identifier and its newest version number.</response>
-    /// <response code="404">No phase has this code, or the phase has no sheet of this type.</response>
+    /// <response code="400">The sheet type has no identifier with a key given, or a value isn't of its identifier's kind.</response>
+    /// <response code="404">No phase has this code, or the phase has no sheet of this type with those identifiers.</response>
+    /// <response code="409">More than one sheet matches: give more identifier values.</response>
     [HttpGet]
     public async Task<ActionResult<PublishedSheetReferenceDto>> Find(
         [FromQuery] string phase,
         [FromQuery] int sheetType,
         CancellationToken cancellationToken)
     {
-        var result = await sheets.FindAsync(phase, sheetType, cancellationToken);
+        var identifiers = PublishedIdentifierQuery.From(Request.Query, nameof(phase), nameof(sheetType));
+        var result = await sheets.FindAsync(phase, sheetType, identifiers, cancellationToken);
+        return Ok(result);
+    }
+
+    /// <summary>List a phase's sheets of a type</summary>
+    /// <remarks>
+    /// Every sheet of a sheet type in a phase, oldest first, with its identifier and its identifier values by
+    /// key. Narrow the list by adding identifier values to the query string by key, as for finding a sheet.
+    /// </remarks>
+    /// <param name="phase" example="V6">The phase's code, as shown in the phase tree.</param>
+    /// <param name="sheetType" example="4">The sheet type's id, from <c>GET /api/sheet-types</c>.</param>
+    /// <param name="cancellationToken">Cancels the request.</param>
+    /// <response code="200">The matching sheets. Empty when none match.</response>
+    /// <response code="400">The sheet type has no identifier with a key given, or a value isn't of its identifier's kind.</response>
+    [HttpGet("list")]
+    public async Task<ActionResult<IReadOnlyList<PublishedSheetReferenceDto>>> List(
+        [FromQuery] string phase,
+        [FromQuery] int sheetType,
+        CancellationToken cancellationToken)
+    {
+        var identifiers = PublishedIdentifierQuery.From(Request.Query, nameof(phase), nameof(sheetType));
+        var result = await sheets.ListAsync(phase, sheetType, identifiers, cancellationToken);
         return Ok(result);
     }
 

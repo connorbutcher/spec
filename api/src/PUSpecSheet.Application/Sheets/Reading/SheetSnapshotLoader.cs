@@ -32,7 +32,7 @@ public sealed class SheetSnapshotLoader
 
     public async Task<SheetSnapshot> LoadAsync(int sheetId, SheetViewPoint view, int currentUserId, CancellationToken cancellationToken)
     {
-        var found = await SheetQueries.FindAsync(db, sheetId, cancellationToken)
+        var found = await SheetQueries.FindWithIdentifiersAsync(db, sheetId, cancellationToken)
             ?? throw new NotFoundException($"Sheet {sheetId} was not found.");
         var versions = await SheetQueries.ListVersionsAsync(db, sheetId, cancellationToken);
         var (moment, versionNumber) = ResolveMoment(view, versions);

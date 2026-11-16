@@ -4,7 +4,7 @@ using PUSpecSheet.Database.Models.Sheets;
 
 namespace PUSpecSheet.Application.Sheets.Queries;
 
-/// <summary>Sheets, one per phase and sheet type, and the versions published of them.</summary>
+/// <summary>Sheets, one per phase, sheet type and identity, and the versions published of them.</summary>
 public static class SheetQueries
 {
     /// <summary>The sheet, read only; null when there is no such sheet.</summary>
@@ -12,6 +12,15 @@ public static class SheetQueries
     {
         return await db.Sheets
             .AsNoTracking()
+            .SingleOrDefaultAsync(candidate => candidate.Id == id, cancellationToken);
+    }
+
+    /// <summary>The sheet with its identifier values, read only; null when there is no such sheet.</summary>
+    public static async Task<DbSheet?> FindWithIdentifiersAsync(PuSpecSheetDbContext db, int id, CancellationToken cancellationToken)
+    {
+        return await db.Sheets
+            .AsNoTracking()
+            .Include(sheet => sheet.IdentifierValues)
             .SingleOrDefaultAsync(candidate => candidate.Id == id, cancellationToken);
     }
 
@@ -26,11 +35,14 @@ public static class SheetQueries
         return await db.Sheets.AnyAsync(sheet => sheet.Id == id, cancellationToken);
     }
 
-    /// <summary>The id of the phase's sheet of the sheet type; null when it hasn't been created yet.</summary>
+    /// <summary>
+    /// The id of the phase's sheet of the sheet type with no identifier values (the only one, for a sheet type
+    /// without identifiers); null when it hasn't been created.
+    /// </summary>
     public static async Task<int?> FindIdAsync(PuSpecSheetDbContext db, int phaseId, int sheetTypeId, CancellationToken cancellationToken)
     {
         return await db.Sheets
-            .Where(sheet => sheet.PhaseId == phaseId && sheet.SheetTypeId == sheetTypeId)
+            .Where(sheet => sheet.PhaseId == phaseId && sheet.SheetTypeId == sheetTypeId && sheet.IdentityKey == string.Empty)
             .Select(sheet => (int?)sheet.Id)
             .SingleOrDefaultAsync(cancellationToken);
     }

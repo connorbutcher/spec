@@ -22,10 +22,29 @@ public sealed class PublishedSheetsService : IPublishedSheetsService
         this.cache = cache;
     }
 
-    public async Task<PublishedSheetReferenceDto> FindAsync(string phaseCode, int sheetTypeId, CancellationToken cancellationToken)
+    public async Task<PublishedSheetReferenceDto> FindAsync(string phaseCode, int sheetTypeId, IReadOnlyDictionary<string, string> identifiers, CancellationToken cancellationToken)
     {
-        return await PublishedSheetQueries.FindReferenceAsync(db, phaseCode, sheetTypeId, cancellationToken)
-            ?? throw new NotFoundException($"Phase {phaseCode} has no sheet of type {sheetTypeId}.");
+        var found = await ListAsync(phaseCode, sheetTypeId, identifiers, cancellationToken);
+        if (found.Count == 0)
+        {
+            throw new NotFoundException(identifiers.Count == 0
+                ? $"Phase {phaseCode} has no sheet of type {sheetTypeId}."
+                : $"Phase {phaseCode} has no sheet of type {sheetTypeId} with those identifiers.");
+        }
+
+        if (found.Count > 1)
+        {
+            var keys = string.Join(", ", found.SelectMany(sheet => sheet.Identifiers.Keys).Distinct(StringComparer.OrdinalIgnoreCase));
+            throw new ConflictException($"{found.Count} sheets of type {sheetTypeId} in phase {phaseCode} match. Narrow them down by identifier: {keys}.");
+        }
+
+        return found[0];
+    }
+
+    public async Task<IReadOnlyList<PublishedSheetReferenceDto>> ListAsync(string phaseCode, int sheetTypeId, IReadOnlyDictionary<string, string> identifiers, CancellationToken cancellationToken)
+    {
+        var filters = await PublishedIdentifierFilters.ResolveAsync(db, sheetTypeId, identifiers, cancellationToken);
+        return await PublishedSheetQueries.ListReferencesAsync(db, phaseCode, sheetTypeId, filters, cancellationToken);
     }
 
     public async Task<IReadOnlyList<PublishedVersionDto>> VersionsAsync(Guid sheetPublicId, CancellationToken cancellationToken)

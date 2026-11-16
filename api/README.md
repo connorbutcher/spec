@@ -111,6 +111,14 @@ The hub takes who a connection is from its signed-in user (`ClaimsPrincipalExten
 
 To try it before sign-in exists, Development seeds two more users (`engineer2`, `engineer3`) and lets a request name the user it runs as (`DeveloperSignIn:AllowUserSwitching`): open the app in a second tab with `?developerUser=engineer2`.
 
+## Sheets of a phase and their identifiers
+
+A phase can hold many sheets of a sheet type, told apart by the type's identifiers (`setup.SheetTypeIdentifiers`, managed under `api/sheet-types/{id}/identifiers`): an engine specification's serial number, say. A sheet's values are given when it is created (`POST api/phases/{phaseId}/sheets`, `Sheets/Catalog/SheetCreator`) and never change. `SheetIdentifierRules` in Domain puts each value in one stored form per kind and builds the sheet's `IdentityKey` from them, which the database keeps unique per phase and type, so two people creating the same sheet at once get one sheet and a 409. A sheet with no values has an empty key, which is how a sheet type without identifiers keeps one sheet per phase, opened (and created) by `GET api/phases/{phaseId}/sheets/{sheetTypeId}` as before. Versioning is per sheet and unchanged.
+
+A new sheet can start as a copy of another of its type (`copyFromSheetId`): `SheetCopier` builds the source's current published tables, column blocks, sections, rows, cells, values and cell settings again on the new sheet as the creator's first drafts, with linked dropdowns pointed at the copies of the tables and rows they read.
+
+The published API finds a sheet by phase code, sheet type and identifier values by key (`?phase=V6&sheetType=1&serialNumber=ESN-1`); `api/published/sheets/list` returns every match.
+
 ## Sample data
 
 In Development the API builds a showcase on start (`Application/Seeding`, run from `ShowcaseDataSeeder`): templates for Specification ("Engine specification"), PFKs ("Gauges", "PFK register") and Parts ("Parts matrix", horizontal) that use every cell kind, and sheets built from them for V6 and 01-A2 to A5, with published versions by `developer`, `engineer2` and `engineer3` and some of their changes left unpublished, so there are locks to see. Changes are made through the same services the API uses, as whichever user `BackgroundUser` names.

@@ -7,12 +7,21 @@ namespace PUSpecSheet.Application.Sheets;
 public interface ISheetsService
 {
     /// <summary>
-    /// The sheet of a sheet type for a phase, created empty the first time it's opened. Fails if the
-    /// sheet type isn't available to the phase.
+    /// The phase's sheet of a sheet type with no identifier values, created empty the first time it's opened.
+    /// Fails if the sheet type isn't available to the phase, or if it needs identifiers and the sheet doesn't exist.
     /// </summary>
     Task<SheetDto> OpenAsync(int phaseId, int sheetTypeId, SheetViewPoint view, CancellationToken cancellationToken);
 
     Task<SheetDto> GetAsync(int sheetId, SheetViewPoint view, CancellationToken cancellationToken);
+
+    /// <summary>The phase's sheets, of every sheet type, with where each one's versions and drafts stand.</summary>
+    Task<IReadOnlyList<SheetSummaryDto>> ListAsync(int phaseId, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Creates a sheet of a sheet type in a phase with its identifier values, optionally starting as a copy of
+    /// another sheet of the type. Fails if the phase already has a sheet of the type with the same values.
+    /// </summary>
+    Task<SheetSummaryDto> CreateAsync(int phaseId, CreateSheetRequest request, CancellationToken cancellationToken);
 
     /// <summary>
     /// Some rows of the live sheet as the current user sees them, with what follows from them. Unlike a

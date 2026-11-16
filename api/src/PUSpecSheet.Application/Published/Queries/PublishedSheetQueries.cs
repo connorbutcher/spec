@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using PUSpecSheet.Application.Published.Sheets;
 using PUSpecSheet.Application.Published.Versions;
 using PUSpecSheet.Contracts.Published;
 using PUSpecSheet.Database;
@@ -8,18 +9,47 @@ namespace PUSpecSheet.Application.Published.Queries;
 /// <summary>Sheets and their versions as other applications find them: by phase code and public identifier.</summary>
 public static class PublishedSheetQueries
 {
-    /// <summary>The phase's sheet of the sheet type and its latest version; null when it has none.</summary>
-    public static async Task<PublishedSheetReferenceDto?> FindReferenceAsync(PuSpecSheetDbContext db, string phaseCode, int sheetTypeId, CancellationToken cancellationToken)
+    /// <summary>
+    /// The phase's sheets of the sheet type that match every filter, each with its latest version and
+    /// identifier values by key, oldest first.
+    /// </summary>
+    public static async Task<List<PublishedSheetReferenceDto>> ListReferencesAsync(
+        PuSpecSheetDbContext db,
+        string phaseCode,
+        int sheetTypeId,
+        IReadOnlyList<PublishedIdentifierFilter> filters,
+        CancellationToken cancellationToken)
     {
-        return await db.Sheets
+        var sheets = db.Sheets
             .AsNoTracking()
-            .Where(sheet => sheet.Phase.Code == phaseCode && sheet.SheetTypeId == sheetTypeId)
-            .Select(sheet => new PublishedSheetReferenceDto(
+            .Where(sheet => sheet.Phase.Code == phaseCode && sheet.SheetTypeId == sheetTypeId);
+        foreach (var filter in filters)
+        {
+            var identifierId = filter.IdentifierId;
+            var value = filter.Value;
+            sheets = value is null
+                ? sheets.Where(sheet => !sheet.IdentifierValues.Any(candidate => candidate.SheetTypeIdentifierId == identifierId))
+                : sheets.Where(sheet => sheet.IdentifierValues.Any(candidate => candidate.SheetTypeIdentifierId == identifierId && candidate.Value == value));
+        }
+
+        var found = await sheets
+            .OrderBy(sheet => sheet.Id)
+            .Select(sheet => new
+            {
                 sheet.PublicId,
                 sheet.Phase.Code,
                 sheet.SheetTypeId,
-                sheet.Versions.Max(version => (int?)version.VersionNumber)))
-            .SingleOrDefaultAsync(cancellationToken);
+                LatestVersion = sheet.Versions.Max(version => (int?)version.VersionNumber),
+                Identifiers = sheet.IdentifierValues.Select(value => new { value.Identifier.Key, value.Value }).ToList(),
+            })
+            .ToListAsync(cancellationToken);
+
+        return found
+            .Select(sheet => new PublishedSheetReferenceDto(sheet.PublicId, sheet.Code, sheet.SheetTypeId, sheet.LatestVersion)
+            {
+                Identifiers = sheet.Identifiers.ToDictionary(value => value.Key, value => value.Value),
+            })
+            .ToList();
     }
 
     public static async Task<bool> ExistsAsync(PuSpecSheetDbContext db, Guid sheetPublicId, CancellationToken cancellationToken)

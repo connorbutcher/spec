@@ -88,6 +88,7 @@ internal sealed class SheetViewBuilder
             templates)
         {
             OtherDrafts = DraftSummaries.OfOthers(drafts, currentUserId, UserName),
+            Identifiers = [.. snapshot.Sheet.IdentifierValues.OrderBy(value => value.SheetTypeIdentifierId).Select(value => new SheetIdentifierValueDto(value.SheetTypeIdentifierId, value.Value))],
             ReviewedSubmissionId = snapshot.ReviewedSubmissionId,
 
             // Gathered while the tables above were built, so they hold exactly what the viewer can see.

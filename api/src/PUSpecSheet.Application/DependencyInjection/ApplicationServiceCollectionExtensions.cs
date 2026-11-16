@@ -8,6 +8,7 @@ using PUSpecSheet.Application.Published.Sheets;
 using PUSpecSheet.Application.Published.Versions;
 using PUSpecSheet.Application.Seeding;
 using PUSpecSheet.Application.Sheets;
+using PUSpecSheet.Application.Sheets.Catalog;
 using PUSpecSheet.Application.Sheets.Drafts;
 using PUSpecSheet.Application.Sheets.Editing;
 using PUSpecSheet.Application.Sheets.History;
@@ -91,6 +92,8 @@ public static class ApplicationServiceCollectionExtensions
         services.AddScoped<SheetPublisher>();
         services.AddScoped<ISheetCellSettingsService, SheetCellSettingsService>();
 
+        services.AddScoped<SheetCopier>();
+        services.AddScoped<SheetCreator>();
         services.AddScoped<ISheetsService, SheetsService>();
         services.AddScoped<ISheetItemsService, SheetItemsService>();
         services.AddScoped<ISheetTablesService, SheetTablesService>();

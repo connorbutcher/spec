@@ -14,8 +14,18 @@ public static class SheetTypeQueries
             .AsNoTracking()
             .OrderBy(sheetType => sheetType.DisplayOrder)
             .ThenBy(sheetType => sheetType.Name)
-            .Select(sheetType => new SheetTypeDto(sheetType.Id, sheetType.Name, sheetType.DisplayOrder))
+            .Select(SheetTypeMappings.ToDto)
             .ToListAsync(cancellationToken);
+    }
+
+    /// <summary>The sheet type with its identifiers; null when there is no such sheet type.</summary>
+    public static async Task<SheetTypeDto?> FindAsync(PuSpecSheetDbContext db, int id, CancellationToken cancellationToken)
+    {
+        return await db.SheetTypes
+            .AsNoTracking()
+            .Where(sheetType => sheetType.Id == id)
+            .Select(SheetTypeMappings.ToDto)
+            .SingleOrDefaultAsync(cancellationToken);
     }
 
     public static async Task<bool> ExistsAsync(PuSpecSheetDbContext db, int id, CancellationToken cancellationToken)

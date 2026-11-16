@@ -61,6 +61,9 @@ public sealed record SheetDto
 
     public IReadOnlyList<AvailableTemplateDto> AvailableTemplates { get; init; }
 
+    /// <summary>The sheet's identifier values, which tell it from the phase's other sheets of its type.</summary>
+    public IReadOnlyList<SheetIdentifierValueDto> Identifiers { get; init; } = [];
+
     /// <summary>
     /// Other people's unpublished changes on the sheet, by person. Publishing everything takes these as
     /// well as the viewer's own. Empty for a past view.

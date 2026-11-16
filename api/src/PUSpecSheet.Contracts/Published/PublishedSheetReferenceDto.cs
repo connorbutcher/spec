@@ -18,4 +18,7 @@ public sealed record PublishedSheetReferenceDto
     public int SheetType { get; init; }
 
     public int? LatestVersion { get; init; }
+
+    /// <summary>The sheet's identifier values by the identifier's key, such as <c>serialNumber</c>. Empty for a sheet type without identifiers.</summary>
+    public IReadOnlyDictionary<string, string> Identifiers { get; init; } = new Dictionary<string, string>();
 }

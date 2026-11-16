@@ -27,7 +27,8 @@ public sealed class SheetsController : ControllerBase
 
     /// <summary>Open a phase's sheet</summary>
     /// <remarks>
-    /// Opens the sheet of a sheet type for a phase, creating it empty the first time. With neither
+    /// Opens the phase's sheet of a sheet type that has no identifier values, creating it empty the first
+    /// time; a sheet type whose identifiers are required has none, so open its sheets by id. With neither
     /// <c>version</c> nor <c>asOf</c> the view is live: the latest published state with your own drafts on top
     /// and other people's locks marked. A past view is read-only.
     /// </remarks>
@@ -51,6 +52,46 @@ public sealed class SheetsController : ControllerBase
         CancellationToken cancellationToken)
     {
         var result = await sheets.OpenAsync(phaseId, sheetTypeId, SheetViewPoint.From(version, asOf, submission), cancellationToken);
+        return Ok(result);
+    }
+
+    /// <summary>List a phase's sheets</summary>
+    /// <remarks>
+    /// Every sheet of the phase, of every sheet type, oldest first: its identifier values (see
+    /// <c>GET api/sheet-types</c> for what each identifier is), its latest version, how many unpublished
+    /// changes it has and how many submissions wait for approval on it. A sheet type without identifiers has
+    /// at most one sheet per phase, and none until it is first opened.
+    /// </remarks>
+    /// <param name="phaseId">The phase's id.</param>
+    /// <param name="cancellationToken">Cancels the request.</param>
+    /// <response code="200">The phase's sheets.</response>
+    /// <response code="404">The phase doesn't exist.</response>
+    [HttpGet("api/phases/{phaseId:int}/sheets")]
+    public async Task<ActionResult<IReadOnlyList<SheetSummaryDto>>> List(int phaseId, CancellationToken cancellationToken)
+    {
+        var result = await sheets.ListAsync(phaseId, cancellationToken);
+        return Ok(result);
+    }
+
+    /// <summary>Create a sheet</summary>
+    /// <remarks>
+    /// Creates a sheet of a sheet type in a phase, with a value for each of the type's identifiers (an
+    /// engine specification's serial number, say). The values tell it from the phase's other sheets of the type
+    /// and can't be changed afterwards. With <c>copyFromSheetId</c> the sheet starts with the latest
+    /// published content of that sheet, which must be of the same type, as your drafts.
+    /// </remarks>
+    /// <param name="phaseId">The phase's id.</param>
+    /// <param name="request">The sheet type, the identifier values and the sheet to copy, if any.</param>
+    /// <param name="cancellationToken">Cancels the request.</param>
+    /// <response code="200">The new sheet.</response>
+    /// <response code="400">A required identifier is missing, a value isn't of its identifier's kind, or the sheet to copy is of another type.</response>
+    /// <response code="404">The phase doesn't have the sheet type, or the sheet to copy doesn't exist.</response>
+    /// <response code="409">The phase already has a sheet of the type with these identifier values.</response>
+    [HttpPost("api/phases/{phaseId:int}/sheets")]
+    [Authorize(Policy = PermissionKeys.SheetsEdit)]
+    public async Task<ActionResult<SheetSummaryDto>> Create(int phaseId, CreateSheetRequest request, CancellationToken cancellationToken)
+    {
+        var result = await sheets.CreateAsync(phaseId, request, cancellationToken);
         return Ok(result);
     }
 

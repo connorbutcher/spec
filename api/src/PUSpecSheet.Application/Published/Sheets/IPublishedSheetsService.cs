@@ -9,8 +9,14 @@ namespace PUSpecSheet.Application.Published.Sheets;
 /// </summary>
 public interface IPublishedSheetsService
 {
-    /// <summary>The sheet of a sheet type for a phase, found by the phase's code.</summary>
-    Task<PublishedSheetReferenceDto> FindAsync(string phaseCode, int sheetTypeId, CancellationToken cancellationToken);
+    /// <summary>
+    /// The one sheet of a sheet type for a phase, found by the phase's code and narrowed by identifier values
+    /// (by identifier key). Fails when no sheet, or more than one, matches.
+    /// </summary>
+    Task<PublishedSheetReferenceDto> FindAsync(string phaseCode, int sheetTypeId, IReadOnlyDictionary<string, string> identifiers, CancellationToken cancellationToken);
+
+    /// <summary>Every sheet of a sheet type for a phase that has the identifier values given (by identifier key), oldest first.</summary>
+    Task<IReadOnlyList<PublishedSheetReferenceDto>> ListAsync(string phaseCode, int sheetTypeId, IReadOnlyDictionary<string, string> identifiers, CancellationToken cancellationToken);
 
     /// <summary>The sheet's published versions, oldest first.</summary>
     Task<IReadOnlyList<PublishedVersionDto>> VersionsAsync(Guid sheetPublicId, CancellationToken cancellationToken);
