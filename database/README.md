@@ -71,6 +71,13 @@ Without it, a deploy would see the old tables as ones to drop and the new ones a
 
 Databases still on the flat layout, where every version of a sheet is a whole copy of it, need their sheets migrated. `OneTime/MoveFlatTablesToLegacy.sql` moves the flat sheet and value tables into a `legacy` schema. Then a deploy creates the revision tables beside them, and the migrator in `api/tools/PUSpecSheet.Migrator` rebuilds each sheet's history as revisions and checks it against every copy. Its README has the steps.
 
+Databases deployed with `spec.Sheets.IdentityKey` (16 November 2026, sheets told apart by identifiers) need that column dropped before the next deploy, because it holds values and a deploy stops rather than drop it. Its contents are still in `spec.SheetIdentifierValues`. The one-time script is safe to run twice:
+
+```powershell
+sqlcmd -S "(localdb)\MSSQLLocalDB" -d PUSpecSheet -b -i database/OneTime/DropSheetIdentityKey.sql
+./database/deploy.ps1
+```
+
 ### Phases and sheet types (`setup` schema)
 
 | Table | Purpose |
@@ -99,8 +106,8 @@ Each sheet object is split into an identity table (stable `Id` plus a `PublicId`
 
 | Table | Purpose |
 | --- | --- |
-| `spec.Sheets` | Sheets of a phase and sheet type, one per identity: `IdentityKey` holds the sheet's identifier values normalised into one string, and the unique index (`PhaseId`, `SheetTypeId`, `IdentityKey`) keeps two sheets from sharing them. A sheet with no identifier values has an empty key, so a sheet type without identifiers keeps one sheet per phase. Has a `RowVersion`. |
-| `spec.SheetIdentifierValues` | A sheet's value for each of its type's identifiers, set when the sheet is created and never changed. Composite key (`SheetId`, `SheetTypeIdentifierId`); indexed by identifier and value for the published API's filters. |
+| `spec.Sheets` | Sheets of a phase and sheet type, indexed by (`PhaseId`, `SheetTypeId`). A sheet's identity is its values in `spec.SheetIdentifierValues` and nothing on this table; the API keeps those value sets unique per phase and type (under an application lock), and allows one sheet with no values, so a sheet type without identifiers keeps one sheet per phase. Has a `RowVersion`. |
+| `spec.SheetIdentifierValues` | A sheet's value for each of its type's identifiers, set when the sheet is created and never changed; the only place a sheet's identity is stored. Composite key (`SheetId`, `SheetTypeIdentifierId`); indexed by identifier and value for the published API's filters. |
 | `spec.SheetVersions` | Published versions of a sheet: number, when, by whom, note. |
 | `spec.SheetTables` / `spec.SheetTableRevisions` | A table on a sheet, built from a template version; revisions carry title and order. |
 | `spec.SheetSections` / `spec.SheetSectionRevisions` | Section instances (nestable) and their revisions. |

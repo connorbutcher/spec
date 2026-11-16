@@ -42,9 +42,20 @@ public static class SheetQueries
     public static async Task<int?> FindIdAsync(PuSpecSheetDbContext db, int phaseId, int sheetTypeId, CancellationToken cancellationToken)
     {
         return await db.Sheets
-            .Where(sheet => sheet.PhaseId == phaseId && sheet.SheetTypeId == sheetTypeId && sheet.IdentityKey == string.Empty)
+            .Where(sheet => sheet.PhaseId == phaseId && sheet.SheetTypeId == sheetTypeId && !sheet.IdentifierValues.Any())
+            .OrderBy(sheet => sheet.Id)
             .Select(sheet => (int?)sheet.Id)
-            .SingleOrDefaultAsync(cancellationToken);
+            .FirstOrDefaultAsync(cancellationToken);
+    }
+
+    /// <summary>The phase's sheets of the sheet type with their identifier values, read only.</summary>
+    public static async Task<List<DbSheet>> ListWithIdentifiersAsync(PuSpecSheetDbContext db, int phaseId, int sheetTypeId, CancellationToken cancellationToken)
+    {
+        return await db.Sheets
+            .AsNoTracking()
+            .Include(sheet => sheet.IdentifierValues)
+            .Where(sheet => sheet.PhaseId == phaseId && sheet.SheetTypeId == sheetTypeId)
+            .ToListAsync(cancellationToken);
     }
 
     /// <summary>The sheet's versions with who published each, read only, oldest first.</summary>

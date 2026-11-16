@@ -17,14 +17,8 @@ public sealed class SheetConfiguration : IEntityTypeConfiguration<DbSheet>
         builder.Property(sheet => sheet.RowVersion)
             .IsRowVersion();
 
-        builder.Property(sheet => sheet.IdentityKey)
-            .IsRequired()
-            .HasMaxLength(450)
-            .HasDefaultValue(string.Empty);
-
-        // One sheet per phase, sheet type and identity.
-        builder.HasIndex(sheet => new { sheet.PhaseId, sheet.SheetTypeId, sheet.IdentityKey })
-            .IsUnique();
+        // Many sheets per phase and sheet type, told apart by their identifier values; SheetCreator keeps those unique.
+        builder.HasIndex(sheet => new { sheet.PhaseId, sheet.SheetTypeId });
 
         builder.Property(sheet => sheet.CreatedAtUtc)
             .HasDefaultValueSql("SYSUTCDATETIME()");

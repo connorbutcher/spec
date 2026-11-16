@@ -21,13 +21,6 @@ public class DbSheet
     public DateTime CreatedAtUtc { get; set; }
 
     /// <summary>
-    /// The sheet's identifier values in one normalised string, so the database can hold one sheet per phase, sheet
-    /// type and identity. Empty for a sheet with no identifier values, which is how a sheet type without
-    /// identifiers keeps one sheet per phase.
-    /// </summary>
-    public string IdentityKey { get; set; } = string.Empty;
-
-    /// <summary>
     /// Concurrency token. Every publish updates the sheet, so two people publishing at the same moment
     /// can't both claim the same version number; the second is rejected and retried.
     /// </summary>

@@ -1,4 +1,3 @@
-using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Application.Common;
 using PUSpecSheet.Application.Phases.Queries;
@@ -13,10 +12,14 @@ namespace PUSpecSheet.Application.Sheets.Catalog;
 
 /// <summary>
 /// Creates sheets. A sheet is told apart from the phase's other sheets of its type by its identifier values,
-/// which the database holds unique through the sheet's identity key; they never change afterwards.
+/// held only in spec.SheetIdentifierValues; they never change afterwards. Every creation for a phase and sheet
+/// type takes the same application lock, then compares the values asked for with the sheets already there,
+/// so two people creating the same sheet at once get one sheet and a conflict.
 /// </summary>
 public sealed class SheetCreator
 {
+    private const int LockTimeoutMilliseconds = 15000;
+
     private readonly PuSpecSheetDbContext db;
     private readonly SheetCopier copier;
 
@@ -38,28 +41,22 @@ public sealed class SheetCreator
         var copyFrom = await FindCopySourceAsync(request, cancellationToken);
 
         await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
-        var sheet = new DbSheet
+        await TakeIdentityLockAsync(phaseId, request.SheetTypeId, cancellationToken);
+        if (await HasSheetWithIdentityAsync(phaseId, request.SheetTypeId, definitions, values, cancellationToken))
         {
-            PhaseId = phaseId,
-            SheetTypeId = request.SheetTypeId,
-            IdentityKey = SheetIdentifierRules.IdentityKey(values),
-        };
+            throw new ConflictException(values.Count == 0
+                ? "This phase already has a sheet of this type with no identifiers."
+                : $"This phase already has a sheet of this type with {Describe(values)}.");
+        }
+
+        var sheet = new DbSheet { PhaseId = phaseId, SheetTypeId = request.SheetTypeId };
         foreach (var value in values)
         {
             sheet.IdentifierValues.Add(new DbSheetIdentifierValue { SheetTypeIdentifierId = value.Definition.Id, Value = value.Value });
         }
 
         db.Sheets.Add(sheet);
-        try
-        {
-            await db.SaveChangesAsync(cancellationToken);
-        }
-        catch (DbUpdateException exception) when (exception.InnerException is SqlException { Number: 2601 or 2627 })
-        {
-            throw new ConflictException(values.Count == 0
-                ? "This phase already has a sheet of this type with no identifiers."
-                : $"This phase already has a sheet of this type with {Describe(values)}.");
-        }
+        await db.SaveChangesAsync(cancellationToken);
 
         if (copyFrom is { } sourceId)
         {
@@ -84,16 +81,19 @@ public sealed class SheetCreator
             throw new InvalidRequestException("Sheets of this type need their identifiers. Create one from the phase's list of sheets.");
         }
 
-        var sheet = new DbSheet { PhaseId = phaseId, SheetTypeId = sheetTypeId };
-        db.Sheets.Add(sheet);
-        if (await db.TrySaveChangesAsync(cancellationToken))
+        await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
+        await TakeIdentityLockAsync(phaseId, sheetTypeId, cancellationToken);
+        var existingId = await SheetQueries.FindIdAsync(db, phaseId, sheetTypeId, cancellationToken);
+        if (existingId is { } id)
         {
-            return sheet.Id;
+            return id;
         }
 
-        db.Detach(sheet);
-        return await SheetQueries.FindIdAsync(db, phaseId, sheetTypeId, cancellationToken)
-            ?? throw new InvalidOperationException("The sheet could not be created, and nobody else created it either.");
+        var sheet = new DbSheet { PhaseId = phaseId, SheetTypeId = sheetTypeId };
+        db.Sheets.Add(sheet);
+        await db.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
+        return sheet.Id;
     }
 
     private static List<SheetIdentifierValue> CheckedValues(List<SheetIdentifierDefinition> definitions, IReadOnlyList<SheetIdentifierValueRequest> given)
@@ -160,5 +160,39 @@ public sealed class SheetCreator
         }
 
         return sourceId;
+    }
+
+    /// <summary>
+    /// Waits for anyone else creating a sheet of the type in the phase; released when the transaction ends.
+    /// </summary>
+    private async Task TakeIdentityLockAsync(int phaseId, int sheetTypeId, CancellationToken cancellationToken)
+    {
+        var resource = $"SheetIdentity:{phaseId}:{sheetTypeId}";
+        await db.Database.ExecuteSqlAsync(
+            $"""
+            DECLARE @result int;
+            EXEC @result = sp_getapplock
+                @Resource = {resource},
+                @LockMode = 'Exclusive',
+                @LockOwner = 'Transaction',
+                @LockTimeout = {LockTimeoutMilliseconds};
+            IF @result < 0 THROW 50000, 'Someone else is creating a sheet of this type and it is taking too long. Try again.', 1;
+            """,
+            cancellationToken);
+    }
+
+    /// <summary>Whether the phase already has a sheet of the type whose identifier values name the same thing.</summary>
+    private async Task<bool> HasSheetWithIdentityAsync(
+        int phaseId,
+        int sheetTypeId,
+        List<SheetIdentifierDefinition> definitions,
+        List<SheetIdentifierValue> values,
+        CancellationToken cancellationToken)
+    {
+        var byId = definitions.ToDictionary(definition => definition.Id);
+        var wanted = SheetIdentifierRules.ComparisonKey(values);
+        var sheets = await SheetQueries.ListWithIdentifiersAsync(db, phaseId, sheetTypeId, cancellationToken);
+        return sheets.Any(sheet => SheetIdentifierRules.ComparisonKey(sheet.IdentifierValues
+            .Select(value => new SheetIdentifierValue(byId[value.SheetTypeIdentifierId], value.Value))) == wanted);
     }
 }

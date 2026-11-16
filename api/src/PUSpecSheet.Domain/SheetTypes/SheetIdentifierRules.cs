@@ -9,7 +9,7 @@ namespace PUSpecSheet.Domain.SheetTypes;
 /// </summary>
 public static class SheetIdentifierRules
 {
-    /// <summary>How many identifiers a sheet type can have; together their values must fit the identity key.</summary>
+    /// <summary>How many identifiers a sheet type can have.</summary>
     public const int MaxIdentifiers = 4;
 
     /// <summary>The longest value, in characters, once stored.</summary>
@@ -88,11 +88,12 @@ public static class SheetIdentifierRules
     }
 
     /// <summary>
-    /// The identity key of a sheet with these values: each non-blank value in its compared form, by
-    /// identifier id. A sheet with no values has an empty key, so adding an optional identifier to a sheet
-    /// type later doesn't change the keys of the sheets it already has.
+    /// A key for comparing sheets' identities in memory, never stored: each non-blank value in its compared
+    /// form, by identifier id. Two sheets name the same thing when their keys are equal. A sheet with no
+    /// values has an empty key, so adding an optional identifier to a sheet type later doesn't change the
+    /// identities of the sheets it already has.
     /// </summary>
-    public static string IdentityKey(IEnumerable<SheetIdentifierValue> values)
+    public static string ComparisonKey(IEnumerable<SheetIdentifierValue> values)
     {
         ArgumentNullException.ThrowIfNull(values);
         var parts = values

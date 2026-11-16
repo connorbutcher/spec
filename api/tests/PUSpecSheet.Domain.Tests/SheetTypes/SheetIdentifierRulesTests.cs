@@ -69,40 +69,31 @@ public sealed class SheetIdentifierRulesTests
     }
 
     [Fact]
-    public void IdentityKey_IgnoresCaseOfTextAndTheOrderValuesAreGiven()
+    public void ComparisonKey_IgnoresCaseOfTextAndTheOrderValuesAreGiven()
     {
         var serial = Definition(SheetIdentifierKind.Text, id: 1);
         var build = Definition(SheetIdentifierKind.Number, id: 2);
 
-        var first = SheetIdentifierRules.IdentityKey([new SheetIdentifierValue(serial, "esn-1"), new SheetIdentifierValue(build, "3")]);
-        var second = SheetIdentifierRules.IdentityKey([new SheetIdentifierValue(build, "3"), new SheetIdentifierValue(serial, "ESN-1")]);
+        var first = SheetIdentifierRules.ComparisonKey([new SheetIdentifierValue(serial, "esn-1"), new SheetIdentifierValue(build, "3")]);
+        var second = SheetIdentifierRules.ComparisonKey([new SheetIdentifierValue(build, "3"), new SheetIdentifierValue(serial, "ESN-1")]);
 
         Assert.Equal(first, second);
     }
 
     [Fact]
-    public void IdentityKey_IsEmptyWithNoValues()
+    public void ComparisonKey_IsEmptyWithNoValues()
     {
-        Assert.Equal(string.Empty, SheetIdentifierRules.IdentityKey([]));
+        Assert.Equal(string.Empty, SheetIdentifierRules.ComparisonKey([]));
     }
 
     [Fact]
-    public void IdentityKey_TellsDifferentValuesApart()
+    public void ComparisonKey_TellsDifferentValuesApart()
     {
         var serial = Definition(SheetIdentifierKind.Text);
 
         Assert.NotEqual(
-            SheetIdentifierRules.IdentityKey([new SheetIdentifierValue(serial, "ESN-1")]),
-            SheetIdentifierRules.IdentityKey([new SheetIdentifierValue(serial, "ESN-2")]));
-    }
-
-    [Fact]
-    public void IdentityKey_FitsTheColumnAtTheMostIdentifiersAndLongestValues()
-    {
-        var values = Enumerable.Range(int.MaxValue - SheetIdentifierRules.MaxIdentifiers, SheetIdentifierRules.MaxIdentifiers)
-            .Select(id => new SheetIdentifierValue(Definition(SheetIdentifierKind.Text, id: id), new string('x', SheetIdentifierRules.MaxValueLength)));
-
-        Assert.True(SheetIdentifierRules.IdentityKey(values).Length <= 450);
+            SheetIdentifierRules.ComparisonKey([new SheetIdentifierValue(serial, "ESN-1")]),
+            SheetIdentifierRules.ComparisonKey([new SheetIdentifierValue(serial, "ESN-2")]));
     }
 
     [Theory]
