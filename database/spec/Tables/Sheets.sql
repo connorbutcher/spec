@@ -5,6 +5,7 @@ CREATE TABLE [spec].[Sheets] (
     [CreatedAtUtc] DATETIME2 (7)    DEFAULT (sysutcdatetime()) NOT NULL,
     [PublicId]     UNIQUEIDENTIFIER DEFAULT (newsequentialid()) NOT NULL,
     [RowVersion]   ROWVERSION       NOT NULL,
+    [IdentityKey]  NVARCHAR (450)   CONSTRAINT [DF_Sheets_IdentityKey] DEFAULT (N'') NOT NULL,
     CONSTRAINT [PK_Sheets] PRIMARY KEY CLUSTERED ([Id] ASC),
     CONSTRAINT [FK_Sheets_Phases_PhaseId] FOREIGN KEY ([PhaseId]) REFERENCES [setup].[Phases] ([Id]),
     CONSTRAINT [FK_Sheets_SheetTypes_SheetTypeId] FOREIGN KEY ([SheetTypeId]) REFERENCES [setup].[SheetTypes] ([Id])
@@ -25,8 +26,8 @@ CREATE UNIQUE NONCLUSTERED INDEX [IX_Sheets_PublicId]
 
 GO
 
-CREATE UNIQUE NONCLUSTERED INDEX [IX_Sheets_PhaseId_SheetTypeId]
-    ON [spec].[Sheets]([PhaseId] ASC, [SheetTypeId] ASC);
+CREATE UNIQUE NONCLUSTERED INDEX [IX_Sheets_PhaseId_SheetTypeId_IdentityKey]
+    ON [spec].[Sheets]([PhaseId] ASC, [SheetTypeId] ASC, [IdentityKey] ASC);
 
 
 GO

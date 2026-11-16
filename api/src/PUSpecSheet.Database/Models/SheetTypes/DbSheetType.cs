@@ -12,4 +12,7 @@ public class DbSheetType
     public int DisplayOrder { get; set; }
 
     public virtual ICollection<DbPhaseSheetType> Phases { get; set; } = [];
+
+    /// <summary>The values that tell one sheet of this type from another within a phase.</summary>
+    public virtual ICollection<DbSheetTypeIdentifier> Identifiers { get; set; } = [];
 }

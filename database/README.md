@@ -49,7 +49,7 @@ The project also opens in Visual Studio (SSDT) and in the SQL Database Projects 
 
 ## Schema overview
 
-40 tables in six schemas, grouped by area; nothing lives in `dbo`. Every table has an `int` identity `Id` primary key unless noted.
+42 tables in six schemas, grouped by area; nothing lives in `dbo`. Every table has an `int` identity `Id` primary key unless noted.
 
 | Schema | Holds |
 | --- | --- |
@@ -77,6 +77,7 @@ Databases still on the flat layout, where every version of a sheet is a whole co
 | --- | --- |
 | `setup.Phases` | Phase tree (`ParentPhaseId` self-reference), with `Code` and `DisplayOrder`. |
 | `setup.SheetTypes` | Kinds of sheet (Specification, PFKs, Parts, ...). |
+| `setup.SheetTypeIdentifiers` | The values that tell one sheet of a type from another within a phase (an engine specification's serial number, say): `Key` (the published API's filter name, fixed once created), `Name`, `Kind` (0 text, 1 number, 2 date, 3 option), `IsRequired`, `DisplayOrder`, and `Options` as a JSON array for the option kind. |
 | `setup.PhaseSheetTypes` | Which sheet types a phase uses. Composite key (`PhaseId`, `SheetTypeId`). |
 
 ### Templates (`design` schema)
@@ -98,7 +99,8 @@ Each sheet object is split into an identity table (stable `Id` plus a `PublicId`
 
 | Table | Purpose |
 | --- | --- |
-| `spec.Sheets` | One sheet per phase and sheet type. Has a `RowVersion`. |
+| `spec.Sheets` | Sheets of a phase and sheet type, one per identity: `IdentityKey` holds the sheet's identifier values normalised into one string, and the unique index (`PhaseId`, `SheetTypeId`, `IdentityKey`) keeps two sheets from sharing them. A sheet with no identifier values has an empty key, so a sheet type without identifiers keeps one sheet per phase. Has a `RowVersion`. |
+| `spec.SheetIdentifierValues` | A sheet's value for each of its type's identifiers, set when the sheet is created and never changed. Composite key (`SheetId`, `SheetTypeIdentifierId`); indexed by identifier and value for the published API's filters. |
 | `spec.SheetVersions` | Published versions of a sheet: number, when, by whom, note. |
 | `spec.SheetTables` / `spec.SheetTableRevisions` | A table on a sheet, built from a template version; revisions carry title and order. |
 | `spec.SheetSections` / `spec.SheetSectionRevisions` | Section instances (nestable) and their revisions. |

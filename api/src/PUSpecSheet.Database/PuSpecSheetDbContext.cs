@@ -25,6 +25,8 @@ public sealed class PuSpecSheetDbContext : DbContext
 
     public DbSet<DbSheetType> SheetTypes => Set<DbSheetType>();
 
+    public DbSet<DbSheetTypeIdentifier> SheetTypeIdentifiers => Set<DbSheetTypeIdentifier>();
+
     public DbSet<DbPhase> Phases => Set<DbPhase>();
 
     public DbSet<DbPhaseSheetType> PhaseSheetTypes => Set<DbPhaseSheetType>();
@@ -58,6 +60,8 @@ public sealed class PuSpecSheetDbContext : DbContext
     public DbSet<DbSheet> Sheets => Set<DbSheet>();
 
     public DbSet<DbSheetVersion> SheetVersions => Set<DbSheetVersion>();
+
+    public DbSet<DbSheetIdentifierValue> SheetIdentifierValues => Set<DbSheetIdentifierValue>();
 
     public DbSet<DbSheetSubmission> SheetSubmissions => Set<DbSheetSubmission>();
 
