@@ -29,6 +29,15 @@
     <QueryStoreMaxStorageSize>1000</QueryStoreMaxStorageSize>
     <QueryStoreStaleQueryThreshold>30</QueryStoreStaleQueryThreshold>
   </PropertyGroup>
+  <!-- The ANSI_NULLS and QUOTED_IDENTIFIER options above are the database's own settings, but they are also the default
+       each object script is created under. Filtered indexes and indexed computed columns need both on, so the scripts
+       are created with them on whatever the database settings say. -->
+  <ItemGroup>
+    <Build Update="**\*.sql">
+      <AnsiNulls>On</AnsiNulls>
+      <QuotedIdentifier>On</QuotedIdentifier>
+    </Build>
+  </ItemGroup>
   <!-- Reference data (sheet types, cell types, permissions, the administrator role and developer user), run after
        every deployment. -->
   <ItemGroup>

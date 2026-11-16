@@ -34,7 +34,11 @@ try {
         throw 'Database project build failed.'
     }
 
+    # Windows PowerShell turns a native command's error output into a terminating error under 'Stop', which would hide
+    # all but the first line of SqlPackage's message; the exit code is checked below instead.
+    $ErrorActionPreference = 'Continue'
     dotnet sqlpackage /Action:Publish /SourceFile:bin/Debug/PUSpecSheet.Database.dacpac "/TargetServerName:$Server" "/TargetDatabaseName:$Database" /TargetTrustServerCertificate:True /p:BlockOnPossibleDataLoss=true
+    $ErrorActionPreference = 'Stop'
     if ($LASTEXITCODE -ne 0) {
         throw 'SqlPackage publish failed.'
     }
