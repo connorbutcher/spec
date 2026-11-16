@@ -35,4 +35,10 @@ public class DbSheetVersion
     public virtual ICollection<DbSheetColumnBlockRevision> ColumnBlockRevisions { get; set; } = [];
 
     public virtual ICollection<DbSheetRowRevision> RowRevisions { get; set; } = [];
+
+    /// <summary>The property revisions (values changed, properties added or removed) published in this version; at most one per property.</summary>
+    public virtual ICollection<DbSheetPropertyRevision> PropertyRevisions { get; set; } = [];
+
+    /// <summary>The external reference revisions pushed for this version; at most one per reference.</summary>
+    public virtual ICollection<DbSheetExternalReferenceRevision> ExternalReferenceRevisions { get; set; } = [];
 }

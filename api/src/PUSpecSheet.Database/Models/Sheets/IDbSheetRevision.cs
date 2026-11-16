@@ -3,9 +3,11 @@ using PUSpecSheet.Domain.Sheets;
 namespace PUSpecSheet.Database.Models.Sheets;
 
 /// <summary>
-/// What every revision type (table, section and row) has in common, so the draft, lock and "as of"
-/// rules can be written once. A revision is a draft until published, and the published revisions of one
-/// item form an unbroken timeline of <c>[PublishedAtUtc, SupersededAtUtc)</c> ranges.
+/// What every revision type edited in the app (table, section, column block, row and property) has in
+/// common, so the draft, lock and "as of" rules can be written once. A revision is a draft until published,
+/// and the published revisions of one item form an unbroken timeline of <c>[PublishedAtUtc, SupersededAtUtc)</c>
+/// ranges. External reference revisions keep the same timeline but have no drafts, authors or approvals, so
+/// they aren't one of these (see <see cref="DbSheetExternalReferenceRevision"/>).
 /// </summary>
 public interface IDbSheetRevision
 {

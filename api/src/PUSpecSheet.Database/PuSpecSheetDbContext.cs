@@ -81,6 +81,14 @@ public sealed class PuSpecSheetDbContext : DbContext
 
     public DbSet<DbSheetRowRevision> SheetRowRevisions => Set<DbSheetRowRevision>();
 
+    public DbSet<DbSheetProperty> SheetProperties => Set<DbSheetProperty>();
+
+    public DbSet<DbSheetPropertyRevision> SheetPropertyRevisions => Set<DbSheetPropertyRevision>();
+
+    public DbSet<DbSheetExternalReference> SheetExternalReferences => Set<DbSheetExternalReference>();
+
+    public DbSet<DbSheetExternalReferenceRevision> SheetExternalReferenceRevisions => Set<DbSheetExternalReferenceRevision>();
+
     public DbSet<DbTextValue> TextValues => Set<DbTextValue>();
 
     public DbSet<DbNumericValue> NumericValues => Set<DbNumericValue>();

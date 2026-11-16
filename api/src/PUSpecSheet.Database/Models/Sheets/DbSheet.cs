@@ -32,6 +32,12 @@ public class DbSheet
 
     public virtual ICollection<DbSheetTable> Tables { get; set; } = [];
 
+    /// <summary>Values about the sheet as a whole, versioned with it.</summary>
+    public virtual ICollection<DbSheetProperty> Properties { get; set; } = [];
+
+    /// <summary>References to the sheet pushed in by external systems, each revision tied to a version.</summary>
+    public virtual ICollection<DbSheetExternalReference> ExternalReferences { get; set; } = [];
+
     /// <summary>The numbered publishes of this sheet, oldest first.</summary>
     public virtual ICollection<DbSheetVersion> Versions { get; set; } = [];
 }

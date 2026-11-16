@@ -49,7 +49,7 @@ The project also opens in Visual Studio (SSDT) and in the SQL Database Projects 
 
 ## Schema overview
 
-36 tables in six schemas, grouped by area; nothing lives in `dbo`. Every table has an `int` identity `Id` primary key unless noted.
+40 tables in six schemas, grouped by area; nothing lives in `dbo`. Every table has an `int` identity `Id` primary key unless noted.
 
 | Schema | Holds |
 | --- | --- |
@@ -105,8 +105,14 @@ Each sheet object is split into an identity table (stable `Id` plus a `PublicId`
 | `spec.SheetColumnBlocks` / `spec.SheetColumnBlockRevisions` | Column block instances and their revisions. |
 | `spec.SheetRows` / `spec.SheetRowRevisions` | Row instances and their revisions; cell values hang off the row revision. |
 | `spec.SheetCells` | A cell of a sheet row, tied to its template cell and optional column block. |
+| `spec.SheetProperties` / `spec.SheetPropertyRevisions` | Values about the sheet as a whole, and their revisions. |
+| `spec.SheetExternalReferences` / `spec.SheetExternalReferenceRevisions` | References pushed in by external systems, and their revisions, each tied to a version. |
 
-All four revision tables share one shape: `RevisionNumber`, `Status` (0 draft, 1 published), `IsDeleted`, author, created/updated/published/superseded timestamps, the `SheetVersionId` they were published in, the `SheetSubmissionId` of the approval they wait on, and a `ROWVERSION` column for optimistic concurrency. Check constraints tie `PublishedAtUtc` and `SupersededAtUtc` to `Status`, and filtered unique indexes allow one draft (`Status = 0`) and one current published revision (`Status = 1 AND SupersededAtUtc IS NULL`) per object.
+The table, section, column block and row revision tables share one shape: `RevisionNumber`, `Status` (0 draft, 1 published), `IsDeleted`, author, created/updated/published/superseded timestamps, the `SheetVersionId` they were published in, the `SheetSubmissionId` of the approval they wait on, and a `ROWVERSION` column for optimistic concurrency. Check constraints tie `PublishedAtUtc` and `SupersededAtUtc` to `Status`, and filtered unique indexes allow one draft (`Status = 0`) and one current published revision (`Status = 1 AND SupersededAtUtc IS NULL`) per object.
+
+Property revisions have the same shape and rules, plus two more. A published revision must name its version (`CK_SheetPropertyRevisions_Version`), and a property has at most one revision per version (`UX_SheetPropertyRevisions_OnePerVersion`), so its value changes at most once from one version to the next.
+
+External reference revisions are pushed in by the external system, not edited in the app. So they have no `Status`, author, drafts or approvals: each is published when pushed, for the `SheetVersionId` it names, which is required. They keep the same `[PublishedAtUtc, SupersededAtUtc)` timeline, with `PublishedAtUtc` set to the version's publish time and the actual arrival in `PushedAtUtc`. That way "the sheet as of a version" includes the references pushed for it and carries them forward until the reference is next pushed. A reference has one revision per version (`UX_SheetExternalReferenceRevisions_OnePerVersion`), so pushing again for the same version updates it. A push for an older version goes into the middle of the timeline: it is superseded at once by the revision after it.
 
 ### Cell values (`cell` schema)
 
