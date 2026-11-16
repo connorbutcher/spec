@@ -6,7 +6,10 @@ using PUSpecSheet.Database;
 
 namespace PUSpecSheet.Application.Seeding;
 
-/// <summary>Opens a phase's sheet of a sheet type, creating it as the app does the first time, for a <see cref="SheetEditor"/>.</summary>
+/// <summary>
+/// Opens a sheet for a <see cref="SheetEditor"/>: a phase's one sheet of a sheet type, creating it as the app
+/// does the first time, or a sheet by id.
+/// </summary>
 public sealed class SheetEditorFactory
 {
     private readonly PuSpecSheetDbContext db;
@@ -39,6 +42,13 @@ public sealed class SheetEditorFactory
     {
         var sheetTypeId = await SheetTypeQueries.GetIdByNameAsync(db, sheetTypeName, cancellationToken);
         var sheet = await sheets.OpenAsync(phaseId, sheetTypeId, SheetViewPoint.Live, cancellationToken);
+        return new SheetEditor(sheet, cellTypes, sheets, tables, sections, rows, columnBlocks, cellSettings);
+    }
+
+    /// <summary>Opens the sheet <paramref name="sheetId"/>, one of several of its type in a phase, as the current user sees it.</summary>
+    public async Task<SheetEditor> OpenSheetAsync(int sheetId, ShowcaseCellTypeCatalog cellTypes, CancellationToken cancellationToken)
+    {
+        var sheet = await sheets.GetAsync(sheetId, SheetViewPoint.Live, cancellationToken);
         return new SheetEditor(sheet, cellTypes, sheets, tables, sections, rows, columnBlocks, cellSettings);
     }
 }

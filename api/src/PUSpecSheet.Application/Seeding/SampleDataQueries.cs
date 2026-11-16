@@ -42,6 +42,7 @@ public static class SampleDataQueries
         await db.SheetSections.ExecuteDeleteAsync(cancellationToken);
         await db.SheetTables.ExecuteDeleteAsync(cancellationToken);
         await db.SheetVersions.ExecuteDeleteAsync(cancellationToken);
+        await db.SheetIdentifierValues.ExecuteDeleteAsync(cancellationToken);
         await db.Sheets.ExecuteDeleteAsync(cancellationToken);
 
         await db.TemplateCells.ExecuteDeleteAsync(cancellationToken);

@@ -134,6 +134,8 @@ public static class ApplicationServiceCollectionExtensions
         services.AddScoped<SpecificationSheetSeeder>();
         services.AddScoped<PfkSheetSeeder>();
         services.AddScoped<PartsSheetSeeder>();
+        services.AddScoped<ShowcaseSheetIdentifiers>();
+        services.AddScoped<EngineSpecificationSheetSeeder>();
         services.AddScoped<ShowcaseDataSeeder>();
     }
 }

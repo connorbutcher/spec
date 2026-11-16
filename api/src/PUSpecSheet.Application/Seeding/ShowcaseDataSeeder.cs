@@ -6,9 +6,11 @@ namespace PUSpecSheet.Application.Seeding;
 
 /// <summary>
 /// Development-only sample data that shows off the whole app: templates for the Specification, PFKs and
-/// Parts sheet types with several versions each, every cell kind, addable sections nested three deep with
-/// minimums and maximums, column blocks, per-cell settings and styles and lookup keys, and sheets for V6
-/// and A2 to A5 with published history by three people, unpublished changes and the locks they hold.
+/// Parts sheet types with several versions each (and an as-built record for Engine Specifications), every
+/// cell kind, addable sections nested three deep with minimums and maximums, column blocks, per-cell
+/// settings and styles and lookup keys, and sheets for V6 and A2 to A5 with published history by three
+/// people, unpublished changes and the locks they hold, and several Engine Specifications sheets in V6
+/// told apart by serial number, one of them copied from another.
 /// <para>
 /// <b>It clears the database first.</b> Every sheet, template and user-made cell type is deleted (see
 /// <see cref="SampleDataQueries"/>) and the showcase is built in their place. That happens once: the
@@ -30,6 +32,7 @@ public sealed partial class ShowcaseDataSeeder
     private readonly SpecificationSheetSeeder specification;
     private readonly PfkSheetSeeder pfks;
     private readonly PartsSheetSeeder parts;
+    private readonly EngineSpecificationSheetSeeder engineSpecifications;
     private readonly ShowcaseUsers users;
     private readonly ILogger<ShowcaseDataSeeder> logger;
 
@@ -41,6 +44,7 @@ public sealed partial class ShowcaseDataSeeder
         SpecificationSheetSeeder specification,
         PfkSheetSeeder pfks,
         PartsSheetSeeder parts,
+        EngineSpecificationSheetSeeder engineSpecifications,
         ShowcaseUsers users,
         ILogger<ShowcaseDataSeeder> logger)
     {
@@ -51,6 +55,7 @@ public sealed partial class ShowcaseDataSeeder
         this.specification = specification;
         this.pfks = pfks;
         this.parts = parts;
+        this.engineSpecifications = engineSpecifications;
         this.users = users;
         this.logger = logger;
     }
@@ -88,8 +93,9 @@ public sealed partial class ShowcaseDataSeeder
         var gaugeTemplate = new GaugeTemplate();
         var registerTemplate = new PfkRegisterTemplate();
         var partsTemplate = new PartsMatrixTemplate();
+        var buildRecordTemplate = new BuildRecordTemplate();
         var templateIds = new Dictionary<string, int>();
-        IShowcaseTemplate[] all = [specificationTemplate, gaugeTemplate, registerTemplate, partsTemplate];
+        IShowcaseTemplate[] all = [specificationTemplate, gaugeTemplate, registerTemplate, partsTemplate, buildRecordTemplate];
         foreach (var template in all)
         {
             templateIds[template.Name] = await templates.CreateAsync(template, catalog, cancellationToken);
@@ -101,6 +107,9 @@ public sealed partial class ShowcaseDataSeeder
         await specification.SeedV6Async(context, cancellationToken);
         await pfks.SeedV6Async(context, cancellationToken);
         await parts.SeedV6Async(context, cancellationToken);
+
+        // V6's Engine Specifications: several sheets of the one type, one per engine serial number.
+        await engineSpecifications.SeedV6Async(context, cancellationToken);
 
         // Version 2 of three of them, which the A phases are built from.
         await templates.AddVersionAsync(templateIds[specificationTemplate.Name], specificationTemplate, catalog, 2, cancellationToken);
