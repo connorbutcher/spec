@@ -1,0 +1,74 @@
+<form class="app-fields identifier-form" (submit)="$event.preventDefault()">
+  <div class="app-field-row two">
+    <div class="app-field">
+      <label for="identifier-name">Name</label>
+      <input
+        pInputText
+        pSize="small"
+        id="identifier-name"
+        type="text"
+        maxlength="100"
+        autocomplete="off"
+        placeholder="e.g. Serial number"
+        [ngModel]="name()"
+        (ngModelChange)="name.set($event)"
+        [ngModelOptions]="{ standalone: true }"
+      />
+    </div>
+    <div class="app-field">
+      <label for="identifier-kind">Kind</label>
+      <p-select
+        size="small"
+        inputId="identifier-kind"
+        appendTo="body"
+        [fluid]="true"
+        [options]="kinds"
+        optionLabel="label"
+        optionValue="value"
+        [ngModel]="kind()"
+        (ngModelChange)="kind.set($event)"
+        [ngModelOptions]="{ standalone: true }"
+      />
+    </div>
+  </div>
+
+  @if (kind() === 'Option') {
+    <div class="app-field">
+      <label for="identifier-options">Options, one per line</label>
+      <textarea
+        pTextarea
+        pSize="small"
+        id="identifier-options"
+        rows="4"
+        [ngModel]="optionsText()"
+        (ngModelChange)="optionsText.set($event)"
+        [ngModelOptions]="{ standalone: true }"
+      ></textarea>
+    </div>
+  }
+
+  <label class="app-check">
+    <p-checkbox
+      size="small"
+      [binary]="true"
+      [ngModel]="isRequired()"
+      (ngModelChange)="isRequired.set($event)"
+      [ngModelOptions]="{ standalone: true }"
+    />
+    Required for every new sheet
+  </label>
+
+  @if (error(); as error) {
+    <app-error-message [message]="error" />
+  }
+
+  <div class="app-actions buttons">
+    <app-dialog-actions
+      [confirmLabel]="confirmLabel()"
+      [confirmDisabled]="!canSave()"
+      [busy]="isSaving()"
+      (cancelled)="cancelled.emit()"
+      (confirmed)="save()"
+    />
+  </div>
+</form>

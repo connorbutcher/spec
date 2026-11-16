@@ -4,6 +4,7 @@ import { firstValueFrom } from 'rxjs';
 import { Phase } from '../../core/models/phase.model';
 import { SheetType } from '../../core/models/sheet-type.model';
 import { CreatePhaseRequest } from './models/create-phase-request.model';
+import { SaveSheetTypeIdentifierRequest } from './models/save-sheet-type-identifier-request.model';
 
 /** Write calls for the admin section. Reads go through `httpResource` in the stores. */
 @Service()
@@ -39,5 +40,28 @@ export class AdminApi {
   /** Adds a sheet type to the end of the list. Needs the `sheetTypes.manage` permission. */
   public createSheetType(name: string): Promise<SheetType> {
     return firstValueFrom(this.http.post<SheetType>('/api/sheet-types', { name }));
+  }
+
+  /** Adds an identifier to a sheet type and returns the sheet type. Needs the `sheetTypes.manage` permission. */
+  public addIdentifier(sheetTypeId: number, request: SaveSheetTypeIdentifierRequest): Promise<SheetType> {
+    return firstValueFrom(this.http.post<SheetType>(`/api/sheet-types/${sheetTypeId}/identifiers`, request));
+  }
+
+  /** Changes an identifier of a sheet type and returns the sheet type. Needs the `sheetTypes.manage` permission. */
+  public updateIdentifier(
+    sheetTypeId: number,
+    identifierId: number,
+    request: SaveSheetTypeIdentifierRequest,
+  ): Promise<SheetType> {
+    return firstValueFrom(
+      this.http.put<SheetType>(`/api/sheet-types/${sheetTypeId}/identifiers/${identifierId}`, request),
+    );
+  }
+
+  /** Removes an identifier no sheet has a value for. Needs the `sheetTypes.manage` permission. */
+  public deleteIdentifier(sheetTypeId: number, identifierId: number): Promise<SheetType> {
+    return firstValueFrom(
+      this.http.delete<SheetType>(`/api/sheet-types/${sheetTypeId}/identifiers/${identifierId}`),
+    );
   }
 }

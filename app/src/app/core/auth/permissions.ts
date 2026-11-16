@@ -2,6 +2,7 @@
 export const PERMISSIONS = {
   phasesManage: 'phases.manage',
   sheetTypesManage: 'sheetTypes.manage',
+  sheetsEdit: 'sheets.edit',
 } as const;
 
 export type Permission = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];

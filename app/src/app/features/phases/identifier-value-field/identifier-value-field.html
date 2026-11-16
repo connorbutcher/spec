@@ -1,0 +1,58 @@
+<div class="app-field">
+  <label [for]="inputId()">
+    {{ identifier().name }}
+    @if (!identifier().isRequired) {
+      <span class="optional">optional</span>
+    }
+  </label>
+  @switch (identifier().kind) {
+    @case ('Number') {
+      <p-inputnumber
+        size="small"
+        [inputId]="inputId()"
+        [fluid]="true"
+        [useGrouping]="false"
+        [maxFractionDigits]="10"
+        [ngModel]="number()"
+        (ngModelChange)="setNumber($event)"
+      />
+    }
+    @case ('Date') {
+      <p-datepicker
+        size="small"
+        [inputId]="inputId()"
+        [fluid]="true"
+        dateFormat="yy-mm-dd"
+        appendTo="body"
+        [showClear]="!identifier().isRequired"
+        [ngModel]="date()"
+        (ngModelChange)="setDate($event)"
+      />
+    }
+    @case ('Option') {
+      <p-select
+        size="small"
+        [inputId]="inputId()"
+        [fluid]="true"
+        appendTo="body"
+        [options]="identifier().options"
+        [showClear]="!identifier().isRequired"
+        placeholder="Choose"
+        [ngModel]="value() || null"
+        (ngModelChange)="setText($event)"
+      />
+    }
+    @default {
+      <input
+        pInputText
+        pSize="small"
+        type="text"
+        maxlength="80"
+        autocomplete="off"
+        [id]="inputId()"
+        [ngModel]="value()"
+        (ngModelChange)="setText($event)"
+      />
+    }
+  }
+</div>

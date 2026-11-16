@@ -2,7 +2,7 @@ import { SheetUrlUtil } from './sheet-url.util';
 
 describe('sheetTarget', () => {
   it('reads both ids from the route', () => {
-    expect(SheetUrlUtil.sheetTarget('3', '2')).toEqual({ phaseId: 3, sheetTypeId: 2 });
+    expect(SheetUrlUtil.sheetTarget('3', '2')).toEqual({ phaseId: 3, sheetTypeId: 2, sheetId: null });
   });
 
   it('is nothing when an id is missing or is not a whole number above zero', () => {
@@ -11,10 +11,19 @@ describe('sheetTarget', () => {
     expect(SheetUrlUtil.sheetTarget('3', '0')).toBeNull();
     expect(SheetUrlUtil.sheetTarget('3', '1.5')).toBeNull();
   });
+
+  it('reads the sheet id when the route names one', () => {
+    expect(SheetUrlUtil.sheetTarget('3', '2', '17')).toEqual({ phaseId: 3, sheetTypeId: 2, sheetId: 17 });
+    expect(SheetUrlUtil.sheetTarget('3', '2', 'x')).toBeNull();
+  });
 });
 
 describe('sheetUrl', () => {
-  const target = { phaseId: 3, sheetTypeId: 2 };
+  const target = { phaseId: 3, sheetTypeId: 2, sheetId: null };
+
+  it('reads a sheet named by id from its own address', () => {
+    expect(SheetUrlUtil.sheetUrl({ phaseId: 3, sheetTypeId: 2, sheetId: 17 }, { version: 4 })).toBe('/api/sheets/17?version=4');
+  });
 
   it('reads the live sheet when no moment is chosen', () => {
     expect(SheetUrlUtil.sheetUrl(target, {})).toBe('/api/phases/3/sheets/2');
@@ -33,7 +42,7 @@ describe('sheetUrl', () => {
 
 describe('reviewing a submission', () => {
   it('asks for the live sheet with the submission on top', () => {
-    expect(SheetUrlUtil.sheetUrl({ phaseId: 3, sheetTypeId: 2 }, { submission: 12 })).toBe(
+    expect(SheetUrlUtil.sheetUrl({ phaseId: 3, sheetTypeId: 2, sheetId: null }, { submission: 12 })).toBe(
       '/api/phases/3/sheets/2?submission=12',
     );
   });

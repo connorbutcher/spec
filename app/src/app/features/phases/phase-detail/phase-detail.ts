@@ -7,12 +7,12 @@ import { BreadcrumbItem } from '../../../shared/components/breadcrumb/breadcrumb
 import { EmptyState } from '../../../shared/components/empty-state/empty-state';
 import { PhaseDetailHeader } from '../phase-detail-header/phase-detail-header';
 import { PhasesStore } from '../phases.store';
-import { SheetTypeTable } from '../sheet-type-table/sheet-type-table';
+import { PhaseSheets } from '../phase-sheets/phase-sheets';
 
 /** The card for the phase selected in the side nav tree (from the `:phaseId` route parameter). */
 @Component({
   selector: 'app-phase-detail',
-  imports: [BadgeModule, Breadcrumb, EmptyState, PhaseDetailHeader, SheetTypeTable],
+  imports: [BadgeModule, Breadcrumb, EmptyState, PhaseDetailHeader, PhaseSheets],
   templateUrl: './phase-detail.html',
   styleUrl: './phase-detail.scss',
 })

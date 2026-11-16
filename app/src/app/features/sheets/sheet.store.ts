@@ -163,7 +163,7 @@ export class SheetStore {
 
   private readonly target = toSignal(
     this.route.paramMap.pipe(
-      map((params) => SheetUrlUtil.sheetTarget(params.get('phaseId'), params.get('sheetTypeId'))),
+      map((params) => SheetUrlUtil.sheetTarget(params.get('phaseId'), params.get('sheetTypeId'), params.get('sheetId'))),
     ),
     { initialValue: null },
   );

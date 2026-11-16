@@ -2,6 +2,12 @@ import { Routes } from '@angular/router';
 
 export const PHASES_ROUTES: Routes = [
   {
+    // One of a phase's sheets of a type, by id: a sheet type with identifiers can have many in a phase.
+    path: ':phaseId/sheets/:sheetTypeId/:sheetId',
+    title: 'Sheet · PU Spec Sheet',
+    loadComponent: () => import('../sheets/sheet-page/sheet-page').then((m) => m.SheetPage),
+  },
+  {
     // A phase's sheet opens on its own full-width screen, outside the phase tree layout.
     path: ':phaseId/sheets/:sheetTypeId',
     title: 'Sheet · PU Spec Sheet',

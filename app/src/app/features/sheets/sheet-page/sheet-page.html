@@ -7,9 +7,13 @@
         </h1>
         <app-sheet-switcher
           [sheetTypes]="phaseSheetTypes()"
+          [sheets]="phaseSheets()"
           [phaseId]="phase.id"
           [currentId]="sheetType.id"
         />
+        @if (sheetType.identifiers.length > 0) {
+          <app-sheet-picker [sheetType]="sheetType" [sheets]="phaseSheets()" [currentId]="openSheetId()" />
+        }
         @if (sheet()) {
           <app-sheet-toolbar />
         }

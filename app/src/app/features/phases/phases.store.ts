@@ -86,12 +86,15 @@ export class PhasesStore {
 
   /**
    * Opens a phase. When a sheet is open and the phase has that sheet type, opens the same sheet for the
-   * phase instead, so moving between phases doesn't lose your place.
+   * phase instead, so moving between phases doesn't lose your place. A sheet type with identifiers can have
+   * many sheets in a phase, so for one of those the phase's list of sheets opens instead.
    */
   public selectPhase(id: number): void {
     const sheetTypeId = this.selectedSheetTypeId();
     const phase = this.phaseById(id);
-    if (sheetTypeId !== null && phase?.sheetTypeIds.includes(sheetTypeId)) {
+    const sheetType = this.sheetTypes().find((candidate) => candidate.id === sheetTypeId);
+    const hasOneSheet = sheetType?.identifiers.length === 0;
+    if (sheetTypeId !== null && hasOneSheet && phase?.sheetTypeIds.includes(sheetTypeId)) {
       void this.router.navigate(['/phases', id, 'sheets', sheetTypeId]);
       return;
     }

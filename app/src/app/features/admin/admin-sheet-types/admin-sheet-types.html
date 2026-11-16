@@ -18,7 +18,9 @@
     <tr>
       <th class="num">#</th>
       <th class="name">Sheet type</th>
+      <th>Identifiers</th>
       <th>Available to</th>
+      <th class="actions"></th>
     </tr>
   </ng-template>
   <ng-template #body let-row let-rowIndex="rowIndex">
@@ -28,6 +30,7 @@
         <i class="pi" [class]="icon(row)" aria-hidden="true"></i>
         {{ row.sheetType.name }}
       </td>
+      <td [class.muted]="row.sheetType.identifiers.length === 0">{{ identifierNames(row) }}</td>
       <td>
         @if (row.phaseCodes.length > 0) {
           <span class="codes">{{ row.phaseCodes.join(', ') }}</span>
@@ -35,13 +38,29 @@
           <span class="muted">No phases yet</span>
         }
       </td>
+      <td class="actions">
+        <p-button
+          label="Identifiers"
+          icon="pi pi-pencil"
+          size="small"
+          [text]="true"
+          severity="secondary"
+          [disabled]="!canManage()"
+          (onClick)="editIdentifiers(row)"
+        />
+      </td>
     </tr>
   </ng-template>
   <ng-template #emptymessage>
     <tr>
-      <td colspan="3" class="muted">No sheet types yet.</td>
+      <td colspan="5" class="muted">No sheet types yet.</td>
     </tr>
   </ng-template>
 </p-table>
 
 <app-add-sheet-type-dialog [(visible)]="isAdding" (created)="onCreated()" />
+<app-sheet-type-identifiers-dialog
+  [(visible)]="isEditingIdentifiers"
+  [sheetType]="identifiersOf()"
+  (changed)="onCreated()"
+/>

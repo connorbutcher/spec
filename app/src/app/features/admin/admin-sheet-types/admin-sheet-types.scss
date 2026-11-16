@@ -1,6 +1,6 @@
 :host {
   display: block;
-  max-width: 48rem;
+  max-width: 64rem;
   padding: var(--app-space-4) var(--app-space-6) var(--app-space-6);
 }
 
@@ -28,4 +28,9 @@
     font-family: var(--app-font-mono);
     font-size: var(--app-font-size-md);
   }
+}
+
+.actions {
+  width: 7rem;
+  text-align: right;
 }

@@ -59,7 +59,7 @@ export class SubmissionLabelsUtil {
 
   /** The route to the sheet showing a pending submission's changes for review. */
   public static reviewLink(submission: SheetSubmission): unknown[] {
-    return ['/phases', submission.phaseId, 'sheets', submission.sheetTypeId];
+    return ['/phases', submission.phaseId, 'sheets', submission.sheetTypeId, submission.sheetId];
   }
 
   private static count(value: number, noun: string): string | null {

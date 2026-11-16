@@ -1,4 +1,5 @@
 import { CdkDrag, CdkDragDrop, CdkDropList } from '@angular/cdk/drag-drop';
+import { httpResource } from '@angular/common/http';
 import { Component, computed, effect, inject, input } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Title } from '@angular/platform-browser';
@@ -10,7 +11,9 @@ import { SkeletonModule } from 'primeng/skeleton';
 import { ToastModule } from 'primeng/toast';
 import { filter } from 'rxjs';
 import { Phase } from '../../../core/models/phase.model';
+import { SheetSummary } from '../../../core/models/sheet-summary.model';
 import { SheetType } from '../../../core/models/sheet-type.model';
+import { SheetIdentityUtil } from '../../../shared/sheet-identity.util';
 import { EmptyState } from '../../../shared/components/empty-state/empty-state';
 import { PhasesStore } from '../../phases/phases.store';
 import { RowCheckoutStore } from '../checkouts/row-checkout.store';
@@ -21,6 +24,7 @@ import { SheetHub } from '../live/sheet-hub';
 import { SheetLiveStore } from '../live/sheet-live.store';
 import { SheetLoadError } from '../sheet-load-error/sheet-load-error';
 import { SheetSearchStore } from '../search/sheet-search.store';
+import { SheetPicker } from '../sheet-picker/sheet-picker';
 import { SheetSwitcher } from '../sheet-switcher/sheet-switcher';
 import { SheetTableCard } from '../sheet-table-card/sheet-table-card';
 import { SheetTakeoverRequests } from '../sheet-takeover-requests/sheet-takeover-requests';
@@ -28,7 +32,8 @@ import { SheetToolbar } from '../sheet-toolbar/sheet-toolbar';
 import { SheetStore } from '../sheet.store';
 
 /**
- * One PU Spec Sheet for a phase (`/phases/:phaseId/sheets/:sheetTypeId`), full width. Users build it up
+ * One PU Spec Sheet for a phase (`/phases/:phaseId/sheets/:sheetTypeId`, or `.../:sheetId` for one of
+ * several sheets of a type told apart by identifiers), full width. Users build it up
  * from the sheet type's table templates: adding tables, then sections and rows within them, and filling
  * in the cells. Each table, section and row is locked to its editor until they publish, and each
  * publish is a numbered version that can be viewed again by number or date. Several people can work on
@@ -44,6 +49,7 @@ import { SheetStore } from '../sheet.store';
     MessageModule,
     SheetContextBar,
     SheetLoadError,
+    SheetPicker,
     SheetSwitcher,
     SheetTableCard,
     SheetTakeoverRequests,
@@ -69,6 +75,8 @@ export class SheetPage {
   /** Bound from the route parameters. */
   public readonly phaseId = input.required<string>();
   public readonly sheetTypeId = input.required<string>();
+  /** Set when the route names one of the phase's sheets of the type by id. */
+  public readonly sheetId = input<string>();
 
   public readonly phase = computed<Phase | undefined>(() =>
     this.phases.phaseById(Number(this.phaseId())),
@@ -80,12 +88,30 @@ export class SheetPage {
     return phase ? this.phases.sheetTypesFor(phase) : [];
   });
 
+  /** The phase's sheets, of every type, for the switcher and the sheet picker. */
+  public readonly phaseSheets = computed<SheetSummary[]>(() =>
+    this.phaseSheetsResource.hasValue() ? this.phaseSheetsResource.value() : [],
+  );
+
   /** The open sheet type, only if it's available to this phase. */
   public readonly sheetType = computed<SheetType | undefined>(() =>
     this.phaseSheetTypes().find((sheetType) => sheetType.id === Number(this.sheetTypeId())),
   );
 
   public readonly sheet = computed(() => this.sheetStore.sheet());
+
+  /** The open sheet's id: from the route, or once loaded for a sheet opened by its type. */
+  public readonly openSheetId = computed<number | null>(() => {
+    const fromRoute = Number(this.sheetId());
+    return Number.isInteger(fromRoute) && fromRoute > 0 ? fromRoute : (this.sheet()?.id ?? null);
+  });
+
+  /** The open sheet's identifier values, e.g. "ESN-100 · Build A"; empty for a type without identifiers. */
+  public readonly identityLabel = computed(() => {
+    const sheetType = this.sheetType();
+    const summary = this.phaseSheets().find((candidate) => candidate.id === this.openSheetId());
+    return sheetType && sheetType.identifiers.length > 0 && summary ? SheetIdentityUtil.label(summary, sheetType) : '';
+  });
   public readonly canEdit = computed(() => this.sheetStore.canEdit());
   public readonly error = computed(() => this.sheetStore.error());
 
@@ -123,6 +149,8 @@ export class SheetPage {
   private readonly sheetStore = inject(SheetStore);
   private readonly title = inject(Title);
 
+  private readonly phaseSheetsResource = httpResource<SheetSummary[]>(() => `/api/phases/${this.phaseId()}/sheets`);
+
   private readonly navigationEnd = toSignal(
     inject(Router).events.pipe(filter((event) => event instanceof NavigationEnd)),
   );
@@ -137,13 +165,15 @@ export class SheetPage {
       this.navigationEnd();
       const phase = this.phase();
       const sheetType = this.sheetType();
-      const name = phase && sheetType ? `${phase.code} ${sheetType.name}` : 'Sheet';
+      const identity = this.identityLabel();
+      const name = phase && sheetType ? `${phase.code} ${sheetType.name}${identity ? ` ${identity}` : ''}` : 'Sheet';
       this.title.setTitle(`${name} · PU Spec Sheet`);
     });
   }
 
   public retry(): void {
     this.phases.reload();
+    this.phaseSheetsResource.reload();
     this.sheetStore.reload();
   }
 

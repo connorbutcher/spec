@@ -18,9 +18,9 @@ const tree = PhaseTreeUtil.buildPhaseTree([
 ]);
 
 const sheetTypes: SheetType[] = [
-  { id: 1, name: 'Specification', displayOrder: 1 },
-  { id: 2, name: 'Parts', displayOrder: 2 },
-  { id: 3, name: 'PFKs', displayOrder: 3 },
+  { id: 1, name: 'Specification', displayOrder: 1, identifiers: [] },
+  { id: 2, name: 'Parts', displayOrder: 2, identifiers: [] },
+  { id: 3, name: 'PFKs', displayOrder: 3, identifiers: [] },
 ];
 
 describe('phaseOptions', () => {

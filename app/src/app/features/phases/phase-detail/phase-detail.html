@@ -10,7 +10,7 @@
         <h2 id="sheet-types-heading" class="app-eyebrow">PU Spec Sheets</h2>
         <p-badge [value]="sheetTypes().length" severity="secondary" />
       </div>
-      <app-sheet-type-table [sheetTypes]="sheetTypes()" [phase]="phase" />
+      <app-phase-sheets [sheetTypes]="sheetTypes()" [phase]="phase" />
     </section>
   </article>
 } @else if (!isLoading() && !hasError()) {

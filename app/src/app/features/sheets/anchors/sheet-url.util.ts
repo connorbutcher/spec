@@ -2,10 +2,24 @@ import { SheetTarget } from '../models/sheet-target.model';
 import { SheetView } from '../models/sheet-view.model';
 
 export class SheetUrlUtil {
-  /** The sheet named by the route's parameters, or null when either isn't a whole number above zero. */
-  public static sheetTarget(phaseId: string | null, sheetTypeId: string | null): SheetTarget | null {
-    const target = { phaseId: Number(phaseId), sheetTypeId: Number(sheetTypeId) };
-    return SheetUrlUtil.isId(target.phaseId) && SheetUrlUtil.isId(target.sheetTypeId) ? target : null;
+  /**
+   * The sheet named by the route's parameters, or null when the phase or sheet type isn't a whole number
+   * above zero, or a sheet id is given that isn't.
+   */
+  public static sheetTarget(
+    phaseId: string | null,
+    sheetTypeId: string | null,
+    sheetId: string | null = null,
+  ): SheetTarget | null {
+    const target = {
+      phaseId: Number(phaseId),
+      sheetTypeId: Number(sheetTypeId),
+      sheetId: sheetId === null ? null : Number(sheetId),
+    };
+    const validSheet = target.sheetId === null || SheetUrlUtil.isId(target.sheetId);
+    return SheetUrlUtil.isId(target.phaseId) && SheetUrlUtil.isId(target.sheetTypeId) && validSheet
+      ? target
+      : null;
   }
 
   /**
@@ -13,7 +27,10 @@ export class SheetUrlUtil {
    * a submission's changes on top.
    */
   public static sheetUrl(target: SheetTarget, view: SheetView): string {
-    const url = `/api/phases/${target.phaseId}/sheets/${target.sheetTypeId}`;
+    const url =
+      target.sheetId === null
+        ? `/api/phases/${target.phaseId}/sheets/${target.sheetTypeId}`
+        : `/api/sheets/${target.sheetId}`;
     if (view.version) {
       return `${url}?version=${view.version}`;
     }

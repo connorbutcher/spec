@@ -1,0 +1,26 @@
+@if (hasError()) {
+  <p class="app-note error">
+    Couldn't load the phase's sheets.
+    <p-button label="Try again" size="small" [text]="true" (onClick)="retry()" />
+  </p>
+}
+
+@for (sheetType of sheetTypes(); track sheetType.id) {
+  <app-phase-sheet-group
+    [phase]="phase()"
+    [sheetType]="sheetType"
+    [sheets]="sheets()"
+    [canCreate]="canCreate()"
+    (newSheet)="startCreating($event)"
+  />
+} @empty {
+  <p class="app-note none">No PU Spec Sheet types have been made available to {{ phase().code }} yet.</p>
+}
+
+<app-new-sheet-dialog
+  [(visible)]="isCreating"
+  [phase]="phase()"
+  [sheetType]="creatingType()"
+  [sheets]="copySources()"
+  (created)="onCreated($event)"
+/>
