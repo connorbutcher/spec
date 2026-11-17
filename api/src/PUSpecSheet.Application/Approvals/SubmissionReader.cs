@@ -3,6 +3,7 @@ using PUSpecSheet.Application.Approvals.Queries;
 using PUSpecSheet.Application.Common;
 using PUSpecSheet.Application.Sheets.Queries;
 using PUSpecSheet.Database;
+using PUSpecSheet.Database.Mappers.Approvals;
 using PUSpecSheet.Database.Models.Approvals;
 
 namespace PUSpecSheet.Application.Approvals;
@@ -68,7 +69,7 @@ public sealed class SubmissionReader
         var loaded = await loading;
         var counts = await CountChangesAsync(loaded.Select(submission => submission.Id).ToList(), cancellationToken);
         return loaded
-            .Select(submission => ToDto(submission, counts.GetValueOrDefault(submission.Id) ?? new SubmissionChangeCountsDto(0, 0, 0, 0)))
+            .Select(submission => submission.ToDto(counts.GetValueOrDefault(submission.Id) ?? new SubmissionChangeCountsDto(0, 0, 0, 0)))
             .ToList();
     }
 
@@ -91,38 +92,5 @@ public sealed class SubmissionReader
                 sections.GetValueOrDefault(id),
                 rows.GetValueOrDefault(id),
                 blocks.GetValueOrDefault(id)));
-    }
-
-    private static SheetSubmissionDto ToDto(DbSheetSubmission submission, SubmissionChangeCountsDto changes)
-    {
-        return new SheetSubmissionDto(
-            submission.Id,
-            submission.SheetId,
-            submission.Sheet.PhaseId,
-            submission.Sheet.Phase.Code,
-            submission.Sheet.SheetTypeId,
-            submission.Sheet.SheetType.Name,
-            submission.Note,
-            submission.SubmittedByUserId,
-            submission.SubmittedBy.DisplayName,
-            Utc(submission.SubmittedAtUtc),
-            submission.Status,
-            submission.DecidedAtUtc is { } decided ? Utc(decided) : null,
-            submission.SheetVersion?.VersionNumber,
-            changes,
-            submission.Approvers
-                .OrderBy(approver => approver.User.DisplayName, StringComparer.OrdinalIgnoreCase)
-                .Select(approver => new SubmissionApproverDto(
-                    approver.UserId,
-                    approver.User.DisplayName,
-                    approver.Decision,
-                    approver.DecidedAtUtc is { } at ? Utc(at) : null,
-                    approver.Reason))
-                .ToList());
-    }
-
-    private static DateTime Utc(DateTime value)
-    {
-        return DateTime.SpecifyKind(value, DateTimeKind.Utc);
     }
 }

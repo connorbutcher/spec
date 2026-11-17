@@ -4,6 +4,7 @@ using PUSpecSheet.Abstractions.SheetTypes;
 using PUSpecSheet.Application.Common;
 using PUSpecSheet.Application.SheetTypes.Queries;
 using PUSpecSheet.Database;
+using PUSpecSheet.Database.Mappers.SheetTypes;
 using PUSpecSheet.Database.Models.SheetTypes;
 
 namespace PUSpecSheet.Application.SheetTypes;
@@ -36,7 +37,7 @@ public sealed class SheetTypesService : ISheetTypesService
         db.SheetTypes.Add(sheetType);
         await db.SaveChangesAsync(cancellationToken);
 
-        return new SheetTypeDto(sheetType.Id, sheetType.Name, sheetType.DisplayOrder);
+        return sheetType.ToDto();
     }
 
     public async Task<SheetTypeDto> AddIdentifierAsync(int sheetTypeId, SaveSheetTypeIdentifierRequest request, CancellationToken cancellationToken)

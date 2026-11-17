@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Abstractions.SheetTypes;
 using PUSpecSheet.Database;
+using PUSpecSheet.Database.Mappers.SheetTypes;
 
 namespace PUSpecSheet.Application.SheetTypes.Queries;
 
@@ -14,7 +15,7 @@ public static class SheetTypeQueries
             .AsNoTracking()
             .OrderBy(sheetType => sheetType.DisplayOrder)
             .ThenBy(sheetType => sheetType.Name)
-            .Select(SheetTypeMappings.ToDto)
+            .Select(SheetTypeMapper.Projection)
             .ToListAsync(cancellationToken);
     }
 
@@ -24,7 +25,7 @@ public static class SheetTypeQueries
         return await db.SheetTypes
             .AsNoTracking()
             .Where(sheetType => sheetType.Id == id)
-            .Select(SheetTypeMappings.ToDto)
+            .Select(SheetTypeMapper.Projection)
             .SingleOrDefaultAsync(cancellationToken);
     }
 

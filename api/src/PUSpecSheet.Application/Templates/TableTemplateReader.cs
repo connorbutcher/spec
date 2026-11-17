@@ -2,6 +2,7 @@ using PUSpecSheet.Abstractions.Templates;
 using PUSpecSheet.Application.Common;
 using PUSpecSheet.Application.Templates.Queries;
 using PUSpecSheet.Database;
+using PUSpecSheet.Database.Mappers.Templates;
 
 namespace PUSpecSheet.Application.Templates;
 
@@ -42,11 +43,7 @@ public sealed class TableTemplateReader
         // The ids of the versions a sheet table is built from.
         var inUse = await TableTemplateQueries.GetVersionIdsInUseAsync(db, versions.Select(candidate => candidate.Id).ToList(), cancellationToken);
         var summaries = versions
-            .Select(candidate => new TableTemplateVersionSummaryDto(
-                candidate.Id,
-                candidate.VersionNumber,
-                candidate.CreatedAtUtc,
-                inUse.Contains(candidate.Id)))
+            .Select(candidate => candidate.ToSummaryDto(inUse.Contains(candidate.Id)))
             .ToList();
         var isEditable = version == versions[^1] && !inUse.Contains(version.Id);
         return template.ToDto(

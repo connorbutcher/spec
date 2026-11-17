@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Abstractions.Approvals;
 using PUSpecSheet.Abstractions.Users;
 using PUSpecSheet.Database;
+using PUSpecSheet.Database.Mappers.Users;
 using PUSpecSheet.Database.Models.Users;
 
 namespace PUSpecSheet.Application.Users.Queries;
@@ -81,7 +82,7 @@ public static class UserQueries
         return await Approvers(db)
             .Where(user => user.Id != excludedUserId)
             .OrderBy(user => user.DisplayName)
-            .Select(user => new ApproverDto(user.Id, user.DisplayName))
+            .Select(UserMapper.ApproverProjection)
             .ToListAsync(cancellationToken);
     }
 

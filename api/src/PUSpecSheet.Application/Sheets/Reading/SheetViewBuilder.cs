@@ -6,6 +6,8 @@ using PUSpecSheet.Application.Sheets.History;
 using PUSpecSheet.Application.Sheets.Linking;
 using PUSpecSheet.Application.Sheets.Revisions;
 using PUSpecSheet.Application.Sheets.Values;
+using PUSpecSheet.Database.Mappers.Sheets;
+using PUSpecSheet.Database.Mappers.Templates;
 using PUSpecSheet.Database.Models.Sheets;
 
 namespace PUSpecSheet.Application.Sheets.Reading;
@@ -109,12 +111,7 @@ internal sealed class SheetViewBuilder
     private List<SheetVersionSummaryDto> BuildVersions()
     {
         return snapshot.Versions
-            .Select(version => new SheetVersionSummaryDto(
-                version.VersionNumber,
-                Utc(version.PublishedAtUtc),
-                version.PublishedByUserId,
-                version.PublishedBy.DisplayName,
-                version.Note))
+            .Select(version => version.ToSummaryDto())
             .ToList();
     }
 
@@ -259,17 +256,7 @@ internal sealed class SheetViewBuilder
         var template = cell.TemplateCell;
         if (!templateCells.ContainsKey(template.Id))
         {
-            templateCells[template.Id] = new TemplateCellDto(
-                template.Id,
-                template.CellTypeId,
-                template.Column,
-                template.RowSpan,
-                template.ColumnSpan,
-                template.Caption,
-                template.IsRequired,
-                template.ConfigurationOverride,
-                template.StyleOverride,
-                template.TemplateColumnBlockId);
+            templateCells[template.Id] = template.ToDto();
         }
 
         return new SheetCellDto(

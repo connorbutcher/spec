@@ -2,6 +2,7 @@ using PUSpecSheet.Abstractions.CellTypes;
 using PUSpecSheet.Application.CellTypes.Queries;
 using PUSpecSheet.Application.Common;
 using PUSpecSheet.Database;
+using PUSpecSheet.Database.Mappers.CellTypes;
 using PUSpecSheet.Database.Models.CellTypes;
 
 namespace PUSpecSheet.Application.CellTypes;
