@@ -40,6 +40,16 @@ internal class SpecSheetReader : ISpecSheetReader
             return await _revisionReader.ReadDraftAsync(id, draftSheetId.Value, cancellationToken);
         }
 
+        // A version published on the revisions has nothing in its copy, whatever the read source.
+        if (await _editSwitch.IsOnRevisionsAsync(id, cancellationToken))
+        {
+            var published = await _revisionReader.ReadPublishedAsync(id, cancellationToken);
+            if (published is not null)
+            {
+                return published;
+            }
+        }
+
         switch (_options.CurrentValue.Source)
         {
             case SheetReadSource.Revisions:

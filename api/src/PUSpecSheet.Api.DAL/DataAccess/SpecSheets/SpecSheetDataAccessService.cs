@@ -39,6 +39,8 @@ internal class SpecSheetDataAccessService : ISpecSheetDataAccessService
     private readonly SheetEditSwitch _editSwitch;
     private readonly SheetDraftCreator _draftCreator;
     private readonly SheetDraftDeleter _draftDeleter;
+    private readonly SheetDraftPublisher _draftPublisher;
+    private readonly SheetSubmissions _submissions;
     private readonly ITypeDataAccessService _typeDataAccessService;
     private readonly IEmailBuilderService _emailBuilderService;
     private readonly IEmailService _emailService;
@@ -51,6 +53,8 @@ internal class SpecSheetDataAccessService : ISpecSheetDataAccessService
         SheetEditSwitch editSwitch,
         SheetDraftCreator draftCreator,
         SheetDraftDeleter draftDeleter,
+        SheetDraftPublisher draftPublisher,
+        SheetSubmissions submissions,
         ITypeDataAccessService typeDataAccessService,
         IEmailBuilderService emailBuilderService,
         IEmailService emailService,
@@ -63,6 +67,8 @@ internal class SpecSheetDataAccessService : ISpecSheetDataAccessService
         ArgumentNullException.ThrowIfNull(editSwitch, nameof(editSwitch));
         ArgumentNullException.ThrowIfNull(draftCreator, nameof(draftCreator));
         ArgumentNullException.ThrowIfNull(draftDeleter, nameof(draftDeleter));
+        ArgumentNullException.ThrowIfNull(draftPublisher, nameof(draftPublisher));
+        ArgumentNullException.ThrowIfNull(submissions, nameof(submissions));
         ArgumentNullException.ThrowIfNull(typeDataAccessService, nameof(typeDataAccessService));
         ArgumentNullException.ThrowIfNull(emailBuilderService, nameof(emailBuilderService));
         ArgumentNullException.ThrowIfNull(emailService, nameof(emailService));
@@ -75,6 +81,8 @@ internal class SpecSheetDataAccessService : ISpecSheetDataAccessService
         _editSwitch = editSwitch;
         _draftCreator = draftCreator;
         _draftDeleter = draftDeleter;
+        _draftPublisher = draftPublisher;
+        _submissions = submissions;
         _typeDataAccessService = typeDataAccessService;
         _emailBuilderService = emailBuilderService;
         _emailService = emailService;
@@ -504,20 +512,25 @@ internal class SpecSheetDataAccessService : ISpecSheetDataAccessService
             .FirstOrDefaultAsync(x => x.Id == publishSpecSheetRequest.Id, cancellationToken)
             ?? throw new KeyNotFoundException($"Spec Sheet with Id {publishSpecSheetRequest.Id} not found.");
 
-        if (_editSwitch.IsOnRevisions(specSheetToPublish.SpecSheetTypeId))
-        {
-            throw new NotSupportedException($"Spec Sheet with Id {publishSpecSheetRequest.Id} is edited on the revisions, where publishing isn't supported yet.");
-        }
+        var draftSheetId = await _editSwitch.FindDraftSheetIdAsync(specSheetToPublish.Id, cancellationToken);
 
         specSheetToPublish.PublishedByUserId = publishingUser.Id;
         specSheetToPublish.ChangeLog = publishSpecSheetRequest.ChangeLog;
 
         if (!specSheetToPublish.SpecSheetType!.RequiresApprovalWorkflow)
         {
-            specSheetToPublish.IsPublished = true;
-            specSheetToPublish.PublishedDateTime = DateTime.UtcNow;
+            if (draftSheetId.HasValue)
+            {
+                await PublishDraftsAsync(draftSheetId.Value, specSheetToPublish, publishingUser.Id, cancellationToken);
+            }
+            else
+            {
+                specSheetToPublish.IsPublished = true;
+                specSheetToPublish.PublishedDateTime = DateTime.UtcNow;
 
-            await _dbContext.SaveChangesAsync(cancellationToken);
+                await _dbContext.SaveChangesAsync(cancellationToken);
+            }
+
             _logger.LogInformation("Published SpecSheet with Id {SpecSheetId} by UserId {UserId} without workflow as the SpecSheetType does not require approval", publishSpecSheetRequest.Id, publishingUser.Id);
 
             await _specSheetCache.RemoveAsync(publishSpecSheetRequest.Id, cancellationToken);
@@ -546,7 +559,14 @@ internal class SpecSheetDataAccessService : ISpecSheetDataAccessService
 
         specSheetToPublish.WorkflowSteps.Add(workflowStep);
 
-        await _dbContext.SaveChangesAsync(cancellationToken);
+        if (draftSheetId.HasValue)
+        {
+            await SubmitDraftsAsync(draftSheetId.Value, publishSpecSheetRequest, publishingUser.Id, cancellationToken);
+        }
+        else
+        {
+            await _dbContext.SaveChangesAsync(cancellationToken);
+        }
 
         foreach (var approver in publishSpecSheetRequest.Approvers)
         {
@@ -732,10 +752,7 @@ internal class SpecSheetDataAccessService : ISpecSheetDataAccessService
                 .FirstOrDefaultAsync(ss => ss.Id == workflowStep.SpecSheetId, cancellationToken)
                     ?? throw new KeyNotFoundException($"Spec Sheet with Id {workflowStep.SpecSheetId} not found.");
 
-            if (_editSwitch.IsOnRevisions(specSheet.SpecSheetTypeId))
-            {
-                throw new NotSupportedException($"Spec Sheet with Id {specSheet.Id} is edited on the revisions, where approving isn't supported yet.");
-            }
+            var draftSheetId = await _editSwitch.FindDraftSheetIdAsync(specSheet.Id, cancellationToken);
 
             var workflowStepActor = workflowStep.Actors.FirstOrDefault(a => a.Id == updateWorkflowStepActorRequest.WorkflowStepActorId)
                 ?? throw new KeyNotFoundException($"Workflow step actor with Id {updateWorkflowStepActorRequest.WorkflowStepActorId} not found in workflow step with Id {updateWorkflowStepActorRequest.WorkflowStepId}");
@@ -743,6 +760,11 @@ internal class SpecSheetDataAccessService : ISpecSheetDataAccessService
             workflowStepActor.State = updateWorkflowStepActorRequest.State;
             workflowStepActor.Comment = updateWorkflowStepActorRequest.Comment;
             workflowStepActor.ActionedDateTime = DateTime.UtcNow;
+
+            if (draftSheetId.HasValue)
+            {
+                await _submissions.RecordDecisionAsync(draftSheetId.Value, workflowStepActor.ActorUserId!.Value, updateWorkflowStepActorRequest.State, updateWorkflowStepActorRequest.Comment, cancellationToken);
+            }
 
             _logger.LogInformation("Updated WorkflowStepActor with Id {WorkflowStepActorId} to state {State}", workflowStepActor.Id, workflowStepActor.State);
 
@@ -762,6 +784,11 @@ internal class SpecSheetDataAccessService : ISpecSheetDataAccessService
                 specSheet.PublishedDateTime = null;
                 specSheet.IsPublished = false;
                 workflowStep.State = WorkflowState.Rejected;
+
+                if (draftSheetId.HasValue)
+                {
+                    await _submissions.RejectAsync(draftSheetId.Value, cancellationToken);
+                }
 
                 var emailArgs = new SpecSheetEmailArgs
                 {
@@ -784,8 +811,17 @@ internal class SpecSheetDataAccessService : ISpecSheetDataAccessService
             if (workflowStep.Actors.All(a => a.State == WorkflowState.Approved))
             {
                 workflowStep.State = WorkflowState.Approved;
-                specSheet.IsPublished = true;
-                specSheet.PublishedDateTime = DateTime.UtcNow;
+                if (draftSheetId.HasValue)
+                {
+                    var submission = await _submissions.ApproveAsync(draftSheetId.Value, cancellationToken);
+                    var version = await _draftPublisher.PublishAsync(draftSheetId.Value, specSheet, specSheet.PublishedByUserId ?? respondingUser.Id, specSheet.ChangeLog, cancellationToken);
+                    await _submissions.SetVersionAsync(submission, version, cancellationToken);
+                }
+                else
+                {
+                    specSheet.IsPublished = true;
+                    specSheet.PublishedDateTime = DateTime.UtcNow;
+                }
 
                 _logger.LogInformation("WorkflowStep with Id {WorkflowStepId} has been approved as all actors have approved", workflowStep.Id);
 
@@ -859,11 +895,19 @@ internal class SpecSheetDataAccessService : ISpecSheetDataAccessService
                 .FirstOrDefaultAsync(ss => ss.Id == reassignWorkflowStepActorsRequest.SpecSheetId, cancellationToken)
                     ?? throw new KeyNotFoundException($"Spec Sheet with Id {reassignWorkflowStepActorsRequest.SpecSheetId} not found.");
 
+            var draftSheetId = await _editSwitch.FindDraftSheetIdAsync(specSheet.Id, cancellationToken);
+            var removedUserIds = new List<int>();
+
             foreach (var actorToDeleteId in reassignWorkflowStepActorsRequest.DeleteWorkflowStepActorRequests)
             {
                 var dbActorToDelete = await _dbContext.WorkflowStepActors
                     .FirstOrDefaultAsync(a => a.Id == actorToDeleteId, cancellationToken)
                     ?? throw new KeyNotFoundException($"WorkflowStepActor with Id {actorToDeleteId} not found.");
+
+                if (dbActorToDelete.ActorUserId.HasValue)
+                {
+                    removedUserIds.Add(dbActorToDelete.ActorUserId.Value);
+                }
 
                 _dbContext.WorkflowStepActors.Remove(dbActorToDelete);
                 _logger.LogInformation("Deleted WorkflowStepActor with Id {WorkflowStepActorId} from WorkflowStep with Id {WorkflowStepId}", dbActorToDelete.Id, reassignWorkflowStepActorsRequest.WorkflowStepId);
@@ -886,6 +930,11 @@ internal class SpecSheetDataAccessService : ISpecSheetDataAccessService
             }
 
             await _dbContext.SaveChangesAsync(cancellationToken);
+            if (draftSheetId.HasValue)
+            {
+                await _submissions.ReassignAsync(draftSheetId.Value, removedUserIds, reassignWorkflowStepActorsRequest.CreateWorkflowStepActorRequests, cancellationToken);
+            }
+
             await transaction.CommitAsync(cancellationToken);
 
             foreach (var actorToCreate in reassignWorkflowStepActorsRequest.CreateWorkflowStepActorRequests)
@@ -1080,6 +1129,25 @@ internal class SpecSheetDataAccessService : ISpecSheetDataAccessService
     #endregion Spec Sheet Tables
 
     #region Build    
+
+    #region Drafts On The Revisions
+
+    private async Task PublishDraftsAsync(int sheetId, DbSpecSheet specSheet, int publishingUserId, CancellationToken cancellationToken)
+    {
+        await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+        await _draftPublisher.PublishAsync(sheetId, specSheet, publishingUserId, specSheet.ChangeLog, cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
+    }
+
+    // The workflow step is saved with the submission, so that neither is kept without the other.
+    private async Task SubmitDraftsAsync(int sheetId, PublishSpecSheetRequest publishSpecSheetRequest, int publishingUserId, CancellationToken cancellationToken)
+    {
+        await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+        await _submissions.SubmitAsync(sheetId, publishingUserId, publishSpecSheetRequest.ChangeLog, publishSpecSheetRequest.Approvers.Select(a => a.Id), cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
+    }
+
+    #endregion Drafts On The Revisions
 
     #region Spec Sheet Tables
 
