@@ -22,7 +22,7 @@ The legacy codebase is the base. The rewrite's features (revision model, drafts,
 | 3 | Revision tables beside the copy tables | Done | `7b2ddcf` |
 | 4 | Migrator (copies to revisions), re-runnable | Done | `1057cda`, `4f58572` |
 | 5 | Reads from revisions behind a switch | Done | `03a8f75`, `8eecb3b`, `2cd0f95` |
-| 6 | Per-sheet-type cutover of editing onto drafts and revisions | **In progress**: slices 1 to 3 of 6 | `5cf6c7d`, `897e675` |
+| 6 | Per-sheet-type cutover of editing onto drafts and revisions | **In progress**: slices 1 to 4 of 6 | `5cf6c7d`, `897e675`, `3b1f744` |
 | 7 | Port remaining features (published API, lookups, presence). Templates stay as they are | Not started | |
 | 8 | Retire the legacy copy code | Not started | |
 
@@ -74,7 +74,7 @@ The legacy codebase is the base. The rewrite's features (revision model, drafts,
 | 1 | The switch, the draft read from the revisions, and cell value edits (add and update text, number, pair and linked values on existing cells). Creating, publishing and deleting a listed type's sheets, and every other edit, are refused. | Done |
 | 2 | Rows and cells: add, reorder, delete, and values and configuration overrides on new cells. A cell is kept as its row template's cell in the same column, so a cell can't be moved to another column, and deleting a cell clears what the draft holds for it (it goes with its row). | Done |
 | 3 | Groups and tables, with their widgets, notes and configuration overrides. Every edit the screens send is now applied to the drafts. Widgets and notes are kept inside their table's or group's revision, so the draft read numbers them within the sheet in the order of their tables' and groups' ids, and `DraftItemNumbers` finds them again from those numbers. Deleting a group removes the groups linked to it. | Done |
-| 4 | Create a draft (empty, or copied from another sheet) with its properties and external references; delete a draft (drop its draft revisions). | |
+| 4 | Create a draft (empty, or copied from another sheet) with its properties; delete a draft (drop its draft revisions and what was added in it). `SheetDraftCreator` makes the sheet (if it has none) and the header, `SheetDraftCopier` makes the drafts show the sheet copied from, matching items by ReferenceID and changing only what differs, and `SheetPropertyDrafts` sets the property values. `SheetDraftDeleter` drops the drafts when the header is deleted; a draft awaiting approval, or a published version, can't be deleted. | Done |
 | 5 | Publish: without approval (the drafts become a version), and with approval (submission, approvers, emails, approve, reject, reassign). | |
 | 6 | Version lists and property summaries from the revisions for listed types. | |
 
@@ -88,7 +88,9 @@ The legacy codebase is the base. The rewrite's features (revision model, drafts,
 
 **Slice 3 was checked** the same way: a table added with a group, a linked group, a row, a cell and a value in one call, plus a table widget and a group widget; a table renamed and moved; notes added and one made obsolete; widgets on two tables and a group changed by their numbers; a parent group deleted with its linked group; a table deleted; and refusals for a widget on a removed table and a widget number past the end. The published read was unchanged.
 
-**Known limits.** A cell added to a row that is already published shows, empty, in the published read too, as the revisions don't keep cells per revision. `UpdateSpecSheetAsync` logs and swallows errors, as it always has, so a refused edit only shows in the log. The draft's workflow steps are still the header's.
+**Slice 4 was checked** the same way: a draft for a new phase copied from a published sheet (a new sheet with every item added); a second draft refused; that draft deleted (only the empty sheet is left); a draft copied from its own published version (only the properties change); a draft copied from another phase's edited draft (one row changed, one added); and a draft with nothing to copy (the table removed in the draft). The published read was unchanged throughout.
+
+**Known limits.** A cell added to a row that is already published shows, empty, in the published read too, as the revisions don't keep cells per revision (deleting the draft removes it again). External references aren't copied into a new draft: the revisions keep them per version, pushed by the external systems, so they're for stage 7. A copied table keeps its notes' authors and times, where a new copy made them the copier's. `UpdateSpecSheetAsync` logs and swallows errors, as it always has, so a refused edit only shows in the log. The draft's workflow steps are still the header's.
 
 ## Open items
 

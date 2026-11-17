@@ -37,6 +37,8 @@ internal class SpecSheetDataAccessService : ISpecSheetDataAccessService
     private readonly ISpecSheetCache _specSheetCache;
     private readonly ISpecSheetReader _specSheetReader;
     private readonly SheetEditSwitch _editSwitch;
+    private readonly SheetDraftCreator _draftCreator;
+    private readonly SheetDraftDeleter _draftDeleter;
     private readonly ITypeDataAccessService _typeDataAccessService;
     private readonly IEmailBuilderService _emailBuilderService;
     private readonly IEmailService _emailService;
@@ -47,6 +49,8 @@ internal class SpecSheetDataAccessService : ISpecSheetDataAccessService
         ISpecSheetCache specSheetCache,
         ISpecSheetReader specSheetReader,
         SheetEditSwitch editSwitch,
+        SheetDraftCreator draftCreator,
+        SheetDraftDeleter draftDeleter,
         ITypeDataAccessService typeDataAccessService,
         IEmailBuilderService emailBuilderService,
         IEmailService emailService,
@@ -57,6 +61,8 @@ internal class SpecSheetDataAccessService : ISpecSheetDataAccessService
         ArgumentNullException.ThrowIfNull(specSheetCache, nameof(specSheetCache));
         ArgumentNullException.ThrowIfNull(specSheetReader, nameof(specSheetReader));
         ArgumentNullException.ThrowIfNull(editSwitch, nameof(editSwitch));
+        ArgumentNullException.ThrowIfNull(draftCreator, nameof(draftCreator));
+        ArgumentNullException.ThrowIfNull(draftDeleter, nameof(draftDeleter));
         ArgumentNullException.ThrowIfNull(typeDataAccessService, nameof(typeDataAccessService));
         ArgumentNullException.ThrowIfNull(emailBuilderService, nameof(emailBuilderService));
         ArgumentNullException.ThrowIfNull(emailService, nameof(emailService));
@@ -67,6 +73,8 @@ internal class SpecSheetDataAccessService : ISpecSheetDataAccessService
         _specSheetCache = specSheetCache;
         _specSheetReader = specSheetReader;
         _editSwitch = editSwitch;
+        _draftCreator = draftCreator;
+        _draftDeleter = draftDeleter;
         _typeDataAccessService = typeDataAccessService;
         _emailBuilderService = emailBuilderService;
         _emailService = emailService;
@@ -367,7 +375,9 @@ internal class SpecSheetDataAccessService : ISpecSheetDataAccessService
 
         if (_editSwitch.IsOnRevisions(createPUSpecSheetRequest.SpecSheetTypeId))
         {
-            throw new NotSupportedException($"Spec Sheets of SpecSheetTypeId {createPUSpecSheetRequest.SpecSheetTypeId} are edited on the revisions, where creating one isn't supported yet.");
+            var draftId = await _draftCreator.CreateAsync(createPUSpecSheetRequest, creatingUser, cancellationToken);
+            _logger.LogInformation("Created SpecSheet with Id {SpecSheetId} on the revisions by UserId {UserId}", draftId, creatingUser.Id);
+            return draftId;
         }
 
         var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
@@ -567,15 +577,21 @@ internal class SpecSheetDataAccessService : ISpecSheetDataAccessService
 
     public async Task DeleteSpecSheetAsync(int id, CancellationToken cancellationToken)
     {
-        if (await _editSwitch.IsOnRevisionsAsync(id, cancellationToken))
+        var draftSheetId = await _editSwitch.FindDraftSheetIdAsync(id, cancellationToken);
+        if (!draftSheetId.HasValue && await _editSwitch.IsOnRevisionsAsync(id, cancellationToken))
         {
-            throw new NotSupportedException($"Spec Sheet with Id {id} is edited on the revisions, where deleting isn't supported yet.");
+            throw new NotSupportedException($"Spec Sheet with Id {id} is a published version on the revisions, which can't be deleted.");
         }
 
         await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
 
         try
         {
+            if (draftSheetId.HasValue)
+            {
+                await _draftDeleter.DeleteDraftsAsync(draftSheetId.Value, cancellationToken);
+            }
+
             // Reusable subqueries (translated server-side).
             var tableIds = _dbContext.SpecSheetTables
                 .Where(t => t.SpecSheetId == id)

@@ -73,6 +73,8 @@ public static class DataAccessLayerModule
     {
         builder.Services.Configure<SheetEditOptions>(builder.Configuration.GetSection(SheetEditOptions.SectionName));
         builder.Services.AddScoped<SheetEditSwitch>();
+        builder.Services.AddScoped<SheetDraftCreator>();
+        builder.Services.AddScoped<SheetDraftDeleter>();
     }
 
     private static void RegisterResolvers(IServiceCollection services)

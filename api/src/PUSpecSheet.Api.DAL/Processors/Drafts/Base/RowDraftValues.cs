@@ -1,4 +1,5 @@
 ﻿using PUSpecSheet.Abstractions.Domain.Properties.Cell;
+using PUSpecSheet.Abstractions.Domain.Values;
 using PUSpecSheet.Api.Database;
 using PUSpecSheet.Api.Database.Schema.Cell;
 using PUSpecSheet.Api.Database.Schema.Spec;
@@ -121,6 +122,103 @@ internal class RowDraftValues
         entry.Property(v => v.LinkedSpecSheetPhaseId).CurrentValue = value.LinkedSpecSheetPhaseId;
         entry.Property(v => v.TableReferenceId).CurrentValue = value.TableReferenceId;
         entry.Property(v => v.LinkedReferenceId).CurrentValue = value.LinkedReferenceId;
+    }
+
+    /// <summary>
+    /// Sets the cell's value from a cell value of any kind.
+    /// </summary>
+    public void SetValue(DbSheetTableRowRevision draft, int cellId, CellValue? value)
+    {
+        switch (value)
+        {
+            case TextValue text:
+                SetText(draft, cellId, text.Value);
+                break;
+            case NumericValue number:
+                SetNumber(draft, cellId, number.Value);
+                break;
+            case PairValue pair:
+                SetPair(draft, cellId, pair.ValueX, pair.ValueY);
+                break;
+            case LinkedSpecSheetValue linked:
+                SetLinked(draft, cellId, new LinkedDraftValue
+                {
+                    LinkedSpecSheetTypeId = linked.LinkedSpecSheetTypeId,
+                    LinkedSpecSheetPhaseId = linked.LinkedSpecSheetPhaseId,
+                    TableReferenceId = linked.TableReferenceId,
+                    LinkedReferenceId = linked.LinkedReferenceId
+                });
+                break;
+        }
+    }
+
+    /// <summary>
+    /// Sets the cell's value from a cell value of any kind, and removes any value of another kind the cell holds.
+    /// </summary>
+    public void ReplaceValue(DbSheetTableRowRevision draft, int cellId, CellValue? value)
+    {
+        if (value is not TextValue)
+        {
+            SetText(draft, cellId, null);
+        }
+
+        if (value is not NumericValue)
+        {
+            SetNumber(draft, cellId, null);
+        }
+
+        if (value is not PairValue)
+        {
+            SetPair(draft, cellId, null, null);
+        }
+
+        if (value is not LinkedSpecSheetValue)
+        {
+            Remove(draft.LinkedSheetValues, LinkedOf(draft, cellId));
+        }
+
+        SetValue(draft, cellId, value);
+    }
+
+    /// <summary>
+    /// Gives a cell added in the draft its value, before the cell has an id.
+    /// </summary>
+    public void AddValue(DbSheetTableRowRevision draft, DbSheetTableCell cell, CellValue? value)
+    {
+        switch (value)
+        {
+            case TextValue { Value: { } text }:
+                draft.TextValues.Add(new DbSheetTextValue { SheetTableRowRevisionId = draft.Id, SheetTableCellId = cell.Id, Value = text, SheetTableCell = cell });
+                break;
+            case NumericValue { Value: { } number }:
+                draft.NumericValues.Add(new DbSheetNumericValue { SheetTableRowRevisionId = draft.Id, SheetTableCellId = cell.Id, Value = number, SheetTableCell = cell });
+                break;
+            case PairValue pair when pair.ValueX is not null || pair.ValueY is not null:
+                draft.PairValues.Add(new DbSheetPairValue
+                {
+                    SheetTableRowRevisionId = draft.Id,
+                    SheetTableCellId = cell.Id,
+                    PairValueX = pair.ValueX,
+                    PairValueY = pair.ValueY,
+                    SheetTableCell = cell
+                });
+                break;
+            case LinkedSpecSheetValue linked when linked.LinkedSpecSheetTypeId.HasValue
+                || linked.LinkedSpecSheetPhaseId.HasValue
+                || linked.TableReferenceId.HasValue
+                || linked.LinkedReferenceId.HasValue:
+                draft.LinkedSheetValues.Add(new DbSheetLinkedSheetValue
+                {
+                    SheetTableRowRevisionId = draft.Id,
+                    SheetTableCellId = cell.Id,
+                    LinkedSpecSheetTypeId = linked.LinkedSpecSheetTypeId,
+                    LinkedSpecSheetPhaseId = linked.LinkedSpecSheetPhaseId,
+                    TableReferenceId = linked.TableReferenceId,
+                    LinkedReferenceId = linked.LinkedReferenceId,
+                    SheetTableCell = cell
+                });
+                break;
+        }
     }
 
     public void SetConfigurationOverride(DbSheetTableRowRevision draft, int cellId, ICellProperties? configurationOverride)
