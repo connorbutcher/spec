@@ -1,0 +1,28 @@
+<div class="dialog-container">
+  <div class="dialog-header">
+    <span class="dialog-title">Delete {{ type }}</span>
+  </div>
+
+  <div class="dialog-content">
+    <p class="message">
+      This {{ type }} has {{ references.length }} external system references.
+      <br />
+      Deleting it will remove all of these references and may cause issues in
+      the systems that reference it. Are you sure you want to proceed?
+    </p>
+
+    <button
+      pButton
+      class="view-references-button"
+      severity="help"
+      (click)="viewSystemReferences()"
+    >
+      View System References
+    </button>
+  </div>
+
+  <div class="dialog-actions">
+    <button pButton severity="secondary" (click)="close(false)">Close</button>
+    <button pButton (click)="close(true)" severity="danger">Delete</button>
+  </div>
+</div>

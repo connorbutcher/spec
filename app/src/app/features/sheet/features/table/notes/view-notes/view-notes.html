@@ -1,0 +1,37 @@
+<div class="tab-notes-container card flat-top">
+  <div class="notes-heading">
+    <span class="chip bold l">Notes</span>
+  </div>
+
+  <div class="notes-container">
+    @for (note of notes(); track $index) {
+      <app-view-note
+        [note]="note"
+        (removeNote)="deleteNote($event)"
+        [isLast]="!!$last"
+      />
+    }
+  </div>
+
+  <div class="add-note-container">
+    <textarea
+      rows="5"
+      cols="30"
+      pTextarea
+      [autoResize]="true"
+      placeholder="Enter the note"
+      [formControl]="tabCtrl"
+    ></textarea>
+
+    <button
+      pButton
+      class="px-button-minimal"
+      pTooltip="Save the note"
+      [text]="true"
+      [disabled]="tabCtrl.invalid || !canEdit()"
+      (click)="addNote()"
+    >
+      <span class="send material-symbols-outlined">send</span>
+    </button>
+  </div>
+</div>

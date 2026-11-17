@@ -1,0 +1,27 @@
+:host {
+  display: grid;
+  grid-template-columns: subgrid;
+  grid-template-rows: subgrid;
+  position: relative;
+}
+
+.preview {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--gap);
+
+  width: 150px;
+  background-color: white;
+  border-radius: var(--border-radius-m);
+  padding: var(--gap-s) var(--gap);
+}
+
+.row-content {
+  display: grid;
+  grid-template-columns: subgrid;
+  grid-template-rows: subgrid;
+
+  grid-column: 1 / -1;
+  grid-row: 1 / -1;
+}

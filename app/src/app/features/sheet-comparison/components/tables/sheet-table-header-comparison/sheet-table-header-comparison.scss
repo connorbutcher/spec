@@ -1,0 +1,11 @@
+p-tag {
+  text-transform: capitalize;
+}
+
+.filtered-match {
+  background-color: var(--theme-table-highlight-background-color);
+}
+
+.filtered-active {
+  background-color: var(--theme-table-highlight-active-background-color);
+}

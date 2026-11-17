@@ -1,0 +1,10 @@
+@if (references()!.length > 0) {
+  <span
+    class="reference-indicator"
+    [pTooltip]="references()!.length + ' System Reference(s)'"
+    tooltipPosition="right"
+    (click)="viewSystemReferences()"
+  >
+    <span class="material-symbols-outlined">link</span>
+  </span>
+}

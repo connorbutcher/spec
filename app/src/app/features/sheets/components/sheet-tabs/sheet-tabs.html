@@ -1,0 +1,14 @@
+<div id="sheet-tabs">
+  <div class="sheet-tab-list">
+    @for (sheetTab of phase().types; track $index) {
+      <button
+        type="button"
+        class="sheet-tab"
+        [class.active]="sheetTab.id === selectedType()?.id"
+        (click)="setActiveType(sheetTab)"
+      >
+        <span>{{ sheetTab.type }}</span>
+      </button>
+    }
+  </div>
+</div>

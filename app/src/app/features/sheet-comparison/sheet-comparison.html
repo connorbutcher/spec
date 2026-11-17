@@ -1,0 +1,21 @@
+<div id="spec-sheet-comparison">
+  @if (hasSeeded()) {
+    <app-sheet-comparison-header />
+  }
+
+  @if (hasSeeded() && type() && phase()) {
+    <div class="comparison-container">
+      <app-sheet-compare />
+    </div>
+  } @else {
+    <div class="no-phase-or-type-container">
+      <i class="no-phase-or-type-selected-icon material-symbols-outlined"
+        >search</i
+      >
+      <span class="no-phase-or-type-header">No phase or type selected</span>
+      <span class="text-color-secondary"
+        >Select a phase and type from the panel at the top of the page.</span
+      >
+    </div>
+  }
+</div>

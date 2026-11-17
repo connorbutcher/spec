@@ -1,0 +1,21 @@
+<button
+  pButton
+  severity="secondary"
+  (click)="op.toggle($event)"
+  [disabled]="comparisonTables().length === 0"
+>
+  <span class="material-symbols-outlined go-to-icon">frame_inspect</span>
+  Tables
+</button>
+
+<p-popover #op>
+  <ng-template #content>
+    <div class="go-to-tables">
+      @for (table of comparisonTables(); track $index) {
+        <div class="go-to-table" (click)="goToTable(table)">
+          <span>{{ table.title }}</span>
+        </div>
+      }
+    </div>
+  </ng-template>
+</p-popover>

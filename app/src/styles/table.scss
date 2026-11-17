@@ -1,0 +1,104 @@
+.pu-spec-sheet-table {
+  height: 100%;
+  width: 100%;
+}
+
+.pu-spec-sheet-table {
+  .cell-input,
+  .cell-host {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    text-align: center;
+  }
+
+  .cell-input {
+    position: relative;
+
+    input {
+      text-align: center;
+    }
+  }
+
+  .invalid-row {
+    border: 1px solid;
+
+    &.invalid-row-warning {
+      border-color: var(--theme-text-warning-color);
+    }
+
+    &.invalid-row-error {
+      border-color: var(--theme-text-error-color);
+    }
+  }
+}
+
+.pu-spec-sheet-table {
+  .side-heading,
+  .header,
+  .description {
+    background-color: var(--theme-table-side-heading-background-color);
+    font-weight: 500;
+    white-space: normal;
+  }
+
+  .delete {
+    max-width: 1em;
+  }
+
+  .group {
+    background-color: var(--theme-table-group-background-color);
+    font-weight: 500;
+  }
+
+  .yellow {
+    background-color: var(--theme-table-yellow-background-color);
+  }
+
+  .green {
+    background-color: var(--theme-table-green-background-color);
+  }
+
+  .blue {
+    background-color: var(--theme-table-blue-background-color);
+  }
+
+  .added {
+    background-color: var(--theme-comparison-new-background-color);
+  }
+
+  .modified {
+    background-color: var(--theme-comparison-modified-background-color);
+  }
+
+  .removed {
+    background-color: var(--theme-comparison-removed-background-color);
+  }
+
+  .filtered-match {
+    background-color: var(--theme-table-highlight-background-color);
+  }
+
+  .filtered-active {
+    background-color: var(--theme-table-highlight-active-background-color);
+  }
+
+  .selected-row {
+    background-color: #b77cff;
+  }
+}
+
+.filtered-match {
+  background-color: var(--theme-table-highlight-background-color);
+}
+
+.filtered-active {
+  background-color: var(--theme-table-highlight-active-background-color);
+}
+
+.selected-row {
+  background-color: #b77cff;
+}

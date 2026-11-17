@@ -1,0 +1,24 @@
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--gap);
+  padding: var(--gap-l) var(--gap);
+  text-align: center;
+
+  .pi {
+    font-size: var(--font-size-xl);
+    color: var(--theme-text-secondary-color);
+  }
+
+  h2 {
+    margin: var(--gap) 0 0;
+    font-size: var(--font-size-xl);
+  }
+
+  p {
+    margin: 0;
+    font-size: var(--font-size-l);
+    color: var(--theme-text-secondary-color);
+  }
+}

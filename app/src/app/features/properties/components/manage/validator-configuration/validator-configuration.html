@@ -1,0 +1,34 @@
+<div>
+  <form [formGroup]="validatorForm" class="validator-config-row">
+    <p-select
+      required
+      formControlName="validator"
+      placeholder="Select the type of validator"
+      [options]="validatorTypeValues"
+      [filter]="true"
+      appendTo="body"
+    />
+
+    <input
+      required
+      pInputText
+      formControlName="message"
+      placeholder="Enter the message shown if the validator returns an error"
+    />
+
+    <button
+      pButton
+      iconOnly
+      class="px-button-minimal"
+      severity="danger"
+      [text]="true"
+      [disabled]="isDisabled()"
+      size="small"
+      (click)="deleteValidator.emit()"
+    >
+      <i class="pi pi-trash"></i>
+    </button>
+  </form>
+
+  <ng-container #extraProperties></ng-container>
+</div>

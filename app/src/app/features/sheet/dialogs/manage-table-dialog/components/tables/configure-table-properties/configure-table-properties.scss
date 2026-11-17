@@ -1,0 +1,47 @@
+.cell-to-configure {
+  .ctc-header {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: var(--gap-l);
+    border-radius: var(--border-radius-m);
+
+    cursor: pointer;
+    user-select: none;
+    padding: var(--gap-s) var(--gap);
+
+    margin-bottom: var(--gap);
+
+    &:hover {
+      background: var(--theme-hover-gray-background);
+    }
+
+    .ctc-header-left {
+      display: flex;
+      flex-direction: column;
+      gap: var(--gap-s);
+
+      .ctc-header-subtext {
+        font-size: var(--font-size-s);
+        color: var(--theme-text-secondary-color);
+      }
+
+      .ctc-header-title {
+        font-weight: 500;
+        font-size: var(--font-size-l);
+        text-transform: uppercase;
+      }
+    }
+
+    .ctc-header-right {
+      display: flex;
+      flex-direction: row;
+      gap: var(--gap);
+
+      align-items: center;
+    }
+  }
+
+  .ctc-content {
+    padding: 0px var(--gap);
+  }
+}

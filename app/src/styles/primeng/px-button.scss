@@ -1,0 +1,16 @@
+.px-button-xsmall.p-button {
+  padding: 1px var(--gap);
+}
+
+.px-button-table-widget.p-button-text {
+  color: white;
+
+  &:not(:disabled):hover {
+    color: white;
+    background-color: var(--p-slate-600);
+  }
+}
+
+.px-icon-button-xsmall.p-button {
+  padding: 2px;
+}

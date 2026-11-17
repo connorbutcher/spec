@@ -1,0 +1,19 @@
+<div
+  class="cell-input"
+  (focus)="focusCell($event)"
+  (keydown)="onKeydown($event)"
+  (mousedown)="onMousedown()"
+  tabindex="0"
+>
+  <p-select
+    class="px-table-select"
+    [filter]="true"
+    [options]="enginePhaseOptions()"
+    optionLabel="phase"
+    optionValue="id"
+    appendTo="body"
+    [showClear]="true"
+    [(ngModel)]="cellValue"
+    [disabled]="!canEdit()"
+  />
+</div>

@@ -1,0 +1,145 @@
+<app-dialog-header headerText="Manage Permissions - {{ title }}" />
+
+<div class="dialog-content">
+  @let tablePermissionsValue = tablePermissions();
+  @if (
+    (tablePermissionsValue && tablePermissionsValue.length > 0) ||
+    isInRestrictAccessMode()
+  ) {
+    <p-message
+      class="px-message-no-animation"
+      severity="secondary"
+      icon="pi pi-info-circle"
+    >
+      Use the options below to manage who can view or edit this table.
+    </p-message>
+
+    <div class="table-access-container">
+      <div
+        class="users-list"
+        cdkDropList
+        #usersList="cdkDropList"
+        [cdkDropListData]="users()"
+        [cdkDropListConnectedTo]="[adminsList, accessList]"
+        (cdkDropListDropped)="drop($event)"
+        cdkDropListSortingDisabled
+      >
+        <input
+          pInputText
+          [(ngModel)]="usersFilter"
+          placeholder="Filter the users"
+          fluid
+        />
+
+        <div class="users-container clamp-height-575">
+          @for (user of users(); track $index) {
+            <div class="user-row" cdkDrag>{{ user.displayName }}</div>
+          }
+        </div>
+      </div>
+
+      <div
+        class="admins access-container"
+        cdkDropList
+        #adminsList="cdkDropList"
+        [cdkDropListData]="admins()"
+        [cdkDropListConnectedTo]="[usersList, accessList]"
+        (cdkDropListDropped)="drop($event)"
+        cdkDropListSortingDisabled
+      >
+        <div class="access-header-container">
+          <span class="access-header">Admin</span>
+          <span class="access-header-description"
+            >Admins can manage table permissions</span
+          >
+        </div>
+
+        <div class="users-container clamp-height-250">
+          @for (user of admins(); track $index) {
+            <div cdkDrag class="user-row">{{ user.displayName }}</div>
+          }
+        </div>
+
+        @if (admins().length === 0) {
+          <label class="error">There must be at least one admin</label>
+        }
+      </div>
+
+      <div
+        class="access access-container"
+        cdkDropList
+        #accessList="cdkDropList"
+        [cdkDropListData]="access()"
+        [cdkDropListConnectedTo]="[usersList, adminsList]"
+        (cdkDropListDropped)="drop($event)"
+        cdkDropListSortingDisabled
+      >
+        <div class="access-header-container">
+          <span class="access-header">View/Edit</span>
+          <span class="access-header-description"
+            >Users with view/edit access can modify the table</span
+          >
+        </div>
+
+        <div class="users-container clamp-height-250">
+          @for (user of access(); track $index) {
+            <div cdkDrag class="user-row">{{ user.displayName }}</div>
+          }
+        </div>
+      </div>
+    </div>
+  } @else {
+    <p-message
+      class="px-message-no-animation"
+      severity="secondary"
+      icon="pi pi-info-circle"
+    >
+      <div class="restrict-access">
+        <span
+          >There are currently no permissions set for this table so all users
+          can view and edit it.</span
+        >
+
+        <button
+          pButton
+          severity="danger"
+          [outlined]="true"
+          (click)="toggleRestrictAccess()"
+        >
+          <i class="pi pi-lock"></i>
+          Restrict Access
+        </button>
+      </div>
+    </p-message>
+
+    <div></div>
+  }
+</div>
+
+<div class="dialog-actions">
+  <button
+    pButton
+    (click)="close()"
+    severity="secondary"
+    [disabled]="isSaving()"
+  >
+    Close
+  </button>
+  <button
+    pButton
+    severity="danger"
+    (click)="removePermissionsAsync()"
+    [disabled]="tablePermissions()?.length === 0 || isSaving()"
+    [loading]="isSaving()"
+  >
+    Remove All Permissions
+  </button>
+  <button
+    pButton
+    (click)="savePermissionChangesAsync()"
+    [disabled]="!canSaveChanges() || isSaving()"
+    [loading]="isSaving()"
+  >
+    Save Permission Changes
+  </button>
+</div>

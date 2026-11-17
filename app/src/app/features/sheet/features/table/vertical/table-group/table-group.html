@@ -1,0 +1,11 @@
+<app-references-indicator
+  [references]="group().groupReferences()"
+  [showLine]="true"
+/>
+
+<ng-container #gridContent></ng-container>
+
+<div class="preview" *cdkDragPreview>
+  <i class="material-symbols-outlined">drag_handle</i>
+  <div>Moving group {{ group().order() }}</div>
+</div>

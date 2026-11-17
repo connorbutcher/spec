@@ -1,0 +1,38 @@
+#update-available-banner {
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: auto auto 1fr auto;
+  gap: var(--gap);
+  align-items: center;
+
+  padding: 4px 1em;
+
+  background: var(--theme-color-warning);
+  color: black;
+
+  animation: blinkingBackground 2s infinite;
+}
+
+.version-number {
+  font-weight: 500;
+}
+
+#install-button {
+  border-color: black;
+}
+
+@keyframes blinkingBackground {
+  0% {
+    background-color: var(--theme-color-warning);
+  }
+  50% {
+    background-color: #ea1d2d8c;
+  }
+  100% {
+    background-color: var(--theme-color-warning);
+  }
+}
+
+#install-button {
+  border-color: black;
+}

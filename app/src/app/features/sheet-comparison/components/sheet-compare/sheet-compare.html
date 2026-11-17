@@ -1,0 +1,9 @@
+<div class="sheet-compare card">
+  <app-sheet-selection />
+
+  @if (tableOrientation() === "vertical") {
+    <app-vertical-sheet-compare />
+  } @else {
+    <app-horizontal-sheet-compare />
+  }
+</div>

@@ -1,0 +1,10 @@
+.parts-pair-widget {
+  display: grid;
+  grid-template-rows: repeat(2, 1fr);
+
+  color: var(--theme-text-error-color);
+
+  .top {
+    border-bottom: 1px solid gray;
+  }
+}

@@ -1,0 +1,17 @@
+<div id="audit-sheets-for-phase-and-type" class="card">
+  <div class="asfpat-header">
+    <span class="chip bold xxl"
+      >{{ activePhase().phase }} - {{ activeType().type }}</span
+    >
+  </div>
+
+  <div class="asfpat-content">
+    @for (specSheet of specSheets(); track $index) {
+      <app-sheet-for-phase-row
+        [sheet]="specSheet"
+        [phase]="activePhase()"
+        [type]="activeType()"
+      />
+    }
+  </div>
+</div>

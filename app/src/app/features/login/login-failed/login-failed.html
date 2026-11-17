@@ -1,0 +1,38 @@
+<div class="card">
+  <h1>Login failed</h1>
+
+  <p>There was an issue logging you in, close the browser tab and try again.</p>
+
+  <p>
+    If the issue persists, send the below information to the system
+    administrator.
+  </p>
+
+  <div class="login-failed-table">
+    <table>
+      <tbody>
+        <tr>
+          <td>Reason</td>
+          <td>{{ reason() }}</td>
+        </tr>
+
+        @if (context(); as ctx) {
+          <tr>
+            <td class="font-bold">Timestamp</td>
+            <td>
+              {{ ctx.timestamp | date: 'yyyy-MM-ddTHH:mm:ss.SSS' : '+0:00' }}Z
+            </td>
+          </tr>
+          <tr>
+            <td class="font-bold">Object ID</td>
+            <td>{{ ctx.userObjectId }}</td>
+          </tr>
+          <tr>
+            <td class="font-bold">Username</td>
+            <td>{{ ctx.username }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

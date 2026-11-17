@@ -1,0 +1,32 @@
+.p-autocomplete {
+  width: 100%;
+  height: 100%;
+}
+
+.p-autocomplete-overlay {
+  width: 100%;
+}
+
+.px-table-autocomplete .p-autocomplete-input {
+  height: 100%;
+  border-radius: 0px;
+  background: transparent;
+  border: 0px;
+  align-items: center;
+  padding: 0px;
+  box-shadow: none;
+
+  &.p-disabled {
+    background: transparent;
+  }
+
+  &.p-disabled .p-select-label {
+    color: inherit;
+  }
+}
+
+.px-table-autocomplete .p-autocomplete-dropdown {
+  background: transparent;
+  border: 0px;
+  color: var(--p-select-dropdown-color);
+}

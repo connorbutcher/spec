@@ -1,0 +1,15 @@
+<div
+  class="cpl-cell"
+  [class.selected]="selectedId() === cell().uid"
+  (click)="selectCell()"
+>
+  @if (requiresConfiguration()) {
+    <i class="requires-configuration pi pi-exclamation-circle"></i>
+  }
+
+  <span class="text-color-secondary">Row -</span>
+  <span>{{ cell().value.rowNumber }}</span>
+
+  <span class="text-color-secondary">Type -</span>
+  <span>{{ cell().value.tableCellType.title }}</span>
+</div>

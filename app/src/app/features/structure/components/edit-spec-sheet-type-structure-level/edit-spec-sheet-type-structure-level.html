@@ -1,0 +1,58 @@
+@if (isTabActive()) {
+  <form [formGroup]="form" class="level">
+    <div class="display-properties" formArrayName="displayProperties">
+      @for (control of displayPropertiesFormArray.controls; track $index) {
+        <div [formGroupName]="$index">
+          <p-inputgroup>
+            <p-select
+              formControlName="property"
+              [options]="propertyOptions()"
+              optionLabel="valueName"
+              required
+              appendTo="body"
+              placeholder="Property to display"
+            />
+            <p-inputgroup-addon>
+              <button
+                pButton
+                severity="danger"
+                [text]="true"
+                (click)="deleteDisplayProperty($index)"
+              >
+                <i class="pi pi-trash"></i>
+              </button>
+            </p-inputgroup-addon>
+          </p-inputgroup>
+        </div>
+
+        @if (!$last) {
+          <span>-</span>
+        }
+      }
+
+      <button
+        pButton
+        icon="pi pi-plus"
+        [outlined]="true"
+        (click)="addDisplayProperty()"
+      >
+        <i class="pi pi-plus"></i>
+        {{ displayPropertyControlsCount === 0 ? "Add display property" : "" }}
+      </button>
+    </div>
+
+    <p-selectbutton
+      formControlName="sortOrientation"
+      [options]="[
+        { label: 'Asc', value: 0 },
+        { label: 'Desc', value: 1 },
+      ]"
+    />
+  </form>
+
+  @if (displayPropertyControlsCount === 0) {
+    <div class="form-error">At least one display property is required.</div>
+  }
+} @else {
+  <span>Tabs not active</span>
+}

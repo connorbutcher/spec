@@ -1,0 +1,28 @@
+.go-to-tables {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+
+  .go-to-table {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: var(--gap);
+    align-items: center;
+
+    padding: var(--gap-s) var(--gap) var(--gap-s) var(--gap-xs);
+    border-radius: var(--border-radius-m);
+    cursor: pointer;
+    user-select: none;
+    text-transform: uppercase;
+
+    &:hover {
+      background-color: var(--theme-hover-gray-background);
+    }
+  }
+}
+
+.go-to-icon {
+  font-size: 19px;
+  height: 19px;
+  width: 19px;
+}

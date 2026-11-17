@@ -1,0 +1,97 @@
+<div id="phase-publishing">
+  @if (isRequired()) {
+    <div class="phase-message">
+      <p-message class="px-message-no-animation"
+        >Drag and drop users to assign them as observers or approvers or move
+        them between these lists.</p-message
+      >
+    </div>
+
+    <div class="pp-content" cdkDropListGroup>
+      <div class="user-section users">
+        <span class="chip bold self-align-center l">Available Users</span>
+
+        <div class="filter">
+          <input
+            pInputText
+            placeholder="Filter the users"
+            fluid
+            [(ngModel)]="filter"
+          />
+        </div>
+
+        <div
+          class="users"
+          cdkDropList
+          id="available-users"
+          [cdkDropListData]="usersInUse()"
+          (cdkDropListDropped)="onUserDropped($event)"
+          cdkDropListSortingDisabled
+        >
+          @for (user of availableUsers(); track $index) {
+            <div cdkDrag class="user-row" [cdkDragData]="user">
+              <span>{{ user.displayName }}</span>
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="user-section observers">
+        <span class="chip bold self-align-center l">Phase Observers</span>
+
+        <p-message
+          severity="secondary"
+          variant="simple"
+          class="px-message-no-animation"
+          >These users will receive an email notification when a spec sheet is
+          published</p-message
+        >
+
+        <div
+          class="users"
+          cdkDropList
+          [cdkDropListData]="observers()"
+          (cdkDropListDropped)="onObserverDropped($event, 'observer')"
+          cdkDropListSortingDisabled
+        >
+          @for (observer of observers(); track $index) {
+            <div cdkDrag class="user-row" [cdkDragData]="observer">
+              <span>{{ observer.user.displayName }}</span>
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="user-section approvers">
+        <span class="chip bold self-align-center l">Phase Approvers</span>
+
+        <p-message
+          severity="secondary"
+          variant="simple"
+          class="px-message-no-animation"
+          >One or more of these users will need to approve the spec sheet before
+          it can be published</p-message
+        >
+
+        <div
+          class="users"
+          cdkDropList
+          [cdkDropListData]="approvers()"
+          (cdkDropListDropped)="onObserverDropped($event, 'approver')"
+          cdkDropListSortingDisabled
+        >
+          @for (approver of approvers(); track $index) {
+            <div cdkDrag class="user-row" [cdkDragData]="approver">
+              <span>{{ approver.user.displayName }}</span>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  } @else {
+    <app-info-block
+      message="This phase is a child phase and cannot have its own publishing information."
+      icon="do_not_touch"
+    />
+  }
+</div>

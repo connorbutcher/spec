@@ -1,0 +1,46 @@
+<app-dialog-header
+  headerText="Configure Table - {{ data.table.title().toLocaleUpperCase() }}"
+/>
+
+<div class="dialog-content">
+  <p-message class="px-message-no-animation" severity="secondary">
+    Select an item on the left to view and edit its properties. Changes made
+    here will affect the table in the sheet immediately.
+  </p-message>
+
+  <div class="properties-container">
+    <div class="properties-list">
+      @if (tableToConfigure()) {
+        <app-table-properties-list
+          [tables]="[tableToConfigure()!]"
+          [selectedId]="selectedGroup()?.uid"
+          (selectedGroup)="groupSelected($event)"
+        />
+      }
+
+      <app-cell-properties-list
+        [cells]="cells()"
+        [selectedId]="selectedGroup()?.uid"
+        (selectedGroup)="groupSelected($event)"
+      />
+    </div>
+
+    @if (selectedGroup()) {
+      <div class="properties-configuration">
+        <app-configure-properties
+          [group]="selectedGroup()!"
+          [expandByDefault]="true"
+        />
+      </div>
+    } @else {
+      <app-info-block
+        message="Select an item on the left to configure"
+        icon="search"
+      />
+    }
+  </div>
+</div>
+
+<div class="dialog-actions">
+  <button pButton (click)="close()" severity="secondary">Close</button>
+</div>

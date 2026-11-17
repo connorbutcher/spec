@@ -1,0 +1,62 @@
+<div
+  class="row-content"
+  cdkDropList
+  (cdkDropListDropped)="dropRows($event)"
+  [cdkDropListData]="orderableRows()"
+  [cdkDropListDisabled]="!canEdit() || !table().canUserEdit"
+  cdkDropListOrientation="vertical"
+  cdkDropListLockAxis="y"
+  [cdkDropListSortPredicate]="sortPredicate"
+>
+  @for (row of rows(); track row) {
+    @if (row.tableRowTemplate()?.canBeReordered && allowRowReordering()) {
+      <div
+        app-table-row-horizontal
+        [id]="row.referenceId()"
+        [table]="table()"
+        [group]="group()"
+        [parentGroup]="group()"
+        [row]="row"
+        [cdkDragDisabled]="
+          !canEdit() || !row.tableRowTemplate()?.canBeReordered
+        "
+        [cdkDragData]="row"
+        [hoverEnabled]="row.tableRowTemplate()?.showContextMenu ?? false"
+      ></div>
+    } @else {
+      <div
+        app-table-row-horizontal-static
+        [id]="row.referenceId()"
+        [table]="table()"
+        [group]="group()"
+        [parentGroup]="group()"
+        [row]="row"
+      ></div>
+    }
+  }
+</div>
+
+@for (layout of childGroupLayouts(); track layout.group) {
+  <div
+    app-table-group-horizontal
+    [table]="table()"
+    [group]="layout.group"
+    [parentGroup]="group()"
+    [rebuildVersion]="rebuildVersion()"
+    [cdkDragDisabled]="
+      !canEdit() || !layout.group.tableGroupTemplate()?.canBeReordered
+    "
+    [cdkDragData]="layout.group"
+    [cdkDropListDisabled]="!canEdit()"
+    [cdkDropListData]="layout.group.childGroups()"
+    cdkDropListOrientation="horizontal"
+    cdkDropListLockAxis="x"
+    [allowRowReordering]="false"
+    [gridArea]="layout.gridArea"
+  ></div>
+}
+
+<div class="preview" *cdkDragPreview>
+  <i class="material-symbols-outlined">drag_handle</i>
+  <div>Moving group {{ group().order() }}</div>
+</div>

@@ -1,0 +1,91 @@
+<div
+  class="engine-spec-part cell-input"
+  (focus)="focusCell($event)"
+  (keydown)="onKeydown($event)"
+  (mousedown)="onMousedown()"
+  tabindex="0"
+>
+  <p-select
+    class="side-heading px-table-select border-right"
+    [filter]="true"
+    filterBy="displayValue"
+    [options]="tableOptions()"
+    appendTo="body"
+    [showClear]="true"
+    [(ngModel)]="properties().table"
+    optionValue="value"
+    [disabled]="!canEdit()"
+  >
+    <ng-template let-option #item>
+      <span>{{ option.displayValue }}</span>
+    </ng-template>
+
+    <ng-template let-selectedItem #selectedItem>
+      <span>{{ selectedItem.displayValue }}</span>
+    </ng-template>
+
+    <ng-template #footer>
+      <div class="pad-m">
+        <button
+          pButton
+          size="small"
+          [severity]="cell().properties()?.isValid() ? 'secondary' : 'danger'"
+          [outlined]="true"
+          fluid
+          (click)="viewConfiguration()"
+        >
+          <i
+            [class]="
+              cell().properties()?.isValid()
+                ? undefined
+                : 'pi pi-exclamation-circle'
+            "
+          ></i>
+          View Configuration
+        </button>
+      </div>
+    </ng-template>
+  </p-select>
+
+  <p-select
+    class="px-table-select"
+    [filter]="true"
+    filterBy="displayValue"
+    [options]="allOptions()"
+    appendTo="body"
+    [showClear]="true"
+    [(ngModel)]="cellValue"
+    optionValue="value"
+    [disabled]="!canEdit()"
+  >
+    <ng-template let-option #item>
+      <span>{{ option.displayValue }}</span>
+    </ng-template>
+
+    <ng-template let-selectedItem #selectedItem>
+      <span>{{ selectedItem.displayValue }}</span>
+    </ng-template>
+
+    <ng-template #footer>
+      <div class="pad-m">
+        <button
+          pButton
+          size="small"
+          [severity]="cell().properties()?.isValid() ? 'secondary' : 'danger'"
+          [outlined]="true"
+          fluid
+          (click)="viewConfiguration()"
+        >
+          <i
+            [class]="
+              cell().properties()?.isValid()
+                ? undefined
+                : 'pi pi-exclamation-circle'
+            "
+          ></i>
+          View Configuration
+        </button>
+      </div>
+    </ng-template>
+  </p-select>
+</div>

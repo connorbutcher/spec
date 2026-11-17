@@ -1,0 +1,25 @@
+.label-container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: var(--gap-s);
+}
+
+.end {
+  justify-items: flex-end;
+}
+
+label {
+  font-weight: 500;
+  color: var(--theme-text-secondary-color);
+  font-size: 18px;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.expand-toggle {
+  cursor: pointer;
+  user-select: none;
+}

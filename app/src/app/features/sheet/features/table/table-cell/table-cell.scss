@@ -1,0 +1,25 @@
+:host {
+  min-height: 24px;
+  border: 1px solid;
+  border-left: 0;
+  border-top: 0;
+
+  &:first-of-type {
+    border-left: 1px solid;
+  }
+}
+
+.row-cell-container {
+  height: 100%;
+  width: 100%;
+
+  position: relative;
+
+  .error-icon {
+    position: absolute;
+    left: 2px;
+    top: 4px;
+    padding: 1px 2px;
+    font-size: 80%;
+  }
+}

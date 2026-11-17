@@ -1,0 +1,39 @@
+<div class="text-dropdown-cell-options-configuration-control">
+  <div
+    cdkDropList
+    [cdkDropListData]="optionsFormArray"
+    (cdkDropListDropped)="drop($event)"
+    class="text-dropdown-cell-options-container"
+  >
+    @for (control of optionsFormArray.controls; track $index) {
+      <div class="text-dropdown-cell-option" cdkDrag>
+        <span class="material-symbols-outlined" cdkDragHandle>drag_handle</span>
+        <input
+          pInputText
+          [formControl]="control"
+          placeholder="Enter the value to appear in the dropdown"
+        />
+        <button
+          pButton
+          iconOnly
+          class="px-button-minimal"
+          [text]="true"
+          severity="danger"
+          (click)="removeOption($index)"
+        >
+          <i class="pi pi-times"></i>
+        </button>
+      </div>
+    }
+  </div>
+
+  <button
+    pButton
+    class="add-option"
+    severity="primary"
+    [outlined]="true"
+    (click)="addOption()"
+  >
+    Add Option
+  </button>
+</div>

@@ -1,0 +1,28 @@
+.missing {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 23px;
+  height: 100%;
+
+  border: 1px solid var(--p-divider-border-color);
+
+  grid-column: 1 / -1;
+}
+
+.missing-table {
+  height: 100%;
+  border-radius: var(--border-radius-m);
+  border: 1px solid var(--p-divider-border-color);
+}
+
+.missing-repeat-background {
+  background: repeating-linear-gradient(
+    -45deg,
+    rgba(165, 165, 165, 0.1411764706),
+    rgba(165, 165, 165, 0.1411764706) 5px,
+    rgba(202, 202, 202, 0.031372549) 5px,
+    rgba(202, 202, 202, 0.031372549) 10px
+  );
+}

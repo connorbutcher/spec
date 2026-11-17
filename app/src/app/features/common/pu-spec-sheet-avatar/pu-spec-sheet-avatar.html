@@ -1,0 +1,12 @@
+@let checkout = checkoutForTemplate();
+@if (checkout) {
+  <div>
+    <app-avatar
+      [avatar]="checkout.user.username"
+      [backgroundColor]="checkout.user.colour"
+      [uid]="checkout.user.uid"
+      [index]="0"
+      [size]="size()"
+    />
+  </div>
+}

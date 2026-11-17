@@ -1,0 +1,85 @@
+<div id="spec-sheet-toolbar">
+  <div class="toolbar-tools">
+    <app-spec-sheet-search />
+    <div class="toolbar-status">
+      <app-advisory-overview />
+      <app-references-button />
+
+      @if (specSheet().requiresApprovalWorkflow) {
+        <app-sheet-approval-status />
+      }
+    </div>
+  </div>
+
+  <div class="toolbar-actions">
+    @if (
+      canEdit() &&
+      tableTypes() &&
+      tableTypes().length > 0 &&
+      !isAnalyticsEnabled()
+    ) {
+      @if (tableTypes().length === 1) {
+        <button
+          pButton
+          severity="secondary"
+          [text]="true"
+          (click)="addTable()"
+          [disabled]="!canEdit()"
+          size="small"
+        >
+          <i class="pi pi-plus"></i>
+          Add Table
+        </button>
+      } @else {
+        <p-splitbutton
+          size="small"
+          label="Add Table"
+          icon="pi pi-plus"
+          severity="secondary"
+          [text]="true"
+          (onClick)="addTable()"
+          [model]="tableOptions()"
+          [disabled]="!canEdit()"
+        />
+      }
+    }
+
+    @if (canCreateNewVersion() && !isAnalyticsEnabled()) {
+      <button
+        pButton
+        size="small"
+        severity="success"
+        (click)="createNewVersionAsync()"
+      >
+        Create New Version
+      </button>
+    } @else {
+      @if (canPublish() && !isAnalyticsEnabled() && canEdit()) {
+        <button
+          pButton
+          severity="success"
+          [outlined]="true"
+          (click)="publishSpecSheetAsync()"
+          [disabled]="!isValid() || hasChanges() || !canEdit()"
+          size="small"
+        >
+          <i class="pi pi-upload"></i>
+          Publish
+        </button>
+      }
+
+      @if (!isAnalyticsEnabled() && canEdit()) {
+        <button
+          pButton
+          (click)="saveChangesAsync()"
+          [disabled]="!isValid() || !hasChanges() || !canEdit()"
+          size="small"
+          severity="secondary"
+        >
+          <i class="pi pi-save"></i>
+          Save Changes
+        </button>
+      }
+    }
+  </div>
+</div>

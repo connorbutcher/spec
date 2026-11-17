@@ -1,0 +1,34 @@
+<div class="sheet-comparison-toolbar">
+  <app-spec-sheet-search />
+  <app-sheet-comparison-go-to-table />
+
+  <p-select
+    placeholder="Select the states to view"
+    required
+    [options]="stateOptions"
+    [(ngModel)]="specSheetStates"
+    [multiple]="true"
+  >
+    <ng-template #item let-item>
+      <div
+        class="state-item"
+        [style.background-color]="item | specSheetStateToBackgroundColor"
+      >
+        {{ item | specSheetStateToDisplayName }}
+      </div>
+    </ng-template>
+
+    <ng-template #selectedItem>
+      <div class="selected-items">
+        @for (state of specSheetStates(); track state) {
+          <div
+            class="state-item"
+            [style.background-color]="state | specSheetStateToBackgroundColor"
+          >
+            {{ state | specSheetStateToDisplayName }}
+          </div>
+        }
+      </div>
+    </ng-template>
+  </p-select>
+</div>

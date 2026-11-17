@@ -1,0 +1,14 @@
+<app-element-label [labelText]="property().valueName">
+  <div class="form-field-wrapper">
+    <input
+      pInputText
+      [required]="isRequired()"
+      [placeholder]="property().placeholderText"
+      fluid
+      [formControl]="formControl"
+    />
+    @for (validationMessage of validationMessages(); track $index) {
+      <label class="form-error">{{ validationMessage }}</label>
+    }
+  </div>
+</app-element-label>

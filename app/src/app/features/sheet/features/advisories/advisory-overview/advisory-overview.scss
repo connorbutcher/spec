@@ -1,0 +1,16 @@
+:host {
+  display: block;
+}
+
+p-buttongroup {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+button {
+  min-width: 44px;
+  height: 32px;
+  border-radius: 4px;
+  font-variant-numeric: tabular-nums;
+}

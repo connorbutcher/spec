@@ -1,0 +1,23 @@
+.table-properties-list {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  border-right: 1px solid var(--p-divider-border-color);
+  padding-right: var(--gap);
+
+  .tpl-header {
+    border-bottom: 1px solid var(--p-divider-border-color);
+    text-align: center;
+    margin-bottom: var(--gap);
+
+    font-weight: 500;
+    font-size: var(--font-size-l);
+  }
+
+  .tpl-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-s);
+  }
+}

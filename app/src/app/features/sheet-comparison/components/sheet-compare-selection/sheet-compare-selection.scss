@@ -1,0 +1,18 @@
+.compare-selection-container {
+  display: flex;
+  justify-content: center;
+
+  .comparison-side-header {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap);
+    min-width: 300px;
+
+    .header {
+      font-weight: 500;
+      color: var(--theme-text-secondary-color);
+      font-size: var(--font-size-l);
+      text-align: center;
+    }
+  }
+}

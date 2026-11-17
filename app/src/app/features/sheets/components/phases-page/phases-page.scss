@@ -1,0 +1,15 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
+// The selected phase fills the whole width; its card scrolls its own content.
+.phases-page {
+  height: 100%;
+
+  .detail {
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+  }
+}

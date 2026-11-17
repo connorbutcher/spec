@@ -1,0 +1,29 @@
+@let selectedUserValue = selectedUser();
+@if (selectedUserValue) {
+  <div id="permissions-by-user" class="card">
+    <div class="permissions-user-header-container">
+      <span class="chip bold xxl">{{ selectedUserValue.displayName }}</span>
+    </div>
+
+    <div class="permissions-user-body">
+      <div class="user-info-container">
+        <div class="user-info-row">
+          <span class="user-info-header">Id:</span>
+          <span>{{ selectedUserValue.id }}</span>
+        </div>
+
+        <div class="user-info-row">
+          <span class="user-info-header">Object Id:</span>
+          <span>{{ selectedUserValue.objectId }}</span>
+        </div>
+
+        <div class="user-info-row">
+          <span class="user-info-header">Email Address:</span>
+          <span>{{ selectedUserValue.emailAddress }}</span>
+        </div>
+      </div>
+
+      <app-user-permissions [selectedUser]="selectedUserValue" />
+    </div>
+  </div>
+}

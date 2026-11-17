@@ -1,0 +1,24 @@
+.tab-notes-container {
+  display: grid;
+  grid-auto-flow: row;
+  grid-auto-rows: auto 1fr auto;
+  min-height: 200px;
+
+  padding-top: var(--gap-l);
+}
+
+.notes-heading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.add-note-container {
+  display: grid;
+  grid-auto-columns: 1fr auto;
+  grid-auto-flow: column;
+  align-items: center;
+  gap: var(--gap);
+
+  margin-top: var(--gap-s);
+}

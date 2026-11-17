@@ -1,0 +1,64 @@
+<div class="panel-toolbar">
+  <button
+    pButton
+    severity="secondary"
+    variant="text"
+    size="small"
+    (click)="close()"
+    title="Back"
+  >
+    <i class="material-symbols-outlined">arrow_back</i>
+  </button>
+
+  <h3>{{ title() }}</h3>
+</div>
+
+@if (systemReferences().length > 0) {
+  <div class="references-content">
+    <div class="system-selector">
+      <h4 class="section-heading">
+        Systems
+        <span class="system-total">{{ systemOptions().length }}</span>
+      </h4>
+
+      <div class="system-options">
+        @for (system of systemOptions(); track system.system) {
+          <div
+            class="system-option"
+            [class.selected]="selectedSystem() === system.system"
+            (click)="selectedSystem.set(system.system)"
+          >
+            @if (system.iconUrl) {
+              <img [src]="system.iconUrl" width="20" height="20" />
+            } @else {
+              <i class="material-symbols-outlined">link</i>
+            }
+
+            <span class="system-name">{{ system.system }}</span>
+            <span class="reference-count"
+              >{{ system.referenceCount }}
+              <span class="count-label">references</span></span
+            >
+          </div>
+        }
+      </div>
+    </div>
+
+    @if (activeSystem(); as system) {
+      <section class="reference-groups">
+        <h4 class="section-heading">
+          {{ system.system }}
+          <span class="group-heading-label">/ Reference Groups</span>
+        </h4>
+
+        <app-active-system-reference
+          class="panel-content"
+          [systemReference]="system"
+          [highlightedReferenceId]="highlightedReferenceId()"
+        />
+      </section>
+    }
+  </div>
+} @else {
+  <p>No external references</p>
+}

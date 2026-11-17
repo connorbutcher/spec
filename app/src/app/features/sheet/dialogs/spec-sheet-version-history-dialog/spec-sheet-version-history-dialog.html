@@ -1,0 +1,16 @@
+<app-dialog-header headerText="{{ specSheetType()!.type }} Version History" />
+
+<div class="spec-sheet-version-history-content">
+  @for (historyItem of historyData(); track $index) {
+    @let compareValue = $last ? undefined : historyData()[$index + 1];
+
+    <app-spec-sheet-version-history-row
+      [specSheet]="historyItem"
+      [compareTo]="compareValue"
+    />
+  }
+</div>
+
+<div class="dialog-actions">
+  <button pButton severity="secondary" (click)="close()">Close</button>
+</div>

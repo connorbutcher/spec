@@ -1,0 +1,37 @@
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using PUSpecSheet.Api.Database.Schema.SpecSheets;
+
+namespace PUSpecSheet.Api.Database.Configuration.SpecSheets;
+
+internal class SpecSheetLinkedTableConfiguration : IEntityTypeConfiguration<DbSpecSheetLinkedTable>
+{
+    public void Configure(EntityTypeBuilder<DbSpecSheetLinkedTable> builder)
+    {
+        builder.HasKey(x => x.Id);
+        builder.ToTable("SpecSheetLinkedTables", "dbo");
+
+        builder.Property(x => x.Id)
+            .HasColumnName("SpecSheetLinkedTableID")
+            .HasColumnType("int")
+            .UseIdentityColumn();
+
+        builder.Property(x => x.SpecSheetId)
+            .HasColumnName("SpecSheetID")
+            .HasColumnType("int");
+
+        builder.Property(x => x.DisplayOrder)
+            .HasColumnType("smallint");
+
+        builder.Property(x => x.TableReferenceId)
+            .HasColumnType("uniqueidentifier");
+
+        builder.Property(x => x.LinkedByUserId)
+            .HasColumnName("CreatedByUserID")
+            .HasColumnType("smallint");
+
+        builder.HasOne(builder => builder.LinkedByUser)
+            .WithMany()
+            .HasForeignKey(builder => builder.LinkedByUserId);
+    }
+}

@@ -1,0 +1,108 @@
+<div class="cell-property-content">
+  <app-element-label labelText="Spec Sheet Type">
+    <div class="form-field-wrapper">
+      <p-select
+        required
+        [options]="specSheetTypes()"
+        appendTo="body"
+        optionLabel="type"
+        [(ngModel)]="cellProperty().specSheetType"
+        placeholder="Select the type"
+        disabled
+      />
+      @if (!cellProperty().specSheetType()) {
+        <span class="form-error">The Spec Sheet Type is required.</span>
+      }
+    </div>
+  </app-element-label>
+
+  <app-element-label labelText="Spec Sheet Phase">
+    <div class="form-field-wrapper">
+      <p-treeselect
+        [(ngModel)]="specSheetPhase"
+        [options]="phaseOptions()"
+        required
+        [filter]="true"
+        filterBy="label"
+        [filterInputAutoFocus]="true"
+        appendTo="body"
+        [showClear]="true"
+        selectionMode="single"
+        placeholder="Select the phase"
+        disabled
+      />
+      @if (!cellProperty().specSheetPhase()) {
+        <span class="form-error">The Spec Sheet Phase is required.</span>
+      }
+    </div>
+  </app-element-label>
+
+  <app-element-label labelText="Table to Link to">
+    <div class="form-field-wrapper">
+      <p-select
+        required
+        [options]="tableOptions()"
+        appendTo="body"
+        [(ngModel)]="cellProperty().table"
+        [placeholder]="cellProperty().tableCellType.description"
+      >
+        <ng-template #selectedItem let-selectedItem>
+          <span>{{ selectedItem.title().toLocaleUpperCase() }}</span>
+        </ng-template>
+
+        <ng-template let-tableOption #item>
+          <span>{{ tableOption.title().toLocaleUpperCase() }}</span>
+        </ng-template>
+      </p-select>
+      @if (!cellProperty().table()) {
+        <span class="form-error">The table to link to is required.</span>
+      }
+    </div>
+  </app-element-label>
+
+  <app-element-label labelText="Row to Link to">
+    <div class="form-field-wrapper">
+      <p-select
+        required
+        [options]="rowOptions()"
+        appendTo="body"
+        placeholder="Select the row to link to"
+        [(ngModel)]="cellProperty().row"
+      />
+      @if (!cellProperty().row()) {
+        <span class="form-error">The table to link to is required.</span>
+      }
+    </div>
+  </app-element-label>
+
+  <app-element-label labelText="Cell to Link to">
+    <div class="form-field-wrapper">
+      <p-select
+        required
+        [options]="cellOptions()"
+        appendTo="body"
+        placeholder="Select the cell to link to"
+        [(ngModel)]="cellProperty().cellType"
+      />
+      @if (!cellProperty().cellType()) {
+        <span class="form-error">The table to link to is required.</span>
+      }
+    </div>
+  </app-element-label>
+
+  <app-element-label
+    labelText="Lock to Latest Version"
+    infoText="This option locks the table to the latest version. If not selected, the table will always look for the latest version"
+  >
+    <div class="form-field-wrapper">
+      <p-selectbutton
+        [options]="lockToLatestPublishedOptions"
+        [(ngModel)]="cellProperty().lockToLatestPublished"
+        optionLabel="label"
+        optionValue="value"
+        required
+        [allowEmpty]="false"
+      />
+    </div>
+  </app-element-label>
+</div>

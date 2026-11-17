@@ -1,0 +1,79 @@
+<nav id="app-nav" [style.width.px]="isExpanded() ? 190 : 60" #nav>
+  <div class="side-nav-item title-item" routerLink="home" (click)="goHome()">
+    <img src="favicon.ico" class="nav-icon" />
+
+    @if (isExpanded()) {
+      <span class="app-title">PU Spec Sheet</span>
+    }
+  </div>
+
+  <p-divider class="px-divider-reduced-margin" />
+
+  <div class="side-nav-items-container">
+    <app-side-nav-phase-tree />
+  </div>
+
+  <p-divider class="px-divider-reduced-margin" />
+
+  @if (!isAnalyticsEnabled()) {
+    <a
+      class="side-nav-item with-icon"
+      [class.side-nav-expanded]="isExpanded()"
+      routerLink="/comparison"
+      routerLinkActive="selected"
+      pTooltip="Comparison Tool"
+      tooltipPosition="right"
+    >
+      <span class="material-symbols-outlined">compare_arrows</span>
+      @if (isExpanded()) {
+        <span class="title">Comparison Tool</span>
+      }
+    </a>
+  }
+
+  @if (canViewAdmin && !isAnalyticsEnabled()) {
+    <a
+      class="side-nav-item with-icon"
+      [class.side-nav-expanded]="isExpanded()"
+      routerLink="/admin"
+      routerLinkActive="selected"
+      pTooltip="Admin"
+      tooltipPosition="right"
+    >
+      <span class="material-symbols-outlined">admin_panel_settings</span>
+      @if (isExpanded()) {
+        <span class="title">Admin</span>
+      }
+    </a>
+  }
+
+  @if (!isAnalyticsEnabled()) {
+    <div
+      class="side-nav-item with-icon"
+      [class.side-nav-expanded]="isExpanded()"
+      (click)="openHelpDialog()"
+      pTooltip="Help"
+      tooltipPosition="right"
+    >
+      <span class="material-symbols-outlined">help</span>
+      @if (isExpanded()) {
+        <span class="title">Help</span>
+      }
+    </div>
+  }
+
+  <div
+    class="side-nav-item with-icon"
+    [class.side-nav-expanded]="isExpanded()"
+    (click)="toggleExpanded()"
+    [pTooltip]="isExpanded() ? 'Collapse' : 'Expand'"
+    tooltipPosition="right"
+  >
+    <span class="material-symbols-outlined">{{
+      isExpanded() ? "chevron_left" : "chevron_right"
+    }}</span>
+    @if (isExpanded()) {
+      <span class="title">Expand</span>
+    }
+  </div>
+</nav>

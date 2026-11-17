@@ -1,0 +1,16 @@
+@if (table()) {
+  <div class="table-layout-container">
+    <app-sheet-table-header-comparison
+      [table]="table()"
+      [tableState]="tableComparison().tableState"
+    />
+
+    <div class="pu-spec-sheet-table">
+      <div class="grid-table" [style.grid-template-columns]="columnCount()">
+        <ng-container #gridContent></ng-container>
+      </div>
+    </div>
+  </div>
+} @else {
+  <div class="missing-table missing-repeat-background"></div>
+}

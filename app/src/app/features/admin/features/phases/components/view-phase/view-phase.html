@@ -1,0 +1,59 @@
+@let phaseValue = phase();
+
+@if (phaseValue) {
+  <div id="view-phase" class="card">
+    <div class="vp-header">
+      <span class="chip bold xxl">{{ phaseValue.phase }}</span>
+    </div>
+
+    <div class="vp-toolbar">
+      <button
+        pButton
+        severity="danger"
+        [disabled]="isSaving()"
+        [loading]="isSaving()"
+        (click)="markAsObsoleteAsync()"
+      >
+        Mark as Obsolete
+      </button>
+
+      <button
+        pButton
+        (click)="updateAsync()"
+        [disabled]="form.invalid || isSaving() || !phaseHasChanges()"
+        [loading]="isSaving()"
+      >
+        Save Changes
+      </button>
+    </div>
+
+    <form [formGroup]="form" class="vp-content">
+      <p-tabs value="general">
+        <p-tablist>
+          <p-tab value="general">General</p-tab>
+
+          <p-tab value="workflow">Publishing</p-tab>
+        </p-tablist>
+
+        <p-tabpanels class="no-padding-bottom">
+          <p-tabpanel value="general">
+            <ng-template #content>
+              <app-update-phase-general-info formControlName="phase" />
+            </ng-template>
+          </p-tabpanel>
+
+          <p-tabpanel value="workflow">
+            <ng-template #content>
+              <div>
+                <app-phase-publishing
+                  formControlName="publishing"
+                  [isRequired]="!phaseValue.parentSpecSheetPhaseId"
+                />
+              </div>
+            </ng-template>
+          </p-tabpanel>
+        </p-tabpanels>
+      </p-tabs>
+    </form>
+  </div>
+} @else {}

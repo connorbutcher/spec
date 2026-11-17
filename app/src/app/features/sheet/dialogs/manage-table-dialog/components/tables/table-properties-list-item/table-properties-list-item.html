@@ -1,0 +1,11 @@
+<div
+  class="tbl-table"
+  [class.selected]="selectedId() === table().uid"
+  (click)="selectTable()"
+>
+  @if (requiresConfiguration()) {
+    <i class="requires-configuration pi pi-exclamation-circle"></i>
+  }
+
+  <span class="table-title">{{ table().value.title }}</span>
+</div>

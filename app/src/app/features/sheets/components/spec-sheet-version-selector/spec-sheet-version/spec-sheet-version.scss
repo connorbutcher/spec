@@ -1,0 +1,15 @@
+.spec-sheet-version-option {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  column-gap: var(--gap-l);
+
+  .sheet-state {
+    color: var(--theme-text-secondary-color);
+    font-size: var(--font-size-s);
+
+    &.locked {
+      color: var(--theme-text-error-color);
+    }
+  }
+}

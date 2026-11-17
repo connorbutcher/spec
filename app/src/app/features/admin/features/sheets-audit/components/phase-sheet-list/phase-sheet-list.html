@@ -1,0 +1,50 @@
+<div id="phase-list" class="card">
+  <div class="phase-list-header-container">
+    <span class="phase-header">Phases</span>
+  </div>
+
+  <div class="phase-list-content">
+    <div class="phases-tree">
+      <p-tree
+        #tree
+        class="px-phase-tree"
+        [value]="phaseOptions()"
+        [(selection)]="activePhase"
+        [draggableNodes]="true"
+        [droppableNodes]="true"
+        draggableScope="self"
+        droppableScope="self"
+        [filter]="true"
+        filterPlaceholder="Type to filter"
+        selectionMode="single"
+        (onNodeSelect)="selectPhase($event.node.data)"
+      >
+        <ng-template pTemplate="filter">
+          <div class="filter-container">
+            <p-inputgroup>
+              <input
+                pInputText
+                type="text"
+                placeholder="Type to filter"
+                (input)="tree._filter($event.target.value)"
+                fluid
+              />
+              <p-inputgroup-addon>
+                <i class="pi pi-search"></i>
+              </p-inputgroup-addon>
+            </p-inputgroup>
+          </div>
+        </ng-template>
+
+        <ng-template let-node pTemplate="phase">
+          <div class="phase-row">
+            <span>{{ node.label }}</span>
+            @if (node.data.isObsolete) {
+              <p-tag severity="danger" value="Obsolete" />
+            }
+          </div>
+        </ng-template>
+      </p-tree>
+    </div>
+  </div>
+</div>

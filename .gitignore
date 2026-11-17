@@ -1,7 +1,6 @@
 bin/
 obj/
 .vs/
-.lint-build/
 *.user
 
-# Angular output is ignored by app/.gitignore
+# The UI's own ignores are in app/.gitignore, the API's in api/.gitignore.

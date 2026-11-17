@@ -1,0 +1,16 @@
+.sheet-comparison-toolbar {
+  display: grid;
+  grid-template-columns: repeat(3, min-content);
+  gap: var(--gap);
+}
+
+.state-item {
+  padding: 1px var(--gap);
+  border-radius: var(--border-radius-m);
+}
+
+.selected-items {
+  display: flex;
+  flex-direction: row;
+  gap: var(--gap);
+}

@@ -1,0 +1,34 @@
+<app-dialog-header headerText="Requesting Checkout" />
+
+<div class="dialog-content">
+  @if (remainingTime() > 0) {
+    <p class="requesting-checkout">
+      Requesting checkout for the table from
+      <span class="highlight">{{ user }}</span>
+    </p>
+  }
+
+  <div class="countdown-timer-container">
+    <span class="countdown-info">Time remaining for response</span>
+
+    <span class="countdown-timer">
+      {{ remainingTime() | date: "mm:ss" }}
+    </span>
+  </div>
+
+  @if (remainingTime() === 0) {
+    <span class="countdown-expired-text"
+      >Time expired for {{ user }} to respond. To continue, either cancel the
+      request or force the checkout</span
+    >
+  }
+</div>
+
+<div class="dialog-actions">
+  <button pButton severity="secondary" (click)="closeAsync()">
+    Cancel checkout
+  </button>
+  <button pButton severity="danger" (click)="forceAsync()">
+    Force checkout
+  </button>
+</div>

@@ -1,0 +1,9 @@
+<div
+  appFragmentedElement
+  [id]="cell()?.referenceId()"
+  [attr.id]="cell()?.referenceId()"
+  class="row-cell-container"
+  [ngClass]="cellType().type"
+>
+  <ng-container #cellContent></ng-container>
+</div>

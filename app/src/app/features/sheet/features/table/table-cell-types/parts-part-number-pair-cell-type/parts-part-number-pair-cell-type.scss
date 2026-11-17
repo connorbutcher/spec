@@ -1,0 +1,33 @@
+.part-container {
+  display: grid;
+  grid-template-columns: 40px 1fr auto;
+  grid-template-rows: repeat(2, 1fr);
+  width: 100%;
+  height: 100%;
+  place-items: center;
+
+  grid-template-areas:
+    "widget part remove"
+    "widget part remove";
+
+  .widget {
+    grid-area: widget;
+  }
+
+  .part-entry {
+    grid-area: part;
+
+    display: grid;
+    grid-template-rows: repeat(2, 1fr);
+    margin-left: var(--gap);
+    width: 100%;
+  }
+
+  .remove {
+    grid-area: remove;
+  }
+}
+
+.top {
+  border-bottom: 1px solid gray;
+}

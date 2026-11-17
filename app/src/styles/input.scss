@@ -1,0 +1,24 @@
+.input.plain {
+  outline: none;
+  border: 0;
+  box-sizing: border-box;
+  padding: 0;
+  min-width: 0;
+  width: 100%;
+  height: 100%;
+
+  background-color: transparent;
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+input[type="number"].hide-spinner {
+  -moz-appearance: textfield;
+}
+
+input.hide-spinner::-webkit-outer-spin-button,
+input.hide-spinner::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}

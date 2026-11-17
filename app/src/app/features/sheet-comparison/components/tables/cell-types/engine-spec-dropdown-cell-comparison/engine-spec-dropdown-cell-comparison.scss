@@ -1,0 +1,8 @@
+.cell-input {
+  display: grid;
+  grid-template-columns: 1fr 3fr;
+
+  .border-right {
+    border-right: 1px solid;
+  }
+}

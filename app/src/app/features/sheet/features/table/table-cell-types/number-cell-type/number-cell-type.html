@@ -1,0 +1,21 @@
+<div
+  class="cell-input"
+  #origin
+  tabindex="0"
+  cdkMonitorSubtreeFocus
+  (cdkFocusChange)="focusCell($event)"
+>
+  @if (isCellFocused() && canEdit()) {
+    <input
+      #input
+      appFocus
+      class="input plain hide-spinner"
+      type="number"
+      tabindex="0"
+      cdkFocusInitial
+      [(ngModel)]="cellValue"
+    />
+  } @else {
+    <span>{{ hasValue() ? (cellValue() | number: ".4") : "N/A" }}</span>
+  }
+</div>

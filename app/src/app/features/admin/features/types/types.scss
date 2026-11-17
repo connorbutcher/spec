@@ -1,0 +1,28 @@
+#types {
+  display: flex;
+  flex-direction: column;
+
+  width: 100%;
+  height: 100%;
+
+  .types-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .types-content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+
+    margin-top: var(--gap-l);
+    min-height: 0px;
+  }
+
+  .types-toolbar {
+    display: flex;
+    gap: var(--gap);
+    justify-content: flex-end;
+  }
+}

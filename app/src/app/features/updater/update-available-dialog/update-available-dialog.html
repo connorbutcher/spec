@@ -1,0 +1,18 @@
+<app-dialog-header headerText="Update Available" />
+
+<div class="dialog-content">
+  <span
+    >A new update is available for the PU Spec Sheet. Please install it to get
+    the latest features and fixes.</span
+  >
+  <div class="version-graph">
+    <div class="version current">{{ currentVersion }}</div>
+    <span class="material-symbols-outlined">arrow_forward</span>
+    <div class="version latest">{{ latestVersion }}</div>
+  </div>
+</div>
+
+<div class="dialog-actions">
+  <button pButton severity="secondary" (click)="defer()">Not now</button>
+  <button pButton cdkFocusInitial (click)="update()">Install Update</button>
+</div>

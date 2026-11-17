@@ -1,0 +1,24 @@
+@if (shouldShowReferencesIndicator()) {
+  <app-references-indicator
+    [references]="row().rowReferences()"
+    [showLine]="false"
+  />
+}
+
+<div
+  appFragmentedElement
+  [id]="cell().referenceId()"
+  [attr.id]="cell().referenceId()"
+  class="row-cell-container"
+  [ngClass]="cell().tableCellType().type"
+>
+  @if (!cell().isValid() && cell().advisoryState() === 3) {
+    <p-tag
+      class="px-tag-inverted px-tag-danger error-icon"
+      value="Invalid"
+      severity="danger"
+    />
+  }
+
+  <ng-container #cellContent></ng-container>
+</div>

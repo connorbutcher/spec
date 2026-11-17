@@ -1,0 +1,9 @@
+<div class="sheet-comparison" [style.grid-template-rows]="gridRows()">
+  <app-sheet-comparison-side side="left" style="grid-column: 1" />
+  <p-divider
+    layout="vertical"
+    style="grid-column: 2"
+    [style.grid-row]="'1 / -1'"
+  />
+  <app-sheet-comparison-side side="right" style="grid-column: 3" />
+</div>

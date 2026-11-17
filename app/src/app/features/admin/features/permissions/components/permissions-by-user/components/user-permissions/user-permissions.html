@@ -1,0 +1,59 @@
+<div class="user-permissions">
+  <p-table
+    class="permissions-table"
+    #permissionTable
+    [value]="selectedUser().permissions"
+    stripedRows
+    dataKey="id"
+    [scrollable]="true"
+    scrollHeight="flex"
+    sortField="permission.title"
+    [globalFilterFields]="[
+      'permission.title',
+      'permission.description',
+      'permission.key',
+    ]"
+  >
+    <ng-template #caption>
+      <div class="permissions-toolbar">
+        <input
+          pInputText
+          type="text"
+          (input)="filter($event)"
+          placeholder="Search keyword"
+        />
+        <button pButton (click)="managePermissions()">
+          Manage Permissions
+        </button>
+      </div>
+    </ng-template>
+
+    <ng-template #header>
+      <tr>
+        <th pSortableColumn="id">Id <p-sort-icon field="id" /></th>
+        <th pSortableColumn="permissionId">
+          Permission Id <p-sort-icon field="permissionId" />
+        </th>
+        <th pSortableColumn="permission.title">
+          Permission <p-sort-icon field="permission.title" />
+        </th>
+        <th pSortableColumn="permission.description">
+          Description <p-sort-icon field="permission.description" />
+        </th>
+        <th pSortableColumn="permission.key">
+          Key <p-sort-icon field="permission.key" />
+        </th>
+      </tr>
+    </ng-template>
+
+    <ng-template #body let-permission>
+      <tr>
+        <td>{{ permission.id }}</td>
+        <td>{{ permission.permissionId }}</td>
+        <td>{{ permission.permission.title }}</td>
+        <td>{{ permission.permission.description }}</td>
+        <td>{{ permission.permission.key }}</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>

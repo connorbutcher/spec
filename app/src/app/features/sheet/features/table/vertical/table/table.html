@@ -1,0 +1,25 @@
+<div class="table-layout-container size-normal border-red">
+  <app-table-header [table]="table()" />
+
+  <div class="table-wrapper">
+    <div class="pu-spec-sheet-table">
+      <div
+        class="grid-table"
+        [style.grid-template-columns]="columnCount()"
+        cdkDropList
+        cdkDropListGroup
+        (cdkDropListDropped)="drop($event)"
+        [cdkDropListData]="table().groups()"
+        [cdkDropListDisabled]="!canEdit()"
+        cdkDropListOrientation="vertical"
+        cdkDropListLockAxis="y"
+      >
+        <ng-container #gridContent></ng-container>
+      </div>
+    </div>
+  </div>
+
+  @if (table().tableType().showNotes) {
+    <app-view-notes [table]="table()" />
+  }
+</div>

@@ -1,0 +1,18 @@
+<div class="workflow-step-actor">
+  <div class="wsa-status">
+    <span class="approver-name">{{
+      actor().actor?.displayName || "Unassigned approver"
+    }}</span>
+    <app-workflow-step-status-tag [state]="actor().state" />
+  </div>
+
+  @if (actor().actionedDateTime) {
+    <div class="actioned-date">
+      {{ actor().actionedDateTime | date: "dd MMM yyyy, HH:mm" }}
+    </div>
+  }
+
+  @if (safeComment()) {
+    <div class="wsa-comment" [innerHTML]="safeComment()"></div>
+  }
+</div>

@@ -1,0 +1,28 @@
+<p-select
+  [options]="options()"
+  [group]="!!groupLevel()"
+  optionGroupLabel="label"
+  optionGroupChildren="items"
+  required
+  [ngModel]="selectedSpecSheet()"
+  (ngModelChange)="selectVersion($event)"
+  dataKey="id"
+  [autoOptionFocus]="true"
+  fluid
+  appendTo="body"
+>
+  <ng-template #selectedItem let-selectedOption>
+    <app-spec-sheet-version
+      [specSheet]="selectedOption"
+      [specSheetType]="specSheetType()"
+      [showAvatars]="false"
+    />
+  </ng-template>
+
+  <ng-template #item let-option>
+    <app-spec-sheet-version
+      [specSheet]="option"
+      [specSheetType]="specSheetType()"
+    />
+  </ng-template>
+</p-select>

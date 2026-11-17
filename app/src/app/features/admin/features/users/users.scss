@@ -1,0 +1,25 @@
+#users {
+  display: flex;
+  flex-direction: column;
+
+  width: 100%;
+  height: 100%;
+
+  .users-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .users-content {
+    margin-top: var(--gap);
+    height: 100%;
+    overflow: auto;
+  }
+
+  .users-toolbar {
+    display: flex;
+    gap: var(--gap);
+    justify-content: flex-end;
+  }
+}

@@ -1,0 +1,25 @@
+:host {
+  overflow-x: auto;
+}
+
+.table-layout-container.horizontal {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: fit-content;
+  max-width: 100%;
+}
+
+.table-wrapper {
+  display: flex;
+  flex-direction: column;
+  overflow-x: auto;
+  flex: 1;
+}
+
+.grid-table-horizontal {
+  display: grid;
+  width: 100%;
+  align-items: start;
+  height: 100%;
+}

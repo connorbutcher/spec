@@ -1,0 +1,12 @@
+.ssp-display {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
+  ::ng-deep > * + * {
+    &::before {
+      content: "-";
+      margin: 0 var(--gap);
+    }
+  }
+}

@@ -1,0 +1,35 @@
+:host {
+  overflow: hidden;
+}
+
+#spec-sheet-type-list {
+  display: flex;
+  flex-direction: column;
+
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+
+  .spec-sheet-type-list-header-container {
+    display: flex;
+    flex-direction: row;
+    align-items: baseline;
+    gap: var(--gap);
+
+    margin-bottom: var(--gap-l);
+
+    .spec-sheet-type-header {
+      font-weight: 500;
+      font-size: var(--font-size-xl);
+    }
+
+    .spec-sheet-type-count {
+      font-size: var(--font-size-l);
+    }
+  }
+
+  .spec-sheet-type-content {
+    height: 100%;
+    overflow: auto;
+  }
+}

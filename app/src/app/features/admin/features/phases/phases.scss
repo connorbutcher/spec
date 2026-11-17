@@ -1,0 +1,14 @@
+#phases {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: var(--gap);
+
+  width: 100%;
+  height: 100%;
+
+  .phases-content {
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+  }
+}

@@ -1,0 +1,55 @@
+<div id="analytics-data-point-configuration">
+  <div class="adpc-header">
+    <span>{{ title() }}</span>
+  </div>
+
+  <div class="adpc-content">
+    @let datasetValue = dataset();
+    @if (datasetValue) {
+      <div>
+        <div class="dataset-information">
+          <span class="dsi-title">Title: {{ datasetValue.title }}</span>
+          <span class="dsi-description"
+            >Type: {{ specSheetTypeSelected()?.type }}</span
+          >
+          <span class="dsi-description"
+            >Phase: {{ specSheetPhaseSelected()?.phase }}</span
+          >
+          <span class="dsi-description"
+            >Only 1 limit row can be selected per dataset</span
+          >
+        </div>
+
+        <app-element-label labelText="Use Latest Version">
+          <div class="form-field-wrapper">
+            <p-selectbutton
+              [options]="selectButtonOptions"
+              [ngModel]="useLatestVersion()"
+              (ngModelChange)="useLatestVersion.set($event)"
+              optionLabel="label"
+              optionValue="value"
+              required
+              [allowEmpty]="false"
+            />
+          </div>
+        </app-element-label>
+
+        <app-element-label labelText="Data Points">
+          <div class="data-points-list">
+            @for (
+              dataPoint of datasetValue.columns;
+              track dataPoint.columnKey
+            ) {
+              <app-data-point-control
+                [dataPoint]="dataPoint"
+                (dataPointRemoved)="onDataPointRemoved(dataPoint)"
+              />
+            }
+          </div>
+        </app-element-label>
+      </div>
+    }
+  </div>
+
+  <div class="adpc-actions"></div>
+</div>

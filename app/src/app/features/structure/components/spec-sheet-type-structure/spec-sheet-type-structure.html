@@ -1,0 +1,75 @@
+<div class="structure-levels">
+  <div>
+    <h3 class="section-header">Grouping</h3>
+
+    <p-message
+      class="px-message-no-animation"
+      severity="secondary"
+      icon="pi pi-info-circle"
+      >Groups organize your Spec Sheets by specific properties.</p-message
+    >
+
+    <div class="structure-content">
+      @for (group of groupLevels(); track $index) {
+        <div class="structure-level" [style.--level]="$index">
+          <app-edit-spec-sheet-type-structure-level-group
+            [structureLevelGroup]="group"
+          />
+
+          <div class="group-breaker">
+            <button
+              pButton
+              icon="pi pi-plus"
+              severity="secondary"
+              [outlined]="true"
+              size="small"
+              (click)="addGroup()"
+            >
+              <i class="pi pi-plus"></i>
+              Add Group
+            </button>
+          </div>
+        </div>
+      } @empty {
+        <div class="no-structure-content">
+          <i class="no-structure-icon material-symbols-outlined">search</i>
+          <span class="no-structure-header">No Groups Setup</span>
+          <span class="no-structure-subheader"
+            >Groups organize your Spec Sheets. By default, they will be grouped
+            by phase</span
+          >
+          <button pButton [outlined]="true" size="small" (click)="addGroup()">
+            <i class="pi pi-plus"></i>
+            Add Group
+          </button>
+        </div>
+      }
+
+      @if (hasDuplicatePropertiesAcrossGroups()) {
+        <div class="form-error">
+          You cannot reuse template properties across groups.
+        </div>
+      }
+    </div>
+  </div>
+
+  <div>
+    <h3 class="section-header">Display Level</h3>
+
+    <p-message
+      class="px-message-no-animation"
+      severity="secondary"
+      icon="pi pi-info-circle"
+      >The display level defines how your Spec Sheets are displayed within the
+      tree structure.</p-message
+    >
+
+    @if (displayLevel()) {
+      <div class="structure-content">
+        <app-edit-spec-sheet-type-structure-level
+          [structureLevel]="displayLevel()!"
+        />
+      </div>
+    }
+  </div>
+</div>

@@ -1,0 +1,58 @@
+<app-dialog-header headerText="Create PU Spec Sheet" />
+
+<div class="dialog-content">
+  <form [formGroup]="form">
+    <app-element-label labelText="Type">
+      <div class="form-field-wrapper">
+        <p-select
+          formControlName="type"
+          [options]="specSheetTypes()"
+          [filter]="true"
+          appendTo="body"
+          optionLabel="type"
+          fluid
+          required
+          placeholder="The type of sheet"
+        />
+        @if (hasError("type", "required")) {
+          <label class="form-error">The type is required</label>
+        }
+      </div>
+    </app-element-label>
+
+    <app-element-label labelText="Phase">
+      <div class="form-field-wrapper">
+        <p-treeselect
+          formControlName="phase"
+          [options]="phaseOptions()"
+          [filter]="true"
+          filterBy="label"
+          [filterInputAutoFocus]="true"
+          appendTo="body"
+          fluid
+          required
+          placeholder="The phase of the sheet"
+        />
+        @if (hasError("phase", "required")) {
+          <label class="form-error">The phase is required</label>
+        }
+      </div>
+    </app-element-label>
+
+    <ng-container #formContent></ng-container>
+  </form>
+</div>
+
+<div class="dialog-actions">
+  <button pButton severity="secondary" (click)="close()">Cancel</button>
+  <button
+    pButton
+    (click)="createAsync()"
+    [disabled]="
+      form.invalid || !isFormControlsValid() || hasErrored() || isCreating()
+    "
+    [loading]="isCreating()"
+  >
+    Create
+  </button>
+</div>

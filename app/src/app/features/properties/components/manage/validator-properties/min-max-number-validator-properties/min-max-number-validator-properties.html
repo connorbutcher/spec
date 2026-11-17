@@ -1,0 +1,15 @@
+<div class="validator-properties-container">
+  <div class="validator-property-row">
+    <app-element-label labelText="Min/Max Number">
+      <p-inputnumber
+        required
+        [formControl]="numberCtrl"
+        [useGrouping]="false"
+        [maxFractionDigits]="2"
+        mode="decimal"
+        placeholder="Enter the desired min/max number"
+        fluid
+      />
+    </app-element-label>
+  </div>
+</div>

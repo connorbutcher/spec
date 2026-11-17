@@ -1,0 +1,56 @@
+<div class="panel-toolbar">
+  <button
+    pButton
+    severity="secondary"
+    variant="text"
+    size="small"
+    (click)="close()"
+  >
+    <i class="material-symbols-outlined">arrow_back</i>
+  </button>
+
+  <h3>{{ title() }}</h3>
+</div>
+
+<div class="panel-content">
+  @let activeWorkflow = activeWorkflowAttempt();
+  @let currentWorkflow = displayedWorkflowAttempt();
+  @if (currentWorkflow) {
+    <app-workflow-step-status
+      [workflowStep]="currentWorkflow"
+      [canToggle]="false"
+      [heading]="activeWorkflow ? 'Current approval' : 'Latest approval'"
+    />
+  }
+
+  @if (historyWorkflowAttempts().length > 0) {
+    <section class="workflow-attempts">
+      <h4>History</h4>
+
+      @for (pastApproval of historyWorkflowAttempts(); track pastApproval.id) {
+        <details class="history-attempt">
+          <summary>
+            <i class="material-symbols-outlined history-chevron"
+              >chevron_right</i
+            >
+            <span class="attempt-date">{{
+              pastApproval.startedDateTime | date: "dd MMM yyyy, HH:mm"
+            }}</span>
+            <app-workflow-step-status-tag [state]="pastApproval.state" />
+          </summary>
+
+          <div class="history-content">
+            <app-workflow-step-status
+              [workflowStep]="pastApproval"
+              [canToggle]="true"
+            />
+          </div>
+        </details>
+      }
+    </section>
+  }
+
+  @if (!currentWorkflow) {
+    <p>No approval history</p>
+  }
+</div>

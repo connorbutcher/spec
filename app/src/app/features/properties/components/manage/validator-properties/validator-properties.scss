@@ -1,0 +1,17 @@
+.validator-properties-container {
+  position: relative;
+
+  &:before {
+    position: absolute;
+    display: block;
+    content: "";
+    border-left: 1px solid #d4d4d4;
+    top: 0px;
+    bottom: 0px;
+  }
+
+  .validator-property-row {
+    margin-left: var(--gap-l);
+    margin-top: var(--gap);
+  }
+}

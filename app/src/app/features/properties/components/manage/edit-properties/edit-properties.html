@@ -1,0 +1,46 @@
+@if (properties()) {
+  <div class="edit-property-version-content">
+    <app-property-list />
+
+    @if (editingProperty()) {
+      <div class="epvc-block-container">
+        <div class="epvc-block">
+          <div class="epvc-toolbar">
+            <span class="chip bold xl fitted self-align-center"
+              >{{ editingProperty()?.valueName() }} Properties</span
+            >
+
+            @if (editingProperty()?.canBeRemoved()) {
+              <button
+                pButton
+                severity="danger"
+                [outlined]="true"
+                (click)="deleteProperty()"
+                [disabled]="!editingProperty()?.canBeRemoved()"
+              >
+                Delete Property
+              </button>
+            } @else {
+              <p-tag
+                severity="danger"
+                value="This property cannot be removed"
+              />
+            }
+          </div>
+
+          <app-edit-property [editingProperty]="editingProperty()!" />
+        </div>
+      </div>
+    } @else {
+      <div class="no-property-selected">
+        <i class="no-property-selected-icon material-symbols-outlined"
+          >search</i
+        >
+        <span class="no-property-selected-header">No property selected.</span>
+        <span class="color-secondary"
+          >Select one from the panel on the left.</span
+        >
+      </div>
+    }
+  </div>
+}

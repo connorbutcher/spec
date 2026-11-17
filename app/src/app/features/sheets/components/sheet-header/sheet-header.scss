@@ -1,0 +1,28 @@
+.sheet-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 20px;
+  width: 100%;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--theme-border-color);
+
+  .sheet-title {
+    flex-shrink: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--theme-text-primary-color);
+  }
+
+  app-sheet-tabs {
+    flex: 1 1 240px;
+    min-width: 0;
+  }
+
+  .end {
+    display: flex;
+    justify-content: flex-end;
+    margin-left: auto;
+    max-width: 100%;
+  }
+}

@@ -1,0 +1,45 @@
+<div class="notes-row" [class.not-last]="!isLast()">
+  <div class="note-header">
+    <span class="user">{{ note().createdByUser().displayName }}</span>
+    <span class="info">{{
+      note().createdDateTime() | date: "dd/MM/yyyy HH:mm"
+    }}</span>
+    <span class="info chip location">{{ note().sourceSystem() }}</span>
+
+    @if (note().isObsolete()) {
+      <span class="info chip removed">No longer relevant</span>
+    }
+  </div>
+
+  <div class="note-content">
+    <span [class.obsolete]="note().isObsolete()">{{ note().note() }}</span>
+  </div>
+
+  @if (canMarkAsObsolete()) {
+    <button
+      pButton
+      class="note-delete px-button-minimal"
+      severity="danger"
+      pTooltip="Mark the note as obsolete"
+      tooltipPosition="left"
+      [text]="true"
+      (click)="markNoteAsObsolete()"
+    >
+      <span class="material-symbols-outlined">strikethrough_s</span>
+    </button>
+  }
+
+  @if (canDeleteNote()) {
+    <button
+      pButton
+      class="note-delete px-button-minimal"
+      severity="danger"
+      pTooltip="Delete the note"
+      tooltipPosition="left"
+      [text]="true"
+      (click)="deleteNote()"
+    >
+      <span class="material-symbols-outlined">delete</span>
+    </button>
+  }
+</div>

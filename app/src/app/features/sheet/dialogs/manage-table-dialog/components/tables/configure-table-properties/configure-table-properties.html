@@ -1,0 +1,21 @@
+<div class="cell-to-configure">
+  <div class="ctc-header" (click)="toggleExpansion()">
+    <div class="ctc-header-left">
+      <span class="ctc-header-title">{{ tableGroup().value.title }}</span>
+    </div>
+
+    <div class="ctc-header-right">
+      <p-tag
+        [severity]="isValid() ? 'success' : 'danger'"
+        [value]="isValid() ? 'Complete' : 'Configuration Needed'"
+      />
+      <i class="material-symbols-outlined">{{
+        isExpanded() ? "expand_more" : "expand_less"
+      }}</i>
+    </div>
+  </div>
+
+  <div class="ctc-content">
+    <ng-container #propertyContent></ng-container>
+  </div>
+</div>

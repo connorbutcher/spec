@@ -1,0 +1,9 @@
+<i class="material-symbols-outlined error-icon">error</i>
+
+<span class="message">{{ message() }}</span>
+<span class="hint">{{ hint() }}</span>
+
+<div class="actions">
+  <button pButton severity="secondary" (click)="reload()">Reload</button>
+  <button pButton (click)="goBack()">Go Back</button>
+</div>

@@ -1,0 +1,13 @@
+.dialog-content {
+  max-height: 50vh;
+  overflow: auto;
+  padding: var(--gap-xs);
+}
+
+.cell-properties-configuration {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-l);
+
+  margin-top: var(--gap-l);
+}

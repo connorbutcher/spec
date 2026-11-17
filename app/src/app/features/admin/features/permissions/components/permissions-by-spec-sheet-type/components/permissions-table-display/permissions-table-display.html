@@ -1,0 +1,9 @@
+@for (userPermission of displayablePermissions(); track $index) {
+  <p-chip [label]="userPermission.permission.title" />
+}
+
+@if (permissions().length > displayablePermissions().length) {
+  @let remainingPermissions =
+    permissions().length - displayablePermissions().length;
+  <p-chip label="+{{ remainingPermissions }} more" />
+}

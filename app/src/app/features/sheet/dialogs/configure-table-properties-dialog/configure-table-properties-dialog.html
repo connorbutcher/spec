@@ -1,0 +1,26 @@
+<app-dialog-header headerText="Configure Table" />
+
+<div class="dialog-content">
+  <p-message class="px-message-no-animation" severity="info">
+    The following table requires additional configuration.
+    <br />
+    These properties can be modified by clicking the settings icon in the table
+    header.
+  </p-message>
+
+  <div class="table-properties-configuration">
+    @if (tableProperties()) {
+      <app-manage-table-properties
+        [tableProperty]="tableProperties()!"
+        [expandByDefault]="true"
+      />
+    }
+  </div>
+</div>
+
+<div class="dialog-actions">
+  <button pButton (click)="close()" severity="secondary">Close</button>
+  <button pButton (click)="saveConfiguration()" [disabled]="!isValid()">
+    Save Configuration
+  </button>
+</div>

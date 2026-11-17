@@ -1,0 +1,71 @@
+<app-dialog-header headerText="Help" />
+
+<div class="help-container">
+  <section class="info-section">
+    <div class="info-section-heading borderless">
+      <span>Quick Links</span>
+    </div>
+
+    <p-buttongroup>
+      <button
+        pButton
+        icon="pi pi-sync"
+        (click)="checkForUpdates()"
+        [outlined]="true"
+      >
+        <i class="pi pi-sync"></i>
+        Check for Updates
+      </button>
+
+      <button
+        pButton
+        icon="pi pi-question-circle"
+        (click)="viewDocumentation()"
+        [outlined]="true"
+      >
+        <i class="pi pi-question-circle"></i>
+        View Documentation
+      </button>
+    </p-buttongroup>
+  </section>
+
+  <section class="info-section">
+    <div class="info-section-heading">
+      <span>Application Information</span>
+    </div>
+
+    <section class="help-section">
+      <label>Name</label>
+      <span>PU Spec Sheet</span>
+
+      <label>Author</label>
+      <span>IT Software Development</span>
+
+      <label>Version</label>
+      <span>{{ version }}</span>
+    </section>
+  </section>
+
+  @let userValue = user();
+  @if (userValue) {
+    <section class="info-section">
+      <div class="info-section-heading">
+        <span>User Information</span>
+      </div>
+
+      <section class="help-section">
+        <label>Name</label>
+        <span>{{ userValue.displayName }}</span>
+      </section>
+
+      <section class="help-section">
+        <label>Connection ID</label>
+        <span>{{ connectionId }}</span>
+      </section>
+    </section>
+  }
+</div>
+
+<div class="dialog-actions">
+  <button pButton severity="secondary" (click)="close()">Close</button>
+</div>

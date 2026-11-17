@@ -1,0 +1,34 @@
+<div id="type-list" class="card">
+  <div class="type-list-header-container">
+    <span class="type-header">Types</span>
+  </div>
+
+  <div class="type-list-content">
+    <p-input-group>
+      <input
+        pInputText
+        type="text"
+        placeholder="Type to filter"
+        [(ngModel)]="filterText"
+      />
+
+      <p-inputgroup-addon>
+        <i class="pi pi-search"></i>
+      </p-inputgroup-addon>
+    </p-input-group>
+
+    <div class="types-container">
+      @for (type of types(); track $index) {
+        <div
+          class="type-row"
+          (click)="selectType(type)"
+          [class.active]="activeType()?.id === type.id"
+        >
+          <span>{{ type.type }}</span>
+        </div>
+      } @empty {
+        <span>No results found</span>
+      }
+    </div>
+  </div>
+</div>

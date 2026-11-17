@@ -1,0 +1,11 @@
+<div class="empty-state">
+  <i class="pi" [class]="icon()"></i>
+
+  <h2>{{ title() }}</h2>
+
+  @if (message()) {
+    <p>{{ message() }}</p>
+  }
+
+  <ng-content />
+</div>

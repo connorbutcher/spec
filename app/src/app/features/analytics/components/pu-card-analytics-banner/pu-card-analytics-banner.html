@@ -1,0 +1,15 @@
+@if (isEnabled()) {
+  <div id="pu-card-analytics-banner">
+    <span class="material-symbols-outlined">info</span>
+
+    <div class="banner-text">
+      You are selecting data for the PU Card Analytics application. Open a Spec
+      Sheet and select the rows you want to include. Click Complete Selection to
+      finish selecting, or close the tab down.
+    </div>
+
+    <button pButton severity="contrast" (click)="completeSelection()">
+      Complete Selection
+    </button>
+  </div>
+}

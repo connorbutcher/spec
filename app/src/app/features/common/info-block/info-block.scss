@@ -1,0 +1,30 @@
+:host {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: var(--gap);
+
+  height: 100%;
+  width: 100%;
+
+  .icon {
+    --icon-size: 64px;
+    width: var(--icon-size);
+    height: var(--icon-size);
+    font-size: var(--icon-size);
+  }
+
+  .message {
+    text-align: center;
+    font-weight: 500;
+    font-size: var(--font-size-xl);
+  }
+
+  .hint {
+    font-size: 1.2rem;
+    text-align: center;
+
+    color: var(--theme-text-secondary-color);
+  }
+}

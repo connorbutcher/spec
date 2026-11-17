@@ -1,0 +1,14 @@
+<div class="spec-sheet-version-option">
+  <app-sheet-summary-properties-display
+    [specSheet]="specSheet()"
+    [specSheetType]="specSheetType()"
+  />
+
+  @if (specSheet().isPublished) {
+    <span class="sheet-state locked">Locked</span>
+  }
+
+  @if (showAvatars()) {
+    <app-pu-spec-sheet-avatar [puSpecSheetId]="specSheet().id" size="xsmall" />
+  }
+</div>

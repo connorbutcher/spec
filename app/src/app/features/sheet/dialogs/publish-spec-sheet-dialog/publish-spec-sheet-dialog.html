@@ -1,0 +1,74 @@
+<app-dialog-header
+  headerText="Publish {{ specSheet().specSheetType().type }}"
+  [canDrag]="true"
+/>
+
+<div>
+  <form [formGroup]="form">
+    @if (requiresApprovalWorkflow()) {
+      <app-element-label
+        labelText="Approvers"
+        infoText="All the selected approvers MUST approve the changes before the new version can be published."
+      >
+        <div class="form-field-wrapper">
+          <p-select
+            formControlName="approvers"
+            required
+            placeholder="The users who must approve the changes. (At least one approver is required)"
+            [options]="approverOptions()"
+            optionLabel="user.displayName"
+            appendTo="body"
+            [multiple]="true"
+          />
+          @if (hasError("approvers", "required")) {
+            <label class="form-error">Approvers are required.</label>
+          }
+          @if (hasError("approvers", "minlength")) {
+            <label class="form-error">At least one approver is required.</label>
+          }
+        </div>
+      </app-element-label>
+    }
+
+    <app-element-label labelText="Detail whats changed in this version">
+      <div class="publish-info-message">
+        <p-message class="px-message-no-animation" severity="info">
+          <div>
+            <span>
+              This information will be included in the email notification sent
+              to the approvers.
+            </span>
+
+            <br />
+            <span>
+              Clicking "Compare" will open a side-by-side comparison of the
+              current in progress version and the last published version,
+              allowing you to easily see what changes will be included in this
+              version.
+            </span>
+
+            <button pButton size="small" (click)="compareSpecSheets()">
+              Compare
+            </button>
+          </div>
+        </p-message>
+      </div>
+
+      <div class="form-field-wrapper">
+        <app-rich-text-editor formControlName="publishInfo" required />
+      </div>
+    </app-element-label>
+  </form>
+</div>
+
+<div class="dialog-actions">
+  <button pButton severity="secondary" (click)="close()">Close</button>
+  <button
+    pButton
+    severity="success"
+    (click)="publish()"
+    [disabled]="form.invalid"
+  >
+    Publish
+  </button>
+</div>

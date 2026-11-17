@@ -1,0 +1,51 @@
+<app-dialog-header headerText="Create Type" />
+
+<div class="dialog-content">
+  <p-stepper class="px-stepper" [value]="1" (valueChange)="stepChange($event)">
+    <p-step-list>
+      <p-step [value]="1" [class]="basicInfoValid() ? 'valid' : 'invalid'">
+        Basic Information
+      </p-step>
+
+      <p-step [value]="2" [class]="propertiesValid() ? 'valid' : 'invalid'">
+        Properties
+      </p-step>
+
+      <p-step [value]="3" [class]="structureValid() ? 'valid' : 'invalid'">
+        Structure
+      </p-step>
+    </p-step-list>
+
+    <p-step-panels>
+      <p-step-panel [value]="1">
+        <ng-template #content>
+          <app-create-spec-sheet-type-basic-info />
+        </ng-template>
+      </p-step-panel>
+
+      <p-step-panel [value]="2">
+        <ng-template #content>
+          <app-create-spec-sheet-type-properties />
+        </ng-template>
+      </p-step-panel>
+
+      <p-step-panel [value]="3">
+        <ng-template #content>
+          <app-create-spec-sheet-type-structure />
+        </ng-template>
+      </p-step-panel>
+    </p-step-panels>
+  </p-stepper>
+</div>
+
+<div class="dialog-actions">
+  <button pButton severity="secondary" (click)="close()">Cancel</button>
+  <button
+    pButton
+    (click)="createAsync()"
+    [disabled]="!isValid() || isCreating()"
+    [loading]="isCreating()"
+  >
+    Create
+  </button>
+</div>

@@ -1,0 +1,9 @@
+<div class="add-options-container">
+  @for (option of options(); track $index) {
+    <div class="add-option" (click)="addOptionAsync(option)">
+      <span>Add {{ option.title }}</span>
+    </div>
+  } @empty {
+    <div>No options available</div>
+  }
+</div>

@@ -1,0 +1,21 @@
+.add-options-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+
+  .add-option {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: var(--gap);
+    align-items: center;
+
+    padding: var(--gap-s) var(--gap) var(--gap-s) var(--gap-xs);
+    border-radius: var(--border-radius-m);
+    cursor: pointer;
+    user-select: none;
+
+    &:hover {
+      background-color: var(--theme-hover-gray-background);
+    }
+  }
+}

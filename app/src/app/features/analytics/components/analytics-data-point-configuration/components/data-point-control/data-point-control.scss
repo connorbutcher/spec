@@ -1,0 +1,10 @@
+:host {
+  display: block;
+}
+
+.data-point-control {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: var(--gap-xs);
+  align-items: center;
+}

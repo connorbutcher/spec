@@ -1,0 +1,17 @@
+<div class="table-properties-list">
+  <div class="tpl-header">
+    <span>Table</span>
+  </div>
+
+  <div class="tpl-content">
+    @for (table of tables(); track $index) {
+      <app-table-properties-list-item
+        [table]="table"
+        [selectedId]="selectedId()"
+        (selectedGroup)="selectGroup($event)"
+      />
+    } @empty {
+      <span>No table to configure</span>
+    }
+  </div>
+</div>

@@ -1,0 +1,39 @@
+:host {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: var(--gap);
+
+  height: 100%;
+  width: 100%;
+
+  .error-icon {
+    --error-icon-size: 64px;
+    width: var(--error-icon-size);
+    height: var(--error-icon-size);
+    font-size: var(--error-icon-size);
+    color: var(--theme-text-error-color);
+  }
+
+  .message {
+    text-align: center;
+    font-weight: 500;
+    font-size: var(--font-size-xl);
+  }
+
+  .hint {
+    font-size: 1.2rem;
+    text-align: center;
+
+    color: var(--theme-text-secondary-color);
+  }
+
+  .actions {
+    display: flex;
+    flex-direction: row;
+    gap: var(--gap);
+
+    margin-top: var(--gap);
+  }
+}

@@ -1,0 +1,45 @@
+.ssvh {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: repeat(3, auto);
+  column-gap: var(--gap-l);
+
+  .ssvh-header {
+    grid-column: 1;
+    grid-row: 1;
+
+    display: flex;
+    flex-direction: row;
+    gap: var(--gap);
+
+    .ssvh-version {
+      color: var(--theme-selected-item-color);
+    }
+  }
+
+  .ssvh-content {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .ssvh-compare {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+
+    align-self: center;
+
+    .compare-icon {
+      --compare-icon-size: 16px;
+      width: var(--compare-icon-size);
+      height: var(--compare-icon-size);
+      font-size: var(--compare-icon-size);
+    }
+  }
+
+  .ssvh-divider {
+    grid-row: 3;
+    grid-column: 1 / span 2;
+
+    margin-top: 0px;
+  }
+}

@@ -1,0 +1,21 @@
+<app-dialog-header headerText="Checkout Requested" />
+
+<div class="dialog-content">
+  <p>
+    Checkout has been requested from
+    <span class="highlight">{{ user }}</span>
+  </p>
+
+  <div class="countdown-timer-container">
+    <span class="countdown-info">Time remaining for response</span>
+
+    <span class="countdown-timer">
+      {{ remainingTime() | date: "mm:ss" }}
+    </span>
+  </div>
+</div>
+
+<div class="dialog-actions">
+  <button pButton severity="danger" (click)="reject()">Reject</button>
+  <button pButton severity="success" (click)="accept()">Accept</button>
+</div>

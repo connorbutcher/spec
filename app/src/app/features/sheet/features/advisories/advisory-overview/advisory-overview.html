@@ -1,0 +1,19 @@
+<p-buttongroup>
+  @for (advisoryGroup of advisoryGroups(); track $index) {
+    <button
+      pButton
+      [severity]="advisoryGroup.level | validatorLevelToAdvisorySeverity"
+      (click)="viewAdvisories(advisoryGroup)"
+      variant="text"
+      size="small"
+      [disabled]="advisoryGroup.advisories.length === 0"
+      pTooltip="View {{ advisoryGroup.advisories.length }} {{
+        advisoryGroup.level | validatorLevelToAdvisoryTooltip
+      }} Advisories"
+      [tooltipDisabled]="advisoryGroup.advisories.length === 0"
+    >
+      <i [ngClass]="advisoryGroup.level | validatorLevelToAdvisoryIcon"></i>
+      {{ advisoryGroup.advisories.length }}
+    </button>
+  }
+</p-buttongroup>

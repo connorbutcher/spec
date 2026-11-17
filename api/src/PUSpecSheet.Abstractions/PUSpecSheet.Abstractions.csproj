@@ -1,4 +1,11 @@
-<Project Sdk="Microsoft.NET.Sdk">
-  <!-- What needs nothing but itself, one folder per area: the request and response records that cross the HTTP
-       boundary, and the enums, configuration records and rules the other projects share. References nothing. -->
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <AssemblyName>PUSpecSheet.Abstractions</AssemblyName>
+    <RootNamespace>PUSpecSheet.Abstractions</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
 </Project>

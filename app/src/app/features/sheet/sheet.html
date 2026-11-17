@@ -1,0 +1,34 @@
+<div id="spec-sheet">
+  @if (isLoading()) {
+    <app-loading-block
+      message="Loading Spec Sheet"
+      hint="This should not take long"
+    />
+  } @else if (error().length > 0) {
+    <app-errored-block
+      message="An error occurred loading the spec sheet"
+      hint="Please contact IT"
+    />
+  } @else if (!specSheetResource.hasValue()) {
+    <div class="empty-state-container">
+      <app-empty-state
+        title="No Spec Sheet available"
+        message="There is no spec sheet to display."
+        icon="pi pi-search"
+      />
+      <button pButton severity="success" (click)="createSpecSheetAsync()">
+        Create Spec Sheet
+      </button>
+    </div>
+  } @else {
+    <div id="spec-sheet-content">
+      <app-spec-sheet-toolbar />
+
+      <ng-container #specSheetContent></ng-container>
+    </div>
+
+    <div class="side-panel" [class.expanded]="showSidePanel()">
+      <app-side-panel />
+    </div>
+  }
+</div>

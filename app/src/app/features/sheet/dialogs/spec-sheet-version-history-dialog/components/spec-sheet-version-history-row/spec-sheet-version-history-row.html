@@ -1,0 +1,34 @@
+<div class="ssvh">
+  <div class="ssvh-header">
+    <app-sheet-summary-properties-display
+      class="ssvh-version"
+      [specSheet]="specSheet()"
+      [specSheetType]="specSheetType()!"
+    />
+
+    <span class="text-color-secondary">{{
+      specSheet().publishedByUser?.displayName
+    }}</span>
+    <span class="text-color-secondary">{{
+      specSheet().publishedDateTime | date: "dd/MM/yyyy HH:mm"
+    }}</span>
+  </div>
+
+  <div class="ssvh-content" [innerHTML]="safeContent()"></div>
+
+  <p-divider class="ssvh-divider" />
+
+  @if (compareTo()) {
+    <button
+      pButton
+      iconOnly
+      class="ssvh-compare"
+      size="small"
+      severity="secondary"
+      pTooltip="Compare to previous version"
+      (click)="compare()"
+    >
+      <i class="pi pi-arrows-h"></i>
+    </button>
+  }
+</div>

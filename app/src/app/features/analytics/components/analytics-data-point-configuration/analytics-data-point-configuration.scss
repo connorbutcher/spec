@@ -1,0 +1,53 @@
+#analytics-data-point-configuration {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.adpc-header {
+  display: flex;
+  flex-direction: row;
+  gap: var(--gap);
+  align-items: center;
+  justify-content: center;
+
+  text-align: center;
+  white-space: nowrap;
+  padding-bottom: var(--gap);
+
+  font-size: var(--font-size-xl);
+  font-weight: 500;
+}
+
+.adpc-content {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: var(--gap-s);
+  margin-top: var(--gap);
+}
+
+.dataset-information {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-s);
+  padding: var(--gap-s) var(--gap);
+  margin-bottom: var(--gap);
+  background-color: var(--p-surface-100);
+  border-radius: var(--border-radius-m);
+
+  .dsi-description {
+    color: var(--theme-text-secondary-color);
+    font-size: var(--font-size-s);
+    white-space: pre-wrap;
+
+    &.error {
+      color: var(--theme-text-error-color);
+    }
+  }
+}
+
+.adpc-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: var(--gap-l);
+}

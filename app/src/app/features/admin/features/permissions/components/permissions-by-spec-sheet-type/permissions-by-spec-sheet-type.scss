@@ -1,0 +1,16 @@
+#permissions-by-spec-sheet-type {
+  height: 100%;
+  width: 100%;
+
+  .permissions-pct-header-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .permissions-toolbar {
+    display: flex;
+    gap: var(--gap);
+    justify-content: flex-end;
+  }
+}

@@ -1,0 +1,83 @@
+<form [formGroup]="form">
+  <app-element-label labelText="Phase Name">
+    <div class="form-field-wrapper">
+      <input
+        pInputText
+        type="text"
+        formControlName="phase"
+        fluid
+        required
+        minlength="1"
+        maxlength="64"
+        placeholder="The name of the phase"
+      />
+      @if (hasError("phase", "required")) {
+        <label class="form-error">The phase name is required</label>
+      }
+      @if (hasError("phase", "minlength")) {
+        <label class="form-error"
+          >The phase name must be at least 1 character long</label
+        >
+      }
+      @if (hasError("phase", "maxlength")) {
+        <label class="form-error"
+          >The phase name cannot be longer than 64 characters</label
+        >
+      }
+      @if (formHasError("duplicatePhase")) {
+        <label class="form-error">A phase with this name already exists</label>
+      }
+    </div>
+  </app-element-label>
+
+  <app-element-label labelText="Phase Short">
+    <div class="form-field-wrapper">
+      <input
+        pInputText
+        type="text"
+        formControlName="phaseShort"
+        fluid
+        required
+        minlength="1"
+        maxlength="16"
+        placeholder="The short name for the phase."
+      />
+      @if (hasError("phaseShort", "required")) {
+        <label class="form-error">The phase short is required</label>
+      }
+      @if (hasError("phaseShort", "minlength")) {
+        <label class="form-error"
+          >The phase short must be at least 1 character long</label
+        >
+      }
+      @if (hasError("phaseShort", "maxlength")) {
+        <label class="form-error"
+          >The phase short cannot be longer than 16 characters</label
+        >
+      }
+      <label class="hint"
+        >This will appear in the sidebar (e.g., "Dev" for "Development")</label
+      >
+    </div>
+  </app-element-label>
+
+  <app-element-label labelText="Sheet Types">
+    <div class="form-field-wrapper">
+      <p-select
+        formControlName="types"
+        [options]="specSheetTypes()"
+        [filter]="true"
+        [multiple]="true"
+        filterBy="type"
+        optionLabel="type"
+        appendTo="body"
+        fluid
+        required
+        placeholder="The types this phase should appear under"
+      />
+      @if (hasError("types", "required")) {
+        <label class="form-error">At least one type is required</label>
+      }
+    </div>
+  </app-element-label>
+</form>

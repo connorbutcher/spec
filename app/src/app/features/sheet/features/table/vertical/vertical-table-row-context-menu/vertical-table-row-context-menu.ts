@@ -1,0 +1,203 @@
+import { Dialog } from '@angular/cdk/dialog';
+import {
+  Component,
+  ElementRef,
+  HostListener,
+  Renderer2,
+  Signal,
+  computed,
+  effect,
+  inject,
+  viewChild,
+} from '@angular/core';
+import { Popover } from 'primeng/popover';
+import { Tooltip } from 'primeng/tooltip';
+import { firstValueFrom } from 'rxjs';
+import { TableGroupTemplate } from '../../../../../../core/models/domain/template/table-group-template';
+import { SystemReferencesConfirmationDialogData } from '../../../../dialogs/system-references-confirmation-dialog/models/system-references-confirmation-dialog-data.interface';
+import { SystemReferencesConfirmationDialog } from '../../../../dialogs/system-references-confirmation-dialog/system-references-confirmation-dialog';
+import { ActiveSheetService } from '../../../../services/active-sheet.service';
+import {
+  ActiveElement,
+  RowContextMenuService,
+} from '../../../../services/row-context-menu.service';
+import { TableGroupBuilderService } from '../../../../services/table-group-builder.service';
+
+@Component({
+  selector: 'app-vertical-table-row-context-menu',
+  templateUrl: './vertical-table-row-context-menu.html',
+  styleUrl: './vertical-table-row-context-menu.scss',
+  imports: [Tooltip, Popover],
+})
+export class VerticalTableRowHoverContextMenu {
+  public readonly popover = viewChild.required(Popover);
+
+  @HostListener('mouseenter')
+  onMouseEnter(): void {
+    this._rowContextMenuService.setContextMenuHovered(true);
+  }
+
+  @HostListener('mouseleave')
+  onMouseLeave(): void {
+    if (this.popover().overlayVisible()) {
+      return;
+    }
+
+    this._rowContextMenuService.setContextMenuHovered(false);
+    this._rowContextMenuService.setActiveElement(undefined);
+  }
+
+  public readonly addOptions = computed(() => {
+    const activeElement = this.activeElement();
+    if (!activeElement) {
+      return [];
+    }
+
+    const table = activeElement.table;
+    const parentGroup = activeElement.parentGroup;
+    const tableType = table.tableType();
+    if (!tableType) {
+      return [];
+    }
+
+    return (
+      tableType.tableGroupTemplates.filter(
+        (tgt) =>
+          tgt.canUserAddToTable &&
+          tgt.showInContextMenu &&
+          tgt.parentTableGroupTemplateId ===
+            parentGroup.tableGroupTemplate()?.id,
+      ) ?? []
+    );
+  });
+
+  private _direction: 'above' | 'below' | undefined = undefined;
+
+  private readonly _rowContextMenuService = inject(RowContextMenuService);
+  private readonly _tableGroupBuilderService = inject(TableGroupBuilderService);
+  private readonly _renderer = inject(Renderer2);
+  private readonly _elementRef = inject(ElementRef<HTMLElement>);
+  private readonly _specSheetService = inject(ActiveSheetService);
+  private readonly _dialog = inject(Dialog);
+
+  constructor() {
+    effect(() => {
+      const activeElement = this.activeElement();
+      if (activeElement) {
+        this._positionMenuNextToElement(activeElement.element);
+      }
+    });
+  }
+
+  public async addGroupAsync(
+    tableGroupTemplate: TableGroupTemplate,
+  ): Promise<void> {
+    if (!this.canEdit()) {
+      return;
+    }
+
+    const activeElement = this.activeElement();
+    if (!activeElement) {
+      return;
+    }
+
+    const group = activeElement.group;
+    const currentOrder = group.order();
+    const newRowNumber =
+      this._direction === 'above' ? currentOrder : currentOrder + 1;
+
+    await this._tableGroupBuilderService.addOptionAsync(
+      tableGroupTemplate,
+      this.activeElement()!.table,
+      this.activeElement()!.parentGroup,
+      newRowNumber,
+    );
+  }
+
+  public async removeGroupAsync(): Promise<void> {
+    if (!this.canEdit()) {
+      return;
+    }
+
+    const activeElement = this.activeElement();
+    if (!activeElement) {
+      return;
+    }
+
+    if (
+      activeElement.group.references() &&
+      activeElement.group.references().length > 0
+    ) {
+      const dialogRef = this._dialog.open<
+        boolean,
+        SystemReferencesConfirmationDialogData,
+        SystemReferencesConfirmationDialog
+      >(SystemReferencesConfirmationDialog, {
+        data: {
+          type: 'Row',
+          references: activeElement.group.references(),
+        },
+      });
+
+      const result = await firstValueFrom(dialogRef.closed);
+      if (!result) {
+        return;
+      }
+    }
+
+    activeElement.parentGroup.removeGroup(activeElement.group, false);
+    activeElement.table.triggerRebuild();
+  }
+
+  public togglePopover(event: Event, direction: 'above' | 'below'): void {
+    this._direction = direction;
+    this.popover().toggle(event);
+  }
+
+  public onPopoverShow(): void {
+    this._rowContextMenuService.setContextMenuHovered(true);
+  }
+
+  public onPopoverHide(): void {
+    this._rowContextMenuService.setContextMenuHovered(false);
+    this._rowContextMenuService.setActiveElement(undefined);
+  }
+
+  public get activeElement(): Signal<ActiveElement | undefined> {
+    return this._rowContextMenuService.activeElement;
+  }
+
+  public get canEdit(): Signal<boolean> {
+    return this._specSheetService.canEdit;
+  }
+
+  private _positionMenuNextToElement(element: HTMLTableRowElement): void {
+    const rect = element.getBoundingClientRect();
+    const menuElement = this._elementRef.nativeElement;
+
+    const menuHeight = 75;
+    const menuWidth = 36;
+    const spacing = 8;
+
+    const top = rect.top + window.scrollY + rect.height / 2 - menuHeight / 2;
+
+    // Check if there's room to the right
+    const rightPosition = rect.right + window.scrollX + spacing;
+    const hasRoomRight = rightPosition + menuWidth <= window.innerWidth;
+
+    // Position menu
+    let left: number;
+    if (hasRoomRight) {
+      // Display on the right
+      left = rightPosition;
+      this._renderer.removeClass(menuElement, 'menu-left');
+    } else {
+      // Display on the left
+      left = rect.left + window.scrollX - menuWidth - spacing;
+      this._renderer.addClass(menuElement, 'menu-left');
+    }
+
+    this._renderer.setStyle(menuElement, 'top', `${top}px`);
+    this._renderer.setStyle(menuElement, 'left', `${left}px`);
+  }
+}

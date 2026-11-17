@@ -1,0 +1,36 @@
+#spec-sheet-comparison {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  gap: var(--gap);
+}
+
+.comparison-container {
+  height: 100%;
+  overflow: hidden;
+}
+
+.no-phase-or-type-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--gap-l);
+
+  height: 100%;
+  width: 100%;
+
+  font-size: var(--font-size-xl);
+
+  .no-phase-or-type-header {
+    font-weight: 500;
+  }
+
+  .no-phase-or-type-selected-icon {
+    --no-phase-or-type-selected-icon-size: 50px;
+
+    font-size: var(--no-phase-or-type-selected-icon-size);
+    height: var(--no-phase-or-type-selected-icon-size);
+    width: var(--no-phase-or-type-selected-icon-size);
+  }
+}

@@ -1,20 +1,23 @@
 <Solution>
-  <Folder Name="/Legacy/">
-    <File Path="legacy.txt" />
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+    <File Path=".gitignore" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+    <File Path="nuget.config" />
+    <File Path="Version.props" />
+  </Folder>
+  <Folder Name="/Solution Items/src/">
+    <File Path="src/Directory.Build.props" />
   </Folder>
   <Folder Name="/src/">
     <Project Path="src/PUSpecSheet.Abstractions/PUSpecSheet.Abstractions.csproj" />
+    <Project Path="src/PUSpecSheet.Api.Common/PUSpecSheet.Api.Common.csproj" />
+    <Project Path="src/PUSpecSheet.Api.DAL/PUSpecSheet.Api.DAL.csproj" />
+    <Project Path="src/PUSpecSheet.Api.Database/PUSpecSheet.Api.Database.csproj" />
+    <Project Path="src/PUSpecSheet.Api.Emails/PUSpecSheet.Api.Emails.csproj" />
     <Project Path="src/PUSpecSheet.Api/PUSpecSheet.Api.csproj" />
-    <Project Path="src/PUSpecSheet.DataAccess/PUSpecSheet.DataAccess.csproj" />
-    <Project Path="src/PUSpecSheet.Database/PUSpecSheet.Database.csproj" />
-  </Folder>
-  <Folder Name="/tests/">
-    <Project Path="tests/PUSpecSheet.Abstractions.Tests/PUSpecSheet.Abstractions.Tests.csproj" />
-    <Project Path="tests/PUSpecSheet.Api.Tests/PUSpecSheet.Api.Tests.csproj" />
-    <Project Path="tests/PUSpecSheet.DataAccess.Tests/PUSpecSheet.DataAccess.Tests.csproj" />
-    <Project Path="tests/PUSpecSheet.Migrator.Tests/PUSpecSheet.Migrator.Tests.csproj" />
-  </Folder>
-  <Folder Name="/tools/">
-    <Project Path="tools/PUSpecSheet.Migrator/PUSpecSheet.Migrator.csproj" />
+    <Project Path="src/PUSpecSheet.CheckInOut.Api/PUSpecSheet.CheckInOut.Api.csproj" />
+    <Project Path="src/PUSpecSheet.Query/PUSpecSheet.Query.csproj" />
   </Folder>
 </Solution>

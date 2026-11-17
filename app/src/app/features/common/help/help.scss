@@ -1,0 +1,34 @@
+.help-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-l);
+}
+
+.info-section {
+  > .info-section-heading {
+    font-size: var(--font-size-l);
+    font-weight: 500;
+    padding: var(--gap);
+    border-bottom: 1px solid var(--p-divider-border-color);
+    margin-bottom: var(--gap);
+
+    &.borderless {
+      border-bottom: none;
+    }
+  }
+}
+
+.help-section {
+  display: grid;
+  grid-template-columns: 15ch 1fr;
+  row-gap: var(--gap-s);
+  align-items: center;
+  column-gap: 1em;
+}
+
+.help-section > label {
+  font-weight: 500;
+  &:after {
+    content: ":";
+  }
+}

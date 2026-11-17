@@ -1,0 +1,13 @@
+.cell-input {
+  display: flex;
+  flex-direction: column;
+  padding: 0px var(--gap-s);
+
+  .part-entry {
+    width: 100%;
+
+    &.top {
+      border-bottom: 1px solid gray;
+    }
+  }
+}

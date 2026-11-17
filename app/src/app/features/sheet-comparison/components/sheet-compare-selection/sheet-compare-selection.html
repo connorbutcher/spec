@@ -1,0 +1,38 @@
+<div class="compare-selection-container">
+  <div class="comparison-side-header">
+    <span class="header">{{ sideLabel() }}</span>
+
+    <p-inputgroup>
+      <p-inputgroup-addon>
+        <span>Version</span>
+      </p-inputgroup-addon>
+
+      <p-select
+        required
+        appendTo="body"
+        [options]="options()"
+        optionValue="id"
+        [formControl]="selectedSpecSheetCtrl"
+        placeholder="Select the version to compare"
+      >
+        <ng-template let-selectedOption #selectedItem>
+          <div>
+            <app-sheet-summary-properties-display
+              [specSheet]="selectedOption"
+              [specSheetType]="specSheetType()!"
+            />
+          </div>
+        </ng-template>
+
+        <ng-template let-option #item>
+          <div>
+            <app-sheet-summary-properties-display
+              [specSheet]="option"
+              [specSheetType]="specSheetType()!"
+            />
+          </div>
+        </ng-template>
+      </p-select>
+    </p-inputgroup>
+  </div>
+</div>

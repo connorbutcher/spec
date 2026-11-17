@@ -1,0 +1,67 @@
+<div class="cell-property-content">
+  <app-element-label labelText="Spec Sheet Type">
+    <div class="form-field-wrapper">
+      <p-select
+        required
+        [options]="specSheetTypes()"
+        appendTo="body"
+        optionLabel="type"
+        [(ngModel)]="tableProperty().specSheetType"
+        placeholder="Select the type"
+      />
+    </div>
+  </app-element-label>
+
+  <app-element-label labelText="Spec Sheet Phase">
+    <div class="form-field-wrapper">
+      <p-treeselect
+        [(ngModel)]="specSheetPhase"
+        [options]="phaseOptions()"
+        required
+        [filter]="true"
+        filterBy="label"
+        [filterInputAutoFocus]="true"
+        appendTo="body"
+        [showClear]="true"
+        selectionMode="single"
+        placeholder="Select the phase"
+      />
+    </div>
+  </app-element-label>
+
+  <app-element-label labelText="Table to Link to">
+    <div class="form-field-wrapper">
+      <p-select
+        required
+        [options]="tableOptions()"
+        appendTo="body"
+        [(ngModel)]="tableProperty().table"
+        placeholder="Select the table to link to"
+      >
+        <ng-template #selectedItem let-selectedItem>
+          <span>{{ selectedItem.title().toLocaleUpperCase() }}</span>
+        </ng-template>
+
+        <ng-template let-tableOption #item>
+          <span>{{ tableOption.title().toLocaleUpperCase() }}</span>
+        </ng-template>
+      </p-select>
+    </div>
+  </app-element-label>
+
+  <app-element-label
+    labelText="Lock to Latest Version"
+    infoText="This option locks the table to the latest version. If not selected, the table will always look for the latest version"
+  >
+    <div class="form-field-wrapper">
+      <p-selectbutton
+        [options]="lockToLatestPublishedOptions"
+        [(ngModel)]="tableProperty().lockToLatestPublished"
+        optionLabel="label"
+        optionValue="value"
+        required
+        [allowEmpty]="false"
+      />
+    </div>
+  </app-element-label>
+</div>

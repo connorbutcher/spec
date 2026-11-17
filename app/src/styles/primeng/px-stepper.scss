@@ -1,0 +1,29 @@
+.px-stepper .p-steppanel-content {
+  padding: var(--gap-xs) var(--gap);
+}
+
+.px-stepper .p-steplist {
+  overflow-y: hidden;
+}
+
+.px-stepper .p-steplist .p-step.valid {
+  .p-step-number {
+    color: var(--theme-text-success-color);
+    border-color: var(--theme-text-success-color);
+  }
+
+  .p-step-title {
+    color: var(--theme-text-success-color);
+  }
+}
+
+.px-stepper .p-steplist .p-step.invalid {
+  .p-step-number {
+    color: var(--theme-text-error-color);
+    border-color: var(--theme-text-error-color);
+  }
+
+  .p-step-title {
+    color: var(--theme-text-error-color);
+  }
+}

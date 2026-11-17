@@ -1,0 +1,39 @@
+<div class="spec-sheet-row">
+  <div class="property-values">
+    @for (propertyValue of properties(); track $index) {
+      <app-property-summary-value-display [propertyValue]="propertyValue" />
+
+      @if (!$last) {
+        <span>-</span>
+      }
+    }
+  </div>
+
+  <div class="tags-container">
+    @if (sheet().hasBeenMigrated) {
+      <p-tag severity="info" value="Migrated" class="px-tag-small" />
+    }
+
+    @if (sheet().isPublished) {
+      <p-tag
+        severity="warn"
+        value="Locked"
+        class="px-tag-small"
+        [pTooltip]="locked"
+      />
+    }
+  </div>
+
+  @if (!sheet().isPublished && !sheet().hasBeenMigrated) {
+    <button pButton severity="danger" size="small" (click)="deleteSpecSheet()">
+      Delete
+    </button>
+  }
+</div>
+
+<ng-template #locked>
+  <div class="locked-info">
+    <span>{{ sheet().publishedByUser?.displayName }}</span>
+    <span>{{ sheet().publishedDateTime | date: "dd/MM/yyyy HH:mm" }}</span>
+  </div>
+</ng-template>

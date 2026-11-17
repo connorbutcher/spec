@@ -1,0 +1,20 @@
+<div id="spec-sheet-type-list" class="card">
+  <div class="spec-sheet-type-list-header-container">
+    <span class="spec-sheet-type-header">Types</span>
+    <span class="spec-sheet-type-count color-secondary"
+      >({{ specSheetTypes().length }})</span
+    >
+  </div>
+
+  <div class="spec-sheet-type-content">
+    <p-listbox
+      class="px-listbox"
+      [options]="specSheetTypes()"
+      [(ngModel)]="selectedSpecSheetType"
+      [filter]="true"
+      filterBy="type"
+      optionLabel="type"
+      (onChange)="onChange($event)"
+    />
+  </div>
+</div>

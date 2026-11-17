@@ -1,0 +1,37 @@
+<div class="part-container">
+  <div class="widget">
+    @if (partPairWidget()) {
+      <app-parts-pair-widget
+        [widget]="partPairWidget()!"
+        [referenceId]="table().referenceId()"
+      />
+    }
+  </div>
+
+  <div class="part-entry">
+    <app-text-input
+      class="top"
+      [(value)]="cellValue"
+      [referenceId]="cell().referenceId()"
+    />
+
+    <app-text-input
+      [(value)]="cellValueY"
+      [referenceId]="cell().referenceId()"
+    />
+  </div>
+
+  <button
+    pButton
+    iconOnly
+    class="px-button-xsmall remove"
+    severity="danger"
+    [text]="true"
+    [disabled]="!canEdit()"
+    pTooltip="Delete Part"
+    [tooltipDisabled]="!canEdit()"
+    (click)="deletePart()"
+  >
+    <i class="pi pi-times"></i>
+  </button>
+</div>

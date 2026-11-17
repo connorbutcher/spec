@@ -1,0 +1,24 @@
+.right-icons {
+  display: flex;
+}
+
+.right-icons,
+.left-icons {
+  .icon {
+    font-size: var(--font-size-xl);
+    color: white;
+    cursor: pointer;
+  }
+}
+
+.left-icons {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--gap);
+
+  .icon {
+    font-size: var(--font-size-xxl);
+    color: var(--theme-text-secondary-color);
+  }
+}

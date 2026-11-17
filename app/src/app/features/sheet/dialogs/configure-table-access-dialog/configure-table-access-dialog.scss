@@ -1,0 +1,93 @@
+.table-access-container {
+  margin-top: var(--gap-l);
+
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  grid-template-areas:
+    "users admins"
+    "users access";
+  column-gap: var(--gap-xl);
+  row-gap: var(--gap);
+
+  .users-list {
+    grid-area: users;
+  }
+
+  .admins {
+    grid-area: admins;
+  }
+
+  .access {
+    grid-area: access;
+  }
+
+  .access-container {
+    height: 100%;
+    border: 1px solid var(--p-divider-border-color);
+    border-radius: var(--border-radius-m);
+
+    .access-header-container {
+      display: flex;
+      flex-direction: column;
+      gap: var(--gap-s);
+
+      background-color: var(--theme-hover-gray-background);
+
+      padding: var(--gap-s) var(--gap);
+      border-radius: var(--border-radius-m);
+
+      .access-header {
+        font-weight: 500;
+        color: var(--theme-text-secondary-color);
+        font-size: var(--font-size-l);
+      }
+
+      .access-header-description {
+        font-size: var(--font-size-s);
+        color: var(--theme-text-secondary-color);
+      }
+    }
+  }
+
+  .users-container {
+    display: flex;
+    flex-direction: column;
+
+    padding: var(--gap-xs) var(--gap-s);
+
+    overflow: auto;
+
+    &.clamp-height-250 {
+      height: 250px;
+      max-height: 250px;
+    }
+
+    &.clamp-height-575 {
+      height: 575px;
+      max-height: 575px;
+    }
+
+    .user-row {
+      padding: var(--gap) var(--gap-s);
+      border-radius: var(--border-radius-m);
+      cursor: pointer;
+
+      &:hover {
+        background-color: var(--theme-hover-gray-background);
+      }
+    }
+  }
+}
+
+.restrict-access {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-l);
+  align-items: center;
+}
+
+.error {
+  color: var(--theme-text-error-color);
+  font-size: 80%;
+}

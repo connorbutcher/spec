@@ -1,0 +1,68 @@
+:host {
+  overflow: hidden;
+}
+
+#user-list {
+  display: flex;
+  flex-direction: column;
+
+  height: 100%;
+  width: 100%;
+
+  .user-list-header-container {
+    display: flex;
+    flex-direction: row;
+    align-items: baseline;
+    gap: var(--gap);
+
+    margin-bottom: var(--gap-l);
+
+    .user-header {
+      font-weight: 500;
+      font-size: var(--font-size-xl);
+    }
+
+    .user-count {
+      font-size: var(--font-size-l);
+    }
+  }
+
+  .user-list-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap);
+
+    margin: var(--gap-l) 0px;
+    overflow-y: auto;
+
+    .user-row {
+      display: flex;
+      flex-direction: column;
+      gap: var(--gap-s);
+      padding: var(--gap-s) var(--gap);
+      border-radius: var(--border-radius-m);
+
+      cursor: pointer;
+
+      &:hover {
+        background-color: var(--theme-hover-gray-background);
+      }
+
+      &.selected {
+        background-color: var(--theme-selected-item-background-color);
+        color: var(--theme-selected-item-color);
+      }
+
+      .user-info {
+        overflow-x: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+      }
+
+      .user-email {
+        color: var(--theme-text-secondary);
+        font-size: var(--font-size-s);
+      }
+    }
+  }
+}

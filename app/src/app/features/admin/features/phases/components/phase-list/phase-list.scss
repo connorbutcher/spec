@@ -1,0 +1,39 @@
+:host {
+  overflow: hidden;
+}
+
+#phase-list {
+  display: flex;
+  flex-direction: column;
+
+  height: 100%;
+  width: 100%;
+
+  .phase-list-header-container {
+    display: flex;
+    flex-direction: row;
+    align-items: baseline;
+    gap: var(--gap);
+
+    .phase-header {
+      font-weight: 500;
+      font-size: var(--font-size-xl);
+    }
+  }
+
+  .phase-list-content {
+    margin-top: var(--gap-l);
+    overflow-y: auto;
+
+    .phases-tree {
+      height: 100%;
+      overflow: auto;
+
+      .phase-row {
+        display: flex;
+        align-items: center;
+        gap: var(--gap);
+      }
+    }
+  }
+}

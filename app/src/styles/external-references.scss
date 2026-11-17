@@ -1,0 +1,19 @@
+.reference-indicator {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  pointer-events: auto;
+  cursor: pointer;
+
+  color: var(--theme-table-border-color-purple);
+  background-color: #e9d6ff;
+  border-radius: var(--border-radius-m);
+
+  .material-symbols-outlined {
+    font-size: 12px;
+  }
+}

@@ -1,0 +1,25 @@
+.dialog-content {
+  max-height: 75vh;
+  overflow: auto;
+  padding: var(--gap-xs);
+
+  .properties-container {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: var(--gap);
+
+    margin-top: var(--gap-l);
+
+    .properties-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--gap-l);
+    }
+  }
+}
+
+.properties-configuration {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-l);
+}

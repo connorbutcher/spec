@@ -1,0 +1,9 @@
+:host {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.sheet-comparison {
+  display: grid;
+  gap: 3em;
+}

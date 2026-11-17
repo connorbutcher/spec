@@ -1,0 +1,28 @@
+<app-dialog-header headerText="Manage Permissions - {{ user.displayName }}" />
+
+<div class="dialog-content">
+  <app-element-label labelText="Permissions">
+    <div class="form-field-wrapper">
+      <p-select
+        [multiple]="true"
+        [options]="permissions"
+        optionLabel="title"
+        appendTo="body"
+        fluid
+        [filter]="true"
+        [formControl]="userPermissionsCtrl"
+      />
+    </div>
+  </app-element-label>
+</div>
+
+<div class="dialog-actions">
+  <button pButton severity="secondary" (click)="close()">Close</button>
+  <button
+    pButton
+    (click)="saveChangesAsync()"
+    [disabled]="!userPermissionsCtrl.dirty || userPermissionsCtrl.invalid"
+  >
+    Save Permissions
+  </button>
+</div>

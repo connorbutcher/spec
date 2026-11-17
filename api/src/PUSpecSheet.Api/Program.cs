@@ -1,85 +1,84 @@
+using System.Diagnostics;
+using System.Reflection;
 using System.Text.Json.Serialization;
-using PUSpecSheet.Api.ApiDocumentation;
-using PUSpecSheet.Api.Authorization;
-using PUSpecSheet.Api.Collaboration;
-using PUSpecSheet.Api.Compression;
-using PUSpecSheet.Api.Cors;
-using PUSpecSheet.Api.ExceptionHandling;
-using PUSpecSheet.DataAccess.DependencyInjection;
-using PUSpecSheet.DataAccess.Seeding;
-using PUSpecSheet.Database;
-using PUSpecSheet.Database.DependencyInjection;
-using PUSpecSheet.Database.Seeding;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.ResponseCompression;
+using Microsoft.OpenApi;
+using PUSpecSheet.Api.Common.Authentication;
+using PUSpecSheet.Api.Common.Claims;
+using PUSpecSheet.Api.Common.Cors;
+using PUSpecSheet.Api.Common.Documentation;
+using PUSpecSheet.Api.Common.Logging;
+using PUSpecSheet.Api.DAL;
+using PUSpecSheet.Api.Emails;
+
+OpenApiInfo apiInfo = new()
+{
+    Title = "PUSpecSheet.API",
+    Description = "API Service for the PU Spec Sheet system.",
+    Version = FileVersionInfo.GetVersionInfo(Assembly.GetEntryAssembly()!.Location).FileVersion
+};
 
 var builder = WebApplication.CreateBuilder(args);
 
-var connectionString = builder.Configuration.GetConnectionString("Default")
-    ?? throw new InvalidOperationException("Connection string 'Default' is not configured.");
+builder.Services.AddHttpContextAccessor();
 
-// Enums such as a template's orientation or a cell type's kind go over the wire as their names. A cell
-// configuration's "kind" discriminator can come anywhere in the object the UI sends.
-builder.Services.AddControllers()
-    .AddJsonOptions(options =>
-    {
-        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-        options.JsonSerializerOptions.AllowOutOfOrderMetadataProperties = true;
-    });
-builder.Services.AddPuSpecSheetApiDocumentation();
-builder.Services.AddProblemDetails();
-builder.Services.AddExceptionHandler<ApplicationExceptionHandler>();
-builder.Services.AddHealthChecks().AddDbContextCheck<PuSpecSheetDbContext>();
-builder.Services.AddPuSpecSheetCors(builder.Configuration);
-builder.Services.AddPuSpecSheetResponseCompression(builder.Configuration);
+builder.AddSerilog();
+builder.AddIdentityWebApiAuthentication();
 
-builder.Services.AddPuSpecSheetDatabase(connectionString);
-builder.Services.AddPuSpecSheetDataAccess();
+builder.Services.AddClaimsAccessors();
+builder.Services.AddCorsPolicy(builder.Configuration.GetRequiredSection("Cors"));
 
-// Multi-user editing: who has each sheet open, live checkouts and takeover requests, over SignalR.
-builder.Services.AddPuSpecSheetCollaboration(builder.Configuration);
+builder.Services.AddResponseCompression(options =>
+{
+    options.EnableForHttps = true;
+    options.Providers.Add<GzipCompressionProvider>();
+});
 
-// Who a request runs as (the seeded developer user until sign-in is added) and a policy per permission.
-builder.Services.AddPuSpecSheetAuthorization();
+builder.Services.AddControllers(opt =>
+{
+    opt.MaxValidationDepth = 256;
+}).AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.MaxDepth = 256;
+    options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+});
+
+builder.AddDocumentation(apiInfo, (config) =>
+{
+    config.WithEntraIDAuthentication(JwtBearerDefaults.AuthenticationScheme);
+});
+
+builder.Services.AddOpenApi();
+builder.Services.AddEndpointsApiExplorer();
+
+builder.AddEmailModule();
+builder.AddDataAccessLayerModule();
 
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
-    // The database is deployed from the SQL database project (database/deploy.ps1), not created here. This adds
-    // sample phases, users and the showcase sample data. The showcase clears the sheets and templates the first
-    // time it runs (or every start while SampleData:Rebuild is true): see ShowcaseDataSeeder.
-    using var scope = app.Services.CreateScope();
-    var db = scope.ServiceProvider.GetRequiredService<PuSpecSheetDbContext>();
-    if (!await db.Database.CanConnectAsync())
-    {
-        throw new InvalidOperationException(
-            "Can't reach the PUSpecSheet database. Deploy it from the SQL database project first: ./database/deploy.ps1");
-    }
-
-    await DevelopmentDataSeeder.SeedAsync(db);
-    await DevelopmentUserSeeder.SeedAsync(db);
-    await scope.ServiceProvider.GetRequiredService<ShowcaseDataSeeder>().SeedAsync(app.Configuration.GetValue<bool>("SampleData:Rebuild"));
-
-    app.MapPuSpecSheetApiDocumentation();
+    app.MapOpenApi();
 }
 
-// First, so every response written after it is compressed, including the exception handler's problem details.
-app.UsePuSpecSheetResponseCompression();
-app.UseExceptionHandler();
-
-// CORS runs before the HTTPS redirect: browsers reject a redirected preflight (OPTIONS) request, so
-// a redirect ahead of CORS shows up in the UI as a CORS error. In development the API is called over
-// plain http, so it isn't redirected at all.
-app.UseCors(PuSpecSheetCorsExtensions.PolicyName);
-if (!app.Environment.IsDevelopment())
+app.UseDocumentation(apiInfo, (config) =>
 {
-    app.UseHttpsRedirection();
-}
+    config
+        .WithEntraIDAuthentication()
+        .WithNoSyntaxHighlight();
+});
+
+app.UseResponseCompression();
+app.UseHttpsRedirection();
+app.UseStaticFiles();
+app.UseRouting();
+
+app.UseCors(CorsConstants.DefaultCorsPolicy);
 
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-app.MapPuSpecSheetCollaboration();
-app.MapHealthChecks("/api/health").AllowAnonymous();
 
-await app.RunAsync();
+app.Run();

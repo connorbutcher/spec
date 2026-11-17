@@ -1,0 +1,9 @@
+﻿<Project>
+  <PropertyGroup>
+    <FileVersion>1.12.0</FileVersion>
+    <Version>$(FileVersion)-local</Version>
+    <AssemblyVersion>$(FileVersion)</AssemblyVersion>
+    <InformationalVersion>$(Version)</InformationalVersion>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+</Project>

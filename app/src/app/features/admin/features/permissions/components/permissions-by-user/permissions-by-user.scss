@@ -1,0 +1,60 @@
+#permissions-by-user {
+  display: flex;
+  flex-direction: column;
+
+  gap: var(--gap);
+
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+
+  .permissions-user-header-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    .permissions-user-header {
+      font-size: var(--font-size-xxl);
+      font-weight: 500;
+    }
+  }
+
+  .user-info-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap);
+
+    .user-info-row {
+      display: grid;
+      grid-template-columns: 150px 1fr;
+
+      .user-info-header {
+        font-weight: 500;
+      }
+    }
+  }
+
+  .permissions-user-body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap);
+
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .permissions-user-content {
+    flex: 1;
+    min-height: 0;
+
+    display: flex;
+    flex-direction: column;
+
+    .p-tabpanels {
+      flex: 1;
+      min-height: 0;
+      overflow: auto;
+    }
+  }
+}

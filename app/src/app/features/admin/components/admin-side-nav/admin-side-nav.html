@@ -1,0 +1,18 @@
+<div id="admin-side-nav" class="card">
+  <div class="admin-side-nav-header">Admin</div>
+
+  <div class="admin-side-nav-items">
+    @for (adminItem of adminItems(); track $index) {
+      <a
+        class="admin-item with-icon"
+        [routerLink]="[adminItem.route]"
+        routerLinkActive="selected"
+      >
+        <span class="material-symbols-outlined">{{ adminItem.icon }}</span>
+        <span class="title">{{ adminItem.displayName }}</span>
+      </a>
+    }
+  </div>
+
+  <div class="spacer"></div>
+</div>

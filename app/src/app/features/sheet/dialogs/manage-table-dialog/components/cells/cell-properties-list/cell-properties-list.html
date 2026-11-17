@@ -1,0 +1,17 @@
+<div class="cell-properties-list">
+  <div class="cpl-header">
+    <span>Cells</span>
+  </div>
+
+  <div class="cpl-content">
+    @for (cell of cells(); track $index) {
+      <app-cell-properties-list-item
+        [cell]="cell"
+        [selectedId]="selectedId()"
+        (selectedGroup)="selectGroup($event)"
+      />
+    } @empty {
+      <span>No cells to configure</span>
+    }
+  </div>
+</div>

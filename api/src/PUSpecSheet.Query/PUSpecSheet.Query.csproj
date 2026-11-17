@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <AssemblyName>PUSpecSheet.Query</AssemblyName>
+    <RootNamespace>PUSpecSheet.Query</RootNamespace>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageId>ITSoftwareDevelopment.PUSpecSheet.Query</PackageId>
+    <Description>Models related to the PUSpecSheet Query</Description>
+    <PackageTags>ITSoftwareDevelopment PUSpecSheet Query</PackageTags>
+  </PropertyGroup>
+
+</Project>

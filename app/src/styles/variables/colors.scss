@@ -1,0 +1,36 @@
+:root {
+  --ground-background: var(--p-surface-50);
+  --ground-side-nav-background: var(--p-surface-100);
+
+  --theme-text-primary-color: var(--p-text-color);
+  --theme-text-secondary-color: var(--p-text-muted-color);
+  --theme-text-warning-color: var(--p-orange-500);
+  --theme-text-error-color: var(--p-red-500);
+  --theme-text-success-color: var(--p-green-600);
+
+  --theme-app-background: #fafafa;
+
+  --theme-hover-gray-background: #cfcfcf1a;
+  --theme-border-color: var(--p-content-border-color);
+
+  --theme-selected-item-color: var(--p-primary-hover-color);
+  --theme-selected-item-background-color: var(--p-primary-100);
+
+  --theme-chip-background-color: var(--p-surface-100);
+
+  --theme-table-default-background-color: var(--theme-app-background);
+  --theme-table-heading-background-color: #001a30;
+  --theme-table-side-heading-background-color: #ededed;
+  --theme-table-group-background-color: #d9d9d9;
+  --theme-table-yellow-background-color: #fff2cc;
+  --theme-table-green-background-color: #e2efda;
+  --theme-table-blue-background-color: #ddebf7;
+  --theme-table-border-color-purple: #b77cff;
+  --theme-table-border-color-red: var(--p-red-500);
+  --theme-table-highlight-background-color: #be92f4bd;
+  --theme-table-highlight-active-background-color: #f2ae00;
+
+  --theme-comparison-new-background-color: #b5f1b1;
+  --theme-comparison-removed-background-color: #fec2c0;
+  --theme-comparison-modified-background-color: #fed39e;
+}

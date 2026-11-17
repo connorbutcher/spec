@@ -1,0 +1,112 @@
+<p-message class="px-message-mb-gap px-message-no-animation" severity="info">
+  Enter the basic information for the new type such as its name and the phases
+  it should be associated with.
+  <br />
+  You can edit this information later if needed.
+</p-message>
+
+<form [formGroup]="form">
+  <app-element-label labelText="Title">
+    <div class="form-field-wrapper">
+      <input
+        pInputText
+        type="text"
+        formControlName="type"
+        fluid
+        required
+        minlength="1"
+        maxlength="64"
+      />
+      @if (hasError("type", "required")) {
+        <label class="form-error">The type name is required</label>
+      }
+      @if (hasError("type", "minlength")) {
+        <label class="form-error"
+          >The type name must be at least 1 character long</label
+        >
+      }
+      @if (hasError("type", "maxlength")) {
+        <label class="form-error"
+          >The type name cannot be longer than 64 characters</label
+        >
+      }
+      @if (hasError("type", "duplicateType")) {
+        <label class="form-error">A type with this name already exists</label>
+      }
+    </div>
+  </app-element-label>
+
+  <app-element-label
+    labelText="Table Orientation"
+    infoText="This defines whether the table flows top to bottom or left to right"
+  >
+    <div class="form-field-wrapper">
+      <p-selectbutton
+        formControlName="tableOrientation"
+        [options]="tableOrientationOptions"
+        required
+        [allowEmpty]="false"
+      />
+      @if (hasError("tableOrientation", "required")) {
+        <label class="form-error">Table orientation is required</label>
+      }
+    </div>
+  </app-element-label>
+
+  <app-element-label
+    labelText="Requires Approval"
+    infoText="Whether spec sheets of this type require approval before they can be published"
+  >
+    <div class="form-field-wrapper">
+      <p-selectbutton
+        formControlName="requiresApprovalWorkflow"
+        [options]="boolOptions"
+        required
+        [allowEmpty]="false"
+      />
+      @if (hasError("requiresApprovalWorkflow", "required")) {
+        <label class="form-error">Requires Approval is required</label>
+      }
+    </div>
+  </app-element-label>
+
+  <app-element-label
+    labelText="Can Copy from Migrated"
+    infoText="Whether spec sheets of this type can be created by copying from migrated spec sheets"
+  >
+    <div class="form-field-wrapper">
+      <p-selectbutton
+        formControlName="canCopyFromMigrated"
+        [options]="boolOptions"
+        required
+        [allowEmpty]="false"
+      />
+      @if (hasError("canCopyFromMigrated", "required")) {
+        <label class="form-error">Can Copy from Migrated is required</label>
+      }
+    </div>
+  </app-element-label>
+
+  <app-element-label labelText="Phases">
+    <div class="form-field-wrapper">
+      <p-treeselect
+        formControlName="phases"
+        [options]="phaseOptions()"
+        required
+        display="chip"
+        [filter]="true"
+        filterBy="label"
+        [filterInputAutoFocus]="true"
+        appendTo="body"
+        selectionMode="multiple"
+      >
+        <ng-template let-values #value>
+          {{ values.length }} phase(s) selected
+        </ng-template>
+      </p-treeselect>
+      @if (hasError("phases", "required")) {
+        <label class="form-error">At least one phase must be selected</label>
+      }
+    </div>
+  </app-element-label>
+</form>

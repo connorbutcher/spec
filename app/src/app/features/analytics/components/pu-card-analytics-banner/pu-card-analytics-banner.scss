@@ -1,0 +1,28 @@
+#pu-card-analytics-banner {
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: var(--gap);
+  align-items: center;
+
+  padding: 4px 1em;
+
+  background: var(--p-green-700);
+  color: white;
+
+  .banner-text {
+    text-align: center;
+  }
+
+  .complete-container {
+    display: flex;
+    flex-direction: row;
+    gap: var(--gap);
+    align-items: center;
+
+    .complete-text {
+      font-size: 1.2rem;
+      font-weight: 500;
+    }
+  }
+}

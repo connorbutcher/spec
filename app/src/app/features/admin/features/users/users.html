@@ -1,0 +1,56 @@
+<div id="users" class="card">
+  <div class="users-header">
+    <span class="chip bold xxl">Users</span>
+  </div>
+
+  <div class="users-content">
+    <p-table
+      #usersTable
+      [value]="users()"
+      stripedRows
+      selectionMode="single"
+      [(selection)]="selectedUser"
+      dataKey="id"
+      [scrollable]="true"
+      scrollHeight="flex"
+      sortField="displayName"
+      [globalFilterFields]="['displayName', 'emailAddress']"
+      (onRowSelect)="onRowSelect($event)"
+    >
+      <ng-template #caption>
+        <div class="users-toolbar">
+          <input
+            pInputText
+            type="text"
+            (input)="filter($event)"
+            placeholder="Search keyword"
+          />
+        </div>
+      </ng-template>
+
+      <ng-template #header>
+        <tr>
+          <th pSortableColumn="id">Id <p-sort-icon field="id" /></th>
+          <th pSortableColumn="displayName">
+            Name <p-sort-icon field="displayName" />
+          </th>
+          <th pSortableColumn="emailAddress">
+            Email Address <p-sort-icon field="emailAddress" />
+          </th>
+          <th>Permissions</th>
+        </tr>
+      </ng-template>
+
+      <ng-template #body let-user>
+        <tr [pSelectableRow]="user">
+          <td>{{ user.id }}</td>
+          <td>{{ user.displayName }}</td>
+          <td>{{ user.emailAddress }}</td>
+          <td>
+            <app-permissions-table-display [permissions]="user.permissions" />
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+</div>

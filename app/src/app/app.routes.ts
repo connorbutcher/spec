@@ -1,39 +1,66 @@
 import { Routes } from '@angular/router';
-
-export class AppRoutes {
-  public static comingSoon() {
-    return import('./features/coming-soon/coming-soon-page/coming-soon-page').then((m) => m.ComingSoonPage);
-  }
-}
+import { chainActivateGuards } from './core/guards/guard-helpers';
+import { legacySpecSheetGuard } from './core/guards/legacy-spec-sheet.guard';
+import { msalGuard } from './core/guards/msal.guard';
+import { userRegisteredGuard } from './core/guards/user-registered.guard';
+import { userRoleGuard } from './core/guards/user-role.guard';
+import { adminRoles } from './features/admin/admin.routes';
+import { SheetDataService } from './features/sheet/services/sheet-data.service';
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'phases' },
   {
+    path: 'spec/:id',
+    loadComponent: () => import('./features/sheet/sheet').then((m) => m.Sheet),
+    providers: [SheetDataService],
+    canActivate: [
+      chainActivateGuards(
+        msalGuard(),
+        userRegisteredGuard,
+        legacySpecSheetGuard,
+      ),
+    ],
+  },
+  {
     path: 'phases',
-    title: 'Phases · PU Spec Sheet',
-    loadChildren: () => import('./features/phases/phases.routes').then((m) => m.PHASES_ROUTES),
-  },
-  {
-    path: 'approvals',
-    title: 'Approvals · PU Spec Sheet',
-    loadChildren: () => import('./features/approvals/approvals.routes').then((m) => m.APPROVALS_ROUTES),
-  },
-  {
-    path: 'templates',
-    title: 'Templates · PU Spec Sheet',
     loadChildren: () =>
-      import('./features/templates/templates.routes').then((m) => m.TEMPLATES_ROUTES),
+      import('./features/sheets/sheet.routes').then((m) => m.SHEET_ROUTES),
+    canActivate: [chainActivateGuards(msalGuard(), userRegisteredGuard)],
+  },
+  {
+    path: 'comparison',
+    loadComponent: () =>
+      import('./features/sheet-comparison/sheet-comparison').then(
+        (m) => m.SheetComparison,
+      ),
+    canActivate: [chainActivateGuards(msalGuard(), userRegisteredGuard)],
+    title: 'Comparison',
   },
   {
     path: 'admin',
-    title: 'Admin · PU Spec Sheet',
-    loadChildren: () => import('./features/admin/admin.routes').then((m) => m.ADMIN_ROUTES),
+    loadChildren: () =>
+      import('./features/admin/admin.routes').then((m) => m.routes),
+    canActivate: [
+      chainActivateGuards(msalGuard(), userRegisteredGuard, userRoleGuard),
+    ],
+    data: { roles: adminRoles },
   },
   {
-    path: 'help',
-    title: 'Help · PU Spec Sheet',
-    loadComponent: AppRoutes.comingSoon,
-    data: { title: 'Help', icon: 'pi-question-circle' },
+    path: 'login/oauth-callback',
+    loadComponent: () =>
+      import('./features/login/oauth-callback/oauth-callback').then(
+        (m) => m.OAuthCallback,
+      ),
   },
-  { path: '**', redirectTo: 'phases' },
+  {
+    path: 'login-failed',
+    loadComponent: () =>
+      import('./features/login/login-failed/login-failed').then(
+        (m) => m.LoginFailed,
+      ),
+  },
+  {
+    path: '**',
+    redirectTo: 'phases',
+  },
 ];

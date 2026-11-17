@@ -1,0 +1,24 @@
+<app-dialog-header
+  headerText="Reject {{ specSheet().specSheetType().type }}"
+  [canDrag]="true"
+/>
+
+<div>
+  <app-element-label labelText="Detail the reason for rejection">
+    <div class="form-field-wrapper">
+      <app-rich-text-editor [formControl]="reasonCtrl" required />
+    </div>
+  </app-element-label>
+</div>
+
+<div class="dialog-actions">
+  <button pButton severity="secondary" (click)="close()">Close</button>
+  <button
+    pButton
+    severity="danger"
+    (click)="confirm()"
+    [disabled]="reasonCtrl.invalid"
+  >
+    Reject
+  </button>
+</div>

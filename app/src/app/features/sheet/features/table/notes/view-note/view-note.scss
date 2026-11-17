@@ -1,0 +1,51 @@
+.notes-row {
+  display: grid;
+  grid-template-rows: auto auto;
+  grid-template-columns: 1fr 30px;
+  grid-template-areas:
+    "heading delete"
+    "content delete";
+  gap: var(--gap-l);
+  align-items: center;
+
+  padding: var(--gap-l) var(--gap);
+
+  &.not-last {
+    border-bottom: 1px solid var(--p-divider-border-color);
+  }
+
+  .note-header {
+    grid-area: heading;
+
+    > .user {
+      color: var(--theme-selected-item-color);
+      margin-right: var(--gap);
+    }
+
+    > .info {
+      color: var(--theme-text-secondary);
+    }
+
+    .chip.location,
+    .chip.removed {
+      margin-left: var(--gap);
+      display: inline-block;
+    }
+
+    .chip.removed {
+      background-color: var(--p-red-100);
+    }
+  }
+
+  .note-content {
+    grid-area: content;
+
+    .obsolete {
+      text-decoration: line-through;
+    }
+  }
+
+  .note-delete {
+    grid-area: delete;
+  }
+}

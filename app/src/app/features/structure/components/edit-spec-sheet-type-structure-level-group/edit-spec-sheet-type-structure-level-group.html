@@ -1,0 +1,27 @@
+<form [formGroup]="form" class="level-group">
+  <p-select
+    formControlName="property"
+    [options]="propertyOptions()"
+    optionLabel="valueName"
+    required
+    appendTo="body"
+    placeholder="Property to group on"
+  />
+  <p-selectbutton
+    formControlName="sortOrientation"
+    [options]="[
+      { label: 'Asc', value: 0 },
+      { label: 'Desc', value: 1 },
+    ]"
+  />
+
+  <button
+    pButton
+    icon="pi pi-trash"
+    severity="danger"
+    [outlined]="true"
+    (click)="removeGroup()"
+  >
+    <i class="pi pi-trash"></i>
+  </button>
+</form>

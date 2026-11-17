@@ -1,0 +1,15 @@
+export type CellTypeKey =
+  | 'header'
+  | 'description'
+  | 'minNoOk'
+  | 'min'
+  | 'max'
+  | 'maxNoOk'
+  | 'value'
+  | 'group'
+  | 'partNumber'
+  | 'partNumberUpper'
+  | 'partNumberLower'
+  | 'nom'
+  | 'grade'
+  | 'partNumberPair';

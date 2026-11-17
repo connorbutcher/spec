@@ -1,0 +1,6 @@
+.sheet-compare-selection {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+
+  margin-bottom: var(--gap-xl);
+}

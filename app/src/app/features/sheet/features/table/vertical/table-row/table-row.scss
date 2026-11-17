@@ -1,0 +1,27 @@
+:host {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+
+  position: relative;
+}
+
+:host(:first-child) .grid-table-cell {
+  border-top: 1px solid;
+}
+
+.preview {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--gap);
+
+  width: 150px;
+  background-color: white;
+  border-radius: var(--border-radius-m);
+  padding: var(--gap-s) var(--gap);
+}
+
+.selected-row {
+  background-color: lightcoral;
+}

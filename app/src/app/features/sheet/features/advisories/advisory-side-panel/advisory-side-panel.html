@@ -1,0 +1,97 @@
+<div class="advisory-header">
+  <button
+    pButton
+    severity="secondary"
+    variant="text"
+    size="small"
+    (click)="close()"
+    title="Back"
+  >
+    <i class="material-symbols-outlined">arrow_back</i>
+  </button>
+  <h3>{{ title() }}</h3>
+  <span class="total-count">{{ filterOptions()[0].count }}</span>
+</div>
+
+<div class="level-filters" role="group">
+  @for (option of filterOptions(); track option.level) {
+    <div
+      class="level-filter"
+      [attr.data-level]="option.level"
+      [class.selected]="level() === option.level"
+      (click)="level.set(option.level)"
+    >
+      @if (option.level === null) {
+        <span class="filter-label">All</span>
+      } @else {
+        <i [ngClass]="option.level | validatorLevelToAdvisoryIcon"></i>
+      }
+      <span class="filter-count">{{ option.count }}</span>
+    </div>
+  }
+</div>
+
+<div class="advisory-summary">
+  <span
+    >{{ visibleCount() }}
+    {{ visibleCount() === 1 ? "advisory" : "advisories" }}</span
+  >
+  <span>{{ level() === null ? "All levels" : levelLabels[level()!] }}</span>
+</div>
+
+<div class="advisories-container">
+  @for (group of advisoryGroups(); track $index) {
+    <section class="advisory-group">
+      <div class="group-heading">
+        <i class="material-symbols-outlined">{{
+          group.isTable ? "table_chart" : "description"
+        }}</i>
+
+        <h4>{{ group.title }}</h4>
+        <span class="group-count">{{ group.advisories.length }}</span>
+      </div>
+
+      <div class="group-items">
+        @for (advisory of group.advisories; track $index) {
+          <div
+            class="advisory-item"
+            [class.highlighted]="selectedAdvisory() === advisory"
+            [attr.data-level]="advisory.level"
+            (click)="goToIssue(advisory)"
+          >
+            <i
+              class="advisory-icon"
+              [ngClass]="advisory.level | validatorLevelToAdvisoryIcon"
+            ></i>
+
+            <span class="advisory-content">
+              <span class="severity-label">{{
+                levelLabels[advisory.level]
+              }}</span>
+
+              <span class="advisory-text">{{ advisory.message }}</span>
+            </span>
+
+            @if (advisory.referenceId) {
+              <i class="material-symbols-outlined advisory-arrow"
+                >arrow_forward</i
+              >
+            }
+          </div>
+        }
+      </div>
+    </section>
+  } @empty {
+    <div class="empty-state">
+      <i class="material-symbols-outlined">check_circle</i>
+      <span
+        >No
+        {{
+          level() === null
+            ? "advisories"
+            : levelLabels[level()!].toLowerCase() + " advisories"
+        }}</span
+      >
+    </div>
+  }
+</div>

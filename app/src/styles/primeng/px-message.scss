@@ -1,0 +1,12 @@
+.px-message-mb-gap {
+  display: block;
+  margin-bottom: var(--gap-l);
+}
+
+p-message.px-message-no-animation {
+  &.p-message-enter-active,
+  &.p-message-leave-active {
+    animation: none !important;
+    transition: none !important;
+  }
+}

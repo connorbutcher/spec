@@ -1,0 +1,12 @@
+.group-container {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  width: 100%;
+  height: 100%;
+
+  .group-actions {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+  }
+}

@@ -1,9 +1,0 @@
-@if (entry(); as entry) {
-  <app-settings-group title="Cells" key="row-cells" [note]="cellCount()">
-    <app-panel-link-list
-      [items]="cells()"
-      emptyText="No cells in this row yet. Add one from the bar above the table."
-      ariaLabel="Cells"
-    />
-  </app-settings-group>
-}

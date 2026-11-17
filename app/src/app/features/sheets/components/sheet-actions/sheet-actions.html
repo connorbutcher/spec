@@ -1,0 +1,34 @@
+<div class="sheet-actions">
+  <app-spec-sheet-version-selector [specSheetType]="type()" />
+
+  @let specSheet = selectedSpecSheet();
+  @if (specSheet) {
+    <p-buttongroup>
+      @if (!isFirstVersion() && !isAnalyticsEnabled()) {
+        <button
+          pButton
+          iconOnly
+          (click)="compareSpecSheets()"
+          severity="secondary"
+          pTooltip="Compare with previous version"
+          tooltipPosition="left"
+        >
+          <i class="pi pi-arrows-h"></i>
+        </button>
+      }
+
+      <button
+        pButton
+        iconOnly
+        severity="secondary"
+        (click)="viewVersionHistory()"
+        pTooltip="View version history"
+        tooltipPosition="left"
+      >
+        <i class="pi pi-history"></i>
+      </button>
+    </p-buttongroup>
+
+    <app-pu-spec-sheet-avatar [puSpecSheetId]="specSheet.id" size="xsmall" />
+  }
+</div>

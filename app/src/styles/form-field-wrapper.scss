@@ -1,0 +1,70 @@
+.form-field-wrapper {
+  display: grid;
+  grid-template-rows: auto minmax(20px, auto);
+  grid-template-columns: 1fr auto;
+  grid-auto-flow: row;
+
+  > [formcontrolname] {
+    grid-row: 1;
+    grid-column: 1/3;
+  }
+
+  > [ng-reflect-form] {
+    grid-row: 1;
+    grid-column: 1/3;
+  }
+
+  .form-error,
+  .hint {
+    grid-column: 1;
+    grid-row: 2;
+
+    color: var(--theme-text-secondary-color);
+    font-size: 12px;
+    line-height: 20px;
+
+    &:not(:first-of-type):not(.right) {
+      display: none;
+    }
+  }
+
+  .form-error {
+    color: var(--p-red-500);
+  }
+
+  .hint.right {
+    grid-column: 2;
+    text-align: right;
+  }
+}
+
+.input-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-xs);
+}
+
+.formula-form-field-wrapper {
+  position: relative;
+
+  &.with-bottom-hint {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .formula-form-error {
+    position: absolute;
+    right: 10px;
+    top: 30%;
+
+    color: var(--p-red-500);
+    font-size: 12px;
+    line-height: 20px;
+  }
+
+  .formula-form-hint {
+    color: var(--theme-text-secondary);
+    font-size: 12px;
+    line-height: 20px;
+  }
+}

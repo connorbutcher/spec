@@ -1,0 +1,19 @@
+<div id="user-list" class="card">
+  <div class="user-list-header-container">
+    <span class="user-header">Users</span>
+    <span class="user-count color-secondary">({{ users().length }})</span>
+  </div>
+
+  <div>
+    <input pInputText placeholder="Type to filter" fluid [(ngModel)]="filterValue" />
+  </div>
+
+  <div class="user-list-content">
+    @for (user of filteredUsers(); track $index) {
+    <div class="user-row" [class.selected]="user.id === selectedUser()?.id" (click)="selectUser(user)">
+      <span class="user-info user-name">{{ user.displayName }}</span>
+      <span class="user-info user-email">{{ user.emailAddress }}</span>
+    </div>
+    }
+  </div>
+</div>

@@ -1,0 +1,31 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+}
+
+.user-permissions {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+:host ::ng-deep .permissions-table {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+:host ::ng-deep .permissions-table .p-datatable-wrapper {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+.permissions-toolbar {
+  display: flex;
+  gap: var(--gap);
+  justify-content: flex-end;
+}

@@ -1,0 +1,110 @@
+<div
+  class="table-heading-container size-normal border"
+  [style.border-color]="table().headerColorClass"
+  [id]="table().referenceId()"
+  appFragmentedElement
+  [attr.id]="table().referenceId()"
+>
+  <div class="left-icons">
+    <app-references-indicator
+      [references]="table().tableReferences()"
+      [showLine]="true"
+    />
+
+    @if (canEdit()) {
+      <i
+        cdkDragHandle
+        class="material-symbols-outlined icon"
+        pTooltip="Drag to move table"
+        >drag_pan</i
+      >
+    }
+
+    @if (!table().isValid() && table().advisoryState() === 3) {
+      <p-tag
+        class="px-tag-inverted px-tag-danger"
+        severity="danger"
+        value="Invalid"
+      />
+    }
+  </div>
+
+  <app-table-title-input class="heading-grid" [table]="table()" />
+
+  <div class="right-icons">
+    <button
+      pButton
+      iconOnly
+      class="px-button-table-widget"
+      [text]="true"
+      pTooltip="Click to control who can see this table"
+      tooltipPosition="left"
+      (click)="configureTableAccessAsync()"
+      [disabled]="!canEdit()"
+    >
+      <i class="pi pi-shield"></i>
+    </button>
+
+    @if (canEdit()) {
+      <p-overlay-badge
+        severity="danger"
+        [badgeDisabled]="table().cellsNeedingConfiguration() === 0"
+        [value]="
+          table().cellsNeedingConfiguration() > 0
+            ? `${table().cellsNeedingConfiguration()}`
+            : undefined
+        "
+      >
+        <button
+          pButton
+          class="px-button-table-widget"
+          iconOnly
+          [text]="true"
+          pTooltip="Click to configure the table"
+          tooltipPosition="left"
+          [tooltipDisabled]="!canConfigureTable()"
+          (click)="openManagementDialog()"
+          [disabled]="!canConfigureTable()"
+        >
+          <i class="pi pi-cog"></i>
+        </button>
+      </p-overlay-badge>
+
+      <button
+        pButton
+        class="px-button-table-widget"
+        iconOnly
+        [text]="true"
+        pTooltip="Click to add to the table"
+        tooltipPosition="left"
+        (click)="op.toggle($event)"
+        [disabled]="!canEdit()"
+      >
+        <i class="pi pi-plus"></i>
+      </button>
+
+      <button
+        pButton
+        class="px-button-table-widget"
+        iconOnly
+        [text]="true"
+        pTooltip="Click to delete the table"
+        tooltipPosition="left"
+        (click)="deleteTableAsync()"
+        [disabled]="!canEdit()"
+      >
+        <i class="pi pi-trash"></i>
+      </button>
+    }
+  </div>
+</div>
+
+<p-popover #op>
+  <ng-template #content>
+    <app-table-add-options
+      [options]="addOptions()"
+      [table]="table()"
+      [parentGroup]="defaultGroup()"
+    />
+  </ng-template>
+</p-popover>

@@ -1,0 +1,21 @@
+<div
+  class="specification"
+  cdkDropList
+  (cdkDropListDropped)="drop($event)"
+  [cdkDropListData]="specSheet().tables()"
+  cdkDropListOrientation="mixed"
+  [cdkDropListDisabled]="!canEdit()"
+>
+  @for (table of specSheet().tables(); track table.referenceId()) {
+    <app-table cdkDrag [table]="table" />
+  } @empty {
+    <app-info-block
+      class="span-2"
+      icon="search"
+      message="No {{ specSheet().specSheetType().type }} tables"
+      hint="Click Add Table to begin."
+    />
+  }
+</div>
+
+<app-vertical-table-row-context-menu />

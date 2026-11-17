@@ -1,0 +1,23 @@
+.version-graph {
+  display: grid;
+  grid-template-columns: 100px auto 100px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 8px 0;
+}
+
+.version {
+  border: 1px solid gray;
+  border-radius: 4px;
+  padding: 0.5em;
+  text-align: center;
+}
+
+.current {
+  background: #8e8e8e26;
+}
+
+.latest {
+  background: #4fd64f33;
+}

@@ -1,0 +1,66 @@
+:host {
+  display: block;
+  flex: 1 1 0;
+  min-height: 0;
+  min-width: 0;
+}
+
+#spec-sheet {
+  display: flex;
+  flex-direction: row;
+  height: 100%;
+  min-height: 0;
+  padding-top: var(--gap);
+
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+#spec-sheet-content {
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 0;
+
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+
+  overflow: hidden;
+}
+
+app-specification,
+app-parts,
+app-pfk {
+  flex: 1 1 0;
+  min-height: 0;
+  min-width: 0;
+}
+
+.side-panel {
+  flex: 0 0 auto;
+  height: 100%;
+  min-height: 0;
+
+  width: 0px;
+  transition: width 0.2s;
+
+  &.expanded {
+    margin-left: 5px;
+    transition: width 0.2s;
+    width: fit-content;
+  }
+}
+
+app-side-panel {
+  display: block;
+  height: 100%;
+}
+
+.empty-state-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  width: 100%;
+}

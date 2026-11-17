@@ -1,0 +1,16 @@
+.card {
+  padding: var(--gap-l);
+
+  transition:
+    transform 0.25s ease 0s,
+    box-shadow 0.25s ease 0s;
+  background-color: var(--p-overlay-modal-background);
+  border-radius: var(--border-radius-s);
+  border: 1px solid var(--p-overlay-modal-border-color);
+  box-sizing: border-box;
+
+  &.flat-top {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+  }
+}

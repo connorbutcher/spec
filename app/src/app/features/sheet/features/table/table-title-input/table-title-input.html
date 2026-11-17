@@ -1,0 +1,25 @@
+<div
+  class="table-input-container"
+  tabindex="0"
+  cdkMonitorSubtreeFocus
+  (cdkFocusChange)="focus($event)"
+>
+  @if (isFocused() && canEdit() && table().canUserEdit) {
+    <input
+      appFocus
+      class="heading input plain"
+      type="text"
+      tabindex="0"
+      cdkFocusInitial
+      required
+      [(ngModel)]="table().title"
+    />
+  } @else {
+    <span
+      class="heading display"
+      [class.filtered-match]="isFilteredMatch()"
+      [class.filtered-active]="isFilteredActive()"
+      >{{ table().title() }}</span
+    >
+  }
+</div>

@@ -1,0 +1,21 @@
+<button
+  pButton
+  class="px-button-xsmall"
+  icon="pi pi-calculator"
+  [severity]="value() ? 'primary' : 'secondary'"
+  size="small"
+  [text]="true"
+  [disabled]="!canEdit()"
+  [pTooltip]="tooltip"
+  [tooltipDisabled]="!canEdit()"
+  (click)="toggleNominal()"
+>
+  <i class="pi pi-calculator"></i>
+</button>
+
+<ng-template #tooltip>
+  <div class="nominal-status">
+    <span>Toggle nominal calculation on or off</span>
+    <span>Status: {{ value() ? "On" : "Off" }}</span>
+  </div>
+</ng-template>

@@ -1,0 +1,15 @@
+<div id="sheets">
+  <app-phase-sheet-list />
+  @if (activePhase()) {
+    <app-type-sheet-list [activePhase]="activePhase()!" />
+  }
+
+  <div class="sheets-content">
+    @if (activePhase() && activeType()) {
+      <app-audit-sheets-for-phase-and-type
+        [activePhase]="activePhase()!"
+        [activeType]="activeType()!"
+      />
+    }
+  </div>
+</div>

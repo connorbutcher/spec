@@ -1,0 +1,41 @@
+@if (activeElement()) {
+  <div class="context-menu-container">
+    <div class="context-menu-content">
+      @if (addOptions().length > 0) {
+        <img
+          class="icon large"
+          src="insert-row-above.svg"
+          pTooltip="Add Above"
+          (click)="togglePopover($event, 'above')"
+        />
+
+        <img
+          class="icon large"
+          src="insert-row-below.svg"
+          pTooltip="Add Below"
+          (click)="togglePopover($event, 'below')"
+        />
+      }
+
+      <i
+        class="icon red pi pi-trash"
+        pTooltip="Delete"
+        (click)="removeGroupAsync()"
+      ></i>
+    </div>
+
+    <div class="context-menu-triangle"></div>
+  </div>
+}
+
+<p-popover #op (onShow)="onPopoverShow()" (onHide)="onPopoverHide()">
+  <ng-template #content>
+    <div class="add-row-container">
+      @for (addOption of addOptions(); track $index) {
+        <div class="add-row" (click)="addGroupAsync(addOption)">
+          <span>Add {{ addOption.title }}</span>
+        </div>
+      }
+    </div>
+  </ng-template>
+</p-popover>

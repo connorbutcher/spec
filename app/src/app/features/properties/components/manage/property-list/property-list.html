@@ -1,0 +1,53 @@
+<div id="property-list">
+  <div class="properties-list-header-container">
+    <span class="properties-list-header">Properties</span>
+  </div>
+
+  <div class="properties-list-content">
+    @for (property of nonReorderableProperties(); track $index) {
+      <div
+        class="property-row"
+        (click)="editProperty(property)"
+        [class.selected]="
+          property.referenceId === editingProperty()?.referenceId
+        "
+      >
+        <span>{{ property.valueName() }}</span>
+      </div>
+    }
+
+    <div
+      cdkDropList
+      [cdkDropListData]="reorderableProperties()"
+      (cdkDropListDropped)="drop($event)"
+      cdkDropListOrientation="vertical"
+      [cdkDropListSortPredicate]="sortPredicate"
+    >
+      @for (property of reorderableProperties(); track $index) {
+        <div
+          class="property-row"
+          (click)="editProperty(property)"
+          [class.selected]="
+            property.referenceId === editingProperty()?.referenceId
+          "
+          cdkDrag
+          cdkDragLockAxis="y"
+          [cdkDragData]="property"
+          [cdkDragDisabled]="!property.canBeEdited()"
+        >
+          @if (property.canBeEdited()) {
+            <span class="drag-icon material-symbols-outlined" cdkDragHandle
+              >drag_handle</span
+            >
+          }
+
+          <span>{{ property.valueName() }}</span>
+        </div>
+      }
+    </div>
+  </div>
+
+  <button pButton [outlined]="true" fluid (click)="addProperty()">
+    Add Property
+  </button>
+</div>

@@ -1,0 +1,13 @@
+#admin {
+  display: grid;
+  grid-template-columns: 255px 1fr;
+  gap: var(--gap);
+
+  height: 100%;
+  width: 100%;
+
+  .admin-content {
+    height: 100%;
+    overflow: hidden;
+  }
+}

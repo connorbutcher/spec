@@ -1,0 +1,21 @@
+.cpl-cell {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--gap);
+  padding: var(--gap-s) var(--gap);
+  border-radius: var(--border-radius-m);
+  cursor: pointer;
+
+  &:hover {
+    background-color: var(--theme-hover-gray-background);
+  }
+
+  &.selected {
+    background-color: var(--theme-selected-item-background-color);
+  }
+
+  .requires-configuration {
+    color: var(--theme-text-error-color);
+  }
+}

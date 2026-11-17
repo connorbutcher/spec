@@ -1,9 +1,0 @@
-// Compact tabs sitting on the header's bottom border.
-.sheet-switcher {
-  --p-tabs-tablist-border-width: 0;
-
-  .pi {
-    margin-right: var(--app-space-3);
-    font-size: var(--app-font-size-md);
-  }
-}

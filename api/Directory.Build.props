@@ -1,23 +1,22 @@
-<Project>
+﻿<Project>
+  <Import Project="Version.props" />
 
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <!-- Runs the .editorconfig code-style rules (braces, file-scoped namespaces, ...) as part of every build. -->
-    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-    <AnalysisLevel>latest-recommended</AnalysisLevel>
-    <!-- An analyzer warning fails the build, so the standards can't drift. -->
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <!-- Missing XML doc comments are not enforced. -->
-    <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <Company>Red Bull Advanced Services</Company>
+    <Authors>IT Software Development</Authors>
+    <Copyright>Copyright (c) $(Company)</Copyright>
+    <PackageIconUrl></PackageIconUrl>
   </PropertyGroup>
 
-  <!-- StyleCop supplies the one-type-per-file rules (SA1402, SA1649); .editorconfig turns the rest off. -->
-  <ItemGroup>
-    <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.556" PrivateAssets="all" />
-    <AdditionalFiles Include="$(MSBuildThisFileDirectory)stylecop.json" Link="stylecop.json" />
-  </ItemGroup>
+  <!-- Support for building local nugets with valid versions -->
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'">
+    <Version></Version>
+    <VersionPrefix>$(FileVersion)</VersionPrefix>
+    <VersionSuffix>alpha.$([System.DateTime]::Now.ToString("yyMMddHHmm"))</VersionSuffix>
+    <PackageOutputPath>C:\dev\local_nuget</PackageOutputPath>
+  </PropertyGroup>
 
+  <PropertyGroup>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
 </Project>

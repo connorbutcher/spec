@@ -1,0 +1,33 @@
+<form [formGroup]="form" class="cell-property-content">
+  <app-element-label labelText="Dropdown Options">
+    <div class="form-field-wrapper">
+      <app-number-dropdown-cell-options-configuration-control
+        formControlName="options"
+      />
+      @if (hasError("options", "required")) {
+        <label class="form-error">The dropdown options are required</label>
+      }
+      @if (hasError("options", "minLength")) {
+        <label class="form-error"
+          >There must be at least 1 dropdown option</label
+        >
+      }
+      @if (hasError("options", "invalid")) {
+        <label class="form-error">Each dropdown option must have a value</label>
+      }
+    </div>
+  </app-element-label>
+
+  <app-element-label labelText="Default Value">
+    <div class="form-field-wrapper">
+      <p-select
+        formControlName="defaultValue"
+        [options]="cellProperty().options()"
+        [filter]="true"
+        appendTo="body"
+        [showClear]="true"
+        placeholder="Select a default value"
+      />
+    </div>
+  </app-element-label>
+</form>

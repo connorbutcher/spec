@@ -1,0 +1,15 @@
+<div id="sheets-container">
+  @let selectedPhaseValue = selectedPhase();
+  @if (selectedPhaseValue) {
+    <div class="sheets-content card">
+      <app-sheet-header [phase]="selectedPhaseValue" />
+
+      <router-outlet />
+    </div>
+  } @else {
+    <app-empty-state
+      title="No PU Spec Sheet selected"
+      message="Select a PU Spec Sheet from the panel on the left."
+    />
+  }
+</div>

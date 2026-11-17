@@ -1,0 +1,41 @@
+<div id="sheet-comparison-header" class="card">
+  <div class="ssch-top">
+    <span class="chip xl bold">Comparison Tool</span>
+
+    <form [formGroup]="form" class="type-phase-selection">
+      <p-iftalabel>
+        <p-select
+          formControlName="type"
+          [options]="typeOptions()"
+          optionLabel="type"
+          appendTo="body"
+          required
+          fluid
+          id="type"
+        />
+        <label for="type">Type</label>
+      </p-iftalabel>
+
+      <p-iftalabel>
+        <p-treeselect
+          formControlName="phase"
+          [options]="phaseOptions()"
+          [filter]="true"
+          filterBy="label"
+          [filterInputAutoFocus]="true"
+          appendTo="body"
+          fluid
+          required
+          id="phase"
+        />
+        <label for="phase">Phase</label>
+      </p-iftalabel>
+    </form>
+  </div>
+
+  @if (specSheetPhase() && specSheetType()) {
+    <p-divider />
+
+    <app-sheet-comparison-toolbar />
+  }
+</div>

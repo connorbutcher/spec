@@ -1,0 +1,53 @@
+<div class="card side-nav-bar" [style.width.px]="panelWidth()">
+  <div class="card-actions">
+    @if (canNavigate()) {
+      <span
+        class="action-container material-symbols-outlined"
+        pTooltip="Go back"
+        (click)="goBack()"
+        >arrow_back</span
+      >
+      <span
+        class="action-container material-symbols-outlined"
+        pTooltip="Go forward"
+        (click)="goForward()"
+        >arrow_forward</span
+      >
+    }
+
+    <div #dotList id="dot-list">
+      @for (sidePanelItem of sidePanelItems(); track $index) {
+        <div
+          class="dot-container"
+          [pTooltip]="sidePanelItem"
+          (click)="viewDot($index)"
+        >
+          <div class="dot"></div>
+        </div>
+      }
+    </div>
+
+    <div class="spacer"></div>
+
+    <span
+      class="action-container material-symbols-outlined"
+      pTooltip="Refresh Panel"
+      tooltipPosition="left"
+      (click)="refresh()"
+      >refresh</span
+    >
+
+    @if (canClose()) {
+      <span
+        class="action-container material-symbols-outlined"
+        pTooltip="Close panel"
+        (click)="close()"
+        >close</span
+      >
+    }
+  </div>
+
+  <div class="card-content">
+    <ng-template #sidePanelContent></ng-template>
+  </div>
+</div>

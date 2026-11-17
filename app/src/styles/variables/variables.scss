@@ -1,0 +1,20 @@
+@use "./colors.scss";
+
+:root {
+  --gap-xs: 2px;
+  --gap-s: 4px;
+  --gap: 0.5rem;
+  --gap-l: 1rem;
+  --gap-xl: 2rem;
+  --gap-xxl: 2.5rem;
+
+  --border-radius-s: 4px;
+  --border-radius-m: 8px;
+  --border-radius-l: 12px;
+
+  --font-size-s: 0.8rem;
+  --font-size-m: 1rem;
+  --font-size-l: 1.25rem;
+  --font-size-xl: 1.5rem;
+  --font-size-xxl: 2rem;
+}

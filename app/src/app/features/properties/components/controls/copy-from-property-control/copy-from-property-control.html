@@ -1,0 +1,16 @@
+<app-element-label [labelText]="property().valueName">
+  <div class="form-field-wrapper">
+    <p-treeselect
+      [required]="isRequired()"
+      [formControl]="formControl"
+      [options]="nodes()"
+      appendTo="body"
+      [placeholder]="property().placeholderText"
+      [showClear]="true"
+      optionValue="data"
+    />
+    @for (validationMessage of validationMessages(); track $index) {
+      <label class="form-error">{{ validationMessage }}</label>
+    }
+  </div>
+</app-element-label>

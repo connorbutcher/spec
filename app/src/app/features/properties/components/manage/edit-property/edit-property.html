@@ -1,0 +1,99 @@
+<div id="edit-property">
+  <form [formGroup]="editPropertyForm">
+    <app-element-label labelText="Display Name">
+      <div class="form-field-wrapper">
+        <input
+          pInputText
+          required
+          [minLength]="1"
+          [maxLength]="256"
+          formControlName="valueName"
+          placeholder="The display name of the property"
+        />
+        @if (hasError("valueName", "required")) {
+          <label class="form-error">The display name is required</label>
+        }
+      </div>
+    </app-element-label>
+
+    @if (editingProperty().canValueBeSetInForm()) {
+      <app-element-label labelText="Placeholder Text">
+        <div class="form-field-wrapper">
+          <input
+            pInputText
+            required
+            [minLength]="1"
+            [maxLength]="512"
+            formControlName="placeholderText"
+            placeholder="The placeholder text for the property"
+          />
+        </div>
+      </app-element-label>
+    }
+
+    <app-element-label labelText="Key">
+      <div class="form-field-wrapper">
+        <input
+          pInputText
+          required
+          [minLength]="1"
+          [maxLength]="256"
+          formControlName="valueKey"
+          placeholder="The key of the property"
+        />
+        @if (hasError("valueKey", "required")) {
+          <label class="form-error">The key is required</label>
+        }
+      </div>
+    </app-element-label>
+
+    <app-element-label labelText="Value Data Type">
+      <div class="form-field-wrapper">
+        <p-select
+          formControlName="valueType"
+          [options]="propertyValueTypeValues"
+          placeholder="The data type of the value the user will enter"
+          appendTo="body"
+        />
+      </div>
+    </app-element-label>
+
+    <app-element-label labelText="Property Control Data Type">
+      <div class="form-field-wrapper">
+        <p-select
+          formControlName="valueControlType"
+          [options]="propertyControlTypeValues"
+          placeholder="The type of control the value the user will enter the value into"
+          appendTo="body"
+        />
+      </div>
+    </app-element-label>
+
+    <app-element-label labelText="Validators">
+      <div class="validators-container" formArrayName="validators">
+        <div class="validators-container-header">
+          <span class="validator-header">Type</span>
+          <span class="validator-header">Message</span>
+        </div>
+
+        @for (control of validatorsCtrls.controls; track $index) {
+          <app-validator-configuration
+            [formControl]="control"
+            (deleteValidator)="removeValidator($index)"
+          />
+        }
+      </div>
+
+      <div class="add-validator">
+        <button
+          pButton
+          (click)="addValidator()"
+          [outlined]="true"
+          [disabled]="!editingProperty().canBeEdited()"
+        >
+          Add Validator
+        </button>
+      </div>
+    </app-element-label>
+  </form>
+</div>

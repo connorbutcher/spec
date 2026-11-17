@@ -1,0 +1,48 @@
+.system-reference-group {
+  .srg-header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) repeat(2, auto);
+    align-items: center;
+    gap: var(--gap);
+
+    width: 100%;
+    box-sizing: border-box;
+
+    border: 1px solid transparent;
+
+    font: inherit;
+    text-align: left;
+
+    cursor: pointer;
+    user-select: none;
+
+    padding: var(--gap) var(--gap);
+    border-radius: var(--border-radius-m);
+    margin-bottom: var(--gap);
+
+    &:hover {
+      background-color: var(--theme-selected-item-background-color);
+    }
+
+    .srgh-title {
+      font-size: var(--font-size-m);
+      font-weight: 600;
+      overflow-wrap: anywhere;
+    }
+
+    .reference-count {
+      padding: var(--gap-xs) var(--gap-s);
+      border-radius: var(--border-radius-s);
+      background: var(--p-content-background);
+      color: var(--theme-text-secondary-color);
+      font-size: var(--font-size-s);
+    }
+  }
+
+  .srg-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap);
+    padding: var(--gap-xs);
+  }
+}

@@ -1,0 +1,44 @@
+#sheet-tabs {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.sheet-tab-list {
+  display: flex;
+  flex-direction: row;
+  gap: 4px;
+
+  align-items: center;
+
+  .sheet-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--gap);
+    padding: 8px 10px;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    background: transparent;
+    font: inherit;
+
+    color: var(--theme-text-secondary-color);
+
+    cursor: pointer;
+    white-space: nowrap;
+    align-self: flex-end;
+
+    &.active {
+      border-color: var(--p-primary-700);
+      color: var(--theme-text-primary-color);
+      font-weight: 600;
+    }
+
+    &:hover {
+      background: var(--theme-hover-gray-background);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--p-primary-color);
+      outline-offset: -2px;
+    }
+  }
+}

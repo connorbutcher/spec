@@ -1,0 +1,17 @@
+@if (hasDeferredUpdateAvailable | async; as updateData) {
+  <div id="update-available-banner">
+    <span class="material-symbols-outlined">info</span>
+
+    <div>
+      <span>Version </span>
+      <span class="version-number">{{ updateData.version }} </span>
+      <span>is available. Please install the update as soon as possible.</span>
+    </div>
+
+    <div class="spacer"></div>
+
+    <button pButton (click)="installUpdate()" [outlined]="true">
+      Install Update
+    </button>
+  </div>
+}

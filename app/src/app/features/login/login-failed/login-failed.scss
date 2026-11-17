@@ -1,0 +1,22 @@
+:host {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
+
+h1 {
+  font-size: var(--font-size-xl);
+  margin-bottom: var(--gap);
+  text-align: center;
+}
+
+p {
+  margin: var(--gap);
+}
+
+.login-failed-table {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--gap-l);
+}

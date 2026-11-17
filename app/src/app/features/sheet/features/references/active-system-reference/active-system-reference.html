@@ -1,0 +1,11 @@
+<div class="active-system-reference">
+  @for (
+    systemReferenceGroup of systemReference().referenceGroups;
+    track $index
+  ) {
+    <app-reference-group
+      [systemReferenceGroup]="systemReferenceGroup"
+      [highlightedReferenceId]="highlightedReferenceId()"
+    />
+  }
+</div>

@@ -1,0 +1,37 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.workflow-step-actor {
+  padding: var(--gap) 0;
+
+  .wsa-status {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--gap);
+    align-items: center;
+
+    .approver-name {
+      flex: 1;
+      min-width: 0;
+      font-weight: 500;
+      overflow-wrap: anywhere;
+    }
+  }
+}
+
+.actioned-date {
+  margin-top: var(--gap-xs);
+  color: var(--theme-text-secondary-color);
+}
+
+.wsa-comment {
+  color: var(--theme-text-secondary-color);
+  margin-top: var(--gap-s);
+  padding-left: var(--gap);
+  border-left: 2px solid var(--theme-border-color);
+  overflow-wrap: anywhere;
+  max-width: 100%;
+  overflow-x: auto;
+}

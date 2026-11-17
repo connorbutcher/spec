@@ -1,0 +1,61 @@
+<div class="group-container">
+  <div></div>
+
+  <app-text-cell-type
+    [table]="table()"
+    [cell]="cell()"
+    [group]="group()"
+    [row]="row()"
+  />
+
+  <div class="group-actions">
+    <button
+      pButton
+      iconOnly
+      class="px-button-xsmall"
+      severity="contrast"
+      size="small"
+      [text]="true"
+      [disabled]="!canEdit()"
+      pTooltip="Add Row"
+      [tooltipDisabled]="!canEdit()"
+      (click)="op.toggle($event)"
+    >
+      <i class="pi pi-plus"></i>
+    </button>
+
+    @if (nominalWidget()) {
+      <app-pfk-nominal-widget
+        [widget]="nominalWidget()!"
+        [group]="group()"
+        [table]="table()"
+        [referenceId]="group().referenceId()"
+      />
+    }
+
+    <button
+      pButton
+      iconOnly
+      class="px-button-xsmall"
+      severity="danger"
+      size="small"
+      [text]="true"
+      [disabled]="!canEdit()"
+      pTooltip="Delete PFK"
+      [tooltipDisabled]="!canEdit()"
+      (click)="deletePfk()"
+    >
+      <i class="pi pi-times"></i>
+    </button>
+  </div>
+</div>
+
+<p-popover #op>
+  <ng-template #content>
+    <app-table-add-options
+      [table]="table()"
+      [parentGroup]="group()"
+      [options]="addOptions()"
+    />
+  </ng-template>
+</p-popover>

@@ -1,0 +1,28 @@
+#create-phase {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+  height: 100%;
+  width: 100%;
+
+  .cp-header {
+    display: flex;
+    justify-content: center;
+  }
+
+  .cp-form {
+    display: flex;
+    flex-direction: column;
+    overflow: auto;
+
+    .cp-publishing {
+      overflow: auto;
+    }
+  }
+
+  .cp-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--gap);
+  }
+}

@@ -1,0 +1,59 @@
+:host {
+  display: block;
+  width: 340px;
+  max-width: 100%;
+
+  --p-inputgroup-addon-background: transparent;
+  --p-inputgroup-addon-border-color: transparent;
+  --p-inputgroup-addon-padding: 0;
+  --p-inputgroup-addon-min-width: 0;
+}
+
+.search-result-navigation {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-xs);
+  flex-shrink: 0;
+}
+
+.search-result-count {
+  margin-right: 6px;
+  white-space: nowrap;
+  color: var(--p-surface-400);
+}
+
+p-inputgroup {
+  align-items: center;
+  border: 1px solid var(--theme-border-color);
+  border-radius: var(--border-radius-m);
+  padding: 0 var(--gap-s) 0 var(--gap);
+  background: var(--p-content-background);
+  gap: var(--gap);
+
+  &:focus-within {
+    border-color: var(--p-primary-color);
+    border: 1px solid var(--p-focus-ring-color);
+  }
+
+  input {
+    min-width: 0;
+    width: 100%;
+    border: 0;
+    box-shadow: none;
+    background: transparent;
+    padding: 6px 0;
+  }
+
+  p-inputgroup-addon {
+    flex: 0 0 auto;
+    min-width: 0;
+    padding: 0;
+  }
+
+  button {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    flex-shrink: 0;
+  }
+}

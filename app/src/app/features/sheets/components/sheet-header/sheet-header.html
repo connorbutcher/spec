@@ -1,0 +1,11 @@
+<div class="sheet-header">
+  <div class="sheet-title">{{ phase().phase }}</div>
+
+  <app-sheet-tabs [phase]="phase()" />
+
+  @if (phase() && type()) {
+    <div class="end">
+      <app-sheet-actions [phase]="phase()" [type]="type()!" />
+    </div>
+  }
+</div>

@@ -1,0 +1,39 @@
+<div
+  class="approval-status"
+  [class.approval-status--required]="isApprovalRequired()"
+>
+  <button
+    pButton
+    [severity]="approvalStatus().severity"
+    [text]="true"
+    size="small"
+    (click)="viewApprovalStatus()"
+    pTooltip="View approval status"
+    tooltipPosition="bottom"
+  >
+    <i class="pi pi-check-square"></i>
+    {{ approvalStatus().label }}
+  </button>
+
+  @if (isApprovalRequired()) {
+    <button
+      pButton
+      size="small"
+      severity="success"
+      (click)="updateStateAsync(true)"
+    >
+      <i class="pi pi-check"></i>
+      Approve
+    </button>
+    <button
+      pButton
+      size="small"
+      severity="danger"
+      [outlined]="true"
+      (click)="updateStateAsync(false)"
+    >
+      <i class="pi pi-times"></i>
+      Reject
+    </button>
+  }
+</div>

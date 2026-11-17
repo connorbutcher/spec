@@ -1,0 +1,85 @@
+<div id="phase-list" class="card">
+  <div class="phase-list-header-container">
+    <span class="phase-header">Phases</span>
+  </div>
+
+  <div class="phase-list-content">
+    <div class="phases-tree">
+      <p-tree
+        #tree
+        class="px-phase-tree"
+        [value]="phaseOptions()"
+        [(selection)]="activePhase"
+        [draggableNodes]="true"
+        [droppableNodes]="true"
+        draggableScope="self"
+        droppableScope="self"
+        [filter]="true"
+        filterPlaceholder="Type to filter"
+        selectionMode="single"
+        (onNodeSelect)="updatePhase($event.node.data)"
+        (onNodeDrop)="treeChanged()"
+      >
+        <ng-template #filter>
+          <div class="filter-container">
+            <p-inputgroup>
+              <input
+                pInputText
+                type="text"
+                placeholder="Type to filter"
+                (input)="tree._filter($event.target.value)"
+                fluid
+              />
+              <p-inputgroup-addon>
+                <i class="pi pi-search"></i>
+              </p-inputgroup-addon>
+
+              <p-inputgroup-addon>
+                <button
+                  pButton
+                  iconOnly
+                  severity="secondary"
+                  (click)="addPhase($event)"
+                  pTooltip="Add Phase"
+                >
+                  <i class="pi pi-plus"></i>
+                </button>
+              </p-inputgroup-addon>
+              <p-inputgroup-addon>
+                <button
+                  pButton
+                  iconOnly
+                  [disabled]="!hasChangedTree()"
+                  (click)="saveOrderChangesAsync()"
+                  pTooltip="Save Changes"
+                >
+                  <i class="pi pi-save"></i>
+                </button>
+              </p-inputgroup-addon>
+            </p-inputgroup>
+          </div>
+        </ng-template>
+
+        <ng-template let-node #node>
+          <div class="phase-row">
+            <span>{{ node.label }}</span>
+            @if (node.data.isObsolete) {
+              <p-tag severity="danger" value="Obsolete" />
+            } @else {
+              <button
+                pButton
+                class="px-icon-button-xsmall"
+                severity="secondary"
+                size="small"
+                pTooltip="Add a phase"
+                (click)="addPhase($event, node.data)"
+              >
+                <i class="pi pi-plus"></i>
+              </button>
+            }
+          </div>
+        </ng-template>
+      </p-tree>
+    </div>
+  </div>
+</div>

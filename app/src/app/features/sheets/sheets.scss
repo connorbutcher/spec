@@ -1,0 +1,29 @@
+:host {
+  display: block;
+  height: 100%;
+  min-height: 0;
+}
+
+#sheets-container {
+  height: 100%;
+  box-sizing: border-box;
+
+  .sheets-content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+
+    app-sheet-header {
+      flex: 0 0 auto;
+    }
+
+    app-sheet {
+      display: block;
+      flex: 1 1 0;
+      min-height: 0;
+      min-width: 0;
+    }
+  }
+}

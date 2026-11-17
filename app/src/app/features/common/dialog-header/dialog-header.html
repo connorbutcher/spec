@@ -1,0 +1,15 @@
+<div
+  class="dialog-header"
+  [class.dialog-drag-header]="canDrag()"
+  cdkDrag
+  cdkDragRootElement=".cdk-overlay-pane"
+  cdkDragHandle
+  cdkDragBoundary=".drag-boundary"
+  [cdkDragDisabled]="!canDrag()"
+>
+  @if (canDrag()) {
+    <span class="material-symbols-outlined drag-handle">drag_handle</span>
+  }
+
+  <span class="dialog-title">{{ headerText() }}</span>
+</div>

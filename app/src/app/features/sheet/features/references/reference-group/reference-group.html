@@ -1,0 +1,23 @@
+<div class="system-reference-group">
+  <div class="srg-header" (click)="toggleExpanded()">
+    <span class="srgh-title">{{ systemReferenceGroup().group }}</span>
+
+    <span class="reference-count">{{
+      systemReferenceGroup().references.length
+    }}</span>
+    <span class="material-symbols-outlined">{{
+      isExpanded() ? "expand_less" : "expand_more"
+    }}</span>
+  </div>
+
+  @if (isExpanded()) {
+    <div class="srg-content">
+      @for (referenceRow of systemReferenceGroup().references; track $index) {
+        <app-reference-row
+          [systemReference]="referenceRow"
+          [highlightedReferenceId]="highlightedReferenceId()"
+        />
+      }
+    </div>
+  }
+</div>

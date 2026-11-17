@@ -1,0 +1,12 @@
+.level,
+.display-properties {
+  display: flex;
+  flex-direction: row;
+  gap: var(--gap);
+  align-items: center;
+}
+
+.form-error {
+  margin-top: var(--gap);
+  color: var(--p-red-500);
+}

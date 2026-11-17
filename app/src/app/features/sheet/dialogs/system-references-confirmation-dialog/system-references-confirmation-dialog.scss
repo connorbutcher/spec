@@ -1,0 +1,13 @@
+.dialog-content {
+  display: flex;
+  flex-direction: column;
+
+  .view-references-button {
+    align-self: center;
+  }
+}
+
+.message {
+  white-space: pre-line;
+  margin: var(--gap-l) 0px;
+}

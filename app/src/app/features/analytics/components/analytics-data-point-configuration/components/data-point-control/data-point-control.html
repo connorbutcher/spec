@@ -1,0 +1,37 @@
+<div class="data-point-control">
+  <span>{{ dataPoint().displayName }}</span>
+
+  <button
+    pButton
+    iconOnly
+    class="px-icon-button-xsmall"
+    variant="text"
+    size="small"
+    severity="secondary"
+    (click)="goToCell()"
+  >
+    <i
+      class="material-symbols-outlined toolbar-icon"
+      pTooltip="Go to data point"
+      tooltipPosition="left"
+      >find_in_page</i
+    >
+  </button>
+
+  <button
+    pButton
+    iconOnly
+    class="px-icon-button-xsmall"
+    variant="text"
+    size="small"
+    severity="danger"
+    (click)="deleteDataPoint()"
+  >
+    <i
+      class="material-symbols-outlined toolbar-icon"
+      pTooltip="Delete data point"
+      tooltipPosition="left"
+      >delete</i
+    >
+  </button>
+</div>

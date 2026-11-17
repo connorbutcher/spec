@@ -1,0 +1,72 @@
+.message {
+  display: block;
+  margin-bottom: var(--gap-l);
+}
+
+.step-header {
+  padding: var(--gap-s) var(--gap);
+  cursor: pointer;
+  border-radius: var(--border-radius-m);
+
+  font-weight: 500;
+
+  &.invalid {
+    color: var(--theme-text-error-color);
+  }
+
+  &.valid {
+    color: var(--theme-text-success-color);
+  }
+
+  &:hover {
+    background-color: var(--theme-hover-gray-background);
+  }
+}
+
+.dialog-content {
+  display: flex;
+  flex-direction: column;
+  max-height: 75vh;
+
+  ::ng-deep {
+    .p-stepper {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      height: 100%;
+    }
+
+    .p-steppanels {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      flex: 1;
+      min-height: 0;
+    }
+
+    .p-steppanel {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      flex: 1;
+      min-height: 0;
+    }
+
+    .p-steppanel-content {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      flex: 1;
+      min-height: 0;
+    }
+
+    app-create-spec-sheet-type-properties,
+    app-edit-properties {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      flex: 1;
+      min-height: 0;
+    }
+  }
+}

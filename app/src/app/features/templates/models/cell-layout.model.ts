@@ -1,9 +1,0 @@
-import { GridStyle } from './grid-style';
-import { TemplateCell } from './template-cell.model';
-
-/** Where a cell sits in its section's subgrid. */
-export type CellLayout = {
-  cell: TemplateCell;
-  rowId: number;
-  style: GridStyle;
-}

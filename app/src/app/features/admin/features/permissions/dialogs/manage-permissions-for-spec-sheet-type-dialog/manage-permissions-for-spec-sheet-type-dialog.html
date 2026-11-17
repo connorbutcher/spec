@@ -1,0 +1,54 @@
+<app-dialog-header headerText="Manage Permission" />
+
+<form [formGroup]="form">
+  <app-element-label labelText="User">
+    <div class="form-field-wrapper">
+      <p-select
+        formControlName="user"
+        required
+        [options]="selectableUsers()"
+        optionLabel="displayName"
+        [filter]="true"
+        filterBy="displayName"
+        appendTo="body"
+        placeholder="Select the user"
+      />
+      @if (hasError("user", "required")) {
+        <label class="form-error">The user is required</label>
+      }
+    </div>
+  </app-element-label>
+
+  <app-element-label labelText="Permissions">
+    <div class="form-field-wrapper">
+      <div class="form-field-wrapper">
+        <p-select
+          [multiple]="true"
+          [options]="permissions"
+          optionLabel="title"
+          appendTo="body"
+          [filter]="true"
+          formControlName="permissions"
+          placeholder="Select the permissions"
+        />
+        @if (hasError("permissions", "required")) {
+          <label class="form-error">The permissions are required</label>
+        }
+        @if (hasError("permissions", "minLength")) {
+          <label class="form-error">The permissions are required</label>
+        }
+      </div>
+    </div>
+  </app-element-label>
+</form>
+
+<div class="dialog-actions">
+  <button pButton severity="secondary" (click)="close()">Close</button>
+  <button
+    pButton
+    (click)="savePermissionsAsync()"
+    [disabled]="form.invalid || isSaving()"
+  >
+    Save Permissions
+  </button>
+</div>

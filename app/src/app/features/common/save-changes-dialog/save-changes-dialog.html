@@ -1,0 +1,15 @@
+<app-dialog-header headerText="Save Changes" />
+
+<div class="dialog-content">
+  <p class="message">
+    Do you want to save any changes before going to the home page ?
+  </p>
+</div>
+
+<div class="dialog-actions">
+  <button pButton severity="secondary" (click)="close(2)">Cancel</button>
+  <button pButton severity="danger" (click)="close(1)">
+    Do not save and continue
+  </button>
+  <button pButton (click)="close(0)">Save and continue</button>
+</div>

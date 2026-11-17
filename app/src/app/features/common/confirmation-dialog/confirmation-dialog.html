@@ -1,0 +1,25 @@
+<div class="dialog-container">
+  <div class="dialog-header">
+    <span class="dialog-title">{{ title }}</span>
+  </div>
+
+  <div class="dialog-content">
+    <p class="message">{{ message }}</p>
+  </div>
+
+  <div class="dialog-actions">
+    @if (showCancelButton) {
+      <button pButton severity="secondary" (click)="close(false)">
+        {{ cancelButtonText ?? "Cancel" }}
+      </button>
+    }
+
+    <button
+      pButton
+      [severity]="confirmSeverity ?? 'primary'"
+      (click)="close(true)"
+    >
+      {{ confirmButtonText ?? "Confirm" }}
+    </button>
+  </div>
+</div>

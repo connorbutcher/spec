@@ -1,0 +1,8 @@
+.px-tag-small.p-tag {
+  padding: 0.15rem 0.35rem;
+}
+
+.px-tag-inverted.px-tag-danger {
+  background-color: var(--p-tag-danger-color);
+  color: var(--p-tag-danger-background);
+}

@@ -1,0 +1,19 @@
+<div
+  class="table-heading-container"
+  [id]="table()?.referenceId()"
+  appFragmentedElement
+  [attr.id]="table()?.referenceId()"
+>
+  @if (tableState() !== "unchanged") {
+    <p-tag [severity]="tableState() | specSheetStateToTagSeverity">{{
+      tableState()
+    }}</p-tag>
+  }
+
+  <span
+    class="heading-grid heading display"
+    [class.filtered-match]="isFilteredMatch()"
+    [class.filtered-active]="isFilteredActive()"
+    >{{ table()?.title() }}</span
+  >
+</div>

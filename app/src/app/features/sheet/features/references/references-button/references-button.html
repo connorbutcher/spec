@@ -1,0 +1,13 @@
+<button
+  pButton
+  severity="secondary"
+  size="small"
+  [text]="true"
+  (click)="viewExternalReferences()"
+  [disabled]="references().length === 0"
+>
+  <i class="material-symbols-outlined link-icon">link</i>
+  {{ references().length > 0 ? "External References" : "No References" }}
+
+  <p-badge [value]="references().length" severity="secondary" />
+</button>

@@ -1,0 +1,22 @@
+<a
+  class="active-system-reference-row"
+  [class.highlighted]="
+    systemReference().referenceId === highlightedReferenceId()
+  "
+  [attr.data-reference-id]="systemReference().referenceId"
+  [href]="systemReference().url"
+  target="_blank"
+  rel="noopener noreferrer"
+>
+  <span class="reference-heading">
+    <span class="reference-description">{{
+      systemReference().description || "System Reference"
+    }}</span>
+    <i class="material-symbols-outlined">open_in_new</i>
+  </span>
+
+  <span class="reference-owner">
+    <i class="material-symbols-outlined">person</i>
+    <span>{{ systemReference().ownerName }}</span>
+  </span>
+</a>

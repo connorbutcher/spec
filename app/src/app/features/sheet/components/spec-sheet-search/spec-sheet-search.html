@@ -1,0 +1,53 @@
+<p-inputgroup>
+  <input pInputText [(ngModel)]="filter" type="text" placeholder="Search" />
+
+  <p-inputgroup-addon>
+    <div class="search-result-navigation">
+      <span class="search-result-count">
+        {{ matchCount() === 0 ? 0 : filterSearchIndex() + 1 }} /
+        {{ matchCount() }}
+      </span>
+
+      <button
+        pButton
+        iconOnly
+        severity="secondary"
+        [text]="true"
+        pTooltip="Go to next result"
+        tooltipPosition="bottom"
+        [disabled]="
+          matchCount() === 0 || filterSearchIndex() + 1 === matchCount()
+        "
+        (click)="goTo(filterSearchIndex() + 1)"
+      >
+        <i class="pi pi-chevron-down"></i>
+      </button>
+
+      <button
+        pButton
+        iconOnly
+        severity="secondary"
+        [text]="true"
+        pTooltip="Go to previous result"
+        tooltipPosition="bottom"
+        [disabled]="matchCount() === 0 || filterSearchIndex() === 0"
+        (click)="goTo(filterSearchIndex() - 1)"
+      >
+        <i class="pi pi-chevron-up"></i>
+      </button>
+
+      <button
+        pButton
+        iconOnly
+        severity="danger"
+        [text]="true"
+        pTooltip="Clear search"
+        tooltipPosition="bottom"
+        (click)="reset()"
+        [disabled]="!filter() || filter().length === 0"
+      >
+        <i class="pi pi-times"></i>
+      </button>
+    </div>
+  </p-inputgroup-addon>
+</p-inputgroup>

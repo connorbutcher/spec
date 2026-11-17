@@ -1,0 +1,41 @@
+<app-dialog-header headerText="Update Type" />
+
+<div class="dialog-content">
+  <p-tabs value="general" lazy (valueChange)="tabChange($event)">
+    <p-tablist>
+      <p-tab value="general">General</p-tab>
+      <p-tab value="properties">Properties</p-tab>
+      <p-tab value="structure">Structure</p-tab>
+    </p-tablist>
+
+    <p-tabpanels class="px-tab-minimal-padding">
+      <p-tabpanel value="general">
+        <ng-template #content>
+          <app-update-spec-sheet-type-basic-info />
+        </ng-template>
+      </p-tabpanel>
+      <p-tabpanel value="properties">
+        <ng-template #content>
+          <app-update-spec-sheet-type-properties />
+        </ng-template>
+      </p-tabpanel>
+      <p-tabpanel value="structure">
+        <ng-template #content>
+          <app-update-spec-sheet-type-structure />
+        </ng-template>
+      </p-tabpanel>
+    </p-tabpanels>
+  </p-tabs>
+</div>
+
+<div class="dialog-actions">
+  <button pButton severity="secondary" (click)="close()">Cancel</button>
+  <button
+    pButton
+    (click)="updateAsync()"
+    [disabled]="isSaving() || !hasChanges() || !isValid()"
+    [loading]="isSaving()"
+  >
+    Update
+  </button>
+</div>

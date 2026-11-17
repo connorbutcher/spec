@@ -1,0 +1,23 @@
+<div class="part-container">
+  <app-text-cell-type
+    [table]="table()"
+    [cell]="cell()"
+    [group]="group()"
+    [row]="row()"
+  />
+
+  <button
+    pButton
+    iconOnly
+    class="px-button-xsmall"
+    severity="danger"
+    size="small"
+    [text]="true"
+    [disabled]="!canEdit()"
+    pTooltip="Delete Part"
+    [tooltipDisabled]="!canEdit()"
+    (click)="deletePart()"
+  >
+    <i class="pi pi-times"></i>
+  </button>
+</div>

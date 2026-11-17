@@ -1,0 +1,34 @@
+<app-dialog-header headerText="Reassign Approvers " [canDrag]="true" />
+
+<div class="dialog-content">
+  <app-element-label
+    labelText="Approvers"
+    infoText="All the selected approvers MUST approve the changes before the new version can be published."
+  >
+    <div class="form-field-wrapper">
+      <p-select
+        [multiple]="true"
+        [(ngModel)]="approvers"
+        required
+        placeholder="The users who must approve the changes. (At least one approver is required)"
+        [options]="approverOptions()"
+        optionLabel="displayName"
+        appendTo="body"
+      />
+      @if (!approvers() || approvers().length === 0) {
+        <label class="form-error">Approvers are required.</label>
+      }
+    </div>
+  </app-element-label>
+</div>
+
+<div class="dialog-actions">
+  <button severity="secondary" (click)="close()">Close</button>
+  <button
+    pButton
+    (click)="saveChanges()"
+    [disabled]="!hasChanges() || !isValid() || isSaving()"
+  >
+    Save Changes
+  </button>
+</div>

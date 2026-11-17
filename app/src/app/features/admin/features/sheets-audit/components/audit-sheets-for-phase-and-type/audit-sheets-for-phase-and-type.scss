@@ -1,0 +1,22 @@
+#audit-sheets-for-phase-and-type {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+
+  overflow: hidden;
+
+  .asfpat-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .asfpat-content {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: auto;
+  }
+}

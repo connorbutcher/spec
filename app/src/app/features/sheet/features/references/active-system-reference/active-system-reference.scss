@@ -1,0 +1,13 @@
+.active-system-reference {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-l);
+
+  max-height: 500px;
+  overflow: auto;
+}
+
+:host(.panel-content) .active-system-reference {
+  max-height: none;
+  overflow: visible;
+}

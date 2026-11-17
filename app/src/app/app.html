@@ -1,5 +1,15 @@
-<app-side-nav />
-<app-approvals-notice />
-<main class="app-main">
-  <router-outlet />
-</main>
+<div id="app">
+  <p-toast />
+  <!--  <app-update-available-banner /> -->
+  <app-pu-card-analytics-banner />
+
+  <div id="content">
+    @if (user()) {
+      <app-side-nav class="nav" />
+    }
+
+    <div class="main-content">
+      <router-outlet> </router-outlet>
+    </div>
+  </div>
+</div>

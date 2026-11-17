@@ -1,0 +1,17 @@
+<app-element-label [labelText]="property().valueName">
+  <div class="form-field-wrapper">
+    <p-inputnumber
+      [formControl]="formControl"
+      fluid
+      [required]="isRequired()"
+      [placeholder]="property().placeholderText"
+    />
+    @for (validationMessage of validationMessages(); track $index) {
+      <label class="form-error">{{ validationMessage }}</label>
+    }
+
+    @if (formControl.hasError("versionExists")) {
+      <label class="form-error">Version already exists.</label>
+    }
+  </div>
+</app-element-label>

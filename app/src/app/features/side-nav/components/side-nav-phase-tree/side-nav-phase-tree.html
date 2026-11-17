@@ -1,0 +1,22 @@
+@if (isLoading()) {
+  <div class="flex column gap">
+    <p-skeleton height="2rem" width="100%"></p-skeleton>
+    <p-skeleton height="2rem" width="100%"></p-skeleton>
+    <p-skeleton height="2rem" width="100%"></p-skeleton>
+    <p-skeleton height="2rem" width="100%"></p-skeleton>
+  </div>
+} @else if (hasError()) {
+} @else {
+  <p-tree
+    class="app-compact-tree phase-tree"
+    [value]="nodes()"
+    selectionMode="single"
+    [selection]="selectedPhase()"
+    (onNodeSelect)="onNodeSelect($event)"
+    (onNodeUnselect)="onNodeUnselect($event)"
+  >
+    <ng-template #node let-node>
+      <span class="code">{{ node.label }}</span>
+    </ng-template>
+  </p-tree>
+}

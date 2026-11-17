@@ -1,0 +1,26 @@
+<div
+  class="avatar"
+  [class.overlap-margin]="index() !== 0"
+  [style.outline-color]="backgroundColor()"
+  [style.background-color]="backgroundColor()"
+  [ngClass]="size()"
+  [pTooltip]="tooltipTemplate"
+  tooltipPosition="left"
+  (mouseover)="setHovering(true)"
+  (mouseleave)="setHovering(false)"
+  (mouseout)="setHovering(false)"
+>
+  @if (!isHovering() && hasImage()) {
+    <img [src]="imageUrl()" [ngClass]="size()" />
+  } @else {
+    <span class="avatar-initials" [ngClass]="size()">{{
+      avatar() | avatar
+    }}</span>
+  }
+</div>
+
+<ng-template #tooltipTemplate>
+  <div>
+    <span>{{ avatar() }} has this checked out</span>
+  </div>
+</ng-template>

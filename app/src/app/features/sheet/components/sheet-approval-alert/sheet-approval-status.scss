@@ -1,0 +1,23 @@
+.approval-status {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--gap);
+  align-items: center;
+
+  &--required {
+    padding: var(--gap-s);
+    border: 1px solid var(--p-orange-300);
+    border-radius: var(--border-radius-m);
+    background-color: var(--p-orange-50);
+
+    > button:first-child {
+      font-weight: 600;
+      color: var(--p-orange-700);
+    }
+  }
+
+  button {
+    min-height: 32px;
+    white-space: nowrap;
+  }
+}

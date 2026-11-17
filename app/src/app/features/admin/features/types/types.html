@@ -1,0 +1,54 @@
+<div id="types" class="card">
+  <div class="types-header">
+    <span class="chip bold xxl">Types</span>
+  </div>
+
+  <div class="types-toolbar">
+    <input
+      pInputText
+      type="text"
+      (input)="filterTable($event)"
+      placeholder="Search keyword"
+    />
+
+    <button pButton (click)="addType()" [disabled]="true">
+      Add Type (Coming Soon)
+    </button>
+  </div>
+
+  <div class="types-content">
+    <p-table
+      [value]="specSheetTypes()"
+      stripedRows
+      selectionMode="single"
+      [(selection)]="selectedType"
+      dataKey="id"
+      [scrollable]="true"
+      scrollHeight="flex"
+      sortField="type"
+      [sortOrder]="-1"
+      [globalFilterFields]="['type']"
+      (onRowSelect)="onRowSelect($event)"
+    >
+      <ng-template #header>
+        <tr>
+          <th>
+            <div>ID</div>
+          </th>
+
+          <th pSortableColumn="type">
+            <p-sort-icon field="type" />
+            Type
+          </th>
+        </tr>
+      </ng-template>
+
+      <ng-template let-type #body>
+        <tr [pSelectableRow]="type">
+          <td>{{ type.id }}</td>
+          <td>{{ type.type }}</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+</div>

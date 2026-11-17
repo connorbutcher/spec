@@ -1,0 +1,5 @@
+.validator-config-row {
+  display: grid;
+  grid-template-columns: 1fr 2fr auto;
+  gap: var(--gap);
+}
