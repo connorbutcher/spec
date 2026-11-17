@@ -16,6 +16,43 @@ All three restore SqlPackage as a local dotnet tool and take `-Server` and `-Dat
 
 Database options, users, logins and permissions are kept out of the project and left alone by all three, since they differ between environments.
 
+`copy.ps1` is the odd one out: it copies a whole database, schema and data, into a new one (a bacpac export and import), so it takes `-SourceDatabase` and `-TargetDatabase` (or `-SourceServer`, `-TargetServer` and connection strings) and doesn't use the project at all.
+
+## Setting up a database
+
+The project holds the schema only, with no data, and nothing seeds one: the types, phases, templates, cell types and users the legacy app needs come from the legacy database itself. So a working database starts from a copy of the legacy one.
+
+1. Copy the legacy database (production, or a test copy of it) into a new database. Don't use the name `PUSpecSheet` on LocalDB if it is already taken by another database:
+
+   ```powershell
+   ./copy.ps1 -SourceConnectionString '<legacy database>' -TargetDatabase PUSpecSheetLegacy
+   ```
+
+   A `.bak` restored in SSMS works as well.
+2. List how the copy differs from the project. Expect the `spec`, `cell` and `approval` tables to be missing, and expect constraint and index names to differ (see below):
+
+   ```powershell
+   ./compare.ps1 -Database PUSpecSheetLegacy
+   ```
+
+   Anything else it lists is a gap in the project. Settle it before going on.
+3. Add the revision tables beside the copies. The deployment stops rather than lose data:
+
+   ```powershell
+   ./deploy.ps1 -Database PUSpecSheetLegacy
+   ```
+
+4. Build the revisions from the copies. Do a dry run first, then commit:
+
+   ```powershell
+   dotnet run --project api/tools/PUSpecSheet.Migrator -- --connection "<connection string>"
+   dotnet run --project api/tools/PUSpecSheet.Migrator -- --connection "<connection string>" --commit
+   ```
+
+5. Point `ConnectionStrings:PUSpecSheet` in `api/src/PUSpecSheet.Api/appsettings.Development.json` at the database.
+
+Once one database is set up, `copy.ps1` makes more that are identical to it, data included, without repeating the steps.
+
 ## Schemas
 
 | Schema | Holds |
