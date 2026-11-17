@@ -37,7 +37,7 @@ cd app && npm install && npm start
 This codebase is the base. The rewrite it replaces, with revision-based versioning, approvals and the published API, is in commit `2c82183` (the commit before this one), and is ported onto this codebase in stages:
 
 1. Make this codebase the repo's base. *(done)*
-2. Put the database schema under source control in a SQL database project. *(project and scripts done; waiting on the first extract)*
+2. Put the database schema under source control in a SQL database project. *(done; generated from the DbContext and the schema dump, not yet compared with a live database)*
 3. Add the revision tables in their own schemas, beside the existing ones.
 4. Bring across the migrator, re-runnable, and keep the revision tables in step with the existing ones.
 5. Serve the query API and read-only screens from the revision tables, checked against the existing answers first.
