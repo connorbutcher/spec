@@ -53,6 +53,7 @@ public static class DataAccessServiceCollectionExtensions
         services.AddScoped<ISheetTypesService, SheetTypesService>();
         services.AddScoped<IPhasesService, PhasesService>();
         services.AddScoped<ICellTypesService, CellTypesService>();
+        services.AddScoped<IUserDataService, UserDataService>();
         services.AddScoped<IUserAccessService, UserAccessService>();
         services.AddScoped<BackgroundUser>();
     }

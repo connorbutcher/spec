@@ -4,7 +4,6 @@ using PUSpecSheet.DataAccess.Common;
 using PUSpecSheet.DataAccess.Sheets.Queries;
 using PUSpecSheet.DataAccess.Sheets.Revisions;
 using PUSpecSheet.DataAccess.Users;
-using PUSpecSheet.DataAccess.Users.Queries;
 using PUSpecSheet.Database;
 using PUSpecSheet.Database.Models.Sheets;
 
@@ -20,13 +19,16 @@ public abstract class DraftGateway<TRevision>
 {
     private readonly PuSpecSheetDbContext _db;
     private readonly ICurrentUser _currentUser;
+    private readonly IUserDataService _userData;
 
     protected DraftGateway(
         PuSpecSheetDbContext db,
-        ICurrentUser currentUser)
+        ICurrentUser currentUser,
+        IUserDataService userData)
     {
         _db = db;
         _currentUser = currentUser;
+        _userData = userData;
     }
 
     /// <summary>The database, for the queries a revision type adds.</summary>
@@ -263,7 +265,7 @@ public abstract class DraftGateway<TRevision>
 
     private async Task ThrowLockedAsync(int authorUserId, CancellationToken cancellationToken)
     {
-        var name = await UserQueries.FindDisplayNameAsync(_db, authorUserId, cancellationToken) ?? "another user";
+        var name = await _userData.FindDisplayNameAsync(authorUserId, cancellationToken) ?? "another user";
         throw new ConflictException($"{Subject} is being edited by {name}.");
     }
 }

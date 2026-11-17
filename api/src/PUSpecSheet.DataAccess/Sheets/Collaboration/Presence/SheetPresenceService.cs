@@ -3,7 +3,7 @@ using PUSpecSheet.DataAccess.Common;
 using PUSpecSheet.DataAccess.Sheets.Collaboration.Checkouts;
 using PUSpecSheet.DataAccess.Sheets.Collaboration.Takeovers;
 using PUSpecSheet.DataAccess.Sheets.Queries;
-using PUSpecSheet.DataAccess.Users.Queries;
+using PUSpecSheet.DataAccess.Users;
 using PUSpecSheet.Database;
 
 namespace PUSpecSheet.DataAccess.Sheets.Collaboration.Presence;
@@ -16,6 +16,7 @@ public sealed class SheetPresenceService : ISheetPresenceService
     private readonly LiveRowCheckoutTracker _checkouts;
     private readonly ILiveRowCheckoutService _rowCheckouts;
     private readonly ISheetLiveNotifier _notifier;
+    private readonly IUserDataService _userData;
 
     public SheetPresenceService(
         PuSpecSheetDbContext db,
@@ -23,7 +24,8 @@ public sealed class SheetPresenceService : ISheetPresenceService
         RowTakeoverStore takeovers,
         LiveRowCheckoutTracker checkouts,
         ILiveRowCheckoutService rowCheckouts,
-        ISheetLiveNotifier notifier)
+        ISheetLiveNotifier notifier,
+        IUserDataService userData)
     {
         _db = db;
         _tracker = tracker;
@@ -31,6 +33,7 @@ public sealed class SheetPresenceService : ISheetPresenceService
         _checkouts = checkouts;
         _rowCheckouts = rowCheckouts;
         _notifier = notifier;
+        _userData = userData;
     }
 
     public async Task<SheetLiveState> JoinAsync(string connectionId, int sheetId, int userId, CancellationToken cancellationToken)
@@ -40,7 +43,7 @@ public sealed class SheetPresenceService : ISheetPresenceService
             throw new NotFoundException($"Sheet {sheetId} was not found.");
         }
 
-        var displayName = await UserQueries.FindActiveDisplayNameAsync(_db, userId, cancellationToken)
+        var displayName = await _userData.FindActiveDisplayNameAsync(userId, cancellationToken)
             ?? throw new NotFoundException($"User {userId} was not found.");
 
         _tracker.Join(connectionId, new SheetConnection { SheetId = sheetId, UserId = userId, DisplayName = displayName });

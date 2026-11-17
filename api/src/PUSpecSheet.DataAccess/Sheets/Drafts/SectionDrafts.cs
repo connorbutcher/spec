@@ -7,8 +7,8 @@ namespace PUSpecSheet.DataAccess.Sheets.Drafts;
 
 public sealed class SectionDrafts : DraftGateway<DbSheetSectionRevision>
 {
-    public SectionDrafts(PuSpecSheetDbContext db, ICurrentUser currentUser)
-        : base(db, currentUser)
+    public SectionDrafts(PuSpecSheetDbContext db, ICurrentUser currentUser, IUserDataService userData)
+        : base(db, currentUser, userData)
     {
     }
 

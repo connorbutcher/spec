@@ -1,6 +1,5 @@
 using PUSpecSheet.Abstractions.Users;
 using PUSpecSheet.DataAccess.Users;
-using PUSpecSheet.DataAccess.Users.Queries;
 using PUSpecSheet.Database;
 
 namespace PUSpecSheet.DataAccess.Seeding.ReferenceData;
@@ -20,11 +19,13 @@ public sealed class ShowcaseUsers
 
     private readonly PuSpecSheetDbContext _db;
     private readonly BackgroundUser _backgroundUser;
+    private readonly IUserDataService _userData;
 
-    public ShowcaseUsers(PuSpecSheetDbContext db, BackgroundUser backgroundUser)
+    public ShowcaseUsers(PuSpecSheetDbContext db, BackgroundUser backgroundUser, IUserDataService userData)
     {
         _db = db;
         _backgroundUser = backgroundUser;
+        _userData = userData;
     }
 
     /// <summary>Makes every change from here on as <paramref name="userName"/>.</summary>
@@ -33,7 +34,7 @@ public sealed class ShowcaseUsers
         if (_ids is null)
         {
             string[] userNames = [Developer, EngineerTwo, EngineerThree];
-            _ids = await UserQueries.GetIdsByUserNameAsync(_db, userNames, cancellationToken);
+            _ids = await _userData.GetIdsByUserNameAsync(userNames, cancellationToken);
         }
 
         _backgroundUser.UserId = _ids.TryGetValue(userName, out var id) ? id : WellKnownUsers.DeveloperId;

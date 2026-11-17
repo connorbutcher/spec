@@ -1,5 +1,4 @@
 using PUSpecSheet.Abstractions.Users;
-using PUSpecSheet.DataAccess.Users.Queries;
 using PUSpecSheet.Database;
 
 namespace PUSpecSheet.DataAccess.Users;
@@ -10,11 +9,13 @@ public sealed class UserAccessService : IUserAccessService
 
     private readonly PuSpecSheetDbContext _db;
     private readonly ICurrentUser _currentUser;
+    private readonly IUserDataService _userData;
 
-    public UserAccessService(PuSpecSheetDbContext db, ICurrentUser currentUser)
+    public UserAccessService(PuSpecSheetDbContext db, ICurrentUser currentUser, IUserDataService userData)
     {
         _db = db;
         _currentUser = currentUser;
+        _userData = userData;
     }
 
     public async Task<UserAccess> GetCurrentAsync(CancellationToken cancellationToken)
@@ -25,7 +26,7 @@ public sealed class UserAccessService : IUserAccessService
         }
 
         var userId = _currentUser.UserId;
-        var user = await UserQueries.FindWithAccessAsync(_db, userId, cancellationToken);
+        var user = await _userData.FindWithAccessAsync(userId, cancellationToken);
 
         _current = user is null ? UserAccess.None(userId) : UserAccess.From(user);
         return _current;

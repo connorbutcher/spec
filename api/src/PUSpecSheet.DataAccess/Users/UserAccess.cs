@@ -3,7 +3,6 @@ using PUSpecSheet.Database.Models.Users;
 
 namespace PUSpecSheet.DataAccess.Users;
 
-/// <summary>Who a user is and what their roles allow them to do.</summary>
 public sealed record UserAccess
 {
     public required int UserId { get; init; }
@@ -18,13 +17,11 @@ public sealed record UserAccess
 
     public required IReadOnlyList<string> Permissions { get; init; }
 
-    /// <summary>Whether the user may do what <paramref name="permission"/> names. An administrator may do anything.</summary>
     public bool Has(string permission)
     {
         return IsAdministrator || Permissions.Contains(permission, StringComparer.Ordinal);
     }
 
-    /// <summary>The access of a user that doesn't exist: nothing.</summary>
     public static UserAccess None(int userId)
     {
         return new UserAccess
@@ -38,11 +35,8 @@ public sealed record UserAccess
         };
     }
 
-    /// <summary>
-    /// Works out a user's access from their roles. Expects the user's roles, and each role's permissions,
-    /// to be loaded. The Administrator role is recognised as a role and gives every permission, whatever
-    /// is listed against it; an inactive user has no roles to speak of.
-    /// </summary>
+    // Expects roles and their permissions loaded. Administrators get every permission whatever is listed against
+    // the role; inactive users get no roles.
     public static UserAccess From(DbUser user)
     {
         var roles = user.IsActive

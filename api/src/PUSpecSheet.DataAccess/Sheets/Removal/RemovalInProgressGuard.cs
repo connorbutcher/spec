@@ -1,6 +1,6 @@
 using PUSpecSheet.DataAccess.Common;
 using PUSpecSheet.DataAccess.Sheets.Queries;
-using PUSpecSheet.DataAccess.Users.Queries;
+using PUSpecSheet.DataAccess.Users;
 using PUSpecSheet.Database;
 
 namespace PUSpecSheet.DataAccess.Sheets.Removal;
@@ -8,10 +8,12 @@ namespace PUSpecSheet.DataAccess.Sheets.Removal;
 public sealed class RemovalInProgressGuard : IRemovalInProgressGuard
 {
     private readonly PuSpecSheetDbContext _db;
+    private readonly IUserDataService _userData;
 
-    public RemovalInProgressGuard(PuSpecSheetDbContext db)
+    public RemovalInProgressGuard(PuSpecSheetDbContext db, IUserDataService userData)
     {
         _db = db;
+        _userData = userData;
     }
 
     public async Task EnsureRowNotBeingRemovedAsync(int rowId, int userId, CancellationToken cancellationToken)
@@ -38,7 +40,7 @@ public sealed class RemovalInProgressGuard : IRemovalInProgressGuard
             return;
         }
 
-        var name = await UserQueries.FindDisplayNameAsync(_db, blocking.AuthorUserId, cancellationToken) ?? "another user";
+        var name = await _userData.FindDisplayNameAsync(blocking.AuthorUserId, cancellationToken) ?? "another user";
         throw new ConflictException(PendingRemovals.RefusalFor(blocking, name));
     }
 

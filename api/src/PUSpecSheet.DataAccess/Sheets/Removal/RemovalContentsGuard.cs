@@ -2,7 +2,6 @@ using PUSpecSheet.DataAccess.Common;
 using PUSpecSheet.DataAccess.Sheets.Collaboration.Checkouts;
 using PUSpecSheet.DataAccess.Sheets.Queries;
 using PUSpecSheet.DataAccess.Users;
-using PUSpecSheet.DataAccess.Users.Queries;
 using PUSpecSheet.Database;
 
 namespace PUSpecSheet.DataAccess.Sheets.Removal;
@@ -17,15 +16,18 @@ public sealed class RemovalContentsGuard
     private readonly PuSpecSheetDbContext _db;
     private readonly LiveRowCheckoutTracker _liveCheckouts;
     private readonly ICurrentUser _currentUser;
+    private readonly IUserDataService _userData;
 
     public RemovalContentsGuard(
         PuSpecSheetDbContext db,
         LiveRowCheckoutTracker liveCheckouts,
-        ICurrentUser currentUser)
+        ICurrentUser currentUser,
+        IUserDataService userData)
     {
         _db = db;
         _liveCheckouts = liveCheckouts;
         _currentUser = currentUser;
+        _userData = userData;
     }
 
     /// <summary>Refuses removing the sections given (a section and everything inside it) while they are held.</summary>
@@ -69,7 +71,7 @@ public sealed class RemovalContentsGuard
             return;
         }
 
-        var names = await UserQueries.GetDisplayNamesAsync(_db, userIds, cancellationToken);
+        var names = await _userData.GetDisplayNamesAsync(userIds, cancellationToken);
         if (HeldContents.RefusalFor(subject, holds, _currentUser.UserId, names) is { } refusal)
         {
             throw new ConflictException(refusal);

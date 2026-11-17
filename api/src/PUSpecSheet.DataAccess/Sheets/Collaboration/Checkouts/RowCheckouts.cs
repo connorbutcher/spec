@@ -5,7 +5,7 @@ using PUSpecSheet.DataAccess.Sheets.Drafts;
 using PUSpecSheet.DataAccess.Sheets.Queries;
 using PUSpecSheet.DataAccess.Sheets.Revisions;
 using PUSpecSheet.DataAccess.Sheets.Values;
-using PUSpecSheet.DataAccess.Users.Queries;
+using PUSpecSheet.DataAccess.Users;
 using PUSpecSheet.Database;
 using PUSpecSheet.Database.Models.Sheets;
 
@@ -18,19 +18,22 @@ public sealed class RowCheckouts : IRowCheckouts
     private readonly SheetPresenceTracker _presence;
     private readonly ISheetLiveNotifier _notifier;
     private readonly TimeProvider _clock;
+    private readonly IUserDataService _userData;
 
     public RowCheckouts(
         PuSpecSheetDbContext db,
         LiveRowCheckoutTracker live,
         SheetPresenceTracker presence,
         ISheetLiveNotifier notifier,
-        TimeProvider clock)
+        TimeProvider clock,
+        IUserDataService userData)
     {
         _db = db;
         _live = live;
         _presence = presence;
         _notifier = notifier;
         _clock = clock;
+        _userData = userData;
     }
 
     public async Task<RowCheckoutState?> FindAsync(int rowId, CancellationToken cancellationToken)
@@ -70,7 +73,7 @@ public sealed class RowCheckouts : IRowCheckouts
 
     public async Task<IReadOnlyDictionary<int, string>> DisplayNamesAsync(IReadOnlyCollection<int> userIds, CancellationToken cancellationToken)
     {
-        return await UserQueries.GetDisplayNamesAsync(_db, userIds, cancellationToken);
+        return await _userData.GetDisplayNamesAsync(userIds, cancellationToken);
     }
 
     /// <summary>The row's checkout only if it is a draft: someone has saved something on it.</summary>

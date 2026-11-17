@@ -4,7 +4,6 @@ using PUSpecSheet.DataAccess.Common;
 using PUSpecSheet.DataAccess.Sheets.Drafts;
 using PUSpecSheet.DataAccess.Sheets.Queries;
 using PUSpecSheet.DataAccess.Users;
-using PUSpecSheet.DataAccess.Users.Queries;
 using PUSpecSheet.Database;
 using PUSpecSheet.Database.Models.Approvals;
 using PUSpecSheet.Database.Models.Sheets;
@@ -33,19 +32,22 @@ public sealed class SheetPublisher
     private readonly DraftSweeper _sweeper;
     private readonly ICurrentUser _currentUser;
     private readonly TimeProvider _clock;
+    private readonly IUserDataService _userData;
 
     public SheetPublisher(
         PuSpecSheetDbContext db,
         SheetDraftSetLoader draftLoader,
         DraftSweeper sweeper,
         ICurrentUser currentUser,
-        TimeProvider clock)
+        TimeProvider clock,
+        IUserDataService userData)
     {
         _db = db;
         _draftLoader = draftLoader;
         _sweeper = sweeper;
         _currentUser = currentUser;
         _clock = clock;
+        _userData = userData;
     }
 
     /// <summary>Publishes straight away, without approval. Only start-up seeding does this.</summary>
@@ -218,7 +220,7 @@ public sealed class SheetPublisher
         }
 
         // The publisher can't fill in or remove someone else's rows, so the way out is different.
-        var names = await UserQueries.GetSortedDisplayNamesAsync(_db, otherAuthorIds, cancellationToken);
+        var names = await _userData.GetSortedDisplayNamesAsync(otherAuthorIds, cancellationToken);
         throw new InvalidRequestException(
             $"{stillEmpty}, in rows being edited by {string.Join(", ", names)}. Publish only your own changes, or ask them to fill those in first.");
     }

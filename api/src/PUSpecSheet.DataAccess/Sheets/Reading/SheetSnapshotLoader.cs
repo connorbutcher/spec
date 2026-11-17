@@ -5,7 +5,7 @@ using PUSpecSheet.DataAccess.Sheets.Queries;
 using PUSpecSheet.DataAccess.Sheets.Revisions;
 using PUSpecSheet.DataAccess.Sheets.Values;
 using PUSpecSheet.DataAccess.Templates.Queries;
-using PUSpecSheet.DataAccess.Users.Queries;
+using PUSpecSheet.DataAccess.Users;
 using PUSpecSheet.Database;
 using PUSpecSheet.Database.Models.Sheets;
 using PUSpecSheet.Database.Models.Templates;
@@ -22,15 +22,18 @@ public sealed class SheetSnapshotLoader
     private readonly PuSpecSheetDbContext _db;
     private readonly SheetChangeHistoryLoader _changeLoader;
     private readonly ICellTypeDataService _cellTypes;
+    private readonly IUserDataService _userData;
 
     public SheetSnapshotLoader(
         PuSpecSheetDbContext db,
         SheetChangeHistoryLoader changeLoader,
-        ICellTypeDataService cellTypes)
+        ICellTypeDataService cellTypes,
+        IUserDataService userData)
     {
         _db = db;
         _changeLoader = changeLoader;
         _cellTypes = cellTypes;
+        _userData = userData;
     }
 
     public async Task<SheetSnapshot> LoadAsync(int sheetId, SheetViewPoint view, int currentUserId, CancellationToken cancellationToken)
@@ -80,7 +83,7 @@ public sealed class SheetSnapshotLoader
                 _db,
                 availableTemplates.Select(template => template.Id).ToList(),
                 cancellationToken),
-            UserNames = await UserQueries.GetAllDisplayNamesAsync(_db, cancellationToken),
+            UserNames = await _userData.GetAllDisplayNamesAsync(cancellationToken),
         };
         return snapshot with { Changes = await _changeLoader.LoadAsync(snapshot, moment, cancellationToken) };
     }

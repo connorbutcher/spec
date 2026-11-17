@@ -7,8 +7,8 @@ namespace PUSpecSheet.DataAccess.Sheets.Drafts;
 
 public sealed class ColumnBlockDrafts : DraftGateway<DbSheetColumnBlockRevision>
 {
-    public ColumnBlockDrafts(PuSpecSheetDbContext db, ICurrentUser currentUser)
-        : base(db, currentUser)
+    public ColumnBlockDrafts(PuSpecSheetDbContext db, ICurrentUser currentUser, IUserDataService userData)
+        : base(db, currentUser, userData)
     {
     }
 

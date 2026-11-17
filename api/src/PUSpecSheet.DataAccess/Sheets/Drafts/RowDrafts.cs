@@ -10,8 +10,8 @@ namespace PUSpecSheet.DataAccess.Sheets.Drafts;
 
 public sealed class RowDrafts : DraftGateway<DbSheetRowRevision>
 {
-    public RowDrafts(PuSpecSheetDbContext db, ICurrentUser currentUser)
-        : base(db, currentUser)
+    public RowDrafts(PuSpecSheetDbContext db, ICurrentUser currentUser, IUserDataService userData)
+        : base(db, currentUser, userData)
     {
     }
 

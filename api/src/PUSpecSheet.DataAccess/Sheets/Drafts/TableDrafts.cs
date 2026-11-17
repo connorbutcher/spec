@@ -9,8 +9,8 @@ namespace PUSpecSheet.DataAccess.Sheets.Drafts;
 /// <summary>Draft handling for sheet tables. A new draft also carries over the table's title.</summary>
 public sealed class TableDrafts : DraftGateway<DbSheetTableRevision>
 {
-    public TableDrafts(PuSpecSheetDbContext db, ICurrentUser currentUser)
-        : base(db, currentUser)
+    public TableDrafts(PuSpecSheetDbContext db, ICurrentUser currentUser, IUserDataService userData)
+        : base(db, currentUser, userData)
     {
     }
 
