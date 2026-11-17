@@ -3,7 +3,7 @@
 namespace PUSpecSheet.Api.Database.Schema.Spec;
 
 /// <summary>
-/// A sheet: one per phase and sheet type. What it holds is in its items' revisions, and each publish of it is a <see cref="DbSheetVersion"/>.
+/// A sheet: one per phase and sheet type. What it holds is in its items' revisions, and each publish of it is a <see cref="DbSheetVersion"/>. A sheet the migrator built from the copied sheets has the hash of what it was built from in <see cref="LegacySourceHash"/>.
 /// </summary>
 public record DbSheet
 {
@@ -16,6 +16,10 @@ public record DbSheet
     public required Guid ReferenceId { get; init; }
 
     public required DateTime CreatedDateTime { get; init; }
+
+    public required byte[]? LegacySourceHash { get; set; }
+
+    public required DateTime? MigratedDateTime { get; set; }
 
     public byte[] RowVersion { get; init; } = [];
 

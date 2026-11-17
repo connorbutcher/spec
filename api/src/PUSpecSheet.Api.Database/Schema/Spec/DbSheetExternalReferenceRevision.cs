@@ -40,4 +40,6 @@ public record DbSheetExternalReferenceRevision
     public required DateTime? SupersededDateTime { get; set; }
 
     public byte[] RowVersion { get; init; } = [];
+
+    public virtual DbSheetVersion? SheetVersion { get; set; }
 }

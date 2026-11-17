@@ -1,4 +1,5 @@
 ﻿using PUSpecSheet.Abstractions.Domain.Properties.Cell;
+using PUSpecSheet.Api.Database.Schema.Spec;
 
 namespace PUSpecSheet.Api.Database.Schema.Cell;
 
@@ -12,4 +13,6 @@ public record DbSheetCellConfigurationOverride
     public required int SheetTableCellId { get; init; }
 
     public required ICellProperties ConfigurationOverride { get; init; }
+
+    public virtual DbSheetTableCell? SheetTableCell { get; init; }
 }

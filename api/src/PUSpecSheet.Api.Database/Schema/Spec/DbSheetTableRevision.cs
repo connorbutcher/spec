@@ -8,7 +8,7 @@ namespace PUSpecSheet.Api.Database.Schema.Spec;
 /// <summary>
 /// A revision of a sheet table: a draft (<see cref="Status"/> is draft) or what it was from <see cref="PublishedDateTime"/> until <see cref="SupersededDateTime"/>.
 /// </summary>
-public record DbSheetTableRevision
+public record DbSheetTableRevision : IDbSheetRevision
 {
     public required int Id { get; init; }
 
@@ -49,4 +49,6 @@ public record DbSheetTableRevision
     public byte[] RowVersion { get; init; } = [];
 
     public virtual DbUser? CreatedByUser { get; init; }
+
+    public virtual DbSheetVersion? SheetVersion { get; set; }
 }

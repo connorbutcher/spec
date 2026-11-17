@@ -4,6 +4,8 @@ CREATE TABLE [spec].[Sheets] (
     [SpecSheetTypeID]  TINYINT          NOT NULL,
     [ReferenceID]      UNIQUEIDENTIFIER CONSTRAINT [DF_Sheets_ReferenceID] DEFAULT (newsequentialid()) NOT NULL,
     [CreatedDateTime]  DATETIME2 (7)    CONSTRAINT [DF_Sheets_CreatedDateTime] DEFAULT (sysutcdatetime()) NOT NULL,
+    [LegacySourceHash] BINARY (32)      NULL,
+    [MigratedDateTime] DATETIME2 (7)    NULL,
     [RowVersion]       ROWVERSION       NOT NULL,
     CONSTRAINT [PK_Sheets] PRIMARY KEY CLUSTERED ([SheetID] ASC),
     CONSTRAINT [FK_Sheets_SpecSheetPhases_SpecSheetPhaseID] FOREIGN KEY ([SpecSheetPhaseID]) REFERENCES [types].[SpecSheetPhases] ([SpecSheetPhaseID]),

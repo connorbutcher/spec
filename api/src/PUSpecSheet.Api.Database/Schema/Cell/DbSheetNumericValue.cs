@@ -1,4 +1,6 @@
-﻿namespace PUSpecSheet.Api.Database.Schema.Cell;
+﻿using PUSpecSheet.Api.Database.Schema.Spec;
+
+namespace PUSpecSheet.Api.Database.Schema.Cell;
 
 /// <summary>
 /// A numeric cell's value in a row revision.
@@ -10,4 +12,6 @@ public record DbSheetNumericValue
     public required int SheetTableCellId { get; init; }
 
     public required double Value { get; init; }
+
+    public virtual DbSheetTableCell? SheetTableCell { get; init; }
 }

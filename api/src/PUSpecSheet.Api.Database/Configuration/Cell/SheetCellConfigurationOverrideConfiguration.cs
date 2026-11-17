@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using PUSpecSheet.Abstractions.Domain.Properties.Cell;
 using PUSpecSheet.Api.Database.Schema.Cell;
-using PUSpecSheet.Api.Database.Schema.Spec;
 using PUSpecSheet.Api.Database.Serialization;
 
 namespace PUSpecSheet.Api.Database.Configuration.Cell;
@@ -29,7 +28,7 @@ internal class SheetCellConfigurationOverrideConfiguration : IEntityTypeConfigur
                 v => JsonSerializer.Serialize(v, JsonSerializerSettings.SerializerSettings),
                 v => JsonSerializer.Deserialize<ICellProperties>(v, JsonSerializerSettings.DeserializerSettings)!);
 
-        builder.HasOne<DbSheetTableCell>()
+        builder.HasOne(x => x.SheetTableCell)
             .WithMany()
             .HasForeignKey(x => x.SheetTableCellId)
             .OnDelete(DeleteBehavior.NoAction);

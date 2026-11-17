@@ -33,6 +33,12 @@ internal class SheetConfiguration : IEntityTypeConfiguration<DbSheet>
             .HasColumnType("datetime2(7)")
             .HasDefaultValueSql("sysutcdatetime()");
 
+        builder.Property(x => x.LegacySourceHash)
+            .HasColumnType("binary(32)");
+
+        builder.Property(x => x.MigratedDateTime)
+            .HasColumnType("datetime2(7)");
+
         builder.Property(x => x.RowVersion)
             .IsRowVersion();
 

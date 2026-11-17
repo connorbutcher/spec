@@ -76,7 +76,7 @@ internal class SheetTableRowRevisionConfiguration : IEntityTypeConfiguration<DbS
             .HasForeignKey(x => x.SheetId)
             .OnDelete(DeleteBehavior.NoAction);
 
-        builder.HasOne<DbSheetVersion>()
+        builder.HasOne(x => x.SheetVersion)
             .WithMany()
             .HasForeignKey(x => x.SheetVersionId)
             .OnDelete(DeleteBehavior.NoAction);

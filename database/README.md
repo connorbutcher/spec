@@ -46,6 +46,8 @@ A row's cells (`SheetTableCells`, one per `template.TableCellTemplates` cell) ha
 
 The revision tables share one shape: `RevisionNumber`, `Status` (0 draft, 1 published), `IsDeleted`, `CreatedByUserID`, created, last modified, published and superseded date times, the `SheetVersionID` it was published in and the `SheetSubmissionID` of the approval it waits on, and a `ROWVERSION`. Check constraints tie the published and superseded times to the status, and filtered unique indexes allow one draft and one current published revision per item. A sheet as it was at any time is the published revisions whose published time is at or before it and whose superseded time is after it or empty.
 
+Until editing moves onto the revisions, they are built from the copies by `api/tools/PUSpecSheet.Migrator`, which keeps a hash of the copies a sheet was built from in `spec.Sheets.LegacySourceHash` and rebuilds the sheet when they change.
+
 Each publish is a `spec.SheetVersions` row, numbered from 1, with its change log. Migrated versions keep the `SpecSheets` copy they came from (`SourceSpecSheetID`) and its `LegacySpecSheetID` and `HasBeenMigrated`.
 
 Items keep the `ReferenceID` they have in the copies. A copy for another phase keeps them too, so a ReferenceID is unique within a sheet, not across sheets; linked values and linked tables name the sheet type and phase alongside it, as the copies do.

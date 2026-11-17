@@ -20,4 +20,10 @@
     <Project Path="src/PUSpecSheet.CheckInOut.Api/PUSpecSheet.CheckInOut.Api.csproj" />
     <Project Path="src/PUSpecSheet.Query/PUSpecSheet.Query.csproj" />
   </Folder>
+  <Folder Name="/tools/">
+    <Project Path="tools/PUSpecSheet.Migrator/PUSpecSheet.Migrator.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/PUSpecSheet.Migrator.Tests/PUSpecSheet.Migrator.Tests.csproj" />
+  </Folder>
 </Solution>

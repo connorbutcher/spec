@@ -14,6 +14,8 @@ api/                                .NET solution (PUSpecSheet.slnx)
   src/PUSpecSheet.Api.Emails          Notification emails
   src/PUSpecSheet.Abstractions        Domain models, requests and operations shared with the UI
   src/PUSpecSheet.Query               The query models and requests
+  tools/PUSpecSheet.Migrator          Keeps the revision tables in step with the copied sheets
+  tests/PUSpecSheet.Migrator.Tests    The migrator's tests
 app/                                Angular UI
 database/                           SQL database project: the schema, one script per object, and the SqlPackage scripts
 docs/legacy-schema.txt              The database's tables and columns
@@ -39,7 +41,7 @@ This codebase is the base. The rewrite it replaces, with revision-based versioni
 1. Make this codebase the repo's base. *(done)*
 2. Put the database schema under source control in a SQL database project. *(done; generated from the DbContext and the schema dump, not yet compared with a live database)*
 3. Add the revision tables in their own schemas, beside the existing ones. *(done: `spec`, `cell` and `approval`, built on the existing template tables)*
-4. Bring across the migrator, re-runnable, and keep the revision tables in step with the existing ones.
+4. Bring across the migrator, re-runnable, and keep the revision tables in step with the existing ones. *(done: `api/tools/PUSpecSheet.Migrator`)*
 5. Serve the query API and read-only screens from the revision tables, checked against the existing answers first.
 6. Move editing onto drafts and revisions one sheet type at a time, behind a per-type switch.
 7. Port the remaining features one at a time: the published API, lookups, presence. Templates stay as they are: the template tables and their editing aren't replaced.

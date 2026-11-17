@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using PUSpecSheet.Api.Database.Schema.Cell;
-using PUSpecSheet.Api.Database.Schema.Spec;
 
 namespace PUSpecSheet.Api.Database.Configuration.Cell;
 
@@ -26,7 +25,7 @@ internal class SheetPairValueConfiguration : IEntityTypeConfiguration<DbSheetPai
         builder.Property(x => x.PairValueY)
             .HasColumnType("nvarchar(max)");
 
-        builder.HasOne<DbSheetTableCell>()
+        builder.HasOne(x => x.SheetTableCell)
             .WithMany()
             .HasForeignKey(x => x.SheetTableCellId)
             .OnDelete(DeleteBehavior.NoAction);

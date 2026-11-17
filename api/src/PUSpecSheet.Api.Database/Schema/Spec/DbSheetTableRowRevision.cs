@@ -7,7 +7,7 @@ namespace PUSpecSheet.Api.Database.Schema.Spec;
 /// <summary>
 /// A revision of a sheet table row: a draft (<see cref="Status"/> is draft) or what it was from <see cref="PublishedDateTime"/> until <see cref="SupersededDateTime"/>. Its cells' values belong to it.
 /// </summary>
-public record DbSheetTableRowRevision
+public record DbSheetTableRowRevision : IDbSheetRevision
 {
     public required int Id { get; init; }
 
@@ -50,4 +50,6 @@ public record DbSheetTableRowRevision
     public virtual ICollection<DbSheetLinkedSheetValue> LinkedSheetValues { get; init; } = [];
 
     public virtual ICollection<DbSheetCellConfigurationOverride> CellConfigurationOverrides { get; init; } = [];
+
+    public virtual DbSheetVersion? SheetVersion { get; set; }
 }
