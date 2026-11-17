@@ -49,9 +49,9 @@ public sealed class SheetEditor
     public async Task<int> AddTableAsync(int templateId, string title, CancellationToken cancellationToken)
     {
         var before = Sheet.Tables.Select(table => table.Id).ToHashSet();
-        Sheet = await _tables.AddAsync(Sheet.Id, new AddSheetTableRequest(templateId), cancellationToken);
+        Sheet = await _tables.AddAsync(Sheet.Id, new AddSheetTableRequest { TableTemplateId = templateId }, cancellationToken);
         var tableId = Sheet.Tables.Single(table => !before.Contains(table.Id)).Id;
-        Sheet = await _tables.SetTitleAsync(tableId, new SetSheetTableTitleRequest(title), cancellationToken);
+        Sheet = await _tables.SetTitleAsync(tableId, new SetSheetTableTitleRequest { Title = title }, cancellationToken);
         return tableId;
     }
 
@@ -77,7 +77,11 @@ public sealed class SheetEditor
 
             var addable = (parent is null ? Table(tableId).AddableSections : FindSection(tableId, parent.Id).AddableSections)
                 .Single(section => section.Name == name);
-            Sheet = await _sections.AddAsync(tableId, new AddSheetSectionRequest(addable.TemplateSectionId, parent?.Id), cancellationToken);
+            Sheet = await _sections.AddAsync(tableId, new AddSheetSectionRequest
+            {
+                TemplateSectionId = addable.TemplateSectionId,
+                ParentSheetSectionId = parent?.Id,
+            }, cancellationToken);
         }
     }
 
@@ -110,7 +114,10 @@ public sealed class SheetEditor
     {
         var before = Table(tableId).ColumnBlocks.Select(block => block.Id).ToHashSet();
         var addable = Table(tableId).AddableColumnBlocks.Single(block => block.Name == name);
-        Sheet = await _columnBlocks.AddAsync(tableId, new AddSheetColumnBlockRequest(addable.TemplateColumnBlockId), cancellationToken);
+        Sheet = await _columnBlocks.AddAsync(tableId, new AddSheetColumnBlockRequest
+        {
+            TemplateColumnBlockId = addable.TemplateColumnBlockId,
+        }, cancellationToken);
         return Table(tableId).ColumnBlocks.Single(block => !before.Contains(block.Id));
     }
 
@@ -136,14 +143,17 @@ public sealed class SheetEditor
     {
         if (requests.Count > 0)
         {
-            Sheet = await _rows.SaveValuesAsync(row.Id, new SaveRowValuesRequest(requests), cancellationToken);
+            Sheet = await _rows.SaveValuesAsync(row.Id, new SaveRowValuesRequest { Values = requests }, cancellationToken);
         }
     }
 
     /// <summary>Chooses a cell's settings on the sheet: where a linked dropdown takes its choices from, for example.</summary>
     public async Task ChooseSettingsAsync(SheetRowDto row, SheetCellDto cell, CellInstanceSettings settings, CancellationToken cancellationToken)
     {
-        Sheet = await _cellSettings.SaveAsync(row.Id, new SaveRowCellSettingsRequest([new CellSettingsRequest(cell.Id, settings)]), cancellationToken);
+        Sheet = await _cellSettings.SaveAsync(row.Id, new SaveRowCellSettingsRequest
+        {
+            Settings = [new CellSettingsRequest { SheetCellId = cell.Id, Settings = settings }],
+        }, cancellationToken);
     }
 
     /// <summary>Publishes the current user's drafts as the sheet's next version.</summary>

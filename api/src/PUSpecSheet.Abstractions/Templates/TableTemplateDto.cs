@@ -7,55 +7,27 @@ namespace PUSpecSheet.Abstractions.Templates;
 /// </summary>
 public sealed record TableTemplateDto
 {
-    public TableTemplateDto(
-        int id,
-        int sheetTypeId,
-        string name,
-        int displayOrder,
-        int versionId,
-        int versionNumber,
-        TemplateOrientation orientation,
-        int stickyColumnCount,
-        bool isEditable,
-        IReadOnlyList<TableTemplateVersionSummaryDto> versions,
-        IReadOnlyList<TemplateSectionDto> sections,
-        IReadOnlyList<TemplateColumnBlockDto> columnBlocks)
-    {
-        Id = id;
-        SheetTypeId = sheetTypeId;
-        Name = name;
-        DisplayOrder = displayOrder;
-        VersionId = versionId;
-        VersionNumber = versionNumber;
-        Orientation = orientation;
-        StickyColumnCount = stickyColumnCount;
-        IsEditable = isEditable;
-        Versions = versions;
-        Sections = sections;
-        ColumnBlocks = columnBlocks;
-    }
+    public required int Id { get; init; }
 
-    public int Id { get; init; }
+    public required int SheetTypeId { get; init; }
 
-    public int SheetTypeId { get; init; }
+    public required string Name { get; init; }
 
-    public string Name { get; init; }
+    public required int DisplayOrder { get; init; }
 
-    public int DisplayOrder { get; init; }
+    public required int VersionId { get; init; }
 
-    public int VersionId { get; init; }
+    public required int VersionNumber { get; init; }
 
-    public int VersionNumber { get; init; }
+    public required TemplateOrientation Orientation { get; init; }
 
-    public TemplateOrientation Orientation { get; init; }
+    public required int StickyColumnCount { get; init; }
 
-    public int StickyColumnCount { get; init; }
+    public required bool IsEditable { get; init; }
 
-    public bool IsEditable { get; init; }
+    public required IReadOnlyList<TableTemplateVersionSummaryDto> Versions { get; init; }
 
-    public IReadOnlyList<TableTemplateVersionSummaryDto> Versions { get; init; }
+    public required IReadOnlyList<TemplateSectionDto> Sections { get; init; }
 
-    public IReadOnlyList<TemplateSectionDto> Sections { get; init; }
-
-    public IReadOnlyList<TemplateColumnBlockDto> ColumnBlocks { get; init; }
+    public required IReadOnlyList<TemplateColumnBlockDto> ColumnBlocks { get; init; }
 }

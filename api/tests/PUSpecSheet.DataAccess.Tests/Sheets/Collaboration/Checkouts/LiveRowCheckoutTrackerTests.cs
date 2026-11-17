@@ -70,6 +70,6 @@ public sealed class LiveRowCheckoutTrackerTests
 
     private static LiveRowCheckout Row(int rowId, int user, int sheet = 1)
     {
-        return new LiveRowCheckout(sheet, rowId, user, $"User {user}");
+        return new LiveRowCheckout { SheetId = sheet, RowId = rowId, UserId = user, DisplayName = $"User {user}" };
     }
 }

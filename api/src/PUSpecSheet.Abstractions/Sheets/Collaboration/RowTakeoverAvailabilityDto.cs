@@ -6,13 +6,7 @@ namespace PUSpecSheet.Abstractions.Sheets.Collaboration;
 /// </summary>
 public sealed record RowTakeoverAvailabilityDto
 {
-    public RowTakeoverAvailabilityDto(bool isAvailable, string? reason)
-    {
-        IsAvailable = isAvailable;
-        Reason = reason;
-    }
-
-    public bool IsAvailable { get; init; }
+    public required bool IsAvailable { get; init; }
 
     public string? Reason { get; init; }
 }

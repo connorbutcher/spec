@@ -11,26 +11,12 @@ namespace PUSpecSheet.Abstractions.CellTypes;
 /// </summary>
 public sealed record SaveCellTypeRequest
 {
-    public SaveCellTypeRequest(
-        [Required, MaxLength(100)] string name,
-        CellKind kind,
-        [MaxLength(500)] string? description,
-        CellConfiguration? configuration,
-        CellStyle? style,
-        IReadOnlyList<string>? options)
-    {
-        Name = name;
-        Kind = kind;
-        Description = description;
-        Configuration = configuration;
-        Style = style;
-        Options = options;
-    }
+    [Required, MaxLength(100)]
+    public required string Name { get; init; }
 
-    public string Name { get; init; }
+    public required CellKind Kind { get; init; }
 
-    public CellKind Kind { get; init; }
-
+    [MaxLength(500)]
     public string? Description { get; init; }
 
     public CellConfiguration? Configuration { get; init; }

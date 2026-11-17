@@ -3,16 +3,9 @@ namespace PUSpecSheet.DataAccess.Sheets.Removal;
 /// <summary>A draft that removes a section: which section, who holds it, and whether it waits for approval.</summary>
 public sealed record SectionRemoval
 {
-    public SectionRemoval(int sheetSectionId, int authorUserId, bool awaitingApproval)
-    {
-        SheetSectionId = sheetSectionId;
-        AuthorUserId = authorUserId;
-        AwaitingApproval = awaitingApproval;
-    }
+    public required int SheetSectionId { get; init; }
 
-    public int SheetSectionId { get; init; }
+    public required int AuthorUserId { get; init; }
 
-    public int AuthorUserId { get; init; }
-
-    public bool AwaitingApproval { get; init; }
+    public required bool AwaitingApproval { get; init; }
 }

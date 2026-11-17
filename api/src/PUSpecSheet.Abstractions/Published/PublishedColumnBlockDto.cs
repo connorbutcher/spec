@@ -8,13 +8,7 @@ namespace PUSpecSheet.Abstractions.Published;
 /// </summary>
 public sealed record PublishedColumnBlockDto
 {
-    public PublishedColumnBlockDto(Guid id, string? name)
-    {
-        Id = id;
-        Name = name;
-    }
-
-    public Guid Id { get; init; }
+    public required Guid Id { get; init; }
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? Name { get; init; }

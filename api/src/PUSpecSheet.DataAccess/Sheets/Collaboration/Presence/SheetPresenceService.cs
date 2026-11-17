@@ -43,11 +43,16 @@ public sealed class SheetPresenceService : ISheetPresenceService
         var displayName = await UserQueries.FindActiveDisplayNameAsync(_db, userId, cancellationToken)
             ?? throw new NotFoundException($"User {userId} was not found.");
 
-        _tracker.Join(connectionId, new SheetConnection(sheetId, userId, displayName));
+        _tracker.Join(connectionId, new SheetConnection { SheetId = sheetId, UserId = userId, DisplayName = displayName });
         var users = _tracker.UsersOn(sheetId);
         await _notifier.PresenceChangedAsync(sheetId, users, cancellationToken);
 
-        return new SheetLiveStateDto(users, _checkouts.OnSheet(sheetId), _takeovers.Involving(sheetId, userId));
+        return new SheetLiveStateDto
+        {
+            Users = users,
+            Checkouts = _checkouts.OnSheet(sheetId),
+            Takeovers = _takeovers.Involving(sheetId, userId),
+        };
     }
 
     public async Task<SheetConnection?> LeaveAsync(string connectionId, CancellationToken cancellationToken)

@@ -114,7 +114,12 @@ internal static class SheetChangeHistoryCalculator
             return null;
         }
 
-        return new SheetChange(number, DateTime.SpecifyKind(at, DateTimeKind.Utc), revision.AuthorUserId);
+        return new SheetChange
+        {
+            VersionNumber = number,
+            AtUtc = DateTime.SpecifyKind(at, DateTimeKind.Utc),
+            AuthorUserId = revision.AuthorUserId,
+        };
     }
 
     /// <summary>

@@ -7,12 +7,7 @@ namespace PUSpecSheet.Abstractions.Sheets.Collaboration;
 /// </summary>
 public sealed record SheetChangedNoticeDto
 {
-    public SheetChangedNoticeDto(IReadOnlyList<int>? rowIds)
-    {
-        RowIds = rowIds;
-    }
-
     public IReadOnlyList<int>? RowIds { get; init; }
 
-    public static SheetChangedNoticeDto Everything { get; } = new((IReadOnlyList<int>?)null);
+    public static SheetChangedNoticeDto Everything { get; } = new SheetChangedNoticeDto();
 }

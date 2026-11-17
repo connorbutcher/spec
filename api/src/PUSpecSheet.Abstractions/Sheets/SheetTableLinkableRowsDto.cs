@@ -3,13 +3,7 @@ namespace PUSpecSheet.Abstractions.Sheets;
 /// <summary>The rows of one table that a linked dropdown on the sheet can take its choices from, top to bottom.</summary>
 public sealed record SheetTableLinkableRowsDto
 {
-    public SheetTableLinkableRowsDto(int sheetTableId, IReadOnlyList<SheetLinkableRowDto> rows)
-    {
-        SheetTableId = sheetTableId;
-        Rows = rows;
-    }
+    public required int SheetTableId { get; init; }
 
-    public int SheetTableId { get; init; }
-
-    public IReadOnlyList<SheetLinkableRowDto> Rows { get; init; }
+    public required IReadOnlyList<SheetLinkableRowDto> Rows { get; init; }
 }

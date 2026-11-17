@@ -9,43 +9,21 @@ namespace PUSpecSheet.Abstractions.CellTypes;
 /// </summary>
 public sealed record CellTypeDto
 {
-    public CellTypeDto(
-        int id,
-        string name,
-        CellKind kind,
-        string? description,
-        int displayOrder,
-        CellConfiguration configuration,
-        CellStyle style,
-        IReadOnlyList<CellTypeOptionDto> options,
-        int usageCount)
-    {
-        Id = id;
-        Name = name;
-        Kind = kind;
-        Description = description;
-        DisplayOrder = displayOrder;
-        Configuration = configuration;
-        Style = style;
-        Options = options;
-        UsageCount = usageCount;
-    }
+    public required int Id { get; init; }
 
-    public int Id { get; init; }
+    public required string Name { get; init; }
 
-    public string Name { get; init; }
-
-    public CellKind Kind { get; init; }
+    public required CellKind Kind { get; init; }
 
     public string? Description { get; init; }
 
-    public int DisplayOrder { get; init; }
+    public required int DisplayOrder { get; init; }
 
-    public CellConfiguration Configuration { get; init; }
+    public required CellConfiguration Configuration { get; init; }
 
-    public CellStyle Style { get; init; }
+    public required CellStyle Style { get; init; }
 
-    public IReadOnlyList<CellTypeOptionDto> Options { get; init; }
+    public required IReadOnlyList<CellTypeOptionDto> Options { get; init; }
 
-    public int UsageCount { get; init; }
+    public required int UsageCount { get; init; }
 }

@@ -6,13 +6,7 @@ namespace PUSpecSheet.DataAccess.Published.Sheets;
 /// </summary>
 public sealed record PublishedIdentifierFilter
 {
-    public PublishedIdentifierFilter(int identifierId, string? value)
-    {
-        IdentifierId = identifierId;
-        Value = value;
-    }
-
-    public int IdentifierId { get; init; }
+    public required int IdentifierId { get; init; }
 
     public string? Value { get; init; }
 }

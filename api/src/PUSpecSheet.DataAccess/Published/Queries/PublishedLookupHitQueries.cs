@@ -37,17 +37,19 @@ public static class PublishedLookupHitQueries
         return db.SheetCells
             .AsNoTracking()
             .Where(cell => cellIds.Contains(cell.Id))
-            .Select(cell => new PublishedLookupHit(
-                cell.SheetRow.SheetSection.SheetTable.SheetId,
-                cell.SheetRow.SheetSection.SheetTable.Sheet.PublicId,
-                cell.SheetRow.SheetSection.SheetTable.Sheet.Phase.Code,
-                cell.SheetRow.SheetSection.SheetTable.Sheet.SheetTypeId,
-                cell.SheetRow.SheetSection.SheetTableId,
-                cell.SheetRow.SheetSectionId,
-                cell.SheetRowId,
-                cell.Id,
-                cell.SheetColumnBlockId,
-                cell.SheetRow.SheetSection.TemplateSection.Role == SectionRole.Header));
+            .Select(cell => new PublishedLookupHit
+            {
+                SheetId = cell.SheetRow.SheetSection.SheetTable.SheetId,
+                SheetPublicId = cell.SheetRow.SheetSection.SheetTable.Sheet.PublicId,
+                PhaseCode = cell.SheetRow.SheetSection.SheetTable.Sheet.Phase.Code,
+                SheetTypeId = cell.SheetRow.SheetSection.SheetTable.Sheet.SheetTypeId,
+                TableId = cell.SheetRow.SheetSection.SheetTableId,
+                SectionId = cell.SheetRow.SheetSectionId,
+                RowId = cell.SheetRowId,
+                CellId = cell.Id,
+                ColumnBlockId = cell.SheetColumnBlockId,
+                IsHeader = cell.SheetRow.SheetSection.TemplateSection.Role == SectionRole.Header,
+            });
     }
 
     private static IQueryable<TValue> Narrow<TValue>(IQueryable<TValue> values, PublishedLookupCriteria criteria, int? sheetId)

@@ -6,16 +6,9 @@ namespace PUSpecSheet.DataAccess.Sheets.Collaboration.Checkouts;
 /// </summary>
 public sealed record RowCheckout
 {
-    public RowCheckout(int sheetId, int holderUserId, bool hasChanges)
-    {
-        SheetId = sheetId;
-        HolderUserId = holderUserId;
-        HasChanges = hasChanges;
-    }
+    public required int SheetId { get; init; }
 
-    public int SheetId { get; init; }
+    public required int HolderUserId { get; init; }
 
-    public int HolderUserId { get; init; }
-
-    public bool HasChanges { get; init; }
+    public required bool HasChanges { get; init; }
 }

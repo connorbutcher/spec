@@ -23,27 +23,36 @@ public sealed class PfkSheetSeeder
 
     private static readonly PfkOperation[] _operations =
     [
-        new(
-            "OP10 Rough and finish bore cylinders",
+        new PfkOperation
+        {
+            Name = "OP10 Rough and finish bore cylinders",
+            Features =
             [
                 ("PFK-101", "Cylinder bore diameter", "CC", 81.990m, 82.010m, 1, "G-101", "Pass", "Stop the line, check every block made since the last good part and quarantine any out of tolerance."),
                 ("PFK-102", "Bore roundness", "SC", 0.000m, 0.008m, 10, "G-131", "Pass", null),
-            ]),
-        new(
-            "OP20 Line bore main bearings",
+            ],
+        },
+        new PfkOperation
+        {
+            Name = "OP20 Line bore main bearings",
+            Features =
             [
                 ("PFK-201", "Main bearing bore", "CC", 63.995m, 64.013m, 5, "G-114", "Pass", "Re-measure on the CMM; segregate the batch if confirmed and inform quality."),
                 ("PFK-202", "Deck height", "SC", 218.450m, 218.550m, 25, "G-120", "Fail", "Re-measure on the CMM; rework the deck face if more than 0.02 mm high."),
                 ("PFK-203", "Bearing cap bolt hole depth", "Std", 24.500m, 25.500m, 50, "G-120", "Pass", null),
-            ]),
+            ],
+        },
     ];
 
-    private static readonly PfkOperation _torque = new(
-        "OP30 Fit and torque main bearing caps",
+    private static readonly PfkOperation _torque = new PfkOperation
+    {
+        Name = "OP30 Fit and torque main bearing caps",
+        Features =
         [
             ("PFK-301", "Cap seating gap", "SC", 0.000m, 0.030m, 10, "G-114", "Pass", null),
             ("PFK-302", "Crankshaft end float", "CC", 0.080m, 0.250m, 1, "G-120", "N/A", "Strip and rebuild; replace the thrust washers."),
-        ]);
+        ],
+    };
 
     private readonly SheetEditorFactory _editors;
     private readonly ShowcaseUsers _users;

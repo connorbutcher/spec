@@ -5,10 +5,6 @@ namespace PUSpecSheet.Abstractions.SheetTypes;
 /// <summary>Adds a sheet type to the end of the list.</summary>
 public sealed record CreateSheetTypeRequest
 {
-    public CreateSheetTypeRequest([Required, MaxLength(100)] string name)
-    {
-        Name = name;
-    }
-
-    public string Name { get; init; }
+    [Required, MaxLength(100)]
+    public required string Name { get; init; }
 }

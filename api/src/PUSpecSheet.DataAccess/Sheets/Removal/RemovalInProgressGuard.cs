@@ -65,7 +65,12 @@ public sealed class RemovalInProgressGuard : IRemovalInProgressGuard
 
         return onTable
             .Where(removal => around.Contains(removal.SheetSectionId))
-            .Select(removal => new PendingRemoval(RemovedContainer.Section, removal.AuthorUserId, removal.AwaitingApproval))
+            .Select(removal => new PendingRemoval
+            {
+                Container = RemovedContainer.Section,
+                AuthorUserId = removal.AuthorUserId,
+                AwaitingApproval = removal.AwaitingApproval,
+            })
             .ToList();
     }
 }

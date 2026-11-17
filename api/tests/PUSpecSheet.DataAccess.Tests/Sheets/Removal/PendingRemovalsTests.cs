@@ -17,13 +17,23 @@ public sealed class PendingRemovalsTests
     [Fact]
     public void MyOwnOpenRemoval_DoesNotStopMe()
     {
-        Assert.Null(PendingRemovals.Blocking([new PendingRemoval(RemovedContainer.Section, Alex, false)], Alex));
+        Assert.Null(PendingRemovals.Blocking([new PendingRemoval
+        {
+            Container = RemovedContainer.Section,
+            AuthorUserId = Alex,
+            AwaitingApproval = false,
+        }], Alex));
     }
 
     [Fact]
     public void SomeoneElsesRemoval_StopsTheChange_ByName()
     {
-        var blocking = PendingRemovals.Blocking([new PendingRemoval(RemovedContainer.Section, Sam, false)], Alex);
+        var blocking = PendingRemovals.Blocking([new PendingRemoval
+        {
+            Container = RemovedContainer.Section,
+            AuthorUserId = Sam,
+            AwaitingApproval = false,
+        }], Alex);
 
         Assert.NotNull(blocking);
         Assert.Equal(
@@ -34,7 +44,12 @@ public sealed class PendingRemovalsTests
     [Fact]
     public void ARemovalWaitingForApproval_StopsEveryone_IncludingItsAuthor()
     {
-        var blocking = PendingRemovals.Blocking([new PendingRemoval(RemovedContainer.Section, Alex, true)], Alex);
+        var blocking = PendingRemovals.Blocking([new PendingRemoval
+        {
+            Container = RemovedContainer.Section,
+            AuthorUserId = Alex,
+            AwaitingApproval = true,
+        }], Alex);
 
         Assert.NotNull(blocking);
         Assert.Equal(
@@ -46,7 +61,12 @@ public sealed class PendingRemovalsTests
     public void TheTableBeingRemoved_IsNamedBeforeASectionInIt()
     {
         var blocking = PendingRemovals.Blocking(
-            [new PendingRemoval(RemovedContainer.Section, Sam, false), new PendingRemoval(RemovedContainer.Table, Sam, false)],
+            [new PendingRemoval
+            {
+                Container = RemovedContainer.Section,
+                AuthorUserId = Sam,
+                AwaitingApproval = false,
+            }, new PendingRemoval { Container = RemovedContainer.Table, AuthorUserId = Sam, AwaitingApproval = false }],
             Alex);
 
         Assert.NotNull(blocking);

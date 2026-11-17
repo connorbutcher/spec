@@ -51,7 +51,7 @@ internal sealed class SheetHistoryBuilder
     {
         var builder = new SheetHistoryBuilder(sheet, nowUtc);
         builder.BuildAll(copies);
-        return new BuiltSheet(sheet, builder._checks, builder._warnings);
+        return new BuiltSheet { Sheet = sheet, Checks = builder._checks, Warnings = builder._warnings };
     }
 
     private void BuildAll(IReadOnlyList<LegacyCopy> copies)
@@ -83,14 +83,14 @@ internal sealed class SheetHistoryBuilder
             _sheet.Versions.Add(version);
 
             Apply(copy, version, at);
-            _checks.Add(new BuiltVersion(copy.VersionNumber, at, copy.Snapshot));
+            _checks.Add(new BuiltVersion { VersionNumber = copy.VersionNumber, MomentUtc = at, Expected = copy.Snapshot });
             last = at;
         }
 
         if (working.Count == 1)
         {
             Apply(working[0], null, _nowUtc);
-            _checks.Add(new BuiltVersion(working[0].VersionNumber, null, working[0].Snapshot));
+            _checks.Add(new BuiltVersion { VersionNumber = working[0].VersionNumber, Expected = working[0].Snapshot });
         }
 
         KeepPublicIds();
@@ -127,7 +127,7 @@ internal sealed class SheetHistoryBuilder
     {
         var snapshot = copy.Snapshot;
         var keys = _assigner.Assign(snapshot);
-        var context = new WriteContext(version, at, copy.UserId);
+        var context = new WriteContext { Version = version, At = at, UserId = copy.UserId };
 
         // Orders already published are kept where they still fit, so a moved neighbour doesn't make an item look changed.
         var tableOrders = KeepOrders(snapshot.Tables, table => table.Id, table => table.DisplayOrder, _ => 0, table => ExistingOrder(_tables, keys.Tables[table.Id]));
@@ -296,7 +296,7 @@ internal sealed class SheetHistoryBuilder
     private DbSheetCell CellFor(DbSheetRow row, int rowKey, SnapshotKeys keys, SnapshotCell cell)
     {
         int? blockKey = cell.ColumnBlockId is { } blockId ? keys.ColumnBlocks[blockId] : null;
-        var cellKey = new CellKey(rowKey, cell.TemplateCellId, blockKey);
+        var cellKey = new CellKey { RowKey = rowKey, TemplateCellId = cell.TemplateCellId, ColumnBlockKey = blockKey };
         if (!_cells.TryGetValue(cellKey, out var sheetCell))
         {
             sheetCell = new DbSheetCell

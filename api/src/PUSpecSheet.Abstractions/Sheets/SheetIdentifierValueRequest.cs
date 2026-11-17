@@ -5,13 +5,8 @@ namespace PUSpecSheet.Abstractions.Sheets;
 /// <summary>A new sheet's value for one of its sheet type's identifiers. Blank leaves an optional identifier empty.</summary>
 public sealed record SheetIdentifierValueRequest
 {
-    public SheetIdentifierValueRequest(int identifierId, [MaxLength(200)] string? value)
-    {
-        IdentifierId = identifierId;
-        Value = value;
-    }
+    public required int IdentifierId { get; init; }
 
-    public int IdentifierId { get; init; }
-
+    [MaxLength(200)]
     public string? Value { get; init; }
 }

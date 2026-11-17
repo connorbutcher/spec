@@ -52,7 +52,13 @@ public sealed class LiveRowCheckoutService : ILiveRowCheckoutService
 
         await _removals.EnsureRowNotBeingRemovedAsync(rowId, connection.UserId, cancellationToken);
 
-        var wanted = new LiveRowCheckout(sheetId, rowId, connection.UserId, connection.DisplayName);
+        var wanted = new LiveRowCheckout
+        {
+            SheetId = sheetId,
+            RowId = rowId,
+            UserId = connection.UserId,
+            DisplayName = connection.DisplayName,
+        };
         if (!_tracker.TryCheckOut(connectionId, wanted, out var heldBy))
         {
             throw Held(heldBy!.DisplayName);

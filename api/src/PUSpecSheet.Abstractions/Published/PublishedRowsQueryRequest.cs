@@ -7,12 +7,6 @@ namespace PUSpecSheet.Abstractions.Published;
 /// </summary>
 public sealed record PublishedRowsQueryRequest
 {
-    public PublishedRowsQueryRequest(IReadOnlyList<Guid>? rows, IReadOnlyList<string>? columns = null)
-    {
-        Rows = rows;
-        Columns = columns;
-    }
-
     public IReadOnlyList<Guid>? Rows { get; init; }
 
     public IReadOnlyList<string>? Columns { get; init; }

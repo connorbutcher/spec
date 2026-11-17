@@ -3,18 +3,11 @@ namespace PUSpecSheet.Abstractions.Sheets;
 /// <summary>Who holds a draft on a table, section or row. While it exists, only that person can change the item.</summary>
 public sealed record SheetLockDto
 {
-    public SheetLockDto(int userId, string userName, bool isMine)
-    {
-        UserId = userId;
-        UserName = userName;
-        IsMine = isMine;
-    }
+    public required int UserId { get; init; }
 
-    public int UserId { get; init; }
+    public required string UserName { get; init; }
 
-    public string UserName { get; init; }
-
-    public bool IsMine { get; init; }
+    public required bool IsMine { get; init; }
 
     /// <summary>
     /// The draft has been submitted for publishing and waits for approval. Nobody can change the item until

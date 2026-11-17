@@ -3,13 +3,7 @@ namespace PUSpecSheet.Abstractions.Published;
 /// <summary>A row of a published section, with its cells that hold a value. A row that holds none is left out.</summary>
 public sealed record PublishedRowDto
 {
-    public PublishedRowDto(Guid id, IReadOnlyList<PublishedCellDto> cells)
-    {
-        Id = id;
-        Cells = cells;
-    }
+    public required Guid Id { get; init; }
 
-    public Guid Id { get; init; }
-
-    public IReadOnlyList<PublishedCellDto> Cells { get; init; }
+    public required IReadOnlyList<PublishedCellDto> Cells { get; init; }
 }

@@ -74,8 +74,16 @@ public sealed class SheetIdentifierRulesTests
         var serial = Definition(SheetIdentifierKind.Text, id: 1);
         var build = Definition(SheetIdentifierKind.Number, id: 2);
 
-        var first = SheetIdentifierRules.ComparisonKey([new SheetIdentifierValue(serial, "esn-1"), new SheetIdentifierValue(build, "3")]);
-        var second = SheetIdentifierRules.ComparisonKey([new SheetIdentifierValue(build, "3"), new SheetIdentifierValue(serial, "ESN-1")]);
+        var first = SheetIdentifierRules.ComparisonKey([new SheetIdentifierValue
+        {
+            Definition = serial,
+            Value = "esn-1",
+        }, new SheetIdentifierValue { Definition = build, Value = "3" }]);
+        var second = SheetIdentifierRules.ComparisonKey([new SheetIdentifierValue
+        {
+            Definition = build,
+            Value = "3",
+        }, new SheetIdentifierValue { Definition = serial, Value = "ESN-1" }]);
 
         Assert.Equal(first, second);
     }
@@ -92,8 +100,8 @@ public sealed class SheetIdentifierRulesTests
         var serial = Definition(SheetIdentifierKind.Text);
 
         Assert.NotEqual(
-            SheetIdentifierRules.ComparisonKey([new SheetIdentifierValue(serial, "ESN-1")]),
-            SheetIdentifierRules.ComparisonKey([new SheetIdentifierValue(serial, "ESN-2")]));
+            SheetIdentifierRules.ComparisonKey([new SheetIdentifierValue { Definition = serial, Value = "ESN-1" }]),
+            SheetIdentifierRules.ComparisonKey([new SheetIdentifierValue { Definition = serial, Value = "ESN-2" }]));
     }
 
     [Theory]
@@ -109,6 +117,13 @@ public sealed class SheetIdentifierRulesTests
 
     private static SheetIdentifierDefinition Definition(SheetIdentifierKind kind, int id = 1, bool isRequired = false, IReadOnlyList<string>? options = null)
     {
-        return new SheetIdentifierDefinition(id, "Serial number", kind, isRequired, options ?? []);
+        return new SheetIdentifierDefinition
+        {
+            Id = id,
+            Name = "Serial number",
+            Kind = kind,
+            IsRequired = isRequired,
+            Options = options ?? [],
+        };
     }
 }

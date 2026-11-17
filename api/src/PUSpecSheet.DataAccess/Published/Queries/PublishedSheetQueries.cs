@@ -45,8 +45,12 @@ public static class PublishedSheetQueries
             .ToListAsync(cancellationToken);
 
         return found
-            .Select(sheet => new PublishedSheetReferenceDto(sheet.PublicId, sheet.Code, sheet.SheetTypeId, sheet.LatestVersion)
+            .Select(sheet => new PublishedSheetReferenceDto
             {
+                Sheet = sheet.PublicId,
+                Phase = sheet.Code,
+                SheetType = sheet.SheetTypeId,
+                LatestVersion = sheet.LatestVersion,
                 Identifiers = sheet.Identifiers.ToDictionary(value => value.Key, value => value.Value),
             })
             .ToList();
@@ -68,10 +72,12 @@ public static class PublishedSheetQueries
             .ToListAsync(cancellationToken);
 
         return versions
-            .Select(version => new PublishedVersionDto(
-                version.VersionNumber,
-                DateTime.SpecifyKind(version.PublishedAtUtc, DateTimeKind.Utc),
-                version.Note))
+            .Select(version => new PublishedVersionDto
+            {
+                Version = version.VersionNumber,
+                PublishedAtUtc = DateTime.SpecifyKind(version.PublishedAtUtc, DateTimeKind.Utc),
+                Note = version.Note,
+            })
             .ToList();
     }
 
@@ -102,7 +108,12 @@ public static class PublishedSheetQueries
 
         return versions
             .OrderByDescending(version => version.VersionNumber)
-            .Select(version => new PublishedVersionStamp(version.SheetId, version.VersionNumber, version.PublishedAtUtc));
+            .Select(version => new PublishedVersionStamp
+            {
+                SheetId = version.SheetId,
+                VersionNumber = version.VersionNumber,
+                PublishedAtUtc = version.PublishedAtUtc,
+            });
     }
 
     /// <summary>Every version of the sheets published at or before the moment.</summary>
@@ -111,7 +122,12 @@ public static class PublishedSheetQueries
         return await db.SheetVersions
             .AsNoTracking()
             .Where(version => sheetIds.Contains(version.SheetId) && version.PublishedAtUtc <= moment)
-            .Select(version => new PublishedVersionStamp(version.SheetId, version.VersionNumber, version.PublishedAtUtc))
+            .Select(version => new PublishedVersionStamp
+            {
+                SheetId = version.SheetId,
+                VersionNumber = version.VersionNumber,
+                PublishedAtUtc = version.PublishedAtUtc,
+            })
             .ToListAsync(cancellationToken);
     }
 }

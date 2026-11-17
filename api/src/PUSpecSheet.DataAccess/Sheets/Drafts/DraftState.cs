@@ -4,12 +4,6 @@ namespace PUSpecSheet.DataAccess.Sheets.Drafts;
 public sealed record DraftState<TRevision>
     where TRevision : class
 {
-    public DraftState(TRevision? current, TRevision? draft)
-    {
-        Current = current;
-        Draft = draft;
-    }
-
     public TRevision? Current { get; init; }
 
     public TRevision? Draft { get; init; }

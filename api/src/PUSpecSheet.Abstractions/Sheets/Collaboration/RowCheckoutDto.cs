@@ -7,16 +7,9 @@ namespace PUSpecSheet.Abstractions.Sheets.Collaboration;
 /// </summary>
 public sealed record RowCheckoutDto
 {
-    public RowCheckoutDto(int rowId, int userId, string userName)
-    {
-        RowId = rowId;
-        UserId = userId;
-        UserName = userName;
-    }
+    public required int RowId { get; init; }
 
-    public int RowId { get; init; }
+    public required int UserId { get; init; }
 
-    public int UserId { get; init; }
-
-    public string UserName { get; init; }
+    public required string UserName { get; init; }
 }

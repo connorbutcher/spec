@@ -82,17 +82,19 @@ public static class PublishedLookupAssembler
             }
         }
 
-        return new PublishedLookupMatchDto(
-            version.SheetPublicId,
-            hit.PhaseCode,
-            hit.SheetTypeId,
-            version.VersionNumber,
-            version.PublishedAtUtc,
-            table.PublicId,
-            table.Title,
-            hit.ColumnBlockId is { } namedBlockId ? names[namedBlockId] : null,
-            Headings(hit, shown),
-            rows);
+        return new PublishedLookupMatchDto
+        {
+            Sheet = version.SheetPublicId,
+            Phase = hit.PhaseCode,
+            SheetType = hit.SheetTypeId,
+            Version = version.VersionNumber,
+            PublishedAtUtc = version.PublishedAtUtc,
+            Table = table.PublicId,
+            Title = table.Title,
+            Column = hit.ColumnBlockId is { } namedBlockId ? names[namedBlockId] : null,
+            Headings = Headings(hit, shown),
+            Rows = rows,
+        };
     }
 
     /// <summary>Each section's place when the table is read top to bottom, sub-sections after their parent's rows.</summary>
@@ -172,7 +174,7 @@ public static class PublishedLookupAssembler
         var columns = row.Any(cell => cell.ColumnBlockId is not null)
             ? PublishedRowsAssembler.BlockColumns(valueCells, kept, names, values)
             : null;
-        return new PublishedRowValuesDto(sections[row.First().SectionId].Name, own, columns);
+        return new PublishedRowValuesDto { Section = sections[row.First().SectionId].Name, Values = own, Columns = columns };
     }
 
     private static List<object?> ValuesOf(IEnumerable<PublishedLookupCellRecord> cells, IReadOnlyDictionary<int, object> values)

@@ -8,59 +8,29 @@ namespace PUSpecSheet.DataAccess.Published.Lookups;
 /// </summary>
 public sealed record PublishedLookupCellRecord
 {
-    public PublishedLookupCellRecord(
-        int rowRevisionId,
-        int rowId,
-        Guid rowPublicId,
-        int sectionId,
-        int rowOrder,
-        int cellId,
-        Guid cellPublicId,
-        int? columnBlockId,
-        int column,
-        CellKind kind,
-        string? caption,
-        string? lookupKey,
-        bool isHeader)
-    {
-        RowRevisionId = rowRevisionId;
-        RowId = rowId;
-        RowPublicId = rowPublicId;
-        SectionId = sectionId;
-        RowOrder = rowOrder;
-        CellId = cellId;
-        CellPublicId = cellPublicId;
-        ColumnBlockId = columnBlockId;
-        Column = column;
-        Kind = kind;
-        Caption = caption;
-        LookupKey = lookupKey;
-        IsHeader = isHeader;
-    }
+    public required int RowRevisionId { get; init; }
 
-    public int RowRevisionId { get; init; }
+    public required int RowId { get; init; }
 
-    public int RowId { get; init; }
+    public required Guid RowPublicId { get; init; }
 
-    public Guid RowPublicId { get; init; }
+    public required int SectionId { get; init; }
 
-    public int SectionId { get; init; }
+    public required int RowOrder { get; init; }
 
-    public int RowOrder { get; init; }
+    public required int CellId { get; init; }
 
-    public int CellId { get; init; }
-
-    public Guid CellPublicId { get; init; }
+    public required Guid CellPublicId { get; init; }
 
     public int? ColumnBlockId { get; init; }
 
-    public int Column { get; init; }
+    public required int Column { get; init; }
 
-    public CellKind Kind { get; init; }
+    public required CellKind Kind { get; init; }
 
     public string? Caption { get; init; }
 
     public string? LookupKey { get; init; }
 
-    public bool IsHeader { get; init; }
+    public required bool IsHeader { get; init; }
 }

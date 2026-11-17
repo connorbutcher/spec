@@ -96,7 +96,7 @@ public sealed class ShowcaseCellTypes
             new LabelledTextCellConfiguration
             {
                 MaxLength = 20,
-                Slots = [new LabelledTextSlot("rh", "RH"), new LabelledTextSlot("lh", "LH")],
+                Slots = [new LabelledTextSlot { Key = "rh", Label = "RH" }, new LabelledTextSlot { Key = "lh", Label = "LH" }],
                 LabelColor = "#dc2626",
             },
             new CellStyle(),

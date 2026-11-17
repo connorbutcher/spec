@@ -58,11 +58,13 @@ public static class TemplateRowQueries
         return await db.TemplateRows
             .AsNoTracking()
             .Where(candidate => candidate.Id == rowId)
-            .Select(candidate => new TemplateCellTarget(
-                candidate.TemplateSection.TableTemplateVersionId,
-                candidate.Cells
+            .Select(candidate => new TemplateCellTarget
+            {
+                TableTemplateVersionId = candidate.TemplateSection.TableTemplateVersionId,
+                NextColumn = candidate.Cells
                     .Where(cell => cell.TemplateColumnBlockId == columnBlockId)
-                    .Max(cell => (int?)(cell.Column + cell.ColumnSpan)) ?? 1))
+                    .Max(cell => (int?)(cell.Column + cell.ColumnSpan)) ?? 1,
+            })
             .SingleOrDefaultAsync(cancellationToken);
     }
 

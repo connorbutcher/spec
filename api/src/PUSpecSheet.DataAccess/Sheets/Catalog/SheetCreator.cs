@@ -124,7 +124,7 @@ public sealed class SheetCreator
             }
             else if (stored is not null)
             {
-                values.Add(new SheetIdentifierValue(definition, stored));
+                values.Add(new SheetIdentifierValue { Definition = definition, Value = stored });
             }
         }
 
@@ -197,6 +197,6 @@ public sealed class SheetCreator
         var wanted = SheetIdentifierRules.ComparisonKey(values);
         var sheets = await SheetQueries.ListWithIdentifiersAsync(_db, phaseId, sheetTypeId, cancellationToken);
         return sheets.Any(sheet => SheetIdentifierRules.ComparisonKey(sheet.IdentifierValues
-            .Select(value => new SheetIdentifierValue(byId[value.SheetTypeIdentifierId], value.Value))) == wanted);
+            .Select(value => new SheetIdentifierValue { Definition = byId[value.SheetTypeIdentifierId], Value = value.Value })) == wanted);
     }
 }

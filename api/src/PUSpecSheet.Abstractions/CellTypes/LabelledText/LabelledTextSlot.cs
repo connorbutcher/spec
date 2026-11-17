@@ -6,13 +6,7 @@ namespace PUSpecSheet.Abstractions.CellTypes.LabelledText;
 /// </summary>
 public sealed record LabelledTextSlot
 {
-    public LabelledTextSlot(string key, string label)
-    {
-        Key = key;
-        Label = label;
-    }
+    public required string Key { get; init; }
 
-    public string Key { get; init; }
-
-    public string Label { get; init; }
+    public required string Label { get; init; }
 }

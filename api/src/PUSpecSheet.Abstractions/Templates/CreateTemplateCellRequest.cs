@@ -10,22 +10,11 @@ namespace PUSpecSheet.Abstractions.Templates;
 /// </summary>
 public sealed record CreateTemplateCellRequest
 {
-    public CreateTemplateCellRequest(
-        int templateRowId,
-        int? cellTypeId = null,
-        [Range(1, 100)] int? column = null,
-        int? templateColumnBlockId = null)
-    {
-        TemplateRowId = templateRowId;
-        CellTypeId = cellTypeId;
-        Column = column;
-        TemplateColumnBlockId = templateColumnBlockId;
-    }
-
-    public int TemplateRowId { get; init; }
+    public required int TemplateRowId { get; init; }
 
     public int? CellTypeId { get; init; }
 
+    [Range(1, 100)]
     public int? Column { get; init; }
 
     public int? TemplateColumnBlockId { get; init; }

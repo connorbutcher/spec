@@ -27,13 +27,21 @@ public sealed class HeldContentsTests
     [Fact]
     public void MyOwnOpenDraftsInside_GoWithIt()
     {
-        Assert.Null(HeldContents.RefusalFor("this section", [new ContainedHold(Sam, false), new ContainedHold(Sam, false)], Sam, _names));
+        Assert.Null(HeldContents.RefusalFor("this section", [new ContainedHold
+        {
+            UserId = Sam,
+            AwaitingApproval = false,
+        }, new ContainedHold { UserId = Sam, AwaitingApproval = false }], Sam, _names));
     }
 
     [Fact]
     public void SomeoneElsesWorkInside_IsRefusedByName()
     {
-        var refusal = HeldContents.RefusalFor("this section", [new ContainedHold(Sam, false), new ContainedHold(Alex, false)], Sam, _names);
+        var refusal = HeldContents.RefusalFor("this section", [new ContainedHold
+        {
+            UserId = Sam,
+            AwaitingApproval = false,
+        }, new ContainedHold { UserId = Alex, AwaitingApproval = false }], Sam, _names);
 
         Assert.Equal("Alex is editing inside this section, so it can't be removed yet.", refusal);
     }
@@ -41,7 +49,11 @@ public sealed class HeldContentsTests
     [Fact]
     public void OnePersonHoldingSeveralThings_IsNamedOnce()
     {
-        var refusal = HeldContents.RefusalFor("this table", [new ContainedHold(Alex, false), new ContainedHold(Alex, false)], Sam, _names);
+        var refusal = HeldContents.RefusalFor("this table", [new ContainedHold
+        {
+            UserId = Alex,
+            AwaitingApproval = false,
+        }, new ContainedHold { UserId = Alex, AwaitingApproval = false }], Sam, _names);
 
         Assert.Equal("Alex is editing inside this table, so it can't be removed yet.", refusal);
     }
@@ -51,16 +63,28 @@ public sealed class HeldContentsTests
     {
         Assert.Equal(
             "Alex and Kim are editing inside this table, so it can't be removed yet.",
-            HeldContents.RefusalFor("this table", [new ContainedHold(Kim, false), new ContainedHold(Alex, false)], Sam, _names));
+            HeldContents.RefusalFor("this table", [new ContainedHold
+            {
+                UserId = Kim,
+                AwaitingApproval = false,
+            }, new ContainedHold { UserId = Alex, AwaitingApproval = false }], Sam, _names));
         Assert.Equal(
             "Alex, Kim and Lee are editing inside this table, so it can't be removed yet.",
-            HeldContents.RefusalFor("this table", [new ContainedHold(Lee, false), new ContainedHold(Kim, false), new ContainedHold(Alex, false)], Sam, _names));
+            HeldContents.RefusalFor("this table", [new ContainedHold
+            {
+                UserId = Lee,
+                AwaitingApproval = false,
+            }, new ContainedHold { UserId = Kim, AwaitingApproval = false }, new ContainedHold
+            {
+                UserId = Alex,
+                AwaitingApproval = false,
+            }], Sam, _names));
     }
 
     [Fact]
     public void MyOwnChangesWaitingForApproval_StopTheRemoval()
     {
-        var refusal = HeldContents.RefusalFor("this section", [new ContainedHold(Sam, true)], Sam, _names);
+        var refusal = HeldContents.RefusalFor("this section", [new ContainedHold { UserId = Sam, AwaitingApproval = true }], Sam, _names);
 
         Assert.Equal("Changes inside this section are waiting for approval, so it can't be removed until they are approved or rejected.", refusal);
     }
@@ -68,7 +92,11 @@ public sealed class HeldContentsTests
     [Fact]
     public void ChangesWaitingForApproval_AreSaidBeforeWhoIsEditing()
     {
-        var refusal = HeldContents.RefusalFor("this table", [new ContainedHold(Alex, false), new ContainedHold(Kim, true)], Sam, _names);
+        var refusal = HeldContents.RefusalFor("this table", [new ContainedHold
+        {
+            UserId = Alex,
+            AwaitingApproval = false,
+        }, new ContainedHold { UserId = Kim, AwaitingApproval = true }], Sam, _names);
 
         Assert.Equal("Changes inside this table are waiting for approval, so it can't be removed until they are approved or rejected.", refusal);
     }
@@ -76,7 +104,7 @@ public sealed class HeldContentsTests
     [Fact]
     public void SomeoneWithNoName_IsAnotherUser()
     {
-        var refusal = HeldContents.RefusalFor("this section", [new ContainedHold(99, false)], Sam, _names);
+        var refusal = HeldContents.RefusalFor("this section", [new ContainedHold { UserId = 99, AwaitingApproval = false }], Sam, _names);
 
         Assert.Equal("Another user is editing inside this section, so it can't be removed yet.", refusal);
     }

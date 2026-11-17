@@ -46,11 +46,11 @@ public sealed class RowTakeoversService : IRowTakeoversService
         try
         {
             await CheckoutToAskForAsync(rowId, _currentUser.UserId, cancellationToken);
-            return new RowTakeoverAvailabilityDto(true, null);
+            return new RowTakeoverAvailabilityDto { IsAvailable = true };
         }
         catch (Exception refusal) when (refusal is ConflictException or InvalidRequestException)
         {
-            return new RowTakeoverAvailabilityDto(false, refusal.Message);
+            return new RowTakeoverAvailabilityDto { IsAvailable = false, Reason = refusal.Message };
         }
     }
 
@@ -142,17 +142,19 @@ public sealed class RowTakeoversService : IRowTakeoversService
     {
         var names = await _checkouts.DisplayNamesAsync([requesterUserId, checkout.HolderUserId], cancellationToken);
         var now = _clock.GetUtcNow().UtcDateTime;
-        return new RowTakeoverDto(
-            Guid.NewGuid(),
-            checkout.SheetId,
-            rowId,
-            requesterUserId,
-            names.GetValueOrDefault(requesterUserId, UnknownUser),
-            checkout.HolderUserId,
-            names.GetValueOrDefault(checkout.HolderUserId, UnknownUser),
-            now,
-            now + _options.ResponseTime,
-            RowTakeoverStatus.Pending);
+        return new RowTakeoverDto
+        {
+            Id = Guid.NewGuid(),
+            SheetId = checkout.SheetId,
+            RowId = rowId,
+            RequesterUserId = requesterUserId,
+            RequesterName = names.GetValueOrDefault(requesterUserId, UnknownUser),
+            HolderUserId = checkout.HolderUserId,
+            HolderName = names.GetValueOrDefault(checkout.HolderUserId, UnknownUser),
+            RequestedAtUtc = now,
+            ExpiresAtUtc = now + _options.ResponseTime,
+            Status = RowTakeoverStatus.Pending,
+        };
     }
 
     /// <summary>

@@ -40,11 +40,13 @@ public sealed class LiveSectionQuery
         {
             if (AncestorsVisible(section.ParentSheetSectionId, visibleIds, parentOf))
             {
-                result.Add(new LiveSection(
-                    section.Id,
-                    section.TemplateSectionId,
-                    section.ParentSheetSectionId,
-                    resolved[section.Id].Shown!.DisplayOrder));
+                result.Add(new LiveSection
+                {
+                    Id = section.Id,
+                    TemplateSectionId = section.TemplateSectionId,
+                    ParentSheetSectionId = section.ParentSheetSectionId,
+                    DisplayOrder = resolved[section.Id].Shown!.DisplayOrder,
+                });
             }
         }
 

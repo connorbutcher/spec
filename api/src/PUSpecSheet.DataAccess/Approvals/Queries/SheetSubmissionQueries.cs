@@ -55,10 +55,12 @@ public static class SheetSubmissionQueries
         return await db.SheetSubmissions
             .AsNoTracking()
             .Where(candidate => candidate.Id == id && candidate.SheetId == sheetId)
-            .Select(candidate => new SubmissionReviewAccess(
-                candidate.Status,
-                candidate.SubmittedByUserId,
-                candidate.Approvers.Any(approver => approver.UserId == userId)))
+            .Select(candidate => new SubmissionReviewAccess
+            {
+                Status = candidate.Status,
+                SubmittedByUserId = candidate.SubmittedByUserId,
+                IsApprover = candidate.Approvers.Any(approver => approver.UserId == userId),
+            })
             .SingleOrDefaultAsync(cancellationToken);
     }
 

@@ -6,13 +6,7 @@ namespace PUSpecSheet.Abstractions.Sheets;
 /// </summary>
 public sealed record SheetLinkableRowDto
 {
-    public SheetLinkableRowDto(int sheetRowId, string label)
-    {
-        SheetRowId = sheetRowId;
-        Label = label;
-    }
+    public required int SheetRowId { get; init; }
 
-    public int SheetRowId { get; init; }
-
-    public string Label { get; init; }
+    public required string Label { get; init; }
 }

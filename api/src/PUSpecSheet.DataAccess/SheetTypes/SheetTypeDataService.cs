@@ -90,7 +90,14 @@ public sealed class SheetTypeDataService : ISheetTypeDataService
             .ToListAsync(cancellationToken);
 
         return identifiers
-            .Select(identifier => new SheetIdentifierDefinition(identifier.Id, identifier.Name, identifier.Kind, identifier.IsRequired, identifier.Options ?? []))
+            .Select(identifier => new SheetIdentifierDefinition
+            {
+                Id = identifier.Id,
+                Name = identifier.Name,
+                Kind = identifier.Kind,
+                IsRequired = identifier.IsRequired,
+                Options = identifier.Options ?? [],
+            })
             .ToList();
     }
 

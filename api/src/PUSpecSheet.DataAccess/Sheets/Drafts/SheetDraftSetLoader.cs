@@ -15,10 +15,12 @@ public sealed class SheetDraftSetLoader
 
     public async Task<SheetDraftSet> LoadAsync(int sheetId, DraftSelection selection, CancellationToken cancellationToken)
     {
-        return new SheetDraftSet(
-            await _db.SheetTableRevisions.ListSelectedForEditAsync(sheetId, selection, cancellationToken),
-            await _db.SheetSectionRevisions.ListSelectedForEditAsync(sheetId, selection, cancellationToken),
-            await _db.SheetRowRevisions.ListSelectedForEditAsync(sheetId, selection, cancellationToken),
-            await _db.SheetColumnBlockRevisions.ListSelectedForEditAsync(sheetId, selection, cancellationToken));
+        return new SheetDraftSet
+        {
+            Tables = await _db.SheetTableRevisions.ListSelectedForEditAsync(sheetId, selection, cancellationToken),
+            Sections = await _db.SheetSectionRevisions.ListSelectedForEditAsync(sheetId, selection, cancellationToken),
+            Rows = await _db.SheetRowRevisions.ListSelectedForEditAsync(sheetId, selection, cancellationToken),
+            ColumnBlocks = await _db.SheetColumnBlockRevisions.ListSelectedForEditAsync(sheetId, selection, cancellationToken),
+        };
     }
 }

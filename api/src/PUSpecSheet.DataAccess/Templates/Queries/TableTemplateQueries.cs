@@ -26,13 +26,15 @@ public static class TableTemplateQueries
                 template,
                 Latest = template.Versions.OrderByDescending(version => version.VersionNumber).First(),
             })
-            .Select(entry => new TableTemplateSummaryDto(
-                entry.template.Id,
-                entry.template.SheetTypeId,
-                entry.template.Name,
-                entry.template.DisplayOrder,
-                entry.Latest.VersionNumber,
-                entry.Latest.Orientation))
+            .Select(entry => new TableTemplateSummaryDto
+            {
+                Id = entry.template.Id,
+                SheetTypeId = entry.template.SheetTypeId,
+                Name = entry.template.Name,
+                DisplayOrder = entry.template.DisplayOrder,
+                LatestVersionNumber = entry.Latest.VersionNumber,
+                Orientation = entry.Latest.Orientation,
+            })
             .ToListAsync(cancellationToken);
     }
 
@@ -107,7 +109,11 @@ public static class TableTemplateQueries
         return await db.TableTemplateVersions
             .AsNoTracking()
             .Where(candidate => candidate.Id == versionId)
-            .Select(candidate => new TemplateVersionKey(candidate.TableTemplateId, candidate.VersionNumber))
+            .Select(candidate => new TemplateVersionKey
+            {
+                TableTemplateId = candidate.TableTemplateId,
+                VersionNumber = candidate.VersionNumber,
+            })
             .SingleOrDefaultAsync(cancellationToken);
     }
 
@@ -117,10 +123,12 @@ public static class TableTemplateQueries
         return await db.TableTemplateVersions
             .AsNoTracking()
             .Where(candidate => candidate.Id == versionId)
-            .Select(candidate => new TemplateVersionState(
-                candidate.VersionNumber,
-                candidate.TableTemplate.Versions.Max(other => other.VersionNumber),
-                db.SheetTables.Any(table => table.TableTemplateVersionId == candidate.Id)))
+            .Select(candidate => new TemplateVersionState
+            {
+                VersionNumber = candidate.VersionNumber,
+                LatestNumber = candidate.TableTemplate.Versions.Max(other => other.VersionNumber),
+                IsInUse = db.SheetTables.Any(table => table.TableTemplateVersionId == candidate.Id),
+            })
             .SingleOrDefaultAsync(cancellationToken);
     }
 

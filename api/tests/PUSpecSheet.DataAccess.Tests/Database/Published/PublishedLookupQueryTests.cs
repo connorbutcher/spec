@@ -15,7 +15,13 @@ public sealed class PublishedLookupQueryTests : IDisposable
 {
     private static readonly DateTime _moment = new(2026, 10, 4, 18, 0, 0, DateTimeKind.Utc);
 
-    private static readonly ResolvedSheetVersion _version = new(7, Guid.Parse("6f1c0000-0000-0000-0000-000000000001"), 2, _moment);
+    private static readonly ResolvedSheetVersion _version = new ResolvedSheetVersion
+    {
+        SheetId = 7,
+        SheetPublicId = Guid.Parse("6f1c0000-0000-0000-0000-000000000001"),
+        VersionNumber = 2,
+        PublishedAtUtc = _moment,
+    };
 
     private readonly PuSpecSheetDbContext _db = new(
         new DbContextOptionsBuilder<PuSpecSheetDbContext>()
@@ -66,7 +72,19 @@ public sealed class PublishedLookupQueryTests : IDisposable
     [Fact]
     public void AMatchInAColumnBlock_ReadsThatBlockAndTheRowsOwnCellsOnly()
     {
-        var hit = new PublishedLookupHit(7, _version.SheetPublicId, "V6", 3, 4, 10, 1, 2, 6, true);
+        var hit = new PublishedLookupHit
+        {
+            SheetId = 7,
+            SheetPublicId = _version.SheetPublicId,
+            PhaseCode = "V6",
+            SheetTypeId = 3,
+            TableId = 4,
+            SectionId = 10,
+            RowId = 1,
+            CellId = 2,
+            ColumnBlockId = 6,
+            IsHeader = true,
+        };
 
         var sql = PublishedLookupCellQueries.Query(_db, _version, hit, null).ToQueryString();
 
@@ -79,7 +97,18 @@ public sealed class PublishedLookupQueryTests : IDisposable
     [Fact]
     public void AMatchInARow_ReadsItsSectionsAndTheHeader()
     {
-        var hit = new PublishedLookupHit(7, _version.SheetPublicId, "V6", 1, 4, 50, 11, 23, null, false);
+        var hit = new PublishedLookupHit
+        {
+            SheetId = 7,
+            SheetPublicId = _version.SheetPublicId,
+            PhaseCode = "V6",
+            SheetTypeId = 1,
+            TableId = 4,
+            SectionId = 50,
+            RowId = 11,
+            CellId = 23,
+            IsHeader = false,
+        };
 
         var sql = PublishedLookupCellQueries.Query(_db, _version, hit, [50, 51]).ToQueryString();
 
@@ -111,7 +140,19 @@ public sealed class PublishedLookupQueryTests : IDisposable
     public void TheAnswersKey_ChangesWithTheCellsFoundAndTheVersionsRead()
     {
         var criteria = PublishedLookupCriteria.Create("partNumber", "P-1003");
-        var first = new PublishedLookupHit(7, _version.SheetPublicId, "V6", 3, 4, 10, 1, 2, 6, true);
+        var first = new PublishedLookupHit
+        {
+            SheetId = 7,
+            SheetPublicId = _version.SheetPublicId,
+            PhaseCode = "V6",
+            SheetTypeId = 3,
+            TableId = 4,
+            SectionId = 10,
+            RowId = 1,
+            CellId = 2,
+            ColumnBlockId = 6,
+            IsHeader = true,
+        };
         var second = first with { CellId = 9 };
         var versions = new Dictionary<int, ResolvedSheetVersion> { [7] = _version };
         var newer = new Dictionary<int, ResolvedSheetVersion> { [7] = _version with { VersionNumber = 3 } };

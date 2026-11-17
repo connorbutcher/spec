@@ -13,29 +13,92 @@ public sealed class PublishedLookupAssemblerTests
 {
     private const string PartNumberKey = "partNumber";
 
-    private static readonly ResolvedSheetVersion _version = new(1, Id(1), 2, new DateTime(2026, 10, 4, 18, 0, 0, DateTimeKind.Utc));
+    private static readonly ResolvedSheetVersion _version = new ResolvedSheetVersion
+    {
+        SheetId = 1,
+        SheetPublicId = Id(1),
+        VersionNumber = 2,
+        PublishedAtUtc = new DateTime(2026, 10, 4, 18, 0, 0, DateTimeKind.Utc),
+    };
 
     // Table 1 is horizontal: a header (10), a "Limits" section (20) and a "Single value" section (30),
     // with part blocks 5 then 6. Block 7 was removed. Table 2 is vertical: a header (40) and a group (50)
     // holding a limits section (51).
     private static readonly PublishedStructure _structure = new(
         [
-            new PublishedTableRecord(1, Id(100), 0, false, "Piston parts"),
-            new PublishedTableRecord(2, Id(200), 1, false, "Pressures"),
+            new PublishedTableRecord { Id = 1, PublicId = Id(100), DisplayOrder = 0, IsDeleted = false, Title = "Piston parts" },
+            new PublishedTableRecord { Id = 2, PublicId = Id(200), DisplayOrder = 1, IsDeleted = false, Title = "Pressures" },
         ],
         [
-            new PublishedSectionRecord(10, Id(110), 1, null, 0, false, "Header"),
-            new PublishedSectionRecord(30, Id(130), 1, null, 2, false, "Single value"),
-            new PublishedSectionRecord(20, Id(120), 1, null, 1, false, "Limits"),
-            new PublishedSectionRecord(40, Id(140), 2, null, 0, false, "Header"),
-            new PublishedSectionRecord(50, Id(150), 2, null, 1, false, "Group"),
-            new PublishedSectionRecord(51, Id(151), 2, 50, 0, false, "Limits"),
-            new PublishedSectionRecord(60, Id(160), 2, null, 2, false, "Group"),
+            new PublishedSectionRecord
+            {
+                Id = 10,
+                PublicId = Id(110),
+                TableId = 1,
+                DisplayOrder = 0,
+                IsDeleted = false,
+                Name = "Header",
+            },
+            new PublishedSectionRecord
+            {
+                Id = 30,
+                PublicId = Id(130),
+                TableId = 1,
+                DisplayOrder = 2,
+                IsDeleted = false,
+                Name = "Single value",
+            },
+            new PublishedSectionRecord
+            {
+                Id = 20,
+                PublicId = Id(120),
+                TableId = 1,
+                DisplayOrder = 1,
+                IsDeleted = false,
+                Name = "Limits",
+            },
+            new PublishedSectionRecord
+            {
+                Id = 40,
+                PublicId = Id(140),
+                TableId = 2,
+                DisplayOrder = 0,
+                IsDeleted = false,
+                Name = "Header",
+            },
+            new PublishedSectionRecord
+            {
+                Id = 50,
+                PublicId = Id(150),
+                TableId = 2,
+                DisplayOrder = 1,
+                IsDeleted = false,
+                Name = "Group",
+            },
+            new PublishedSectionRecord
+            {
+                Id = 51,
+                PublicId = Id(151),
+                TableId = 2,
+                ParentSectionId = 50,
+                DisplayOrder = 0,
+                IsDeleted = false,
+                Name = "Limits",
+            },
+            new PublishedSectionRecord
+            {
+                Id = 60,
+                PublicId = Id(160),
+                TableId = 2,
+                DisplayOrder = 2,
+                IsDeleted = false,
+                Name = "Group",
+            },
         ],
         [
-            new PublishedColumnBlockRecord(6, Id(206), 1, 1, false, "Part"),
-            new PublishedColumnBlockRecord(5, Id(205), 1, 0, false, "Part"),
-            new PublishedColumnBlockRecord(7, Id(207), 1, 2, true, "Part"),
+            new PublishedColumnBlockRecord { Id = 6, PublicId = Id(206), TableId = 1, DisplayOrder = 1, IsDeleted = false, Name = "Part" },
+            new PublishedColumnBlockRecord { Id = 5, PublicId = Id(205), TableId = 1, DisplayOrder = 0, IsDeleted = false, Name = "Part" },
+            new PublishedColumnBlockRecord { Id = 7, PublicId = Id(207), TableId = 1, DisplayOrder = 2, IsDeleted = true, Name = "Part" },
         ]);
 
     // The horizontal table as read for a match in block 6: the rows' own cells and block 6's cells.
@@ -219,7 +282,19 @@ public sealed class PublishedLookupAssemblerTests
 
     private static PublishedLookupHit Hit(int table, int section, int row, int cell, int? block, bool header)
     {
-        return new PublishedLookupHit(1, Id(1), "V6", 3, table, section, row, cell, block, header);
+        return new PublishedLookupHit
+        {
+            SheetId = 1,
+            SheetPublicId = Id(1),
+            PhaseCode = "V6",
+            SheetTypeId = 3,
+            TableId = table,
+            SectionId = section,
+            RowId = row,
+            CellId = cell,
+            ColumnBlockId = block,
+            IsHeader = header,
+        };
     }
 
     private static PublishedLookupCellRecord Cell(
@@ -234,7 +309,22 @@ public sealed class PublishedLookupAssemblerTests
         string? key = null,
         bool header = false)
     {
-        return new PublishedLookupCellRecord(row * 10, row, RowId(row), section, rowOrder, cell, Id(1000 + cell), block, column, kind, caption, key, header);
+        return new PublishedLookupCellRecord
+        {
+            RowRevisionId = row * 10,
+            RowId = row,
+            RowPublicId = RowId(row),
+            SectionId = section,
+            RowOrder = rowOrder,
+            CellId = cell,
+            CellPublicId = Id(1000 + cell),
+            ColumnBlockId = block,
+            Column = column,
+            Kind = kind,
+            Caption = caption,
+            LookupKey = key,
+            IsHeader = header,
+        };
     }
 
     private static Guid RowId(int row)

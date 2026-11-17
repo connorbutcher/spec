@@ -9,21 +9,13 @@ namespace PUSpecSheet.DataAccess.Published.Versions;
 /// </summary>
 public sealed record ResolvedSheetVersion
 {
-    public ResolvedSheetVersion(int sheetId, Guid sheetPublicId, int versionNumber, DateTime publishedAtUtc)
-    {
-        SheetId = sheetId;
-        SheetPublicId = sheetPublicId;
-        VersionNumber = versionNumber;
-        PublishedAtUtc = publishedAtUtc;
-    }
+    public required int SheetId { get; init; }
 
-    public int SheetId { get; init; }
+    public required Guid SheetPublicId { get; init; }
 
-    public Guid SheetPublicId { get; init; }
+    public required int VersionNumber { get; init; }
 
-    public int VersionNumber { get; init; }
-
-    public DateTime PublishedAtUtc { get; init; }
+    public required DateTime PublishedAtUtc { get; init; }
 
     /// <summary>
     /// Names one answer: this version read with one selection. It is the cache key and, quoted, the ETag.

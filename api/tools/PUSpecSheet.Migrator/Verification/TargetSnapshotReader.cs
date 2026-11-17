@@ -229,7 +229,12 @@ internal static class TargetSnapshotReader
             .Select(value => new { value.SheetCellId, value.SlotKey, value.Position, value.Value })
             .ToListAsync(cancellationToken))
         {
-            For(value.SheetCellId).LabelledText.Add(new LabelledSlot(value.SlotKey, value.Position, value.Value));
+            For(value.SheetCellId).LabelledText.Add(new LabelledSlot
+            {
+                SlotKey = value.SlotKey,
+                Position = value.Position,
+                Value = value.Value,
+            });
         }
 
         foreach (var value in await db.SheetRowRevisions.AsNoTracking()

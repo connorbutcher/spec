@@ -8,16 +8,10 @@ namespace PUSpecSheet.Abstractions.Templates;
 /// </summary>
 public sealed record CreateTemplateSectionRequest
 {
-    public CreateTemplateSectionRequest(int tableTemplateVersionId, int? parentSectionId, [Required, MaxLength(100)] string name)
-    {
-        TableTemplateVersionId = tableTemplateVersionId;
-        ParentSectionId = parentSectionId;
-        Name = name;
-    }
-
-    public int TableTemplateVersionId { get; init; }
+    public required int TableTemplateVersionId { get; init; }
 
     public int? ParentSectionId { get; init; }
 
-    public string Name { get; init; }
+    [Required, MaxLength(100)]
+    public required string Name { get; init; }
 }

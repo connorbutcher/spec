@@ -73,7 +73,12 @@ public sealed class LiveRowCheckoutTracker
             return _byConnection.Values
                 .Where(checkout => checkout.SheetId == sheetId)
                 .OrderBy(checkout => checkout.RowId)
-                .Select(checkout => new RowCheckoutDto(checkout.RowId, checkout.UserId, checkout.DisplayName))
+                .Select(checkout => new RowCheckoutDto
+                {
+                    RowId = checkout.RowId,
+                    UserId = checkout.UserId,
+                    UserName = checkout.DisplayName,
+                })
                 .ToList();
         }
     }

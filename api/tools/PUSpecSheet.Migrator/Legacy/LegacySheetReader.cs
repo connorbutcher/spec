@@ -207,10 +207,12 @@ internal sealed class LegacySheetReader
 
         await using (var command = new SqlCommand(LegacySql.LabelledTextValues, _connection))
         {
-            await ReadAllAsync(command, sheet, reader => For(reader).LabelledText.Add(new LabelledSlot(
-                reader.GetString("SlotKey"),
-                reader.GetInt32("Position"),
-                reader.GetString("Value"))), cancellationToken);
+            await ReadAllAsync(command, sheet, reader => For(reader).LabelledText.Add(new LabelledSlot
+            {
+                SlotKey = reader.GetString("SlotKey"),
+                Position = reader.GetInt32("Position"),
+                Value = reader.GetString("Value"),
+            }), cancellationToken);
         }
 
         await using (var command = new SqlCommand(LegacySql.CellSettings, _connection))

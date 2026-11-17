@@ -9,43 +9,15 @@ namespace PUSpecSheet.Abstractions.Sheets;
 /// </summary>
 public sealed record SheetDto
 {
-    public SheetDto(
-        int id,
-        Guid publicId,
-        int phaseId,
-        int sheetTypeId,
-        bool isLive,
-        int? viewedVersionNumber,
-        DateTime? viewedAsOfUtc,
-        int? latestVersionNumber,
-        int myDraftCount,
-        IReadOnlyList<SheetVersionSummaryDto> versions,
-        IReadOnlyList<SheetTableDto> tables,
-        IReadOnlyList<AvailableTemplateDto> availableTemplates)
-    {
-        Id = id;
-        PublicId = publicId;
-        PhaseId = phaseId;
-        SheetTypeId = sheetTypeId;
-        IsLive = isLive;
-        ViewedVersionNumber = viewedVersionNumber;
-        ViewedAsOfUtc = viewedAsOfUtc;
-        LatestVersionNumber = latestVersionNumber;
-        MyDraftCount = myDraftCount;
-        Versions = versions;
-        Tables = tables;
-        AvailableTemplates = availableTemplates;
-    }
+    public required int Id { get; init; }
 
-    public int Id { get; init; }
+    public required Guid PublicId { get; init; }
 
-    public Guid PublicId { get; init; }
+    public required int PhaseId { get; init; }
 
-    public int PhaseId { get; init; }
+    public required int SheetTypeId { get; init; }
 
-    public int SheetTypeId { get; init; }
-
-    public bool IsLive { get; init; }
+    public required bool IsLive { get; init; }
 
     public int? ViewedVersionNumber { get; init; }
 
@@ -53,13 +25,13 @@ public sealed record SheetDto
 
     public int? LatestVersionNumber { get; init; }
 
-    public int MyDraftCount { get; init; }
+    public required int MyDraftCount { get; init; }
 
-    public IReadOnlyList<SheetVersionSummaryDto> Versions { get; init; }
+    public required IReadOnlyList<SheetVersionSummaryDto> Versions { get; init; }
 
-    public IReadOnlyList<SheetTableDto> Tables { get; init; }
+    public required IReadOnlyList<SheetTableDto> Tables { get; init; }
 
-    public IReadOnlyList<AvailableTemplateDto> AvailableTemplates { get; init; }
+    public required IReadOnlyList<AvailableTemplateDto> AvailableTemplates { get; init; }
 
     /// <summary>The sheet's identifier values, which tell it from the phase's other sheets of its type.</summary>
     public IReadOnlyList<SheetIdentifierValueDto> Identifiers { get; init; } = [];

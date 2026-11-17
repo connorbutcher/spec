@@ -4,19 +4,11 @@ namespace PUSpecSheet.Abstractions.Templates;
 
 public sealed record UpdateTableTemplateRequest
 {
-    public UpdateTableTemplateRequest(
-        [Required, MaxLength(100)] string name,
-        TemplateOrientation orientation,
-        [Range(0, 50)] int stickyColumnCount)
-    {
-        Name = name;
-        Orientation = orientation;
-        StickyColumnCount = stickyColumnCount;
-    }
+    [Required, MaxLength(100)]
+    public required string Name { get; init; }
 
-    public string Name { get; init; }
+    public required TemplateOrientation Orientation { get; init; }
 
-    public TemplateOrientation Orientation { get; init; }
-
-    public int StickyColumnCount { get; init; }
+    [Range(0, 50)]
+    public required int StickyColumnCount { get; init; }
 }

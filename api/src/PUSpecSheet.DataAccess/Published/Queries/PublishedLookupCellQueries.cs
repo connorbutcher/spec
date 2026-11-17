@@ -121,19 +121,21 @@ public static class PublishedLookupCellQueries
                 && revision.PublishedAtUtc <= moment
                 && (revision.SupersededAtUtc == null || revision.SupersededAtUtc > moment)
                 && !revision.IsDeleted),
-            (cell, revision) => new PublishedLookupCellRecord(
-                revision.Id,
-                cell.SheetRowId,
-                cell.SheetRow.PublicId,
-                cell.SheetRow.SheetSectionId,
-                revision.DisplayOrder,
-                cell.Id,
-                cell.PublicId,
-                cell.SheetColumnBlockId,
-                cell.TemplateCell.Column,
-                cell.TemplateCell.CellType.Kind,
-                cell.TemplateCell.Caption,
-                cell.TemplateCell.LookupKey,
-                cell.SheetRow.SheetSection.TemplateSection.Role == SectionRole.Header));
+            (cell, revision) => new PublishedLookupCellRecord
+            {
+                RowRevisionId = revision.Id,
+                RowId = cell.SheetRowId,
+                RowPublicId = cell.SheetRow.PublicId,
+                SectionId = cell.SheetRow.SheetSectionId,
+                RowOrder = revision.DisplayOrder,
+                CellId = cell.Id,
+                CellPublicId = cell.PublicId,
+                ColumnBlockId = cell.SheetColumnBlockId,
+                Column = cell.TemplateCell.Column,
+                Kind = cell.TemplateCell.CellType.Kind,
+                Caption = cell.TemplateCell.Caption,
+                LookupKey = cell.TemplateCell.LookupKey,
+                IsHeader = cell.SheetRow.SheetSection.TemplateSection.Role == SectionRole.Header,
+            });
     }
 }

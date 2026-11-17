@@ -18,7 +18,12 @@ internal sealed class FakeRemovalInProgressGuard : IRemovalInProgressGuard
     {
         if (_removedRows.TryGetValue(rowId, out var removal))
         {
-            var refusal = PendingRemovals.Blocking([new PendingRemoval(RemovedContainer.Section, removal.RemoverUserId, awaitingApproval: false)], userId);
+            var refusal = PendingRemovals.Blocking([new PendingRemoval
+            {
+                Container = RemovedContainer.Section,
+                AuthorUserId = removal.RemoverUserId,
+                AwaitingApproval = false,
+            }], userId);
             if (refusal is not null)
             {
                 throw new ConflictException(PendingRemovals.RefusalFor(refusal, removal.RemoverName));

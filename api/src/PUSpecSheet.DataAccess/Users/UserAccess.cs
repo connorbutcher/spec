@@ -6,33 +6,17 @@ namespace PUSpecSheet.DataAccess.Users;
 /// <summary>Who a user is and what their roles allow them to do.</summary>
 public sealed record UserAccess
 {
-    public UserAccess(
-        int userId,
-        string userName,
-        string displayName,
-        bool isAdministrator,
-        IReadOnlyList<string> roles,
-        IReadOnlyList<string> permissions)
-    {
-        UserId = userId;
-        UserName = userName;
-        DisplayName = displayName;
-        IsAdministrator = isAdministrator;
-        Roles = roles;
-        Permissions = permissions;
-    }
+    public required int UserId { get; init; }
 
-    public int UserId { get; init; }
+    public required string UserName { get; init; }
 
-    public string UserName { get; init; }
+    public required string DisplayName { get; init; }
 
-    public string DisplayName { get; init; }
+    public required bool IsAdministrator { get; init; }
 
-    public bool IsAdministrator { get; init; }
+    public required IReadOnlyList<string> Roles { get; init; }
 
-    public IReadOnlyList<string> Roles { get; init; }
-
-    public IReadOnlyList<string> Permissions { get; init; }
+    public required IReadOnlyList<string> Permissions { get; init; }
 
     /// <summary>Whether the user may do what <paramref name="permission"/> names. An administrator may do anything.</summary>
     public bool Has(string permission)
@@ -43,7 +27,15 @@ public sealed record UserAccess
     /// <summary>The access of a user that doesn't exist: nothing.</summary>
     public static UserAccess None(int userId)
     {
-        return new UserAccess(userId, string.Empty, string.Empty, false, [], []);
+        return new UserAccess
+        {
+            UserId = userId,
+            UserName = string.Empty,
+            DisplayName = string.Empty,
+            IsAdministrator = false,
+            Roles = [],
+            Permissions = [],
+        };
     }
 
     /// <summary>
@@ -68,12 +60,14 @@ public sealed record UserAccess
                 .Order(StringComparer.Ordinal)
                 .ToList();
 
-        return new UserAccess(
-            user.Id,
-            user.UserName,
-            user.DisplayName,
-            isAdministrator,
-            roles.Select(role => role.Name).ToList(),
-            permissions);
+        return new UserAccess
+        {
+            UserId = user.Id,
+            UserName = user.UserName,
+            DisplayName = user.DisplayName,
+            IsAdministrator = isAdministrator,
+            Roles = roles.Select(role => role.Name).ToList(),
+            Permissions = permissions,
+        };
     }
 }

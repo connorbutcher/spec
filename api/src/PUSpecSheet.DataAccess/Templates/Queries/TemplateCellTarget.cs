@@ -3,13 +3,7 @@ namespace PUSpecSheet.DataAccess.Templates.Queries;
 /// <summary>The template version a new cell's row is in, and the first free column after the row's cells.</summary>
 public sealed record TemplateCellTarget
 {
-    public TemplateCellTarget(int tableTemplateVersionId, int nextColumn)
-    {
-        TableTemplateVersionId = tableTemplateVersionId;
-        NextColumn = nextColumn;
-    }
+    public required int TableTemplateVersionId { get; init; }
 
-    public int TableTemplateVersionId { get; init; }
-
-    public int NextColumn { get; init; }
+    public required int NextColumn { get; init; }
 }

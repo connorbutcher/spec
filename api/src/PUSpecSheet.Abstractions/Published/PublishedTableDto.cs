@@ -8,24 +8,12 @@ namespace PUSpecSheet.Abstractions.Published;
 /// </summary>
 public sealed record PublishedTableDto
 {
-    public PublishedTableDto(
-        Guid id,
-        string? title,
-        IReadOnlyList<PublishedSectionDto> sections,
-        IReadOnlyList<PublishedColumnBlockDto>? columns)
-    {
-        Id = id;
-        Title = title;
-        Sections = sections;
-        Columns = columns;
-    }
-
-    public Guid Id { get; init; }
+    public required Guid Id { get; init; }
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? Title { get; init; }
 
-    public IReadOnlyList<PublishedSectionDto> Sections { get; init; }
+    public required IReadOnlyList<PublishedSectionDto> Sections { get; init; }
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public IReadOnlyList<PublishedColumnBlockDto>? Columns { get; init; }

@@ -79,7 +79,13 @@ public sealed class PublishedStructure
             }
         }
 
-        return new PublishedSelectionScope(tableIds, [.. sectionIds], [.. selection.Rows], [.. selection.Cells]);
+        return new PublishedSelectionScope
+        {
+            TableIds = tableIds,
+            SectionIds = [.. sectionIds],
+            RowPublicIds = [.. selection.Rows],
+            CellPublicIds = [.. selection.Cells],
+        };
     }
 
     private bool IsOnSheet(PublishedSectionRecord section, Dictionary<int, PublishedSectionRecord> candidates)

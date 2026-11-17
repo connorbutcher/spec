@@ -10,19 +10,12 @@ namespace PUSpecSheet.Abstractions.Approvals;
 /// </summary>
 public sealed record SubmitSheetRequest
 {
-    public SubmitSheetRequest(
-        [StringLength(1000)] string? note,
-        [Required, MinLength(1), MaxLength(20)] IReadOnlyList<int> approverUserIds,
-        [EnumDataType(typeof(PublishScope))] PublishScope scope = PublishScope.Mine)
-    {
-        Note = note;
-        ApproverUserIds = approverUserIds;
-        Scope = scope;
-    }
-
+    [StringLength(1000)]
     public string? Note { get; init; }
 
-    public IReadOnlyList<int> ApproverUserIds { get; init; }
+    [Required, MinLength(1), MaxLength(20)]
+    public required IReadOnlyList<int> ApproverUserIds { get; init; }
 
-    public PublishScope Scope { get; init; }
+    [EnumDataType(typeof(PublishScope))]
+    public PublishScope Scope { get; init; } = PublishScope.Mine;
 }

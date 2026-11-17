@@ -53,16 +53,18 @@ public sealed class RowTakeoverStoreTests
 
     private static RowTakeoverDto Takeover(int rowId, int requester, int holder = 1, int sheetId = 1)
     {
-        return new RowTakeoverDto(
-            Guid.NewGuid(),
-            sheetId,
-            rowId,
-            requester,
-            "Requester",
-            holder,
-            "Holder",
-            _asked,
-            _asked.AddSeconds(60),
-            RowTakeoverStatus.Pending);
+        return new RowTakeoverDto
+        {
+            Id = Guid.NewGuid(),
+            SheetId = sheetId,
+            RowId = rowId,
+            RequesterUserId = requester,
+            RequesterName = "Requester",
+            HolderUserId = holder,
+            HolderName = "Holder",
+            RequestedAtUtc = _asked,
+            ExpiresAtUtc = _asked.AddSeconds(60),
+            Status = RowTakeoverStatus.Pending,
+        };
     }
 }

@@ -57,7 +57,13 @@ public static class RowValueQueries
         return await db.CellSettings
             .AsNoTracking()
             .Where(value => revisionIds.Contains(value.SheetRowRevisionId))
-            .Select(value => new ChosenSettings(value.SheetRowRevisionId, value.Settings, value.SheetCell.TemplateCellId, value.SheetCell.SheetColumnBlockId))
+            .Select(value => new ChosenSettings
+            {
+                SheetRowRevisionId = value.SheetRowRevisionId,
+                Settings = value.Settings,
+                TemplateCellId = value.SheetCell.TemplateCellId,
+                SheetColumnBlockId = value.SheetCell.SheetColumnBlockId,
+            })
             .ToListAsync(cancellationToken);
     }
 

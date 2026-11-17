@@ -54,9 +54,11 @@ internal static class LinkableColumns
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
         return columns
-            .Select(column => new SheetLinkableColumnDto(
-                column.Cell.Id,
-                repeated.Contains(column.Label) ? $"{column.Label} ({column.Section})" : column.Label))
+            .Select(column => new SheetLinkableColumnDto
+            {
+                TemplateCellId = column.Cell.Id,
+                Label = repeated.Contains(column.Label) ? $"{column.Label} ({column.Section})" : column.Label,
+            })
             .ToList();
     }
 

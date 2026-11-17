@@ -3,16 +3,9 @@ namespace PUSpecSheet.Abstractions.Sheets;
 /// <summary>A table template of the sheet's type that can be added as a table, at its latest version.</summary>
 public sealed record AvailableTemplateDto
 {
-    public AvailableTemplateDto(int id, string name, int latestVersionNumber)
-    {
-        Id = id;
-        Name = name;
-        LatestVersionNumber = latestVersionNumber;
-    }
+    public required int Id { get; init; }
 
-    public int Id { get; init; }
+    public required string Name { get; init; }
 
-    public string Name { get; init; }
-
-    public int LatestVersionNumber { get; init; }
+    public required int LatestVersionNumber { get; init; }
 }

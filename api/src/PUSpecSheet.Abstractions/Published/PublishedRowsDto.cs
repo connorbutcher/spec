@@ -7,27 +7,13 @@ namespace PUSpecSheet.Abstractions.Published;
 /// </summary>
 public sealed record PublishedRowsDto
 {
-    public PublishedRowsDto(
-        Guid sheet,
-        int version,
-        DateTime publishedAtUtc,
-        IReadOnlyDictionary<Guid, PublishedRowValuesDto> rows,
-        IReadOnlyList<Guid> missing)
-    {
-        Sheet = sheet;
-        Version = version;
-        PublishedAtUtc = publishedAtUtc;
-        Rows = rows;
-        Missing = missing;
-    }
+    public required Guid Sheet { get; init; }
 
-    public Guid Sheet { get; init; }
+    public required int Version { get; init; }
 
-    public int Version { get; init; }
+    public required DateTime PublishedAtUtc { get; init; }
 
-    public DateTime PublishedAtUtc { get; init; }
+    public required IReadOnlyDictionary<Guid, PublishedRowValuesDto> Rows { get; init; }
 
-    public IReadOnlyDictionary<Guid, PublishedRowValuesDto> Rows { get; init; }
-
-    public IReadOnlyList<Guid> Missing { get; init; }
+    public required IReadOnlyList<Guid> Missing { get; init; }
 }

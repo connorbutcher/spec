@@ -9,23 +9,15 @@ namespace PUSpecSheet.Abstractions.Templates;
 /// </summary>
 public sealed record UpdateTemplateSectionRequest
 {
-    public UpdateTemplateSectionRequest(
-        [Required, MaxLength(100)] string name,
-        [Range(0, 1000)] int minInstances,
-        [Range(1, 1000)] int? maxInstances,
-        [Range(0, 1000)] int initialInstances)
-    {
-        Name = name;
-        MinInstances = minInstances;
-        MaxInstances = maxInstances;
-        InitialInstances = initialInstances;
-    }
+    [Required, MaxLength(100)]
+    public required string Name { get; init; }
 
-    public string Name { get; init; }
+    [Range(0, 1000)]
+    public required int MinInstances { get; init; }
 
-    public int MinInstances { get; init; }
-
+    [Range(1, 1000)]
     public int? MaxInstances { get; init; }
 
-    public int InitialInstances { get; init; }
+    [Range(0, 1000)]
+    public required int InitialInstances { get; init; }
 }

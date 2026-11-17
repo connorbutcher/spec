@@ -20,7 +20,7 @@ internal static class DraftSummaries
         return drafts
             .Where(draft => draft.AuthorUserId != userId)
             .GroupBy(draft => draft.AuthorUserId)
-            .Select(group => new SheetDraftSummaryDto(group.Key, userName(group.Key), group.Count()))
+            .Select(group => new SheetDraftSummaryDto { UserId = group.Key, UserName = userName(group.Key), DraftCount = group.Count() })
             .OrderBy(summary => summary.UserName, StringComparer.OrdinalIgnoreCase)
             .ThenBy(summary => summary.UserId)
             .ToList();

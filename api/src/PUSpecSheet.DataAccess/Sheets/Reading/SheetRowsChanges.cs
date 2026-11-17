@@ -25,13 +25,17 @@ public static class SheetRowsChanges
         }
 
         var templateCellIds = rows.SelectMany(row => row.Cells).Select(cell => cell.TemplateCellId).ToHashSet();
-        return new SheetRowsChangeDto(sheet.Id, rows, sheet.LatestVersionNumber, sheet.MyDraftCount)
+        return new SheetRowsChangeDto
         {
+            SheetId = sheet.Id,
+            Rows = rows,
+            LatestVersionNumber = sheet.LatestVersionNumber,
+            MyDraftCount = sheet.MyDraftCount,
             OtherDrafts = sheet.OtherDrafts,
             LinkedSources = sheet.LinkedSources,
             LinkableRows = sheet.Tables
                 .Where(table => tableIds.Contains(table.Id))
-                .Select(table => new SheetTableLinkableRowsDto(table.Id, table.LinkableRows))
+                .Select(table => new SheetTableLinkableRowsDto { SheetTableId = table.Id, Rows = table.LinkableRows })
                 .ToList(),
             TemplateCells = sheet.TemplateCells.Where(templateCell => templateCellIds.Contains(templateCell.Id)).ToList(),
             Sheet = sheet,

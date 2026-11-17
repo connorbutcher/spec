@@ -104,7 +104,7 @@ public sealed partial class ShowcaseDataSeeder
             templateIds[template.Name] = await _templates.CreateAsync(template, catalog, cancellationToken);
         }
 
-        var context = new ShowcaseContext(catalog, phaseIds, templateIds);
+        var context = new ShowcaseContext { CellTypes = catalog, PhaseIds = phaseIds, TemplateIds = templateIds };
 
         // V6 is built from version 1 of each template.
         await _specification.SeedV6Async(context, cancellationToken);

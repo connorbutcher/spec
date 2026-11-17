@@ -6,31 +6,15 @@ namespace PUSpecSheet.Abstractions.Users;
 /// </summary>
 public sealed record CurrentUserDto
 {
-    public CurrentUserDto(
-        int id,
-        string userName,
-        string displayName,
-        bool isAdministrator,
-        IReadOnlyList<string> roles,
-        IReadOnlyList<string> permissions)
-    {
-        Id = id;
-        UserName = userName;
-        DisplayName = displayName;
-        IsAdministrator = isAdministrator;
-        Roles = roles;
-        Permissions = permissions;
-    }
+    public required int Id { get; init; }
 
-    public int Id { get; init; }
+    public required string UserName { get; init; }
 
-    public string UserName { get; init; }
+    public required string DisplayName { get; init; }
 
-    public string DisplayName { get; init; }
+    public required bool IsAdministrator { get; init; }
 
-    public bool IsAdministrator { get; init; }
+    public required IReadOnlyList<string> Roles { get; init; }
 
-    public IReadOnlyList<string> Roles { get; init; }
-
-    public IReadOnlyList<string> Permissions { get; init; }
+    public required IReadOnlyList<string> Permissions { get; init; }
 }

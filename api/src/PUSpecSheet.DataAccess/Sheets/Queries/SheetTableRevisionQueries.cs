@@ -25,7 +25,12 @@ public static class SheetTableRevisionQueries
     {
         return await db.SheetTableRevisions
             .Where(revision => revision.SheetTableId == tableId && revision.Status == RevisionStatus.Draft && revision.IsDeleted)
-            .Select(revision => new PendingRemoval(RemovedContainer.Table, revision.AuthorUserId, revision.SheetSubmissionId != null))
+            .Select(revision => new PendingRemoval
+            {
+                Container = RemovedContainer.Table,
+                AuthorUserId = revision.AuthorUserId,
+                AwaitingApproval = revision.SheetSubmissionId != null,
+            })
             .ToListAsync(cancellationToken);
     }
 }

@@ -25,7 +25,12 @@ public static class SheetSectionRevisionQueries
     {
         return await db.SheetSectionRevisions
             .Where(revision => revision.SheetSection.SheetTableId == tableId && revision.Status == RevisionStatus.Draft && revision.IsDeleted)
-            .Select(revision => new SectionRemoval(revision.SheetSectionId, revision.AuthorUserId, revision.SheetSubmissionId != null))
+            .Select(revision => new SectionRemoval
+            {
+                SheetSectionId = revision.SheetSectionId,
+                AuthorUserId = revision.AuthorUserId,
+                AwaitingApproval = revision.SheetSubmissionId != null,
+            })
             .ToListAsync(cancellationToken);
     }
 

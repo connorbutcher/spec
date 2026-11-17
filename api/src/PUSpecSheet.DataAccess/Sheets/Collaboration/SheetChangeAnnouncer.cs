@@ -78,7 +78,7 @@ public sealed class SheetChangeAnnouncer
                 ? SheetLockSignature.ChangedRows(announced, signature)
                 : null;
             _lastAnnounced[sheetId] = signature;
-            return rows is null ? SheetChangedNoticeDto.Everything : new SheetChangedNoticeDto(rows);
+            return rows is null ? SheetChangedNoticeDto.Everything : new SheetChangedNoticeDto { RowIds = rows };
         }
     }
 

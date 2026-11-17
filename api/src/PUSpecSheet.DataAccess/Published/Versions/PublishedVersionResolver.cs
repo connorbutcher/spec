@@ -25,11 +25,13 @@ public sealed class PublishedVersionResolver
         var found = await PublishedSheetQueries.FindVersionAsync(_db, sheetPublicId, point, cancellationToken)
             ?? throw new NotFoundException(Describe(sheetPublicId, point));
 
-        return new ResolvedSheetVersion(
-            found.SheetId,
-            sheetPublicId,
-            found.VersionNumber,
-            DateTime.SpecifyKind(found.PublishedAtUtc, DateTimeKind.Utc));
+        return new ResolvedSheetVersion
+        {
+            SheetId = found.SheetId,
+            SheetPublicId = sheetPublicId,
+            VersionNumber = found.VersionNumber,
+            PublishedAtUtc = DateTime.SpecifyKind(found.PublishedAtUtc, DateTimeKind.Utc),
+        };
     }
 
 

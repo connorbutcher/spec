@@ -24,8 +24,10 @@ public sealed class PartsSheetSeeder
 
     private static readonly PartsGroup[] _groups =
     [
-        new(
-            "Piston",
+        new PartsGroup
+        {
+            Name = "Piston",
+            Rows =
             [
                 (PartsMatrixTemplate.Dimension, "Skirt diameter", "DWG-2101 sh.2", 81.960m, 0.005m, 0.010m),
                 (PartsMatrixTemplate.Dimension, "Compression height", "DWG-2101 sh.2", 31.500m, 0.050m, 0.030m),
@@ -33,22 +35,29 @@ public sealed class PartsSheetSeeder
                 (PartsMatrixTemplate.SingleValue, "Weight (g)", "DWG-2101 sh.1", 410m, -6m, 0m),
                 (PartsMatrixTemplate.Check, "Crown visual check", "QP-118", 0m, 0m, 0m),
                 (PartsMatrixTemplate.FirstArticle, "First article inspection", "QP-102", 0m, 0m, 0m),
-            ]),
-        new(
-            "Connecting rod",
+            ],
+        },
+        new PartsGroup
+        {
+            Name = "Connecting rod",
+            Rows =
             [
                 (PartsMatrixTemplate.Dimension, "Big end bore", "DWG-2205 sh.1", 51.000m, 0.000m, 0.010m),
                 (PartsMatrixTemplate.Dimension, "Small end bore", "DWG-2205 sh.1", 21.010m, 0.000m, 0.008m),
                 (PartsMatrixTemplate.SingleValue, "Big end mass (g)", "DWG-2205 sh.2", 520m, 4m, 0m),
                 (PartsMatrixTemplate.Fastener, "Rod bolt", "DWG-2205 sh.3", 8m, 1m, 0m),
-            ]),
-        new(
-            "Ring pack",
+            ],
+        },
+        new PartsGroup
+        {
+            Name = "Ring pack",
+            Rows =
             [
                 (PartsMatrixTemplate.Dimension, "Top ring gap", "DWG-2140", 0.300m, 0.010m, 0.100m),
                 (PartsMatrixTemplate.SingleValue, "Ring tension (N)", "DWG-2140", 12.5m, 0.5m, 0m),
                 (PartsMatrixTemplate.Check, "Coating adhesion", "QP-131", 0m, 0m, 0m),
-            ]),
+            ],
+        },
     ];
 
     private readonly SheetEditorFactory _editors;
@@ -198,7 +207,7 @@ public sealed class PartsSheetSeeder
 
         // The part's only cell in the top header row is its part numbers.
         var cell = header.Cells.Single(candidate => candidate.SheetColumnBlockId == partId);
-        var settings = new LabelledTextInstanceSettings { Slots = [new LabelledTextSlot("both", "Both")] };
+        var settings = new LabelledTextInstanceSettings { Slots = [new LabelledTextSlot { Key = "both", Label = "Both" }] };
         await editor.ChooseSettingsAsync(header, cell, settings, cancellationToken);
         return new Dictionary<string, string> { ["both"] = $"PU-{1001 + part}-{suffix}" };
     }

@@ -8,13 +8,8 @@ namespace PUSpecSheet.Abstractions.Templates;
 /// </summary>
 public sealed record CreateTemplateColumnBlockRequest
 {
-    public CreateTemplateColumnBlockRequest(int tableTemplateVersionId, [Required, MaxLength(100)] string name)
-    {
-        TableTemplateVersionId = tableTemplateVersionId;
-        Name = name;
-    }
+    public required int TableTemplateVersionId { get; init; }
 
-    public int TableTemplateVersionId { get; init; }
-
-    public string Name { get; init; }
+    [Required, MaxLength(100)]
+    public required string Name { get; init; }
 }

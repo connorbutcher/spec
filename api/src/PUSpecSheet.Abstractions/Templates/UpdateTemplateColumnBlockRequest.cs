@@ -8,27 +8,18 @@ namespace PUSpecSheet.Abstractions.Templates;
 /// </summary>
 public sealed record UpdateTemplateColumnBlockRequest
 {
-    public UpdateTemplateColumnBlockRequest(
-        [Required, MaxLength(100)] string name,
-        [Range(0, 1000)] int minInstances,
-        [Range(1, 1000)] int? maxInstances,
-        [Range(0, 1000)] int initialInstances,
-        [Range(0, 50)] int stickyColumnCount)
-    {
-        Name = name;
-        MinInstances = minInstances;
-        MaxInstances = maxInstances;
-        InitialInstances = initialInstances;
-        StickyColumnCount = stickyColumnCount;
-    }
+    [Required, MaxLength(100)]
+    public required string Name { get; init; }
 
-    public string Name { get; init; }
+    [Range(0, 1000)]
+    public required int MinInstances { get; init; }
 
-    public int MinInstances { get; init; }
-
+    [Range(1, 1000)]
     public int? MaxInstances { get; init; }
 
-    public int InitialInstances { get; init; }
+    [Range(0, 1000)]
+    public required int InitialInstances { get; init; }
 
-    public int StickyColumnCount { get; init; }
+    [Range(0, 50)]
+    public required int StickyColumnCount { get; init; }
 }

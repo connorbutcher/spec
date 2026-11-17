@@ -8,69 +8,35 @@ namespace PUSpecSheet.Abstractions.Sheets;
 /// </summary>
 public sealed record SheetTableDto
 {
-    public SheetTableDto(
-        int id,
-        Guid publicId,
-        int tableTemplateId,
-        string templateName,
-        int templateVersionNumber,
-        TemplateOrientation orientation,
-        int stickyColumnCount,
-        string? title,
-        int displayOrder,
-        SheetLockDto? @lock,
-        bool isPending,
-        IReadOnlyList<SheetSectionDto> sections,
-        IReadOnlyList<AddableSectionDto> addableSections,
-        IReadOnlyList<SheetColumnBlockDto> columnBlocks,
-        IReadOnlyList<AddableColumnBlockDto> addableColumnBlocks)
-    {
-        Id = id;
-        PublicId = publicId;
-        TableTemplateId = tableTemplateId;
-        TemplateName = templateName;
-        TemplateVersionNumber = templateVersionNumber;
-        Orientation = orientation;
-        StickyColumnCount = stickyColumnCount;
-        Title = title;
-        DisplayOrder = displayOrder;
-        Lock = @lock;
-        IsPending = isPending;
-        Sections = sections;
-        AddableSections = addableSections;
-        ColumnBlocks = columnBlocks;
-        AddableColumnBlocks = addableColumnBlocks;
-    }
+    public required int Id { get; init; }
 
-    public int Id { get; init; }
+    public required Guid PublicId { get; init; }
 
-    public Guid PublicId { get; init; }
+    public required int TableTemplateId { get; init; }
 
-    public int TableTemplateId { get; init; }
+    public required string TemplateName { get; init; }
 
-    public string TemplateName { get; init; }
+    public required int TemplateVersionNumber { get; init; }
 
-    public int TemplateVersionNumber { get; init; }
+    public required TemplateOrientation Orientation { get; init; }
 
-    public TemplateOrientation Orientation { get; init; }
-
-    public int StickyColumnCount { get; init; }
+    public required int StickyColumnCount { get; init; }
 
     public string? Title { get; init; }
 
-    public int DisplayOrder { get; init; }
+    public required int DisplayOrder { get; init; }
 
     public SheetLockDto? Lock { get; init; }
 
-    public bool IsPending { get; init; }
+    public required bool IsPending { get; init; }
 
-    public IReadOnlyList<SheetSectionDto> Sections { get; init; }
+    public required IReadOnlyList<SheetSectionDto> Sections { get; init; }
 
-    public IReadOnlyList<AddableSectionDto> AddableSections { get; init; }
+    public required IReadOnlyList<AddableSectionDto> AddableSections { get; init; }
 
-    public IReadOnlyList<SheetColumnBlockDto> ColumnBlocks { get; init; }
+    public required IReadOnlyList<SheetColumnBlockDto> ColumnBlocks { get; init; }
 
-    public IReadOnlyList<AddableColumnBlockDto> AddableColumnBlocks { get; init; }
+    public required IReadOnlyList<AddableColumnBlockDto> AddableColumnBlocks { get; init; }
 
     /// <summary>The table's columns a linked dropdown on the sheet can take its choices from.</summary>
     public IReadOnlyList<SheetLinkableColumnDto> LinkableColumns { get; init; } = [];

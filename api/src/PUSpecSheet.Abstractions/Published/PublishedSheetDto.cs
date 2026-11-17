@@ -9,27 +9,11 @@ namespace PUSpecSheet.Abstractions.Published;
 /// </summary>
 public sealed record PublishedSheetDto
 {
-    public PublishedSheetDto(
-        Guid sheet,
-        int version,
-        DateTime publishedAtUtc,
-        IReadOnlyList<PublishedTableDto>? tables,
-        IReadOnlyDictionary<Guid, object>? cells,
-        IReadOnlyList<Guid> missing)
-    {
-        Sheet = sheet;
-        Version = version;
-        PublishedAtUtc = publishedAtUtc;
-        Tables = tables;
-        Cells = cells;
-        Missing = missing;
-    }
+    public required Guid Sheet { get; init; }
 
-    public Guid Sheet { get; init; }
+    public required int Version { get; init; }
 
-    public int Version { get; init; }
-
-    public DateTime PublishedAtUtc { get; init; }
+    public required DateTime PublishedAtUtc { get; init; }
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public IReadOnlyList<PublishedTableDto>? Tables { get; init; }
@@ -37,5 +21,5 @@ public sealed record PublishedSheetDto
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public IReadOnlyDictionary<Guid, object>? Cells { get; init; }
 
-    public IReadOnlyList<Guid> Missing { get; init; }
+    public required IReadOnlyList<Guid> Missing { get; init; }
 }

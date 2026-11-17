@@ -32,7 +32,7 @@ public static class PuSpecSheetAuthorizationExtensions
             .SetFallbackPolicy(new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build());
         foreach (var permission in PermissionKeys.All)
         {
-            authorization.AddPolicy(permission, policy => policy.AddRequirements(new PermissionRequirement(permission)));
+            authorization.AddPolicy(permission, policy => policy.AddRequirements(new PermissionRequirement { Permission = permission }));
         }
 
         return services;

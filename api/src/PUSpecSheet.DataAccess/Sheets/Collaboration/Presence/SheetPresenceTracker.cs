@@ -81,7 +81,12 @@ public sealed class SheetPresenceTracker
 
             return onSheet
                 .GroupBy(connection => connection.UserId)
-                .Select(user => new SheetPresenceUserDto(user.Key, user.First().DisplayName, user.Count()))
+                .Select(user => new SheetPresenceUserDto
+                {
+                    UserId = user.Key,
+                    DisplayName = user.First().DisplayName,
+                    ConnectionCount = user.Count(),
+                })
                 .OrderBy(user => user.DisplayName, StringComparer.OrdinalIgnoreCase)
                 .ThenBy(user => user.UserId)
                 .ToList();

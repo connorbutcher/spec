@@ -3,13 +3,7 @@ namespace PUSpecSheet.Api.ApiDocumentation;
 /// <summary>A tag and the text shown under its heading in the API documentation.</summary>
 public sealed record ApiTagDescription
 {
-    public ApiTagDescription(string name, string description)
-    {
-        Name = name;
-        Description = description;
-    }
+    public required string Name { get; init; }
 
-    public string Name { get; init; }
-
-    public string Description { get; init; }
+    public required string Description { get; init; }
 }

@@ -8,15 +8,9 @@ namespace PUSpecSheet.Abstractions.Templates;
 /// </summary>
 public sealed record CreateTemplateRowRequest
 {
-    public CreateTemplateRowRequest(int templateSectionId, [Range(1, int.MaxValue)] int? position = null, int? copyFromRowId = null)
-    {
-        TemplateSectionId = templateSectionId;
-        Position = position;
-        CopyFromRowId = copyFromRowId;
-    }
+    public required int TemplateSectionId { get; init; }
 
-    public int TemplateSectionId { get; init; }
-
+    [Range(1, int.MaxValue)]
     public int? Position { get; init; }
 
     public int? CopyFromRowId { get; init; }

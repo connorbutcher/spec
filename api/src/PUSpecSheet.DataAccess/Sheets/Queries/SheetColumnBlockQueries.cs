@@ -33,7 +33,7 @@ public static class SheetColumnBlockQueries
         return await db.SheetColumnBlocks
             .AsNoTracking()
             .Where(block => block.SheetTableId == tableId)
-            .Select(block => new SheetColumnBlockLink(block.Id, block.TemplateColumnBlockId))
+            .Select(block => new SheetColumnBlockLink { Id = block.Id, TemplateColumnBlockId = block.TemplateColumnBlockId })
             .ToListAsync(cancellationToken);
     }
 

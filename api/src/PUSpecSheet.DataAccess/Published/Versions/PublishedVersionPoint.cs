@@ -6,25 +6,19 @@ namespace PUSpecSheet.DataAccess.Published.Versions;
 /// </summary>
 public sealed record PublishedVersionPoint
 {
-    public PublishedVersionPoint(int? versionNumber, DateTime? atUtc)
-    {
-        VersionNumber = versionNumber;
-        AtUtc = atUtc;
-    }
-
     public int? VersionNumber { get; init; }
 
     public DateTime? AtUtc { get; init; }
 
-    public static PublishedVersionPoint Latest { get; } = new(null, null);
+    public static PublishedVersionPoint Latest { get; } = new PublishedVersionPoint();
 
     public static PublishedVersionPoint Version(int versionNumber)
     {
-        return new PublishedVersionPoint(versionNumber, null);
+        return new PublishedVersionPoint { VersionNumber = versionNumber };
     }
 
     public static PublishedVersionPoint At(DateTime momentUtc)
     {
-        return new PublishedVersionPoint(null, momentUtc);
+        return new PublishedVersionPoint { AtUtc = momentUtc };
     }
 }

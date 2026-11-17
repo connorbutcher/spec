@@ -14,35 +14,39 @@ public static class SheetSubmissionMapper
     /// <param name="changes">How many items it changes, counted from the revisions that carry it.</param>
     public static SheetSubmissionDto ToDto(this DbSheetSubmission submission, SubmissionChangeCountsDto changes)
     {
-        return new SheetSubmissionDto(
-            submission.Id,
-            submission.SheetId,
-            submission.Sheet.PhaseId,
-            submission.Sheet.Phase.Code,
-            submission.Sheet.SheetTypeId,
-            submission.Sheet.SheetType.Name,
-            submission.Note,
-            submission.SubmittedByUserId,
-            submission.SubmittedBy.DisplayName,
-            UtcTimes.AsUtc(submission.SubmittedAtUtc),
-            submission.Status,
-            UtcTimes.AsUtc(submission.DecidedAtUtc),
-            submission.SheetVersion?.VersionNumber,
-            changes,
-            submission.Approvers
+        return new SheetSubmissionDto
+        {
+            Id = submission.Id,
+            SheetId = submission.SheetId,
+            PhaseId = submission.Sheet.PhaseId,
+            PhaseCode = submission.Sheet.Phase.Code,
+            SheetTypeId = submission.Sheet.SheetTypeId,
+            SheetTypeName = submission.Sheet.SheetType.Name,
+            Note = submission.Note,
+            SubmittedByUserId = submission.SubmittedByUserId,
+            SubmittedByName = submission.SubmittedBy.DisplayName,
+            SubmittedAtUtc = UtcTimes.AsUtc(submission.SubmittedAtUtc),
+            Status = submission.Status,
+            DecidedAtUtc = UtcTimes.AsUtc(submission.DecidedAtUtc),
+            VersionNumber = submission.SheetVersion?.VersionNumber,
+            Changes = changes,
+            Approvers = submission.Approvers
                 .OrderBy(approver => approver.User.DisplayName, StringComparer.OrdinalIgnoreCase)
                 .Select(approver => approver.ToDto())
-                .ToList());
+                .ToList(),
+        };
     }
 
     /// <summary>Expects <see cref="DbSheetSubmissionApprover.User"/> to be loaded.</summary>
     public static SubmissionApproverDto ToDto(this DbSheetSubmissionApprover approver)
     {
-        return new SubmissionApproverDto(
-            approver.UserId,
-            approver.User.DisplayName,
-            approver.Decision,
-            UtcTimes.AsUtc(approver.DecidedAtUtc),
-            approver.Reason);
+        return new SubmissionApproverDto
+        {
+            UserId = approver.UserId,
+            UserName = approver.User.DisplayName,
+            Decision = approver.Decision,
+            DecidedAtUtc = UtcTimes.AsUtc(approver.DecidedAtUtc),
+            Reason = approver.Reason,
+        };
     }
 }

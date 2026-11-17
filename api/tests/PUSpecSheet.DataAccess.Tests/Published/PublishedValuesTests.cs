@@ -40,13 +40,14 @@ public sealed class PublishedValuesTests
             [Guid.Parse("a41e0000-0000-0000-0000-000000000003")] = true,
             [Guid.Parse("a41e0000-0000-0000-0000-000000000004")] = new DateOnly(2026, 1, 2),
         };
-        var sheet = new PublishedSheetDto(
-            Guid.Parse("6f1c0000-0000-0000-0000-000000000001"),
-            7,
-            new DateTime(2026, 9, 30, 14, 2, 11, DateTimeKind.Utc),
-            null,
-            cells,
-            []);
+        var sheet = new PublishedSheetDto
+        {
+            Sheet = Guid.Parse("6f1c0000-0000-0000-0000-000000000001"),
+            Version = 7,
+            PublishedAtUtc = new DateTime(2026, 9, 30, 14, 2, 11, DateTimeKind.Utc),
+            Cells = cells,
+            Missing = [],
+        };
 
         var json = JsonSerializer.Serialize(sheet, JsonSerializerOptions.Web);
 
@@ -60,7 +61,11 @@ public sealed class PublishedValuesTests
     [Fact]
     public void ATreeCell_IsSentWithoutEmptyFields()
     {
-        var cell = new PublishedCellDto(Guid.Parse("a41e0000-0000-0000-0000-000000000001"), 12.5m, null, null);
+        var cell = new PublishedCellDto
+        {
+            Id = Guid.Parse("a41e0000-0000-0000-0000-000000000001"),
+            Value = 12.5m,
+        };
 
         var json = JsonSerializer.Serialize(cell, JsonSerializerOptions.Web);
 

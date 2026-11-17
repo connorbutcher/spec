@@ -8,35 +8,17 @@ namespace PUSpecSheet.Abstractions.Published;
 /// </summary>
 public sealed record PublishedSheetRowDto
 {
-    public PublishedSheetRowDto(
-        Guid sheet,
-        int version,
-        DateTime publishedAtUtc,
-        Guid row,
-        string section,
-        IReadOnlyList<object?> values,
-        IReadOnlyDictionary<string, IReadOnlyList<object?>>? columns)
-    {
-        Sheet = sheet;
-        Version = version;
-        PublishedAtUtc = publishedAtUtc;
-        Row = row;
-        Section = section;
-        Values = values;
-        Columns = columns;
-    }
+    public required Guid Sheet { get; init; }
 
-    public Guid Sheet { get; init; }
+    public required int Version { get; init; }
 
-    public int Version { get; init; }
+    public required DateTime PublishedAtUtc { get; init; }
 
-    public DateTime PublishedAtUtc { get; init; }
+    public required Guid Row { get; init; }
 
-    public Guid Row { get; init; }
+    public required string Section { get; init; }
 
-    public string Section { get; init; }
-
-    public IReadOnlyList<object?> Values { get; init; }
+    public required IReadOnlyList<object?> Values { get; init; }
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public IReadOnlyDictionary<string, IReadOnlyList<object?>>? Columns { get; init; }

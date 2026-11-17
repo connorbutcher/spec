@@ -6,19 +6,9 @@ namespace PUSpecSheet.Abstractions.Sheets.Collaboration;
 /// </summary>
 public sealed record SheetLiveStateDto
 {
-    public SheetLiveStateDto(
-        IReadOnlyList<SheetPresenceUserDto> users,
-        IReadOnlyList<RowCheckoutDto> checkouts,
-        IReadOnlyList<RowTakeoverDto> takeovers)
-    {
-        Users = users;
-        Checkouts = checkouts;
-        Takeovers = takeovers;
-    }
+    public required IReadOnlyList<SheetPresenceUserDto> Users { get; init; }
 
-    public IReadOnlyList<SheetPresenceUserDto> Users { get; init; }
+    public required IReadOnlyList<RowCheckoutDto> Checkouts { get; init; }
 
-    public IReadOnlyList<RowCheckoutDto> Checkouts { get; init; }
-
-    public IReadOnlyList<RowTakeoverDto> Takeovers { get; init; }
+    public required IReadOnlyList<RowTakeoverDto> Takeovers { get; init; }
 }

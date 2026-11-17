@@ -75,12 +75,77 @@ public sealed class SheetChangeAnnouncerTests
     {
         if (lockedRow is { } rowId)
         {
-            var row = new SheetRowDto(rowId, Guid.Empty, 1, 1, new SheetLockDto(2, "Engineer Two", isMine: false), false, canRemove: true, [], null);
-            var section = new SheetSectionDto(1, Guid.Empty, 1, "Limits", SectionRole.Header, 1, 1, 1, 1, null, false, false, [row], [], [], null);
-            var table = new SheetTableDto(1, Guid.Empty, 1, "Limits", 1, TemplateOrientation.Vertical, 0, null, 1, null, false, [section], [], [], []);
-            return new SheetDto(SheetId, Guid.Empty, 1, 1, isLive, null, null, latestVersion, 0, [], [table], []);
+            var row = new SheetRowDto
+            {
+                Id = rowId,
+                PublicId = Guid.Empty,
+                TemplateRowId = 1,
+                DisplayOrder = 1,
+                Lock = new SheetLockDto { UserId = 2, UserName = "Engineer Two", IsMine = false },
+                IsPending = false,
+                CanRemove = true,
+                Cells = [],
+            };
+            var section = new SheetSectionDto
+            {
+                Id = 1,
+                PublicId = Guid.Empty,
+                TemplateSectionId = 1,
+                Name = "Limits",
+                Role = SectionRole.Header,
+                MinInstances = 1,
+                MaxInstances = 1,
+                InitialInstances = 1,
+                DisplayOrder = 1,
+                IsPending = false,
+                CanRemove = false,
+                Rows = [row],
+                Sections = [],
+                AddableSections = [],
+            };
+            var table = new SheetTableDto
+            {
+                Id = 1,
+                PublicId = Guid.Empty,
+                TableTemplateId = 1,
+                TemplateName = "Limits",
+                TemplateVersionNumber = 1,
+                Orientation = TemplateOrientation.Vertical,
+                StickyColumnCount = 0,
+                DisplayOrder = 1,
+                IsPending = false,
+                Sections = [section],
+                AddableSections = [],
+                ColumnBlocks = [],
+                AddableColumnBlocks = [],
+            };
+            return new SheetDto
+            {
+                Id = SheetId,
+                PublicId = Guid.Empty,
+                PhaseId = 1,
+                SheetTypeId = 1,
+                IsLive = isLive,
+                LatestVersionNumber = latestVersion,
+                MyDraftCount = 0,
+                Versions = [],
+                Tables = [table],
+                AvailableTemplates = [],
+            };
         }
 
-        return new SheetDto(SheetId, Guid.Empty, 1, 1, isLive, null, null, latestVersion, 0, [], [], []);
+        return new SheetDto
+        {
+            Id = SheetId,
+            PublicId = Guid.Empty,
+            PhaseId = 1,
+            SheetTypeId = 1,
+            IsLive = isLive,
+            LatestVersionNumber = latestVersion,
+            MyDraftCount = 0,
+            Versions = [],
+            Tables = [],
+            AvailableTemplates = [],
+        };
     }
 }

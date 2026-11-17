@@ -7,59 +7,29 @@ namespace PUSpecSheet.Abstractions.Sheets;
 /// </summary>
 public sealed record SheetColumnBlockDto
 {
-    public SheetColumnBlockDto(
-        int id,
-        Guid publicId,
-        int templateColumnBlockId,
-        string name,
-        int minInstances,
-        int? maxInstances,
-        int initialInstances,
-        int stickyColumnCount,
-        int displayOrder,
-        SheetLockDto? @lock,
-        bool isPending,
-        bool canRemove,
-        SheetChangeDto? lastChange)
-    {
-        Id = id;
-        PublicId = publicId;
-        TemplateColumnBlockId = templateColumnBlockId;
-        Name = name;
-        MinInstances = minInstances;
-        MaxInstances = maxInstances;
-        InitialInstances = initialInstances;
-        StickyColumnCount = stickyColumnCount;
-        DisplayOrder = displayOrder;
-        Lock = @lock;
-        IsPending = isPending;
-        CanRemove = canRemove;
-        LastChange = lastChange;
-    }
+    public required int Id { get; init; }
 
-    public int Id { get; init; }
+    public required Guid PublicId { get; init; }
 
-    public Guid PublicId { get; init; }
+    public required int TemplateColumnBlockId { get; init; }
 
-    public int TemplateColumnBlockId { get; init; }
+    public required string Name { get; init; }
 
-    public string Name { get; init; }
-
-    public int MinInstances { get; init; }
+    public required int MinInstances { get; init; }
 
     public int? MaxInstances { get; init; }
 
-    public int InitialInstances { get; init; }
+    public required int InitialInstances { get; init; }
 
-    public int StickyColumnCount { get; init; }
+    public required int StickyColumnCount { get; init; }
 
-    public int DisplayOrder { get; init; }
+    public required int DisplayOrder { get; init; }
 
     public SheetLockDto? Lock { get; init; }
 
-    public bool IsPending { get; init; }
+    public required bool IsPending { get; init; }
 
-    public bool CanRemove { get; init; }
+    public required bool CanRemove { get; init; }
 
     public SheetChangeDto? LastChange { get; init; }
 }

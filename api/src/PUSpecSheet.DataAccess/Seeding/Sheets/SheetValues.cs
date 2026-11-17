@@ -62,7 +62,7 @@ public static class SheetValues
             (CellKind.LabelledText, IReadOnlyDictionary<string, string>) => value,
             _ => throw new InvalidOperationException($"A {value.GetType().Name} can't go in a {kind} cell."),
         };
-        return new CellValueRequest(cellId, JsonSerializer.SerializeToElement(stored));
+        return new CellValueRequest { SheetCellId = cellId, Value = JsonSerializer.SerializeToElement(stored) };
     }
 
     private static string OptionText(object value)

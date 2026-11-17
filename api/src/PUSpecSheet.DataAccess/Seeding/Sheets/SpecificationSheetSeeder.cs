@@ -17,48 +17,60 @@ public sealed class SpecificationSheetSeeder
 
     private static readonly SpecificationSystem[] _shortBlock =
     [
-        new(
-            "Cylinder block",
-            [("Cylinder bore", 82.000m, 81.990m, 82.010m), ("Deck height", 218.500m, 218.450m, 218.550m), ("Main bearing bore", 64.000m, 63.995m, 64.013m)],
-            [("Block casting", "EN-GJL-250 grey iron")],
-            [("Main bearing cap bolt", 10, 50.0m, 90)],
-            [("Cylinder bore, plateau honed", 0.40m)]),
-        new(
-            "Crankshaft",
-            [("Main journal diameter", 59.980m, 59.971m, 59.990m), ("Crankpin diameter", 47.980m, 47.971m, 47.990m), ("End float", 0.150m, 0.080m, 0.250m)],
-            [("Crankshaft", "38MnVS6 forged")],
-            [("Flywheel bolt", 12, 80.0m, 45)],
-            [("Main journals", 0.20m)]),
-        new(
-            "Pistons and connecting rods",
-            [("Piston skirt diameter", 81.960m, 81.950m, 81.970m), ("Ring gap, top ring", 0.300m, 0.200m, 0.400m), ("Big end bore", 51.000m, 50.995m, 51.010m)],
-            [("Piston", "EN AC-42100 T6"), ("Connecting rod", "42CrMo4 QT")],
-            [("Big end cap bolt", 8, 25.0m, 60)],
-            []),
+        new SpecificationSystem
+        {
+            Name = "Cylinder block",
+            Dimensions = [("Cylinder bore", 82.000m, 81.990m, 82.010m), ("Deck height", 218.500m, 218.450m, 218.550m), ("Main bearing bore", 64.000m, 63.995m, 64.013m)],
+            Materials = [("Block casting", "EN-GJL-250 grey iron")],
+            Joints = [("Main bearing cap bolt", 10, 50.0m, 90)],
+            Finishes = [("Cylinder bore, plateau honed", 0.40m)],
+        },
+        new SpecificationSystem
+        {
+            Name = "Crankshaft",
+            Dimensions = [("Main journal diameter", 59.980m, 59.971m, 59.990m), ("Crankpin diameter", 47.980m, 47.971m, 47.990m), ("End float", 0.150m, 0.080m, 0.250m)],
+            Materials = [("Crankshaft", "38MnVS6 forged")],
+            Joints = [("Flywheel bolt", 12, 80.0m, 45)],
+            Finishes = [("Main journals", 0.20m)],
+        },
+        new SpecificationSystem
+        {
+            Name = "Pistons and connecting rods",
+            Dimensions = [("Piston skirt diameter", 81.960m, 81.950m, 81.970m), ("Ring gap, top ring", 0.300m, 0.200m, 0.400m), ("Big end bore", 51.000m, 50.995m, 51.010m)],
+            Materials = [("Piston", "EN AC-42100 T6"), ("Connecting rod", "42CrMo4 QT")],
+            Joints = [("Big end cap bolt", 8, 25.0m, 60)],
+            Finishes = [],
+        },
     ];
 
     private static readonly SpecificationSystem[] _head =
     [
-        new(
-            "Cylinder head",
-            [("Head face flatness", 0.000m, 0.000m, 0.050m), ("Combustion chamber depth", 9.500m, 9.400m, 9.600m)],
-            [("Head casting", "EN AC-42100 T6")],
-            [("Cylinder head bolt", 10, 40.0m, 180)],
-            [("Head gasket face", 1.60m)]),
-        new(
-            "Valve train",
-            [("Intake valve stem", 5.975m, 5.965m, 5.985m), ("Exhaust valve stem", 5.960m, 5.950m, 5.970m), ("Valve lash, intake", 0.200m, 0.170m, 0.230m)],
-            [("Exhaust valve", "X45CrSi9-3 valve steel")],
-            [("Camshaft cap bolt", 6, 10.0m, 0)],
-            []),
+        new SpecificationSystem
+        {
+            Name = "Cylinder head",
+            Dimensions = [("Head face flatness", 0.000m, 0.000m, 0.050m), ("Combustion chamber depth", 9.500m, 9.400m, 9.600m)],
+            Materials = [("Head casting", "EN AC-42100 T6")],
+            Joints = [("Cylinder head bolt", 10, 40.0m, 180)],
+            Finishes = [("Head gasket face", 1.60m)],
+        },
+        new SpecificationSystem
+        {
+            Name = "Valve train",
+            Dimensions = [("Intake valve stem", 5.975m, 5.965m, 5.985m), ("Exhaust valve stem", 5.960m, 5.950m, 5.970m), ("Valve lash, intake", 0.200m, 0.170m, 0.230m)],
+            Materials = [("Exhaust valve", "X45CrSi9-3 valve steel")],
+            Joints = [("Camshaft cap bolt", 6, 10.0m, 0)],
+            Finishes = [],
+        },
     ];
 
-    private static readonly SpecificationSystem _lubrication = new(
-        "Lubrication",
-        [("Oil gallery diameter", 12.000m, 11.900m, 12.100m), ("Oil pump rotor clearance", 0.080m, 0.040m, 0.120m)],
-        [],
-        [("Oil pump bolt", 8, 22.0m, 0)],
-        []);
+    private static readonly SpecificationSystem _lubrication = new SpecificationSystem
+    {
+        Name = "Lubrication",
+        Dimensions = [("Oil gallery diameter", 12.000m, 11.900m, 12.100m), ("Oil pump rotor clearance", 0.080m, 0.040m, 0.120m)],
+        Materials = [],
+        Joints = [("Oil pump bolt", 8, 22.0m, 0)],
+        Finishes = [],
+    };
 
     private SheetEditor? _v6;
 

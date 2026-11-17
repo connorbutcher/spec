@@ -7,43 +7,21 @@ namespace PUSpecSheet.Abstractions.Sheets;
 /// </summary>
 public sealed record SheetRowDto
 {
-    public SheetRowDto(
-        int id,
-        Guid publicId,
-        int templateRowId,
-        int displayOrder,
-        SheetLockDto? @lock,
-        bool isPending,
-        bool canRemove,
-        IReadOnlyList<SheetCellDto> cells,
-        SheetChangeDto? lastChange)
-    {
-        Id = id;
-        PublicId = publicId;
-        TemplateRowId = templateRowId;
-        DisplayOrder = displayOrder;
-        Lock = @lock;
-        IsPending = isPending;
-        CanRemove = canRemove;
-        Cells = cells;
-        LastChange = lastChange;
-    }
+    public required int Id { get; init; }
 
-    public int Id { get; init; }
+    public required Guid PublicId { get; init; }
 
-    public Guid PublicId { get; init; }
+    public required int TemplateRowId { get; init; }
 
-    public int TemplateRowId { get; init; }
-
-    public int DisplayOrder { get; init; }
+    public required int DisplayOrder { get; init; }
 
     public SheetLockDto? Lock { get; init; }
 
-    public bool IsPending { get; init; }
+    public required bool IsPending { get; init; }
 
-    public bool CanRemove { get; init; }
+    public required bool CanRemove { get; init; }
 
-    public IReadOnlyList<SheetCellDto> Cells { get; init; }
+    public required IReadOnlyList<SheetCellDto> Cells { get; init; }
 
     public SheetChangeDto? LastChange { get; init; }
 }

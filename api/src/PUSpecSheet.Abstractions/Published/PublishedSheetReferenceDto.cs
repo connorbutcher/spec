@@ -3,19 +3,11 @@ namespace PUSpecSheet.Abstractions.Published;
 /// <summary>Where to find a sheet's published data: its stable identifier and its newest version, if it has one.</summary>
 public sealed record PublishedSheetReferenceDto
 {
-    public PublishedSheetReferenceDto(Guid sheet, string phase, int sheetType, int? latestVersion)
-    {
-        Sheet = sheet;
-        Phase = phase;
-        SheetType = sheetType;
-        LatestVersion = latestVersion;
-    }
+    public required Guid Sheet { get; init; }
 
-    public Guid Sheet { get; init; }
+    public required string Phase { get; init; }
 
-    public string Phase { get; init; }
-
-    public int SheetType { get; init; }
+    public required int SheetType { get; init; }
 
     public int? LatestVersion { get; init; }
 

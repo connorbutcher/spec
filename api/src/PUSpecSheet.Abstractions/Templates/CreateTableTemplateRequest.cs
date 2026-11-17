@@ -5,16 +5,10 @@ namespace PUSpecSheet.Abstractions.Templates;
 /// <summary>Adds a table template to the end of a sheet type's list.</summary>
 public sealed record CreateTableTemplateRequest
 {
-    public CreateTableTemplateRequest(int sheetTypeId, [Required, MaxLength(100)] string name, TemplateOrientation orientation)
-    {
-        SheetTypeId = sheetTypeId;
-        Name = name;
-        Orientation = orientation;
-    }
+    public required int SheetTypeId { get; init; }
 
-    public int SheetTypeId { get; init; }
+    [Required, MaxLength(100)]
+    public required string Name { get; init; }
 
-    public string Name { get; init; }
-
-    public TemplateOrientation Orientation { get; init; }
+    public required TemplateOrientation Orientation { get; init; }
 }

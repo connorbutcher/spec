@@ -25,12 +25,14 @@ public static class PublishedStructureQueries
             .AsNoTracking()
             .Where(revision => revision.SheetId == version.SheetId)
             .PublishedAt(version.PublishedAtUtc)
-            .Select(revision => new PublishedTableRecord(
-                revision.SheetTableId,
-                revision.SheetTable.PublicId,
-                revision.DisplayOrder,
-                revision.IsDeleted,
-                revision.Title));
+            .Select(revision => new PublishedTableRecord
+            {
+                Id = revision.SheetTableId,
+                PublicId = revision.SheetTable.PublicId,
+                DisplayOrder = revision.DisplayOrder,
+                IsDeleted = revision.IsDeleted,
+                Title = revision.Title,
+            });
     }
 
     public static IQueryable<PublishedSectionRecord> Sections(PuSpecSheetDbContext db, ResolvedSheetVersion version)
@@ -39,14 +41,16 @@ public static class PublishedStructureQueries
             .AsNoTracking()
             .Where(revision => revision.SheetId == version.SheetId)
             .PublishedAt(version.PublishedAtUtc)
-            .Select(revision => new PublishedSectionRecord(
-                revision.SheetSectionId,
-                revision.SheetSection.PublicId,
-                revision.SheetSection.SheetTableId,
-                revision.SheetSection.ParentSheetSectionId,
-                revision.DisplayOrder,
-                revision.IsDeleted,
-                revision.SheetSection.TemplateSection.Name));
+            .Select(revision => new PublishedSectionRecord
+            {
+                Id = revision.SheetSectionId,
+                PublicId = revision.SheetSection.PublicId,
+                TableId = revision.SheetSection.SheetTableId,
+                ParentSectionId = revision.SheetSection.ParentSheetSectionId,
+                DisplayOrder = revision.DisplayOrder,
+                IsDeleted = revision.IsDeleted,
+                Name = revision.SheetSection.TemplateSection.Name,
+            });
     }
 
     public static IQueryable<PublishedColumnBlockRecord> ColumnBlocks(PuSpecSheetDbContext db, ResolvedSheetVersion version)
@@ -55,12 +59,14 @@ public static class PublishedStructureQueries
             .AsNoTracking()
             .Where(revision => revision.SheetId == version.SheetId)
             .PublishedAt(version.PublishedAtUtc)
-            .Select(revision => new PublishedColumnBlockRecord(
-                revision.SheetColumnBlockId,
-                revision.SheetColumnBlock.PublicId,
-                revision.SheetColumnBlock.SheetTableId,
-                revision.DisplayOrder,
-                revision.IsDeleted,
-                revision.SheetColumnBlock.TemplateColumnBlock.Name));
+            .Select(revision => new PublishedColumnBlockRecord
+            {
+                Id = revision.SheetColumnBlockId,
+                PublicId = revision.SheetColumnBlock.PublicId,
+                TableId = revision.SheetColumnBlock.SheetTableId,
+                DisplayOrder = revision.DisplayOrder,
+                IsDeleted = revision.IsDeleted,
+                Name = revision.SheetColumnBlock.TemplateColumnBlock.Name,
+            });
     }
 }

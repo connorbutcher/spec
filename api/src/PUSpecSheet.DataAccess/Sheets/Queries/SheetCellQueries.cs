@@ -13,7 +13,14 @@ public static class SheetCellQueries
         return await db.SheetCells
             .AsNoTracking()
             .Where(cell => rowIds.Contains(cell.SheetRowId))
-            .Select(cell => new NewCell(cell.Id, cell.SheetRowId, cell.TemplateCellId, cell.SheetColumnBlockId, cell.TemplateCell.CellType.Kind))
+            .Select(cell => new NewCell
+            {
+                Id = cell.Id,
+                SheetRowId = cell.SheetRowId,
+                TemplateCellId = cell.TemplateCellId,
+                SheetColumnBlockId = cell.SheetColumnBlockId,
+                Kind = cell.TemplateCell.CellType.Kind,
+            })
             .ToListAsync(cancellationToken);
     }
 
@@ -23,7 +30,7 @@ public static class SheetCellQueries
         // Only which cell, its row and its kind are needed, not the cells' templates and types.
         return await db.SheetCells
             .Where(cell => rowIds.Contains(cell.SheetRowId) && cell.TemplateCell.IsRequired)
-            .Select(cell => new RequiredCell(cell.Id, cell.SheetRowId, cell.TemplateCell.CellType.Kind))
+            .Select(cell => new RequiredCell { Id = cell.Id, SheetRowId = cell.SheetRowId, Kind = cell.TemplateCell.CellType.Kind })
             .ToListAsync(cancellationToken);
     }
 }

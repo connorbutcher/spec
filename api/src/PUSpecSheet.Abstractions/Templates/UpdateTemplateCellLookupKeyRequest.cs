@@ -7,10 +7,6 @@ namespace PUSpecSheet.Abstractions.Templates;
 /// </summary>
 public sealed record UpdateTemplateCellLookupKeyRequest
 {
-    public UpdateTemplateCellLookupKeyRequest([MaxLength(50)] string? lookupKey)
-    {
-        LookupKey = lookupKey;
-    }
-
+    [MaxLength(50)]
     public string? LookupKey { get; init; }
 }

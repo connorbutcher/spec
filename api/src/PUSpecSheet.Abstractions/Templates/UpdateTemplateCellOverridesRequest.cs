@@ -9,12 +9,6 @@ namespace PUSpecSheet.Abstractions.Templates;
 /// </summary>
 public sealed record UpdateTemplateCellOverridesRequest
 {
-    public UpdateTemplateCellOverridesRequest(CellConfiguration? configurationOverride, CellStyle? styleOverride)
-    {
-        ConfigurationOverride = configurationOverride;
-        StyleOverride = styleOverride;
-    }
-
     public CellConfiguration? ConfigurationOverride { get; init; }
 
     public CellStyle? StyleOverride { get; init; }

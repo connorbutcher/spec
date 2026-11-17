@@ -174,7 +174,7 @@ public sealed class SheetRowsService : ISheetRowsService
             var name = string.IsNullOrWhiteSpace(template.Caption) ? template.CellType.Name : template.Caption;
             var bag = CellValueMapper.FromRequest(template.CellType.Kind, value.Value, name);
             CellValueValidator.Validate(template, bag);
-            changes.Add(new CellValueChange(value.SheetCellId, template.CellType.Kind, bag));
+            changes.Add(new CellValueChange { SheetCellId = value.SheetCellId, Kind = template.CellType.Kind, Value = bag });
         }
 
         return changes;

@@ -3,16 +3,9 @@ namespace PUSpecSheet.DataAccess.Sheets.Removal;
 /// <summary>A draft that removes a section or table, which nobody has published yet.</summary>
 public sealed record PendingRemoval
 {
-    public PendingRemoval(RemovedContainer container, int authorUserId, bool awaitingApproval)
-    {
-        Container = container;
-        AuthorUserId = authorUserId;
-        AwaitingApproval = awaitingApproval;
-    }
+    public required RemovedContainer Container { get; init; }
 
-    public RemovedContainer Container { get; init; }
+    public required int AuthorUserId { get; init; }
 
-    public int AuthorUserId { get; init; }
-
-    public bool AwaitingApproval { get; init; }
+    public required bool AwaitingApproval { get; init; }
 }

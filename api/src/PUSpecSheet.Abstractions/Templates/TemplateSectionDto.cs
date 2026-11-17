@@ -7,47 +7,23 @@ namespace PUSpecSheet.Abstractions.Templates;
 /// </summary>
 public sealed record TemplateSectionDto
 {
-    public TemplateSectionDto(
-        int id,
-        int? parentSectionId,
-        string name,
-        int displayOrder,
-        SectionRole role,
-        int minInstances,
-        int? maxInstances,
-        int initialInstances,
-        IReadOnlyList<TemplateSectionDto> sections,
-        IReadOnlyList<TemplateRowDto> rows)
-    {
-        Id = id;
-        ParentSectionId = parentSectionId;
-        Name = name;
-        DisplayOrder = displayOrder;
-        Role = role;
-        MinInstances = minInstances;
-        MaxInstances = maxInstances;
-        InitialInstances = initialInstances;
-        Sections = sections;
-        Rows = rows;
-    }
-
-    public int Id { get; init; }
+    public required int Id { get; init; }
 
     public int? ParentSectionId { get; init; }
 
-    public string Name { get; init; }
+    public required string Name { get; init; }
 
-    public int DisplayOrder { get; init; }
+    public required int DisplayOrder { get; init; }
 
-    public SectionRole Role { get; init; }
+    public required SectionRole Role { get; init; }
 
-    public int MinInstances { get; init; }
+    public required int MinInstances { get; init; }
 
     public int? MaxInstances { get; init; }
 
-    public int InitialInstances { get; init; }
+    public required int InitialInstances { get; init; }
 
-    public IReadOnlyList<TemplateSectionDto> Sections { get; init; }
+    public required IReadOnlyList<TemplateSectionDto> Sections { get; init; }
 
-    public IReadOnlyList<TemplateRowDto> Rows { get; init; }
+    public required IReadOnlyList<TemplateRowDto> Rows { get; init; }
 }

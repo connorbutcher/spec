@@ -12,7 +12,7 @@ public static partial class LabelledTextRules
     public const int LongestLabel = 20;
 
     /// <summary>The slots a cell has when neither its type nor the sheet names any: one value with no label.</summary>
-    public static readonly IReadOnlyList<LabelledTextSlot> DefaultSlots = [new("value", string.Empty)];
+    public static readonly IReadOnlyList<LabelledTextSlot> DefaultSlots = [new LabelledTextSlot { Key = "value", Label = string.Empty }];
 
     /// <summary>Why the slots are invalid, or null when they're fine. Null slots mean "not set" and are fine.</summary>
     public static string? CheckSlots(IReadOnlyList<LabelledTextSlot>? slots)

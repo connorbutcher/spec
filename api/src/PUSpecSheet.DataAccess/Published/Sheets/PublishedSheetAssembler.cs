@@ -30,11 +30,25 @@ public static class PublishedSheetAssembler
                 }
             }
 
-            return new PublishedSheetDto(version.SheetPublicId, version.VersionNumber, version.PublishedAtUtc, null, flat, missing);
+            return new PublishedSheetDto
+            {
+                Sheet = version.SheetPublicId,
+                Version = version.VersionNumber,
+                PublishedAtUtc = version.PublishedAtUtc,
+                Cells = flat,
+                Missing = missing,
+            };
         }
 
         var tables = Tables(selection, structure, shown, values);
-        return new PublishedSheetDto(version.SheetPublicId, version.VersionNumber, version.PublishedAtUtc, tables, null, missing);
+        return new PublishedSheetDto
+        {
+            Sheet = version.SheetPublicId,
+            Version = version.VersionNumber,
+            PublishedAtUtc = version.PublishedAtUtc,
+            Tables = tables,
+            Missing = missing,
+        };
     }
 
     /// <summary>Each section's rows that have cells to show, in order.</summary>
@@ -50,7 +64,7 @@ public static class PublishedSheetAssembler
             .Select(row => new
             {
                 First = row.First(),
-                Dto = new PublishedRowDto(row.First().RowPublicId, Cells(row, selection, structure, blockOrder, values)),
+                Dto = new PublishedRowDto { Id = row.First().RowPublicId, Cells = Cells(row, selection, structure, blockOrder, values) },
             })
             .Where(row => row.Dto.Cells.Count > 0)
             .OrderBy(row => row.First.RowOrder)
@@ -89,13 +103,15 @@ public static class PublishedSheetAssembler
             }
 
             var blocks = blocksByTable[table.Id]
-                .Select(block => new PublishedColumnBlockDto(block.PublicId, selection.IncludeLabels ? block.Name : null))
+                .Select(block => new PublishedColumnBlockDto { Id = block.PublicId, Name = selection.IncludeLabels ? block.Name : null })
                 .ToList();
-            tables.Add(new PublishedTableDto(
-                table.PublicId,
-                selection.IncludeLabels ? table.Title : null,
-                sections,
-                blocks.Count == 0 ? null : blocks));
+            tables.Add(new PublishedTableDto
+            {
+                Id = table.PublicId,
+                Title = selection.IncludeLabels ? table.Title : null,
+                Sections = sections,
+                Columns = blocks.Count == 0 ? null : blocks,
+            });
         }
 
         return tables;
@@ -120,11 +136,13 @@ public static class PublishedSheetAssembler
                 continue;
             }
 
-            result.Add(new PublishedSectionDto(
-                section.PublicId,
-                selection.IncludeLabels ? section.Name : null,
-                rows,
-                children));
+            result.Add(new PublishedSectionDto
+            {
+                Id = section.PublicId,
+                Name = selection.IncludeLabels ? section.Name : null,
+                Rows = rows,
+                Sections = children,
+            });
         }
 
         return result;
@@ -152,7 +170,13 @@ public static class PublishedSheetAssembler
             }
 
             var column = cell.ColumnBlockId is { } blockId ? structure.ColumnBlock(blockId)?.PublicId : null;
-            result.Add(new PublishedCellDto(cell.CellPublicId, value, column, selection.IncludeLabels ? cell.Caption : null));
+            result.Add(new PublishedCellDto
+            {
+                Id = cell.CellPublicId,
+                Value = value,
+                Column = column,
+                Caption = selection.IncludeLabels ? cell.Caption : null,
+            });
         }
 
         return result;

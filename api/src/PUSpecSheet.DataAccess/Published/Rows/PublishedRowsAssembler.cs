@@ -48,11 +48,23 @@ public static class PublishedRowsAssembler
             var columns = row.Any(cell => cell.ColumnBlockId is not null)
                 ? BlockColumns(valueCells, kept, names, values)
                 : null;
-            rows[first.RowPublicId] = new PublishedRowValuesDto(sections[first.SectionId].Name, own, columns);
+            rows[first.RowPublicId] = new PublishedRowValuesDto
+            {
+                Section = sections[first.SectionId].Name,
+                Values = own,
+                Columns = columns,
+            };
         }
 
         var missing = selection.Rows.Where(id => !rows.ContainsKey(id)).Order().ToList();
-        return new PublishedRowsDto(version.SheetPublicId, version.VersionNumber, version.PublishedAtUtc, rows, missing);
+        return new PublishedRowsDto
+        {
+            Sheet = version.SheetPublicId,
+            Version = version.VersionNumber,
+            PublishedAtUtc = version.PublishedAtUtc,
+            Rows = rows,
+            Missing = missing,
+        };
     }
 
     /// <summary>

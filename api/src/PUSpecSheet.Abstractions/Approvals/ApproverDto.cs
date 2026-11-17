@@ -3,13 +3,7 @@ namespace PUSpecSheet.Abstractions.Approvals;
 /// <summary>Someone who can be asked to approve a submission.</summary>
 public sealed record ApproverDto
 {
-    public ApproverDto(int userId, string userName)
-    {
-        UserId = userId;
-        UserName = userName;
-    }
+    public required int UserId { get; init; }
 
-    public int UserId { get; init; }
-
-    public string UserName { get; init; }
+    public required string UserName { get; init; }
 }

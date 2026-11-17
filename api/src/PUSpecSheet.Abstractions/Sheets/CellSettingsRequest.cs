@@ -8,13 +8,7 @@ namespace PUSpecSheet.Abstractions.Sheets;
 /// </summary>
 public sealed record CellSettingsRequest
 {
-    public CellSettingsRequest(int sheetCellId, CellInstanceSettings? settings)
-    {
-        SheetCellId = sheetCellId;
-        Settings = settings;
-    }
-
-    public int SheetCellId { get; init; }
+    public required int SheetCellId { get; init; }
 
     public CellInstanceSettings? Settings { get; init; }
 }

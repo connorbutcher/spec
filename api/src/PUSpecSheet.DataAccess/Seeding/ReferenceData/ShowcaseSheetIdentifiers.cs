@@ -22,9 +22,15 @@ public sealed class ShowcaseSheetIdentifiers
 
     private static readonly SaveSheetTypeIdentifierRequest[] _definitions =
     [
-        new(SerialNumber, SheetIdentifierKind.Text, true, null),
-        new(BuildDate, SheetIdentifierKind.Date, false, null),
-        new(Configuration, SheetIdentifierKind.Option, false, [BaseConfiguration, HighOutputConfiguration, HybridConfiguration]),
+        new SaveSheetTypeIdentifierRequest { Name = SerialNumber, Kind = SheetIdentifierKind.Text, IsRequired = true },
+        new SaveSheetTypeIdentifierRequest { Name = BuildDate, Kind = SheetIdentifierKind.Date, IsRequired = false },
+        new SaveSheetTypeIdentifierRequest
+        {
+            Name = Configuration,
+            Kind = SheetIdentifierKind.Option,
+            IsRequired = false,
+            Options = [BaseConfiguration, HighOutputConfiguration, HybridConfiguration],
+        },
     ];
 
     private readonly PuSpecSheetDbContext _db;

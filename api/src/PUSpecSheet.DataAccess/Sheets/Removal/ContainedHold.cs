@@ -6,13 +6,7 @@ namespace PUSpecSheet.DataAccess.Sheets.Removal;
 /// </summary>
 public sealed record ContainedHold
 {
-    public ContainedHold(int userId, bool awaitingApproval)
-    {
-        UserId = userId;
-        AwaitingApproval = awaitingApproval;
-    }
+    public required int UserId { get; init; }
 
-    public int UserId { get; init; }
-
-    public bool AwaitingApproval { get; init; }
+    public required bool AwaitingApproval { get; init; }
 }

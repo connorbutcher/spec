@@ -76,7 +76,7 @@ public static class SheetRowQueries
     {
         return await db.SheetRows
             .Where(row => row.Id == id)
-            .Select(row => new SheetRowPlace(row.SheetSectionId, row.SheetSection.SheetTableId))
+            .Select(row => new SheetRowPlace { SheetSectionId = row.SheetSectionId, SheetTableId = row.SheetSection.SheetTableId })
             .SingleOrDefaultAsync(cancellationToken);
     }
 

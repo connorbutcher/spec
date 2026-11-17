@@ -8,13 +8,8 @@ namespace PUSpecSheet.Abstractions.Phases;
 /// </summary>
 public sealed record MovePhaseRequest
 {
-    public MovePhaseRequest(int? parentPhaseId, [Range(1, int.MaxValue)] int position)
-    {
-        ParentPhaseId = parentPhaseId;
-        Position = position;
-    }
-
     public int? ParentPhaseId { get; init; }
 
-    public int Position { get; init; }
+    [Range(1, int.MaxValue)]
+    public required int Position { get; init; }
 }

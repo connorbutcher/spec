@@ -8,24 +8,14 @@ namespace PUSpecSheet.Abstractions.Sheets;
 /// </summary>
 public sealed record SheetCellDto
 {
-    public SheetCellDto(int id, Guid publicId, int templateCellId, object? value, int? sheetColumnBlockId, SheetChangeDto? lastChange)
-    {
-        Id = id;
-        PublicId = publicId;
-        TemplateCellId = templateCellId;
-        Value = value;
-        SheetColumnBlockId = sheetColumnBlockId;
-        LastChange = lastChange;
-    }
-
     /// <summary>The cell's id.</summary>
-    public int Id { get; init; }
+    public required int Id { get; init; }
 
     /// <summary>The cell's id outside this database.</summary>
-    public Guid PublicId { get; init; }
+    public required Guid PublicId { get; init; }
 
     /// <summary>The template cell the cell was built from.</summary>
-    public int TemplateCellId { get; init; }
+    public required int TemplateCellId { get; init; }
 
     /// <summary>
     /// The cell's value as the row shown holds it, in the shape its kind takes: a string for text and linked

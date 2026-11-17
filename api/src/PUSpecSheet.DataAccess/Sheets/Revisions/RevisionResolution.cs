@@ -8,12 +8,6 @@ namespace PUSpecSheet.DataAccess.Sheets.Revisions;
 public sealed record RevisionResolution<TRevision>
     where TRevision : class
 {
-    public RevisionResolution(TRevision? shown, TRevision? draft)
-    {
-        Shown = shown;
-        Draft = draft;
-    }
-
     public TRevision? Shown { get; init; }
 
     public TRevision? Draft { get; init; }

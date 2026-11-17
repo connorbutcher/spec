@@ -8,71 +8,35 @@ namespace PUSpecSheet.Abstractions.Sheets;
 /// </summary>
 public sealed record SheetSectionDto
 {
-    public SheetSectionDto(
-        int id,
-        Guid publicId,
-        int templateSectionId,
-        string name,
-        SectionRole role,
-        int minInstances,
-        int? maxInstances,
-        int initialInstances,
-        int displayOrder,
-        SheetLockDto? @lock,
-        bool isPending,
-        bool canRemove,
-        IReadOnlyList<SheetRowDto> rows,
-        IReadOnlyList<SheetSectionDto> sections,
-        IReadOnlyList<AddableSectionDto> addableSections,
-        SheetChangeDto? lastChange)
-    {
-        Id = id;
-        PublicId = publicId;
-        TemplateSectionId = templateSectionId;
-        Name = name;
-        Role = role;
-        MinInstances = minInstances;
-        MaxInstances = maxInstances;
-        InitialInstances = initialInstances;
-        DisplayOrder = displayOrder;
-        Lock = @lock;
-        IsPending = isPending;
-        CanRemove = canRemove;
-        Rows = rows;
-        Sections = sections;
-        AddableSections = addableSections;
-        LastChange = lastChange;
-    }
+    public required int Id { get; init; }
 
-    public int Id { get; init; }
+    public required Guid PublicId { get; init; }
 
-    public Guid PublicId { get; init; }
+    public required int TemplateSectionId { get; init; }
 
-    public int TemplateSectionId { get; init; }
+    public required string Name { get; init; }
 
-    public string Name { get; init; }
+    public required SectionRole Role { get; init; }
 
-    public SectionRole Role { get; init; }
-
-    public int MinInstances { get; init; }
+    public required int MinInstances { get; init; }
 
     public int? MaxInstances { get; init; }
 
-    public int InitialInstances { get; init; }
+    public required int InitialInstances { get; init; }
 
-    public int DisplayOrder { get; init; }
+    public required int DisplayOrder { get; init; }
 
     public SheetLockDto? Lock { get; init; }
 
-    public bool IsPending { get; init; }
+    public required bool IsPending { get; init; }
 
-    public bool CanRemove { get; init; }
+    public required bool CanRemove { get; init; }
 
-    public IReadOnlyList<SheetRowDto> Rows { get; init; }
+    public required IReadOnlyList<SheetRowDto> Rows { get; init; }
 
-    public IReadOnlyList<SheetSectionDto> Sections { get; init; }
+    public required IReadOnlyList<SheetSectionDto> Sections { get; init; }
 
-    public IReadOnlyList<AddableSectionDto> AddableSections { get; init; }
+    public required IReadOnlyList<AddableSectionDto> AddableSections { get; init; }
 
     public SheetChangeDto? LastChange { get; init; }
 }

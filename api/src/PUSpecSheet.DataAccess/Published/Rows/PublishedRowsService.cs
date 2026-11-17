@@ -68,14 +68,16 @@ public sealed class PublishedRowsService : IPublishedRowsService
             throw new NotFoundException($"Version {version.VersionNumber} of sheet {version.SheetPublicId} has no row {rowPublicId}.");
         }
 
-        return new PublishedSheetRowDto(
-            result.Sheet,
-            result.Version,
-            result.PublishedAtUtc,
-            rowPublicId,
-            row.Section,
-            row.Values,
-            row.Columns);
+        return new PublishedSheetRowDto
+        {
+            Sheet = result.Sheet,
+            Version = result.Version,
+            PublishedAtUtc = result.PublishedAtUtc,
+            Row = rowPublicId,
+            Section = row.Section,
+            Values = row.Values,
+            Columns = row.Columns,
+        };
     }
 
     public Task<ResolvedSheetVersion> ResolveAsync(Guid sheetPublicId, PublishedVersionPoint point, CancellationToken cancellationToken)

@@ -141,7 +141,7 @@ public static class SheetRevisionQueries
     {
         return await revisions
             .Where(revision => revision.Status == RevisionStatus.Draft && (revision.AuthorUserId != userId || revision.SheetSubmissionId != null))
-            .Select(revision => new ContainedHold(revision.AuthorUserId, revision.SheetSubmissionId != null))
+            .Select(revision => new ContainedHold { UserId = revision.AuthorUserId, AwaitingApproval = revision.SheetSubmissionId != null })
             .ToListAsync(cancellationToken);
     }
 

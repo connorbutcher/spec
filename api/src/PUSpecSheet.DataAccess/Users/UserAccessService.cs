@@ -34,12 +34,14 @@ public sealed class UserAccessService : IUserAccessService
     public async Task<CurrentUserDto> GetCurrentUserAsync(CancellationToken cancellationToken)
     {
         var access = await GetCurrentAsync(cancellationToken);
-        return new CurrentUserDto(
-            access.UserId,
-            access.UserName,
-            access.DisplayName,
-            access.IsAdministrator,
-            access.Roles,
-            access.Permissions);
+        return new CurrentUserDto
+        {
+            Id = access.UserId,
+            UserName = access.UserName,
+            DisplayName = access.DisplayName,
+            IsAdministrator = access.IsAdministrator,
+            Roles = access.Roles,
+            Permissions = access.Permissions,
+        };
     }
 }

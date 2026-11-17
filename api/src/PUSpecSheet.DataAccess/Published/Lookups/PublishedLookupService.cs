@@ -96,7 +96,7 @@ public sealed class PublishedLookupService : IPublishedLookupService
             matches.Add(PublishedLookupAssembler.Assemble(hit, version, structure, cells, values));
         }
 
-        var answer = new PublishedLookupDto(resolution.Criteria.Key, resolution.Criteria.Value, matches);
+        var answer = new PublishedLookupDto { Key = resolution.Criteria.Key, Value = resolution.Criteria.Value, Matches = matches };
         _cache.Set(resolution.Key, answer, cellCount);
         return answer;
     }
@@ -122,11 +122,13 @@ public sealed class PublishedLookupService : IPublishedLookupService
 
         foreach (var version in versions.OrderBy(version => version.VersionNumber))
         {
-            result[version.SheetId] = new ResolvedSheetVersion(
-                version.SheetId,
-                publicIds[version.SheetId],
-                version.VersionNumber,
-                DateTime.SpecifyKind(version.PublishedAtUtc, DateTimeKind.Utc));
+            result[version.SheetId] = new ResolvedSheetVersion
+            {
+                SheetId = version.SheetId,
+                SheetPublicId = publicIds[version.SheetId],
+                VersionNumber = version.VersionNumber,
+                PublishedAtUtc = DateTime.SpecifyKind(version.PublishedAtUtc, DateTimeKind.Utc),
+            };
         }
 
         return result;

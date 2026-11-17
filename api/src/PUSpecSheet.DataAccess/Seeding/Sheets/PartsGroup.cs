@@ -7,15 +7,7 @@ namespace PUSpecSheet.DataAccess.Seeding.Sheets;
 /// </summary>
 public sealed record PartsGroup
 {
-    public PartsGroup(
-        string name,
-        (string Kind, string Characteristic, string Reference, decimal Base, decimal Step, decimal Spread)[] rows)
-    {
-        Name = name;
-        Rows = rows;
-    }
+    public required string Name { get; init; }
 
-    public string Name { get; init; }
-
-    public (string Kind, string Characteristic, string Reference, decimal Base, decimal Step, decimal Spread)[] Rows { get; init; }
+    public required (string Kind, string Characteristic, string Reference, decimal Base, decimal Step, decimal Spread)[] Rows { get; init; }
 }

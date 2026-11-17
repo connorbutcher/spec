@@ -10,17 +10,9 @@ namespace PUSpecSheet.Abstractions.Published;
 /// </summary>
 public sealed record PublishedCellDto
 {
-    public PublishedCellDto(Guid id, object value, Guid? column, string? caption)
-    {
-        Id = id;
-        Value = value;
-        Column = column;
-        Caption = caption;
-    }
+    public required Guid Id { get; init; }
 
-    public Guid Id { get; init; }
-
-    public object Value { get; init; }
+    public required object Value { get; init; }
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public Guid? Column { get; init; }

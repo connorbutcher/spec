@@ -6,25 +6,15 @@ namespace PUSpecSheet.Abstractions.Sheets;
 /// </summary>
 public sealed record AddableSectionDto
 {
-    public AddableSectionDto(int templateSectionId, string name, int count, int minInstances, int? maxInstances, bool canAdd)
-    {
-        TemplateSectionId = templateSectionId;
-        Name = name;
-        Count = count;
-        MinInstances = minInstances;
-        MaxInstances = maxInstances;
-        CanAdd = canAdd;
-    }
+    public required int TemplateSectionId { get; init; }
 
-    public int TemplateSectionId { get; init; }
+    public required string Name { get; init; }
 
-    public string Name { get; init; }
+    public required int Count { get; init; }
 
-    public int Count { get; init; }
-
-    public int MinInstances { get; init; }
+    public required int MinInstances { get; init; }
 
     public int? MaxInstances { get; init; }
 
-    public bool CanAdd { get; init; }
+    public required bool CanAdd { get; init; }
 }

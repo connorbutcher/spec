@@ -6,29 +6,18 @@ namespace PUSpecSheet.Abstractions.SheetTypes;
 /// </summary>
 public sealed record SheetTypeIdentifierDto
 {
-    public SheetTypeIdentifierDto(int id, string key, string name, SheetIdentifierKind kind, bool isRequired, int displayOrder, IReadOnlyList<string> options)
-    {
-        Id = id;
-        Key = key;
-        Name = name;
-        Kind = kind;
-        IsRequired = isRequired;
-        DisplayOrder = displayOrder;
-        Options = options;
-    }
+    public required int Id { get; init; }
 
-    public int Id { get; init; }
+    public required string Key { get; init; }
 
-    public string Key { get; init; }
+    public required string Name { get; init; }
 
-    public string Name { get; init; }
+    public required SheetIdentifierKind Kind { get; init; }
 
-    public SheetIdentifierKind Kind { get; init; }
+    public required bool IsRequired { get; init; }
 
-    public bool IsRequired { get; init; }
-
-    public int DisplayOrder { get; init; }
+    public required int DisplayOrder { get; init; }
 
     /// <summary>The choices of an option identifier; empty for the other kinds.</summary>
-    public IReadOnlyList<string> Options { get; init; }
+    public required IReadOnlyList<string> Options { get; init; }
 }

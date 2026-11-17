@@ -69,11 +69,21 @@ internal sealed class LinkedOptionCollector
         var ofColumns = _columns
             .OrderBy(entry => entry.Key.TableId)
             .ThenBy(entry => entry.Key.TemplateCellId)
-            .Select(entry => new SheetLinkedSourceDto(entry.Key.TableId, entry.Key.TemplateCellId, null, entry.Value));
+            .Select(entry => new SheetLinkedSourceDto
+            {
+                SheetTableId = entry.Key.TableId,
+                TemplateCellId = entry.Key.TemplateCellId,
+                Options = entry.Value,
+            });
         var ofRows = _rows
             .OrderBy(entry => entry.Key.TableId)
             .ThenBy(entry => entry.Key.RowId)
-            .Select(entry => new SheetLinkedSourceDto(entry.Key.TableId, null, entry.Key.RowId, entry.Value));
+            .Select(entry => new SheetLinkedSourceDto
+            {
+                SheetTableId = entry.Key.TableId,
+                SheetRowId = entry.Key.RowId,
+                Options = entry.Value,
+            });
         return [.. ofColumns, .. ofRows];
     }
 }

@@ -69,7 +69,13 @@ public sealed class SubmissionReader
         var loaded = await loading;
         var counts = await CountChangesAsync(loaded.Select(submission => submission.Id).ToList(), cancellationToken);
         return loaded
-            .Select(submission => submission.ToDto(counts.GetValueOrDefault(submission.Id) ?? new SubmissionChangeCountsDto(0, 0, 0, 0)))
+            .Select(submission => submission.ToDto(counts.GetValueOrDefault(submission.Id) ?? new SubmissionChangeCountsDto
+            {
+                Tables = 0,
+                Sections = 0,
+                Rows = 0,
+                ColumnBlocks = 0,
+            }))
             .ToList();
     }
 
@@ -87,10 +93,12 @@ public sealed class SubmissionReader
         var blocks = await _db.SheetColumnBlockRevisions.CountBySubmissionAsync(ids, cancellationToken);
         return ids.ToDictionary(
             id => id,
-            id => new SubmissionChangeCountsDto(
-                tables.GetValueOrDefault(id),
-                sections.GetValueOrDefault(id),
-                rows.GetValueOrDefault(id),
-                blocks.GetValueOrDefault(id)));
+            id => new SubmissionChangeCountsDto
+            {
+                Tables = tables.GetValueOrDefault(id),
+                Sections = sections.GetValueOrDefault(id),
+                Rows = rows.GetValueOrDefault(id),
+                ColumnBlocks = blocks.GetValueOrDefault(id),
+            });
     }
 }

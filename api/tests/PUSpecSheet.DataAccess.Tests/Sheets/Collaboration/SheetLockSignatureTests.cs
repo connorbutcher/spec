@@ -10,8 +10,8 @@ public sealed class SheetLockSignatureTests
     [Fact]
     public void TheSameSheet_SeenByTwoPeople_HasTheSameSignature()
     {
-        var asHolder = Sheet(3, Row(10, new SheetLockDto(1, "Developer", isMine: true)));
-        var asOther = Sheet(3, Row(10, new SheetLockDto(1, "Developer", isMine: false)));
+        var asHolder = Sheet(3, Row(10, new SheetLockDto { UserId = 1, UserName = "Developer", IsMine = true }));
+        var asOther = Sheet(3, Row(10, new SheetLockDto { UserId = 1, UserName = "Developer", IsMine = false }));
 
         Assert.Equal(SheetLockSignature.Of(asHolder), SheetLockSignature.Of(asOther));
     }
@@ -20,7 +20,7 @@ public sealed class SheetLockSignatureTests
     public void CheckingARowOut_ChangesTheSignature()
     {
         var free = Sheet(3, Row(10, null));
-        var held = Sheet(3, Row(10, new SheetLockDto(1, "Developer", isMine: true)));
+        var held = Sheet(3, Row(10, new SheetLockDto { UserId = 1, UserName = "Developer", IsMine = true }));
 
         Assert.NotEqual(SheetLockSignature.Of(free), SheetLockSignature.Of(held));
     }
@@ -28,8 +28,8 @@ public sealed class SheetLockSignatureTests
     [Fact]
     public void HandingARowToSomeoneElse_ChangesTheSignature()
     {
-        var mine = Sheet(3, Row(10, new SheetLockDto(1, "Developer", isMine: true)));
-        var theirs = Sheet(3, Row(10, new SheetLockDto(2, "Engineer Two", isMine: false)));
+        var mine = Sheet(3, Row(10, new SheetLockDto { UserId = 1, UserName = "Developer", IsMine = true }));
+        var theirs = Sheet(3, Row(10, new SheetLockDto { UserId = 2, UserName = "Engineer Two", IsMine = false }));
 
         Assert.NotEqual(SheetLockSignature.Of(mine), SheetLockSignature.Of(theirs));
     }
@@ -44,7 +44,12 @@ public sealed class SheetLockSignatureTests
     public void ARowNobodyElseCanSeeYet_IsLeftOut()
     {
         var without = Sheet(3, Row(10, null));
-        var withPending = Sheet(3, Row(10, null), Row(11, new SheetLockDto(1, "Developer", isMine: true), isPending: true));
+        var withPending = Sheet(3, Row(10, null), Row(11, new SheetLockDto
+        {
+            UserId = 1,
+            UserName = "Developer",
+            IsMine = true,
+        }, isPending: true));
 
         Assert.Equal(SheetLockSignature.Of(without), SheetLockSignature.Of(withPending));
     }
@@ -52,8 +57,18 @@ public sealed class SheetLockSignatureTests
     [Fact]
     public void WhenOnlyRowsChangeHands_TheyAreNamed()
     {
-        var before = SheetLockSignature.Entries(Sheet(3, Row(10, null), Row(11, new SheetLockDto(1, "Developer", isMine: true)), Row(12, null)));
-        var after = SheetLockSignature.Entries(Sheet(3, Row(10, new SheetLockDto(2, "Engineer Two", isMine: false)), Row(11, null), Row(12, null)));
+        var before = SheetLockSignature.Entries(Sheet(3, Row(10, null), Row(11, new SheetLockDto
+        {
+            UserId = 1,
+            UserName = "Developer",
+            IsMine = true,
+        }), Row(12, null)));
+        var after = SheetLockSignature.Entries(Sheet(3, Row(10, new SheetLockDto
+        {
+            UserId = 2,
+            UserName = "Engineer Two",
+            IsMine = false,
+        }), Row(11, null), Row(12, null)));
 
         Assert.Equal([10, 11], SheetLockSignature.ChangedRows(before, after));
     }
@@ -61,7 +76,7 @@ public sealed class SheetLockSignatureTests
     [Fact]
     public void WhenAVersionIsPublished_NoRowsAreNamed()
     {
-        var before = SheetLockSignature.Entries(Sheet(3, Row(10, new SheetLockDto(1, "Developer", isMine: true))));
+        var before = SheetLockSignature.Entries(Sheet(3, Row(10, new SheetLockDto { UserId = 1, UserName = "Developer", IsMine = true })));
         var after = SheetLockSignature.Entries(Sheet(4, Row(10, null)));
 
         Assert.Null(SheetLockSignature.ChangedRows(before, after));
@@ -69,13 +84,66 @@ public sealed class SheetLockSignatureTests
 
     private static SheetRowDto Row(int id, SheetLockDto? held, bool isPending = false)
     {
-        return new SheetRowDto(id, Guid.Empty, 1, id, held, isPending, canRemove: true, [], null);
+        return new SheetRowDto
+        {
+            Id = id,
+            PublicId = Guid.Empty,
+            TemplateRowId = 1,
+            DisplayOrder = id,
+            Lock = held,
+            IsPending = isPending,
+            CanRemove = true,
+            Cells = [],
+        };
     }
 
     private static SheetDto Sheet(int latestVersion, params SheetRowDto[] rows)
     {
-        var section = new SheetSectionDto(1, Guid.Empty, 1, "Limits", SectionRole.Header, 1, 1, 1, 1, null, false, false, rows, [], [], null);
-        var table = new SheetTableDto(1, Guid.Empty, 1, "Limits", 1, TemplateOrientation.Vertical, 0, null, 1, null, false, [section], [], [], []);
-        return new SheetDto(1, Guid.Empty, 1, 1, true, null, null, latestVersion, 0, [], [table], []);
+        var section = new SheetSectionDto
+        {
+            Id = 1,
+            PublicId = Guid.Empty,
+            TemplateSectionId = 1,
+            Name = "Limits",
+            Role = SectionRole.Header,
+            MinInstances = 1,
+            MaxInstances = 1,
+            InitialInstances = 1,
+            DisplayOrder = 1,
+            IsPending = false,
+            CanRemove = false,
+            Rows = rows,
+            Sections = [],
+            AddableSections = [],
+        };
+        var table = new SheetTableDto
+        {
+            Id = 1,
+            PublicId = Guid.Empty,
+            TableTemplateId = 1,
+            TemplateName = "Limits",
+            TemplateVersionNumber = 1,
+            Orientation = TemplateOrientation.Vertical,
+            StickyColumnCount = 0,
+            DisplayOrder = 1,
+            IsPending = false,
+            Sections = [section],
+            AddableSections = [],
+            ColumnBlocks = [],
+            AddableColumnBlocks = [],
+        };
+        return new SheetDto
+        {
+            Id = 1,
+            PublicId = Guid.Empty,
+            PhaseId = 1,
+            SheetTypeId = 1,
+            IsLive = true,
+            LatestVersionNumber = latestVersion,
+            MyDraftCount = 0,
+            Versions = [],
+            Tables = [table],
+            AvailableTemplates = [],
+        };
     }
 }

@@ -41,7 +41,12 @@ public static class SheetSectionQueries
         return await db.SheetSections
             .AsNoTracking()
             .Where(section => section.SheetTableId == tableId)
-            .Select(section => new SheetSectionPlace(section.Id, section.TemplateSectionId, section.ParentSheetSectionId))
+            .Select(section => new SheetSectionPlace
+            {
+                Id = section.Id,
+                TemplateSectionId = section.TemplateSectionId,
+                ParentSheetSectionId = section.ParentSheetSectionId,
+            })
             .ToListAsync(cancellationToken);
     }
 

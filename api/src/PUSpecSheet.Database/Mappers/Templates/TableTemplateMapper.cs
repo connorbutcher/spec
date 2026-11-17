@@ -29,41 +29,51 @@ public static class TableTemplateMapper
         var sectionsByParent = sections.ToLookup(section => section.ParentSectionId);
         var rowsBySection = rows.ToLookup(row => row.TemplateSectionId);
 
-        return new TableTemplateDto(
-            template.Id,
-            template.SheetTypeId,
-            template.Name,
-            template.DisplayOrder,
-            version.Id,
-            version.VersionNumber,
-            version.Orientation,
-            version.StickyColumnCount,
-            isEditable,
-            versions,
-            SectionsUnder(null, sectionsByParent, rowsBySection),
-            columnBlocks
+        return new TableTemplateDto
+        {
+            Id = template.Id,
+            SheetTypeId = template.SheetTypeId,
+            Name = template.Name,
+            DisplayOrder = template.DisplayOrder,
+            VersionId = version.Id,
+            VersionNumber = version.VersionNumber,
+            Orientation = version.Orientation,
+            StickyColumnCount = version.StickyColumnCount,
+            IsEditable = isEditable,
+            Versions = versions,
+            Sections = SectionsUnder(null, sectionsByParent, rowsBySection),
+            ColumnBlocks = columnBlocks
                 .OrderBy(block => block.DisplayOrder)
                 .Select(block => block.ToDto())
-                .ToList());
+                .ToList(),
+        };
     }
 
     /// <param name="version">The version.</param>
     /// <param name="isInUse">Whether a sheet table is built from it, which freezes it.</param>
     public static TableTemplateVersionSummaryDto ToSummaryDto(this DbTableTemplateVersion version, bool isInUse)
     {
-        return new TableTemplateVersionSummaryDto(version.Id, version.VersionNumber, version.CreatedAtUtc, isInUse);
+        return new TableTemplateVersionSummaryDto
+        {
+            Id = version.Id,
+            VersionNumber = version.VersionNumber,
+            CreatedAtUtc = version.CreatedAtUtc,
+            IsInUse = isInUse,
+        };
     }
 
     public static TemplateColumnBlockDto ToDto(this DbTemplateColumnBlock block)
     {
-        return new TemplateColumnBlockDto(
-            block.Id,
-            block.Name,
-            block.DisplayOrder,
-            block.MinInstances,
-            block.MaxInstances,
-            block.InitialInstances,
-            block.StickyColumnCount);
+        return new TemplateColumnBlockDto
+        {
+            Id = block.Id,
+            Name = block.Name,
+            DisplayOrder = block.DisplayOrder,
+            MinInstances = block.MinInstances,
+            MaxInstances = block.MaxInstances,
+            InitialInstances = block.InitialInstances,
+            StickyColumnCount = block.StickyColumnCount,
+        };
     }
 
     /// <summary>Expects <see cref="DbTemplateRow.Cells"/> to be loaded.</summary>
@@ -75,23 +85,25 @@ public static class TableTemplateMapper
             .Select(cell => cell.ToDto())
             .ToList();
 
-        return new TemplateRowDto(row.Id, row.DisplayOrder, cells);
+        return new TemplateRowDto { Id = row.Id, DisplayOrder = row.DisplayOrder, Cells = cells };
     }
 
     public static TemplateCellDto ToDto(this DbTemplateCell cell)
     {
-        return new TemplateCellDto(
-            cell.Id,
-            cell.CellTypeId,
-            cell.Column,
-            cell.RowSpan,
-            cell.ColumnSpan,
-            cell.Caption,
-            cell.IsRequired,
-            cell.ConfigurationOverride,
-            cell.StyleOverride,
-            cell.TemplateColumnBlockId,
-            cell.LookupKey);
+        return new TemplateCellDto
+        {
+            Id = cell.Id,
+            CellTypeId = cell.CellTypeId,
+            Column = cell.Column,
+            RowSpan = cell.RowSpan,
+            ColumnSpan = cell.ColumnSpan,
+            Caption = cell.Caption,
+            IsRequired = cell.IsRequired,
+            ConfigurationOverride = cell.ConfigurationOverride,
+            StyleOverride = cell.StyleOverride,
+            ColumnBlockId = cell.TemplateColumnBlockId,
+            LookupKey = cell.LookupKey,
+        };
     }
 
     private static List<TemplateSectionDto> SectionsUnder(
@@ -101,20 +113,22 @@ public static class TableTemplateMapper
     {
         return sectionsByParent[parentId]
             .OrderBy(section => section.DisplayOrder)
-            .Select(section => new TemplateSectionDto(
-                section.Id,
-                section.ParentSectionId,
-                section.Name,
-                section.DisplayOrder,
-                section.Role,
-                section.MinInstances,
-                section.MaxInstances,
-                section.InitialInstances,
-                SectionsUnder(section.Id, sectionsByParent, rowsBySection),
-                rowsBySection[section.Id]
+            .Select(section => new TemplateSectionDto
+            {
+                Id = section.Id,
+                ParentSectionId = section.ParentSectionId,
+                Name = section.Name,
+                DisplayOrder = section.DisplayOrder,
+                Role = section.Role,
+                MinInstances = section.MinInstances,
+                MaxInstances = section.MaxInstances,
+                InitialInstances = section.InitialInstances,
+                Sections = SectionsUnder(section.Id, sectionsByParent, rowsBySection),
+                Rows = rowsBySection[section.Id]
                     .OrderBy(row => row.DisplayOrder)
                     .Select(row => row.ToDto())
-                    .ToList()))
+                    .ToList(),
+            })
             .ToList();
     }
 }

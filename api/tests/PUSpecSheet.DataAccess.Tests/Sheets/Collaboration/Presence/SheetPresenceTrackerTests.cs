@@ -8,9 +8,9 @@ public sealed class SheetPresenceTrackerTests
     public void SomeoneWithTwoTabsOpen_IsListedOnce()
     {
         var tracker = new SheetPresenceTracker();
-        tracker.Join("a", new SheetConnection(1, 7, "Sam"));
-        tracker.Join("b", new SheetConnection(1, 7, "Sam"));
-        tracker.Join("c", new SheetConnection(1, 8, "Alex"));
+        tracker.Join("a", new SheetConnection { SheetId = 1, UserId = 7, DisplayName = "Sam" });
+        tracker.Join("b", new SheetConnection { SheetId = 1, UserId = 7, DisplayName = "Sam" });
+        tracker.Join("c", new SheetConnection { SheetId = 1, UserId = 8, DisplayName = "Alex" });
 
         var users = tracker.UsersOn(1);
 
@@ -22,8 +22,8 @@ public sealed class SheetPresenceTrackerTests
     public void PeopleOnAnotherSheet_AreNotListed()
     {
         var tracker = new SheetPresenceTracker();
-        tracker.Join("a", new SheetConnection(1, 7, "Sam"));
-        tracker.Join("b", new SheetConnection(2, 8, "Alex"));
+        tracker.Join("a", new SheetConnection { SheetId = 1, UserId = 7, DisplayName = "Sam" });
+        tracker.Join("b", new SheetConnection { SheetId = 2, UserId = 8, DisplayName = "Alex" });
 
         Assert.Equal([7], tracker.UsersOn(1).Select(user => user.UserId));
         Assert.False(tracker.IsPresent(1, 8));
@@ -33,10 +33,10 @@ public sealed class SheetPresenceTrackerTests
     public void SomeoneIsPresent_UntilTheirLastTabCloses()
     {
         var tracker = new SheetPresenceTracker();
-        tracker.Join("a", new SheetConnection(1, 7, "Sam"));
-        tracker.Join("b", new SheetConnection(1, 7, "Sam"));
+        tracker.Join("a", new SheetConnection { SheetId = 1, UserId = 7, DisplayName = "Sam" });
+        tracker.Join("b", new SheetConnection { SheetId = 1, UserId = 7, DisplayName = "Sam" });
 
-        Assert.Equal(new SheetConnection(1, 7, "Sam"), tracker.Leave("a"));
+        Assert.Equal(new SheetConnection { SheetId = 1, UserId = 7, DisplayName = "Sam" }, tracker.Leave("a"));
         Assert.True(tracker.IsPresent(1, 7));
 
         tracker.Leave("b");

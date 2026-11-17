@@ -5,14 +5,8 @@ namespace PUSpecSheet.Abstractions.Sheets;
 /// <summary>A cell's new value.</summary>
 public sealed record CellValueRequest
 {
-    public CellValueRequest(int sheetCellId, JsonElement? value)
-    {
-        SheetCellId = sheetCellId;
-        Value = value;
-    }
-
     /// <summary>The cell to set.</summary>
-    public int SheetCellId { get; init; }
+    public required int SheetCellId { get; init; }
 
     /// <summary>
     /// The value in the shape the cell's kind takes, the same as <see cref="SheetCellDto.Value"/>: a string for

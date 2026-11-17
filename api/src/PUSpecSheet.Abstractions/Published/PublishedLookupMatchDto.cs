@@ -16,41 +16,17 @@ namespace PUSpecSheet.Abstractions.Published;
 /// </summary>
 public sealed record PublishedLookupMatchDto
 {
-    public PublishedLookupMatchDto(
-        Guid sheet,
-        string phase,
-        int sheetType,
-        int version,
-        DateTime publishedAtUtc,
-        Guid table,
-        string? title,
-        string? column,
-        IReadOnlyList<string> headings,
-        IReadOnlyDictionary<Guid, PublishedRowValuesDto> rows)
-    {
-        Sheet = sheet;
-        Phase = phase;
-        SheetType = sheetType;
-        Version = version;
-        PublishedAtUtc = publishedAtUtc;
-        Table = table;
-        Title = title;
-        Column = column;
-        Headings = headings;
-        Rows = rows;
-    }
+    public required Guid Sheet { get; init; }
 
-    public Guid Sheet { get; init; }
+    public required string Phase { get; init; }
 
-    public string Phase { get; init; }
+    public required int SheetType { get; init; }
 
-    public int SheetType { get; init; }
+    public required int Version { get; init; }
 
-    public int Version { get; init; }
+    public required DateTime PublishedAtUtc { get; init; }
 
-    public DateTime PublishedAtUtc { get; init; }
-
-    public Guid Table { get; init; }
+    public required Guid Table { get; init; }
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? Title { get; init; }
@@ -58,7 +34,7 @@ public sealed record PublishedLookupMatchDto
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? Column { get; init; }
 
-    public IReadOnlyList<string> Headings { get; init; }
+    public required IReadOnlyList<string> Headings { get; init; }
 
-    public IReadOnlyDictionary<Guid, PublishedRowValuesDto> Rows { get; init; }
+    public required IReadOnlyDictionary<Guid, PublishedRowValuesDto> Rows { get; init; }
 }

@@ -6,13 +6,7 @@ namespace PUSpecSheet.Abstractions.Sheets;
 /// </summary>
 public sealed record AddSheetSectionRequest
 {
-    public AddSheetSectionRequest(int templateSectionId, int? parentSheetSectionId)
-    {
-        TemplateSectionId = templateSectionId;
-        ParentSheetSectionId = parentSheetSectionId;
-    }
-
-    public int TemplateSectionId { get; init; }
+    public required int TemplateSectionId { get; init; }
 
     public int? ParentSheetSectionId { get; init; }
 }

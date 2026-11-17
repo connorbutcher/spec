@@ -12,11 +12,13 @@ namespace PUSpecSheet.DataAccess.Tests.Database.Published;
 /// </summary>
 public sealed class PublishedQueryTranslationTests : IDisposable
 {
-    private static readonly ResolvedSheetVersion _version = new(
-        7,
-        Guid.Parse("6f1c0000-0000-0000-0000-000000000001"),
-        3,
-        new DateTime(2026, 9, 30, 14, 2, 11, DateTimeKind.Utc));
+    private static readonly ResolvedSheetVersion _version = new ResolvedSheetVersion
+    {
+        SheetId = 7,
+        SheetPublicId = Guid.Parse("6f1c0000-0000-0000-0000-000000000001"),
+        VersionNumber = 3,
+        PublishedAtUtc = new DateTime(2026, 9, 30, 14, 2, 11, DateTimeKind.Utc),
+    };
 
     private readonly PuSpecSheetDbContext _db = new(
         new DbContextOptionsBuilder<PuSpecSheetDbContext>()
@@ -79,7 +81,13 @@ public sealed class PublishedQueryTranslationTests : IDisposable
     [Fact]
     public void ACellSelection_FiltersOnTheCellIdentifiersAlone()
     {
-        var scope = new PublishedSelectionScope([], [], [], [Guid.NewGuid(), Guid.NewGuid()]);
+        var scope = new PublishedSelectionScope
+        {
+            TableIds = [],
+            SectionIds = [],
+            RowPublicIds = [],
+            CellPublicIds = [Guid.NewGuid(), Guid.NewGuid()],
+        };
 
         var sql = PublishedCellQueries.Query(_db, _version, scope, false)!.ToQueryString();
 
@@ -90,7 +98,13 @@ public sealed class PublishedQueryTranslationTests : IDisposable
     [Fact]
     public void AMixedSelection_TakesAnythingNamedByAnyOfItsParts()
     {
-        var scope = new PublishedSelectionScope([4, 5], [9, 10], [Guid.NewGuid(), Guid.NewGuid()], [Guid.NewGuid(), Guid.NewGuid()]);
+        var scope = new PublishedSelectionScope
+        {
+            TableIds = [4, 5],
+            SectionIds = [9, 10],
+            RowPublicIds = [Guid.NewGuid(), Guid.NewGuid()],
+            CellPublicIds = [Guid.NewGuid(), Guid.NewGuid()],
+        };
 
         var sql = PublishedCellQueries.Query(_db, _version, scope, false)!.ToQueryString();
 
@@ -102,7 +116,7 @@ public sealed class PublishedQueryTranslationTests : IDisposable
     [Fact]
     public void ASelectionOfNothingOnTheSheet_ReadsNothing()
     {
-        var scope = new PublishedSelectionScope([], [], [], []);
+        var scope = new PublishedSelectionScope { TableIds = [], SectionIds = [], RowPublicIds = [], CellPublicIds = [] };
 
         Assert.Null(PublishedCellQueries.Query(_db, _version, scope, false));
     }

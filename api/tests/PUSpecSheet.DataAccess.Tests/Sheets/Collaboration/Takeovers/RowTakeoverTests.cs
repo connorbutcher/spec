@@ -35,7 +35,7 @@ public sealed class RowTakeoverTests
         _settler = new RowTakeoverSettler(_store, closer, _clock);
 
         _checkouts.CheckOut(Row, Sheet, Holder);
-        _presence.Join("holder-tab", new SheetConnection(Sheet, Holder, "User 1"));
+        _presence.Join("holder-tab", new SheetConnection { SheetId = Sheet, UserId = Holder, DisplayName = "User 1" });
     }
 
     [Fact]
@@ -122,7 +122,10 @@ public sealed class RowTakeoverTests
     [Fact]
     public async Task Availability_GivesTheSameAnswerAsAsking()
     {
-        Assert.Equal(new RowTakeoverAvailabilityDto(true, null), await _service.GetAvailabilityAsync(Row, CancellationToken.None));
+        Assert.Equal(new RowTakeoverAvailabilityDto
+        {
+            IsAvailable = true,
+        }, await _service.GetAvailabilityAsync(Row, CancellationToken.None));
 
         _checkouts.Change(Row);
         var changed = await _service.GetAvailabilityAsync(Row, CancellationToken.None);

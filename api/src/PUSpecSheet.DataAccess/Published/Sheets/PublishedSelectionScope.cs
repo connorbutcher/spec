@@ -6,25 +6,13 @@ namespace PUSpecSheet.DataAccess.Published.Sheets;
 /// </summary>
 public sealed record PublishedSelectionScope
 {
-    public PublishedSelectionScope(
-        IReadOnlyList<int> tableIds,
-        IReadOnlyList<int> sectionIds,
-        IReadOnlyList<Guid> rowPublicIds,
-        IReadOnlyList<Guid> cellPublicIds)
-    {
-        TableIds = tableIds;
-        SectionIds = sectionIds;
-        RowPublicIds = rowPublicIds;
-        CellPublicIds = cellPublicIds;
-    }
+    public required IReadOnlyList<int> TableIds { get; init; }
 
-    public IReadOnlyList<int> TableIds { get; init; }
+    public required IReadOnlyList<int> SectionIds { get; init; }
 
-    public IReadOnlyList<int> SectionIds { get; init; }
+    public required IReadOnlyList<Guid> RowPublicIds { get; init; }
 
-    public IReadOnlyList<Guid> RowPublicIds { get; init; }
-
-    public IReadOnlyList<Guid> CellPublicIds { get; init; }
+    public required IReadOnlyList<Guid> CellPublicIds { get; init; }
 
     /// <summary>False when nothing the caller named is on the sheet, so there is nothing to read.</summary>
     public bool HasAny => TableIds.Count + SectionIds.Count + RowPublicIds.Count + CellPublicIds.Count > 0;

@@ -14,8 +14,8 @@ public sealed class CellInstanceSettingsValidatorTests
     private static readonly LinkedDropdownInstanceSettings _partNumbers = new() { SourceSheetTableId = 2, SourceTemplateCellId = 15 };
 
     private static readonly SheetDto _sheet = SheetWith(
-        new SheetLinkedSourceDto(2, 15, null, ["P-1001", "P-1002"]),
-        new SheetLinkedSourceDto(2, null, 70, ["0.8", "0.85"]));
+        new SheetLinkedSourceDto { SheetTableId = 2, TemplateCellId = 15, Options = ["P-1001", "P-1002"] },
+        new SheetLinkedSourceDto { SheetTableId = 2, SheetRowId = 70, Options = ["0.8", "0.85"] });
 
     private static readonly LinkedDropdownInstanceSettings _pinOffsetRow = new() { SourceSheetTableId = 2, SourceSheetRowId = 70 };
 
@@ -106,13 +106,35 @@ public sealed class CellInstanceSettingsValidatorTests
 
     private static SheetDto SheetWith(params SheetLinkedSourceDto[] sources)
     {
-        var table = new SheetTableDto(2, Guid.Empty, 1, "Parts limits", 1, TemplateOrientation.Vertical, 0, null, 1, null, false, [], [], [], [])
+        var table = new SheetTableDto
         {
-            LinkableColumns = [new SheetLinkableColumnDto(15, "Part number")],
-            LinkableRows = [new SheetLinkableRowDto(70, "Pin offset (mm)")],
+            Id = 2,
+            PublicId = Guid.Empty,
+            TableTemplateId = 1,
+            TemplateName = "Parts limits",
+            TemplateVersionNumber = 1,
+            Orientation = TemplateOrientation.Vertical,
+            StickyColumnCount = 0,
+            DisplayOrder = 1,
+            IsPending = false,
+            Sections = [],
+            AddableSections = [],
+            ColumnBlocks = [],
+            AddableColumnBlocks = [],
+            LinkableColumns = [new SheetLinkableColumnDto { TemplateCellId = 15, Label = "Part number" }],
+            LinkableRows = [new SheetLinkableRowDto { SheetRowId = 70, Label = "Pin offset (mm)" }],
         };
-        return new SheetDto(1, Guid.Empty, 1, 1, true, null, null, null, 0, [], [table], [])
+        return new SheetDto
         {
+            Id = 1,
+            PublicId = Guid.Empty,
+            PhaseId = 1,
+            SheetTypeId = 1,
+            IsLive = true,
+            MyDraftCount = 0,
+            Versions = [],
+            Tables = [table],
+            AvailableTemplates = [],
             LinkedSources = sources,
         };
     }

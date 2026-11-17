@@ -9,16 +9,10 @@ namespace PUSpecSheet.Abstractions.Sheets;
 /// </summary>
 public sealed record CreateSheetRequest
 {
-    public CreateSheetRequest(int sheetTypeId, [Required, MaxLength(20)] IReadOnlyList<SheetIdentifierValueRequest> identifiers, int? copyFromSheetId)
-    {
-        SheetTypeId = sheetTypeId;
-        Identifiers = identifiers;
-        CopyFromSheetId = copyFromSheetId;
-    }
+    public required int SheetTypeId { get; init; }
 
-    public int SheetTypeId { get; init; }
-
-    public IReadOnlyList<SheetIdentifierValueRequest> Identifiers { get; init; }
+    [Required, MaxLength(20)]
+    public required IReadOnlyList<SheetIdentifierValueRequest> Identifiers { get; init; }
 
     public int? CopyFromSheetId { get; init; }
 }

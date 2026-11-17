@@ -173,9 +173,11 @@ public abstract class DraftGateway<TRevision>
             .GroupBy(ItemIdOf)
             .ToDictionary(
                 item => item.Key,
-                item => new DraftState<TRevision>(
-                    item.FirstOrDefault(revision => revision.Status == RevisionStatus.Published),
-                    item.FirstOrDefault(revision => revision.Status == RevisionStatus.Draft)));
+                item => new DraftState<TRevision>
+                {
+                    Current = item.FirstOrDefault(revision => revision.Status == RevisionStatus.Published),
+                    Draft = item.FirstOrDefault(revision => revision.Status == RevisionStatus.Draft),
+                });
     }
 
     /// <summary>The viewer's draft on the item, starting one from the current revision if they don't have one yet.</summary>

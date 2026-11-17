@@ -11,25 +11,80 @@ namespace PUSpecSheet.DataAccess.Tests.Published.Sheets;
 /// </summary>
 public sealed class PublishedSheetAssemblerTests
 {
-    private static readonly ResolvedSheetVersion _version = new(1, Id(1), 3, new DateTime(2026, 9, 30, 14, 0, 0, DateTimeKind.Utc));
+    private static readonly ResolvedSheetVersion _version = new ResolvedSheetVersion
+    {
+        SheetId = 1,
+        SheetPublicId = Id(1),
+        VersionNumber = 3,
+        PublishedAtUtc = new DateTime(2026, 9, 30, 14, 0, 0, DateTimeKind.Utc),
+    };
 
     // Table 1 holds a header section 10 and a section 20 with a sub-section 21. Table 2 was removed, along
     // with its section 30. Section 22 was removed from table 1. Table 1 has column blocks 5 then 6.
     private static readonly PublishedStructure _structure = new(
         [
-            new PublishedTableRecord(1, Id(100), 0, false, "Torques"),
-            new PublishedTableRecord(2, Id(200), 1, true, "Removed"),
+            new PublishedTableRecord { Id = 1, PublicId = Id(100), DisplayOrder = 0, IsDeleted = false, Title = "Torques" },
+            new PublishedTableRecord { Id = 2, PublicId = Id(200), DisplayOrder = 1, IsDeleted = true, Title = "Removed" },
         ],
         [
-            new PublishedSectionRecord(20, Id(120), 1, null, 1, false, "Bolts"),
-            new PublishedSectionRecord(10, Id(110), 1, null, 0, false, "Header"),
-            new PublishedSectionRecord(21, Id(121), 1, 20, 0, false, "Studs"),
-            new PublishedSectionRecord(22, Id(122), 1, null, 2, true, "Gone"),
-            new PublishedSectionRecord(30, Id(130), 2, null, 0, false, "In removed table"),
+            new PublishedSectionRecord
+            {
+                Id = 20,
+                PublicId = Id(120),
+                TableId = 1,
+                DisplayOrder = 1,
+                IsDeleted = false,
+                Name = "Bolts",
+            },
+            new PublishedSectionRecord
+            {
+                Id = 10,
+                PublicId = Id(110),
+                TableId = 1,
+                DisplayOrder = 0,
+                IsDeleted = false,
+                Name = "Header",
+            },
+            new PublishedSectionRecord
+            {
+                Id = 21,
+                PublicId = Id(121),
+                TableId = 1,
+                ParentSectionId = 20,
+                DisplayOrder = 0,
+                IsDeleted = false,
+                Name = "Studs",
+            },
+            new PublishedSectionRecord
+            {
+                Id = 22,
+                PublicId = Id(122),
+                TableId = 1,
+                DisplayOrder = 2,
+                IsDeleted = true,
+                Name = "Gone",
+            },
+            new PublishedSectionRecord
+            {
+                Id = 30,
+                PublicId = Id(130),
+                TableId = 2,
+                DisplayOrder = 0,
+                IsDeleted = false,
+                Name = "In removed table",
+            },
         ],
         [
-            new PublishedColumnBlockRecord(6, Id(160), 1, 1, false, "Second"),
-            new PublishedColumnBlockRecord(5, Id(150), 1, 0, false, "First"),
+            new PublishedColumnBlockRecord
+            {
+                Id = 6,
+                PublicId = Id(160),
+                TableId = 1,
+                DisplayOrder = 1,
+                IsDeleted = false,
+                Name = "Second",
+            },
+            new PublishedColumnBlockRecord { Id = 5, PublicId = Id(150), TableId = 1, DisplayOrder = 0, IsDeleted = false, Name = "First" },
         ]);
 
     private static readonly PublishedCellRecord[] _cells =
@@ -158,7 +213,19 @@ public sealed class PublishedSheetAssemblerTests
 
     private static PublishedCellRecord Cell(int row, int section, int rowOrder, int cell, int column, int? block = null)
     {
-        return new PublishedCellRecord(row * 10, row, RowId(row), section, rowOrder, cell, CellId(cell), block, column, $"Caption {cell}");
+        return new PublishedCellRecord
+        {
+            RowRevisionId = row * 10,
+            RowId = row,
+            RowPublicId = RowId(row),
+            SectionId = section,
+            RowOrder = rowOrder,
+            CellId = cell,
+            CellPublicId = CellId(cell),
+            ColumnBlockId = block,
+            Column = column,
+            Caption = $"Caption {cell}",
+        };
     }
 
     private static Guid Id(int value)

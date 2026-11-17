@@ -11,25 +11,17 @@ namespace PUSpecSheet.Abstractions.Sheets;
 /// </summary>
 public sealed record SheetRowsChangeDto
 {
-    public SheetRowsChangeDto(int sheetId, IReadOnlyList<SheetRowDto> rows, int? latestVersionNumber, int myDraftCount)
-    {
-        SheetId = sheetId;
-        Rows = rows;
-        LatestVersionNumber = latestVersionNumber;
-        MyDraftCount = myDraftCount;
-    }
-
     /// <summary>The sheet's id.</summary>
-    public int SheetId { get; init; }
+    public required int SheetId { get; init; }
 
     /// <summary>The rows asked for that are on the sheet. A row asked for and not listed has gone.</summary>
-    public IReadOnlyList<SheetRowDto> Rows { get; init; }
+    public required IReadOnlyList<SheetRowDto> Rows { get; init; }
 
     /// <summary>The newest version of the sheet, so a reader can tell when it has to read everything.</summary>
     public int? LatestVersionNumber { get; init; }
 
     /// <summary>How many of the viewer's own changes are waiting to be published.</summary>
-    public int MyDraftCount { get; init; }
+    public required int MyDraftCount { get; init; }
 
     /// <summary>Other people's unpublished changes on the sheet, by person.</summary>
     public IReadOnlyList<SheetDraftSummaryDto> OtherDrafts { get; init; } = [];

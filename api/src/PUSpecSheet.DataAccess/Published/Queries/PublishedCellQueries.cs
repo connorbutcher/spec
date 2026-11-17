@@ -62,17 +62,19 @@ public static class PublishedCellQueries
                 && revision.PublishedAtUtc <= moment
                 && (revision.SupersededAtUtc == null || revision.SupersededAtUtc > moment)
                 && !revision.IsDeleted),
-            (cell, revision) => new PublishedCellRecord(
-                revision.Id,
-                cell.SheetRowId,
-                cell.SheetRow.PublicId,
-                cell.SheetRow.SheetSectionId,
-                revision.DisplayOrder,
-                cell.Id,
-                cell.PublicId,
-                cell.SheetColumnBlockId,
-                cell.TemplateCell.Column,
-                cell.TemplateCell.Caption));
+            (cell, revision) => new PublishedCellRecord
+            {
+                RowRevisionId = revision.Id,
+                RowId = cell.SheetRowId,
+                RowPublicId = cell.SheetRow.PublicId,
+                SectionId = cell.SheetRow.SheetSectionId,
+                RowOrder = revision.DisplayOrder,
+                CellId = cell.Id,
+                CellPublicId = cell.PublicId,
+                ColumnBlockId = cell.SheetColumnBlockId,
+                Column = cell.TemplateCell.Column,
+                Caption = cell.TemplateCell.Caption,
+            });
     }
 
     private static IQueryable<PublishedCellRecord> WithoutCaptions(IQueryable<DbSheetCell> cells, ResolvedSheetVersion version)
@@ -85,16 +87,17 @@ public static class PublishedCellQueries
                 && revision.PublishedAtUtc <= moment
                 && (revision.SupersededAtUtc == null || revision.SupersededAtUtc > moment)
                 && !revision.IsDeleted),
-            (cell, revision) => new PublishedCellRecord(
-                revision.Id,
-                cell.SheetRowId,
-                cell.SheetRow.PublicId,
-                cell.SheetRow.SheetSectionId,
-                revision.DisplayOrder,
-                cell.Id,
-                cell.PublicId,
-                cell.SheetColumnBlockId,
-                cell.TemplateCell.Column,
-                null));
+            (cell, revision) => new PublishedCellRecord
+            {
+                RowRevisionId = revision.Id,
+                RowId = cell.SheetRowId,
+                RowPublicId = cell.SheetRow.PublicId,
+                SectionId = cell.SheetRow.SheetSectionId,
+                RowOrder = revision.DisplayOrder,
+                CellId = cell.Id,
+                CellPublicId = cell.PublicId,
+                ColumnBlockId = cell.SheetColumnBlockId,
+                Column = cell.TemplateCell.Column,
+            });
     }
 }

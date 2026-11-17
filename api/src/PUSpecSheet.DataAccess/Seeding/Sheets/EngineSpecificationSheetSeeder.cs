@@ -22,28 +22,37 @@ public sealed class EngineSpecificationSheetSeeder
 
     private static readonly BuildStage[] _baseStages =
     [
-        new(
-            "Short block",
+        new BuildStage
+        {
+            Name = "Short block",
+            Measurements =
             [
                 ("Cylinder bore", 82.003m, 81.990m, 82.010m),
                 ("Main bearing bore", 64.005m, 63.995m, 64.013m),
                 ("Crankshaft end float", 0.150m, 0.080m, 0.250m),
-            ]),
-        new(
-            "Cylinder head",
+            ],
+        },
+        new BuildStage
+        {
+            Name = "Cylinder head",
+            Measurements =
             [
                 ("Head face flatness", 0.012m, 0.000m, 0.050m),
                 ("Valve lash, intake", 0.200m, 0.160m, 0.240m),
                 ("Valve lash, exhaust", 0.300m, 0.260m, 0.340m),
-            ]),
+            ],
+        },
     ];
 
-    private static readonly BuildStage _turbocharger = new(
-        "Turbocharger",
+    private static readonly BuildStage _turbocharger = new BuildStage
+    {
+        Name = "Turbocharger",
+        Measurements =
         [
             ("Shaft axial play", 0.060m, 0.030m, 0.090m),
             ("Wastegate rod preload", 2.000m, 1.500m, 2.500m),
-        ]);
+        ],
+    };
 
     private readonly PuSpecSheetDbContext _db;
     private readonly ISheetsService _sheets;
@@ -74,11 +83,16 @@ public sealed class EngineSpecificationSheetSeeder
         var identifierIds = await _identifiers.EnsureAsync(cancellationToken);
         var sheetTypeId = await _sheetTypes.GetIdByNameAsync(ShowcasePhases.EngineSpecificationsSheetType, cancellationToken);
         var templateId = context.TemplateIds[BuildRecordTemplate.TemplateName];
-        var target = new SheetTarget(context, sheetTypeId, identifierIds);
+        var target = new SheetTarget { Context = context, SheetTypeId = sheetTypeId, IdentifierIds = identifierIds };
 
         // PU6-0001: recorded by the developer, then engineer2 re-measures a bore after re-honing.
         await _users.ActAsAsync(ShowcaseUsers.Developer, cancellationToken);
-        var first = await CreateAsync(target, new EngineBuild("PU6-0001", new DateOnly(2026, 9, 14), ShowcaseSheetIdentifiers.BaseConfiguration), null, cancellationToken);
+        var first = await CreateAsync(target, new EngineBuild
+        {
+            SerialNumber = "PU6-0001",
+            BuildDate = new DateOnly(2026, 9, 14),
+            Configuration = ShowcaseSheetIdentifiers.BaseConfiguration,
+        }, null, cancellationToken);
         var firstTable = await AddRecordAsync(first, templateId, _baseStages, engine: 0, cancellationToken);
         await first.PublishAsync("As-built record for PU6-0001", cancellationToken);
 
@@ -90,7 +104,12 @@ public sealed class EngineSpecificationSheetSeeder
 
         // PU6-0002: started by engineer3 as a copy of PU6-0001's record, with this engine's own readings.
         await _users.ActAsAsync(ShowcaseUsers.EngineerThree, cancellationToken);
-        var second = await CreateAsync(target, new EngineBuild("PU6-0002", new DateOnly(2026, 9, 21), ShowcaseSheetIdentifiers.BaseConfiguration), first.Sheet.Id, cancellationToken);
+        var second = await CreateAsync(target, new EngineBuild
+        {
+            SerialNumber = "PU6-0002",
+            BuildDate = new DateOnly(2026, 9, 21),
+            Configuration = ShowcaseSheetIdentifiers.BaseConfiguration,
+        }, first.Sheet.Id, cancellationToken);
         var secondTable = second.Sheet.Tables[0].Id;
         await RecordReadingsAsync(second, secondTable, _baseStages, engine: 1);
         var copiedNote = second.Copies(secondTable, null, BuildRecordTemplate.BuildNote)[0];
@@ -99,7 +118,12 @@ public sealed class EngineSpecificationSheetSeeder
 
         // PU6-0003: the high-output build, with a turbocharger stage. Its second version fails the end float.
         await _users.ActAsAsync(ShowcaseUsers.Developer, cancellationToken);
-        var third = await CreateAsync(target, new EngineBuild("PU6-0003", new DateOnly(2026, 10, 2), ShowcaseSheetIdentifiers.HighOutputConfiguration), null, cancellationToken);
+        var third = await CreateAsync(target, new EngineBuild
+        {
+            SerialNumber = "PU6-0003",
+            BuildDate = new DateOnly(2026, 10, 2),
+            Configuration = ShowcaseSheetIdentifiers.HighOutputConfiguration,
+        }, null, cancellationToken);
         var thirdTable = await AddRecordAsync(third, templateId, [.. _baseStages, _turbocharger], engine: 2, cancellationToken);
         await third.PublishAsync("As-built record for PU6-0003, high output", cancellationToken);
 
@@ -113,7 +137,11 @@ public sealed class EngineSpecificationSheetSeeder
         // nothing published: the copy is still the developer's own drafts, which the app shows them, with the
         // turbocharger stage and PU6-0003's note taken out.
         await _users.ActAsAsync(ShowcaseUsers.Developer, cancellationToken);
-        var fourth = await CreateAsync(target, new EngineBuild("PU6-0004", null, ShowcaseSheetIdentifiers.HybridConfiguration), third.Sheet.Id, cancellationToken);
+        var fourth = await CreateAsync(target, new EngineBuild
+        {
+            SerialNumber = "PU6-0004",
+            Configuration = ShowcaseSheetIdentifiers.HybridConfiguration,
+        }, third.Sheet.Id, cancellationToken);
         var fourthTable = fourth.Sheet.Tables[0].Id;
         await fourth.RemoveSectionAsync(fourth.Copies(fourthTable, null, BuildRecordTemplate.Stage)[2], cancellationToken);
         await fourth.RemoveSectionAsync(fourth.Copies(fourthTable, null, BuildRecordTemplate.BuildNote)[0], cancellationToken);
@@ -123,19 +151,36 @@ public sealed class EngineSpecificationSheetSeeder
     /// <summary>Creates the engine's sheet in V6 with its identifier values, optionally as a copy of another, and opens it.</summary>
     private async Task<SheetEditor> CreateAsync(SheetTarget target, EngineBuild build, int? copyFromSheetId, CancellationToken cancellationToken)
     {
-        List<SheetIdentifierValueRequest> values = [new(target.IdentifierIds[ShowcaseSheetIdentifiers.SerialNumber], build.SerialNumber)];
+        List<SheetIdentifierValueRequest> values = [new SheetIdentifierValueRequest
+        {
+            IdentifierId = target.IdentifierIds[ShowcaseSheetIdentifiers.SerialNumber],
+            Value = build.SerialNumber,
+        }];
         if (build.BuildDate is { } date)
         {
-            values.Add(new(target.IdentifierIds[ShowcaseSheetIdentifiers.BuildDate], date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)));
+            values.Add(new SheetIdentifierValueRequest
+            {
+                IdentifierId = target.IdentifierIds[ShowcaseSheetIdentifiers.BuildDate],
+                Value = date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
+            });
         }
 
         if (build.Configuration is { } configuration)
         {
-            values.Add(new(target.IdentifierIds[ShowcaseSheetIdentifiers.Configuration], configuration));
+            values.Add(new SheetIdentifierValueRequest
+            {
+                IdentifierId = target.IdentifierIds[ShowcaseSheetIdentifiers.Configuration],
+                Value = configuration,
+            });
         }
 
         var phaseId = target.Context.PhaseIds[ShowcasePhases.V6];
-        var created = await _sheets.CreateAsync(phaseId, new CreateSheetRequest(target.SheetTypeId, values, copyFromSheetId), cancellationToken);
+        var created = await _sheets.CreateAsync(phaseId, new CreateSheetRequest
+        {
+            SheetTypeId = target.SheetTypeId,
+            Identifiers = values,
+            CopyFromSheetId = copyFromSheetId,
+        }, cancellationToken);
         return await _editors.OpenSheetAsync(created.Id, target.Context.CellTypes, cancellationToken);
     }
 

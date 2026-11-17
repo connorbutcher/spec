@@ -12,7 +12,7 @@ public sealed class LiveRowCheckoutGuardTests
     public LiveRowCheckoutGuardTests()
     {
         _guard = new LiveRowCheckoutGuard(_tracker, _currentUser);
-        _tracker.TryCheckOut("sam", new LiveRowCheckout(1, 10, 1, "Sam"), out _);
+        _tracker.TryCheckOut("sam", new LiveRowCheckout { SheetId = 1, RowId = 10, UserId = 1, DisplayName = "Sam" }, out _);
     }
 
     [Fact]

@@ -8,19 +8,11 @@ namespace PUSpecSheet.Abstractions.Sheets;
 /// </summary>
 public sealed record SheetLinkedSourceDto
 {
-    public SheetLinkedSourceDto(int sheetTableId, int? templateCellId, int? sheetRowId, IReadOnlyList<string> options)
-    {
-        SheetTableId = sheetTableId;
-        TemplateCellId = templateCellId;
-        SheetRowId = sheetRowId;
-        Options = options;
-    }
-
-    public int SheetTableId { get; init; }
+    public required int SheetTableId { get; init; }
 
     public int? TemplateCellId { get; init; }
 
     public int? SheetRowId { get; init; }
 
-    public IReadOnlyList<string> Options { get; init; }
+    public required IReadOnlyList<string> Options { get; init; }
 }

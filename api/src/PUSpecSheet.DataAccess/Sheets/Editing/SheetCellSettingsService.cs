@@ -111,10 +111,12 @@ public sealed class SheetCellSettingsService : ISheetCellSettingsService
 
         var cleared = changed.Keys
             .Where(cellId => cellsById[cellId].TemplateCell.CellType.Kind != CellKind.LabelledText)
-            .Select(cellId => new CellValueChange(
-                cellId,
-                cellsById[cellId].TemplateCell.CellType.Kind,
-                new CellValueBag()))
+            .Select(cellId => new CellValueChange
+            {
+                SheetCellId = cellId,
+                Kind = cellsById[cellId].TemplateCell.CellType.Kind,
+                Value = new CellValueBag(),
+            })
             .ToList();
         await RowValueQueries.SetManyAsync(_db, draftId, cleared, cancellationToken);
     }

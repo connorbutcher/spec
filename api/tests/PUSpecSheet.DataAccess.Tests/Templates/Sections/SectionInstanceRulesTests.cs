@@ -54,10 +54,22 @@ public sealed class SectionInstanceRulesTests
     {
         var section = new DbTemplateSection();
 
-        SectionInstanceRules.ApplyAddable(new UpdateTemplateSectionRequest("Body", 1, 4, 2), section);
+        SectionInstanceRules.ApplyAddable(new UpdateTemplateSectionRequest
+        {
+            Name = "Body",
+            MinInstances = 1,
+            MaxInstances = 4,
+            InitialInstances = 2,
+        }, section);
         Assert.Equal((1, 4, 2), (section.MinInstances, section.MaxInstances, section.InitialInstances));
 
         Assert.Throws<InvalidRequestException>(
-            () => SectionInstanceRules.ApplyAddable(new UpdateTemplateSectionRequest("Body", 3, 4, 2), section));
+            () => SectionInstanceRules.ApplyAddable(new UpdateTemplateSectionRequest
+            {
+                Name = "Body",
+                MinInstances = 3,
+                MaxInstances = 4,
+                InitialInstances = 2,
+            }, section));
     }
 }

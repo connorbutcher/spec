@@ -7,35 +7,17 @@ namespace PUSpecSheet.Abstractions.Templates;
 /// </summary>
 public sealed record TemplateColumnBlockDto
 {
-    public TemplateColumnBlockDto(
-        int id,
-        string name,
-        int displayOrder,
-        int minInstances,
-        int? maxInstances,
-        int initialInstances,
-        int stickyColumnCount)
-    {
-        Id = id;
-        Name = name;
-        DisplayOrder = displayOrder;
-        MinInstances = minInstances;
-        MaxInstances = maxInstances;
-        InitialInstances = initialInstances;
-        StickyColumnCount = stickyColumnCount;
-    }
+    public required int Id { get; init; }
 
-    public int Id { get; init; }
+    public required string Name { get; init; }
 
-    public string Name { get; init; }
+    public required int DisplayOrder { get; init; }
 
-    public int DisplayOrder { get; init; }
-
-    public int MinInstances { get; init; }
+    public required int MinInstances { get; init; }
 
     public int? MaxInstances { get; init; }
 
-    public int InitialInstances { get; init; }
+    public required int InitialInstances { get; init; }
 
-    public int StickyColumnCount { get; init; }
+    public required int StickyColumnCount { get; init; }
 }

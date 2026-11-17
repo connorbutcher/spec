@@ -34,7 +34,7 @@ public static class RevisionResolver
             var draft = group.FirstOrDefault(revision => revision.Status == RevisionStatus.Draft);
             var published = group.FirstOrDefault(revision => revision.Status == RevisionStatus.Published);
             var shown = draft is not null && showsDraft(draft) ? draft : published;
-            result[group.Key] = new RevisionResolution<TRevision>(shown, draft);
+            result[group.Key] = new RevisionResolution<TRevision> { Shown = shown, Draft = draft };
         }
 
         return result;

@@ -6,16 +6,9 @@ namespace PUSpecSheet.Abstractions.Sheets.Collaboration;
 /// </summary>
 public sealed record SheetPresenceUserDto
 {
-    public SheetPresenceUserDto(int userId, string displayName, int connectionCount)
-    {
-        UserId = userId;
-        DisplayName = displayName;
-        ConnectionCount = connectionCount;
-    }
+    public required int UserId { get; init; }
 
-    public int UserId { get; init; }
+    public required string DisplayName { get; init; }
 
-    public string DisplayName { get; init; }
-
-    public int ConnectionCount { get; init; }
+    public required int ConnectionCount { get; init; }
 }

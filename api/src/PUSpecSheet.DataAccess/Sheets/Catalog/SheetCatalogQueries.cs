@@ -25,7 +25,7 @@ public static class SheetCatalogQueries
                 sheet.CreatedAtUtc,
                 Identifiers = sheet.IdentifierValues
                     .OrderBy(value => value.SheetTypeIdentifierId)
-                    .Select(value => new SheetIdentifierValueDto(value.SheetTypeIdentifierId, value.Value))
+                    .Select(value => new SheetIdentifierValueDto { IdentifierId = value.SheetTypeIdentifierId, Value = value.Value })
                     .ToList(),
                 Latest = sheet.Versions
                     .OrderByDescending(version => version.VersionNumber)
@@ -43,17 +43,19 @@ public static class SheetCatalogQueries
         Add(drafts, await CountDraftsAsync(db.SheetRowRevisions, sheetIds, cancellationToken));
 
         return rows
-            .Select(row => new SheetSummaryDto(
-                row.Id,
-                row.PublicId,
-                phaseId,
-                row.SheetTypeId,
-                row.Identifiers,
-                row.Latest?.VersionNumber,
-                row.Latest is null ? null : DateTime.SpecifyKind(row.Latest.PublishedAtUtc, DateTimeKind.Utc),
-                DateTime.SpecifyKind(row.CreatedAtUtc, DateTimeKind.Utc),
-                drafts.GetValueOrDefault(row.Id),
-                row.PendingSubmissionCount))
+            .Select(row => new SheetSummaryDto
+            {
+                Id = row.Id,
+                PublicId = row.PublicId,
+                PhaseId = phaseId,
+                SheetTypeId = row.SheetTypeId,
+                Identifiers = row.Identifiers,
+                LatestVersionNumber = row.Latest?.VersionNumber,
+                LatestPublishedAtUtc = row.Latest is null ? null : DateTime.SpecifyKind(row.Latest.PublishedAtUtc, DateTimeKind.Utc),
+                CreatedAtUtc = DateTime.SpecifyKind(row.CreatedAtUtc, DateTimeKind.Utc),
+                DraftCount = drafts.GetValueOrDefault(row.Id),
+                PendingSubmissionCount = row.PendingSubmissionCount,
+            })
             .ToList();
     }
 

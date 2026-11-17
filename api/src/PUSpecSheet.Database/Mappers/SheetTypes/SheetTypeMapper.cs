@@ -10,19 +10,24 @@ namespace PUSpecSheet.Database.Mappers.SheetTypes;
 /// </summary>
 public static class SheetTypeMapper
 {
-    public static readonly Expression<Func<DbSheetType, SheetTypeDto>> Projection = sheetType => new SheetTypeDto(sheetType.Id, sheetType.Name, sheetType.DisplayOrder)
+    public static readonly Expression<Func<DbSheetType, SheetTypeDto>> Projection = sheetType => new SheetTypeDto
     {
+        Id = sheetType.Id,
+        Name = sheetType.Name,
+        DisplayOrder = sheetType.DisplayOrder,
         Identifiers = sheetType.Identifiers
             .OrderBy(identifier => identifier.DisplayOrder)
             .ThenBy(identifier => identifier.Id)
-            .Select(identifier => new SheetTypeIdentifierDto(
-                identifier.Id,
-                identifier.Key,
-                identifier.Name,
-                identifier.Kind,
-                identifier.IsRequired,
-                identifier.DisplayOrder,
-                identifier.Options ?? new List<string>()))
+            .Select(identifier => new SheetTypeIdentifierDto
+            {
+                Id = identifier.Id,
+                Key = identifier.Key,
+                Name = identifier.Name,
+                Kind = identifier.Kind,
+                IsRequired = identifier.IsRequired,
+                DisplayOrder = identifier.DisplayOrder,
+                Options = identifier.Options ?? new List<string>(),
+            })
             .ToList(),
     };
 

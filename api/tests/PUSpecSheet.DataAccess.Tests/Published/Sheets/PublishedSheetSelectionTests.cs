@@ -11,7 +11,13 @@ public sealed class PublishedSheetSelectionTests
     private const string First = "a41e0000-0000-0000-0000-000000000001";
     private const string Second = "b7d00000-0000-0000-0000-000000000002";
 
-    private static readonly ResolvedSheetVersion _version = new(1, Guid.Parse(First), 7, DateTime.UnixEpoch);
+    private static readonly ResolvedSheetVersion _version = new ResolvedSheetVersion
+    {
+        SheetId = 1,
+        SheetPublicId = Guid.Parse(First),
+        VersionNumber = 7,
+        PublishedAtUtc = DateTime.UnixEpoch,
+    };
 
     [Fact]
     public void TheSameIdentifiersInAnotherOrder_GiveTheSameKey()
@@ -42,7 +48,11 @@ public sealed class PublishedSheetSelectionTests
     [Fact]
     public void ARequestBody_GivesTheSameKeyAsTheSameQueryString()
     {
-        var body = PublishedSheetSelection.From(new PublishedSheetQueryRequest(null, null, null, [Guid.Parse(Second), Guid.Parse(First)], PublishedSheetShape.Flat));
+        var body = PublishedSheetSelection.From(new PublishedSheetQueryRequest
+        {
+            Cells = [Guid.Parse(Second), Guid.Parse(First)],
+            Shape = PublishedSheetShape.Flat,
+        });
         var query = PublishedSheetSelection.Parse(null, null, null, $"{First},{Second}", PublishedSheetShape.Flat, null);
 
         Assert.Equal(query.Key, body.Key);

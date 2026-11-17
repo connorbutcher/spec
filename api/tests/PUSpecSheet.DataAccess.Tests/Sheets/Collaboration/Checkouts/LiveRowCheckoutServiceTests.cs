@@ -32,8 +32,8 @@ public sealed class LiveRowCheckoutServiceTests
         _drafts.AddRow(10);
         _drafts.AddRow(11);
         _drafts.AddRow(20, sheetId: 2);
-        _presence.Join("sam", new SheetConnection(Sheet, Sam, "Sam"));
-        _presence.Join("alex", new SheetConnection(Sheet, Alex, "Alex"));
+        _presence.Join("sam", new SheetConnection { SheetId = Sheet, UserId = Sam, DisplayName = "Sam" });
+        _presence.Join("alex", new SheetConnection { SheetId = Sheet, UserId = Alex, DisplayName = "Alex" });
     }
 
     [Fact]
@@ -132,8 +132,19 @@ public sealed class LiveRowCheckoutServiceTests
         // In these tests a draft stands for the checkout the request was made against.
         _drafts.CheckOut(10, Sheet, Sam);
         await _service.CheckOutAsync("sam", 10, CancellationToken.None);
-        _takeovers.TryAdd(new RowTakeoverDto(
-            Guid.NewGuid(), Sheet, 10, Alex, "Alex", Sam, "Sam", DateTime.UtcNow, DateTime.UtcNow.AddMinutes(1), RowTakeoverStatus.Pending));
+        _takeovers.TryAdd(new RowTakeoverDto
+        {
+            Id = Guid.NewGuid(),
+            SheetId = Sheet,
+            RowId = 10,
+            RequesterUserId = Alex,
+            RequesterName = "Alex",
+            HolderUserId = Sam,
+            HolderName = "Sam",
+            RequestedAtUtc = DateTime.UtcNow,
+            ExpiresAtUtc = DateTime.UtcNow.AddMinutes(1),
+            Status = RowTakeoverStatus.Pending,
+        });
 
         _drafts.Release(10);
         await _service.ReleaseAsync("sam", CancellationToken.None);

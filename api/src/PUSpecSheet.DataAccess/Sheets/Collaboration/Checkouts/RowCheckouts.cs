@@ -42,7 +42,7 @@ public sealed class RowCheckouts : IRowCheckouts
 
         // Someone who is only in the row has, by definition, changed nothing.
         return _live.HolderOf(rowId) is { } holder
-            ? new RowCheckout(holder.SheetId, holder.UserId, hasChanges: false)
+            ? new RowCheckout { SheetId = holder.SheetId, HolderUserId = holder.UserId, HasChanges = false }
             : null;
     }
 
@@ -85,7 +85,12 @@ public sealed class RowCheckouts : IRowCheckouts
 
         // The draft carries its sheet, so finding the sheet takes no query of its own.
         var published = revisions.SingleOrDefault(revision => revision.Status == RevisionStatus.Published);
-        return new RowCheckout(draft.SheetId, draft.AuthorUserId, await HasChangesAsync(draft, published, cancellationToken));
+        return new RowCheckout
+        {
+            SheetId = draft.SheetId,
+            HolderUserId = draft.AuthorUserId,
+            HasChanges = await HasChangesAsync(draft, published, cancellationToken),
+        };
     }
 
     private async Task<bool> TransferDraftAsync(int rowId, int fromUserId, int toUserId, CancellationToken cancellationToken)

@@ -8,10 +8,6 @@ namespace PUSpecSheet.Abstractions.Sheets;
 /// </summary>
 public sealed record SaveRowCellSettingsRequest
 {
-    public SaveRowCellSettingsRequest([MinLength(1)] IReadOnlyList<CellSettingsRequest> settings)
-    {
-        Settings = settings;
-    }
-
-    public IReadOnlyList<CellSettingsRequest> Settings { get; init; }
+    [MinLength(1)]
+    public required IReadOnlyList<CellSettingsRequest> Settings { get; init; }
 }

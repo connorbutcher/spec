@@ -5,19 +5,11 @@ namespace PUSpecSheet.DataAccess.Sheets.Values;
 /// <summary>Settings chosen for a cell of an earlier row, which a new row of the same kind takes on.</summary>
 public sealed record ChosenSettings
 {
-    public ChosenSettings(int sheetRowRevisionId, CellInstanceSettings settings, int templateCellId, int? sheetColumnBlockId)
-    {
-        SheetRowRevisionId = sheetRowRevisionId;
-        Settings = settings;
-        TemplateCellId = templateCellId;
-        SheetColumnBlockId = sheetColumnBlockId;
-    }
+    public required int SheetRowRevisionId { get; init; }
 
-    public int SheetRowRevisionId { get; init; }
+    public required CellInstanceSettings Settings { get; init; }
 
-    public CellInstanceSettings Settings { get; init; }
-
-    public int TemplateCellId { get; init; }
+    public required int TemplateCellId { get; init; }
 
     public int? SheetColumnBlockId { get; init; }
 }

@@ -5,16 +5,9 @@ namespace PUSpecSheet.DataAccess.Sheets.Queries;
 /// <summary>A sheet cell whose template cell must be filled in: which cell, its row and its kind.</summary>
 public sealed record RequiredCell
 {
-    public RequiredCell(int id, int sheetRowId, CellKind kind)
-    {
-        Id = id;
-        SheetRowId = sheetRowId;
-        Kind = kind;
-    }
+    public required int Id { get; init; }
 
-    public int Id { get; init; }
+    public required int SheetRowId { get; init; }
 
-    public int SheetRowId { get; init; }
-
-    public CellKind Kind { get; init; }
+    public required CellKind Kind { get; init; }
 }

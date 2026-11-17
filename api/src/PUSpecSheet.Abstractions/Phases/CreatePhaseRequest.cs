@@ -8,20 +8,10 @@ namespace PUSpecSheet.Abstractions.Phases;
 /// </summary>
 public sealed record CreatePhaseRequest
 {
-    public CreatePhaseRequest(
-        [Required, MaxLength(50)] string code,
-        [MaxLength(500)] string? description,
-        int? parentPhaseId,
-        IReadOnlyList<int>? sheetTypeIds)
-    {
-        Code = code;
-        Description = description;
-        ParentPhaseId = parentPhaseId;
-        SheetTypeIds = sheetTypeIds;
-    }
+    [Required, MaxLength(50)]
+    public required string Code { get; init; }
 
-    public string Code { get; init; }
-
+    [MaxLength(500)]
     public string? Description { get; init; }
 
     public int? ParentPhaseId { get; init; }

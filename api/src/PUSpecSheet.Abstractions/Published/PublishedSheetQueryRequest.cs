@@ -6,22 +6,6 @@ namespace PUSpecSheet.Abstractions.Published;
 /// </summary>
 public sealed record PublishedSheetQueryRequest
 {
-    public PublishedSheetQueryRequest(
-        IReadOnlyList<Guid>? tables,
-        IReadOnlyList<Guid>? sections,
-        IReadOnlyList<Guid>? rows,
-        IReadOnlyList<Guid>? cells,
-        PublishedSheetShape shape = PublishedSheetShape.Tree,
-        bool includeLabels = false)
-    {
-        Tables = tables;
-        Sections = sections;
-        Rows = rows;
-        Cells = cells;
-        Shape = shape;
-        IncludeLabels = includeLabels;
-    }
-
     public IReadOnlyList<Guid>? Tables { get; init; }
 
     public IReadOnlyList<Guid>? Sections { get; init; }
@@ -30,7 +14,7 @@ public sealed record PublishedSheetQueryRequest
 
     public IReadOnlyList<Guid>? Cells { get; init; }
 
-    public PublishedSheetShape Shape { get; init; }
+    public PublishedSheetShape Shape { get; init; } = PublishedSheetShape.Tree;
 
     public bool IncludeLabels { get; init; }
 }

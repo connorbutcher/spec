@@ -6,16 +6,9 @@ namespace PUSpecSheet.Abstractions.Published;
 /// </summary>
 public sealed record PublishedLookupDto
 {
-    public PublishedLookupDto(string key, string value, IReadOnlyList<PublishedLookupMatchDto> matches)
-    {
-        Key = key;
-        Value = value;
-        Matches = matches;
-    }
+    public required string Key { get; init; }
 
-    public string Key { get; init; }
+    public required string Value { get; init; }
 
-    public string Value { get; init; }
-
-    public IReadOnlyList<PublishedLookupMatchDto> Matches { get; init; }
+    public required IReadOnlyList<PublishedLookupMatchDto> Matches { get; init; }
 }

@@ -8,24 +8,14 @@ namespace PUSpecSheet.Abstractions.SheetTypes;
 /// </summary>
 public sealed record SaveSheetTypeIdentifierRequest
 {
-    public SaveSheetTypeIdentifierRequest(
-        [Required, MaxLength(100)] string name,
-        SheetIdentifierKind kind,
-        bool isRequired,
-        [MaxLength(100)] IReadOnlyList<string>? options)
-    {
-        Name = name;
-        Kind = kind;
-        IsRequired = isRequired;
-        Options = options;
-    }
+    [Required, MaxLength(100)]
+    public required string Name { get; init; }
 
-    public string Name { get; init; }
+    public required SheetIdentifierKind Kind { get; init; }
 
-    public SheetIdentifierKind Kind { get; init; }
-
-    public bool IsRequired { get; init; }
+    public required bool IsRequired { get; init; }
 
     /// <summary>The choices of an option identifier, in order. Ignored for the other kinds.</summary>
+    [MaxLength(100)]
     public IReadOnlyList<string>? Options { get; init; }
 }

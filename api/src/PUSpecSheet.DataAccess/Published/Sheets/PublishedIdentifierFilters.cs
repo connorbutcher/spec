@@ -32,13 +32,20 @@ public static class PublishedIdentifierFilters
         {
             var identifier = identifiers.FirstOrDefault(candidate => string.Equals(candidate.Key, key, StringComparison.OrdinalIgnoreCase))
                 ?? throw new InvalidRequestException($"Sheet type {sheetTypeId} has no identifier \"{key}\".");
-            var definition = new SheetIdentifierDefinition(identifier.Id, identifier.Key, identifier.Kind, false, identifier.Options ?? []);
+            var definition = new SheetIdentifierDefinition
+            {
+                Id = identifier.Id,
+                Name = identifier.Key,
+                Kind = identifier.Kind,
+                IsRequired = false,
+                Options = identifier.Options ?? [],
+            };
             if (!SheetIdentifierRules.TryNormalise(definition, raw, out var stored, out var error))
             {
                 throw new InvalidRequestException(error!);
             }
 
-            filters.Add(new PublishedIdentifierFilter(identifier.Id, stored));
+            filters.Add(new PublishedIdentifierFilter { IdentifierId = identifier.Id, Value = stored });
         }
 
         return filters;

@@ -5,25 +5,15 @@ namespace PUSpecSheet.Abstractions.Phases;
 /// </summary>
 public sealed record PhaseDto
 {
-    public PhaseDto(int id, string code, string? description, int displayOrder, int? parentPhaseId, IReadOnlyList<int> sheetTypeIds)
-    {
-        Id = id;
-        Code = code;
-        Description = description;
-        DisplayOrder = displayOrder;
-        ParentPhaseId = parentPhaseId;
-        SheetTypeIds = sheetTypeIds;
-    }
+    public required int Id { get; init; }
 
-    public int Id { get; init; }
-
-    public string Code { get; init; }
+    public required string Code { get; init; }
 
     public string? Description { get; init; }
 
-    public int DisplayOrder { get; init; }
+    public required int DisplayOrder { get; init; }
 
     public int? ParentPhaseId { get; init; }
 
-    public IReadOnlyList<int> SheetTypeIds { get; init; }
+    public required IReadOnlyList<int> SheetTypeIds { get; init; }
 }

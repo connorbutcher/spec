@@ -57,7 +57,7 @@ public sealed class RemovalContentsGuard
         return rowIds
             .Select(_liveCheckouts.HolderOf)
             .OfType<LiveRowCheckout>()
-            .Select(holder => new ContainedHold(holder.UserId, awaitingApproval: false))
+            .Select(holder => new ContainedHold { UserId = holder.UserId, AwaitingApproval = false })
             .ToList();
     }
 

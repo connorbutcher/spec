@@ -13,19 +13,9 @@ namespace PUSpecSheet.Abstractions.Published;
 /// </summary>
 public sealed record PublishedRowValuesDto
 {
-    public PublishedRowValuesDto(
-        string section,
-        IReadOnlyList<object?> values,
-        IReadOnlyDictionary<string, IReadOnlyList<object?>>? columns)
-    {
-        Section = section;
-        Values = values;
-        Columns = columns;
-    }
+    public required string Section { get; init; }
 
-    public string Section { get; init; }
-
-    public IReadOnlyList<object?> Values { get; init; }
+    public required IReadOnlyList<object?> Values { get; init; }
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public IReadOnlyDictionary<string, IReadOnlyList<object?>>? Columns { get; init; }

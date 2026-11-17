@@ -8,47 +8,23 @@ namespace PUSpecSheet.Abstractions.Sheets.Collaboration;
 /// </summary>
 public sealed record RowTakeoverDto
 {
-    public RowTakeoverDto(
-        Guid id,
-        int sheetId,
-        int rowId,
-        int requesterUserId,
-        string requesterName,
-        int holderUserId,
-        string holderName,
-        DateTime requestedAtUtc,
-        DateTime expiresAtUtc,
-        RowTakeoverStatus status)
-    {
-        Id = id;
-        SheetId = sheetId;
-        RowId = rowId;
-        RequesterUserId = requesterUserId;
-        RequesterName = requesterName;
-        HolderUserId = holderUserId;
-        HolderName = holderName;
-        RequestedAtUtc = requestedAtUtc;
-        ExpiresAtUtc = expiresAtUtc;
-        Status = status;
-    }
+    public required Guid Id { get; init; }
 
-    public Guid Id { get; init; }
+    public required int SheetId { get; init; }
 
-    public int SheetId { get; init; }
+    public required int RowId { get; init; }
 
-    public int RowId { get; init; }
+    public required int RequesterUserId { get; init; }
 
-    public int RequesterUserId { get; init; }
+    public required string RequesterName { get; init; }
 
-    public string RequesterName { get; init; }
+    public required int HolderUserId { get; init; }
 
-    public int HolderUserId { get; init; }
+    public required string HolderName { get; init; }
 
-    public string HolderName { get; init; }
+    public required DateTime RequestedAtUtc { get; init; }
 
-    public DateTime RequestedAtUtc { get; init; }
+    public required DateTime ExpiresAtUtc { get; init; }
 
-    public DateTime ExpiresAtUtc { get; init; }
-
-    public RowTakeoverStatus Status { get; init; }
+    public required RowTakeoverStatus Status { get; init; }
 }

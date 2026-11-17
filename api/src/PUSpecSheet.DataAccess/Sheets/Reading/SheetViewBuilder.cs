@@ -72,29 +72,31 @@ internal sealed class SheetViewBuilder
         var templates = BuildAvailableTemplates();
         var isLive = _snapshot.AsOfUtc is null && _snapshot.ReviewedSubmissionId is null;
         var drafts = Drafts().ToList();
-        return new SheetDto(
-            _snapshot.Sheet.Id,
-            _snapshot.Sheet.PublicId,
-            _snapshot.Sheet.PhaseId,
-            _snapshot.Sheet.SheetTypeId,
-            isLive,
-            _snapshot.ViewedVersionNumber,
-            _snapshot.AsOfUtc is { } moment ? Utc(moment) : null,
-            versions.Count == 0 ? null : versions[^1].VersionNumber,
-            DraftSummaries.CountOf(drafts, _currentUserId),
-            versions,
-            tables,
-            templates)
+        return new SheetDto
         {
+            Id = _snapshot.Sheet.Id,
+            PublicId = _snapshot.Sheet.PublicId,
+            PhaseId = _snapshot.Sheet.PhaseId,
+            SheetTypeId = _snapshot.Sheet.SheetTypeId,
+            IsLive = isLive,
+            ViewedVersionNumber = _snapshot.ViewedVersionNumber,
+            ViewedAsOfUtc = _snapshot.AsOfUtc is { } moment ? Utc(moment) : null,
+            LatestVersionNumber = versions.Count == 0 ? null : versions[^1].VersionNumber,
+            MyDraftCount = DraftSummaries.CountOf(drafts, _currentUserId),
+            Versions = versions,
+            Tables = tables,
+            AvailableTemplates = templates,
             OtherDrafts = DraftSummaries.OfOthers(drafts, _currentUserId, UserName),
-            Identifiers = [.. _snapshot.Sheet.IdentifierValues.OrderBy(value => value.SheetTypeIdentifierId).Select(value => new SheetIdentifierValueDto(value.SheetTypeIdentifierId, value.Value))],
+            Identifiers = [.. _snapshot.Sheet.IdentifierValues.OrderBy(value => value.SheetTypeIdentifierId).Select(value => new SheetIdentifierValueDto
+            {
+                IdentifierId = value.SheetTypeIdentifierId,
+                Value = value.Value,
+            })],
             ReviewedSubmissionId = _snapshot.ReviewedSubmissionId,
-
             // Gathered while the tables above were built, so they hold exactly what the viewer can see.
-            LinkedSources = _linkedOptions.Build(),
-
+                LinkedSources = _linkedOptions.Build(),
             // Gathered with the cells, so it holds the template of every cell shown and nothing more.
-            TemplateCells = [.. _templateCells.Values.OrderBy(templateCell => templateCell.Id)],
+                TemplateCells = [.. _templateCells.Values.OrderBy(templateCell => templateCell.Id)],
         };
     }
 
@@ -118,10 +120,12 @@ internal sealed class SheetViewBuilder
     private List<AvailableTemplateDto> BuildAvailableTemplates()
     {
         return _snapshot.AvailableTemplates
-            .Select(template => new AvailableTemplateDto(
-                template.Id,
-                template.Name,
-                _snapshot.LatestTemplateVersions.GetValueOrDefault(template.Id, 1)))
+            .Select(template => new AvailableTemplateDto
+            {
+                Id = template.Id,
+                Name = template.Name,
+                LatestVersionNumber = _snapshot.LatestTemplateVersions.GetValueOrDefault(template.Id, 1),
+            })
             .ToList();
     }
 
@@ -142,23 +146,23 @@ internal sealed class SheetViewBuilder
 
         var blocks = BuildColumnBlocks(table);
 
-        return new SheetTableDto(
-            table.Id,
-            table.PublicId,
-            version.TableTemplateId,
-            version.TableTemplate.Name,
-            version.VersionNumber,
-            version.Orientation,
-            version.StickyColumnCount,
-            resolution.Shown!.Title,
-            resolution.Shown.DisplayOrder,
-            LockOf(resolution),
-            IsPending(resolution),
-            sections,
-            AddableSectionsUnder(version.Id, null, topLevel),
-            blocks,
-            AddableColumnBlocksFor(version.Id, blocks))
+        return new SheetTableDto
         {
+            Id = table.Id,
+            PublicId = table.PublicId,
+            TableTemplateId = version.TableTemplateId,
+            TemplateName = version.TableTemplate.Name,
+            TemplateVersionNumber = version.VersionNumber,
+            Orientation = version.Orientation,
+            StickyColumnCount = version.StickyColumnCount,
+            Title = resolution.Shown!.Title,
+            DisplayOrder = resolution.Shown.DisplayOrder,
+            Lock = LockOf(resolution),
+            IsPending = IsPending(resolution),
+            Sections = sections,
+            AddableSections = AddableSectionsUnder(version.Id, null, topLevel),
+            ColumnBlocks = blocks,
+            AddableColumnBlocks = AddableColumnBlocksFor(version.Id, blocks),
             LinkableColumns = LinkableColumnsOf(version.Id),
             LinkableRows = _linkableRows,
         };
@@ -197,23 +201,25 @@ internal sealed class SheetViewBuilder
             .Select(child => BuildSection(child, children))
             .ToList();
 
-        return new SheetSectionDto(
-            section.Id,
-            section.PublicId,
-            section.TemplateSectionId,
-            template.Name,
-            template.Role,
-            template.MinInstances,
-            template.MaxInstances,
-            template.InitialInstances,
-            resolution.Shown!.DisplayOrder,
-            LockOf(resolution),
-            IsPending(resolution),
-            !isHeader && copies > template.MinInstances,
-            rows,
-            childSections,
-            AddableSectionsUnder(template.TableTemplateVersionId, template.Id, children),
-            ChangeOf(_snapshot.Changes.Sections, section.Id));
+        return new SheetSectionDto
+        {
+            Id = section.Id,
+            PublicId = section.PublicId,
+            TemplateSectionId = section.TemplateSectionId,
+            Name = template.Name,
+            Role = template.Role,
+            MinInstances = template.MinInstances,
+            MaxInstances = template.MaxInstances,
+            InitialInstances = template.InitialInstances,
+            DisplayOrder = resolution.Shown!.DisplayOrder,
+            Lock = LockOf(resolution),
+            IsPending = IsPending(resolution),
+            CanRemove = !isHeader && copies > template.MinInstances,
+            Rows = rows,
+            Sections = childSections,
+            AddableSections = AddableSectionsUnder(template.TableTemplateVersionId, template.Id, children),
+            LastChange = ChangeOf(_snapshot.Changes.Sections, section.Id),
+        };
     }
 
     private SheetRowDto BuildRow(DbSheetRow row, bool inHeader)
@@ -239,16 +245,18 @@ internal sealed class SheetViewBuilder
             })
             .ToList();
 
-        return new SheetRowDto(
-            row.Id,
-            row.PublicId,
-            row.TemplateRowId,
-            shown.DisplayOrder,
-            LockOf(resolution),
-            IsPending(resolution),
-            !inHeader,
-            cells,
-            ChangeOf(_snapshot.Changes.Rows, row.Id));
+        return new SheetRowDto
+        {
+            Id = row.Id,
+            PublicId = row.PublicId,
+            TemplateRowId = row.TemplateRowId,
+            DisplayOrder = shown.DisplayOrder,
+            Lock = LockOf(resolution),
+            IsPending = IsPending(resolution),
+            CanRemove = !inHeader,
+            Cells = cells,
+            LastChange = ChangeOf(_snapshot.Changes.Rows, row.Id),
+        };
     }
 
     private SheetCellDto BuildCell(DbSheetCell cell, CellValueBag? value, SheetChangeDto? change)
@@ -259,14 +267,14 @@ internal sealed class SheetViewBuilder
             _templateCells[template.Id] = template.ToDto();
         }
 
-        return new SheetCellDto(
-            cell.Id,
-            cell.PublicId,
-            template.Id,
-            CellValueMapper.ToValue(value),
-            cell.SheetColumnBlockId,
-            change)
+        return new SheetCellDto
         {
+            Id = cell.Id,
+            PublicId = cell.PublicId,
+            TemplateCellId = template.Id,
+            Value = CellValueMapper.ToValue(value),
+            SheetColumnBlockId = cell.SheetColumnBlockId,
+            LastChange = change,
             Settings = value?.Settings,
         };
     }
@@ -304,7 +312,7 @@ internal sealed class SheetViewBuilder
             return;
         }
 
-        _linkableRows.Add(new SheetLinkableRowDto(row.Id, name));
+        _linkableRows.Add(new SheetLinkableRowDto { SheetRowId = row.Id, Label = name });
         if (_linkedOptions.WantsRow(tableId, row.Id))
         {
             foreach (var text in LinkedRowValues.ChoicesOf(texts))
@@ -329,20 +337,22 @@ internal sealed class SheetViewBuilder
                 var resolution = _snapshot.ColumnBlockRevisions[block.Id];
                 var template = block.TemplateColumnBlock;
                 var copies = visible.Count(candidate => candidate.TemplateColumnBlockId == block.TemplateColumnBlockId);
-                return new SheetColumnBlockDto(
-                    block.Id,
-                    block.PublicId,
-                    template.Id,
-                    template.Name,
-                    template.MinInstances,
-                    template.MaxInstances,
-                    template.InitialInstances,
-                    template.StickyColumnCount,
-                    resolution.Shown!.DisplayOrder,
-                    LockOf(resolution),
-                    IsPending(resolution),
-                    copies > template.MinInstances,
-                    ChangeOf(_snapshot.Changes.ColumnBlocks, block.Id));
+                return new SheetColumnBlockDto
+                {
+                    Id = block.Id,
+                    PublicId = block.PublicId,
+                    TemplateColumnBlockId = template.Id,
+                    Name = template.Name,
+                    MinInstances = template.MinInstances,
+                    MaxInstances = template.MaxInstances,
+                    InitialInstances = template.InitialInstances,
+                    StickyColumnCount = template.StickyColumnCount,
+                    DisplayOrder = resolution.Shown!.DisplayOrder,
+                    Lock = LockOf(resolution),
+                    IsPending = IsPending(resolution),
+                    CanRemove = copies > template.MinInstances,
+                    LastChange = ChangeOf(_snapshot.Changes.ColumnBlocks, block.Id),
+                };
             })
             .ToList();
     }
@@ -357,13 +367,15 @@ internal sealed class SheetViewBuilder
             .Select(template =>
             {
                 var count = existing.Count(block => block.TemplateColumnBlockId == template.Id);
-                return new AddableColumnBlockDto(
-                    template.Id,
-                    template.Name,
-                    count,
-                    template.MinInstances,
-                    template.MaxInstances,
-                    template.MaxInstances is null || count < template.MaxInstances);
+                return new AddableColumnBlockDto
+                {
+                    TemplateColumnBlockId = template.Id,
+                    Name = template.Name,
+                    Count = count,
+                    MinInstances = template.MinInstances,
+                    MaxInstances = template.MaxInstances,
+                    CanAdd = template.MaxInstances is null || count < template.MaxInstances,
+                };
             })
             .ToList();
     }
@@ -380,13 +392,15 @@ internal sealed class SheetViewBuilder
             .Select(template =>
             {
                 var count = existingCopies.Count(copy => copy.TemplateSectionId == template.Id);
-                return new AddableSectionDto(
-                    template.Id,
-                    template.Name,
-                    count,
-                    template.MinInstances,
-                    template.MaxInstances,
-                    template.MaxInstances is null || count < template.MaxInstances);
+                return new AddableSectionDto
+                {
+                    TemplateSectionId = template.Id,
+                    Name = template.Name,
+                    Count = count,
+                    MinInstances = template.MinInstances,
+                    MaxInstances = template.MaxInstances,
+                    CanAdd = template.MaxInstances is null || count < template.MaxInstances,
+                };
             })
             .ToList();
     }
@@ -399,7 +413,7 @@ internal sealed class SheetViewBuilder
             return null;
         }
 
-        return new SheetChangeDto(change.VersionNumber, change.AtUtc, UserName(change.AuthorUserId));
+        return new SheetChangeDto { VersionNumber = change.VersionNumber, AtUtc = change.AtUtc, UserName = UserName(change.AuthorUserId) };
     }
 
     private string UserName(int userId)
@@ -415,8 +429,11 @@ internal sealed class SheetViewBuilder
             return null;
         }
 
-        return new SheetLockDto(draft.AuthorUserId, UserName(draft.AuthorUserId), draft.AuthorUserId == _currentUserId)
+        return new SheetLockDto
         {
+            UserId = draft.AuthorUserId,
+            UserName = UserName(draft.AuthorUserId),
+            IsMine = draft.AuthorUserId == _currentUserId,
             IsAwaitingApproval = draft.SheetSubmissionId is not null,
         };
     }
