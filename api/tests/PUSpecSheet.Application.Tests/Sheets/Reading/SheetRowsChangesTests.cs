@@ -52,7 +52,7 @@ public sealed class SheetRowsChangesTests
 
     private static SheetSectionDto Section(int id, IReadOnlyList<SheetRowDto> rows, IReadOnlyList<SheetSectionDto> sections)
     {
-        return new SheetSectionDto(id, Guid.Empty, 1, "Limits", SectionRole.Addable, 0, null, 1, 1, null, false, true, rows, sections, [], [], null);
+        return new SheetSectionDto(id, Guid.Empty, 1, "Limits", SectionRole.Addable, 0, null, 1, 1, null, false, true, rows, sections, [], null);
     }
 
     private static SheetRowDto Row(int id, int templateCellId)

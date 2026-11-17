@@ -1,3 +1,4 @@
+using PUSpecSheet.Application.Published.Rows;
 using PUSpecSheet.Application.Published.Sheets;
 
 namespace PUSpecSheet.Application.Published.Versions;
@@ -28,6 +29,12 @@ public sealed record ResolvedSheetVersion
     /// Names one answer: this version read with one selection. It is the cache key and, quoted, the ETag.
     /// </summary>
     public string KeyFor(PublishedSheetSelection selection)
+    {
+        return $"{SheetPublicId:N}-v{VersionNumber}-{selection.Key}";
+    }
+
+    /// <summary>Names one answer: this version's rows read with one selection. It is the cache key and, quoted, the ETag.</summary>
+    public string KeyFor(PublishedRowsSelection selection)
     {
         return $"{SheetPublicId:N}-v{VersionNumber}-{selection.Key}";
     }

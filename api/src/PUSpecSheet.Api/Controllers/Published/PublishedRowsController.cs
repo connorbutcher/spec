@@ -1,9 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Net.Http.Headers;
 using PUSpecSheet.Api.ApiDocumentation;
 using PUSpecSheet.Api.Published;
-using PUSpecSheet.Application.Common;
 using PUSpecSheet.Application.Published.Rows;
 using PUSpecSheet.Application.Published.Versions;
 using PUSpecSheet.Contracts.Published;
@@ -207,26 +205,14 @@ public sealed class PublishedRowsController : ControllerBase
             return StatusCode(StatusCodes.Status304NotModified);
         }
 
-        var result = await rows.ReadAsync(version, selection, cancellationToken);
-        if (!result.Rows.TryGetValue(rowPublicId, out var row))
-        {
-            throw new NotFoundException($"Version {version.VersionNumber} of sheet {sheetPublicId} has no row {rowPublicId}.");
-        }
-
-        return Ok(new PublishedSheetRowDto(
-            result.Sheet,
-            result.Version,
-            result.PublishedAtUtc,
-            rowPublicId,
-            row.Section,
-            row.Values,
-            row.Columns));
+        var result = await rows.ReadRowAsync(version, selection, cancellationToken);
+        return Ok(result);
     }
 
     /// <summary>Sets the caching headers, and says whether the caller already holds this answer.</summary>
     private bool CallerHas(ResolvedSheetVersion version, PublishedVersionPoint point, PublishedRowsSelection selection, string path)
     {
-        var etag = new EntityTagHeaderValue($"\"{version.SheetPublicId:N}-v{version.VersionNumber}-{selection.Key}\"");
+        var etag = PublishedSheetHttpCache.ETagFor(version, selection);
         PublishedSheetHttpCache.Apply(Response, etag, isFixed: point.VersionNumber is not null);
 
         if (point.VersionNumber is null)

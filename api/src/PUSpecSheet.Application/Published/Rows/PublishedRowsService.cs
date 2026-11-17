@@ -1,3 +1,4 @@
+using PUSpecSheet.Application.Common;
 using PUSpecSheet.Application.Published.Lookups;
 using PUSpecSheet.Application.Published.Queries;
 using PUSpecSheet.Application.Published.Versions;
@@ -24,7 +25,7 @@ public sealed class PublishedRowsService : IPublishedRowsService
 
     public async Task<PublishedRowsDto> ReadAsync(ResolvedSheetVersion version, PublishedRowsSelection selection, CancellationToken cancellationToken)
     {
-        var key = $"{version.SheetPublicId:N}-v{version.VersionNumber}-{selection.Key}";
+        var key = version.KeyFor(selection);
         if (cache.TryGet(key, out var cached))
         {
             return cached;
@@ -56,6 +57,25 @@ public sealed class PublishedRowsService : IPublishedRowsService
 
         cache.Set(key, rows, cellCount);
         return rows;
+    }
+
+    public async Task<PublishedSheetRowDto> ReadRowAsync(ResolvedSheetVersion version, PublishedRowsSelection selection, CancellationToken cancellationToken)
+    {
+        var rowPublicId = selection.Rows.Single();
+        var result = await ReadAsync(version, selection, cancellationToken);
+        if (!result.Rows.TryGetValue(rowPublicId, out var row))
+        {
+            throw new NotFoundException($"Version {version.VersionNumber} of sheet {version.SheetPublicId} has no row {rowPublicId}.");
+        }
+
+        return new PublishedSheetRowDto(
+            result.Sheet,
+            result.Version,
+            result.PublishedAtUtc,
+            rowPublicId,
+            row.Section,
+            row.Values,
+            row.Columns);
     }
 
     public Task<ResolvedSheetVersion> ResolveAsync(Guid sheetPublicId, PublishedVersionPoint point, CancellationToken cancellationToken)

@@ -24,7 +24,6 @@ public sealed record SheetSectionDto
         IReadOnlyList<SheetRowDto> rows,
         IReadOnlyList<SheetSectionDto> sections,
         IReadOnlyList<AddableSectionDto> addableSections,
-        IReadOnlyList<AddableRowDto> addableRows,
         SheetChangeDto? lastChange)
     {
         this.Id = id;
@@ -42,7 +41,6 @@ public sealed record SheetSectionDto
         this.Rows = rows;
         this.Sections = sections;
         this.AddableSections = addableSections;
-        this.AddableRows = addableRows;
         this.LastChange = lastChange;
     }
 
@@ -75,8 +73,6 @@ public sealed record SheetSectionDto
     public IReadOnlyList<SheetSectionDto> Sections { get; init; }
 
     public IReadOnlyList<AddableSectionDto> AddableSections { get; init; }
-
-    public IReadOnlyList<AddableRowDto> AddableRows { get; init; }
 
     public SheetChangeDto? LastChange { get; init; }
 }

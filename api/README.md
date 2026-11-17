@@ -26,7 +26,7 @@ References go one way: `Api -> Application -> Database -> Domain`. `Database` is
 | `Application/<Feature>/...Service` | Each service takes `PuSpecSheetDbContext` and writes its own queries. A query only it needs stays in it. |
 | `Application/<Feature>/Queries/<Entity>Queries` | Static classes for the queries more than one class needs, one per entity, called as `SheetRowQueries.FindPlaceAsync(db, id, cancellationToken)`. Methods are named for what they return: `Find...` gives one or null, `List...` a list, `...ForEditAsync` tracked entities to change and save, everything else is read only. |
 | `Application/Sheets/Queries/SheetRevisionQueries` | The revision reads and changes every kind of item shares, as extension methods on any revision set: `db.SheetRowRevisions.ListInViewAsync(sheetId, moment, cancellationToken)`. The type-specific ones are in `Sheet<Item>RevisionQueries`. |
-| `Application/Common/DbContextSaveExtensions` | `SaveSheetChangesAsync` (turns a clash with someone else's change into a 409), `TrySaveChangesAsync`, `MarkModified` and `Detach`. Transactions are `db.Database.BeginTransactionAsync`. |
+| `Application/Common/DbContextSaveExtensions` | `SaveSheetChangesAsync` (turns a clash with someone else's change into a 409) and `MarkModified`. Transactions are `db.Database.BeginTransactionAsync`. |
 | `Application/DependencyInjection/ApplicationServiceCollectionExtensions` | Registers every Application service, one method per area. `ServiceRegistrationTests` fails if a service or controller can't be built. |
 
 The LINQ specs those queries share stay with the rules: `SheetRevisionQueryExtensions` (which revisions are live, drafts, in view at a moment) and the `DraftSelection` a publish passes in.
@@ -34,11 +34,11 @@ The LINQ specs those queries share stay with the rules: `SheetRevisionQueryExten
 | Folder in `Application` | What it holds |
 | --- | --- |
 | `Sheets` | Reading a sheet, editing it through drafts (`Editing`), publishing (`Publishing`). The largest feature; see below. |
-| `Approvals` | Submitting a publish for approval, deciding it, and the lists of submissions. |
+| `Approvals` | Submitting drafts for approval, deciding a submission, and reading submissions (`SubmissionReader`). |
 | `Published` | The read-only API other applications call: whole sheets (`Sheets`), rows by id (`Rows`), lookups by a keyed value (`Lookups`), and which version a request means (`Versions`). |
 | `Templates` | Table templates and their versions, with a folder each for sections, rows, cells and column blocks. |
 | `CellTypes`, `Phases`, `SheetTypes`, `Users` | The reference data and who the current user is. |
-| `Seeding` | The showcase sample data built in Development. |
+| `Seeding` | The showcase sample data built in Development: `ReferenceData` (users, phases, cell types), `Templates` and `Sheets` (the sheets and the `SheetEditor` that changes them through the services). |
 | `Common` | The three application exceptions, display ordering and the sized cache. |
 
 ## A request, end to end
@@ -54,7 +54,7 @@ Every method that touches the database is `async` and takes the request's `Cance
 
 A sheet item (table, section, row, column block) is an identity row plus revisions. Three ideas explain most of the code:
 
-- **A draft is a lock.** Changing an item starts a draft revision owned by the user. The database allows one draft per item, so nobody else can change it until the author publishes or discards. `DraftGateway<TRevision>` (one subclass per item kind) loads an item's current revision and draft and starts drafts.
+- **A draft is a lock.** Changing an item starts a draft revision owned by the user. The database allows one draft per item, so nobody else can change it until the author publishes it or changes it back (a draft that matches what is published is dropped, releasing the lock). `DraftGateway<TRevision>` (one subclass per item kind) loads an item's current revision and draft and starts drafts.
 - **Publishing makes a version.** `SheetPublisher` turns drafts into published revisions under a new `SheetVersion`, and closes the revisions they replace at the same instant. A published revision is never edited again. The request's `PublishScope` says whose drafts: the publisher's own (`Mine`, the default) or every draft on the sheet (`All`). A draft published for someone else keeps its author, so the change stays in their name while the version is in the publisher's, and their lock goes with it; a draft of theirs that changes nothing is dropped, not published.
 - **Any moment can be read back.** A revision is in force from `PublishedAtUtc` until `SupersededAtUtc`, so "version 3" or "as of last Tuesday" is a range check.
 
@@ -74,15 +74,15 @@ Settings chosen for a cell on the sheet (`CellInstanceSettings`, such as the tab
 
 Several people can have a sheet open and edit it at once. A row belongs to someone in one of two ways:
 
-- **They have changed it.** That is its draft revision in the database, as before: it stays theirs until they publish or discard, and it shows as `row.lock` in the `SheetDto`.
+- **They have changed it.** That is its draft revision in the database, as before: it stays theirs until they publish it or change it back, and it shows as `row.lock` in the `SheetDto`.
 - **They are in it but have not changed it.** Clicking into a cell must not save anything, so this is a *live checkout*, held in memory against their browser tab's connection (`LiveRowCheckoutTracker`). It ends when they leave the row, close the tab or lose the connection. It is not in the `SheetDto`; it is sent over the hub.
 
-`Sheets/Collaboration` and the SignalR hub in `Api/Collaboration` add four things:
+`Sheets/Collaboration` and the SignalR hub in `Api/Collaboration` add four things. The first three each have a folder in `Sheets/Collaboration` (`Presence`, `Checkouts`, `Takeovers`); what tells people about a change (`ISheetLiveNotifier`, `SheetChangeAnnouncer`, `SheetLockSignature`) is at its top.
 
 - **Presence.** A browser keeps one connection to `SheetHub` (`/hubs/sheets`) and calls `JoinSheet` for the sheet it has open. `SheetPresenceTracker` holds connections by sheet in memory and everyone on the sheet is told when the list changes.
 - **Live checkouts.** The browser calls `CheckOutRow` on the hub when its user clicks into a row and `ReleaseRow` when they leave (`LiveRowCheckoutService`); everyone on the sheet gets the new list (`CheckoutsChanged`). A tab holds one row at a time. `LiveRowCheckoutGuard` is asked wherever a row is about to be changed (`SheetRowsService`), so someone else can't save into a row another person is in.
 - **Live changes.** Every action that changes a sheet already answers with the refreshed `SheetDto`. `SheetChangedFilter` looks at that answer and, when something other people can see has changed (who a row is checked out to, or the latest version; see `SheetLockSignature`), tells the sheet's group to read it again. The hub sends no sheet data, because each person sees a different view. A new editing endpoint needs nothing extra as long as it returns `SheetDto`.
-- **Takeovers.** Someone can ask for a row that is checked out to another person (`RowTakeoversController`). The holder approves or denies; a request nobody answers within `RowTakeover:ResponseSeconds` (60) is granted, and it is granted straight away when the holder doesn't have the sheet open. Only a row its holder has **not changed** can be taken over: once a row has unpublished changes it stays with whoever made them until they publish or discard, so a takeover never moves anyone's work. Waiting requests are in memory (`RowTakeoverStore`): they last a minute and only matter to connected people.
+- **Takeovers.** Someone can ask for a row that is checked out to another person (`RowTakeoversController`). The holder approves or denies; a request nobody answers within `RowTakeover:ResponseSeconds` (60) is granted, and it is granted straight away when the holder doesn't have the sheet open. Only a row its holder has **not changed** can be taken over: once a row has unpublished changes it stays with whoever made them until they publish them or change them back, so a takeover never moves anyone's work. Waiting requests are in memory (`RowTakeoverStore`): they last a minute and only matter to connected people.
 
 The takeover code is four small classes, so each rule has one place:
 

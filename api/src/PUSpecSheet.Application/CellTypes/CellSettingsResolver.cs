@@ -1,6 +1,5 @@
 using PUSpecSheet.Database.Models.Templates;
 using PUSpecSheet.Domain.CellTypes.Configurations;
-using PUSpecSheet.Domain.CellTypes.Styles;
 
 namespace PUSpecSheet.Application.CellTypes;
 
@@ -14,11 +13,5 @@ public static class CellSettingsResolver
     public static CellConfiguration ResolveConfiguration(DbTemplateCell cell)
     {
         return cell.CellType.Configuration.Apply(cell.ConfigurationOverride);
-    }
-
-    /// <summary>Expects <see cref="DbTemplateCell.CellType"/> to be loaded.</summary>
-    public static CellStyle ResolveStyle(DbTemplateCell cell)
-    {
-        return cell.CellType.Style.Apply(cell.StyleOverride);
     }
 }

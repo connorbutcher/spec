@@ -1,4 +1,5 @@
 using Microsoft.Net.Http.Headers;
+using PUSpecSheet.Application.Published.Rows;
 using PUSpecSheet.Application.Published.Sheets;
 using PUSpecSheet.Application.Published.Versions;
 
@@ -17,6 +18,11 @@ public static class PublishedSheetHttpCache
     private const string Revalidate = "private, no-cache";
 
     public static EntityTagHeaderValue ETagFor(ResolvedSheetVersion version, PublishedSheetSelection selection)
+    {
+        return new EntityTagHeaderValue($"\"{version.KeyFor(selection)}\"");
+    }
+
+    public static EntityTagHeaderValue ETagFor(ResolvedSheetVersion version, PublishedRowsSelection selection)
     {
         return new EntityTagHeaderValue($"\"{version.KeyFor(selection)}\"");
     }

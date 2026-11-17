@@ -1,5 +1,5 @@
 using PUSpecSheet.Application.Common;
-using PUSpecSheet.Application.Sheets.Collaboration;
+using PUSpecSheet.Application.Sheets.Collaboration.Checkouts;
 using PUSpecSheet.Application.Sheets.Drafts;
 using PUSpecSheet.Application.Sheets.Layout;
 using PUSpecSheet.Application.Sheets.Linking;

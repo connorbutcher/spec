@@ -21,7 +21,7 @@ public sealed class SheetsService : ISheetsService
     private readonly SheetReader reader;
     private readonly SheetPublisher publisher;
     private readonly DraftSweeper sweeper;
-    private readonly SubmissionQueries submissions;
+    private readonly SubmissionReader submissionReader;
     private readonly ICurrentUser currentUser;
     private readonly ISheetTablesService tables;
     private readonly ISubmissionsService submissionsService;
@@ -32,7 +32,7 @@ public sealed class SheetsService : ISheetsService
         SheetReader reader,
         SheetPublisher publisher,
         DraftSweeper sweeper,
-        SubmissionQueries submissions,
+        SubmissionReader submissionReader,
         ICurrentUser currentUser,
         ISheetTablesService tables,
         ISubmissionsService submissionsService,
@@ -42,7 +42,7 @@ public sealed class SheetsService : ISheetsService
         this.reader = reader;
         this.publisher = publisher;
         this.sweeper = sweeper;
-        this.submissions = submissions;
+        this.submissionReader = submissionReader;
         this.currentUser = currentUser;
         this.tables = tables;
         this.submissionsService = submissionsService;
@@ -65,7 +65,7 @@ public sealed class SheetsService : ISheetsService
     {
         if (view.ReviewedSubmissionId is { } submissionId)
         {
-            await submissions.EnsureCanReviewAsync(sheetId, submissionId, currentUser.UserId, cancellationToken);
+            await submissionReader.EnsureCanReviewAsync(sheetId, submissionId, currentUser.UserId, cancellationToken);
         }
 
         if (view.IsLive)

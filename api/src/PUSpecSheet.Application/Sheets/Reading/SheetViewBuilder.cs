@@ -6,7 +6,6 @@ using PUSpecSheet.Application.Sheets.Values;
 using PUSpecSheet.Contracts.Sheets;
 using PUSpecSheet.Contracts.Templates;
 using PUSpecSheet.Database.Models.Sheets;
-using PUSpecSheet.Database.Models.Templates;
 using PUSpecSheet.Domain.CellTypes;
 using PUSpecSheet.Domain.Sheets;
 using PUSpecSheet.Domain.Templates;
@@ -219,7 +218,6 @@ internal sealed class SheetViewBuilder
             rows,
             childSections,
             AddableSectionsUnder(template.TableTemplateVersionId, template.Id, children),
-            isHeader ? [] : AddableRows(template.Id),
             ChangeOf(snapshot.Changes.Sections, section.Id));
     }
 
@@ -406,25 +404,6 @@ internal sealed class SheetViewBuilder
                     template.MaxInstances is null || count < template.MaxInstances);
             })
             .ToList();
-    }
-
-    private List<AddableRowDto> AddableRows(int templateSectionId)
-    {
-        return snapshot.TemplateRows
-            .Where(row => row.TemplateSectionId == templateSectionId)
-            .OrderBy(row => row.DisplayOrder)
-            .ThenBy(row => row.Id)
-            .Select((row, index) => new AddableRowDto(row.Id, RowLabel(row, index + 1)))
-            .ToList();
-    }
-
-    private static string RowLabel(DbTemplateRow row, int position)
-    {
-        var caption = row.Cells
-            .OrderBy(cell => cell.Column)
-            .Select(cell => cell.Caption)
-            .FirstOrDefault(text => !string.IsNullOrWhiteSpace(text));
-        return caption ?? $"Row {position}";
     }
 
     /// <summary>When and by whom an item last changed, or null if it never has.</summary>

@@ -74,7 +74,7 @@ public sealed class SheetLockSignatureTests
 
     private static SheetDto Sheet(int latestVersion, params SheetRowDto[] rows)
     {
-        var section = new SheetSectionDto(1, Guid.Empty, 1, "Limits", SectionRole.Header, 1, 1, 1, 1, null, false, false, rows, [], [], [], null);
+        var section = new SheetSectionDto(1, Guid.Empty, 1, "Limits", SectionRole.Header, 1, 1, 1, 1, null, false, false, rows, [], [], null);
         var table = new SheetTableDto(1, Guid.Empty, 1, "Limits", 1, TemplateOrientation.Vertical, 0, null, 1, null, false, [section], [], [], []);
         return new SheetDto(1, Guid.Empty, 1, 1, true, null, null, latestVersion, 0, [], [table], []);
     }

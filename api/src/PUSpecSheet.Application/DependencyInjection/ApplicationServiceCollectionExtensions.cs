@@ -7,6 +7,9 @@ using PUSpecSheet.Application.Published.Rows;
 using PUSpecSheet.Application.Published.Sheets;
 using PUSpecSheet.Application.Published.Versions;
 using PUSpecSheet.Application.Seeding;
+using PUSpecSheet.Application.Seeding.ReferenceData;
+using PUSpecSheet.Application.Seeding.Sheets;
+using PUSpecSheet.Application.Seeding.Templates;
 using PUSpecSheet.Application.Sheets;
 using PUSpecSheet.Application.Sheets.Catalog;
 using PUSpecSheet.Application.Sheets.Drafts;
@@ -107,7 +110,7 @@ public static class ApplicationServiceCollectionExtensions
         services.AddScoped<ApproverDirectory>();
         services.AddScoped<SheetSubmitter>();
         services.AddScoped<SubmissionDecider>();
-        services.AddScoped<SubmissionQueries>();
+        services.AddScoped<SubmissionReader>();
         services.AddScoped<ISubmissionsService, SubmissionsService>();
     }
 

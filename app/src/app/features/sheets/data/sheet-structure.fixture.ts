@@ -64,7 +64,6 @@ export class SheetStructureFixture {
       rows,
       sections,
       addableSections: [],
-      addableRows: [],
       lastChange: null,
     };
   }

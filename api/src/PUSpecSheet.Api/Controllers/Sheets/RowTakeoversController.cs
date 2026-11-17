@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PUSpecSheet.Api.ApiDocumentation;
-using PUSpecSheet.Application.Sheets.Collaboration;
+using PUSpecSheet.Application.Sheets.Collaboration.Takeovers;
 using PUSpecSheet.Contracts.Sheets.Collaboration;
 using PUSpecSheet.Domain.Users;
 

@@ -14,7 +14,7 @@ public sealed class SubmissionsService : ISubmissionsService
     private readonly ApproverDirectory approvers;
     private readonly SheetSubmitter submitter;
     private readonly SubmissionDecider decider;
-    private readonly SubmissionQueries queries;
+    private readonly SubmissionReader submissionReader;
     private readonly SheetReader reader;
     private readonly ISheetLiveNotifier notifier;
     private readonly ICurrentUser currentUser;
@@ -23,7 +23,7 @@ public sealed class SubmissionsService : ISubmissionsService
         ApproverDirectory approvers,
         SheetSubmitter submitter,
         SubmissionDecider decider,
-        SubmissionQueries queries,
+        SubmissionReader submissionReader,
         SheetReader reader,
         ISheetLiveNotifier notifier,
         ICurrentUser currentUser)
@@ -31,7 +31,7 @@ public sealed class SubmissionsService : ISubmissionsService
         this.approvers = approvers;
         this.submitter = submitter;
         this.decider = decider;
-        this.queries = queries;
+        this.submissionReader = submissionReader;
         this.reader = reader;
         this.notifier = notifier;
         this.currentUser = currentUser;
@@ -50,12 +50,12 @@ public sealed class SubmissionsService : ISubmissionsService
 
     public Task<IReadOnlyList<SheetSubmissionDto>> AwaitingMyDecisionAsync(CancellationToken cancellationToken)
     {
-        return queries.AwaitingDecisionOfAsync(currentUser.UserId, cancellationToken);
+        return submissionReader.AwaitingDecisionOfAsync(currentUser.UserId, cancellationToken);
     }
 
     public Task<IReadOnlyList<SheetSubmissionDto>> MineAsync(CancellationToken cancellationToken)
     {
-        return queries.SubmittedByAsync(currentUser.UserId, cancellationToken);
+        return submissionReader.SubmittedByAsync(currentUser.UserId, cancellationToken);
     }
 
     public async Task<SheetSubmissionDto> ApproveAsync(int submissionId, CancellationToken cancellationToken)
@@ -87,6 +87,6 @@ public sealed class SubmissionsService : ISubmissionsService
             await notifier.SheetChangedAsync(submission.SheetId, SheetChangedNoticeDto.Everything, exceptConnectionId: null, cancellationToken);
         }
 
-        return await queries.GetAsync(submission.Id, cancellationToken);
+        return await submissionReader.GetAsync(submission.Id, cancellationToken);
     }
 }
