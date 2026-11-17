@@ -1,4 +1,5 @@
-﻿using PUSpecSheet.Api.Database;
+﻿using PUSpecSheet.Abstractions.Domain.Properties.Cell;
+using PUSpecSheet.Api.Database;
 using PUSpecSheet.Api.Database.Schema.Cell;
 using PUSpecSheet.Api.Database.Schema.Spec;
 
@@ -120,6 +121,55 @@ internal class RowDraftValues
         entry.Property(v => v.LinkedSpecSheetPhaseId).CurrentValue = value.LinkedSpecSheetPhaseId;
         entry.Property(v => v.TableReferenceId).CurrentValue = value.TableReferenceId;
         entry.Property(v => v.LinkedReferenceId).CurrentValue = value.LinkedReferenceId;
+    }
+
+    public void SetConfigurationOverride(DbSheetTableRowRevision draft, int cellId, ICellProperties? configurationOverride)
+    {
+        var existing = draft.CellConfigurationOverrides.FirstOrDefault(v => v.SheetTableCellId == cellId);
+        if (configurationOverride is null)
+        {
+            Remove(draft.CellConfigurationOverrides, existing);
+            return;
+        }
+
+        if (existing is null)
+        {
+            draft.CellConfigurationOverrides.Add(new DbSheetCellConfigurationOverride
+            {
+                SheetTableRowRevisionId = draft.Id,
+                SheetTableCellId = cellId,
+                ConfigurationOverride = configurationOverride
+            });
+            return;
+        }
+
+        _dbContext.Entry(existing).Property(v => v.ConfigurationOverride).CurrentValue = configurationOverride;
+    }
+
+    /// <summary>
+    /// Gives a cell added in the draft its configuration override, before the cell has an id.
+    /// </summary>
+    public void AddConfigurationOverride(DbSheetTableRowRevision draft, DbSheetTableCell cell, ICellProperties configurationOverride)
+    {
+        draft.CellConfigurationOverrides.Add(new DbSheetCellConfigurationOverride
+        {
+            SheetTableRowRevisionId = draft.Id,
+            SheetTableCellId = cell.Id,
+            ConfigurationOverride = configurationOverride,
+            SheetTableCell = cell
+        });
+    }
+
+    /// <summary>
+    /// Removes everything the draft holds for the cell: its values and configuration override.
+    /// </summary>
+    public void Clear(DbSheetTableRowRevision draft, int cellId)
+    {
+        SetText(draft, cellId, null);
+        SetNumber(draft, cellId, null);
+        SetPair(draft, cellId, null, null);
+        Remove(draft.LinkedSheetValues, LinkedOf(draft, cellId));
+        SetConfigurationOverride(draft, cellId, null);
     }
 
     private void Remove<TValue>(ICollection<TValue> values, TValue? existing)

@@ -20,7 +20,7 @@ internal class UpdateTextValueDraftOpHandler : DraftOperationHandlerBase, IOpera
             return;
         }
 
-        var draft = await GetRowDraftAsync(operation.Id, ct);
+        var draft = await Rows.GetOfCellAsync(operation.Id, ct);
         Values.SetText(draft, operation.Id, operation.Value.Value);
     }
 

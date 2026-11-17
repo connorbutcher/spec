@@ -16,7 +16,7 @@ internal class AddNumericValueDraftOpHandler : DraftOperationHandlerBase, IOpera
     public async Task ApplyAsync(AddNumberValueOp operation, IReadOnlyDictionary<int, int> tempIdMap, CancellationToken ct)
     {
         var cellId = ResolveId(operation.SpecSheetTableCellId, tempIdMap);
-        var draft = await GetRowDraftAsync(cellId, ct);
+        var draft = await Rows.GetOfCellAsync(cellId, ct);
 
         Values.SetNumber(draft, cellId, operation.Value);
     }

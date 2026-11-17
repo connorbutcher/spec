@@ -20,7 +20,7 @@ internal class UpdateNumericValueDraftOpHandler : DraftOperationHandlerBase, IOp
             return;
         }
 
-        var draft = await GetRowDraftAsync(operation.Id, ct);
+        var draft = await Rows.GetOfCellAsync(operation.Id, ct);
         Values.SetNumber(draft, operation.Id, operation.Value.Value);
     }
 

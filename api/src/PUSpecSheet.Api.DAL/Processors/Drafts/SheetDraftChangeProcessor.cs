@@ -2,11 +2,15 @@
 using Microsoft.Extensions.Logging;
 using PUSpecSheet.Abstractions.Domain.Access;
 using PUSpecSheet.Abstractions.Operations;
+using PUSpecSheet.Abstractions.Operations.Cells;
+using PUSpecSheet.Abstractions.Operations.Rows;
 using PUSpecSheet.Abstractions.Operations.Values.Linked;
 using PUSpecSheet.Abstractions.Operations.Values.Number;
 using PUSpecSheet.Abstractions.Operations.Values.Pair;
 using PUSpecSheet.Abstractions.Operations.Values.Text;
 using PUSpecSheet.Api.DAL.Processors.Base;
+using PUSpecSheet.Api.DAL.Processors.Drafts.Cells;
+using PUSpecSheet.Api.DAL.Processors.Drafts.Rows;
 using PUSpecSheet.Api.DAL.Processors.Drafts.Values.LinkedSpecSheetValue;
 using PUSpecSheet.Api.DAL.Processors.Drafts.Values.Numeric;
 using PUSpecSheet.Api.DAL.Processors.Drafts.Values.PairValue;
@@ -33,6 +37,14 @@ internal class SheetDraftChangeProcessor : ChangeProcessorBase
     {
         return operation switch
         {
+            AddSpecSheetTableRowOp => new AddSpecSheetTableRowDraftOpHandler(DbContext, User, _sheetId),
+            UpdateSpecSheetTableRowOp => new UpdateSpecSheetTableRowDraftOpHandler(DbContext, User, _sheetId),
+            DeleteSpecSheetTableRowOp => new DeleteSpecSheetTableRowDraftOpHandler(DbContext, User, _sheetId),
+
+            AddSpecSheetTableCellOp => new AddSpecSheetTableCellDraftOpHandler(DbContext, User, _sheetId),
+            UpdateSpecSheetTableCellOp => new UpdateSpecSheetTableCellDraftOpHandler(DbContext, User, _sheetId),
+            DeleteSpecSheetTableCellOp => new DeleteSpecSheetTableCellDraftOpHandler(DbContext, User, _sheetId),
+
             AddTextValueOp => new AddTextValueDraftOpHandler(DbContext, User, _sheetId),
             UpdateTextValueOp => new UpdateTextValueDraftOpHandler(DbContext, User, _sheetId),
 

@@ -22,7 +22,7 @@ internal class UpdatePairValueDraftOpHandler : DraftOperationHandlerBase, IOpera
             return;
         }
 
-        var draft = await GetRowDraftAsync(operation.Id, ct);
+        var draft = await Rows.GetOfCellAsync(operation.Id, ct);
         var existing = Values.PairOf(draft, operation.Id);
         var valueX = changesX ? operation.PairValueX!.Value : existing?.PairValueX;
         var valueY = changesY ? operation.PairValueY!.Value : existing?.PairValueY;

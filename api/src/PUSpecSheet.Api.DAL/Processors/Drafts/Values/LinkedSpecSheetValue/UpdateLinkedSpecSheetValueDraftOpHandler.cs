@@ -24,7 +24,7 @@ internal class UpdateLinkedSpecSheetValueDraftOpHandler : DraftOperationHandlerB
             return;
         }
 
-        var draft = await GetRowDraftAsync(operation.Id, ct);
+        var draft = await Rows.GetOfCellAsync(operation.Id, ct);
         var existing = Values.LinkedOf(draft, operation.Id);
 
         Values.SetLinked(draft, operation.Id, new LinkedDraftValue

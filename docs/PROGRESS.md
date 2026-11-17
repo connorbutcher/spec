@@ -22,7 +22,7 @@ The legacy codebase is the base. The rewrite's features (revision model, drafts,
 | 3 | Revision tables beside the copy tables | Done | `7b2ddcf` |
 | 4 | Migrator (copies to revisions), re-runnable | Done | `1057cda`, `4f58572` |
 | 5 | Reads from revisions behind a switch | Done | `03a8f75`, `8eecb3b`, `2cd0f95` |
-| 6 | Per-sheet-type cutover of editing onto drafts and revisions | **In progress**: slice 1 of 6 | |
+| 6 | Per-sheet-type cutover of editing onto drafts and revisions | **In progress**: slices 1 and 2 of 6 | `5cf6c7d` |
 | 7 | Port remaining features (published API, lookups, presence). Templates stay as they are | Not started | |
 | 8 | Retire the legacy copy code | Not started | |
 
@@ -72,7 +72,7 @@ The legacy codebase is the base. The rewrite's features (revision model, drafts,
 | # | Slice | Status |
 |---|-------|--------|
 | 1 | The switch, the draft read from the revisions, and cell value edits (add and update text, number, pair and linked values on existing cells). Creating, publishing and deleting a listed type's sheets, and every other edit, are refused. | Done |
-| 2 | Rows and cells: add, reorder, delete, and values on new cells. | |
+| 2 | Rows and cells: add, reorder, delete, and values and configuration overrides on new cells. A cell is kept as its row template's cell in the same column, so a cell can't be moved to another column, and deleting a cell clears what the draft holds for it (it goes with its row). | Done |
 | 3 | Groups and tables, with their widgets, notes and configuration overrides. | |
 | 4 | Create a draft (empty, or copied from another sheet) with its properties and external references; delete a draft (drop its draft revisions). | |
 | 5 | Publish: without approval (the drafts become a version), and with approval (submission, approvers, emails, approve, reject, reassign). | |
@@ -84,7 +84,9 @@ The legacy codebase is the base. The rewrite's features (revision model, drafts,
 
 **Slice 1 was checked** on a scratch database (one published copy and a working copy, migrated): the draft read shows the drafts over the published revisions; value edits in one call start a row's draft once and copy its values; text cleared removes the value row; a pair edit keeps the other half; the published read is unchanged; a batch with an unsupported operation changes nothing; the first edit clears the hash and the migrator then leaves the sheet alone.
 
-**Known limits of slice 1.** `UpdateSpecSheetAsync` logs and swallows errors, as it always has, so a refused edit only shows in the log. The draft's workflow steps are still the header's.
+**Slice 2 was checked** the same way: a row added with its cells, values and an override in one call; a row reordered; a row deleted with its cells; an override set and cleared; and refusals for moving a cell's column, editing a removed row, a cell with no template cell and a group on another sheet. The published read was unchanged.
+
+**Known limits.** A cell added to a row that is already published shows, empty, in the published read too, as the revisions don't keep cells per revision. `UpdateSpecSheetAsync` logs and swallows errors, as it always has, so a refused edit only shows in the log. The draft's workflow steps are still the header's.
 
 ## Open items
 

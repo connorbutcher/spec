@@ -16,7 +16,7 @@ internal class AddLinkedSpecSheetValueDraftOpHandler : DraftOperationHandlerBase
     public async Task ApplyAsync(AddLinkedSpecSheetValueOp operation, IReadOnlyDictionary<int, int> tempIdMap, CancellationToken ct)
     {
         var cellId = ResolveId(operation.SpecSheetTableCellId, tempIdMap);
-        var draft = await GetRowDraftAsync(cellId, ct);
+        var draft = await Rows.GetOfCellAsync(cellId, ct);
 
         Values.SetLinked(draft, cellId, new LinkedDraftValue
         {

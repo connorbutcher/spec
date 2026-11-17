@@ -16,7 +16,7 @@ internal class AddPairValueDraftOpHandler : DraftOperationHandlerBase, IOperatio
     public async Task ApplyAsync(AddPairValueOp operation, IReadOnlyDictionary<int, int> tempIdMap, CancellationToken ct)
     {
         var cellId = ResolveId(operation.SpecSheetTableCellId, tempIdMap);
-        var draft = await GetRowDraftAsync(cellId, ct);
+        var draft = await Rows.GetOfCellAsync(cellId, ct);
 
         Values.SetPair(draft, cellId, operation.ValueX, operation.ValueY);
     }
