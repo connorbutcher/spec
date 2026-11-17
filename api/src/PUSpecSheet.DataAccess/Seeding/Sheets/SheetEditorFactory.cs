@@ -2,7 +2,7 @@ using PUSpecSheet.DataAccess.Seeding.ReferenceData;
 using PUSpecSheet.DataAccess.Sheets;
 using PUSpecSheet.DataAccess.Sheets.Editing;
 using PUSpecSheet.DataAccess.Sheets.Reading;
-using PUSpecSheet.DataAccess.SheetTypes.Queries;
+using PUSpecSheet.DataAccess.SheetTypes;
 using PUSpecSheet.Database;
 
 namespace PUSpecSheet.DataAccess.Seeding.Sheets;
@@ -20,6 +20,7 @@ public sealed class SheetEditorFactory
     private readonly ISheetRowsService rows;
     private readonly ISheetColumnBlocksService columnBlocks;
     private readonly ISheetCellSettingsService cellSettings;
+    private readonly ISheetTypeDataService sheetTypes;
 
     public SheetEditorFactory(
         PuSpecSheetDbContext db,
@@ -28,7 +29,8 @@ public sealed class SheetEditorFactory
         ISheetSectionsService sections,
         ISheetRowsService rows,
         ISheetColumnBlocksService columnBlocks,
-        ISheetCellSettingsService cellSettings)
+        ISheetCellSettingsService cellSettings,
+        ISheetTypeDataService sheetTypes)
     {
         this.db = db;
         this.sheets = sheets;
@@ -37,11 +39,12 @@ public sealed class SheetEditorFactory
         this.rows = rows;
         this.columnBlocks = columnBlocks;
         this.cellSettings = cellSettings;
+        this.sheetTypes = sheetTypes;
     }
 
     public async Task<SheetEditor> OpenAsync(int phaseId, string sheetTypeName, ShowcaseCellTypeCatalog cellTypes, CancellationToken cancellationToken)
     {
-        var sheetTypeId = await SheetTypeQueries.GetIdByNameAsync(db, sheetTypeName, cancellationToken);
+        var sheetTypeId = await sheetTypes.GetIdByNameAsync(sheetTypeName, cancellationToken);
         var sheet = await sheets.OpenAsync(phaseId, sheetTypeId, cancellationToken);
         return new SheetEditor(sheet, cellTypes, sheets, tables, sections, rows, columnBlocks, cellSettings);
     }

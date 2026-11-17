@@ -1,6 +1,5 @@
 using PUSpecSheet.Abstractions.SheetTypes;
 using PUSpecSheet.DataAccess.SheetTypes;
-using PUSpecSheet.DataAccess.SheetTypes.Queries;
 using PUSpecSheet.Database;
 
 namespace PUSpecSheet.DataAccess.Seeding.ReferenceData;
@@ -30,18 +29,20 @@ public sealed class ShowcaseSheetIdentifiers
 
     private readonly PuSpecSheetDbContext db;
     private readonly ISheetTypesService sheetTypes;
+    private readonly ISheetTypeDataService sheetTypeData;
 
-    public ShowcaseSheetIdentifiers(PuSpecSheetDbContext db, ISheetTypesService sheetTypes)
+    public ShowcaseSheetIdentifiers(PuSpecSheetDbContext db, ISheetTypesService sheetTypes, ISheetTypeDataService sheetTypeData)
     {
         this.db = db;
         this.sheetTypes = sheetTypes;
+        this.sheetTypeData = sheetTypeData;
     }
 
     /// <summary>Gives the Engine Specifications sheet type its identifiers and returns their ids by name.</summary>
     public async Task<IReadOnlyDictionary<string, int>> EnsureAsync(CancellationToken cancellationToken)
     {
-        var sheetTypeId = await SheetTypeQueries.GetIdByNameAsync(db, ShowcasePhases.EngineSpecificationsSheetType, cancellationToken);
-        var sheetType = await SheetTypeQueries.FindAsync(db, sheetTypeId, cancellationToken)
+        var sheetTypeId = await sheetTypeData.GetIdByNameAsync(ShowcasePhases.EngineSpecificationsSheetType, cancellationToken);
+        var sheetType = await sheetTypeData.FindAsync(sheetTypeId, cancellationToken)
             ?? throw new InvalidOperationException($"The {ShowcasePhases.EngineSpecificationsSheetType} sheet type was not found.");
 
         foreach (var definition in Definitions)

@@ -3,7 +3,7 @@ using PUSpecSheet.Abstractions.Sheets;
 using PUSpecSheet.DataAccess.Seeding.ReferenceData;
 using PUSpecSheet.DataAccess.Seeding.Templates;
 using PUSpecSheet.DataAccess.Sheets;
-using PUSpecSheet.DataAccess.SheetTypes.Queries;
+using PUSpecSheet.DataAccess.SheetTypes;
 using PUSpecSheet.Database;
 
 namespace PUSpecSheet.DataAccess.Seeding.Sheets;
@@ -50,26 +50,29 @@ public sealed class EngineSpecificationSheetSeeder
     private readonly SheetEditorFactory editors;
     private readonly ShowcaseSheetIdentifiers identifiers;
     private readonly ShowcaseUsers users;
+    private readonly ISheetTypeDataService sheetTypes;
 
     public EngineSpecificationSheetSeeder(
         PuSpecSheetDbContext db,
         ISheetsService sheets,
         SheetEditorFactory editors,
         ShowcaseSheetIdentifiers identifiers,
-        ShowcaseUsers users)
+        ShowcaseUsers users,
+        ISheetTypeDataService sheetTypes)
     {
         this.db = db;
         this.sheets = sheets;
         this.editors = editors;
         this.identifiers = identifiers;
         this.users = users;
+        this.sheetTypes = sheetTypes;
     }
 
     /// <summary>The four V6 engines, built from version 1 of the as-built record template.</summary>
     public async Task SeedV6Async(ShowcaseContext context, CancellationToken cancellationToken)
     {
         var identifierIds = await identifiers.EnsureAsync(cancellationToken);
-        var sheetTypeId = await SheetTypeQueries.GetIdByNameAsync(db, ShowcasePhases.EngineSpecificationsSheetType, cancellationToken);
+        var sheetTypeId = await sheetTypes.GetIdByNameAsync(ShowcasePhases.EngineSpecificationsSheetType, cancellationToken);
         var templateId = context.TemplateIds[BuildRecordTemplate.TemplateName];
         var target = new SheetTarget(context, sheetTypeId, identifierIds);
 

@@ -1,5 +1,6 @@
 using PUSpecSheet.Abstractions.Common;
 using PUSpecSheet.Abstractions.Templates;
+using PUSpecSheet.DataAccess.CellTypes;
 using PUSpecSheet.DataAccess.Common;
 using PUSpecSheet.DataAccess.Templates.Queries;
 using PUSpecSheet.Database;
@@ -12,15 +13,18 @@ public sealed class TemplateRowsService : ITemplateRowsService
     private readonly PuSpecSheetDbContext db;
     private readonly TableTemplateReader reader;
     private readonly TemplateVersionGuard guard;
+    private readonly ICellTypeDataService cellTypes;
 
     public TemplateRowsService(
         PuSpecSheetDbContext db,
         TableTemplateReader reader,
-        TemplateVersionGuard guard)
+        TemplateVersionGuard guard,
+        ICellTypeDataService cellTypes)
     {
         this.db = db;
         this.reader = reader;
         this.guard = guard;
+        this.cellTypes = cellTypes;
     }
 
     public async Task<TableTemplateDto> CreateAsync(CreateTemplateRowRequest request, CancellationToken cancellationToken)
@@ -32,7 +36,7 @@ public sealed class TemplateRowsService : ITemplateRowsService
         var sectionRows = await TemplateRowQueries.ListInSectionWithCellsForEditAsync(db, request.TemplateSectionId, cancellationToken);
         var source = CopySource(sectionRows, request.CopyFromRowId);
         var insertIndex = Math.Clamp((request.Position ?? sectionRows.Count + 1) - 1, 0, sectionRows.Count);
-        var defaultCellTypeId = await DefaultCellType.GetIdAsync(db, cancellationToken);
+        var defaultCellTypeId = await cellTypes.GetDefaultIdAsync(cancellationToken);
         var columnBlockIds = await TemplateColumnBlockQueries.ListIdsAsync(db, versionId, cancellationToken);
 
         var row = new DbTemplateRow

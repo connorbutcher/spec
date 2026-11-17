@@ -5,15 +5,10 @@ using PUSpecSheet.Database.Models.CellTypes;
 
 namespace PUSpecSheet.DataAccess.CellTypes;
 
-/// <summary>Checks and applies the choices of a dropdown cell type.</summary>
 internal static class CellTypeOptions
 {
     private const int LongestOption = 100;
 
-    /// <summary>
-    /// Trims the options and drops blanks. Duplicates are refused, and a number dropdown's options must
-    /// all be numbers.
-    /// </summary>
     public static List<string> Clean(CellKind kind, IReadOnlyList<string>? options)
     {
         var cleaned = (options ?? [])
@@ -47,10 +42,7 @@ internal static class CellTypeOptions
         return cleaned;
     }
 
-    /// <summary>
-    /// Makes the cell type's options match <paramref name="values"/> in order, keeping existing option
-    /// records whose value matches (ignoring case) so their ids survive.
-    /// </summary>
+    // Existing options are matched by value (ignoring case) so their ids, which sheet values point at, survive.
     public static void Sync(DbCellType cellType, IReadOnlyList<string> values)
     {
         var existing = cellType.Options.ToList();

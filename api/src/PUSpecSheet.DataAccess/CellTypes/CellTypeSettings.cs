@@ -6,10 +6,6 @@ using PUSpecSheet.Database.Models.CellTypes;
 
 namespace PUSpecSheet.DataAccess.CellTypes;
 
-/// <summary>
-/// Copies a <see cref="SaveCellTypeRequest"/> onto a cell type, keeping only the configuration and
-/// options its kind uses.
-/// </summary>
 internal static class CellTypeSettings
 {
     public static void Apply(SaveCellTypeRequest request, DbCellType cellType)
@@ -24,10 +20,7 @@ internal static class CellTypeSettings
         CellTypeOptions.Sync(cellType, options);
     }
 
-    /// <summary>
-    /// Checks a configuration and trims its text. One for another kind is dropped, so changing a cell
-    /// type's kind starts the new kind with nothing set.
-    /// </summary>
+    // A configuration for another kind is dropped, so a kind change starts with nothing set.
     public static CellConfiguration CleanConfiguration(CellKind kind, CellConfiguration? configuration)
     {
         if (configuration is null || configuration.Kind != kind)

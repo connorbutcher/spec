@@ -1,6 +1,5 @@
-using PUSpecSheet.DataAccess.Phases.Queries;
-using PUSpecSheet.DataAccess.SheetTypes.Queries;
-using PUSpecSheet.Database;
+using PUSpecSheet.DataAccess.Phases;
+using PUSpecSheet.DataAccess.SheetTypes;
 using PUSpecSheet.Database.Models.Phases;
 
 namespace PUSpecSheet.DataAccess.Seeding.ReferenceData;
@@ -28,24 +27,26 @@ public sealed class ShowcasePhases
     /// <summary>Every showcase phase, the build first.</summary>
     public static readonly string[] Codes = [V6, A2, A3, A4, A5];
 
-    private readonly PuSpecSheetDbContext db;
+    private readonly IPhaseDataService phaseData;
+    private readonly ISheetTypeDataService sheetTypes;
 
-    public ShowcasePhases(PuSpecSheetDbContext db)
+    public ShowcasePhases(IPhaseDataService phaseData, ISheetTypeDataService sheetTypes)
     {
-        this.db = db;
+        this.phaseData = phaseData;
+        this.sheetTypes = sheetTypes;
     }
 
     /// <summary>The id of each showcase phase by code.</summary>
     public async Task<IReadOnlyDictionary<string, int>> EnsureAsync(CancellationToken cancellationToken)
     {
-        var phases = await PhaseQueries.ListByCodesForEditAsync(db, Codes, cancellationToken);
+        var phases = await phaseData.ListByCodesForEditAsync(Codes, cancellationToken);
 
         var build = phases.SingleOrDefault(phase => phase.Code == V6);
         if (build is null)
         {
-            var order = await PhaseQueries.GetLastDisplayOrderAsync(db, null, cancellationToken) ?? 0;
+            var order = await phaseData.GetLastDisplayOrderAsync(null, cancellationToken) ?? 0;
             build = new DbPhase { Code = V6, Description = "V6 build", DisplayOrder = order + 1 };
-            db.Phases.Add(build);
+            phaseData.Add(build);
             phases.Add(build);
         }
 
@@ -54,13 +55,13 @@ public sealed class ShowcasePhases
             if (phases.All(phase => phase.Code != Codes[index]))
             {
                 var phase = new DbPhase { Code = Codes[index], DisplayOrder = index, ParentPhase = build };
-                db.Phases.Add(phase);
+                phaseData.Add(phase);
                 phases.Add(phase);
             }
         }
 
         string[] sheetTypeNames = [SpecificationSheetType, PartsSheetType, PfksSheetType];
-        var sheetTypeIds = await SheetTypeQueries.ListIdsByNamesAsync(db, sheetTypeNames, cancellationToken);
+        var sheetTypeIds = await sheetTypes.ListIdsByNamesAsync(sheetTypeNames, cancellationToken);
         foreach (var phase in phases)
         {
             foreach (var sheetTypeId in sheetTypeIds.Where(id => phase.SheetTypes.All(link => link.SheetTypeId != id)))
@@ -69,13 +70,13 @@ public sealed class ShowcasePhases
             }
         }
 
-        var engineSpecificationsId = await SheetTypeQueries.GetIdByNameAsync(db, EngineSpecificationsSheetType, cancellationToken);
+        var engineSpecificationsId = await sheetTypes.GetIdByNameAsync(EngineSpecificationsSheetType, cancellationToken);
         if (build.SheetTypes.All(link => link.SheetTypeId != engineSpecificationsId))
         {
             build.SheetTypes.Add(new DbPhaseSheetType { SheetTypeId = engineSpecificationsId });
         }
 
-        await db.SaveChangesAsync(cancellationToken);
+        await phaseData.SaveAsync(cancellationToken);
         return phases.ToDictionary(phase => phase.Code, phase => phase.Id);
     }
 }

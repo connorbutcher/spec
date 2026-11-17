@@ -1,4 +1,4 @@
-using PUSpecSheet.DataAccess.CellTypes.Queries;
+using PUSpecSheet.DataAccess.CellTypes;
 using PUSpecSheet.DataAccess.Common;
 using PUSpecSheet.DataAccess.Sheets.History;
 using PUSpecSheet.DataAccess.Sheets.Queries;
@@ -21,13 +21,16 @@ public sealed class SheetSnapshotLoader
 {
     private readonly PuSpecSheetDbContext db;
     private readonly SheetChangeHistoryLoader changeLoader;
+    private readonly ICellTypeDataService cellTypes;
 
     public SheetSnapshotLoader(
         PuSpecSheetDbContext db,
-        SheetChangeHistoryLoader changeLoader)
+        SheetChangeHistoryLoader changeLoader,
+        ICellTypeDataService cellTypes)
     {
         this.db = db;
         this.changeLoader = changeLoader;
+        this.cellTypes = cellTypes;
     }
 
     public async Task<SheetSnapshot> LoadAsync(int sheetId, SheetViewPoint view, int currentUserId, CancellationToken cancellationToken)
@@ -71,7 +74,7 @@ public sealed class SheetSnapshotLoader
             TemplateSections = await TemplateSectionQueries.ListInVersionsAsync(db, versionIds, cancellationToken),
             TemplateColumnBlocks = await TemplateColumnBlockQueries.ListInVersionsAsync(db, versionIds, cancellationToken),
             TemplateRows = templateRows,
-            CellTypes = await CellTypeQueries.GetAllWithOptionsByIdAsync(db, cancellationToken),
+            CellTypes = await cellTypes.ListByIdAsync(cancellationToken),
             AvailableTemplates = availableTemplates,
             LatestTemplateVersions = await TableTemplateQueries.GetLatestVersionNumbersAsync(
                 db,

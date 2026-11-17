@@ -1,5 +1,6 @@
 using PUSpecSheet.Abstractions.Common;
 using PUSpecSheet.Abstractions.Templates;
+using PUSpecSheet.DataAccess.CellTypes;
 using PUSpecSheet.DataAccess.Common;
 using PUSpecSheet.DataAccess.Templates.Queries;
 using PUSpecSheet.DataAccess.Templates.Sections;
@@ -13,15 +14,18 @@ public sealed class TemplateColumnBlocksService : ITemplateColumnBlocksService
     private readonly PuSpecSheetDbContext db;
     private readonly TableTemplateReader reader;
     private readonly TemplateVersionGuard guard;
+    private readonly ICellTypeDataService cellTypes;
 
     public TemplateColumnBlocksService(
         PuSpecSheetDbContext db,
         TableTemplateReader reader,
-        TemplateVersionGuard guard)
+        TemplateVersionGuard guard,
+        ICellTypeDataService cellTypes)
     {
         this.db = db;
         this.reader = reader;
         this.guard = guard;
+        this.cellTypes = cellTypes;
     }
 
     public async Task<TableTemplateDto> CreateAsync(
@@ -36,7 +40,7 @@ public sealed class TemplateColumnBlocksService : ITemplateColumnBlocksService
 
         var rowIds = await TemplateRowQueries.ListIdsAsync(db, versionId, cancellationToken);
 
-        var cellTypeId = await DefaultCellType.GetIdAsync(db, cancellationToken);
+        var cellTypeId = await cellTypes.GetDefaultIdAsync(cancellationToken);
 
         // A block shows in every row, so each row starts with one cell in it.
         var block = new DbTemplateColumnBlock

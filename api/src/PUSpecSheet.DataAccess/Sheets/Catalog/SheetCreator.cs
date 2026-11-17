@@ -2,9 +2,9 @@ using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Abstractions.Sheets;
 using PUSpecSheet.Abstractions.SheetTypes;
 using PUSpecSheet.DataAccess.Common;
-using PUSpecSheet.DataAccess.Phases.Queries;
+using PUSpecSheet.DataAccess.Phases;
 using PUSpecSheet.DataAccess.Sheets.Queries;
-using PUSpecSheet.DataAccess.SheetTypes.Queries;
+using PUSpecSheet.DataAccess.SheetTypes;
 using PUSpecSheet.Database;
 using PUSpecSheet.Database.Models.Sheets;
 
@@ -22,11 +22,15 @@ public sealed class SheetCreator
 
     private readonly PuSpecSheetDbContext db;
     private readonly SheetCopier copier;
+    private readonly IPhaseDataService phases;
+    private readonly ISheetTypeDataService sheetTypes;
 
-    public SheetCreator(PuSpecSheetDbContext db, SheetCopier copier)
+    public SheetCreator(PuSpecSheetDbContext db, SheetCopier copier, IPhaseDataService phases, ISheetTypeDataService sheetTypes)
     {
         this.db = db;
         this.copier = copier;
+        this.phases = phases;
+        this.sheetTypes = sheetTypes;
     }
 
     /// <summary>
@@ -36,7 +40,7 @@ public sealed class SheetCreator
     public async Task<int> CreateAsync(int phaseId, CreateSheetRequest request, CancellationToken cancellationToken)
     {
         await EnsureAvailableAsync(phaseId, request.SheetTypeId, cancellationToken);
-        var definitions = await SheetTypeIdentifierQueries.ListDefinitionsAsync(db, request.SheetTypeId, cancellationToken);
+        var definitions = await sheetTypes.ListIdentifierDefinitionsAsync(request.SheetTypeId, cancellationToken);
         var values = CheckedValues(definitions, request.Identifiers);
         var copyFrom = await FindCopySourceAsync(request, cancellationToken);
 
@@ -75,7 +79,7 @@ public sealed class SheetCreator
     public async Task<int> CreateUnidentifiedAsync(int phaseId, int sheetTypeId, CancellationToken cancellationToken)
     {
         await EnsureAvailableAsync(phaseId, sheetTypeId, cancellationToken);
-        var definitions = await SheetTypeIdentifierQueries.ListDefinitionsAsync(db, sheetTypeId, cancellationToken);
+        var definitions = await sheetTypes.ListIdentifierDefinitionsAsync(sheetTypeId, cancellationToken);
         if (definitions.Any(definition => definition.IsRequired))
         {
             throw new InvalidRequestException("Sheets of this type need their identifiers. Create one from the phase's list of sheets.");
@@ -139,7 +143,7 @@ public sealed class SheetCreator
 
     private async Task EnsureAvailableAsync(int phaseId, int sheetTypeId, CancellationToken cancellationToken)
     {
-        if (!await PhaseQueries.HasSheetTypeAsync(db, phaseId, sheetTypeId, cancellationToken))
+        if (!await phases.HasSheetTypeAsync(phaseId, sheetTypeId, cancellationToken))
         {
             throw new NotFoundException("That sheet type isn't available to that phase.");
         }

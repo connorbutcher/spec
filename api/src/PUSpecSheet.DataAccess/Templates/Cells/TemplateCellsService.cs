@@ -1,5 +1,5 @@
 using PUSpecSheet.Abstractions.Templates;
-using PUSpecSheet.DataAccess.CellTypes.Queries;
+using PUSpecSheet.DataAccess.CellTypes;
 using PUSpecSheet.DataAccess.Common;
 using PUSpecSheet.DataAccess.Templates.Queries;
 using PUSpecSheet.Database;
@@ -12,15 +12,18 @@ public sealed class TemplateCellsService : ITemplateCellsService
     private readonly PuSpecSheetDbContext db;
     private readonly TableTemplateReader reader;
     private readonly TemplateVersionGuard guard;
+    private readonly ICellTypeDataService cellTypes;
 
     public TemplateCellsService(
         PuSpecSheetDbContext db,
         TableTemplateReader reader,
-        TemplateVersionGuard guard)
+        TemplateVersionGuard guard,
+        ICellTypeDataService cellTypes)
     {
         this.db = db;
         this.reader = reader;
         this.guard = guard;
+        this.cellTypes = cellTypes;
     }
 
     public async Task<TableTemplateDto> CreateAsync(CreateTemplateCellRequest request, CancellationToken cancellationToken)
@@ -33,7 +36,7 @@ public sealed class TemplateCellsService : ITemplateCellsService
             await EnsureBlockInVersionAsync(blockId, row.TableTemplateVersionId, cancellationToken);
         }
 
-        var cellTypeId = request.CellTypeId ?? await DefaultCellType.GetIdAsync(db, cancellationToken);
+        var cellTypeId = request.CellTypeId ?? await cellTypes.GetDefaultIdAsync(cancellationToken);
         await EnsureCellTypeExistsAsync(cellTypeId, cancellationToken);
 
         await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
@@ -119,7 +122,7 @@ public sealed class TemplateCellsService : ITemplateCellsService
 
     private async Task EnsureCellTypeExistsAsync(int cellTypeId, CancellationToken cancellationToken)
     {
-        var exists = await CellTypeQueries.ExistsAsync(db, cellTypeId, cancellationToken);
+        var exists = await cellTypes.ExistsAsync(cellTypeId, cancellationToken);
         if (!exists)
         {
             throw new InvalidRequestException($"Cell type {cellTypeId} doesn't exist.");

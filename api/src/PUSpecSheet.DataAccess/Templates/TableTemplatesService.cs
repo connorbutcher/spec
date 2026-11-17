@@ -1,6 +1,6 @@
 using PUSpecSheet.Abstractions.Templates;
 using PUSpecSheet.DataAccess.Common;
-using PUSpecSheet.DataAccess.SheetTypes.Queries;
+using PUSpecSheet.DataAccess.SheetTypes;
 using PUSpecSheet.DataAccess.Templates.Queries;
 using PUSpecSheet.DataAccess.Templates.Sections;
 using PUSpecSheet.Database;
@@ -13,15 +13,18 @@ public sealed class TableTemplatesService : ITableTemplatesService
     private readonly PuSpecSheetDbContext db;
     private readonly TableTemplateReader reader;
     private readonly TemplateVersionGuard guard;
+    private readonly ISheetTypeDataService sheetTypes;
 
     public TableTemplatesService(
         PuSpecSheetDbContext db,
         TableTemplateReader reader,
-        TemplateVersionGuard guard)
+        TemplateVersionGuard guard,
+        ISheetTypeDataService sheetTypes)
     {
         this.db = db;
         this.reader = reader;
         this.guard = guard;
+        this.sheetTypes = sheetTypes;
     }
 
     public async Task<IReadOnlyList<TableTemplateSummaryDto>> GetSummariesAsync(
@@ -167,7 +170,7 @@ public sealed class TableTemplatesService : ITableTemplatesService
 
     private async Task EnsureSheetTypeExistsAsync(int sheetTypeId, CancellationToken cancellationToken)
     {
-        var sheetTypeExists = await SheetTypeQueries.ExistsAsync(db, sheetTypeId, cancellationToken);
+        var sheetTypeExists = await sheetTypes.ExistsAsync(sheetTypeId, cancellationToken);
         if (!sheetTypeExists)
         {
             throw new InvalidRequestException($"Sheet type {sheetTypeId} doesn't exist.");

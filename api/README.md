@@ -7,7 +7,7 @@ How the API is put together and how to change it. Running it, the linters and th
 ```
 src/PUSpecSheet.Api           ASP.NET Core host. Controllers (by area), authorization, exception handling, OpenAPI, compression, CORS.
 src/PUSpecSheet.DataAccess   Use cases. One folder per feature: the service each controller calls, the rules it applies
-                              and the EF Core queries it shares (<Feature>/Queries), against the DbContext in Database.
+                              and its data services (I<Area>DataService), against the DbContext in Database.
 src/PUSpecSheet.Database      The EF Core side of the database (database first): the DbContext, the Db* entity classes
                               (DbSheet, DbSheetRowRevision, ...) in Models/<Area>, one configuration class per entity
                               in Configurations/<Area>, and the static mappers from entities to DTOs in Mappers.
@@ -26,7 +26,7 @@ References go one way: `Api -> DataAccess -> Database -> Abstractions`. `Databas
 | Where | What |
 | --- | --- |
 | `DataAccess/<Feature>/...Service` | Each service takes `PuSpecSheetDbContext` and writes its own queries. A query only it needs stays in it. |
-| `DataAccess/<Feature>/Queries/<Entity>Queries` | Static classes for the queries more than one class needs, one per entity, called as `SheetRowQueries.FindPlaceAsync(db, id, cancellationToken)`. Methods are named for what they return: `Find...` gives one or null, `List...` a list, `...ForEditAsync` tracked entities to change and save, everything else is read only. |
+| `DataAccess/<Area>/I<Area>DataService` | One injected service per area holding its EF Core queries and saves, so the area's service and anything else that needs that data take the interface rather than the DbContext. Methods are named for what they return: `Find...` gives one or null, `List...` a list, `...ForEditAsync` tracked entities to change and save, everything else is read only. Phases, sheet types and cell types use this already; the other areas still use static `<Feature>/Queries/<Entity>Queries` classes until they are converted. |
 | `DataAccess/Sheets/Queries/SheetRevisionQueries` | The revision reads and changes every kind of item shares, as extension methods on any revision set: `db.SheetRowRevisions.ListInViewAsync(sheetId, moment, cancellationToken)`. The type-specific ones are in `Sheet<Item>RevisionQueries`. |
 | `DataAccess/Common/DbContextSaveExtensions` | `SaveSheetChangesAsync` (turns a clash with someone else's change into a 409) and `MarkModified`. Transactions are `db.Database.BeginTransactionAsync`. |
 | `DataAccess/DependencyInjection/DataAccessServiceCollectionExtensions` | Registers every DataAccess service, one method per area. `ServiceRegistrationTests` fails if a service or controller can't be built. |
@@ -136,11 +136,11 @@ In Development the API builds a showcase on start (`DataAccess/Seeding`, run fro
 **Add an endpoint to an existing feature**
 
 1. Add the request/response records to `Abstractions/<Feature>`, one per file, with data annotations for required fields, lengths and ranges.
-2. Add the method to the service interface and implement it. A query it needs goes in the service, or in the area's `Queries` class when another class needs it too.
+2. Add the method to the service interface and implement it. A query it needs goes in the area's data service.
 3. Add the action to the controller with XML comments (`<summary>`, `<remarks>`, `<param>`, `<response>` for each status it can return). 400, 403, 404 and 409 are documented where they apply by `ProblemResponsesConvention`; add `[ProducesResponseType]` only for anything else.
 4. Decide who may call it. An action that changes anything takes `[Authorize(Policy = PermissionKeys.X)]` (on the controller when every action shares it); `EndpointPermissionTests` fails if one is missing. A read needs nothing more: the fallback policy already requires a signed-in user. Only the published API is `[AllowAnonymous]`. A new permission is a constant in `PermissionKeys` (add it to `All`) and a row in the Permissions block of `database/Script.PostDeployment.sql`, added on the next deploy.
 
-**Add a feature**: a folder in `DataAccess` with `I<Feature>Service` and its implementation, registered in `DataAccessServiceCollectionExtensions`; shared queries in `DataAccess/<Feature>/Queries`; a controller in `Api/Controllers/<Feature>` that takes that one service, with `[Tags(ApiTags.X)]`, the tag added to `ApiTags` and `ApiTagCatalog`.
+**Add a feature**: a folder in `DataAccess` with `I<Feature>Service` and its implementation, with its queries in `I<Feature>DataService`, both registered in `DataAccessServiceCollectionExtensions`; a controller in `Api/Controllers/<Feature>` that takes that one service, with `[Tags(ApiTags.X)]`, the tag added to `ApiTags` and `ApiTagCatalog`.
 
 **Add a table** (database first: the SQL comes first)
 

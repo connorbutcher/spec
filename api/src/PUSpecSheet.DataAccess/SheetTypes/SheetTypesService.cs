@@ -1,9 +1,6 @@
 using System.Globalization;
-using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Abstractions.SheetTypes;
 using PUSpecSheet.DataAccess.Common;
-using PUSpecSheet.DataAccess.SheetTypes.Queries;
-using PUSpecSheet.Database;
 using PUSpecSheet.Database.Mappers.SheetTypes;
 using PUSpecSheet.Database.Models.SheetTypes;
 
@@ -11,31 +8,31 @@ namespace PUSpecSheet.DataAccess.SheetTypes;
 
 public sealed class SheetTypesService : ISheetTypesService
 {
-    private readonly PuSpecSheetDbContext db;
+    private readonly ISheetTypeDataService sheetTypes;
 
-    public SheetTypesService(PuSpecSheetDbContext db)
+    public SheetTypesService(ISheetTypeDataService sheetTypes)
     {
-        this.db = db;
+        this.sheetTypes = sheetTypes;
     }
 
     public async Task<IReadOnlyList<SheetTypeDto>> GetAllAsync(CancellationToken cancellationToken)
     {
-        return await SheetTypeQueries.ListAsync(db, cancellationToken);
+        return await sheetTypes.ListAsync(cancellationToken);
     }
 
     public async Task<SheetTypeDto> CreateAsync(CreateSheetTypeRequest request, CancellationToken cancellationToken)
     {
         var name = request.Name.Trim();
-        if (await SheetTypeQueries.NameExistsAsync(db, name, cancellationToken))
+        if (await sheetTypes.NameExistsAsync(name, cancellationToken))
         {
             throw new ConflictException($"A sheet type called \"{name}\" already exists.");
         }
 
-        var lastOrder = await SheetTypeQueries.GetLastDisplayOrderAsync(db, cancellationToken);
-        var sheetType = new DbSheetType { Name = name, DisplayOrder = (lastOrder ?? 0) + 1 };
+        var lastOrder = await sheetTypes.GetLastDisplayOrderAsync(cancellationToken) ?? 0;
+        var sheetType = new DbSheetType { Name = name, DisplayOrder = lastOrder + 1 };
 
-        db.SheetTypes.Add(sheetType);
-        await db.SaveChangesAsync(cancellationToken);
+        sheetTypes.Add(sheetType);
+        await sheetTypes.SaveAsync(cancellationToken);
 
         return sheetType.ToDto();
     }
@@ -60,8 +57,8 @@ public sealed class SheetTypesService : ISheetTypesService
             Options = CheckedOptions(request),
         };
 
-        db.SheetTypeIdentifiers.Add(identifier);
-        await db.SaveChangesAsync(cancellationToken);
+        sheetTypes.AddIdentifier(identifier);
+        await sheetTypes.SaveAsync(cancellationToken);
         return await GetAsync(sheetTypeId, cancellationToken);
     }
 
@@ -71,7 +68,7 @@ public sealed class SheetTypesService : ISheetTypesService
         var identifier = siblings.SingleOrDefault(candidate => candidate.Id == identifierId)
             ?? throw new NotFoundException($"Sheet type {sheetTypeId} has no identifier {identifierId}.");
 
-        if (identifier.Kind != request.Kind && await SheetTypeIdentifierQueries.IsInUseAsync(db, identifierId, cancellationToken))
+        if (identifier.Kind != request.Kind && await sheetTypes.IsIdentifierInUseAsync(identifierId, cancellationToken))
         {
             throw new ConflictException($"Sheets already have a value for {identifier.Name}, so its kind can't change.");
         }
@@ -81,23 +78,23 @@ public sealed class SheetTypesService : ISheetTypesService
         identifier.IsRequired = request.IsRequired;
         identifier.Options = CheckedOptions(request);
 
-        await db.SaveChangesAsync(cancellationToken);
+        await sheetTypes.SaveAsync(cancellationToken);
         return await GetAsync(sheetTypeId, cancellationToken);
     }
 
     public async Task<SheetTypeDto> DeleteIdentifierAsync(int sheetTypeId, int identifierId, CancellationToken cancellationToken)
     {
-        var identifier = await db.SheetTypeIdentifiers
-            .SingleOrDefaultAsync(candidate => candidate.Id == identifierId && candidate.SheetTypeId == sheetTypeId, cancellationToken)
+        var siblings = await ListIdentifiersForEditAsync(sheetTypeId, cancellationToken);
+        var identifier = siblings.SingleOrDefault(candidate => candidate.Id == identifierId)
             ?? throw new NotFoundException($"Sheet type {sheetTypeId} has no identifier {identifierId}.");
 
-        if (await SheetTypeIdentifierQueries.IsInUseAsync(db, identifierId, cancellationToken))
+        if (await sheetTypes.IsIdentifierInUseAsync(identifierId, cancellationToken))
         {
             throw new ConflictException($"Sheets have a value for {identifier.Name}, so it can't be removed.");
         }
 
-        db.SheetTypeIdentifiers.Remove(identifier);
-        await db.SaveChangesAsync(cancellationToken);
+        sheetTypes.RemoveIdentifier(identifier);
+        await sheetTypes.SaveAsync(cancellationToken);
         return await GetAsync(sheetTypeId, cancellationToken);
     }
 
@@ -117,7 +114,6 @@ public sealed class SheetTypesService : ISheetTypesService
         return name;
     }
 
-    /// <summary>The options of an option identifier, trimmed and without blanks; null for the other kinds.</summary>
     private static List<string>? CheckedOptions(SaveSheetTypeIdentifierRequest request)
     {
         if (request.Kind != SheetIdentifierKind.Option)
@@ -163,19 +159,17 @@ public sealed class SheetTypesService : ISheetTypesService
 
     private async Task<List<DbSheetTypeIdentifier>> ListIdentifiersForEditAsync(int sheetTypeId, CancellationToken cancellationToken)
     {
-        if (!await SheetTypeQueries.ExistsAsync(db, sheetTypeId, cancellationToken))
+        if (!await sheetTypes.ExistsAsync(sheetTypeId, cancellationToken))
         {
             throw new NotFoundException($"Sheet type {sheetTypeId} was not found.");
         }
 
-        return await db.SheetTypeIdentifiers
-            .Where(identifier => identifier.SheetTypeId == sheetTypeId)
-            .ToListAsync(cancellationToken);
+        return await sheetTypes.ListIdentifiersForEditAsync(sheetTypeId, cancellationToken);
     }
 
     private async Task<SheetTypeDto> GetAsync(int sheetTypeId, CancellationToken cancellationToken)
     {
-        return await SheetTypeQueries.FindAsync(db, sheetTypeId, cancellationToken)
+        return await sheetTypes.FindAsync(sheetTypeId, cancellationToken)
             ?? throw new NotFoundException($"Sheet type {sheetTypeId} was not found.");
     }
 }

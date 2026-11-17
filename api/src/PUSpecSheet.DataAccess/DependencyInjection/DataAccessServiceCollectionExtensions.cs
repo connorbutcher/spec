@@ -31,11 +31,6 @@ using PUSpecSheet.DataAccess.Users;
 
 namespace PUSpecSheet.DataAccess.DependencyInjection;
 
-/// <summary>
-/// Every Application registration, by area. Each controller's service is registered against its interface; the
-/// classes it works through are registered as themselves. Collaboration is registered by the host, which
-/// supplies its options (see <c>AddPuSpecSheetCollaboration</c>).
-/// </summary>
 public static class DataAccessServiceCollectionExtensions
 {
     public static IServiceCollection AddPuSpecSheetDataAccess(this IServiceCollection services)
@@ -52,6 +47,9 @@ public static class DataAccessServiceCollectionExtensions
 
     private static void AddReferenceData(IServiceCollection services)
     {
+        services.AddScoped<IPhaseDataService, PhaseDataService>();
+        services.AddScoped<ISheetTypeDataService, SheetTypeDataService>();
+        services.AddScoped<ICellTypeDataService, CellTypeDataService>();
         services.AddScoped<ISheetTypesService, SheetTypesService>();
         services.AddScoped<IPhasesService, PhasesService>();
         services.AddScoped<ICellTypesService, CellTypesService>();
@@ -104,7 +102,6 @@ public static class DataAccessServiceCollectionExtensions
         services.AddScoped<ISheetColumnBlocksService, SheetColumnBlocksService>();
     }
 
-    /// <summary>Publishing with approval: submitting, deciding and listing submissions.</summary>
     private static void AddApprovals(IServiceCollection services)
     {
         services.AddScoped<ApproverDirectory>();
@@ -125,7 +122,6 @@ public static class DataAccessServiceCollectionExtensions
         services.AddScoped<IPublishedRowsService, PublishedRowsService>();
     }
 
-    /// <summary>The development-only showcase sample data and the parts it is built from.</summary>
     private static void AddSeeding(IServiceCollection services)
     {
         services.AddScoped<ShowcaseCellTypes>();

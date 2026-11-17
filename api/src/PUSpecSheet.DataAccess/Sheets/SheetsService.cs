@@ -3,7 +3,7 @@ using PUSpecSheet.Abstractions.Sheets;
 using PUSpecSheet.DataAccess.Approvals;
 using PUSpecSheet.DataAccess.Approvals.Queries;
 using PUSpecSheet.DataAccess.Common;
-using PUSpecSheet.DataAccess.Phases.Queries;
+using PUSpecSheet.DataAccess.Phases;
 using PUSpecSheet.DataAccess.Sheets.Catalog;
 using PUSpecSheet.DataAccess.Sheets.Drafts;
 using PUSpecSheet.DataAccess.Sheets.Editing;
@@ -26,6 +26,7 @@ public sealed class SheetsService : ISheetsService
     private readonly ISheetTablesService tables;
     private readonly ISubmissionsService submissionsService;
     private readonly SheetCreator creator;
+    private readonly IPhaseDataService phases;
 
     public SheetsService(
         PuSpecSheetDbContext db,
@@ -36,7 +37,8 @@ public sealed class SheetsService : ISheetsService
         ICurrentUser currentUser,
         ISheetTablesService tables,
         ISubmissionsService submissionsService,
-        SheetCreator creator)
+        SheetCreator creator,
+        IPhaseDataService phases)
     {
         this.db = db;
         this.reader = reader;
@@ -47,6 +49,7 @@ public sealed class SheetsService : ISheetsService
         this.tables = tables;
         this.submissionsService = submissionsService;
         this.creator = creator;
+        this.phases = phases;
     }
 
     public async Task<SheetDto> OpenAsync(int phaseId, int sheetTypeId, CancellationToken cancellationToken)
@@ -85,7 +88,7 @@ public sealed class SheetsService : ISheetsService
 
     public async Task<IReadOnlyList<SheetSummaryDto>> ListAsync(int phaseId, CancellationToken cancellationToken)
     {
-        if (!await PhaseQueries.ExistsAsync(db, phaseId, cancellationToken))
+        if (!await phases.ExistsAsync(phaseId, cancellationToken))
         {
             throw new NotFoundException($"Phase {phaseId} was not found.");
         }

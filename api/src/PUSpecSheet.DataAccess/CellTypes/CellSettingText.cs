@@ -2,7 +2,6 @@ using PUSpecSheet.Abstractions.CellTypes.Configurations;
 
 namespace PUSpecSheet.DataAccess.CellTypes;
 
-/// <summary>Tidies the free text in cell settings, so blank text means "not set".</summary>
 internal static class CellSettingText
 {
     public static string? NullIfBlank(string? value)
@@ -10,7 +9,6 @@ internal static class CellSettingText
         return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
     }
 
-    /// <summary>The configuration with its units trimmed, and blank units treated as not set.</summary>
     public static CellConfiguration Trim(CellConfiguration configuration)
     {
         return configuration switch
