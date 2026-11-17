@@ -18,9 +18,11 @@ Database options, users, logins and permissions are kept out of the project and 
 
 `copy.ps1` is the odd one out: it copies a whole database, schema and data, into a new one (a bacpac export and import), so it takes `-SourceDatabase` and `-TargetDatabase` (or `-SourceServer`, `-TargetServer` and connection strings) and doesn't use the project at all.
 
+`seed.ps1` runs `seed.sql` with sqlcmd to give an empty database the reference data it needs (see [Seeding an empty database](#seeding-an-empty-database)). It takes `-Server` and `-Database` (Windows authentication, defaulting to `(localdb)\MSSQLLocalDB` and `PUSpecSheetLegacy`). `seed.sql` is data, not schema, so the project leaves it out of the build.
+
 ## Setting up a database
 
-The project holds the schema only, with no data, and nothing seeds one: the types, phases, templates, cell types and users the legacy app needs come from the legacy database itself. So a working database starts from a copy of the legacy one.
+The project holds the schema only, with no data. The real types, phases, templates, cell types and users come from the legacy database itself, so a working database starts from a copy of the legacy one. (`seed.ps1` gives an empty database just enough to try the app; see [Without a legacy database](#without-a-legacy-database).)
 
 1. Copy the legacy database (production, or a test copy of it) into a new database. Don't use the name `PUSpecSheet` on LocalDB if it is already taken by another database:
 
@@ -63,9 +65,33 @@ When there is no legacy database to copy, build one from the scripts. `legacy/PU
 ./compare.ps1 -Database PUSpecSheetLegacy          # should report no differences
 ```
 
-The result has the whole schema and no rows. Nothing in it works until the reference data is there: users and permissions (`access`), phases, sheet types and their properties, structure levels and widget types (`types`), cell types, table templates and their groups, rows, cells and widgets (`template`), and cell configurations. Sheets, values and revisions start empty as well; the migrator runs against it but finds nothing to do.
+The result has the whole schema and no rows. Nothing in it works until the reference data is there: users and permissions (`access`), phases, sheet types and their properties, structure levels and widget types (`types`), cell types, table templates and their groups, rows, cells and widgets (`template`), and cell configurations. Sheets, values and revisions start empty as well; the migrator runs against it but finds nothing to do. Seed it (below) to get a database you can click through.
 
 `PUSpecSheetLegacy` on `(localdb)\MSSQLLocalDB` was built this way on 2026-11-17.
+
+### Seeding an empty database
+
+`seed.ps1` adds just enough reference data to use the app:
+
+```powershell
+./seed.ps1 -Database PUSpecSheetLegacy -AdminObjectId <your Entra object id> -AdminName '<your name>' -AdminEmail <your email>
+```
+
+| Seeded | What |
+| --- | --- |
+| Permissions | `admin.view`, `admin.sheets`, `admin.types`, `admin.phases`, `admin.users`, `admin.permissions`: every key the API and UI check. |
+| Admin user | The user you name, with every permission, and the approver of the phase. |
+| Phase | Development (`DEV`). |
+| Sheet type | Engine Specification: vertical tables, approval required, in the Development phase, with the properties the admin UI gives a new type (Type, Phase, Version, Copy From) and one display level labelled by the version. |
+| Cell types | All 26 the UI knows (`CellTypeReferenceKey`), with their `Type` and `ModelType`. |
+| Widget types | Part pair identifier and PFK nominal (`WidgetTypeKey`). |
+| Table template | Limits: a header row (Description, Min, Max, Unit) and a Limit group under it with one row of a text cell, two numeric cells (2 decimal places) and a text dropdown (mm, um, N.m, bar, degC). Both groups are default, so a new table starts with the headings and one limit; more are added from the header. |
+
+The API finds the signed-in user by the `oid` claim of their token, so `-AdminObjectId` must be your Entra ID object id for the permissions to be yours (it's on your user's page in the Entra admin centre, or in the `oid` claim of a token from the app). Leave it out and the admin is a placeholder user (`00000000-0000-0000-0000-000000000001`); signing in then creates you a second user with no permissions. Run the script again with your object id to fix that.
+
+It only inserts what is missing, matching each row on its natural key (a permission's key, a user's object id, a phase's or type's name, a cell or widget type's key, a template's name within its type, a group's title, a row's number and a cell's column). Running it again changes nothing, and nothing it finds is updated or deleted. It touches the reference tables only.
+
+The `ModelType` of the dropdown and lookup cell types (text and numeric dropdowns, table and linked sheet values, engine spec part, engine phase) is read from the UI's components rather than from a legacy database. Check them against one when you can.
 
 ## Schemas
 
