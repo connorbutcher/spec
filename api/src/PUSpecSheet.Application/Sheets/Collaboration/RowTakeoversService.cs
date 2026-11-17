@@ -125,7 +125,7 @@ public sealed class RowTakeoversService : IRowTakeoversService
         {
             var names = await checkouts.DisplayNamesAsync([checkout.HolderUserId], cancellationToken);
             var holder = names.GetValueOrDefault(checkout.HolderUserId, UnknownUser);
-            throw new ConflictException($"{holder} has unpublished changes on this row. It can be taken over once they publish or discard them.");
+            throw new ConflictException($"{holder} has unpublished changes on this row. It can be taken over once they publish them or change them back.");
         }
 
         if (store.ForRow(rowId) is { } waiting && waiting.RequesterUserId != userId)

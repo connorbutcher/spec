@@ -37,13 +37,6 @@ public static class SheetRevisionQueryExtensions
         return drafts.Where(revision => revision.SheetSubmissionId == null);
     }
 
-    /// <summary>The drafts one user holds that aren't waiting for approval, so they can still change or discard them.</summary>
-    public static IQueryable<TRevision> OpenDraftsOf<TRevision>(this IQueryable<TRevision> revisions, int userId)
-        where TRevision : class, IDbSheetRevision
-    {
-        return revisions.DraftsOf(userId).Where(revision => revision.SheetSubmissionId == null);
-    }
-
     /// <summary>The drafts waiting for approval in one submission.</summary>
     public static IQueryable<TRevision> InSubmission<TRevision>(this IQueryable<TRevision> revisions, int submissionId)
         where TRevision : class, IDbSheetRevision

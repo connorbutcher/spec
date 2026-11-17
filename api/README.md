@@ -117,7 +117,7 @@ A phase can hold many sheets of a sheet type, told apart by the type's identifie
 
 A new sheet can start as a copy of another of its type (`copyFromSheetId`): `SheetCopier` builds the source's current published tables, column blocks, sections, rows, cells, values and cell settings again on the new sheet as the creator's first drafts, with linked dropdowns pointed at the copies of the tables and rows they read.
 
-The published API finds a sheet by phase code, sheet type and identifier values by key (`?phase=V6&sheetType=1&serialNumber=ESN-1`); `api/published/sheets/list` returns every match.
+The published API lists a phase's sheets of a type by phase code, sheet type and identifier values by key (`GET api/published/sheets?phase=V6&sheetType=1&serialNumber=ESN-1`); `api/published/sheets/find` with the same query returns the one match, or 409 when there is more than one.
 
 ## Sample data
 

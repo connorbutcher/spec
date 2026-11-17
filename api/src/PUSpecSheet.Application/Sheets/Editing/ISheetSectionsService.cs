@@ -13,7 +13,4 @@ public interface ISheetSectionsService
 
     /// <summary>Removes a section copy and everything in it, never below the template's minimum and never the header.</summary>
     Task<SheetDto> RemoveAsync(int sectionId, CancellationToken cancellationToken);
-
-    /// <summary>Adds another row built from one of the section's template rows. Not allowed in the header.</summary>
-    Task<SheetDto> AddRowAsync(int sectionId, AddSheetRowRequest request, CancellationToken cancellationToken);
 }

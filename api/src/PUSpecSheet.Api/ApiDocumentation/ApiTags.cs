@@ -15,8 +15,6 @@ public static class ApiTags
 
     public const string SheetColumnBlocks = "Sheet column blocks";
 
-    public const string SheetItems = "Sheet items";
-
     public const string Approvals = "Approvals";
 
     public const string TableTemplates = "Table templates";

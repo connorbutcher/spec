@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PUSpecSheet.Api.ApiDocumentation;
+using PUSpecSheet.Api.Published;
 using PUSpecSheet.Application.Sheets;
 using PUSpecSheet.Application.Sheets.Reading;
 using PUSpecSheet.Contracts.Approvals;
@@ -11,8 +12,9 @@ using PUSpecSheet.Domain.Users;
 namespace PUSpecSheet.Api.Controllers.Sheets;
 
 /// <summary>
-/// Opening, publishing and discarding sheets. Every action returns the sheet as the current user sees it.
-/// A sheet is shown live, as of a version number (<c>version</c>) or as of a date and time (<c>asOf</c>).
+/// Finding, reading and submitting sheets. Each way of looking at a sheet has its own endpoint: live (the
+/// latest published state with your own drafts on top), as a version was published, as it stood at a
+/// moment, and with a submission's changes on top for its approvers to check. Only the live view can be edited.
 /// </summary>
 [ApiController]
 [Tags(ApiTags.Sheets)]
@@ -25,33 +27,22 @@ public sealed class SheetsController : ControllerBase
         this.sheets = sheets;
     }
 
-    /// <summary>Open a phase's sheet</summary>
+    /// <summary>Open a phase's sheet of a type</summary>
     /// <remarks>
-    /// Opens the phase's sheet of a sheet type that has no identifier values, creating it empty the first
-    /// time; a sheet type whose identifiers are required has none, so open its sheets by id. With neither
-    /// <c>version</c> nor <c>asOf</c> the view is live: the latest published state with your own drafts on top
-    /// and other people's locks marked. A past view is read-only.
+    /// The live view of the phase's one sheet of a sheet type that has no identifier values, creating it
+    /// empty the first time. A sheet type whose identifiers are required can have many sheets in a phase,
+    /// none of them found this way: list them with <c>GET api/phases/{phaseId}/sheets</c> and read them by id.
+    /// For a past view, read the sheet by the id this returns.
     /// </remarks>
     /// <param name="phaseId">The phase's id.</param>
     /// <param name="sheetTypeId">The sheet type's id.</param>
-    /// <param name="version" example="3">Show the sheet as of this version number. Leave out for the live view.</param>
-    /// <param name="asOf" example="2026-09-30T14:02:11Z">Show the sheet as it was published at this date and time (UTC). Can't be combined with <c>version</c>.</param>
-    /// <param name="submission" example="12">Show the live sheet with this submission's changes, which wait for approval, on top. Read-only, and only for its submitter and approvers.</param>
     /// <param name="cancellationToken">Cancels the request.</param>
-    /// <response code="200">The sheet as you see it.</response>
-    /// <response code="403">You aren't the submission's submitter or one of its approvers.</response>
-    /// <response code="404">The phase, version or submission doesn't exist, or the sheet type isn't available to this phase.</response>
-    /// <response code="409">The submission has already been decided.</response>
+    /// <response code="200">The live sheet as you see it.</response>
+    /// <response code="404">The phase doesn't exist, the sheet type isn't available to it, or the type needs identifiers.</response>
     [HttpGet("api/phases/{phaseId:int}/sheets/{sheetTypeId:int}")]
-    public async Task<ActionResult<SheetDto>> Open(
-        int phaseId,
-        int sheetTypeId,
-        [FromQuery] int? version,
-        [FromQuery] DateTime? asOf,
-        [FromQuery] int? submission,
-        CancellationToken cancellationToken)
+    public async Task<ActionResult<SheetDto>> Open(int phaseId, int sheetTypeId, CancellationToken cancellationToken)
     {
-        var result = await sheets.OpenAsync(phaseId, sheetTypeId, SheetViewPoint.From(version, asOf, submission), cancellationToken);
+        var result = await sheets.OpenAsync(phaseId, sheetTypeId, cancellationToken);
         return Ok(result);
     }
 
@@ -97,27 +88,69 @@ public sealed class SheetsController : ControllerBase
 
     /// <summary>Get a sheet</summary>
     /// <remarks>
-    /// The sheet with this id, live or as of a version number or a date and time, or with a submission's
-    /// changes on top for its approvers to check. Only one of <c>version</c>, <c>asOf</c> and <c>submission</c> can be given.
+    /// The live view of the sheet: the latest published state with your own drafts on top and other people's
+    /// locks marked. This is the view that can be edited.
     /// </remarks>
     /// <param name="id">The sheet's id.</param>
-    /// <param name="version" example="3">Show the sheet as of this version number. Leave out for the live view.</param>
-    /// <param name="asOf" example="2026-09-30T14:02:11Z">Show the sheet as it was published at this date and time (UTC). Can't be combined with <c>version</c>.</param>
-    /// <param name="submission" example="12">Show the live sheet with this submission's changes, which wait for approval, on top. Read-only, and only for its submitter and approvers.</param>
     /// <param name="cancellationToken">Cancels the request.</param>
-    /// <response code="200">The sheet as you see it.</response>
-    /// <response code="403">You aren't the submission's submitter or one of its approvers.</response>
-    /// <response code="404">The sheet, version or submission doesn't exist.</response>
-    /// <response code="409">The submission has already been decided.</response>
+    /// <response code="200">The live sheet as you see it.</response>
+    /// <response code="404">The sheet doesn't exist.</response>
     [HttpGet("api/sheets/{id:int}")]
-    public async Task<ActionResult<SheetDto>> Get(
-        int id,
-        [FromQuery] int? version,
-        [FromQuery] DateTime? asOf,
-        [FromQuery] int? submission,
-        CancellationToken cancellationToken)
+    public async Task<ActionResult<SheetDto>> Get(int id, CancellationToken cancellationToken)
     {
-        var result = await sheets.GetAsync(id, SheetViewPoint.From(version, asOf, submission), cancellationToken);
+        var result = await sheets.GetAsync(id, SheetViewPoint.Live, cancellationToken);
+        return Ok(result);
+    }
+
+    /// <summary>Get a sheet as a version was published</summary>
+    /// <remarks>
+    /// The sheet as it stood when the version was published, read-only, with no drafts.
+    /// </remarks>
+    /// <param name="id">The sheet's id.</param>
+    /// <param name="version" example="3">The version number, starting at 1.</param>
+    /// <param name="cancellationToken">Cancels the request.</param>
+    /// <response code="200">The sheet at that version.</response>
+    /// <response code="404">The sheet or the version doesn't exist.</response>
+    [HttpGet("api/sheets/{id:int}/versions/{version:int}")]
+    public async Task<ActionResult<SheetDto>> GetVersion(int id, int version, CancellationToken cancellationToken)
+    {
+        var result = await sheets.GetAsync(id, SheetViewPoint.AtVersion(version), cancellationToken);
+        return Ok(result);
+    }
+
+    /// <summary>Get a sheet as it stood at a moment</summary>
+    /// <remarks>
+    /// The sheet as it was published at a date and time, read-only, with no drafts: the version that was
+    /// newest then.
+    /// </remarks>
+    /// <param name="id">The sheet's id.</param>
+    /// <param name="instant" example="2026-09-30T14:02:11Z">An ISO 8601 date and time. Without an offset it is taken as UTC.</param>
+    /// <param name="cancellationToken">Cancels the request.</param>
+    /// <response code="200">The sheet at that moment.</response>
+    /// <response code="400">The moment isn't a date and time.</response>
+    /// <response code="404">The sheet doesn't exist.</response>
+    [HttpGet("api/sheets/{id:int}/versions/at/{instant}")]
+    public async Task<ActionResult<SheetDto>> GetAtMoment(int id, string instant, CancellationToken cancellationToken)
+    {
+        var result = await sheets.GetAsync(id, SheetViewPoint.AsOf(PublishedMoment.ParseUtc(instant)), cancellationToken);
+        return Ok(result);
+    }
+
+    /// <summary>Get a submission's sheet with its changes</summary>
+    /// <remarks>
+    /// The live sheet the submission is on, with the submission's changes, which wait for approval, on top,
+    /// so its approvers can check them. Read-only, only for its submitter and approvers, and only while it waits.
+    /// </remarks>
+    /// <param name="submissionId">The submission's id.</param>
+    /// <param name="cancellationToken">Cancels the request.</param>
+    /// <response code="200">The sheet with the submission's changes.</response>
+    /// <response code="403">You aren't the submission's submitter or one of its approvers.</response>
+    /// <response code="404">The submission doesn't exist.</response>
+    /// <response code="409">The submission has already been decided.</response>
+    [HttpGet("api/submissions/{submissionId:int}/sheet")]
+    public async Task<ActionResult<SheetDto>> GetForReview(int submissionId, CancellationToken cancellationToken)
+    {
+        var result = await sheets.GetForReviewAsync(submissionId, cancellationToken);
         return Ok(result);
     }
 
@@ -160,10 +193,10 @@ public sealed class SheetsController : ControllerBase
         return Ok(result);
     }
 
-    /// <summary>Publish drafts, once approved</summary>
+    /// <summary>Submit drafts for approval</summary>
     /// <remarks>
-    /// Submits drafts on the sheet for publishing as its next version, with an optional note, to one or more
-    /// approvers (see <c>GET api/approvers</c>). Nothing is published yet: the drafts stay locked, to you as
+    /// Submits drafts on the sheet to one or more approvers (see <c>GET api/approvers</c>) to be published
+    /// as its next version, with an optional note. Nothing is published yet: the drafts stay locked, to you as
     /// well, and stay out of the published sheet until every approver approves; the last approval publishes
     /// them. A rejection hands them back to their authors to change and submit again.
     /// With <c>scope</c> <c>Mine</c> (the default) only your own drafts go in and other people's are untouched.
@@ -171,31 +204,16 @@ public sealed class SheetsController : ControllerBase
     /// attributed to the person who made it, and the version to you.
     /// </remarks>
     /// <param name="id">The sheet's id.</param>
-    /// <param name="request">The approvers, an optional note describing the version, and whose drafts to publish.</param>
+    /// <param name="request">The approvers, an optional note describing the version, and whose drafts to submit.</param>
     /// <param name="cancellationToken">Cancels the request.</param>
     /// <response code="200">The refreshed live view of the sheet.</response>
-    /// <response code="400">There is nothing to publish, required cells are still empty, or an approver can't be chosen.</response>
+    /// <response code="400">There is nothing to submit, required cells are still empty, or an approver can't be chosen.</response>
     /// <response code="409">Someone changed one of the drafts at the same moment.</response>
-    [HttpPost("api/sheets/{id:int}/publish")]
+    [HttpPost("api/sheets/{id:int}/submissions")]
     [Authorize(Policy = PermissionKeys.SheetsPublish)]
-    public async Task<ActionResult<SheetDto>> Publish(int id, SubmitSheetRequest request, CancellationToken cancellationToken)
+    public async Task<ActionResult<SheetDto>> Submit(int id, SubmitSheetRequest request, CancellationToken cancellationToken)
     {
         var result = await sheets.SubmitAsync(id, request, cancellationToken);
-        return Ok(result);
-    }
-
-    /// <summary>Discard your drafts</summary>
-    /// <remarks>
-    /// Throws away all of your drafts on the sheet and releases your locks. Other people's drafts are untouched.
-    /// </remarks>
-    /// <param name="id">The sheet's id.</param>
-    /// <param name="cancellationToken">Cancels the request.</param>
-    /// <response code="200">The refreshed live view of the sheet.</response>
-    [HttpDelete("api/sheets/{id:int}/drafts")]
-    [Authorize(Policy = PermissionKeys.SheetsEdit)]
-    public async Task<ActionResult<SheetDto>> DiscardDrafts(int id, CancellationToken cancellationToken)
-    {
-        var result = await sheets.DiscardDraftsAsync(id, cancellationToken);
         return Ok(result);
     }
 }

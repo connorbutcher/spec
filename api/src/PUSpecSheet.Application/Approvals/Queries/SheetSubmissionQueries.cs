@@ -34,20 +34,19 @@ public static class SheetSubmissionQueries
             cancellationToken);
     }
 
-    /// <summary>The sheet's pending submissions, oldest first.</summary>
-    public static Task<List<DbSheetSubmission>> ListPendingOnSheetAsync(PuSpecSheetDbContext db, int sheetId, CancellationToken cancellationToken)
-    {
-        return ListAsync(
-            db.SheetSubmissions
-                .Where(submission => submission.SheetId == sheetId && submission.Status == SubmissionStatus.Pending)
-                .OrderBy(submission => submission.SubmittedAtUtc),
-            cancellationToken);
-    }
-
     /// <summary>The submission with everything a list shows, read only; empty when there is no such submission.</summary>
     public static Task<List<DbSheetSubmission>> ListByIdAsync(PuSpecSheetDbContext db, int id, CancellationToken cancellationToken)
     {
         return ListAsync(db.SheetSubmissions.Where(submission => submission.Id == id), cancellationToken);
+    }
+
+    /// <summary>The sheet a submission is on; null when there is no such submission.</summary>
+    public static async Task<int?> FindSheetIdAsync(PuSpecSheetDbContext db, int id, CancellationToken cancellationToken)
+    {
+        return await db.SheetSubmissions
+            .Where(candidate => candidate.Id == id)
+            .Select(candidate => (int?)candidate.SheetId)
+            .SingleOrDefaultAsync(cancellationToken);
     }
 
     /// <summary>Whether the user may review the submission on the sheet; null when the sheet has no such submission.</summary>

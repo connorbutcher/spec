@@ -50,7 +50,7 @@ public sealed class SheetEditor
         var before = Sheet.Tables.Select(table => table.Id).ToHashSet();
         Sheet = await tables.AddAsync(Sheet.Id, new AddSheetTableRequest(templateId), cancellationToken);
         var tableId = Sheet.Tables.Single(table => !before.Contains(table.Id)).Id;
-        Sheet = await tables.SetTitleAsync(tableId, new UpdateSheetTableRequest(title), cancellationToken);
+        Sheet = await tables.SetTitleAsync(tableId, new SetSheetTableTitleRequest(title), cancellationToken);
         return tableId;
     }
 

@@ -156,7 +156,7 @@ describe('SheetStore', () => {
 
     store.setView({ version: 1 });
     await SpecHelpers.settle();
-    http.expectOne(`${SHEET_URL}?version=1`).flush(SheetResponseFixture.sheetResponse({ ...sheet, isLive: false }));
+    http.expectOne(`/api/sheets/${sheet.id}/versions/1`).flush(SheetResponseFixture.sheetResponse({ ...sheet, isLive: false }));
     await SpecHelpers.settle();
 
     expect(store.canEdit()).toBe(false);
@@ -178,7 +178,7 @@ describe('SheetStore', () => {
     expect(store.editingCellId()).toBeNull();
 
     await SpecHelpers.settle();
-    http.expectOne(`${SHEET_URL}?version=1`).flush(SheetResponseFixture.sheetResponse({ ...sheet, isLive: false }));
+    http.expectOne(`/api/sheets/${sheet.id}/versions/1`).flush(SheetResponseFixture.sheetResponse({ ...sheet, isLive: false }));
     await SpecHelpers.settle();
   });
 
@@ -270,14 +270,14 @@ describe('SheetStore', () => {
     const second = store.setTableTitle(table.id, 'Two');
     await SpecHelpers.settle();
 
-    const firstRequest = http.expectOne(`/api/sheet-tables/${table.id}`);
+    const firstRequest = http.expectOne(`/api/sheet-tables/${table.id}/title`);
     expect(firstRequest.request.body).toEqual({ title: 'One' });
     expect(store.isBusy()).toBe(true);
     firstRequest.flush(SpecHelpers.fromServer(sheet, (copy) => (copy.tables[0].title = 'One')));
     await first;
     await SpecHelpers.settle();
 
-    const secondRequest = http.expectOne(`/api/sheet-tables/${table.id}`);
+    const secondRequest = http.expectOne(`/api/sheet-tables/${table.id}/title`);
     expect(secondRequest.request.body).toEqual({ title: 'Two' });
     secondRequest.flush(SpecHelpers.fromServer(sheet, (copy) => (copy.tables[0].title = 'Two')));
     await second;
@@ -292,7 +292,7 @@ describe('SheetStore', () => {
     const renaming = store.setTableTitle(table.id, 'Nope');
     await SpecHelpers.settle();
     http
-      .expectOne(`/api/sheet-tables/${table.id}`)
+      .expectOne(`/api/sheet-tables/${table.id}/title`)
       .flush(
         { detail: 'Someone else is editing this table.' },
         { status: 409, statusText: 'Conflict' },
@@ -311,14 +311,14 @@ describe('SheetStore', () => {
   it('submits my own changes, or everything on the sheet when asked, to the chosen approvers', async () => {
     const mine = store.publish('First cut', 'Mine', [2]);
     await SpecHelpers.settle();
-    const first = http.expectOne(`/api/sheets/${sheet.id}/publish`);
+    const first = http.expectOne(`/api/sheets/${sheet.id}/submissions`);
     expect(first.request.body).toEqual({ note: 'First cut', scope: 'Mine', approverUserIds: [2] });
     first.flush(SpecHelpers.fromServer(sheet));
     expect(await mine).toBe(true);
 
     const everything = store.publish(null, 'All', [2, 3]);
     await SpecHelpers.settle();
-    const second = http.expectOne(`/api/sheets/${sheet.id}/publish`);
+    const second = http.expectOne(`/api/sheets/${sheet.id}/submissions`);
     expect(second.request.body).toEqual({ note: null, scope: 'All', approverUserIds: [2, 3] });
     second.flush(SpecHelpers.fromServer(sheet));
     expect(await everything).toBe(true);

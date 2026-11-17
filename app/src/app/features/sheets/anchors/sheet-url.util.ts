@@ -24,23 +24,30 @@ export class SheetUrlUtil {
 
   /**
    * The address a sheet is read from: live, as a version was published, as it stood at a moment, or with
-   * a submission's changes on top.
+   * a submission's changes on top. A phase's one sheet of a type is opened live by phase and type; a past
+   * view is read by the sheet's id, so it needs `openSheetId`, the id of the sheet already open, when the
+   * route names none. Undefined when it isn't known yet.
    */
-  public static sheetUrl(target: SheetTarget, view: SheetView): string {
-    const url =
-      target.sheetId === null
-        ? `/api/phases/${target.phaseId}/sheets/${target.sheetTypeId}`
-        : `/api/sheets/${target.sheetId}`;
-    if (view.version) {
-      return `${url}?version=${view.version}`;
-    }
-    if (view.asOf) {
-      return `${url}?asOf=${encodeURIComponent(view.asOf)}`;
-    }
+  public static sheetUrl(
+    target: SheetTarget,
+    view: SheetView,
+    openSheetId: number | null = null,
+  ): string | undefined {
     if (view.submission) {
-      return `${url}?submission=${view.submission}`;
+      return `/api/submissions/${view.submission}/sheet`;
     }
-    return url;
+    const sheetId = target.sheetId ?? openSheetId;
+    if (view.version || view.asOf) {
+      if (sheetId === null) {
+        return undefined;
+      }
+      return view.version
+        ? `/api/sheets/${sheetId}/versions/${view.version}`
+        : `/api/sheets/${sheetId}/versions/at/${encodeURIComponent(view.asOf ?? '')}`;
+    }
+    return target.sheetId === null
+      ? `/api/phases/${target.phaseId}/sheets/${target.sheetTypeId}`
+      : `/api/sheets/${target.sheetId}`;
   }
 
   /** The submission named by the `review` query parameter, or null when it isn't a whole number above zero. */

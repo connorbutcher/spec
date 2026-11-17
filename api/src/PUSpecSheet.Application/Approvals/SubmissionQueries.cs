@@ -36,12 +36,6 @@ public sealed class SubmissionQueries
         return ToDtosAsync(SheetSubmissionQueries.ListSubmittedByAsync(db, userId, since, cancellationToken), cancellationToken);
     }
 
-    /// <summary>The sheet's submissions waiting for approval, oldest first.</summary>
-    public Task<IReadOnlyList<SheetSubmissionDto>> PendingOnSheetAsync(int sheetId, CancellationToken cancellationToken)
-    {
-        return ToDtosAsync(SheetSubmissionQueries.ListPendingOnSheetAsync(db, sheetId, cancellationToken), cancellationToken);
-    }
-
     public async Task<SheetSubmissionDto> GetAsync(int submissionId, CancellationToken cancellationToken)
     {
         var found = await ToDtosAsync(SheetSubmissionQueries.ListByIdAsync(db, submissionId, cancellationToken), cancellationToken);

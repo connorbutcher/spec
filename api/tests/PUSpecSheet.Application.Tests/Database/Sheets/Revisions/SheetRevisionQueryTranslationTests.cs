@@ -77,15 +77,6 @@ public sealed class SheetRevisionQueryTranslationTests : IDisposable
     }
 
     [Fact]
-    public void OpenDraftsOf_AreThatUsersDraftsNotWaitingForApproval()
-    {
-        var sql = db.SheetRowRevisions.OpenDraftsOf(42).ToQueryString();
-
-        Assert.Contains("[Status] = 0 AND [s].[AuthorUserId] = @userId", sql);
-        Assert.Contains("[SheetSubmissionId] IS NULL", sql);
-    }
-
-    [Fact]
     public void InSubmission_IsThatSubmissionsDrafts()
     {
         var sql = db.SheetTableRevisions.InSubmission(12).ToQueryString();

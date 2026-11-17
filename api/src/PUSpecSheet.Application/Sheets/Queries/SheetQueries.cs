@@ -77,28 +77,6 @@ public static class SheetQueries
             .MaxAsync(version => (int?)version.VersionNumber, cancellationToken) ?? 0;
     }
 
-    /// <summary>
-    /// Deletes the sheet's tables, sections, rows and column blocks that have no revisions left (they only
-    /// ever existed as drafts that are gone), straight in the database.
-    /// </summary>
-    public static async Task DeleteItemsWithoutRevisionsAsync(PuSpecSheetDbContext db, int sheetId, CancellationToken cancellationToken)
-    {
-        var orphanBlockIds = await db.SheetColumnBlocks
-            .Where(block => block.SheetTable.SheetId == sheetId && !block.Revisions.Any())
-            .Select(block => block.Id)
-            .ToListAsync(cancellationToken);
-        await SheetColumnBlockDeletion.DeleteAsync(db, orphanBlockIds, cancellationToken);
-        await db.SheetRows
-            .Where(row => row.SheetSection.SheetTable.SheetId == sheetId && !row.Revisions.Any())
-            .ExecuteDeleteAsync(cancellationToken);
-        await db.SheetSections
-            .Where(section => section.SheetTable.SheetId == sheetId && !section.Revisions.Any())
-            .ExecuteDeleteAsync(cancellationToken);
-        await db.SheetTables
-            .Where(table => table.SheetId == sheetId && !table.Revisions.Any())
-            .ExecuteDeleteAsync(cancellationToken);
-    }
-
     /// <summary>Whether any sheet has a version published with the note.</summary>
     public static async Task<bool> AnyVersionWithNoteAsync(PuSpecSheetDbContext db, string note, CancellationToken cancellationToken)
     {

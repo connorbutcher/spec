@@ -10,8 +10,8 @@ public interface IRowTakeoverSettler
     Task GrantOverdueAsync(CancellationToken cancellationToken);
 
     /// <summary>
-    /// Closes the requests on a sheet that can no longer succeed: the holder published or discarded the
-    /// row while the request was waiting, or changed it, which keeps it with them until they publish.
+    /// Closes the requests on a sheet that can no longer succeed: the holder published the row or changed it
+    /// back while the request was waiting, or changed it, which keeps it with them until they publish.
     /// </summary>
     Task CloseBlockedAsync(int sheetId, CancellationToken cancellationToken);
 }

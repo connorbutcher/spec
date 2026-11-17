@@ -20,31 +20,35 @@ describe('sheetTarget', () => {
 
 describe('sheetUrl', () => {
   const target = { phaseId: 3, sheetTypeId: 2, sheetId: null };
+  const named = { phaseId: 3, sheetTypeId: 2, sheetId: 17 };
 
-  it('reads a sheet named by id from its own address', () => {
-    expect(SheetUrlUtil.sheetUrl({ phaseId: 3, sheetTypeId: 2, sheetId: 17 }, { version: 4 })).toBe('/api/sheets/17?version=4');
-  });
-
-  it('reads the live sheet when no moment is chosen', () => {
+  it('opens the one sheet of a type in a phase live, by phase and type', () => {
     expect(SheetUrlUtil.sheetUrl(target, {})).toBe('/api/phases/3/sheets/2');
   });
 
-  it('asks for a version by number', () => {
-    expect(SheetUrlUtil.sheetUrl(target, { version: 4 })).toBe('/api/phases/3/sheets/2?version=4');
+  it('reads a sheet named by id live from its own address', () => {
+    expect(SheetUrlUtil.sheetUrl(named, {})).toBe('/api/sheets/17');
   });
 
-  it('asks for a moment as an encoded date and time', () => {
-    expect(SheetUrlUtil.sheetUrl(target, { asOf: '2026-09-12T10:00:00.000Z' })).toBe(
-      '/api/phases/3/sheets/2?asOf=2026-09-12T10%3A00%3A00.000Z',
+  it('asks for a version by number, by sheet id', () => {
+    expect(SheetUrlUtil.sheetUrl(named, { version: 4 })).toBe('/api/sheets/17/versions/4');
+    expect(SheetUrlUtil.sheetUrl(target, { version: 4 }, 17)).toBe('/api/sheets/17/versions/4');
+  });
+
+  it('asks for a moment as an encoded date and time, by sheet id', () => {
+    expect(SheetUrlUtil.sheetUrl(target, { asOf: '2026-09-12T10:00:00.000Z' }, 17)).toBe(
+      '/api/sheets/17/versions/at/2026-09-12T10%3A00%3A00.000Z',
     );
+  });
+
+  it('has no address for a past view until the id of the sheet is known', () => {
+    expect(SheetUrlUtil.sheetUrl(target, { version: 4 })).toBeUndefined();
   });
 });
 
 describe('reviewing a submission', () => {
-  it('asks for the live sheet with the submission on top', () => {
-    expect(SheetUrlUtil.sheetUrl({ phaseId: 3, sheetTypeId: 2, sheetId: null }, { submission: 12 })).toBe(
-      '/api/phases/3/sheets/2?submission=12',
-    );
+  it('asks for the sheet of the submission with its changes on top', () => {
+    expect(SheetUrlUtil.sheetUrl({ phaseId: 3, sheetTypeId: 2, sheetId: null }, { submission: 12 })).toBe('/api/submissions/12/sheet');
   });
 
   it('reads the submission from the review parameter, if it is an id', () => {

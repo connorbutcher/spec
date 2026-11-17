@@ -42,7 +42,7 @@ public sealed class RowTakeoversController : ControllerBase
     /// <summary>Ask to take over a row</summary>
     /// <remarks>
     /// Asks the person a row is checked out to for it. Only a row they haven't changed can be asked for:
-    /// once it has unpublished changes it stays with them until they publish or discard. If they don't
+    /// once it has unpublished changes it stays with them until they publish it or change it back. If they don't
     /// have the sheet open the row is yours straight away (<c>GrantedHolderAway</c>). Otherwise the request
     /// comes back <c>Pending</c>: they can approve or deny it, and if they do neither before
     /// <c>expiresAtUtc</c> it is granted (<c>GrantedOnTimeout</c>). If they change the row while the

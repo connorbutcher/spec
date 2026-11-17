@@ -26,24 +26,9 @@ public sealed class SheetRowsController : ControllerBase
         this.rows = rows;
     }
 
-    /// <summary>Lock a row</summary>
-    /// <remarks>
-    /// Locks the row to you without changing it yet, so nobody else can edit it while you do. The lock is released when you publish or discard.
-    /// </remarks>
-    /// <param name="id">The sheet row's id.</param>
-    /// <param name="cancellationToken">Cancels the request.</param>
-    /// <response code="200">The refreshed live view of the sheet.</response>
-    /// <response code="409">The row is locked by someone else.</response>
-    [HttpPost("{id:int}/lock")]
-    public async Task<ActionResult<SheetDto>> Lock(int id, CancellationToken cancellationToken)
-    {
-        var result = await rows.LockAsync(id, cancellationToken);
-        return Ok(result);
-    }
-
     /// <summary>Save a row's values</summary>
     /// <remarks>
-    /// Sets or clears cell values in the row, which locks it to you until you publish or discard. For each
+    /// Sets or clears cell values in the row, which locks it to you until you publish it or change it back. For each
     /// cell, set the field that matches its kind: <c>text</c>, <c>number</c>, <c>date</c>, <c>boolean</c>, or
     /// <c>optionId</c> for a dropdown (a linked dropdown takes the chosen <c>text</c>). Leaving them all unset clears the cell. Cells not listed are unchanged.
     /// </remarks>
@@ -67,7 +52,7 @@ public sealed class SheetRowsController : ControllerBase
     /// points it at a column of another table on the sheet (a table's <c>linkableColumns</c> lists the
     /// columns it offers), and its choices are then the values in that column. Sending <c>null</c> clears a
     /// cell's settings. A cell whose settings change loses its value. Like saving values, this locks the row
-    /// to you until you publish or discard, and the settings are published and versioned with the row.
+    /// to you until you publish it or change it back, and the settings are published and versioned with the row.
     /// </remarks>
     /// <param name="id">The sheet row's id.</param>
     /// <param name="request">The cells to change and their new settings.</param>
@@ -108,20 +93,6 @@ public sealed class SheetRowsController : ControllerBase
     public async Task<ActionResult<SheetDto>> Remove(int id, CancellationToken cancellationToken)
     {
         var result = await rows.RemoveAsync(id, cancellationToken);
-        return Ok(result);
-    }
-
-    /// <summary>Discard a row's draft</summary>
-    /// <remarks>
-    /// Throws away your draft on the row, putting back what was last published and releasing its lock.
-    /// </remarks>
-    /// <param name="id">The sheet row's id.</param>
-    /// <param name="cancellationToken">Cancels the request.</param>
-    /// <response code="200">The refreshed live view of the sheet.</response>
-    [HttpDelete("{id:int}/draft")]
-    public async Task<ActionResult<SheetDto>> Discard(int id, CancellationToken cancellationToken)
-    {
-        var result = await rows.DiscardAsync(id, cancellationToken);
         return Ok(result);
     }
 }

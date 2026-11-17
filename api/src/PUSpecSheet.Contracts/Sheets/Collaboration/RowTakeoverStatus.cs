@@ -21,7 +21,7 @@ public enum RowTakeoverStatus
     /// <summary>They didn't have the sheet open, so the row went to the person who asked straight away.</summary>
     GrantedHolderAway,
 
-    /// <summary>The row stopped being checked out to them (published or discarded) before the request was answered.</summary>
+    /// <summary>The row stopped being checked out to them (published, or changed back) before the request was answered.</summary>
     Released,
 
     /// <summary>They changed the row before the request was settled, so it stays with them until they publish.</summary>

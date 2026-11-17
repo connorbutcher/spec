@@ -33,18 +33,6 @@ public sealed class PhasesController : ControllerBase
         return Ok(result);
     }
 
-    /// <summary>Get a phase</summary>
-    /// <param name="id">The phase's id.</param>
-    /// <param name="cancellationToken">Cancels the request.</param>
-    /// <response code="200">The phase.</response>
-    /// <response code="404">No phase has this id.</response>
-    [HttpGet("{id:int}")]
-    public async Task<ActionResult<PhaseDto>> Get(int id, CancellationToken cancellationToken)
-    {
-        var result = await phases.GetAsync(id, cancellationToken);
-        return Ok(result);
-    }
-
     /// <summary>Create a phase</summary>
     /// <remarks>
     /// Adds a phase after its siblings: under <c>parentPhaseId</c>, or at the top level when that is null.

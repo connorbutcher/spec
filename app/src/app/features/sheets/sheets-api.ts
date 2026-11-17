@@ -54,12 +54,12 @@ export class SheetsApi {
     approverUserIds: readonly number[],
   ): Promise<Sheet> {
     return this.sheet(
-      this.http.post<SheetResponse>(`/api/sheets/${sheetId}/publish`, { note, scope, approverUserIds }),
+      this.http.post<SheetResponse>(`/api/sheets/${sheetId}/submissions`, { note, scope, approverUserIds }),
     );
   }
 
   public setTableTitle(tableId: number, title: string | null): Promise<Sheet> {
-    return this.sheet(this.http.put<SheetResponse>(`/api/sheet-tables/${tableId}`, { title }));
+    return this.sheet(this.http.put<SheetResponse>(`/api/sheet-tables/${tableId}/title`, { title }));
   }
 
   public moveTable(tableId: number, position: number): Promise<Sheet> {

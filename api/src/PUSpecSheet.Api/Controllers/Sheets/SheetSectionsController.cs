@@ -51,19 +51,4 @@ public sealed class SheetSectionsController : ControllerBase
         var result = await sections.RemoveAsync(id, cancellationToken);
         return Ok(result);
     }
-
-    /// <summary>Add a row to a section</summary>
-    /// <remarks>
-    /// Adds another row built from one of the template rows of the section's template section. Not allowed in the header.
-    /// </remarks>
-    /// <param name="id">The sheet section's id.</param>
-    /// <param name="request">The template row to build the row from.</param>
-    /// <param name="cancellationToken">Cancels the request.</param>
-    /// <response code="200">The refreshed live view of the sheet.</response>
-    [HttpPost("{id:int}/rows")]
-    public async Task<ActionResult<SheetDto>> AddRow(int id, AddSheetRowRequest request, CancellationToken cancellationToken)
-    {
-        var result = await sections.AddRowAsync(id, request, cancellationToken);
-        return Ok(result);
-    }
 }

@@ -30,8 +30,8 @@ public sealed class SheetTablesController : ControllerBase
     /// <param name="request">The new title.</param>
     /// <param name="cancellationToken">Cancels the request.</param>
     /// <response code="200">The refreshed live view of the sheet.</response>
-    [HttpPut("{id:int}")]
-    public async Task<ActionResult<SheetDto>> SetTitle(int id, UpdateSheetTableRequest request, CancellationToken cancellationToken)
+    [HttpPut("{id:int}/title")]
+    public async Task<ActionResult<SheetDto>> SetTitle(int id, SetSheetTableTitleRequest request, CancellationToken cancellationToken)
     {
         var result = await tables.SetTitleAsync(id, request, cancellationToken);
         return Ok(result);

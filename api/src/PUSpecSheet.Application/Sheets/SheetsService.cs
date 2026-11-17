@@ -1,4 +1,5 @@
 using PUSpecSheet.Application.Approvals;
+using PUSpecSheet.Application.Approvals.Queries;
 using PUSpecSheet.Application.Common;
 using PUSpecSheet.Application.Phases.Queries;
 using PUSpecSheet.Application.Sheets.Catalog;
@@ -48,7 +49,7 @@ public sealed class SheetsService : ISheetsService
         this.creator = creator;
     }
 
-    public async Task<SheetDto> OpenAsync(int phaseId, int sheetTypeId, SheetViewPoint view, CancellationToken cancellationToken)
+    public async Task<SheetDto> OpenAsync(int phaseId, int sheetTypeId, CancellationToken cancellationToken)
     {
         var sheetId = await SheetQueries.FindIdAsync(db, phaseId, sheetTypeId, cancellationToken);
 
@@ -57,7 +58,7 @@ public sealed class SheetsService : ISheetsService
             sheetId = await creator.CreateUnidentifiedAsync(phaseId, sheetTypeId, cancellationToken);
         }
 
-        return await GetAsync(sheetId.Value, view, cancellationToken);
+        return await GetAsync(sheetId.Value, SheetViewPoint.Live, cancellationToken);
     }
 
     public async Task<SheetDto> GetAsync(int sheetId, SheetViewPoint view, CancellationToken cancellationToken)
@@ -73,6 +74,13 @@ public sealed class SheetsService : ISheetsService
         }
 
         return await reader.ReadAsync(sheetId, view, cancellationToken);
+    }
+
+    public async Task<SheetDto> GetForReviewAsync(int submissionId, CancellationToken cancellationToken)
+    {
+        var sheetId = await SheetSubmissionQueries.FindSheetIdAsync(db, submissionId, cancellationToken)
+            ?? throw new NotFoundException($"Submission {submissionId} was not found.");
+        return await GetAsync(sheetId, SheetViewPoint.Reviewing(submissionId), cancellationToken);
     }
 
     public async Task<IReadOnlyList<SheetSummaryDto>> ListAsync(int phaseId, CancellationToken cancellationToken)
@@ -101,28 +109,6 @@ public sealed class SheetsService : ISheetsService
     public async Task<SheetDto> PublishAsync(int sheetId, string? note, PublishScope scope, CancellationToken cancellationToken)
     {
         await publisher.PublishAsync(sheetId, note, scope, cancellationToken);
-        return await reader.ReadLiveAsync(sheetId, cancellationToken);
-    }
-
-    public async Task<SheetDto> DiscardDraftsAsync(int sheetId, CancellationToken cancellationToken)
-    {
-        if (!await SheetQueries.ExistsAsync(db, sheetId, cancellationToken))
-        {
-            throw new NotFoundException($"Sheet {sheetId} was not found.");
-        }
-
-        var me = currentUser.UserId;
-        await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
-
-        await db.SheetRowRevisions.DeleteOpenDraftsAsync(sheetId, me, cancellationToken);
-        await db.SheetColumnBlockRevisions.DeleteOpenDraftsAsync(sheetId, me, cancellationToken);
-        await db.SheetSectionRevisions.DeleteOpenDraftsAsync(sheetId, me, cancellationToken);
-        await db.SheetTableRevisions.DeleteOpenDraftsAsync(sheetId, me, cancellationToken);
-
-        // Items that only ever existed as the user's drafts now have no revisions at all, so they go too.
-        await SheetQueries.DeleteItemsWithoutRevisionsAsync(db, sheetId, cancellationToken);
-
-        await transaction.CommitAsync(cancellationToken);
         return await reader.ReadLiveAsync(sheetId, cancellationToken);
     }
 

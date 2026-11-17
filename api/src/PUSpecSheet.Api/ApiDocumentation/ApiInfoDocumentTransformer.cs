@@ -31,7 +31,8 @@ public sealed class ApiInfoDocumentTransformer : IOpenApiDocumentTransformer
         ## Drafts and versions
 
         A change to a sheet is a draft that only its author sees. Changing a row, section or table locks it to
-        that person until they publish or discard. Publishing turns all of a person's drafts on a sheet into its
+        that person until it is published or changed back. Drafts are submitted for approval
+        (`POST /api/sheets/{id}/submissions`); once every approver approves, they are published as the sheet's
         next version, and a published version never changes.
 
         ## Errors

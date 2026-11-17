@@ -215,10 +215,10 @@ public sealed class SheetPublisher
         var otherAuthorIds = emptyRowIds.Select(rowId => authorByRow[rowId]).Where(author => author != me).Distinct().ToList();
         if (otherAuthorIds.Count == 0)
         {
-            throw new InvalidRequestException($"{stillEmpty}. Fill them in, or discard the new rows, before publishing.");
+            throw new InvalidRequestException($"{stillEmpty}. Fill them in, or remove the new rows, before publishing.");
         }
 
-        // The publisher can't fill in or discard someone else's rows, so the way out is different.
+        // The publisher can't fill in or remove someone else's rows, so the way out is different.
         var names = await UserQueries.GetSortedDisplayNamesAsync(db, otherAuthorIds, cancellationToken);
         throw new InvalidRequestException(
             $"{stillEmpty}, in rows being edited by {string.Join(", ", names)}. Publish only your own changes, or ask them to fill those in first.");

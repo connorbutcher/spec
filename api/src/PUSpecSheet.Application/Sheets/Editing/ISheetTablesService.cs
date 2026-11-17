@@ -9,7 +9,7 @@ public interface ISheetTablesService
     /// <summary>Adds a table from the latest version of a template, with its header and starting sections, as a draft.</summary>
     Task<SheetDto> AddAsync(int sheetId, AddSheetTableRequest request, CancellationToken cancellationToken);
 
-    Task<SheetDto> SetTitleAsync(int tableId, UpdateSheetTableRequest request, CancellationToken cancellationToken);
+    Task<SheetDto> SetTitleAsync(int tableId, SetSheetTableTitleRequest request, CancellationToken cancellationToken);
 
     Task<SheetDto> MoveAsync(int tableId, MoveRequest request, CancellationToken cancellationToken);
 

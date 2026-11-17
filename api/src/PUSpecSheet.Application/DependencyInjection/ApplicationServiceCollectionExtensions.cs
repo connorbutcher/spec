@@ -95,7 +95,6 @@ public static class ApplicationServiceCollectionExtensions
         services.AddScoped<SheetCopier>();
         services.AddScoped<SheetCreator>();
         services.AddScoped<ISheetsService, SheetsService>();
-        services.AddScoped<ISheetItemsService, SheetItemsService>();
         services.AddScoped<ISheetTablesService, SheetTablesService>();
         services.AddScoped<ISheetSectionsService, SheetSectionsService>();
         services.AddScoped<ISheetRowsService, SheetRowsService>();

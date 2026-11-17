@@ -174,6 +174,12 @@ export class SheetStore {
     { initialValue: null },
   );
 
+  /**
+   * The id of the sheet last read. A phase's one sheet of a type is opened by phase and type, but its past
+   * views are read by id, and a past view is only ever chosen once the live sheet is open.
+   */
+  private lastSheetId: number | null = null;
+
   /** Set for a quiet reload of the sheet: that read keeps the objects of everything that didn't change. */
   private keepUnchangedOnNextRead = false;
 
@@ -186,7 +192,7 @@ export class SheetStore {
   private readonly sheetResource = httpResource<Sheet>(
     () => {
       const target = this.target();
-      return target === null ? undefined : SheetUrlUtil.sheetUrl(target, this.view());
+      return target === null ? undefined : SheetUrlUtil.sheetUrl(target, this.view(), this.lastSheetId);
     },
     { parse: (body) => this.received(SheetResponseUtil.withTemplateCells(body as SheetResponse)) },
   );
@@ -505,6 +511,7 @@ export class SheetStore {
 
   /** A sheet as it arrives from a read. Only a quiet `refresh` keeps the open copy's unchanged objects. */
   private received(sheet: Sheet): Sheet {
+    this.lastSheetId = sheet.id;
     const keep = this.keepUnchangedOnNextRead;
     this.keepUnchangedOnNextRead = false;
     const open = untracked(() =>

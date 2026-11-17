@@ -21,9 +21,6 @@ public interface ISubmissionsService
     /// <summary>The current user's own submissions, pending or recently decided.</summary>
     Task<IReadOnlyList<SheetSubmissionDto>> MineAsync(CancellationToken cancellationToken);
 
-    /// <summary>The sheet's submissions waiting for approval.</summary>
-    Task<IReadOnlyList<SheetSubmissionDto>> PendingOnSheetAsync(int sheetId, CancellationToken cancellationToken);
-
     Task<SheetSubmissionDto> ApproveAsync(int submissionId, CancellationToken cancellationToken);
 
     Task<SheetSubmissionDto> RejectAsync(int submissionId, RejectSubmissionRequest request, CancellationToken cancellationToken);

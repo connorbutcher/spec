@@ -1,4 +1,3 @@
-using PUSpecSheet.Application.Common;
 using PUSpecSheet.Application.Sheets.Reading;
 
 namespace PUSpecSheet.Application.Tests.Sheets.Reading;
@@ -6,28 +5,27 @@ namespace PUSpecSheet.Application.Tests.Sheets.Reading;
 public sealed class SheetViewPointTests
 {
     [Fact]
-    public void NeitherOption_IsTheLiveSheet()
+    public void TheLiveView_IsLive()
     {
-        var view = SheetViewPoint.From(null, null);
-
-        Assert.True(view.IsLive);
-        Assert.Equal(SheetViewPoint.Live, view);
+        Assert.True(SheetViewPoint.Live.IsLive);
     }
 
     [Fact]
     public void AVersionNumber_IsAPastView()
     {
-        var view = SheetViewPoint.From(3, null);
+        var view = SheetViewPoint.AtVersion(3);
 
         Assert.False(view.IsLive);
         Assert.Equal(3, view.VersionNumber);
+        Assert.Null(view.AsOfUtc);
     }
 
     [Fact]
     public void ADateWithoutAZone_IsTakenAsUtc()
     {
-        var view = SheetViewPoint.From(null, new DateTime(2026, 10, 1, 12, 0, 0, DateTimeKind.Unspecified));
+        var view = SheetViewPoint.AsOf(new DateTime(2026, 10, 1, 12, 0, 0, DateTimeKind.Unspecified));
 
+        Assert.False(view.IsLive);
         Assert.Equal(new DateTime(2026, 10, 1, 12, 0, 0, DateTimeKind.Utc), view.AsOfUtc);
         Assert.Equal(DateTimeKind.Utc, view.AsOfUtc!.Value.Kind);
     }
@@ -37,30 +35,19 @@ public sealed class SheetViewPointTests
     {
         var local = new DateTime(2026, 10, 1, 12, 0, 0, DateTimeKind.Local);
 
-        var view = SheetViewPoint.From(null, local);
+        var view = SheetViewPoint.AsOf(local);
 
         Assert.Equal(local.ToUniversalTime(), view.AsOfUtc);
     }
 
     [Fact]
-    public void AVersionAndADateTogether_AreRefused()
-    {
-        Assert.Throws<InvalidRequestException>(() => SheetViewPoint.From(3, DateTime.UtcNow));
-    }
-
-    [Fact]
     public void ReviewingASubmission_IsNotTheLiveView()
     {
-        var view = SheetViewPoint.From(null, null, 12);
+        var view = SheetViewPoint.Reviewing(12);
 
         Assert.False(view.IsLive);
         Assert.Equal(12, view.ReviewedSubmissionId);
+        Assert.Null(view.VersionNumber);
         Assert.Null(view.AsOfUtc);
-    }
-
-    [Fact]
-    public void ASubmissionWithAVersion_IsRefused()
-    {
-        Assert.Throws<InvalidRequestException>(() => SheetViewPoint.From(3, null, 12));
     }
 }

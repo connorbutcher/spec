@@ -78,7 +78,7 @@ public sealed class SheetTablesService : ISheetTablesService
         return await reader.ReadLiveAsync(sheetId, cancellationToken);
     }
 
-    public async Task<SheetDto> SetTitleAsync(int tableId, UpdateSheetTableRequest request, CancellationToken cancellationToken)
+    public async Task<SheetDto> SetTitleAsync(int tableId, SetSheetTableTitleRequest request, CancellationToken cancellationToken)
     {
         var state = await drafts.LoadAsync(tableId, cancellationToken);
         var draft = await MyDraftAsync(tableId, state, cancellationToken);

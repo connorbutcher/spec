@@ -6,7 +6,7 @@ namespace PUSpecSheet.Application.Sheets.Collaboration;
 /// <summary>
 /// What people do with takeover requests: ask for a row that is checked out to someone else, answer a
 /// request for one of their own rows, or withdraw a request they made. Only a row its holder has not
-/// changed can be taken over: once changed, it stays with them until they publish or discard.
+/// changed can be taken over: once changed, it stays with them until they publish it or change it back.
 /// </summary>
 public interface IRowTakeoversService
 {

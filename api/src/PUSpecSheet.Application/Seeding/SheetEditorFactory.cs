@@ -41,7 +41,7 @@ public sealed class SheetEditorFactory
     public async Task<SheetEditor> OpenAsync(int phaseId, string sheetTypeName, ShowcaseCellTypeCatalog cellTypes, CancellationToken cancellationToken)
     {
         var sheetTypeId = await SheetTypeQueries.GetIdByNameAsync(db, sheetTypeName, cancellationToken);
-        var sheet = await sheets.OpenAsync(phaseId, sheetTypeId, SheetViewPoint.Live, cancellationToken);
+        var sheet = await sheets.OpenAsync(phaseId, sheetTypeId, cancellationToken);
         return new SheetEditor(sheet, cellTypes, sheets, tables, sections, rows, columnBlocks, cellSettings);
     }
 

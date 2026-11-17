@@ -23,18 +23,6 @@ public sealed class PhasesService : IPhasesService
         return all.Select(phase => phase.ToDto()).ToList();
     }
 
-    public async Task<PhaseDto> GetAsync(int id, CancellationToken cancellationToken)
-    {
-        var phase = await PhaseQueries.FindWithSheetTypesAsync(db, id, cancellationToken);
-
-        if (phase is null)
-        {
-            throw new NotFoundException($"Phase {id} was not found.");
-        }
-
-        return phase.ToDto();
-    }
-
     public async Task<PhaseDto> CreateAsync(CreatePhaseRequest request, CancellationToken cancellationToken)
     {
         var code = request.Code.Trim();

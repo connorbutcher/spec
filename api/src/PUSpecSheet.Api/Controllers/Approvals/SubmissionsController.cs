@@ -9,7 +9,8 @@ namespace PUSpecSheet.Api.Controllers.Approvals;
 
 /// <summary>
 /// Publishing with approval: who can approve, what waits for whom, and approving, rejecting or withdrawing
-/// a submission. Submitting is <c>POST api/sheets/{id}/publish</c>.
+/// a submission. Submitting is <c>POST api/sheets/{id}/submissions</c>, and a submission's changes are
+/// shown on its sheet by <c>GET api/submissions/{submissionId}/sheet</c>.
 /// </summary>
 [ApiController]
 [Tags(ApiTags.Approvals)]
@@ -53,17 +54,6 @@ public sealed class SubmissionsController : ControllerBase
     public async Task<ActionResult<IReadOnlyList<SheetSubmissionDto>>> Mine(CancellationToken cancellationToken)
     {
         var result = await submissions.MineAsync(cancellationToken);
-        return Ok(result);
-    }
-
-    /// <summary>List a sheet's pending submissions</summary>
-    /// <param name="id">The sheet's id.</param>
-    /// <param name="cancellationToken">Cancels the request.</param>
-    /// <response code="200">The sheet's submissions waiting for approval, oldest first.</response>
-    [HttpGet("api/sheets/{id:int}/submissions")]
-    public async Task<ActionResult<IReadOnlyList<SheetSubmissionDto>>> PendingOnSheet(int id, CancellationToken cancellationToken)
-    {
-        var result = await submissions.PendingOnSheetAsync(id, cancellationToken);
         return Ok(result);
     }
 

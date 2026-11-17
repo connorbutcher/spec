@@ -115,17 +115,6 @@ public static class SheetRevisionQueries
             cancellationToken);
     }
 
-    /// <summary>Deletes the user's drafts on the sheet that aren't waiting for approval, straight in the database.</summary>
-    public static async Task DeleteOpenDraftsAsync<TRevision>(
-        this IQueryable<TRevision> revisions,
-        int sheetId,
-        int userId,
-        CancellationToken cancellationToken)
-        where TRevision : class, IDbSheetRevision
-    {
-        await revisions.OnSheet(sheetId).OpenDraftsOf(userId).ExecuteDeleteAsync(cancellationToken);
-    }
-
     /// <summary>How many revisions each of the submissions holds, by submission id.</summary>
     public static async Task<Dictionary<int, int>> CountBySubmissionAsync<TRevision>(
         this IQueryable<TRevision> revisions,

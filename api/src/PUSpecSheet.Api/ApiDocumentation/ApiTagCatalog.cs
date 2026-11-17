@@ -25,25 +25,24 @@ public static class ApiTagCatalog
             [
                 new ApiTagDescription(
                     ApiTags.Sheets,
-                    "Opening, publishing and discarding sheets. A sheet is shown live (the latest published state with "
-                    + "your own drafts on top), as of a version number, or as of a date and time. Past views are read-only."),
+                    "Finding, reading and submitting sheets. Each view of a sheet has its own endpoint: live (the latest "
+                    + "published state with your own drafts on top), as a version was published, as it stood at a moment, "
+                    + "and with a submission's changes on top for its approvers. Only the live view can be edited."),
                 new ApiTagDescription(
                     ApiTags.SheetTables,
                     "Changes to one table on a sheet. Every change is a draft until the sheet is published, and returns "
                     + "the refreshed live view of the sheet."),
                 new ApiTagDescription(
                     ApiTags.SheetSections,
-                    "Changes to one section copy on a sheet table, and adding rows to it. Returns the refreshed live view of the sheet."),
+                    "Changes to one section copy on a sheet table. Returns the refreshed live view of the sheet."),
                 new ApiTagDescription(
                     ApiTags.SheetRows,
                     "Changes to one row. Changing a row starts your draft on it, which locks it to you until you publish "
-                    + "or discard. Returns the refreshed live view of the sheet."),
+                    + "it or change it back. Saving values or cell settings returns the row and what follows from it; "
+                    + "anything else returns the refreshed live view of the sheet."),
                 new ApiTagDescription(
                     ApiTags.SheetColumnBlocks,
                     "Changes to the column block copies on a horizontal sheet table. Returns the refreshed live view of the sheet."),
-                new ApiTagDescription(
-                    ApiTags.SheetItems,
-                    "Finds any sheet, table, section, column block, row or cell from its public identifier."),
                 new ApiTagDescription(
                     ApiTags.Approvals,
                     "Publishing waits for approval. A publish becomes a submission for the approvers its submitter chose; "

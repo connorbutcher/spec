@@ -71,7 +71,7 @@ public sealed class EndpointPermissionTests
     }
 
     [Theory]
-    [InlineData(typeof(SheetsController), nameof(SheetsController.Publish), PermissionKeys.SheetsPublish)]
+    [InlineData(typeof(SheetsController), nameof(SheetsController.Submit), PermissionKeys.SheetsPublish)]
     [InlineData(typeof(SheetsController), nameof(SheetsController.AddTable), PermissionKeys.SheetsEdit)]
     [InlineData(typeof(SheetRowsController), nameof(SheetRowsController.SaveValues), PermissionKeys.SheetsEdit)]
     [InlineData(typeof(TemplateCellsController), nameof(TemplateCellsController.Update), PermissionKeys.TemplatesManage)]

@@ -27,7 +27,6 @@ public sealed class SheetSectionsService : ISheetSectionsService
     private readonly RemovalContentsGuard contents;
     private readonly IRemovalInProgressGuard removals;
     private readonly ICurrentUser currentUser;
-    private readonly ISheetRowsService rows;
 
     public SheetSectionsService(
         PuSpecSheetDbContext db,
@@ -39,8 +38,7 @@ public sealed class SheetSectionsService : ISheetSectionsService
         SheetReader reader,
         RemovalContentsGuard contents,
         IRemovalInProgressGuard removals,
-        ICurrentUser currentUser,
-        ISheetRowsService rows)
+        ICurrentUser currentUser)
     {
         this.db = db;
         this.drafts = drafts;
@@ -52,7 +50,6 @@ public sealed class SheetSectionsService : ISheetSectionsService
         this.contents = contents;
         this.removals = removals;
         this.currentUser = currentUser;
-        this.rows = rows;
     }
 
     public async Task<SheetDto> AddAsync(int tableId, AddSheetSectionRequest request, CancellationToken cancellationToken)
@@ -147,11 +144,6 @@ public sealed class SheetSectionsService : ISheetSectionsService
         }
 
         return await reader.ReadLiveAsync(sheetId, cancellationToken);
-    }
-
-    public Task<SheetDto> AddRowAsync(int sectionId, AddSheetRowRequest request, CancellationToken cancellationToken)
-    {
-        return rows.AddAsync(sectionId, request, cancellationToken);
     }
 
     private async Task<DbSheetSection> LoadSectionAsync(int sectionId, CancellationToken cancellationToken)

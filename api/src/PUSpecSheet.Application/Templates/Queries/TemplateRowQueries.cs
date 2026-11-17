@@ -66,15 +66,6 @@ public static class TemplateRowQueries
             .SingleOrDefaultAsync(cancellationToken);
     }
 
-    /// <summary>The row with its cells, read only, when it is in the template section; null otherwise.</summary>
-    public static async Task<DbTemplateRow?> FindInSectionWithCellsAsync(PuSpecSheetDbContext db, int id, int sectionId, CancellationToken cancellationToken)
-    {
-        return await db.TemplateRows
-            .AsNoTracking()
-            .Include(row => row.Cells)
-            .SingleOrDefaultAsync(row => row.Id == id && row.TemplateSectionId == sectionId, cancellationToken);
-    }
-
     /// <summary>Every row of the versions with its cells, read only.</summary>
     public static async Task<List<DbTemplateRow>> ListWithCellsInVersionsAsync(PuSpecSheetDbContext db, IReadOnlyCollection<int> versionIds, CancellationToken cancellationToken)
     {

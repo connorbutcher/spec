@@ -7,12 +7,20 @@ namespace PUSpecSheet.Application.Sheets;
 public interface ISheetsService
 {
     /// <summary>
-    /// The phase's sheet of a sheet type with no identifier values, created empty the first time it's opened.
-    /// Fails if the sheet type isn't available to the phase, or if it needs identifiers and the sheet doesn't exist.
+    /// The live view of the phase's sheet of a sheet type with no identifier values, created empty the first
+    /// time it's opened. Fails if the sheet type isn't available to the phase, or if it needs identifiers and
+    /// the sheet doesn't exist.
     /// </summary>
-    Task<SheetDto> OpenAsync(int phaseId, int sheetTypeId, SheetViewPoint view, CancellationToken cancellationToken);
+    Task<SheetDto> OpenAsync(int phaseId, int sheetTypeId, CancellationToken cancellationToken);
 
+    /// <summary>The sheet as the current user sees it from the view point: live, at a version or at a moment.</summary>
     Task<SheetDto> GetAsync(int sheetId, SheetViewPoint view, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// The live sheet of a submission with the submission's changes on top, read-only. Only its submitter and
+    /// approvers may see it, and only while it waits for approval.
+    /// </summary>
+    Task<SheetDto> GetForReviewAsync(int submissionId, CancellationToken cancellationToken);
 
     /// <summary>The phase's sheets, of every sheet type, with where each one's versions and drafts stand.</summary>
     Task<IReadOnlyList<SheetSummaryDto>> ListAsync(int phaseId, CancellationToken cancellationToken);
@@ -35,9 +43,6 @@ public interface ISheetsService
     /// this; publishing through the API waits for approval (see <c>ISubmissionsService</c>).
     /// </summary>
     Task<SheetDto> PublishAsync(int sheetId, string? note, PublishScope scope, CancellationToken cancellationToken);
-
-    /// <summary>Throws away all of the current user's drafts on the sheet, releasing their locks.</summary>
-    Task<SheetDto> DiscardDraftsAsync(int sheetId, CancellationToken cancellationToken);
 
     /// <summary>Adds a table from the latest version of a template, with its header and starting sections, as a draft.</summary>
     Task<SheetDto> AddTableAsync(int sheetId, AddSheetTableRequest request, CancellationToken cancellationToken);

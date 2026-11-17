@@ -7,8 +7,6 @@ public interface IPhasesService
     /// <summary>Every phase as a flat list, ordered by display order then code.</summary>
     Task<IReadOnlyList<PhaseDto>> GetAllAsync(CancellationToken cancellationToken);
 
-    Task<PhaseDto> GetAsync(int id, CancellationToken cancellationToken);
-
     /// <summary>Adds a phase after its siblings, under a parent or at the top level.</summary>
     Task<PhaseDto> CreateAsync(CreatePhaseRequest request, CancellationToken cancellationToken);
 

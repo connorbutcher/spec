@@ -150,7 +150,7 @@ describe('SheetRowStatusCell', () => {
 
     const published = structuredClone(page.sheet);
     published.tables[0].sections[0].sections[0].rows[0].lock = null;
-    page.http.expectOne('/api/sheets/5/publish').flush(SheetResponseFixture.sheetResponse(published));
+    page.http.expectOne('/api/sheets/5/submissions').flush(SheetResponseFixture.sheetResponse(published));
     await publishing;
     await page.settle();
     expect(page.store.publishing()).toBeNull();

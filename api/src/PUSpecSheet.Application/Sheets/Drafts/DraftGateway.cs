@@ -12,7 +12,7 @@ namespace PUSpecSheet.Application.Sheets.Drafts;
 
 /// <summary>
 /// Loads an item's current revision and draft, and starts the current user's draft on it. A draft is the
-/// item's lock: nobody else can change the item until its author publishes or discards it. One subclass
+/// item's lock: nobody else can change the item until its author publishes it or changes it back. One subclass
 /// per revision type names it and says what else makes a draft different from what is published.
 /// </summary>
 public abstract class DraftGateway<TRevision>

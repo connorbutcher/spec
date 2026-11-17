@@ -26,15 +26,6 @@ public static class PhaseQueries
             .ToListAsync(cancellationToken);
     }
 
-    /// <summary>The phase with its sheet types, read only; null when there is no such phase.</summary>
-    public static async Task<DbPhase?> FindWithSheetTypesAsync(PuSpecSheetDbContext db, int id, CancellationToken cancellationToken)
-    {
-        return await db.Phases
-            .AsNoTracking()
-            .Include(candidate => candidate.SheetTypes)
-            .SingleOrDefaultAsync(candidate => candidate.Id == id, cancellationToken);
-    }
-
     /// <summary>The phase with its sheet types, tracked for editing; null when there is no such phase.</summary>
     public static async Task<DbPhase?> FindForEditAsync(PuSpecSheetDbContext db, int id, CancellationToken cancellationToken)
     {

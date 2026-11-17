@@ -58,11 +58,6 @@ public sealed class SubmissionsService : ISubmissionsService
         return queries.SubmittedByAsync(currentUser.UserId, cancellationToken);
     }
 
-    public Task<IReadOnlyList<SheetSubmissionDto>> PendingOnSheetAsync(int sheetId, CancellationToken cancellationToken)
-    {
-        return queries.PendingOnSheetAsync(sheetId, cancellationToken);
-    }
-
     public async Task<SheetSubmissionDto> ApproveAsync(int submissionId, CancellationToken cancellationToken)
     {
         var submission = await decider.ApproveAsync(submissionId, cancellationToken);

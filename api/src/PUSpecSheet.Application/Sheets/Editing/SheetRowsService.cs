@@ -8,7 +8,6 @@ using PUSpecSheet.Application.Sheets.Reading;
 using PUSpecSheet.Application.Sheets.Removal;
 using PUSpecSheet.Application.Sheets.Revisions;
 using PUSpecSheet.Application.Sheets.Values;
-using PUSpecSheet.Application.Templates.Queries;
 using PUSpecSheet.Application.Users;
 using PUSpecSheet.Contracts.Common;
 using PUSpecSheet.Contracts.Sheets;
@@ -25,9 +24,6 @@ public sealed class SheetRowsService : ISheetRowsService
     private readonly LiveRowCheckoutGuard liveCheckouts;
     private readonly RowDraftStarter draftStarter;
     private readonly LinkedDropdownValueRule linkedValues;
-    private readonly NewRowSettings newRowSettings;
-    private readonly SheetInstantiator instantiator;
-    private readonly ISheetCellFiller filler;
     private readonly SheetReader reader;
     private readonly IRemovalInProgressGuard removals;
     private readonly ICurrentUser currentUser;
@@ -39,9 +35,6 @@ public sealed class SheetRowsService : ISheetRowsService
         LiveRowCheckoutGuard liveCheckouts,
         RowDraftStarter draftStarter,
         LinkedDropdownValueRule linkedValues,
-        NewRowSettings newRowSettings,
-        SheetInstantiator instantiator,
-        ISheetCellFiller filler,
         SheetReader reader,
         IRemovalInProgressGuard removals,
         ICurrentUser currentUser,
@@ -52,47 +45,10 @@ public sealed class SheetRowsService : ISheetRowsService
         this.liveCheckouts = liveCheckouts;
         this.draftStarter = draftStarter;
         this.linkedValues = linkedValues;
-        this.newRowSettings = newRowSettings;
-        this.instantiator = instantiator;
-        this.filler = filler;
         this.reader = reader;
         this.removals = removals;
         this.currentUser = currentUser;
         this.cellSettings = cellSettings;
-    }
-
-    public async Task<SheetDto> AddAsync(int sectionId, AddSheetRowRequest request, CancellationToken cancellationToken)
-    {
-        var section = await SheetSectionQueries.FindWithTemplateAndTableAsync(db, sectionId, cancellationToken)
-            ?? throw new NotFoundException($"Section {sectionId} was not found.");
-        if (section.TemplateSection.Role == SectionRole.Header)
-        {
-            throw new InvalidRequestException("Rows can't be added to the header.");
-        }
-
-        var templateRow = await TemplateRowQueries.FindInSectionWithCellsAsync(db, request.TemplateRowId, section.TemplateSectionId, cancellationToken)
-            ?? throw new InvalidRequestException("That row isn't part of this section's template.");
-        await removals.EnsurePlaceNotBeingRemovedAsync(section.SheetTableId, sectionId, currentUser.UserId, cancellationToken);
-
-        var orders = await VisibleRowOrdersAsync(sectionId, excludingRowId: null, cancellationToken);
-        var row = instantiator.NewRow(templateRow, section.SheetTable.SheetId, OrderGaps.Next(orders));
-        row.SheetSectionId = sectionId;
-
-        db.SheetRows.Add(row);
-        await db.SaveSheetChangesAsync(cancellationToken);
-        await filler.FillAsync(section.SheetTableId, cancellationToken);
-        await newRowSettings.InheritAsync(section.SheetTableId, [row.Id], cancellationToken);
-        return await reader.ReadLiveAsync(section.SheetTable.SheetId, cancellationToken);
-    }
-
-    public async Task<SheetDto> LockAsync(int rowId, CancellationToken cancellationToken)
-    {
-        var sheetId = await SheetIdOfAsync(rowId, cancellationToken);
-
-        await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
-        await draftStarter.StartAsync(rowId, cancellationToken);
-        await transaction.CommitAsync(cancellationToken);
-        return await reader.ReadLiveAsync(sheetId, cancellationToken);
     }
 
     public async Task<SheetDto> SaveValuesAsync(int rowId, SaveRowValuesRequest request, CancellationToken cancellationToken)
@@ -168,27 +124,6 @@ public sealed class SheetRowsService : ISheetRowsService
             var (draft, _) = await drafts.EnsureMineAsync(rowId, state, cancellationToken);
             draft.IsDeleted = true;
             await db.SaveSheetChangesAsync(cancellationToken);
-        }
-
-        return await reader.ReadLiveAsync(sheetId, cancellationToken);
-    }
-
-    public async Task<SheetDto> DiscardAsync(int rowId, CancellationToken cancellationToken)
-    {
-        var sheetId = await SheetIdOfAsync(rowId, cancellationToken);
-        var state = await drafts.LoadAsync(rowId, cancellationToken);
-        if (state.Draft is { } draft)
-        {
-            await drafts.EnsureNotLockedByOthersAsync(state, cancellationToken);
-            if (state.IsNew)
-            {
-                await SheetRowQueries.DeleteAsync(db, rowId, cancellationToken);
-            }
-            else
-            {
-                db.SheetRowRevisions.Remove(draft);
-                await db.SaveSheetChangesAsync(cancellationToken);
-            }
         }
 
         return await reader.ReadLiveAsync(sheetId, cancellationToken);
