@@ -100,10 +100,8 @@ public sealed class RowTakeoversService : IRowTakeoversService
         return await _closer.CloseAsync(takeover, RowTakeoverStatus.Cancelled, cancellationToken);
     }
 
-    /// <summary>
-    /// The row's checkout, once it is established that the user may ask for it. Every reason a request is
-    /// refused is here, so the availability check and the request can't disagree.
-    /// </summary>
+    // The row's checkout, once it is established that the user may ask for it. Every reason a request is refused is
+    // here, so the availability check and the request can't disagree.
     private async Task<RowCheckoutState> CheckoutToAskForAsync(int rowId, int userId, CancellationToken cancellationToken)
     {
         var checkout = await _checkouts.FindAsync(rowId, cancellationToken);
@@ -157,10 +155,8 @@ public sealed class RowTakeoversService : IRowTakeoversService
         };
     }
 
-    /// <summary>
-    /// Takes a waiting request out of the store for the current user to settle, who must be the given
-    /// party to it. Taking it out first is what stops an answer and the timeout both settling it.
-    /// </summary>
+    // Takes a waiting request out of the store for the current user to settle, who must be the given party to it.
+    // Taking it out first is what stops an answer and the timeout both settling it.
     private RowTakeover Take(Guid takeoverId, RowTakeoverParty party)
     {
         var takeover = _store.Find(takeoverId) ?? throw new NotFoundException(NoLongerOpen);

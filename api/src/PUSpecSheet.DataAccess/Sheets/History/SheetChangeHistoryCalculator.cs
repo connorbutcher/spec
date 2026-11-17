@@ -3,19 +3,8 @@ using PUSpecSheet.Database.Models.Sheets;
 
 namespace PUSpecSheet.DataAccess.Sheets.History;
 
-/// <summary>
-/// Works out <see cref="SheetChangeHistory"/> by walking each item's published revisions in order and
-/// noting where a value, position or existence differs from the revision before it.
-/// </summary>
 internal static class SheetChangeHistoryCalculator
 {
-    /// <param name="rowRevisions">Every published revision of the sheet's rows up to the moment viewed.</param>
-    /// <param name="sectionRevisions">The same for its sections.</param>
-    /// <param name="columnBlockRevisions">The same for its column blocks.</param>
-    /// <param name="values">The cell values of those row revisions, by revision id and then sheet cell id.</param>
-    /// <param name="versionNumbers">The sheet's version numbers by version id.</param>
-    /// <param name="rowSections">The section each row is in, by row id.</param>
-    /// <param name="sectionParents">The parent of each section (null at the top), by section id.</param>
     public static SheetChangeHistory Calculate(
         IReadOnlyList<DbSheetRowRevision> rowRevisions,
         IReadOnlyList<DbSheetSectionRevision> sectionRevisions,
@@ -82,7 +71,6 @@ internal static class SheetChangeHistoryCalculator
         }
     }
 
-    /// <summary>Records the change against each cell whose value differs from the previous revision's.</summary>
     private static bool RecordCells(
         SheetChangeHistory history,
         DbSheetRowRevision revision,
@@ -122,10 +110,6 @@ internal static class SheetChangeHistoryCalculator
         };
     }
 
-    /// <summary>
-    /// Records a change to a section unless a later one is already recorded. Several rows and sub-sections
-    /// feed the same section, in no particular order, and the section shows the most recent of them.
-    /// </summary>
     private static void KeepNewest(Dictionary<int, SheetChangeRecord> changes, int itemId, SheetChangeRecord change)
     {
         if (!changes.TryGetValue(itemId, out var recorded) || change.VersionNumber >= recorded.VersionNumber)

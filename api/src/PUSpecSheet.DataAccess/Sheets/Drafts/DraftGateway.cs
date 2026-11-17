@@ -9,11 +9,6 @@ using PUSpecSheet.Database.Models.Sheets;
 
 namespace PUSpecSheet.DataAccess.Sheets.Drafts;
 
-/// <summary>
-/// Loads an item's current revision and draft, and starts the current user's draft on it. A draft is the
-/// item's lock: nobody else can change the item until its author publishes it or changes it back. One subclass
-/// per revision type names it and says what else makes a draft different from what is published.
-/// </summary>
 public abstract class DraftGateway<TRevision>
     where TRevision : class, IDbSheetRevision, new()
 {
@@ -31,31 +26,23 @@ public abstract class DraftGateway<TRevision>
         _userData = userData;
     }
 
-    /// <summary>The database, for the queries a revision type adds.</summary>
     protected PuSpecSheetDbContext Db => _db;
 
-    /// <summary>Every revision of this type.</summary>
     protected abstract DbSet<TRevision> Revisions { get; }
 
-    /// <summary>Said in the lock message, e.g. "This row".</summary>
     protected abstract string Subject { get; }
 
     protected abstract int ItemIdOf(TRevision revision);
 
-    /// <summary>The revisions of the given items.</summary>
     protected abstract IQueryable<TRevision> OfItems(IReadOnlyCollection<int> itemIds);
 
-    /// <summary>The revisions of one item.</summary>
     protected abstract IQueryable<TRevision> OfItem(int itemId);
 
-    /// <summary>Points a new revision at its item.</summary>
     protected abstract void SetItem(TRevision revision, int itemId);
 
-    /// <summary>
-    /// The drafts that make no net difference to the published revision they started from, so they needn't be
-    /// kept: the same place in the order and the same existence. Revision types with more to compare add to
-    /// this. It takes every pair at once so a type that has to read more (a row's values) reads it in one go.
-    /// </summary>
+    // The drafts that make no net difference to the published revision they started from, so they needn't be kept:
+    // the same place in the order and the same existence. Revision types with more to compare add to this. It takes
+    // every pair at once so a type that has to read more (a row's values) reads it in one go.
     protected virtual Task<HashSet<TRevision>> UnchangedAsync(
         IReadOnlyList<(TRevision Draft, TRevision Current)> pairs,
         CancellationToken cancellationToken)
@@ -66,30 +53,21 @@ public abstract class DraftGateway<TRevision>
             .ToHashSet());
     }
 
-    /// <summary>
-    /// Throws the viewer's draft away, releasing the lock, when it has been put back to what's published (a
-    /// value typed back, an item moved back to where it was, a title restored). Nothing is left to publish.
-    /// An item that has never been published has no original to return to, so it is left alone.
-    /// </summary>
+    // Throws the viewer's draft away, releasing the lock, when it has been put back to what's published (a value
+    // typed back, an item moved back to where it was, a title restored). Nothing is left to publish. An item that has
+    // never been published has no original to return to, so it is left alone.
     public Task ReleaseIfUnchangedAsync(int itemId, CancellationToken cancellationToken)
     {
         return ReleaseUnchangedAsync([itemId], cancellationToken);
     }
 
-    /// <summary>
-    /// <see cref="ReleaseIfUnchangedAsync"/> for many items at once: one read of their revisions and one save,
-    /// however many there are.
-    /// </summary>
     public Task ReleaseUnchangedAsync(IReadOnlyCollection<int> itemIds, CancellationToken cancellationToken)
     {
         return ReleaseUnchangedAsync(itemIds, everyone: false, cancellationToken);
     }
 
-    /// <summary>
-    /// <see cref="ReleaseUnchangedAsync(IReadOnlyCollection{int}, CancellationToken)"/>, taking other people's
-    /// drafts as well when <paramref name="everyone"/> is set. That is for publishing everything on a sheet,
-    /// where a draft that changes nothing must not become a revision whoever left it.
-    /// </summary>
+    // ReleaseUnchangedAsync, taking other people's drafts as well when everyone is set. That is for publishing
+    // everything on a sheet, where a draft that changes nothing must not become a revision whoever left it.
     public async Task ReleaseUnchangedAsync(IReadOnlyCollection<int> itemIds, bool everyone, CancellationToken cancellationToken)
     {
         var states = await LoadManyAsync(itemIds, cancellationToken);
@@ -104,12 +82,10 @@ public abstract class DraftGateway<TRevision>
         await _db.SaveSheetChangesAsync(cancellationToken);
     }
 
-    /// <summary>
-    /// After items in a group of siblings have been moved, drops the viewer's drafts that only differ in their
-    /// numeric order when the group is back in its published order (see <see cref="OrderRestoration"/>). Each
-    /// such item goes back to its published number, so it is exactly what is published and nothing is left to
-    /// publish. A draft with any other difference (a changed value, a removal) is kept.
-    /// </summary>
+    // After items in a group of siblings have been moved, drops the viewer's drafts that only differ in their numeric
+    // order when the group is back in its published order (see OrderRestoration). Each such item goes back to its
+    // published number, so it is exactly what is published and nothing is left to publish. A draft with any other
+    // difference (a changed value, a removal) is kept.
     public async Task ReleaseRestoredOrderAsync(IReadOnlyCollection<int> siblingIds, CancellationToken cancellationToken)
     {
         var me = _currentUser.UserId;
@@ -157,10 +133,6 @@ public abstract class DraftGateway<TRevision>
         return states.GetValueOrDefault(itemId) ?? throw new NotFoundException($"{Subject} was not found.");
     }
 
-    /// <summary>
-    /// The current revision and draft of each of the given items, in one query. An item with neither (it
-    /// doesn't exist) is left out.
-    /// </summary>
     public async Task<IReadOnlyDictionary<int, DraftState<TRevision>>> LoadManyAsync(
         IReadOnlyCollection<int> itemIds,
         CancellationToken cancellationToken)
@@ -182,8 +154,6 @@ public abstract class DraftGateway<TRevision>
                 });
     }
 
-    /// <summary>The viewer's draft on the item, starting one from the current revision if they don't have one yet.</summary>
-    /// <exception cref="ConflictException">Someone else holds the item's draft.</exception>
     public async Task<(TRevision Draft, bool Created)> EnsureMineAsync(
         int itemId,
         DraftState<TRevision> state,
@@ -221,10 +191,6 @@ public abstract class DraftGateway<TRevision>
         return (draft, true);
     }
 
-    /// <summary>
-    /// Refuses when someone else holds the item's draft, or the draft is waiting for approval; does nothing
-    /// for no draft or the viewer's own open one.
-    /// </summary>
     public async Task EnsureNotLockedByOthersAsync(DraftState<TRevision> state, CancellationToken cancellationToken)
     {
         if (state.Draft is { } submitted)
@@ -238,14 +204,12 @@ public abstract class DraftGateway<TRevision>
         }
     }
 
-    /// <summary>The viewer's drafts on items that have a published revision to compare them with.</summary>
     private List<(TRevision Draft, TRevision Current)> MyDraftsOnPublishedItems(IEnumerable<DraftState<TRevision>> states)
     {
         var me = _currentUser.UserId;
         return DraftsOnPublishedItems(states.Where(state => state.Draft?.AuthorUserId == me));
     }
 
-    /// <summary>Anyone's drafts on items that have a published revision to compare them with.</summary>
     private static List<(TRevision Draft, TRevision Current)> DraftsOnPublishedItems(IEnumerable<DraftState<TRevision>> states)
     {
         return states
@@ -254,7 +218,6 @@ public abstract class DraftGateway<TRevision>
             .ToList();
     }
 
-    /// <summary>A draft waiting for approval is frozen, for its author as much as anyone, until it is decided.</summary>
     private void EnsureNotAwaitingApproval(TRevision draft)
     {
         if (draft.SheetSubmissionId is not null)

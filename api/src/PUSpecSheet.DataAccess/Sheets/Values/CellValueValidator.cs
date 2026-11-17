@@ -7,10 +7,9 @@ using PUSpecSheet.Database.Models.Templates;
 
 namespace PUSpecSheet.DataAccess.Sheets.Values;
 
-/// <summary>Checks a new cell value against its cell's kind and the settings its cell type and cell give it.</summary>
 internal static class CellValueValidator
 {
-    /// <summary>Expects <see cref="DbTemplateCell.CellType"/> (with its options) to be loaded.</summary>
+    // Expects CellType (with its options) to be loaded.
     public static void Validate(DbTemplateCell cell, CellValueBag request)
     {
         var cellType = cell.CellType;

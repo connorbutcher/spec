@@ -3,17 +3,12 @@ using PUSpecSheet.Abstractions.Sheets;
 
 namespace PUSpecSheet.DataAccess.Sheets.Collaboration;
 
-/// <summary>
-/// Everything about a live sheet that other people can see change: its latest version and who each item
-/// is checked out to. Two views of the same sheet give the same signature whoever is looking, so comparing
-/// one with the last tells whether anyone else needs to refresh. Items that have never been published are
-/// left out, as only their author can see them.
-/// <para>
-/// The signature is a set of entries: <c>v</c> and the latest version, then one per locked item, its kind
-/// (T, B, S or R for a table, column block, section or row), id and holder, such as <c>R12:3</c>. Two
-/// signatures' differing entries say what changed.
-/// </para>
-/// </summary>
+// Everything about a live sheet that other people can see change: its latest version and who each item is checked out
+// to. Two views of the same sheet give the same signature whoever is looking, so comparing one with the last tells
+// whether anyone else needs to refresh. Items that have never been published are left out, as only their author can
+// see them. The signature is a set of entries: v and the latest version, then one per locked item, its kind (T, B, S
+// or R for a table, column block, section or row), id and holder, such as R12:3. Two signatures' differing entries
+// say what changed.
 public static class SheetLockSignature
 {
     public static string Of(Sheet sheet)
@@ -21,7 +16,6 @@ public static class SheetLockSignature
         return string.Join(',', Entries(sheet));
     }
 
-    /// <summary>The signature's entries, in order: the version first, then the locks.</summary>
     public static IReadOnlyList<string> Entries(Sheet sheet)
     {
         var locks = new List<string>();
@@ -41,10 +35,8 @@ public static class SheetLockSignature
         return locks;
     }
 
-    /// <summary>
-    /// The rows whose locks differ between two signatures, or null when anything else differs too (the
-    /// version, or a table, column block or section), so only a whole read will do.
-    /// </summary>
+    // The rows whose locks differ between two signatures, or null when anything else differs too (the version, or a
+    // table, column block or section), so only a whole read will do.
     public static IReadOnlyList<int>? ChangedRows(IReadOnlyCollection<string> before, IReadOnlyCollection<string> after)
     {
         var differing = before.Except(after, StringComparer.Ordinal)

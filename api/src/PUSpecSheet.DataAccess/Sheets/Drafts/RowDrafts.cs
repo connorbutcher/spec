@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using PUSpecSheet.DataAccess.Sheets.Queries;
 using PUSpecSheet.DataAccess.Sheets.Revisions;
 using PUSpecSheet.DataAccess.Sheets.Values;
 using PUSpecSheet.DataAccess.Users;
@@ -10,9 +9,12 @@ namespace PUSpecSheet.DataAccess.Sheets.Drafts;
 
 public sealed class RowDrafts : DraftGateway<DbSheetRowRevision>
 {
-    public RowDrafts(PuSpecSheetDbContext db, ICurrentUser currentUser, IUserDataService userData)
+    private readonly ICellValueDataService _cellValueData;
+
+    public RowDrafts(PuSpecSheetDbContext db, ICurrentUser currentUser, IUserDataService userData, ICellValueDataService cellValueData)
         : base(db, currentUser, userData)
     {
+        _cellValueData = cellValueData;
     }
 
     protected override DbSet<DbSheetRowRevision> Revisions => Db.SheetRowRevisions;
@@ -39,7 +41,6 @@ public sealed class RowDrafts : DraftGateway<DbSheetRowRevision>
         revision.SheetRowId = itemId;
     }
 
-    /// <summary>A row is unchanged when its place and existence are, and every cell holds what is published.</summary>
     protected override async Task<HashSet<DbSheetRowRevision>> UnchangedAsync(
         IReadOnlyList<(DbSheetRowRevision Draft, DbSheetRowRevision Current)> pairs,
         CancellationToken cancellationToken)
@@ -53,7 +54,7 @@ public sealed class RowDrafts : DraftGateway<DbSheetRowRevision>
         }
 
         var revisionIds = sameStructure.SelectMany(pair => new[] { pair.Draft.Id, pair.Current.Id }).ToList();
-        var held = await RowValueQueries.LoadAsync(Db, revisionIds, cancellationToken);
+        var held = await _cellValueData.LoadAsync(revisionIds, cancellationToken);
         return sameStructure
             .Where(pair => CellValuesComparer.Same(held.GetValueOrDefault(pair.Draft.Id), held.GetValueOrDefault(pair.Current.Id)))
             .Select(pair => pair.Draft)

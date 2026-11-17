@@ -3,11 +3,9 @@ using PUSpecSheet.DataAccess.Sheets.Collaboration.Checkouts;
 
 namespace PUSpecSheet.DataAccess.Sheets.Collaboration.Takeovers;
 
-/// <summary>
-/// Brings a takeover request to its end and tells the two people involved. Every way a request can end
-/// (an answer, a withdrawal, the timeout, the row being released or changed) goes through here, so each
-/// ends the same way. The caller has already taken the request out of <see cref="RowTakeoverStore"/>.
-/// </summary>
+// Brings a takeover request to its end and tells the two people involved. Every way a request can end (an answer, a
+// withdrawal, the timeout, the row being released or changed) goes through here, so each ends the same way. The
+// caller has already taken the request out of RowTakeoverStore.
 public sealed class RowTakeoverCloser
 {
     private readonly IRowCheckouts _checkouts;
@@ -19,12 +17,9 @@ public sealed class RowTakeoverCloser
         _notifier = notifier;
     }
 
-    /// <summary>
-    /// Hands the row to the requester and closes the request with <paramref name="status"/>, if the row
-    /// can still be handed over. It can't when the holder no longer holds it (closed as released) or has
-    /// changed it since the request was made (closed as kept: a changed row stays with whoever changed it
-    /// until they publish).
-    /// </summary>
+    // Hands the row to the requester and closes the request with status, if the row can still be handed over. It
+    // can't when the holder no longer holds it (closed as released) or has changed it since the request was made
+    // (closed as kept: a changed row stays with whoever changed it until they publish).
     public async Task<RowTakeover> GrantAsync(RowTakeover takeover, RowTakeoverStatus status, CancellationToken cancellationToken)
     {
         var obstacle = await ObstacleAsync(takeover, cancellationToken);
@@ -55,7 +50,6 @@ public sealed class RowTakeoverCloser
         return granted;
     }
 
-    /// <summary>Closes the request with <paramref name="status"/>, leaving the row where it is.</summary>
     public async Task<RowTakeover> CloseAsync(RowTakeover takeover, RowTakeoverStatus status, CancellationToken cancellationToken)
     {
         var closed = takeover with { Status = status };
@@ -63,10 +57,8 @@ public sealed class RowTakeoverCloser
         return closed;
     }
 
-    /// <summary>
-    /// Why the row can no longer be handed over, as the status the request closes with, or null when it
-    /// still can be. Also asked while a request waits, to close it as soon as it can't succeed.
-    /// </summary>
+    // Why the row can no longer be handed over, as the status the request closes with, or null when it still can be.
+    // Also asked while a request waits, to close it as soon as it can't succeed.
     public async Task<RowTakeoverStatus?> ObstacleAsync(RowTakeover takeover, CancellationToken cancellationToken)
     {
         var checkout = await _checkouts.FindAsync(takeover.RowId, cancellationToken);

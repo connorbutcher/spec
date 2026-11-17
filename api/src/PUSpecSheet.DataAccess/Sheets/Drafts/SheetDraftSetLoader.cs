@@ -3,7 +3,6 @@ using PUSpecSheet.Database;
 
 namespace PUSpecSheet.DataAccess.Sheets.Drafts;
 
-/// <summary>Loads the drafts of every kind that one publish or submission takes from a sheet, tracked.</summary>
 public sealed class SheetDraftSetLoader
 {
     private readonly PuSpecSheetDbContext _db;

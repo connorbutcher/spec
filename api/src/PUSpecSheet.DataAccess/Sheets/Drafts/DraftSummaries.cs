@@ -3,7 +3,6 @@ using PUSpecSheet.Database.Models.Sheets;
 
 namespace PUSpecSheet.DataAccess.Sheets.Drafts;
 
-/// <summary>Counts a sheet's drafts by who holds them, which is what the publish choice shows.</summary>
 internal static class DraftSummaries
 {
     public static int CountOf(IEnumerable<IDbSheetRevision> drafts, int userId)
@@ -11,7 +10,6 @@ internal static class DraftSummaries
         return drafts.Count(draft => draft.AuthorUserId == userId);
     }
 
-    /// <summary>Everyone but <paramref name="userId"/> who holds a draft, by name, with how many they hold.</summary>
     public static List<SheetDraftSummary> OfOthers(
         IEnumerable<IDbSheetRevision> drafts,
         int userId,

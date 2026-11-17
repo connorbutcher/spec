@@ -1,20 +1,14 @@
 using System.Globalization;
 using System.Text.Json;
 using PUSpecSheet.Abstractions.CellTypes;
-using PUSpecSheet.Abstractions.Sheets;
 using PUSpecSheet.DataAccess.Common;
 
 namespace PUSpecSheet.DataAccess.Sheets.Values;
 
-/// <summary>
-/// Turns a stored cell value into the single value a cell carries in the API, and a value sent for a cell
-/// back into what is stored, by the cell's kind (see <see cref="SheetCell.Value"/>).
-/// </summary>
 public static class CellValueMapper
 {
     private const string DateFormat = "yyyy-MM-dd";
 
-    /// <summary>The value a cell carries: whichever the cell's kind stores, or null when it holds none.</summary>
     public static object? ToValue(CellValueBag? value)
     {
         if (value is null)
@@ -50,11 +44,6 @@ public static class CellValueMapper
         return value.Slots is { Count: > 0 } slots ? slots : null;
     }
 
-    /// <summary>The value sent for a cell, read the way the cell's kind stores it.</summary>
-    /// <param name="kind">The cell's kind.</param>
-    /// <param name="value">The value as sent; null or JSON null clears the cell.</param>
-    /// <param name="name">What the cell is called, for the message when the value has the wrong shape.</param>
-    /// <exception cref="InvalidRequestException">The value isn't in the shape the cell's kind takes.</exception>
     public static CellValueBag FromRequest(CellKind kind, JsonElement? value, string name)
     {
         var bag = new CellValueBag();

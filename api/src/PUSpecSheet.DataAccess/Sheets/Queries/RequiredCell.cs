@@ -2,7 +2,7 @@ using PUSpecSheet.Abstractions.CellTypes;
 
 namespace PUSpecSheet.DataAccess.Sheets.Queries;
 
-/// <summary>A sheet cell whose template cell must be filled in: which cell, its row and its kind.</summary>
+// A sheet cell whose template cell must be filled in: which cell, its row and its kind.
 public sealed record RequiredCell
 {
     public required int Id { get; init; }

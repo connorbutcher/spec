@@ -4,7 +4,6 @@ using PUSpecSheet.Abstractions.Templates;
 using PUSpecSheet.DataAccess.Common;
 using PUSpecSheet.DataAccess.Sheets.Drafts;
 using PUSpecSheet.DataAccess.Sheets.Layout;
-using PUSpecSheet.DataAccess.Sheets.Queries;
 using PUSpecSheet.DataAccess.Sheets.Reading;
 using PUSpecSheet.DataAccess.Sheets.Removal;
 using PUSpecSheet.DataAccess.Sheets.Revisions;
@@ -25,6 +24,8 @@ public sealed class SheetColumnBlocksService : ISheetColumnBlocksService
     private readonly IRemovalInProgressGuard _removals;
     private readonly ICurrentUser _currentUser;
     private readonly ITemplateColumnBlockDataService _templateColumnBlockData;
+    private readonly ISheetTableDataService _sheetTableData;
+    private readonly ISheetColumnBlockDataService _sheetColumnBlockData;
 
     public SheetColumnBlocksService(
         PuSpecSheetDbContext db,
@@ -34,7 +35,9 @@ public sealed class SheetColumnBlocksService : ISheetColumnBlocksService
         SheetReader reader,
         IRemovalInProgressGuard removals,
         ICurrentUser currentUser,
-        ITemplateColumnBlockDataService templateColumnBlockData)
+        ITemplateColumnBlockDataService templateColumnBlockData,
+        ISheetTableDataService sheetTableData,
+        ISheetColumnBlockDataService sheetColumnBlockData)
     {
         _db = db;
         _drafts = drafts;
@@ -44,11 +47,13 @@ public sealed class SheetColumnBlocksService : ISheetColumnBlocksService
         _removals = removals;
         _currentUser = currentUser;
         _templateColumnBlockData = templateColumnBlockData;
+        _sheetTableData = sheetTableData;
+        _sheetColumnBlockData = sheetColumnBlockData;
     }
 
     public async Task<Sheet> AddAsync(int tableId, AddSheetColumnBlockRequest request, CancellationToken cancellationToken)
     {
-        var table = await SheetTableQueries.FindWithTemplateVersionAsync(_db, tableId, cancellationToken)
+        var table = await _sheetTableData.FindWithTemplateVersionAsync(tableId, cancellationToken)
             ?? throw new NotFoundException($"Table {tableId} was not found.");
         if (table.TableTemplateVersion.Orientation != TemplateOrientation.Horizontal)
         {
@@ -93,7 +98,7 @@ public sealed class SheetColumnBlocksService : ISheetColumnBlocksService
         await _db.SaveSheetChangesAsync(cancellationToken);
         await _drafts.ReleaseIfUnchangedAsync(columnBlockId, cancellationToken);
         await _drafts.ReleaseRestoredOrderAsync(
-            await SheetColumnBlockQueries.ListIdsOnTableAsync(_db, block.SheetTableId, cancellationToken),
+            await _sheetColumnBlockData.ListIdsOnTableAsync(block.SheetTableId, cancellationToken),
             cancellationToken);
         return await _reader.ReadLiveAsync(block.SheetTable.SheetId, cancellationToken);
     }
@@ -119,7 +124,7 @@ public sealed class SheetColumnBlocksService : ISheetColumnBlocksService
         {
             // Only its author ever saw it, so there's no history to keep.
             await using var transaction = await _db.Database.BeginTransactionAsync(cancellationToken);
-            await SheetColumnBlockQueries.DeleteAsync(_db, [columnBlockId], cancellationToken);
+            await _sheetColumnBlockData.DeleteAsync([columnBlockId], cancellationToken);
             await transaction.CommitAsync(cancellationToken);
         }
         else
@@ -134,16 +139,15 @@ public sealed class SheetColumnBlocksService : ISheetColumnBlocksService
 
     private async Task<DbSheetColumnBlock> LoadAsync(int columnBlockId, CancellationToken cancellationToken)
     {
-        return await SheetColumnBlockQueries.FindWithTemplateAndTableAsync(_db, columnBlockId, cancellationToken)
+        return await _sheetColumnBlockData.FindWithTemplateAndTableAsync(columnBlockId, cancellationToken)
             ?? throw new NotFoundException($"Column block {columnBlockId} was not found.");
     }
 
-    /// <summary>The table's column block copies that exist for the user: published and not removed, or drafted by them.</summary>
     private async Task<IReadOnlyList<(int Id, int TemplateColumnBlockId, int DisplayOrder)>> VisibleAsync(int tableId, CancellationToken cancellationToken)
     {
         var me = _currentUser.UserId;
-        var blocks = await SheetColumnBlockQueries.ListLinksOnTableAsync(_db, tableId, cancellationToken);
-        var revisions = await SheetColumnBlockRevisionQueries.ListVisibleOnTableAsync(_db, tableId, me, cancellationToken);
+        var blocks = await _sheetColumnBlockData.ListLinksOnTableAsync(tableId, cancellationToken);
+        var revisions = await _sheetColumnBlockData.ListVisibleOnTableAsync(tableId, me, cancellationToken);
         var resolved = RevisionResolver.Resolve(revisions, revision => revision.SheetColumnBlockId, me);
 
         return blocks

@@ -2,7 +2,6 @@ using PUSpecSheet.Abstractions.Sheets;
 using PUSpecSheet.DataAccess.Common;
 using PUSpecSheet.DataAccess.Sheets.Collaboration.Presence;
 using PUSpecSheet.DataAccess.Sheets.Drafts;
-using PUSpecSheet.DataAccess.Sheets.Queries;
 using PUSpecSheet.DataAccess.Sheets.Revisions;
 using PUSpecSheet.DataAccess.Sheets.Values;
 using PUSpecSheet.DataAccess.Users;
@@ -19,6 +18,8 @@ public sealed class RowCheckouts : IRowCheckouts
     private readonly ISheetLiveNotifier _notifier;
     private readonly TimeProvider _clock;
     private readonly IUserDataService _userData;
+    private readonly ISheetRowDataService _sheetRowData;
+    private readonly ICellValueDataService _cellValueData;
 
     public RowCheckouts(
         PuSpecSheetDbContext db,
@@ -26,7 +27,9 @@ public sealed class RowCheckouts : IRowCheckouts
         SheetPresenceTracker presence,
         ISheetLiveNotifier notifier,
         TimeProvider clock,
-        IUserDataService userData)
+        IUserDataService userData,
+        ISheetRowDataService sheetRowData,
+        ICellValueDataService cellValueData)
     {
         _db = db;
         _live = live;
@@ -34,6 +37,8 @@ public sealed class RowCheckouts : IRowCheckouts
         _notifier = notifier;
         _clock = clock;
         _userData = userData;
+        _sheetRowData = sheetRowData;
+        _cellValueData = cellValueData;
     }
 
     public async Task<RowCheckoutState?> FindAsync(int rowId, CancellationToken cancellationToken)
@@ -51,12 +56,12 @@ public sealed class RowCheckouts : IRowCheckouts
 
     public async Task<int?> DraftHolderAsync(int rowId, CancellationToken cancellationToken)
     {
-        return await SheetRowRevisionQueries.FindDraftAuthorAsync(_db, rowId, cancellationToken);
+        return await _sheetRowData.FindDraftAuthorAsync(rowId, cancellationToken);
     }
 
     public async Task<int?> SheetOfAsync(int rowId, CancellationToken cancellationToken)
     {
-        return await SheetRowQueries.FindSheetIdAsync(_db, rowId, cancellationToken);
+        return await _sheetRowData.FindSheetIdAsync(rowId, cancellationToken);
     }
 
     public async Task<RowTransfer> TransferAsync(int rowId, int fromUserId, int toUserId, CancellationToken cancellationToken)
@@ -76,10 +81,9 @@ public sealed class RowCheckouts : IRowCheckouts
         return await _userData.GetDisplayNamesAsync(userIds, cancellationToken);
     }
 
-    /// <summary>The row's checkout only if it is a draft: someone has saved something on it.</summary>
     private async Task<RowCheckoutState?> FindDraftAsync(int rowId, CancellationToken cancellationToken)
     {
-        var revisions = await SheetRowRevisionQueries.ListCurrentAndDraftAsync(_db, rowId, cancellationToken);
+        var revisions = await _sheetRowData.ListCurrentAndDraftAsync(rowId, cancellationToken);
         var draft = revisions.SingleOrDefault(revision => revision.Status == RevisionStatus.Draft);
         if (draft is null)
         {
@@ -98,7 +102,7 @@ public sealed class RowCheckouts : IRowCheckouts
 
     private async Task<bool> TransferDraftAsync(int rowId, int fromUserId, int toUserId, CancellationToken cancellationToken)
     {
-        var draft = await SheetRowRevisionQueries.FindDraftForEditAsync(_db, rowId, cancellationToken);
+        var draft = await _sheetRowData.FindDraftForEditAsync(rowId, cancellationToken);
         // A draft waiting for approval stays with its author until it is decided.
         if (draft is null || draft.AuthorUserId != fromUserId || draft.SheetSubmissionId is not null)
         {
@@ -112,10 +116,6 @@ public sealed class RowCheckouts : IRowCheckouts
         return true;
     }
 
-    /// <summary>
-    /// Takes the row from whoever is in it and gives it to the new holder's tab on that sheet. With no such
-    /// tab the row is simply freed, and theirs to click into.
-    /// </summary>
     private async Task<bool> TransferLiveAsync(int rowId, int fromUserId, int toUserId, CancellationToken cancellationToken)
     {
         if (_live.HolderOf(rowId) is not { } holder || holder.UserId != fromUserId)
@@ -134,11 +134,9 @@ public sealed class RowCheckouts : IRowCheckouts
         return true;
     }
 
-    /// <summary>
-    /// Whether a draft differs from what is published, by the same comparison that decides whether a draft
-    /// is worth keeping (<see cref="RowDrafts"/>): its place, its existence and every cell's value. A row
-    /// that has never been published is all change.
-    /// </summary>
+    // Whether a draft differs from what is published, by the same comparison that decides whether a draft is worth
+    // keeping (RowDrafts): its place, its existence and every cell's value. A row that has never been published is
+    // all change.
     private async Task<bool> HasChangesAsync(DbSheetRowRevision draft, DbSheetRowRevision? published, CancellationToken cancellationToken)
     {
         if (published is null || !SheetRevisionComparer.SameStructure(draft, published))
@@ -146,7 +144,7 @@ public sealed class RowCheckouts : IRowCheckouts
             return true;
         }
 
-        var held = await RowValueQueries.LoadAsync(_db, [draft.Id, published.Id], cancellationToken);
+        var held = await _cellValueData.LoadAsync([draft.Id, published.Id], cancellationToken);
         return !CellValuesComparer.Same(held.GetValueOrDefault(draft.Id), held.GetValueOrDefault(published.Id));
     }
 }

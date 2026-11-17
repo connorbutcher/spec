@@ -6,13 +6,9 @@ using PUSpecSheet.Database.Models.CellTypes;
 
 namespace PUSpecSheet.DataAccess.Sheets.Linking;
 
-/// <summary>How a cell's value reads as a choice in a linked dropdown.</summary>
 internal static class LinkedOptionText
 {
-    /// <summary>The value as text, or null when the cell is empty or its kind can't be linked to.</summary>
-    /// <param name="value">The cell's value.</param>
-    /// <param name="cellType">The cell's type, with its options.</param>
-    /// <param name="cellOverride">The settings the cell changes from its type's, which can set a number's decimal places.</param>
+    // The value as text, or null when the cell is empty or its kind can't be linked to.
     public static string? Of(CellValueBag? value, DbCellType cellType, CellConfiguration? cellOverride = null)
     {
         if (value is null)
@@ -32,10 +28,8 @@ internal static class LinkedOptionText
         return string.IsNullOrEmpty(text) ? null : text;
     }
 
-    /// <summary>
-    /// A number as its cell shows it: to the cell's decimal places when it has them (0.80), and otherwise
-    /// without the trailing zeros the database's fixed scale adds (12.5, not 12.5000000000). No unit.
-    /// </summary>
+    // A number as its cell shows it: to the cell's decimal places when it has them (0.80), and otherwise without the
+    // trailing zeros the database's fixed scale adds (12.5, not 12.5000000000). No unit.
     private static string? Number(decimal? number, CellConfiguration configuration)
     {
         if (number is not { } value)

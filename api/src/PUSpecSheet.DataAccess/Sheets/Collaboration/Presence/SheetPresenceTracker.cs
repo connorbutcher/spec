@@ -2,22 +2,15 @@ using PUSpecSheet.Abstractions.Sheets.Collaboration;
 
 namespace PUSpecSheet.DataAccess.Sheets.Collaboration.Presence;
 
-/// <summary>
-/// Who has which sheet open, by live connection. Held in memory for the life of the process: presence is
-/// only ever about connections to this server, and every client joins again when it reconnects. Row
-/// checkouts are not kept here; they are the draft revisions in the database.
-/// </summary>
 public sealed class SheetPresenceTracker
 {
     private readonly Lock _gate = new();
 
-    /// <summary>Every connection, to find what one had open when it leaves.</summary>
     private readonly Dictionary<string, SheetConnection> _connections = new(StringComparer.Ordinal);
 
-    /// <summary>The same connections by sheet, so asking about one sheet doesn't read the others.</summary>
+    // The same connections by sheet, so asking about one sheet doesn't read the others.
     private readonly Dictionary<int, List<SheetConnection>> _bySheet = [];
 
-    /// <summary>Records that a connection has a sheet open. A connection has one sheet open at a time.</summary>
     public void Join(string connectionId, SheetConnection connection)
     {
         lock (_gate)
@@ -34,7 +27,6 @@ public sealed class SheetPresenceTracker
         }
     }
 
-    /// <summary>Forgets a connection. Returns what it had open, or null when it had nothing.</summary>
     public SheetConnection? Leave(string connectionId)
     {
         lock (_gate)
@@ -43,7 +35,6 @@ public sealed class SheetPresenceTracker
         }
     }
 
-    /// <summary>What a connection has open, or null when it has nothing open.</summary>
     public SheetConnection? Find(string connectionId)
     {
         lock (_gate)
@@ -52,7 +43,6 @@ public sealed class SheetPresenceTracker
         }
     }
 
-    /// <summary>One of a person's connections to a sheet, or null when they don't have it open.</summary>
     public (string ConnectionId, SheetConnection Connection)? FindConnectionOf(int sheetId, int userId)
     {
         lock (_gate)
@@ -69,7 +59,6 @@ public sealed class SheetPresenceTracker
         }
     }
 
-    /// <summary>The people who have the sheet open, by name.</summary>
     public IReadOnlyList<SheetPresenceUser> UsersOn(int sheetId)
     {
         lock (_gate)
@@ -102,7 +91,6 @@ public sealed class SheetPresenceTracker
         }
     }
 
-    /// <summary>Takes a connection out of both lookups. Call with the gate held.</summary>
     private SheetConnection? Remove(string connectionId)
     {
         if (!_connections.Remove(connectionId, out var connection))

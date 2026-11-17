@@ -2,11 +2,9 @@ using PUSpecSheet.Abstractions.Sheets;
 
 namespace PUSpecSheet.DataAccess.Sheets.Reading;
 
-/// <summary>
-/// Takes some rows out of a live sheet, with what follows from them, so a change to rows can be answered
-/// without sending the whole sheet. The rows are cut from the sheet as it is built for the viewer, so they
-/// are exactly what a whole read would show.
-/// </summary>
+// Takes some rows out of a live sheet, with what follows from them, so a change to rows can be answered without
+// sending the whole sheet. The rows are cut from the sheet as it is built for the viewer, so they are exactly what a
+// whole read would show.
 public static class SheetRowsChanges
 {
     public static SheetRowsChange From(Sheet sheet, IReadOnlyCollection<int> rowIds)

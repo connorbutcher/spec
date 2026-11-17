@@ -2,7 +2,6 @@ using PUSpecSheet.Abstractions.CellTypes.InstanceSettings;
 
 namespace PUSpecSheet.DataAccess.Sheets.Values;
 
-/// <summary>One cell's value, gathered from the typed value tables. Only the value field for its kind is set.</summary>
 public sealed class CellValueBag
 {
     public string? Text { get; set; }
@@ -15,12 +14,9 @@ public sealed class CellValueBag
 
     public int? OptionId { get; set; }
 
-    /// <summary>A labelled text cell's values by slot key, in slot order.</summary>
     public Dictionary<string, string>? Slots { get; set; }
 
-    /// <summary>Whether the cell holds a value. Settings alone don't count: a linked dropdown with nothing chosen is empty.</summary>
     public bool HasValue => Text is not null || Number is not null || Date is not null || Boolean is not null || OptionId is not null || Slots is { Count: > 0 };
 
-    /// <summary>The settings chosen for the cell on the sheet, for a kind that has them. Not a value: a cell can have both.</summary>
     public CellInstanceSettings? Settings { get; set; }
 }

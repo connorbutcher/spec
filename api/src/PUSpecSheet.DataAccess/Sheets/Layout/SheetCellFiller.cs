@@ -5,11 +5,9 @@ using PUSpecSheet.Database.Models.Sheets;
 
 namespace PUSpecSheet.DataAccess.Sheets.Layout;
 
-/// <summary>
-/// Adds the cells a table's rows are missing (see <see cref="SheetCellPlanner"/>). It runs inside a
-/// transaction holding an application lock for the table, so two requests that each add a row or a
-/// block at the same moment can't both insert the same cell or leave a gap.
-/// </summary>
+// Adds the cells a table's rows are missing (see SheetCellPlanner). It runs inside a transaction holding an
+// application lock for the table, so two requests that each add a row or a block at the same moment can't both insert
+// the same cell or leave a gap.
 public sealed class SheetCellFiller : ISheetCellFiller
 {
     private const int LockTimeoutMilliseconds = 15000;
@@ -98,7 +96,6 @@ public sealed class SheetCellFiller : ISheetCellFiller
             existing.Select(cell => (cell.SheetRowId, cell.TemplateCellId, cell.SheetColumnBlockId)));
     }
 
-    /// <summary>Waits for any other request filling the same table; released when the transaction ends.</summary>
     private async Task TakeTableLockAsync(int tableId, CancellationToken cancellationToken)
     {
         var resource = $"SheetCells:{tableId}";

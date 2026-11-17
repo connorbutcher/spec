@@ -5,12 +5,10 @@ using PUSpecSheet.Database;
 
 namespace PUSpecSheet.DataAccess.Sheets.Drafts;
 
-/// <summary>
-/// Drops the drafts on a sheet that make no difference to what is published, such as a row locked or edited
-/// and then put back. Normally a draft is released the moment it is put back; this catches ones left from
-/// before that, so they don't light up Publish or hold a lock for nothing. It takes the current user's
-/// drafts, or everyone's ahead of a publish of everything.
-/// </summary>
+// Drops the drafts on a sheet that make no difference to what is published, such as a row locked or edited and then
+// put back. Normally a draft is released the moment it is put back; this catches ones left from before that, so they
+// don't light up Publish or hold a lock for nothing. It takes the current user's drafts, or everyone's ahead of a
+// publish of everything.
 public sealed class DraftSweeper
 {
     private readonly ICurrentUser _currentUser;

@@ -8,16 +8,10 @@ using PUSpecSheet.Database.Models.Sheets;
 
 namespace PUSpecSheet.DataAccess.Sheets.Queries;
 
-/// <summary>
-/// Reads and changes that work the same for every kind of sheet item revision (tables, sections, rows and
-/// column blocks), on any of the four revision sets: <c>db.SheetRowRevisions.ListInViewAsync(...)</c>.
-/// </summary>
 public static class SheetRevisionQueries
 {
-    /// <summary>
-    /// The revisions on the sheet a view can show, read only: for the live view (no moment) each item's
-    /// current published revision and any drafts, otherwise the published revision in force at the moment.
-    /// </summary>
+    // The revisions on the sheet a view can show, read only: for the live view (no moment) each item's current
+    // published revision and any drafts, otherwise the published revision in force at the moment.
     public static async Task<List<TRevision>> ListInViewAsync<TRevision>(
         this IQueryable<TRevision> revisions,
         int sheetId,
@@ -28,7 +22,6 @@ public static class SheetRevisionQueries
         return await revisions.OnSheet(sheetId).InView(moment).AsNoTracking().ToListAsync(cancellationToken);
     }
 
-    /// <summary>Every revision on the sheet published up to the moment (or ever, for none), read only.</summary>
     public static async Task<List<TRevision>> ListPublishedUpToAsync<TRevision>(
         this IQueryable<TRevision> revisions,
         int sheetId,
@@ -39,7 +32,6 @@ public static class SheetRevisionQueries
         return await revisions.OnSheet(sheetId).PublishedUpTo(moment).AsNoTracking().ToListAsync(cancellationToken);
     }
 
-    /// <summary>The revisions on the sheet the selection picks, tracked for editing.</summary>
     public static async Task<List<TRevision>> ListSelectedForEditAsync<TRevision>(
         this IQueryable<TRevision> revisions,
         int sheetId,
@@ -50,10 +42,8 @@ public static class SheetRevisionQueries
         return await selection.Apply(revisions.OnSheet(sheetId)).ToListAsync(cancellationToken);
     }
 
-    /// <summary>
-    /// The items on the sheet with a draft a publish in the scope would take that has an earlier revision to
-    /// return to, by the item id <paramref name="itemId"/> picks out.
-    /// </summary>
+    // The items on the sheet with a draft a publish in the scope would take that has an earlier revision to return
+    // to, by the item id itemId picks out.
     public static async Task<List<int>> ListItemIdsWithRevisableDraftsAsync<TRevision>(
         this IQueryable<TRevision> revisions,
         int sheetId,
@@ -71,7 +61,6 @@ public static class SheetRevisionQueries
             .ToListAsync(cancellationToken);
     }
 
-    /// <summary>The current published revision and any draft of each of the given revisions' items, tracked.</summary>
     public static async Task<List<TRevision>> ListCurrentAndDraftsForEditAsync<TRevision>(
         this IQueryable<TRevision> itemRevisions,
         CancellationToken cancellationToken)
@@ -80,7 +69,6 @@ public static class SheetRevisionQueries
         return await itemRevisions.CurrentAndDrafts().ToListAsync(cancellationToken);
     }
 
-    /// <summary>The highest revision number among the revisions, or 0 when there are none.</summary>
     public static async Task<int> GetLastRevisionNumberAsync<TRevision>(
         this IQueryable<TRevision> itemRevisions,
         CancellationToken cancellationToken)
@@ -89,7 +77,6 @@ public static class SheetRevisionQueries
         return await itemRevisions.MaxAsync(revision => (int?)revision.RevisionNumber, cancellationToken) ?? 0;
     }
 
-    /// <summary>Closes the current published revision among the revisions at <paramref name="supersededAtUtc"/>, straight in the database.</summary>
     public static async Task SupersedeCurrentAsync<TRevision>(
         this IQueryable<TRevision> itemRevisions,
         DateTime supersededAtUtc,
@@ -101,7 +88,6 @@ public static class SheetRevisionQueries
             cancellationToken);
     }
 
-    /// <summary>Hands the drafts of a submission on the sheet back to their authors, straight in the database.</summary>
     public static async Task ReleaseSubmissionAsync<TRevision>(
         this IQueryable<TRevision> revisions,
         int sheetId,
@@ -114,7 +100,6 @@ public static class SheetRevisionQueries
             cancellationToken);
     }
 
-    /// <summary>How many revisions each of the submissions holds, by submission id.</summary>
     public static async Task<Dictionary<int, int>> CountBySubmissionAsync<TRevision>(
         this IQueryable<TRevision> revisions,
         IReadOnlyCollection<int> submissionIds,
@@ -129,10 +114,6 @@ public static class SheetRevisionQueries
             .ToDictionaryAsync(entry => entry.Key, entry => entry.Count, cancellationToken);
     }
 
-    /// <summary>
-    /// The drafts among the revisions that stop the user removing what contains them: other people's, and
-    /// the user's own once they are waiting for approval.
-    /// </summary>
     public static async Task<List<ContainedHold>> ListHoldsAsync<TRevision>(
         this IQueryable<TRevision> revisions,
         int userId,

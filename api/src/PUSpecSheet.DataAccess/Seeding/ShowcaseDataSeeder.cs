@@ -2,7 +2,7 @@ using Microsoft.Extensions.Logging;
 using PUSpecSheet.DataAccess.Seeding.ReferenceData;
 using PUSpecSheet.DataAccess.Seeding.Sheets;
 using PUSpecSheet.DataAccess.Seeding.Templates;
-using PUSpecSheet.DataAccess.Sheets.Queries;
+using PUSpecSheet.DataAccess.Sheets;
 using PUSpecSheet.Database;
 
 namespace PUSpecSheet.DataAccess.Seeding;
@@ -38,6 +38,7 @@ public sealed partial class ShowcaseDataSeeder
     private readonly EngineSpecificationSheetSeeder _engineSpecifications;
     private readonly ShowcaseUsers _users;
     private readonly ILogger<ShowcaseDataSeeder> _logger;
+    private readonly ISheetDataService _sheetData;
 
     public ShowcaseDataSeeder(
         PuSpecSheetDbContext db,
@@ -49,7 +50,8 @@ public sealed partial class ShowcaseDataSeeder
         PartsSheetSeeder parts,
         EngineSpecificationSheetSeeder engineSpecifications,
         ShowcaseUsers users,
-        ILogger<ShowcaseDataSeeder> logger)
+        ILogger<ShowcaseDataSeeder> logger,
+        ISheetDataService sheetData)
     {
         _db = db;
         _cellTypes = cellTypes;
@@ -61,13 +63,14 @@ public sealed partial class ShowcaseDataSeeder
         _engineSpecifications = engineSpecifications;
         _users = users;
         _logger = logger;
+        _sheetData = sheetData;
     }
 
     public async Task SeedAsync(bool rebuild, CancellationToken cancellationToken = default)
     {
         try
         {
-            if (!rebuild && await SheetQueries.AnyVersionWithNoteAsync(_db, CompletedNote, cancellationToken))
+            if (!rebuild && await _sheetData.AnyVersionWithNoteAsync(CompletedNote, cancellationToken))
             {
                 return;
             }

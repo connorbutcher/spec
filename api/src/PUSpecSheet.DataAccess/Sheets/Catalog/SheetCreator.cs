@@ -3,19 +3,16 @@ using PUSpecSheet.Abstractions.Sheets;
 using PUSpecSheet.Abstractions.SheetTypes;
 using PUSpecSheet.DataAccess.Common;
 using PUSpecSheet.DataAccess.Phases;
-using PUSpecSheet.DataAccess.Sheets.Queries;
 using PUSpecSheet.DataAccess.SheetTypes;
 using PUSpecSheet.Database;
 using PUSpecSheet.Database.Models.Sheets;
 
 namespace PUSpecSheet.DataAccess.Sheets.Catalog;
 
-/// <summary>
-/// Creates sheets. A sheet is told apart from the phase's other sheets of its type by its identifier values,
-/// held only in spec.SheetIdentifierValues; they never change afterwards. Every creation for a phase and sheet
-/// type takes the same application lock, then compares the values asked for with the sheets already there,
-/// so two people creating the same sheet at once get one sheet and a conflict.
-/// </summary>
+// Creates sheets. A sheet is told apart from the phase's other sheets of its type by its identifier values, held only
+// in spec.SheetIdentifierValues; they never change afterwards. Every creation for a phase and sheet type takes the
+// same application lock, then compares the values asked for with the sheets already there, so two people creating the
+// same sheet at once get one sheet and a conflict.
 public sealed class SheetCreator
 {
     private const int LockTimeoutMilliseconds = 15000;
@@ -24,19 +21,22 @@ public sealed class SheetCreator
     private readonly SheetCopier _copier;
     private readonly IPhaseDataService _phases;
     private readonly ISheetTypeDataService _sheetTypes;
+    private readonly ISheetDataService _sheetData;
 
-    public SheetCreator(PuSpecSheetDbContext db, SheetCopier copier, IPhaseDataService phases, ISheetTypeDataService sheetTypes)
+    public SheetCreator(
+        PuSpecSheetDbContext db,
+        SheetCopier copier,
+        IPhaseDataService phases,
+        ISheetTypeDataService sheetTypes,
+        ISheetDataService sheetData)
     {
         _db = db;
         _copier = copier;
         _phases = phases;
         _sheetTypes = sheetTypes;
+        _sheetData = sheetData;
     }
 
-    /// <summary>
-    /// Creates a sheet with the identifier values asked for, optionally starting as a copy of another sheet
-    /// of the same type, and returns its id.
-    /// </summary>
     public async Task<int> CreateAsync(int phaseId, CreateSheetRequest request, CancellationToken cancellationToken)
     {
         await EnsureAvailableAsync(phaseId, request.SheetTypeId, cancellationToken);
@@ -71,11 +71,6 @@ public sealed class SheetCreator
         return sheet.Id;
     }
 
-    /// <summary>
-    /// Creates the phase's sheet of the type with no identifier values, the way a sheet type without
-    /// identifiers has always had one sheet per phase, and returns its id. Someone creating it at the same
-    /// moment is fine: their sheet is the one returned.
-    /// </summary>
     public async Task<int> CreateUnidentifiedAsync(int phaseId, int sheetTypeId, CancellationToken cancellationToken)
     {
         await EnsureAvailableAsync(phaseId, sheetTypeId, cancellationToken);
@@ -87,7 +82,7 @@ public sealed class SheetCreator
 
         await using var transaction = await _db.Database.BeginTransactionAsync(cancellationToken);
         await TakeIdentityLockAsync(phaseId, sheetTypeId, cancellationToken);
-        var existingId = await SheetQueries.FindIdAsync(_db, phaseId, sheetTypeId, cancellationToken);
+        var existingId = await _sheetData.FindIdAsync(phaseId, sheetTypeId, cancellationToken);
         if (existingId is { } id)
         {
             return id;
@@ -156,7 +151,7 @@ public sealed class SheetCreator
             return null;
         }
 
-        var source = await SheetQueries.FindAsync(_db, sourceId, cancellationToken)
+        var source = await _sheetData.FindAsync(sourceId, cancellationToken)
             ?? throw new NotFoundException($"Sheet {sourceId} was not found.");
         if (source.SheetTypeId != request.SheetTypeId)
         {
@@ -166,9 +161,6 @@ public sealed class SheetCreator
         return sourceId;
     }
 
-    /// <summary>
-    /// Waits for anyone else creating a sheet of the type in the phase; released when the transaction ends.
-    /// </summary>
     private async Task TakeIdentityLockAsync(int phaseId, int sheetTypeId, CancellationToken cancellationToken)
     {
         var resource = $"SheetIdentity:{phaseId}:{sheetTypeId}";
@@ -185,7 +177,6 @@ public sealed class SheetCreator
             cancellationToken);
     }
 
-    /// <summary>Whether the phase already has a sheet of the type whose identifier values name the same thing.</summary>
     private async Task<bool> HasSheetWithIdentityAsync(
         int phaseId,
         int sheetTypeId,
@@ -195,7 +186,7 @@ public sealed class SheetCreator
     {
         var byId = definitions.ToDictionary(definition => definition.Id);
         var wanted = SheetIdentifierRules.ComparisonKey(values);
-        var sheets = await SheetQueries.ListWithIdentifiersAsync(_db, phaseId, sheetTypeId, cancellationToken);
+        var sheets = await _sheetData.ListWithIdentifiersAsync(phaseId, sheetTypeId, cancellationToken);
         return sheets.Any(sheet => SheetIdentifierRules.ComparisonKey(sheet.IdentifierValues
             .Select(value => new StoredSheetIdentifierValue { Definition = byId[value.SheetTypeIdentifierId], Value = value.Value })) == wanted);
     }

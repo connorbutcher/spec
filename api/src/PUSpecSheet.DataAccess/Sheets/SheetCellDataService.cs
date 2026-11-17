@@ -1,16 +1,22 @@
 using Microsoft.EntityFrameworkCore;
+using PUSpecSheet.DataAccess.Sheets.Queries;
 using PUSpecSheet.DataAccess.Sheets.Values;
 using PUSpecSheet.Database;
 
-namespace PUSpecSheet.DataAccess.Sheets.Queries;
+namespace PUSpecSheet.DataAccess.Sheets;
 
-/// <summary>The cells of sheet rows.</summary>
-public static class SheetCellQueries
+public sealed class SheetCellDataService : ISheetCellDataService
 {
-    /// <summary>The cells of the rows, with what each copies and its kind.</summary>
-    public static async Task<List<NewCell>> ListNewCellsAsync(PuSpecSheetDbContext db, IReadOnlyCollection<int> rowIds, CancellationToken cancellationToken)
+    private readonly PuSpecSheetDbContext _db;
+
+    public SheetCellDataService(PuSpecSheetDbContext db)
     {
-        return await db.SheetCells
+        _db = db;
+    }
+
+    public async Task<List<NewCell>> ListNewCellsAsync(IReadOnlyCollection<int> rowIds, CancellationToken cancellationToken)
+    {
+        return await _db.SheetCells
             .AsNoTracking()
             .Where(cell => rowIds.Contains(cell.SheetRowId))
             .Select(cell => new NewCell
@@ -24,11 +30,10 @@ public static class SheetCellQueries
             .ToListAsync(cancellationToken);
     }
 
-    /// <summary>The cells of the rows that must be filled in.</summary>
-    public static async Task<List<RequiredCell>> ListRequiredAsync(PuSpecSheetDbContext db, IReadOnlyCollection<int> rowIds, CancellationToken cancellationToken)
+    public async Task<List<RequiredCell>> ListRequiredAsync(IReadOnlyCollection<int> rowIds, CancellationToken cancellationToken)
     {
         // Only which cell, its row and its kind are needed, not the cells' templates and types.
-        return await db.SheetCells
+        return await _db.SheetCells
             .Where(cell => rowIds.Contains(cell.SheetRowId) && cell.TemplateCell.IsRequired)
             .Select(cell => new RequiredCell { Id = cell.Id, SheetRowId = cell.SheetRowId, Kind = cell.TemplateCell.CellType.Kind })
             .ToListAsync(cancellationToken);

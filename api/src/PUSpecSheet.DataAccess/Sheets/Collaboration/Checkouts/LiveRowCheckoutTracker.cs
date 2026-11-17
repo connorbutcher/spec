@@ -2,23 +2,16 @@ using PUSpecSheet.Abstractions.Sheets.Collaboration;
 
 namespace PUSpecSheet.DataAccess.Sheets.Collaboration.Checkouts;
 
-/// <summary>
-/// The rows people have clicked into but not changed yet, each held by the live connection (browser tab)
-/// that is in it. Clicking into a cell must not save anything, so these are kept in memory rather than
-/// as draft revisions: a tab holds at most one row, and the row is free again the moment the tab moves
-/// on, closes or loses its connection. A row someone has actually changed is a draft in the database
-/// and is not tracked here.
-/// </summary>
+// The rows people have clicked into but not changed yet, each held by the live connection (browser tab) that is in
+// it. Clicking into a cell must not save anything, so these are kept in memory rather than as draft revisions: a tab
+// holds at most one row, and the row is free again the moment the tab moves on, closes or loses its connection. A row
+// someone has actually changed is a draft in the database and is not tracked here.
 public sealed class LiveRowCheckoutTracker
 {
     private readonly Lock _gate = new();
     private readonly Dictionary<string, LiveRowCheckout> _byConnection = new(StringComparer.Ordinal);
     private readonly Dictionary<int, string> _connectionByRow = [];
 
-    /// <summary>
-    /// Gives the row to a connection, in place of whichever row it held. False, with who holds it, when
-    /// someone else is in the row. The same person in another tab simply moves the row to this one.
-    /// </summary>
     public bool TryCheckOut(string connectionId, LiveRowCheckout wanted, out LiveRowCheckout? heldBy)
     {
         lock (_gate)
@@ -38,7 +31,6 @@ public sealed class LiveRowCheckoutTracker
         }
     }
 
-    /// <summary>Frees whatever row a connection held. Returns it, or null when it held none.</summary>
     public LiveRowCheckout? Release(string connectionId)
     {
         lock (_gate)
@@ -47,7 +39,6 @@ public sealed class LiveRowCheckoutTracker
         }
     }
 
-    /// <summary>Frees a row whoever is in it. Returns the checkout that ended, or null when nobody was.</summary>
     public LiveRowCheckout? ReleaseRow(int rowId)
     {
         lock (_gate)
@@ -56,7 +47,6 @@ public sealed class LiveRowCheckoutTracker
         }
     }
 
-    /// <summary>Who is in the row, or null when nobody is.</summary>
     public LiveRowCheckout? HolderOf(int rowId)
     {
         lock (_gate)
@@ -65,7 +55,6 @@ public sealed class LiveRowCheckoutTracker
         }
     }
 
-    /// <summary>Every row on a sheet that someone is in, by row id.</summary>
     public IReadOnlyList<RowCheckout> OnSheet(int sheetId)
     {
         lock (_gate)

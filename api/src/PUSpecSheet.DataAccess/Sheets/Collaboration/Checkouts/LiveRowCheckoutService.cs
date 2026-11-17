@@ -76,10 +76,8 @@ public sealed class LiveRowCheckoutService : ILiveRowCheckoutService
         }
     }
 
-    /// <summary>
-    /// Tells the sheet who is in which row now. Entering a row leaves the one before, so either call may
-    /// have freed a row someone was waiting to take over; those requests have nothing left to wait for.
-    /// </summary>
+    // Tells the sheet who is in which row now. Entering a row leaves the one before, so either call may have freed a
+    // row someone was waiting to take over; those requests have nothing left to wait for.
     private async Task AnnounceAsync(int sheetId, CancellationToken cancellationToken)
     {
         await _notifier.CheckoutsChangedAsync(sheetId, _tracker.OnSheet(sheetId), cancellationToken);

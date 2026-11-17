@@ -7,10 +7,8 @@ using PUSpecSheet.Database.Models.Sheets;
 
 namespace PUSpecSheet.DataAccess.Sheets.Linking;
 
-/// <summary>
-/// A value saved into a linked dropdown must be one of the choices its column offers at that moment. A value
-/// already in the cell is left alone if the column later changes: the row only changes when someone edits it.
-/// </summary>
+// A value saved into a linked dropdown must be one of the choices its column offers at that moment. A value already
+// in the cell is left alone if the column later changes: the row only changes when someone edits it.
 public sealed class LinkedDropdownValueRule
 {
     private readonly SheetReader _reader;
@@ -20,8 +18,7 @@ public sealed class LinkedDropdownValueRule
         _reader = reader;
     }
 
-    /// <summary>Expects each cell's template cell and cell type to be loaded.</summary>
-    /// <exception cref="InvalidRequestException">A value isn't one of its cell's choices, or the cell has no column chosen.</exception>
+    // Expects each cell's template cell and cell type to be loaded.
     public async Task EnsureChoicesAsync(
         int sheetId,
         IReadOnlyDictionary<int, DbSheetCell> cellsById,

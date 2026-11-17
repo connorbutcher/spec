@@ -6,7 +6,6 @@ using PUSpecSheet.DataAccess.Sheets.Collaboration.Checkouts;
 using PUSpecSheet.DataAccess.Sheets.Drafts;
 using PUSpecSheet.DataAccess.Sheets.Layout;
 using PUSpecSheet.DataAccess.Sheets.Linking;
-using PUSpecSheet.DataAccess.Sheets.Queries;
 using PUSpecSheet.DataAccess.Sheets.Reading;
 using PUSpecSheet.DataAccess.Sheets.Removal;
 using PUSpecSheet.DataAccess.Sheets.Revisions;
@@ -28,6 +27,8 @@ public sealed class SheetRowsService : ISheetRowsService
     private readonly IRemovalInProgressGuard _removals;
     private readonly ICurrentUser _currentUser;
     private readonly ISheetCellSettingsService _cellSettings;
+    private readonly ISheetRowDataService _sheetRowData;
+    private readonly ICellValueDataService _cellValueData;
 
     public SheetRowsService(
         PuSpecSheetDbContext db,
@@ -38,7 +39,9 @@ public sealed class SheetRowsService : ISheetRowsService
         SheetReader reader,
         IRemovalInProgressGuard removals,
         ICurrentUser currentUser,
-        ISheetCellSettingsService cellSettings)
+        ISheetCellSettingsService cellSettings,
+        ISheetRowDataService sheetRowData,
+        ICellValueDataService cellValueData)
     {
         _db = db;
         _drafts = drafts;
@@ -49,6 +52,8 @@ public sealed class SheetRowsService : ISheetRowsService
         _removals = removals;
         _currentUser = currentUser;
         _cellSettings = cellSettings;
+        _sheetRowData = sheetRowData;
+        _cellValueData = cellValueData;
     }
 
     public async Task<Sheet> SaveValuesAsync(int rowId, SaveRowValuesRequest request, CancellationToken cancellationToken)
@@ -68,7 +73,7 @@ public sealed class SheetRowsService : ISheetRowsService
             change.Value.Slots = SlotValues.Clean(change.Value.Slots);
         }
 
-        await RowValueQueries.SetManyAsync(_db, draft.Id, changes, cancellationToken);
+        await _cellValueData.SetManyAsync(draft.Id, changes, cancellationToken);
         await _db.SaveSheetChangesAsync(cancellationToken);
 
         // Values put back to what is published leave nothing to publish, so the row is released.
@@ -92,7 +97,7 @@ public sealed class SheetRowsService : ISheetRowsService
         await _db.SaveSheetChangesAsync(cancellationToken);
         await _drafts.ReleaseIfUnchangedAsync(rowId, cancellationToken);
         await _drafts.ReleaseRestoredOrderAsync(
-            await SheetRowQueries.ListIdsInSectionAsync(_db, sectionId, cancellationToken),
+            await _sheetRowData.ListIdsInSectionAsync(sectionId, cancellationToken),
             cancellationToken);
         await transaction.CommitAsync(cancellationToken);
 
@@ -101,7 +106,7 @@ public sealed class SheetRowsService : ISheetRowsService
 
     public async Task<Sheet> RemoveAsync(int rowId, CancellationToken cancellationToken)
     {
-        var row = await SheetRowQueries.FindWithSectionAsync(_db, rowId, cancellationToken)
+        var row = await _sheetRowData.FindWithSectionAsync(rowId, cancellationToken)
             ?? throw new NotFoundException($"Row {rowId} was not found.");
         if (row.SheetSection.TemplateSection.Role == SectionRole.Header)
         {
@@ -117,7 +122,7 @@ public sealed class SheetRowsService : ISheetRowsService
         if (state.IsNew)
         {
             // Only its author ever saw it, so there's no history to keep.
-            await SheetRowQueries.DeleteAsync(_db, rowId, cancellationToken);
+            await _sheetRowData.DeleteAsync(rowId, cancellationToken);
         }
         else
         {
@@ -136,21 +141,20 @@ public sealed class SheetRowsService : ISheetRowsService
 
     private async Task<int> SheetIdOfAsync(int rowId, CancellationToken cancellationToken)
     {
-        return await SheetRowQueries.FindSheetIdAsync(_db, rowId, cancellationToken)
+        return await _sheetRowData.FindSheetIdAsync(rowId, cancellationToken)
             ?? throw new NotFoundException($"Row {rowId} was not found.");
     }
 
     private async Task<int> SectionIdOfAsync(int rowId, CancellationToken cancellationToken)
     {
-        return await SheetRowQueries.FindSectionIdAsync(_db, rowId, cancellationToken)
+        return await _sheetRowData.FindSectionIdAsync(rowId, cancellationToken)
             ?? throw new NotFoundException($"Row {rowId} was not found.");
     }
 
-    /// <summary>The display orders of the section's rows the user can see, ascending, optionally leaving one out.</summary>
     private async Task<IReadOnlyList<int>> VisibleRowOrdersAsync(int sectionId, int? excludingRowId, CancellationToken cancellationToken)
     {
         var me = _currentUser.UserId;
-        var revisions = await SheetRowRevisionQueries.ListVisibleInSectionAsync(_db, sectionId, me, cancellationToken);
+        var revisions = await _sheetRowData.ListVisibleInSectionAsync(sectionId, me, cancellationToken);
 
         return RevisionResolver.Resolve(revisions, revision => revision.SheetRowId, me)
             .Where(entry => entry.Key != excludingRowId && RevisionResolver.IsVisible(entry.Value))
@@ -159,7 +163,6 @@ public sealed class SheetRowsService : ISheetRowsService
             .ToList();
     }
 
-    /// <summary>Reads each value sent in the shape its cell's kind takes, and checks it against the cell.</summary>
     private static List<CellValueChange> ReadValues(SaveRowValuesRequest request, Dictionary<int, DbSheetCell> cellsById)
     {
         var changes = new List<CellValueChange>();
@@ -182,7 +185,7 @@ public sealed class SheetRowsService : ISheetRowsService
 
     private async Task<DbSheetRow> LoadRowWithCellTypesAsync(int rowId, CancellationToken cancellationToken)
     {
-        return await SheetRowQueries.FindWithCellTypesAsync(_db, rowId, withOptions: true, cancellationToken)
+        return await _sheetRowData.FindWithCellTypesAsync(rowId, withOptions: true, cancellationToken)
             ?? throw new NotFoundException($"Row {rowId} was not found.");
     }
 }

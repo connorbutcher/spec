@@ -10,21 +10,14 @@ using PUSpecSheet.Database.Models.Sheets;
 
 namespace PUSpecSheet.DataAccess.Sheets.Publishing;
 
-/// <summary>
-/// Publishes drafts on a sheet as its next version: the current user's own, leaving other people's as they
-/// are, or every draft on the sheet. Each draft becomes its item's current published revision and the
-/// revision it replaces is closed at the same moment.
-/// <para>
-/// A draft published for someone else keeps them as its author, so the sheet still says whose change it
-/// was; the version says who published it. Their lock goes with the draft, as it does for the publisher.
-/// A draft of theirs that changes nothing is dropped rather than published, like the publisher's own. If
-/// they save into a draft while it is being published, the publish fails as a conflict and nothing changes.
-/// </para>
-/// <para>
-/// Through the API a publish first waits for approval: <see cref="PrepareAsync"/> gathers and checks the
-/// drafts for a submission, and <see cref="PublishSubmissionAsync"/> publishes them once it is approved.
-/// </para>
-/// </summary>
+// Publishes drafts on a sheet as its next version: the current user's own, leaving other people's as they are, or
+// every draft on the sheet. Each draft becomes its item's current published revision and the revision it replaces is
+// closed at the same moment. A draft published for someone else keeps them as its author, so the sheet still says
+// whose change it was; the version says who published it. Their lock goes with the draft, as it does for the
+// publisher. A draft of theirs that changes nothing is dropped rather than published, like the publisher's own. If
+// they save into a draft while it is being published, the publish fails as a conflict and nothing changes. Through
+// the API a publish first waits for approval: PrepareAsync gathers and checks the drafts for a submission, and
+// PublishSubmissionAsync publishes them once it is approved.
 public sealed class SheetPublisher
 {
     private readonly PuSpecSheetDbContext _db;
@@ -33,6 +26,9 @@ public sealed class SheetPublisher
     private readonly ICurrentUser _currentUser;
     private readonly TimeProvider _clock;
     private readonly IUserDataService _userData;
+    private readonly ISheetDataService _sheetData;
+    private readonly ISheetCellDataService _sheetCellData;
+    private readonly ICellValueDataService _cellValueData;
 
     public SheetPublisher(
         PuSpecSheetDbContext db,
@@ -40,7 +36,10 @@ public sealed class SheetPublisher
         DraftSweeper sweeper,
         ICurrentUser currentUser,
         TimeProvider clock,
-        IUserDataService userData)
+        IUserDataService userData,
+        ISheetDataService sheetData,
+        ISheetCellDataService sheetCellData,
+        ICellValueDataService cellValueData)
     {
         _db = db;
         _draftLoader = draftLoader;
@@ -48,12 +47,11 @@ public sealed class SheetPublisher
         _currentUser = currentUser;
         _clock = clock;
         _userData = userData;
+        _sheetData = sheetData;
+        _sheetCellData = sheetCellData;
+        _cellValueData = cellValueData;
     }
 
-    /// <summary>Publishes straight away, without approval. Only start-up seeding does this.</summary>
-    /// <exception cref="NotFoundException">The sheet doesn't exist.</exception>
-    /// <exception cref="InvalidRequestException">There is nothing to publish, or a required cell is empty.</exception>
-    /// <exception cref="ConflictException">Someone else published the sheet at the same moment.</exception>
     public async Task PublishAsync(int sheetId, string? note, PublishScope scope, CancellationToken cancellationToken)
     {
         var drafts = await PrepareAsync(sheetId, scope, cancellationToken);
@@ -63,15 +61,11 @@ public sealed class SheetPublisher
         await transaction.CommitAsync(cancellationToken);
     }
 
-    /// <summary>
-    /// The drafts a publish in <paramref name="scope"/> would take, once those that change nothing are swept
-    /// away, checked to be publishable. Drafts already waiting for approval are never among them.
-    /// </summary>
-    /// <exception cref="NotFoundException">The sheet doesn't exist.</exception>
-    /// <exception cref="InvalidRequestException">There is nothing to publish, or a required cell is empty.</exception>
+    // The drafts a publish in scope would take, once those that change nothing are swept away, checked to be
+    // publishable. Drafts already waiting for approval are never among them.
     public async Task<SheetDraftSet> PrepareAsync(int sheetId, PublishScope scope, CancellationToken cancellationToken)
     {
-        if (!await SheetQueries.ExistsAsync(_db, sheetId, cancellationToken))
+        if (!await _sheetData.ExistsAsync(sheetId, cancellationToken))
         {
             throw new NotFoundException($"Sheet {sheetId} was not found.");
         }
@@ -87,12 +81,9 @@ public sealed class SheetPublisher
         return drafts;
     }
 
-    /// <summary>
-    /// Publishes an approved submission's drafts as the sheet's next version, attributed to its submitter and
-    /// carrying its note, and records the version on it. Changes already made to the tracked submission are
-    /// saved in the same transaction, so the submission and the version can't disagree.
-    /// </summary>
-    /// <exception cref="ConflictException">Someone else published the sheet, or decided the submission, at the same moment.</exception>
+    // Publishes an approved submission's drafts as the sheet's next version, attributed to its submitter and carrying
+    // its note, and records the version on it. Changes already made to the tracked submission are saved in the same
+    // transaction, so the submission and the version can't disagree.
     public async Task<DbSheetVersion> PublishSubmissionAsync(DbSheetSubmission submission, CancellationToken cancellationToken)
     {
         var sheet = await FindSheetAsync(submission.SheetId, cancellationToken);
@@ -107,11 +98,10 @@ public sealed class SheetPublisher
 
     private async Task<DbSheet> FindSheetAsync(int sheetId, CancellationToken cancellationToken)
     {
-        return await SheetQueries.FindForEditAsync(_db, sheetId, cancellationToken)
+        return await _sheetData.FindForEditAsync(sheetId, cancellationToken)
             ?? throw new NotFoundException($"Sheet {sheetId} was not found.");
     }
 
-    /// <summary>Publishes the drafts as the sheet's next version, inside the caller's transaction.</summary>
     private async Task<DbSheetVersion> PublishDraftsAsync(
         DbSheet sheet,
         SheetDraftSet drafts,
@@ -120,7 +110,7 @@ public sealed class SheetPublisher
         CancellationToken cancellationToken)
     {
         var now = _clock.GetUtcNow().UtcDateTime;
-        var lastVersion = await SheetQueries.GetLastVersionNumberAsync(_db, sheet.Id, cancellationToken);
+        var lastVersion = await _sheetData.GetLastVersionNumberAsync(sheet.Id, cancellationToken);
         var version = AddNextVersion(sheet, note, now, publishedByUserId, lastVersion);
 
         // The replaced revisions close their range at the moment the new ones open, before the drafts are
@@ -140,7 +130,6 @@ public sealed class SheetPublisher
         return version;
     }
 
-    /// <summary>Adds the sheet's next version, numbered one after its last.</summary>
     private DbSheetVersion AddNextVersion(DbSheet sheet, string? note, DateTime now, int publishedByUserId, int lastVersion)
     {
         var version = new DbSheetVersion
@@ -160,7 +149,6 @@ public sealed class SheetPublisher
     }
 
 
-    /// <summary>Closes the published revisions the drafts replace, one statement per kind of item.</summary>
     private async Task SupersedeReplacedAsync(SheetDraftSet drafts, DateTime now, CancellationToken cancellationToken)
     {
         var tableIds = drafts.Tables.Select(draft => draft.SheetTableId).ToList();
@@ -188,18 +176,17 @@ public sealed class SheetPublisher
         }
     }
 
-    /// <summary>The row of each required cell left empty in the drafts, once per cell.</summary>
     private async Task<List<int>> RowsWithEmptyRequiredCellsAsync(List<DbSheetRowRevision> live, CancellationToken cancellationToken)
     {
         var rowIds = live.Select(draft => draft.SheetRowId).ToList();
-        var required = await SheetCellQueries.ListRequiredAsync(_db, rowIds, cancellationToken);
+        var required = await _sheetCellData.ListRequiredAsync(rowIds, cancellationToken);
         var toFill = required.Where(cell => cell.Kind.StoresValue() && cell.Kind != CellKind.Checkbox).ToList();
         if (toFill.Count == 0)
         {
             return [];
         }
 
-        var held = await RowValueQueries.LoadAsync(_db, live.Select(draft => draft.Id).ToList(), cancellationToken);
+        var held = await _cellValueData.LoadAsync(live.Select(draft => draft.Id).ToList(), cancellationToken);
         var revisionByRow = live.ToDictionary(draft => draft.SheetRowId, draft => draft.Id);
         return toFill
             .Where(cell => !(held.GetValueOrDefault(revisionByRow[cell.SheetRowId])?.GetValueOrDefault(cell.Id)?.HasValue ?? false))

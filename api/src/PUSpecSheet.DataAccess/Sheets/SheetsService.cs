@@ -7,16 +7,13 @@ using PUSpecSheet.DataAccess.Sheets.Catalog;
 using PUSpecSheet.DataAccess.Sheets.Drafts;
 using PUSpecSheet.DataAccess.Sheets.Editing;
 using PUSpecSheet.DataAccess.Sheets.Publishing;
-using PUSpecSheet.DataAccess.Sheets.Queries;
 using PUSpecSheet.DataAccess.Sheets.Reading;
 using PUSpecSheet.DataAccess.Users;
-using PUSpecSheet.Database;
 
 namespace PUSpecSheet.DataAccess.Sheets;
 
 public sealed class SheetsService : ISheetsService
 {
-    private readonly PuSpecSheetDbContext _db;
     private readonly SheetReader _reader;
     private readonly SheetPublisher _publisher;
     private readonly DraftSweeper _sweeper;
@@ -27,9 +24,9 @@ public sealed class SheetsService : ISheetsService
     private readonly SheetCreator _creator;
     private readonly IPhaseDataService _phases;
     private readonly ISubmissionDataService _submissionData;
+    private readonly ISheetDataService _sheetData;
 
     public SheetsService(
-        PuSpecSheetDbContext db,
         SheetReader reader,
         SheetPublisher publisher,
         DraftSweeper sweeper,
@@ -39,9 +36,9 @@ public sealed class SheetsService : ISheetsService
         ISubmissionsService submissionsService,
         SheetCreator creator,
         IPhaseDataService phases,
-        ISubmissionDataService submissionData)
+        ISubmissionDataService submissionData,
+        ISheetDataService sheetData)
     {
-        _db = db;
         _reader = reader;
         _publisher = publisher;
         _sweeper = sweeper;
@@ -52,11 +49,12 @@ public sealed class SheetsService : ISheetsService
         _creator = creator;
         _phases = phases;
         _submissionData = submissionData;
+        _sheetData = sheetData;
     }
 
     public async Task<Sheet> OpenAsync(int phaseId, int sheetTypeId, CancellationToken cancellationToken)
     {
-        var sheetId = await SheetQueries.FindIdAsync(_db, phaseId, sheetTypeId, cancellationToken);
+        var sheetId = await _sheetData.FindIdAsync(phaseId, sheetTypeId, cancellationToken);
 
         if (sheetId is null)
         {
@@ -95,13 +93,13 @@ public sealed class SheetsService : ISheetsService
             throw new NotFoundException($"Phase {phaseId} was not found.");
         }
 
-        return await SheetCatalogQueries.ListAsync(_db, phaseId, null, cancellationToken);
+        return await _sheetData.ListAsync(phaseId, null, cancellationToken);
     }
 
     public async Task<SheetSummary> CreateAsync(int phaseId, CreateSheetRequest request, CancellationToken cancellationToken)
     {
         var sheetId = await _creator.CreateAsync(phaseId, request, cancellationToken);
-        var created = await SheetCatalogQueries.ListAsync(_db, phaseId, sheetId, cancellationToken);
+        var created = await _sheetData.ListAsync(phaseId, sheetId, cancellationToken);
         return created[0];
     }
 

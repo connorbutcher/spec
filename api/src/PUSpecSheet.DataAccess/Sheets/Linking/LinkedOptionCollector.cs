@@ -4,17 +4,13 @@ using PUSpecSheet.DataAccess.Sheets.Values;
 
 namespace PUSpecSheet.DataAccess.Sheets.Linking;
 
-/// <summary>
-/// Gathers the choices of the columns and rows linked dropdowns are pointed at, as the sheet's visible
-/// cells are walked top to bottom. Only what something is linked to is kept, so a sheet with no linked
-/// dropdowns costs nothing.
-/// </summary>
+// Gathers the choices of the columns and rows linked dropdowns are pointed at, as the sheet's visible cells are
+// walked top to bottom. Only what something is linked to is kept, so a sheet with no linked dropdowns costs nothing.
 internal sealed class LinkedOptionCollector
 {
     private readonly Dictionary<(int TableId, int TemplateCellId), List<string>> _columns = [];
     private readonly Dictionary<(int TableId, int RowId), List<string>> _rows = [];
 
-    /// <param name="values">Every cell value and setting the view shows.</param>
     public LinkedOptionCollector(IEnumerable<CellValueBag> values)
     {
         foreach (var settings in values.Select(value => value.Settings).OfType<LinkedDropdownInstanceSettings>())
@@ -35,7 +31,7 @@ internal sealed class LinkedOptionCollector
         }
     }
 
-    /// <summary>Whether anything is linked to this column, so its values are worth turning into text.</summary>
+    // Whether anything is linked to this column, so its values are worth turning into text.
     public bool Wants(int tableId, int templateCellId)
     {
         return _columns.ContainsKey((tableId, templateCellId));
@@ -46,7 +42,6 @@ internal sealed class LinkedOptionCollector
         return _rows.ContainsKey((tableId, rowId));
     }
 
-    /// <summary>Adds a value of a column. A value the column already has is not repeated.</summary>
     public void Add(int tableId, int templateCellId, string text)
     {
         if (_columns.TryGetValue((tableId, templateCellId), out var known) && !known.Contains(text, StringComparer.Ordinal))
@@ -55,7 +50,6 @@ internal sealed class LinkedOptionCollector
         }
     }
 
-    /// <summary>Adds a value of a row. A value the row already has is not repeated.</summary>
     public void AddToRow(int tableId, int rowId, string text)
     {
         if (_rows.TryGetValue((tableId, rowId), out var known) && !known.Contains(text, StringComparer.Ordinal))

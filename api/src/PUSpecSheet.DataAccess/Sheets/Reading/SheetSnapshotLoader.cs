@@ -12,11 +12,6 @@ using PUSpecSheet.Database.Models.Templates;
 
 namespace PUSpecSheet.DataAccess.Sheets.Reading;
 
-/// <summary>
-/// Loads a sheet for one view point. A live view reads each item's current published revision plus any
-/// drafts; a past view reads only the revisions whose published range covers that moment, which is what
-/// the (item, published, superseded) indexes are for.
-/// </summary>
 public sealed class SheetSnapshotLoader
 {
     private readonly PuSpecSheetDbContext _db;
@@ -28,6 +23,12 @@ public sealed class SheetSnapshotLoader
     private readonly ITemplateRowDataService _templateRowData;
     private readonly ITemplateCellDataService _templateCellData;
     private readonly ITemplateColumnBlockDataService _templateColumnBlockData;
+    private readonly ISheetDataService _sheetData;
+    private readonly ISheetTableDataService _sheetTableData;
+    private readonly ISheetSectionDataService _sheetSectionData;
+    private readonly ISheetRowDataService _sheetRowData;
+    private readonly ISheetColumnBlockDataService _sheetColumnBlockData;
+    private readonly ICellValueDataService _cellValueData;
 
     public SheetSnapshotLoader(
         PuSpecSheetDbContext db,
@@ -38,7 +39,13 @@ public sealed class SheetSnapshotLoader
         ITemplateSectionDataService templateSectionData,
         ITemplateRowDataService templateRowData,
         ITemplateCellDataService templateCellData,
-        ITemplateColumnBlockDataService templateColumnBlockData)
+        ITemplateColumnBlockDataService templateColumnBlockData,
+        ISheetDataService sheetData,
+        ISheetTableDataService sheetTableData,
+        ISheetSectionDataService sheetSectionData,
+        ISheetRowDataService sheetRowData,
+        ISheetColumnBlockDataService sheetColumnBlockData,
+        ICellValueDataService cellValueData)
     {
         _db = db;
         _changeLoader = changeLoader;
@@ -49,18 +56,24 @@ public sealed class SheetSnapshotLoader
         _templateRowData = templateRowData;
         _templateCellData = templateCellData;
         _templateColumnBlockData = templateColumnBlockData;
+        _sheetData = sheetData;
+        _sheetTableData = sheetTableData;
+        _sheetSectionData = sheetSectionData;
+        _sheetRowData = sheetRowData;
+        _sheetColumnBlockData = sheetColumnBlockData;
+        _cellValueData = cellValueData;
     }
 
     public async Task<SheetSnapshot> LoadAsync(int sheetId, SheetViewPoint view, int currentUserId, CancellationToken cancellationToken)
     {
-        var found = await SheetQueries.FindWithIdentifiersAsync(_db, sheetId, cancellationToken)
+        var found = await _sheetData.FindWithIdentifiersAsync(sheetId, cancellationToken)
             ?? throw new NotFoundException($"Sheet {sheetId} was not found.");
-        var versions = await SheetQueries.ListVersionsAsync(_db, sheetId, cancellationToken);
+        var versions = await _sheetData.ListVersionsAsync(sheetId, cancellationToken);
         var (moment, versionNumber) = ResolveMoment(view, versions);
-        var tables = await SheetTableQueries.ListOnSheetAsync(_db, sheetId, cancellationToken);
-        var sections = await SheetSectionQueries.ListOnSheetAsync(_db, sheetId, cancellationToken);
-        var rows = await SheetRowQueries.ListOnSheetAsync(_db, sheetId, cancellationToken);
-        var columnBlocks = await SheetColumnBlockQueries.ListOnSheetAsync(_db, sheetId, cancellationToken);
+        var tables = await _sheetTableData.ListOnSheetAsync(sheetId, cancellationToken);
+        var sections = await _sheetSectionData.ListOnSheetAsync(sheetId, cancellationToken);
+        var rows = await _sheetRowData.ListOnSheetAsync(sheetId, cancellationToken);
+        var columnBlocks = await _sheetColumnBlockData.ListOnSheetAsync(sheetId, cancellationToken);
 
         var tableRevisions = Resolve(await _db.SheetTableRevisions.ListInViewAsync(sheetId, moment, cancellationToken), revision => revision.SheetTableId, view, currentUserId);
         var sectionRevisions = Resolve(await _db.SheetSectionRevisions.ListInViewAsync(sheetId, moment, cancellationToken), revision => revision.SheetSectionId, view, currentUserId);
@@ -126,11 +139,9 @@ public sealed class SheetSnapshotLoader
             : RevisionResolver.Resolve(revisions, itemId, currentUserId);
     }
 
-    /// <summary>
-    /// Gives every cell its template cell from the template rows already read, and reads only those that
-    /// aren't among them in one more query. Joining them into the rows' query instead would read and build
-    /// each template cell again for every cell made from it.
-    /// </summary>
+    // Gives every cell its template cell from the template rows already read, and reads only those that aren't among
+    // them in one more query. Joining them into the rows' query instead would read and build each template cell again
+    // for every cell made from it.
     private async Task AttachTemplateCellsAsync(List<DbSheetRow> rows, List<DbTemplateRow> templateRows, CancellationToken cancellationToken)
     {
         var templateCells = templateRows.SelectMany(row => row.Cells).ToDictionary(cell => cell.Id);
@@ -154,11 +165,8 @@ public sealed class SheetSnapshotLoader
         }
     }
 
-    /// <summary>
-    /// The values of the row revisions shown. They are read for every revision the view could show, found
-    /// by the sheet in the database rather than sent as a list of ids, and other people's drafts are then
-    /// left out.
-    /// </summary>
+    // The values of the row revisions shown. They are read for every revision the view could show, found by the sheet
+    // in the database rather than sent as a list of ids, and other people's drafts are then left out.
     private async Task<Dictionary<int, Dictionary<int, CellValueBag>>> LoadShownValuesAsync(
         int sheetId,
         Dictionary<int, RevisionResolution<DbSheetRowRevision>> rowRevisions,
@@ -174,7 +182,7 @@ public sealed class SheetSnapshotLoader
             return [];
         }
 
-        var loaded = await RowValueQueries.LoadInViewAsync(_db, sheetId, moment, cancellationToken);
+        var loaded = await _cellValueData.LoadInViewAsync(sheetId, moment, cancellationToken);
         foreach (var revisionId in loaded.Keys.Where(revisionId => !shownRowRevisionIds.Contains(revisionId)).ToList())
         {
             loaded.Remove(revisionId);

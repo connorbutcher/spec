@@ -79,6 +79,13 @@ public static class DataAccessServiceCollectionExtensions
 
     private static void AddSheets(IServiceCollection services)
     {
+        services.AddScoped<ISheetDataService, SheetDataService>();
+        services.AddScoped<ISheetTableDataService, SheetTableDataService>();
+        services.AddScoped<ISheetSectionDataService, SheetSectionDataService>();
+        services.AddScoped<ISheetRowDataService, SheetRowDataService>();
+        services.AddScoped<ISheetColumnBlockDataService, SheetColumnBlockDataService>();
+        services.AddScoped<ISheetCellDataService, SheetCellDataService>();
+        services.AddScoped<ICellValueDataService, CellValueDataService>();
         services.AddSingleton<SheetChangeHistoryCache>();
         services.AddScoped<SheetChangeHistoryLoader>();
         services.AddScoped<SheetSnapshotLoader>();

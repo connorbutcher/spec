@@ -2,7 +2,6 @@ using PUSpecSheet.Database.Models.Templates;
 
 namespace PUSpecSheet.DataAccess.Sheets.Layout;
 
-/// <summary>One template version's sections with their rows and cells, for building sheet content from it.</summary>
 public sealed class TemplateTree
 {
     private readonly Dictionary<int, DbTemplateSection> _byId;
@@ -18,7 +17,6 @@ public sealed class TemplateTree
         _byParent = sections.ToLookup(section => section.ParentSectionId);
     }
 
-    /// <summary>The version's column blocks, left to right. Empty for a vertical table.</summary>
     public IReadOnlyList<DbTemplateColumnBlock> ColumnBlocks { get; }
 
     public DbTemplateSection? Find(int templateSectionId)
@@ -26,7 +24,6 @@ public sealed class TemplateTree
         return _byId.GetValueOrDefault(templateSectionId);
     }
 
-    /// <summary>The sections directly under a section (or the top-level ones for null), in template order.</summary>
     public IReadOnlyList<DbTemplateSection> ChildrenOf(int? parentTemplateSectionId)
     {
         return _byParent[parentTemplateSectionId]

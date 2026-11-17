@@ -3,7 +3,6 @@ using PUSpecSheet.Abstractions.Sheets;
 using PUSpecSheet.DataAccess.Common;
 using PUSpecSheet.DataAccess.Sheets.Drafts;
 using PUSpecSheet.DataAccess.Sheets.Layout;
-using PUSpecSheet.DataAccess.Sheets.Queries;
 using PUSpecSheet.DataAccess.Sheets.Reading;
 using PUSpecSheet.DataAccess.Sheets.Removal;
 using PUSpecSheet.DataAccess.Sheets.Revisions;
@@ -27,6 +26,8 @@ public sealed class SheetTablesService : ISheetTablesService
     private readonly ITableTemplateDataService _tableTemplateData;
     private readonly ITemplateSectionDataService _templateSectionData;
     private readonly ITemplateColumnBlockDataService _templateColumnBlockData;
+    private readonly ISheetDataService _sheetData;
+    private readonly ISheetTableDataService _sheetTableData;
 
     public SheetTablesService(
         PuSpecSheetDbContext db,
@@ -39,7 +40,9 @@ public sealed class SheetTablesService : ISheetTablesService
         ISheetSectionsService sections,
         ITableTemplateDataService tableTemplateData,
         ITemplateSectionDataService templateSectionData,
-        ITemplateColumnBlockDataService templateColumnBlockData)
+        ITemplateColumnBlockDataService templateColumnBlockData,
+        ISheetDataService sheetData,
+        ISheetTableDataService sheetTableData)
     {
         _db = db;
         _drafts = drafts;
@@ -52,11 +55,13 @@ public sealed class SheetTablesService : ISheetTablesService
         _tableTemplateData = tableTemplateData;
         _templateSectionData = templateSectionData;
         _templateColumnBlockData = templateColumnBlockData;
+        _sheetData = sheetData;
+        _sheetTableData = sheetTableData;
     }
 
     public async Task<Sheet> AddAsync(int sheetId, AddSheetTableRequest request, CancellationToken cancellationToken)
     {
-        var sheet = await SheetQueries.FindAsync(_db, sheetId, cancellationToken)
+        var sheet = await _sheetData.FindAsync(sheetId, cancellationToken)
             ?? throw new NotFoundException($"Sheet {sheetId} was not found.");
 
         var template = await _tableTemplateData.FindForSheetTypeAsync(request.TableTemplateId, sheet.SheetTypeId, cancellationToken)
@@ -113,7 +118,7 @@ public sealed class SheetTablesService : ISheetTablesService
         await _db.SaveSheetChangesAsync(cancellationToken);
         await _drafts.ReleaseIfUnchangedAsync(tableId, cancellationToken);
         await _drafts.ReleaseRestoredOrderAsync(
-            await SheetTableQueries.ListIdsOnSheetAsync(_db, sheetId, cancellationToken),
+            await _sheetTableData.ListIdsOnSheetAsync(sheetId, cancellationToken),
             cancellationToken);
         return await _reader.ReadLiveAsync(sheetId, cancellationToken);
     }
@@ -128,7 +133,7 @@ public sealed class SheetTablesService : ISheetTablesService
         if (state.IsNew)
         {
             // Only its author ever saw it, so there's no history to keep.
-            await SheetTableQueries.DeleteAsync(_db, tableId, cancellationToken);
+            await _sheetTableData.DeleteAsync(tableId, cancellationToken);
         }
         else
         {
@@ -145,7 +150,6 @@ public sealed class SheetTablesService : ISheetTablesService
         return _sections.AddAsync(tableId, request, cancellationToken);
     }
 
-    /// <summary>The user's draft on the table, carrying over the published title when it's newly started.</summary>
     private async Task<DbSheetTableRevision> MyDraftAsync(int tableId, DraftState<DbSheetTableRevision> state, CancellationToken cancellationToken)
     {
         var (draft, created) = await _drafts.EnsureMineAsync(tableId, state, cancellationToken);
@@ -159,15 +163,14 @@ public sealed class SheetTablesService : ISheetTablesService
 
     private async Task<int> SheetIdOfAsync(int tableId, CancellationToken cancellationToken)
     {
-        return await SheetTableQueries.FindSheetIdAsync(_db, tableId, cancellationToken)
+        return await _sheetTableData.FindSheetIdAsync(tableId, cancellationToken)
             ?? throw new NotFoundException($"Table {tableId} was not found.");
     }
 
-    /// <summary>The display orders of the tables the user can see, ascending, optionally leaving one out.</summary>
     private async Task<IReadOnlyList<int>> VisibleTableOrdersAsync(int sheetId, int? excludingTableId, CancellationToken cancellationToken)
     {
         var me = _currentUser.UserId;
-        var revisions = await SheetTableRevisionQueries.ListVisibleOnSheetAsync(_db, sheetId, me, cancellationToken);
+        var revisions = await _sheetTableData.ListVisibleOnSheetAsync(sheetId, me, cancellationToken);
 
         return RevisionResolver.Resolve(revisions, revision => revision.SheetTableId, me)
             .Where(entry => entry.Key != excludingTableId && RevisionResolver.IsVisible(entry.Value))

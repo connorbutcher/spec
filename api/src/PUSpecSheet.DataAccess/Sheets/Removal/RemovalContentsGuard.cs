@@ -2,58 +2,53 @@ using PUSpecSheet.DataAccess.Common;
 using PUSpecSheet.DataAccess.Sheets.Collaboration.Checkouts;
 using PUSpecSheet.DataAccess.Sheets.Queries;
 using PUSpecSheet.DataAccess.Users;
-using PUSpecSheet.Database;
 
 namespace PUSpecSheet.DataAccess.Sheets.Removal;
 
-/// <summary>
-/// Stops a section or table being removed while someone else holds something inside it, or anything inside
-/// is waiting for approval (see <see cref="HeldContents"/>). Both kinds of hold count: a saved draft, and a
-/// row someone has only clicked into.
-/// </summary>
 public sealed class RemovalContentsGuard
 {
-    private readonly PuSpecSheetDbContext _db;
     private readonly LiveRowCheckoutTracker _liveCheckouts;
     private readonly ICurrentUser _currentUser;
     private readonly IUserDataService _userData;
+    private readonly ISheetSectionDataService _sheetSectionData;
+    private readonly ISheetRowDataService _sheetRowData;
+    private readonly ISheetColumnBlockDataService _sheetColumnBlockData;
 
     public RemovalContentsGuard(
-        PuSpecSheetDbContext db,
         LiveRowCheckoutTracker liveCheckouts,
         ICurrentUser currentUser,
-        IUserDataService userData)
+        IUserDataService userData,
+        ISheetSectionDataService sheetSectionData,
+        ISheetRowDataService sheetRowData,
+        ISheetColumnBlockDataService sheetColumnBlockData)
     {
-        _db = db;
         _liveCheckouts = liveCheckouts;
         _currentUser = currentUser;
         _userData = userData;
+        _sheetSectionData = sheetSectionData;
+        _sheetRowData = sheetRowData;
+        _sheetColumnBlockData = sheetColumnBlockData;
     }
 
-    /// <summary>Refuses removing the sections given (a section and everything inside it) while they are held.</summary>
-    /// <exception cref="ConflictException">Someone else holds something inside, or it is waiting for approval.</exception>
     public async Task EnsureSectionsFreeAsync(IReadOnlyCollection<int> sectionIds, CancellationToken cancellationToken)
     {
         var holds = new List<ContainedHold>();
-        holds.AddRange(await SheetSectionRevisionQueries.ListHoldsAsync(_db, sectionIds, _currentUser.UserId, cancellationToken));
-        holds.AddRange(await SheetRowRevisionQueries.ListHoldsInSectionsAsync(_db, sectionIds, _currentUser.UserId, cancellationToken));
-        holds.AddRange(LiveHolds(await SheetRowQueries.ListIdsInSectionsAsync(_db, sectionIds, cancellationToken)));
+        holds.AddRange(await _sheetSectionData.ListHoldsAsync(sectionIds, _currentUser.UserId, cancellationToken));
+        holds.AddRange(await _sheetRowData.ListHoldsInSectionsAsync(sectionIds, _currentUser.UserId, cancellationToken));
+        holds.AddRange(LiveHolds(await _sheetRowData.ListIdsInSectionsAsync(sectionIds, cancellationToken)));
         await ThrowIfHeldAsync("this section", holds, cancellationToken);
     }
 
-    /// <summary>Refuses removing a table while anything in it is held.</summary>
-    /// <exception cref="ConflictException">Someone else holds something inside, or it is waiting for approval.</exception>
     public async Task EnsureTableFreeAsync(int tableId, CancellationToken cancellationToken)
     {
         var holds = new List<ContainedHold>();
-        holds.AddRange(await SheetSectionRevisionQueries.ListHoldsOnTableAsync(_db, tableId, _currentUser.UserId, cancellationToken));
-        holds.AddRange(await SheetRowRevisionQueries.ListHoldsOnTableAsync(_db, tableId, _currentUser.UserId, cancellationToken));
-        holds.AddRange(await SheetColumnBlockRevisionQueries.ListHoldsOnTableAsync(_db, tableId, _currentUser.UserId, cancellationToken));
-        holds.AddRange(LiveHolds(await SheetRowQueries.ListIdsOnTableAsync(_db, tableId, cancellationToken)));
+        holds.AddRange(await _sheetSectionData.ListHoldsOnTableAsync(tableId, _currentUser.UserId, cancellationToken));
+        holds.AddRange(await _sheetRowData.ListHoldsOnTableAsync(tableId, _currentUser.UserId, cancellationToken));
+        holds.AddRange(await _sheetColumnBlockData.ListHoldsOnTableAsync(tableId, _currentUser.UserId, cancellationToken));
+        holds.AddRange(LiveHolds(await _sheetRowData.ListIdsOnTableAsync(tableId, cancellationToken)));
         await ThrowIfHeldAsync("this table", holds, cancellationToken);
     }
 
-    /// <summary>The rows among <paramref name="rowIds"/> that someone has clicked into, which only memory knows about.</summary>
     private List<ContainedHold> LiveHolds(List<int> rowIds)
     {
         return rowIds

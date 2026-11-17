@@ -3,19 +3,15 @@ using PUSpecSheet.Abstractions.Sheets;
 
 namespace PUSpecSheet.DataAccess.Sheets.Editing;
 
-/// <summary>Changes to the tables on a sheet. Every action returns the refreshed live view of the sheet.</summary>
 public interface ISheetTablesService
 {
-    /// <summary>Adds a table from the latest version of a template, with its header and starting sections, as a draft.</summary>
     Task<Sheet> AddAsync(int sheetId, AddSheetTableRequest request, CancellationToken cancellationToken);
 
     Task<Sheet> SetTitleAsync(int tableId, SetSheetTableTitleRequest request, CancellationToken cancellationToken);
 
     Task<Sheet> MoveAsync(int tableId, MoveRequest request, CancellationToken cancellationToken);
 
-    /// <summary>Removes a table. A table nobody has published is simply deleted.</summary>
     Task<Sheet> RemoveAsync(int tableId, CancellationToken cancellationToken);
 
-    /// <summary>Adds a copy of an addable section (with its rows and starting sub-sections) within the template's limits.</summary>
     Task<Sheet> AddSectionAsync(int tableId, AddSheetSectionRequest request, CancellationToken cancellationToken);
 }

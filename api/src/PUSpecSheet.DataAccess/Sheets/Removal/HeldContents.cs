@@ -1,17 +1,10 @@
 namespace PUSpecSheet.DataAccess.Sheets.Removal;
 
-/// <summary>
-/// Decides whether what people hold inside a section or table stops the current user removing it. Removing
-/// it would take their work with it, so anything held by someone else refuses, as does anything waiting for
-/// approval, including the current user's own. The current user's own open drafts go with it.
-/// </summary>
+// Decides whether what people hold inside a section or table stops the current user removing it. Removing it would
+// take their work with it, so anything held by someone else refuses, as does anything waiting for approval, including
+// the current user's own. The current user's own open drafts go with it.
 public static class HeldContents
 {
-    /// <summary>The refusal, naming who holds things inside, or null when nothing stops the removal.</summary>
-    /// <param name="subject">What is being removed, as said in the message, e.g. "this section".</param>
-    /// <param name="holds">Everything held inside it.</param>
-    /// <param name="me">The user removing it.</param>
-    /// <param name="names">Display names by user id.</param>
     public static string? RefusalFor(
         string subject,
         IEnumerable<ContainedHold> holds,

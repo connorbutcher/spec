@@ -9,13 +9,10 @@ using PUSpecSheet.Database.Models.Values;
 
 namespace PUSpecSheet.DataAccess.Sheets.Catalog;
 
-/// <summary>
-/// Starts a new sheet as a copy of another: the tables, column blocks, sections, rows and values the source
-/// has at its latest published version, built again on the new sheet as the current user's first drafts.
-/// So the copy is theirs to change, and reaches everyone else when it is approved, like any other change.
-/// Each table keeps the template version it was built from. A linked dropdown pointed at a table or row of
-/// the source is pointed at the copy of it.
-/// </summary>
+// Starts a new sheet as a copy of another: the tables, column blocks, sections, rows and values the source has at its
+// latest published version, built again on the new sheet as the current user's first drafts. So the copy is theirs to
+// change, and reaches everyone else when it is approved, like any other change. Each table keeps the template version
+// it was built from. A linked dropdown pointed at a table or row of the source is pointed at the copy of it.
 public sealed class SheetCopier
 {
     private readonly PuSpecSheetDbContext _db;
@@ -27,7 +24,6 @@ public sealed class SheetCopier
         _currentUser = currentUser;
     }
 
-    /// <summary>Copies the published content of one sheet onto another, empty, sheet. The caller holds the transaction.</summary>
     public async Task CopyAsync(int sourceSheetId, int targetSheetId, CancellationToken cancellationToken)
     {
         var map = new SheetCopyMap();
@@ -133,7 +129,8 @@ public sealed class SheetCopier
         map.Cells[cell.Id] = copy;
     }
 
-    /// <summary>Copies sections parents first, so each copy can be given its parent's; a section whose parent isn't copied isn't either.</summary>
+    // Copies sections parents first, so each copy can be given its parent's; a section whose parent isn't copied
+    // isn't either.
     private void CopySections(List<DbSheetSectionRevision> revisions, SheetCopyMap map, int targetSheetId, DateTime now)
     {
         var byParent = revisions.ToLookup(revision => revision.SheetSection.ParentSheetSectionId);
@@ -185,7 +182,6 @@ public sealed class SheetCopier
         }
     }
 
-    /// <summary>Copies the cell settings that point at nothing on the sheet, and returns the linked dropdowns' for later.</summary>
     private async Task<List<DbCellSettingsValue>> CopyPlainSettingsAsync(IQueryable<int> revisionIds, SheetCopyMap map, CancellationToken cancellationToken)
     {
         var source = await _db.CellSettings.AsNoTracking().Where(value => revisionIds.Contains(value.SheetRowRevisionId)).ToListAsync(cancellationToken);
@@ -205,7 +201,6 @@ public sealed class SheetCopier
         return linked;
     }
 
-    /// <summary>Adds a linked dropdown's settings pointed at the copies of what it read, or nothing when that wasn't copied.</summary>
     private void AddLinkedSettings(DbCellSettingsValue value, SheetCopyMap map)
     {
         var settings = (LinkedDropdownInstanceSettings)value.Settings;

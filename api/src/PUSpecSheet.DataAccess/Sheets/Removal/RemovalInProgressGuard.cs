@@ -1,24 +1,30 @@
 using PUSpecSheet.DataAccess.Common;
-using PUSpecSheet.DataAccess.Sheets.Queries;
 using PUSpecSheet.DataAccess.Users;
-using PUSpecSheet.Database;
 
 namespace PUSpecSheet.DataAccess.Sheets.Removal;
 
 public sealed class RemovalInProgressGuard : IRemovalInProgressGuard
 {
-    private readonly PuSpecSheetDbContext _db;
     private readonly IUserDataService _userData;
+    private readonly ISheetTableDataService _sheetTableData;
+    private readonly ISheetSectionDataService _sheetSectionData;
+    private readonly ISheetRowDataService _sheetRowData;
 
-    public RemovalInProgressGuard(PuSpecSheetDbContext db, IUserDataService userData)
+    public RemovalInProgressGuard(
+        IUserDataService userData,
+        ISheetTableDataService sheetTableData,
+        ISheetSectionDataService sheetSectionData,
+        ISheetRowDataService sheetRowData)
     {
-        _db = db;
         _userData = userData;
+        _sheetTableData = sheetTableData;
+        _sheetSectionData = sheetSectionData;
+        _sheetRowData = sheetRowData;
     }
 
     public async Task EnsureRowNotBeingRemovedAsync(int rowId, int userId, CancellationToken cancellationToken)
     {
-        var place = await SheetRowQueries.FindPlaceAsync(_db, rowId, cancellationToken);
+        var place = await _sheetRowData.FindPlaceAsync(rowId, cancellationToken);
         if (place is null)
         {
             return;
@@ -29,7 +35,7 @@ public sealed class RemovalInProgressGuard : IRemovalInProgressGuard
 
     public async Task EnsurePlaceNotBeingRemovedAsync(int tableId, int? sectionId, int userId, CancellationToken cancellationToken)
     {
-        var removals = await SheetTableRevisionQueries.ListPendingRemovalsAsync(_db, tableId, cancellationToken);
+        var removals = await _sheetTableData.ListPendingRemovalsAsync(tableId, cancellationToken);
         if (sectionId is { } id)
         {
             removals.AddRange(await SectionRemovalsAroundAsync(tableId, id, cancellationToken));
@@ -45,19 +51,15 @@ public sealed class RemovalInProgressGuard : IRemovalInProgressGuard
     }
 
 
-    /// <summary>
-    /// Removals of the section or any section it sits in. Removals anywhere on the table are read first, as
-    /// there are rarely any, and the section's ancestry only when there are.
-    /// </summary>
     private async Task<List<PendingRemoval>> SectionRemovalsAroundAsync(int tableId, int sectionId, CancellationToken cancellationToken)
     {
-        var onTable = await SheetSectionRevisionQueries.ListPendingRemovalsOnTableAsync(_db, tableId, cancellationToken);
+        var onTable = await _sheetSectionData.ListPendingRemovalsOnTableAsync(tableId, cancellationToken);
         if (onTable.Count == 0)
         {
             return [];
         }
 
-        var parentOf = await SheetSectionQueries.GetParentsOnTableAsync(_db, tableId, cancellationToken);
+        var parentOf = await _sheetSectionData.GetParentsOnTableAsync(tableId, cancellationToken);
         var around = new HashSet<int>();
         int? next = sectionId;
         while (next is { } current && around.Add(current))

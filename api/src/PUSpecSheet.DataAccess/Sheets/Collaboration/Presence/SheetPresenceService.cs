@@ -2,43 +2,41 @@ using PUSpecSheet.Abstractions.Sheets.Collaboration;
 using PUSpecSheet.DataAccess.Common;
 using PUSpecSheet.DataAccess.Sheets.Collaboration.Checkouts;
 using PUSpecSheet.DataAccess.Sheets.Collaboration.Takeovers;
-using PUSpecSheet.DataAccess.Sheets.Queries;
 using PUSpecSheet.DataAccess.Users;
-using PUSpecSheet.Database;
 
 namespace PUSpecSheet.DataAccess.Sheets.Collaboration.Presence;
 
 public sealed class SheetPresenceService : ISheetPresenceService
 {
-    private readonly PuSpecSheetDbContext _db;
     private readonly SheetPresenceTracker _tracker;
     private readonly RowTakeoverStore _takeovers;
     private readonly LiveRowCheckoutTracker _checkouts;
     private readonly ILiveRowCheckoutService _rowCheckouts;
     private readonly ISheetLiveNotifier _notifier;
     private readonly IUserDataService _userData;
+    private readonly ISheetDataService _sheetData;
 
     public SheetPresenceService(
-        PuSpecSheetDbContext db,
         SheetPresenceTracker tracker,
         RowTakeoverStore takeovers,
         LiveRowCheckoutTracker checkouts,
         ILiveRowCheckoutService rowCheckouts,
         ISheetLiveNotifier notifier,
-        IUserDataService userData)
+        IUserDataService userData,
+        ISheetDataService sheetData)
     {
-        _db = db;
         _tracker = tracker;
         _takeovers = takeovers;
         _checkouts = checkouts;
         _rowCheckouts = rowCheckouts;
         _notifier = notifier;
         _userData = userData;
+        _sheetData = sheetData;
     }
 
     public async Task<SheetLiveState> JoinAsync(string connectionId, int sheetId, int userId, CancellationToken cancellationToken)
     {
-        if (!await SheetQueries.ExistsAsync(_db, sheetId, cancellationToken))
+        if (!await _sheetData.ExistsAsync(sheetId, cancellationToken))
         {
             throw new NotFoundException($"Sheet {sheetId} was not found.");
         }

@@ -4,7 +4,6 @@ using PUSpecSheet.Abstractions.Templates;
 using PUSpecSheet.DataAccess.Common;
 using PUSpecSheet.DataAccess.Sheets.Drafts;
 using PUSpecSheet.DataAccess.Sheets.Layout;
-using PUSpecSheet.DataAccess.Sheets.Queries;
 using PUSpecSheet.DataAccess.Sheets.Reading;
 using PUSpecSheet.DataAccess.Sheets.Removal;
 using PUSpecSheet.DataAccess.Sheets.Values;
@@ -30,6 +29,8 @@ public sealed class SheetSectionsService : ISheetSectionsService
     private readonly ICurrentUser _currentUser;
     private readonly ITemplateSectionDataService _templateSectionData;
     private readonly ITemplateColumnBlockDataService _templateColumnBlockData;
+    private readonly ISheetTableDataService _sheetTableData;
+    private readonly ISheetSectionDataService _sheetSectionData;
 
     public SheetSectionsService(
         PuSpecSheetDbContext db,
@@ -43,7 +44,9 @@ public sealed class SheetSectionsService : ISheetSectionsService
         IRemovalInProgressGuard removals,
         ICurrentUser currentUser,
         ITemplateSectionDataService templateSectionData,
-        ITemplateColumnBlockDataService templateColumnBlockData)
+        ITemplateColumnBlockDataService templateColumnBlockData,
+        ISheetTableDataService sheetTableData,
+        ISheetSectionDataService sheetSectionData)
     {
         _db = db;
         _drafts = drafts;
@@ -57,11 +60,13 @@ public sealed class SheetSectionsService : ISheetSectionsService
         _currentUser = currentUser;
         _templateSectionData = templateSectionData;
         _templateColumnBlockData = templateColumnBlockData;
+        _sheetTableData = sheetTableData;
+        _sheetSectionData = sheetSectionData;
     }
 
     public async Task<Sheet> AddAsync(int tableId, AddSheetSectionRequest request, CancellationToken cancellationToken)
     {
-        var table = await SheetTableQueries.FindForEditAsync(_db, tableId, cancellationToken)
+        var table = await _sheetTableData.FindForEditAsync(tableId, cancellationToken)
             ?? throw new NotFoundException($"Table {tableId} was not found.");
 
         var tree = new TemplateTree(
@@ -110,7 +115,7 @@ public sealed class SheetSectionsService : ISheetSectionsService
         await _db.SaveSheetChangesAsync(cancellationToken);
         await _drafts.ReleaseIfUnchangedAsync(sectionId, cancellationToken);
         await _drafts.ReleaseRestoredOrderAsync(
-            await SheetSectionQueries.ListSiblingIdsAsync(_db, section.SheetTableId, section.ParentSheetSectionId, cancellationToken),
+            await _sheetSectionData.ListSiblingIdsAsync(section.SheetTableId, section.ParentSheetSectionId, cancellationToken),
             cancellationToken);
         return await _reader.ReadLiveAsync(section.SheetTable.SheetId, cancellationToken);
     }
@@ -157,24 +162,22 @@ public sealed class SheetSectionsService : ISheetSectionsService
 
     private async Task<DbSheetSection> LoadSectionAsync(int sectionId, CancellationToken cancellationToken)
     {
-        return await SheetSectionQueries.FindWithTemplateAndTableAsync(_db, sectionId, cancellationToken)
+        return await _sheetSectionData.FindWithTemplateAndTableAsync(sectionId, cancellationToken)
             ?? throw new NotFoundException($"Section {sectionId} was not found.");
     }
 
-    /// <summary>
-    /// Deletes a section only its author ever saw, along with its sub-sections. A section can't cascade
-    /// to its own children in SQL Server, so they're deleted deepest first.
-    /// </summary>
+    // Deletes a section only its author ever saw, along with its sub-sections. A section can't cascade to its own
+    // children in SQL Server, so they're deleted deepest first.
     private async Task DeleteSubtreeAsync(DbSheetSection section, CancellationToken cancellationToken)
     {
         var ids = await _liveSections.SubtreeIdsAsync(section.SheetTableId, section.Id, cancellationToken);
-        var remaining = await SheetSectionQueries.GetParentsAsync(_db, ids, cancellationToken);
+        var remaining = await _sheetSectionData.GetParentsAsync(ids, cancellationToken);
         while (remaining.Count > 0)
         {
             var leaves = remaining.Keys
                 .Where(id => !remaining.ContainsValue(id))
                 .ToList();
-            await SheetSectionQueries.DeleteAsync(_db, leaves, cancellationToken);
+            await _sheetSectionData.DeleteAsync(leaves, cancellationToken);
             foreach (var leaf in leaves)
             {
                 remaining.Remove(leaf);
@@ -182,12 +185,11 @@ public sealed class SheetSectionsService : ISheetSectionsService
         }
     }
 
-    /// <summary>A section goes under a copy of its template's parent, or at the top level when it has none.</summary>
     private async Task EnsureParentFitsAsync(int tableId, DbTemplateSection template, int? parentSheetSectionId, CancellationToken cancellationToken)
     {
         if (parentSheetSectionId is { } parentId)
         {
-            var parent = await SheetSectionQueries.FindOnTableAsync(_db, parentId, tableId, cancellationToken)
+            var parent = await _sheetSectionData.FindOnTableAsync(parentId, tableId, cancellationToken)
                 ?? throw new InvalidRequestException("That parent section isn't on this table.");
             if (parent.TemplateSectionId != template.ParentSectionId)
             {
@@ -200,7 +202,6 @@ public sealed class SheetSectionsService : ISheetSectionsService
         }
     }
 
-    /// <summary>The display order for a new copy after its siblings, refused once the template's maximum is reached.</summary>
     private async Task<int> NextOrderWithinLimitAsync(int tableId, DbTemplateSection template, int? parentSheetSectionId, CancellationToken cancellationToken)
     {
         var siblings = (await _liveSections.VisibleAsync(tableId, cancellationToken))

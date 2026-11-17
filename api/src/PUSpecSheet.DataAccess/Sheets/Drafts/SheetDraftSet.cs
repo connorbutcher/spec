@@ -2,7 +2,6 @@ using PUSpecSheet.Database.Models.Sheets;
 
 namespace PUSpecSheet.DataAccess.Sheets.Drafts;
 
-/// <summary>The drafts of every kind that one publish or submission takes from a sheet, tracked.</summary>
 public sealed record SheetDraftSet
 {
     public required IReadOnlyList<DbSheetTableRevision> Tables { get; init; }

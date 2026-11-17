@@ -12,11 +12,6 @@ using PUSpecSheet.Database.Models.Sheets;
 
 namespace PUSpecSheet.DataAccess.Sheets.Reading;
 
-/// <summary>
-/// Turns a loaded sheet into the tree the screen shows: tables, their section copies (own rows first,
-/// then sub-sections) and each row's cells with values. Anything whose latest shown revision removes it,
-/// or sits inside something removed, is left out; so is anything only another person has drafted.
-/// </summary>
 internal sealed class SheetViewBuilder
 {
     private readonly SheetSnapshot _snapshot;
@@ -31,7 +26,6 @@ internal sealed class SheetViewBuilder
     private readonly Dictionary<int, int> _columnBlockOrder;
     private List<SheetLinkableRow> _linkableRows = [];
 
-    /// <summary>The template cells the sheet's cells were built from, each sent once, by id.</summary>
     private readonly Dictionary<int, TemplateCell> _templateCells = [];
 
     public SheetViewBuilder(SheetSnapshot snapshot, int currentUserId)
@@ -168,7 +162,6 @@ internal sealed class SheetViewBuilder
         };
     }
 
-    /// <summary>The columns of a template version that can be linked to, worked out once per version.</summary>
     private List<SheetLinkableColumn> LinkableColumnsOf(int versionId)
     {
         if (!_linkableColumnsByVersion.TryGetValue(versionId, out var columns))
@@ -279,7 +272,6 @@ internal sealed class SheetViewBuilder
         };
     }
 
-    /// <summary>Adds a visible cell's value to the choices of its column, when a linked dropdown is pointed at it.</summary>
     private void OfferToLinkedDropdowns(int tableId, DbSheetCell cell, CellValueBag? value)
     {
         if (_linkedOptions.Wants(tableId, cell.TemplateCellId)
@@ -290,11 +282,6 @@ internal sealed class SheetViewBuilder
         }
     }
 
-    /// <summary>
-    /// Lists a visible row among the rows that can be linked to, under its name, and when a linked dropdown
-    /// is pointed at it adds its other values to that dropdown's choices. The values are read left to right:
-    /// the row's own cells, then each set of repeated columns.
-    /// </summary>
     private void OfferRowToLinkedDropdowns(int tableId, DbSheetRow row, List<DbSheetCell> cells, Dictionary<int, CellValueBag>? values)
     {
         var texts = cells
@@ -357,7 +344,6 @@ internal sealed class SheetViewBuilder
             .ToList();
     }
 
-    /// <summary>The kinds of column block the table can still take, with their current counts.</summary>
     private List<AddableColumnBlock> AddableColumnBlocksFor(int versionId, IReadOnlyList<SheetColumnBlock> existing)
     {
         return _snapshot.TemplateColumnBlocks
@@ -380,7 +366,6 @@ internal sealed class SheetViewBuilder
             .ToList();
     }
 
-    /// <summary>The kinds of section that can be added under a parent (or the table), with their current counts.</summary>
     private List<AddableSection> AddableSectionsUnder(int versionId, int? parentTemplateSectionId, IReadOnlyList<DbSheetSection> existingCopies)
     {
         return _snapshot.TemplateSections
@@ -405,7 +390,7 @@ internal sealed class SheetViewBuilder
             .ToList();
     }
 
-    /// <summary>When and by whom an item last changed, or null if it never has.</summary>
+    // When and by whom an item last changed, or null if it never has.
     private SheetChange? ChangeOf(Dictionary<int, SheetChangeRecord> changes, int itemId)
     {
         if (!changes.TryGetValue(itemId, out var change))
@@ -438,20 +423,14 @@ internal sealed class SheetViewBuilder
         };
     }
 
-    /// <summary>
-    /// Whether the item has never been published, so only its author sees it. An item's first revision
-    /// is number 1, so a draft with that number is the item's very first.
-    /// </summary>
+    // Whether the item has never been published, so only its author sees it. An item's first revision is number 1, so
+    // a draft with that number is the item's very first.
     private static bool IsPending<TRevision>(RevisionResolution<TRevision> resolution)
         where TRevision : class, IDbSheetRevision
     {
         return resolution.Shown is { Status: RevisionStatus.Draft, RevisionNumber: 1 };
     }
 
-    /// <summary>
-    /// Every draft on the sheet that can still be published, whoever holds it. A past view has none, and drafts
-    /// already waiting for approval belong to their submission.
-    /// </summary>
     private IEnumerable<IDbSheetRevision> Drafts()
     {
         return _snapshot.TableRevisions.Values.Select(resolution => (IDbSheetRevision?)resolution.Draft)

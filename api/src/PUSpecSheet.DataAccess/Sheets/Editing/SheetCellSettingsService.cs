@@ -5,7 +5,6 @@ using PUSpecSheet.Abstractions.Sheets;
 using PUSpecSheet.DataAccess.CellTypes;
 using PUSpecSheet.DataAccess.Common;
 using PUSpecSheet.DataAccess.Sheets.Drafts;
-using PUSpecSheet.DataAccess.Sheets.Queries;
 using PUSpecSheet.DataAccess.Sheets.Reading;
 using PUSpecSheet.DataAccess.Sheets.Values;
 using PUSpecSheet.Database;
@@ -19,17 +18,23 @@ public sealed class SheetCellSettingsService : ISheetCellSettingsService
     private readonly RowDrafts _drafts;
     private readonly RowDraftStarter _draftStarter;
     private readonly SheetReader _reader;
+    private readonly ISheetRowDataService _sheetRowData;
+    private readonly ICellValueDataService _cellValueData;
 
     public SheetCellSettingsService(
         PuSpecSheetDbContext db,
         RowDrafts drafts,
         RowDraftStarter draftStarter,
-        SheetReader reader)
+        SheetReader reader,
+        ISheetRowDataService sheetRowData,
+        ICellValueDataService cellValueData)
     {
         _db = db;
         _drafts = drafts;
         _draftStarter = draftStarter;
         _reader = reader;
+        _sheetRowData = sheetRowData;
+        _cellValueData = cellValueData;
     }
 
     public async Task<Sheet> SaveAsync(int rowId, SaveRowCellSettingsRequest request, CancellationToken cancellationToken)
@@ -81,22 +86,21 @@ public sealed class SheetCellSettingsService : ISheetCellSettingsService
 
     private async Task<DbSheetRow> LoadRowAsync(int rowId, CancellationToken cancellationToken)
     {
-        return await SheetRowQueries.FindWithCellTypesAsync(_db, rowId, withOptions: false, cancellationToken)
+        return await _sheetRowData.FindWithCellTypesAsync(rowId, withOptions: false, cancellationToken)
             ?? throw new NotFoundException($"Row {rowId} was not found.");
     }
 
-    /// <summary>Saves the settings that differ from the draft's, and clears the values chosen under the old ones.</summary>
     private async Task SaveChangedAsync(
         int draftId,
         Dictionary<int, CellInstanceSettings?> wanted,
         Dictionary<int, DbSheetCell> cellsById,
         CancellationToken cancellationToken)
     {
-        var held = await RowValueQueries.LoadAsync(_db, draftId, cancellationToken);
+        var held = await _cellValueData.LoadAsync(draftId, cancellationToken);
         var changed = wanted
             .Where(entry => held.GetValueOrDefault(entry.Key)?.Settings != entry.Value)
             .ToDictionary(entry => entry.Key, entry => entry.Value);
-        await RowValueQueries.SetSettingsAsync(_db, draftId, changed, cancellationToken);
+        await _cellValueData.SetSettingsAsync(draftId, changed, cancellationToken);
 
         // A labelled text cell keeps the values of the slots it still has; any other cell starts again.
         foreach (var (cellId, settings) in changed)
@@ -105,7 +109,7 @@ public sealed class SheetCellSettingsService : ISheetCellSettingsService
             if (templateCell.CellType.Kind == CellKind.LabelledText)
             {
                 var slots = LabelledTextSlots.Effective(CellSettingsResolver.ResolveConfiguration(templateCell), settings);
-                await RowValueQueries.ArrangeSlotsAsync(_db, draftId, cellId, slots, cancellationToken);
+                await _cellValueData.ArrangeSlotsAsync(draftId, cellId, slots, cancellationToken);
             }
         }
 
@@ -118,6 +122,6 @@ public sealed class SheetCellSettingsService : ISheetCellSettingsService
                 Value = new CellValueBag(),
             })
             .ToList();
-        await RowValueQueries.SetManyAsync(_db, draftId, cleared, cancellationToken);
+        await _cellValueData.SetManyAsync(draftId, cleared, cancellationToken);
     }
 }

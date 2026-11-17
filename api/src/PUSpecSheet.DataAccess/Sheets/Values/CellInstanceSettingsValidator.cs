@@ -7,16 +7,8 @@ using PUSpecSheet.DataAccess.Sheets.Linking;
 
 namespace PUSpecSheet.DataAccess.Sheets.Values;
 
-/// <summary>
-/// Checks the settings chosen on a sheet for one cell against the cell's kind and the sheet they are for.
-/// Each kind of settings has its own check here; a kind with nothing to check needs none.
-/// </summary>
 internal static class CellInstanceSettingsValidator
 {
-    /// <param name="name">What to call the cell in a message.</param>
-    /// <param name="kind">The cell's kind.</param>
-    /// <param name="settings">The settings to check. Null, or nothing set, clears them and is always allowed.</param>
-    /// <param name="sheet">The sheet as the user sees it.</param>
     public static void Validate(string name, CellKind kind, CellInstanceSettings? settings, Sheet sheet)
     {
         if (!kind.HasInstanceSettings())

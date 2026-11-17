@@ -2,14 +2,11 @@ using PUSpecSheet.DataAccess.Sheets.Revisions;
 
 namespace PUSpecSheet.DataAccess.Sheets.Values;
 
-/// <summary>
-/// Compares the cell values of two row revisions the way a person would: a cell with no value, an empty text
-/// and an unticked box are all "nothing", text ignores surrounding spaces, and numbers are equal when their
-/// values are, however they were written. The settings chosen for a cell on the sheet count too.
-/// </summary>
+// Compares the cell values of two row revisions the way a person would: a cell with no value, an empty text and an
+// unticked box are all "nothing", text ignores surrounding spaces, and numbers are equal when their values are,
+// however they were written. The settings chosen for a cell on the sheet count too.
 public static class CellValuesComparer
 {
-    /// <summary>Whether two sets of values, each by sheet cell id, hold the same thing in every cell.</summary>
     public static bool Same(
         IReadOnlyDictionary<int, CellValueBag>? left,
         IReadOnlyDictionary<int, CellValueBag>? right)

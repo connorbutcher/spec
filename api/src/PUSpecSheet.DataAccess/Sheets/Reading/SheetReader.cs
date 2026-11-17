@@ -3,7 +3,6 @@ using PUSpecSheet.DataAccess.Users;
 
 namespace PUSpecSheet.DataAccess.Sheets.Reading;
 
-/// <summary>Reads a sheet as the current user sees it. Every sheet change returns the refreshed live view.</summary>
 public sealed class SheetReader
 {
     private readonly SheetSnapshotLoader _loader;

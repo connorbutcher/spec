@@ -3,13 +3,10 @@ using PUSpecSheet.Abstractions.Sheets;
 
 namespace PUSpecSheet.DataAccess.Sheets.Linking;
 
-/// <summary>
-/// Questions about linked dropdowns asked of a sheet as its viewer sees it, so a save is checked against
-/// exactly the tables, columns, rows and choices the screen offered.
-/// </summary>
+// Questions about linked dropdowns asked of a sheet as its viewer sees it, so a save is checked against exactly the
+// tables, columns, rows and choices the screen offered.
 internal static class SheetLinks
 {
-    /// <summary>Whether the table, and the column or row of it, are on the sheet and can be linked to.</summary>
     public static bool SourceExists(Sheet sheet, LinkedDropdownInstanceSettings settings)
     {
         var table = sheet.Tables.FirstOrDefault(candidate => candidate.Id == settings.SourceSheetTableId);
@@ -23,7 +20,6 @@ internal static class SheetLinks
             : table.LinkableColumns.Any(column => column.TemplateCellId == settings.SourceTemplateCellId);
     }
 
-    /// <summary>The choices the settings give, or null when what they point at isn't on the sheet.</summary>
     public static IReadOnlyList<string>? OptionsOf(Sheet sheet, LinkedDropdownInstanceSettings? settings)
     {
         if (settings is null || !SourceExists(sheet, settings))
@@ -38,7 +34,6 @@ internal static class SheetLinks
             ?.Options ?? [];
     }
 
-    /// <summary>The cell with the given id, wherever it is on the sheet.</summary>
     public static SheetCell? FindCell(Sheet sheet, int sheetCellId)
     {
         return sheet.Tables

@@ -1,6 +1,5 @@
 namespace PUSpecSheet.DataAccess.Sheets.History;
 
-/// <summary>The published version in which something on a sheet last changed, when, and who published it.</summary>
 public sealed record SheetChangeRecord
 {
     public required int VersionNumber { get; init; }

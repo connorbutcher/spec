@@ -5,25 +5,22 @@ using PUSpecSheet.Database;
 
 namespace PUSpecSheet.DataAccess.Sheets.History;
 
-/// <summary>
-/// Reads what <see cref="SheetChangeHistoryCalculator"/> needs: every published revision of the sheet's
-/// rows, sections and column blocks up to the moment viewed, and the values of those row revisions.
-/// </summary>
-/// <remarks>
-/// Revisions are only published with a version, so what was published up to a moment is what was
-/// published up to the last version at or before it, and the live view sees everything up to the newest
-/// version. A history is therefore kept by sheet and version (see <see cref="SheetChangeHistoryCache"/>),
-/// and every view that lands on the same version, live, by number or by date, shares it.
-/// </remarks>
+// Reads what SheetChangeHistoryCalculator needs: every published revision of the sheet's rows, sections and column
+// blocks up to the moment viewed, and the values of those row revisions. Revisions are only published with a version,
+// so what was published up to a moment is what was published up to the last version at or before it, and the live
+// view sees everything up to the newest version. A history is therefore kept by sheet and version (see
+// SheetChangeHistoryCache), and every view that lands on the same version, live, by number or by date, shares it.
 public sealed class SheetChangeHistoryLoader
 {
     private readonly PuSpecSheetDbContext _db;
     private readonly SheetChangeHistoryCache _cache;
+    private readonly ICellValueDataService _cellValueData;
 
-    public SheetChangeHistoryLoader(PuSpecSheetDbContext db, SheetChangeHistoryCache cache)
+    public SheetChangeHistoryLoader(PuSpecSheetDbContext db, SheetChangeHistoryCache cache, ICellValueDataService cellValueData)
     {
         _db = db;
         _cache = cache;
+        _cellValueData = cellValueData;
     }
 
     public async Task<SheetChangeHistory> LoadAsync(
@@ -64,7 +61,7 @@ public sealed class SheetChangeHistoryLoader
         var rowRevisions = await _db.SheetRowRevisions.ListPublishedUpToAsync(sheetId, moment, cancellationToken);
         var sectionRevisions = await _db.SheetSectionRevisions.ListPublishedUpToAsync(sheetId, moment, cancellationToken);
         var columnBlockRevisions = await _db.SheetColumnBlockRevisions.ListPublishedUpToAsync(sheetId, moment, cancellationToken);
-        var publishedValues = await RowValueQueries.LoadPublishedUpToAsync(_db, sheetId, moment, cancellationToken);
+        var publishedValues = await _cellValueData.LoadPublishedUpToAsync(sheetId, moment, cancellationToken);
 
         return SheetChangeHistoryCalculator.Calculate(
             rowRevisions,

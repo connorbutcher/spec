@@ -6,15 +6,8 @@ using PUSpecSheet.Database.Models.Templates;
 
 namespace PUSpecSheet.DataAccess.Sheets.Linking;
 
-/// <summary>
-/// Works out which columns of a table a linked dropdown can take its choices from, and what to call each:
-/// the cell's caption, else its lookup key, else the heading above it, else its cell type.
-/// </summary>
 internal static class LinkableColumns
 {
-    /// <param name="sections">The sections of one template version.</param>
-    /// <param name="rows">The rows of those sections, with their cells.</param>
-    /// <param name="cellTypes">Every cell type, by id.</param>
     public static List<SheetLinkableColumn> For(
         IReadOnlyCollection<DbTemplateSection> sections,
         IReadOnlyCollection<DbTemplateRow> rows,
@@ -62,7 +55,6 @@ internal static class LinkableColumns
             .ToList();
     }
 
-    /// <summary>The header's heading text over each column, by column block and column.</summary>
     private static Dictionary<(int? BlockId, int Column), string> Headings(
         List<DbTemplateRow> rows,
         Dictionary<int, DbTemplateSection> sectionsById,

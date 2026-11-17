@@ -6,7 +6,6 @@ using PUSpecSheet.Database.Models.Sheets;
 
 namespace PUSpecSheet.DataAccess.Sheets.Drafts;
 
-/// <summary>Draft handling for sheet tables. A new draft also carries over the table's title.</summary>
 public sealed class TableDrafts : DraftGateway<DbSheetTableRevision>
 {
     public TableDrafts(PuSpecSheetDbContext db, ICurrentUser currentUser, IUserDataService userData)
@@ -38,7 +37,6 @@ public sealed class TableDrafts : DraftGateway<DbSheetTableRevision>
         revision.SheetTableId = itemId;
     }
 
-    /// <summary>A table is unchanged when its place, existence and title are.</summary>
     protected override Task<HashSet<DbSheetTableRevision>> UnchangedAsync(
         IReadOnlyList<(DbSheetTableRevision Draft, DbSheetTableRevision Current)> pairs,
         CancellationToken cancellationToken)

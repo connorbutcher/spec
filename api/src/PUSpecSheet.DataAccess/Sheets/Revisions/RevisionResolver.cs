@@ -5,10 +5,8 @@ namespace PUSpecSheet.DataAccess.Sheets.Revisions;
 
 public static class RevisionResolver
 {
-    /// <summary>
-    /// Works out what each item shows for <paramref name="currentUserId"/>, from its current published
-    /// revision and any drafts. For a past view only published revisions are passed in, so nothing is locked.
-    /// </summary>
+    // Works out what each item shows for currentUserId, from its current published revision and any drafts. For a
+    // past view only published revisions are passed in, so nothing is locked.
     public static Dictionary<int, RevisionResolution<TRevision>> Resolve<TRevision>(
         IEnumerable<TRevision> revisions,
         Func<TRevision, int> itemId,
@@ -18,10 +16,8 @@ public static class RevisionResolver
         return Resolve(revisions, itemId, draft => draft.AuthorUserId == currentUserId);
     }
 
-    /// <summary>
-    /// Works out what each item shows, from its current published revision and any draft: the draft when
-    /// <paramref name="showsDraft"/> says so, otherwise the published revision.
-    /// </summary>
+    // Works out what each item shows, from its current published revision and any draft: the draft when showsDraft
+    // says so, otherwise the published revision.
     public static Dictionary<int, RevisionResolution<TRevision>> Resolve<TRevision>(
         IEnumerable<TRevision> revisions,
         Func<TRevision, int> itemId,
@@ -40,7 +36,6 @@ public static class RevisionResolver
         return result;
     }
 
-    /// <summary>Whether the resolution has something to show that isn't a removal.</summary>
     public static bool IsVisible<TRevision>(RevisionResolution<TRevision>? resolution)
         where TRevision : class, IDbSheetRevision
     {

@@ -1,32 +1,25 @@
-using PUSpecSheet.DataAccess.Sheets.Queries;
 using PUSpecSheet.DataAccess.Sheets.Revisions;
 using PUSpecSheet.DataAccess.Users;
-using PUSpecSheet.Database;
 
 namespace PUSpecSheet.DataAccess.Sheets.Layout;
 
-/// <summary>Answers questions about a table's sections as the current user sees them.</summary>
 public sealed class LiveSectionQuery
 {
-    private readonly PuSpecSheetDbContext _db;
     private readonly ICurrentUser _currentUser;
+    private readonly ISheetSectionDataService _sheetSectionData;
 
-    public LiveSectionQuery(PuSpecSheetDbContext db, ICurrentUser currentUser)
+    public LiveSectionQuery(ICurrentUser currentUser, ISheetSectionDataService sheetSectionData)
     {
-        _db = db;
         _currentUser = currentUser;
+        _sheetSectionData = sheetSectionData;
     }
 
-    /// <summary>
-    /// The table's section copies that exist for the user: published and not removed, or drafted by them,
-    /// and not inside a removed section. Other people's unpublished drafts don't count.
-    /// </summary>
     public async Task<IReadOnlyList<LiveSection>> VisibleAsync(int tableId, CancellationToken cancellationToken)
     {
         var me = _currentUser.UserId;
-        var sections = await SheetSectionQueries.ListPlacesOnTableAsync(_db, tableId, cancellationToken);
+        var sections = await _sheetSectionData.ListPlacesOnTableAsync(tableId, cancellationToken);
 
-        var visible = await SheetSectionRevisionQueries.ListVisibleOnTableAsync(_db, tableId, me, cancellationToken);
+        var visible = await _sheetSectionData.ListVisibleOnTableAsync(tableId, me, cancellationToken);
         var resolved = RevisionResolver.Resolve(visible, revision => revision.SheetSectionId, me);
 
         var own = sections
@@ -53,10 +46,9 @@ public sealed class LiveSectionQuery
         return result;
     }
 
-    /// <summary>The ids of a section and everything inside it, whether or not anyone can currently see them.</summary>
     public async Task<IReadOnlyCollection<int>> SubtreeIdsAsync(int tableId, int rootSectionId, CancellationToken cancellationToken)
     {
-        var parents = await SheetSectionQueries.GetParentsOnTableAsync(_db, tableId, cancellationToken);
+        var parents = await _sheetSectionData.GetParentsOnTableAsync(tableId, cancellationToken);
 
         var ids = new HashSet<int> { rootSectionId };
         var added = true;
