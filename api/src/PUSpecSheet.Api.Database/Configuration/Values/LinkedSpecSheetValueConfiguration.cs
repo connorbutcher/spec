@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using PUSpecSheet.Api.Database.Schema.Types;
 using PUSpecSheet.Api.Database.Schema.Values;
 
 namespace PUSpecSheet.Api.Database.Configuration.Values;
@@ -33,5 +34,13 @@ internal class LinkedSpecSheetValueConfiguration : IEntityTypeConfiguration<DbLi
 
         builder.Property(x => x.LinkedReferenceId)
             .HasColumnType("uniqueidentifier");
+
+        builder.HasOne<DbSpecSheetType>()
+            .WithMany()
+            .HasForeignKey(x => x.LinkedSpecSheetTypeId);
+
+        builder.HasOne<DbSpecSheetPhase>()
+            .WithMany()
+            .HasForeignKey(x => x.LinkedSpecSheetPhaseId);
     }
 }

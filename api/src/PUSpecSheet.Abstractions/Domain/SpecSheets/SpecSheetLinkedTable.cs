@@ -8,8 +8,6 @@ public record SpecSheetLinkedTable
 
     public required int SpecSheetId { get; init; }
 
-    public required int SpecSheetTableId { get; init; }
-
     public required int DisplayOrder { get; set; }
 
     public required Guid TableReferenceId { get; init; }

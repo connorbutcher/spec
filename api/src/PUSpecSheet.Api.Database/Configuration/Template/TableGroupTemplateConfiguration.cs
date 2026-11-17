@@ -43,5 +43,9 @@ internal class TableGroupTemplateConfiguration : IEntityTypeConfiguration<DbTabl
         builder.HasMany(x => x.TableGroupTemplateWidgets)
             .WithOne()
             .HasForeignKey(x => x.TableGroupTemplateId);
+
+        builder.HasOne<DbTableGroupTemplate>()
+            .WithMany()
+            .HasForeignKey(x => x.ParentTableGroupTemplateId);
     }
 }

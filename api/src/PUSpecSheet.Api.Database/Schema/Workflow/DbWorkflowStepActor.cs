@@ -9,7 +9,7 @@ public record DbWorkflowStepActor
 
     public required int WorkflowStepId { get; init; }
 
-    public required int ActorUserId { get; init; }
+    public required int? ActorUserId { get; init; }
 
     public required WorkflowState State { get; set; }
 

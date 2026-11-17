@@ -27,5 +27,22 @@ internal record SpecSheetExternalReferenceConfiguration : IEntityTypeConfigurati
         builder.Property(x => x.ReferenceId)
             .HasColumnName("ReferenceID")
             .HasColumnType("uniqueidentifier");
+
+        builder.Property(x => x.SystemName)
+            .HasColumnType("varchar(256)");
+
+        builder.Property(x => x.OwnerName)
+            .HasColumnType("varchar(256)");
+
+        builder.Property(x => x.Url)
+            .HasColumnName("URL")
+            .HasColumnType("nvarchar(max)");
+
+        builder.Property(x => x.Type)
+            .HasColumnType("varchar(32)");
+
+        builder.Property(x => x.SystemIconUrl)
+            .HasColumnName("SystemIconURL")
+            .HasColumnType("nvarchar(max)");
     }
 }

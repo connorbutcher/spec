@@ -27,19 +27,19 @@ public class SpecSheetTypePropertyConfiguration : IEntityTypeConfiguration<DbSpe
             .HasColumnName("ReferenceID");
 
         builder.Property(x => x.ValueName)
-            .HasMaxLength(256);
+            .HasColumnType("varchar(256)");
 
         builder.Property(x => x.ValueKey)
-            .HasMaxLength(256);
+            .HasColumnType("varchar(256)");
 
         builder.Property(x => x.ValueType)
-            .HasMaxLength(64);
+            .HasColumnType("varchar(64)");
 
         builder.Property(x => x.ValueControlType)
-            .HasMaxLength(64);
+            .HasColumnType("varchar(64)");
 
         builder.Property(x => x.PlaceholderText)
-            .HasMaxLength(512);
+            .HasColumnType("varchar(512)");
 
         builder.Property(x => x.DisplayOrder)
             .HasColumnType("smallint");

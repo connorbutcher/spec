@@ -62,6 +62,8 @@ public class PUSpecSheetDbContext : DbContext
 
     public required DbSet<DbSpecSheetTableNote> SpecSheetTableNotes { get; set; }
 
+    public required DbSet<DbSpecSheetLinkedTable> SpecSheetLinkedTables { get; set; }
+
     #endregion Dbo
 
     #region Template
@@ -157,6 +159,7 @@ public class PUSpecSheetDbContext : DbContext
         modelBuilder.ApplyConfiguration(new SpecSheetTableCellConfiguration());
         modelBuilder.ApplyConfiguration(new SpecSheetPropertyValueConfiguration());
         modelBuilder.ApplyConfiguration(new SpecSheetTableNoteConfiguration());
+        modelBuilder.ApplyConfiguration(new SpecSheetLinkedTableConfiguration());
 
         modelBuilder.ApplyConfiguration(new TableTemplateConfiguration());
         modelBuilder.ApplyConfiguration(new TableTemplateWidgetConfiguration());

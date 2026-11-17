@@ -12,7 +12,7 @@ public record DbTableTemplate
 
     public required string Description { get; init; }
 
-    public required bool RequiresUserConfiguration { get; init; }
+    public required bool? RequiresUserConfiguration { get; init; }
 
     public required bool ShowNotes { get; init; }
 

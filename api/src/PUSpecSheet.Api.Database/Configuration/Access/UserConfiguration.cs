@@ -20,7 +20,7 @@ public class UserConfiguration : IEntityTypeConfiguration<DbUser>
             .HasColumnType("uniqueidentifier");
 
         builder.Property(x => x.DisplayName)
-            .HasMaxLength(256);
+            .HasColumnType("varchar(256)");
 
         builder.Property(x => x.EmailAddress)
             .HasMaxLength(256);

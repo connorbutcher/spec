@@ -13,7 +13,7 @@ public static class TableTemplateMapper
             SpecSheetTypeId = dbTableTemplate.SpecSheetTypeId,
             Type = dbTableTemplate.Type,
             Description = dbTableTemplate.Description,
-            RequiresUserConfiguration = dbTableTemplate.RequiresUserConfiguration,
+            RequiresUserConfiguration = dbTableTemplate.RequiresUserConfiguration ?? false,
             ShowNotes = dbTableTemplate.ShowNotes,
             IsLegacy = dbTableTemplate.IsLegacy,
             DefaultConfiguration = dbTableTemplate.DefaultConfiguration,

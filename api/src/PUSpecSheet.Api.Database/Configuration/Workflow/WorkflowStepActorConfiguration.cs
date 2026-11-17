@@ -17,6 +17,7 @@ internal class WorkflowStepActorsConfiguration : IEntityTypeConfiguration<DbWork
             .UseIdentityColumn();
 
         builder.Property(x => x.ActorUserId)
+            .HasColumnName("ActorUserID")
             .HasColumnType("smallint");
 
         builder.Property(x => x.State)

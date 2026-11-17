@@ -17,12 +17,12 @@ public class PermissionConfiguration : IEntityTypeConfiguration<DbPermission>
             .UseIdentityColumn();
 
         builder.Property(x => x.Title)
-            .HasMaxLength(256);
+            .HasColumnType("varchar(256)");
 
         builder.Property(x => x.Description)
-            .HasMaxLength(512);
+            .HasColumnType("varchar(512)");
 
         builder.Property(x => x.Key)
-            .HasMaxLength(64);
+            .HasColumnType("varchar(64)");
     }
 }

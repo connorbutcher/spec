@@ -24,21 +24,11 @@ Two things are conventions rather than read from anywhere: primary keys are name
 
 Foreign keys don't cascade, except SpecSheetTypePhases to SpecSheetTypes, the only cascade the EF model configures. EF would make every required relationship cascade, which SQL Server rejects here (a sheet table is reachable from a sheet type by more than one path).
 
-### Where the EF model and the database disagree
+### Where the EF model and the database disagreed
 
-The scripts follow the database in each case.
+The EF configurations have since been brought into line with the database: varchar column types, the two columns that allow NULL (`WorkflowStepActors.ActorUserID`, `TableTemplates.RequiresUserConfiguration`), the foreign keys EF didn't know about (`TableGroupTemplates.ParentTableGroupTemplateID`, `LinkedSpecSheetValues.LinkedSpecSheetTypeID` and `LinkedSpecSheetPhaseID`), and SpecSheetLinkedTables, which is now mapped with the columns it has.
 
-| Table | Difference |
-| --- | --- |
-| access.Users, access.Permissions, types.SpecSheetTypeProperties | Text columns configured with `HasMaxLength` are varchar in the database; EF maps them as nvarchar. |
-| references.SpecSheetExternalReferences | SystemName, OwnerName (varchar(256)) and Type (varchar(32)) have no configuration, so EF maps them as nvarchar(max). |
-| template.TableCellTypes | Type is varchar(64) and ModelType varchar(32); EF says varchar(16) for both. |
-| template.TableTemplates | RequiresUserConfiguration allows NULL; the EF property is a non-nullable bool. |
-| workflow.WorkflowStepActors | ActorUserID allows NULL; the EF property is a non-nullable int. |
-| template.TableGroupTemplates | ParentTableGroupTemplateID has a self-referencing foreign key; EF has no relationship for it. |
-| values.LinkedSpecSheetValues | LinkedSpecSheetTypeID and LinkedSpecSheetPhaseID have foreign keys to the types tables; EF has no relationships for them. |
-| dbo.SpecSheetTableNotes | EF relates CreatedByUserID to Users; the database has no foreign key for it. |
-| dbo.SpecSheetLinkedTables | `SpecSheetLinkedTableConfiguration` is never applied in `OnModelCreating`, so EF doesn't map the table. The configuration is also out of date: it maps a SpecSheetTableId column the table doesn't have, and LinkedByUserId to CreatedByUserID rather than LinkedByUserID. |
+One difference is left on purpose: EF relates `SpecSheetTableNotes.CreatedByUserID` to Users so it can load the author, but the database has no foreign key for it. EF doesn't need one, and adding it could fail on notes whose author has gone.
 
 The dump also gives every datetime2 column a scale of 0, so the scripts use `DATETIME2 (0)`. Confirm it against the database when you can; if it's really `DATETIME2 (7)`, `compare.ps1` will flag every one.
 

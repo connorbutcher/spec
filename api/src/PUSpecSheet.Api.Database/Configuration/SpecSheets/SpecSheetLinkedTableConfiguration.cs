@@ -24,10 +24,11 @@ internal class SpecSheetLinkedTableConfiguration : IEntityTypeConfiguration<DbSp
             .HasColumnType("smallint");
 
         builder.Property(x => x.TableReferenceId)
+            .HasColumnName("TableReferenceID")
             .HasColumnType("uniqueidentifier");
 
         builder.Property(x => x.LinkedByUserId)
-            .HasColumnName("CreatedByUserID")
+            .HasColumnName("LinkedByUserID")
             .HasColumnType("smallint");
 
         builder.HasOne(builder => builder.LinkedByUser)

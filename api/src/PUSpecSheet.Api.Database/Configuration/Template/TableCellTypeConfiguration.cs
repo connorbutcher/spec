@@ -30,10 +30,10 @@ internal class TableCellTypeConfiguration : IEntityTypeConfiguration<DbTableCell
             .HasColumnType("varchar(256)");
 
         builder.Property(x => x.Type)
-            .HasColumnType("varchar(16)");
+            .HasColumnType("varchar(64)");
 
         builder.Property(x => x.ModelType)
-            .HasColumnType("varchar(16)");
+            .HasColumnType("varchar(32)");
 
         builder.Property(x => x.Styling)
             .HasColumnName("DefaultStyling")
