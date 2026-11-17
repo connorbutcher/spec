@@ -9,7 +9,7 @@ internal class TextValueConfiguration : IEntityTypeConfiguration<DbTextValue>
     public void Configure(EntityTypeBuilder<DbTextValue> builder)
     {
         builder.HasKey(x => x.Id);
-        builder.ToTable("TextValues", "values");
+        builder.ToTable("TextValues", "legacy");
 
         builder.Property(x => x.Id)
             .HasColumnName("TextValueID")

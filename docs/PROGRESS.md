@@ -28,7 +28,7 @@ The legacy codebase is the base. The rewrite's features (revision model, drafts,
 
 ## What exists now
 
-**Legacy model ("copies").** Every published version of a sheet is a whole copy (a SpecSheets row plus tables, groups, rows, cells, values). Schemas: dbo, values, references, workflow.
+**Legacy model ("copies").** Every published version of a sheet is a whole copy (a SpecSheets row plus tables, groups, rows, cells, values). Schema: legacy (moved from dbo, values, references and workflow on 2026-11-17; see database/README.md).
 
 **Revision model (beside the copies).**
 - `spec`: Sheets (one per phase and sheet type), SheetVersions, and items (SheetTables, SheetTableGroups, SheetTableRows, SheetTableCells, SheetProperties, SheetLinkedTables, SheetExternalReferences), each with revisions.
@@ -66,7 +66,7 @@ Move editing onto drafts and revisions one sheet type at a time. Start by readin
 2. Run the migrator as a dry run, then with `--commit`, against a copy of production.
 3. Call `/revisions/compare` until it is clean, then try `Compare` and `Revisions` modes.
 4. Check the datetime2 scale (the dump shows 0; scripts use `DATETIME2 (0)`; unverified).
-5. Resolve schema names: the EF context maps dbo/values/references/workflow, but `docs/legacy-schema.txt` and the old migrator SQL use a `legacy` schema.
+5. Resolved 2026-11-17: the sheet copies' tables are in the `legacy` schema in the scripts and the EF context, as in `docs/legacy-schema.txt`. A refactor log moves them on deploy.
 6. Push the reference tag yourself: `git tag new-app-reference 2c82183 && git push origin new-app-reference`.
 7. Known limits: version lists, property summaries and the analytics dataset still read the copies. Empty cell values are synthesized from the cell type's ModelType. A version's workflow steps are reconstructed from submissions since the previous version. `/revisions/compare` has no authorization attribute (like the existing cache endpoints). Ids under a sheet change on every rebuild; the sheet keeps its ReferenceID.
 8. A deliberate EF leftover: SpecSheetTableNotes.CreatedByUserId relates to Users in EF but the DB has no FK.

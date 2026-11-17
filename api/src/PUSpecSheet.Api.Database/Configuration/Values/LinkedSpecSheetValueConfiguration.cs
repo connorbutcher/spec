@@ -10,7 +10,7 @@ internal class LinkedSpecSheetValueConfiguration : IEntityTypeConfiguration<DbLi
     public void Configure(EntityTypeBuilder<DbLinkedSpecSheetValue> builder)
     {
         builder.HasKey(x => x.Id);
-        builder.ToTable("LinkedSpecSheetValues", "values");
+        builder.ToTable("LinkedSpecSheetValues", "legacy");
 
         builder.Property(x => x.Id)
             .HasColumnName("LinkedSpecSheetValueID")

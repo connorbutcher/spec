@@ -10,7 +10,7 @@ internal class SpecSheetTableWidgetConfiguration : IEntityTypeConfiguration<DbSp
     public void Configure(EntityTypeBuilder<DbSpecSheetTableWidget> builder)
     {
         builder.HasKey(x => x.Id);
-        builder.ToTable("SpecSheetTableWidgets", "dbo");
+        builder.ToTable("SpecSheetTableWidgets", "legacy");
 
         builder.Property(x => x.Id)
             .HasColumnName("SpecSheetTableWidgetID")

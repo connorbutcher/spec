@@ -12,7 +12,7 @@ internal class TableGroupWidgetValueConfiguration : IEntityTypeConfiguration<DbT
     public void Configure(EntityTypeBuilder<DbTableGroupWidgetValue> builder)
     {
         builder.HasKey(x => x.Id);
-        builder.ToTable("TableGroupWidgetValues", "values");
+        builder.ToTable("TableGroupWidgetValues", "legacy");
 
         builder.Property(x => x.Id)
             .HasColumnName("TableGroupWidgetValueID")

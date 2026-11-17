@@ -9,7 +9,7 @@ internal class SpecSheetLinkedTableConfiguration : IEntityTypeConfiguration<DbSp
     public void Configure(EntityTypeBuilder<DbSpecSheetLinkedTable> builder)
     {
         builder.HasKey(x => x.Id);
-        builder.ToTable("SpecSheetLinkedTables", "dbo");
+        builder.ToTable("SpecSheetLinkedTables", "legacy");
 
         builder.Property(x => x.Id)
             .HasColumnName("SpecSheetLinkedTableID")

@@ -9,7 +9,7 @@ internal record SpecSheetExternalReferenceConfiguration : IEntityTypeConfigurati
     public void Configure(EntityTypeBuilder<DbSpecSheetExternalReference> builder)
     {
         builder.HasKey(x => x.Id);
-        builder.ToTable("SpecSheetExternalReferences", "references");
+        builder.ToTable("SpecSheetExternalReferences", "legacy");
 
         builder.Property(x => x.Id)
             .HasColumnName("SpecSheetExternalReferenceID")

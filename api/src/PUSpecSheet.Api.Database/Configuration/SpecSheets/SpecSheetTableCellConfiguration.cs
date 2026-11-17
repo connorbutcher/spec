@@ -13,7 +13,7 @@ internal class SpecSheetTableCellConfiguration : IEntityTypeConfiguration<DbSpec
     public void Configure(EntityTypeBuilder<DbSpecSheetTableCell> builder)
     {
         builder.HasKey(x => x.Id);
-        builder.ToTable("SpecSheetTableCells", "dbo");
+        builder.ToTable("SpecSheetTableCells", "legacy");
 
         builder.Property(x => x.Id)
             .HasColumnName("SpecSheetTableCellID")

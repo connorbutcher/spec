@@ -1,6 +1,6 @@
 # PUSpecSheet.Database
 
-The database's schema, kept as a SQL database project (Microsoft.Build.Sql): one script per table, with its keys, constraints and indexes, under `<schema>/Tables/`, and one per schema under `Security/`. Building it checks every object and reference and produces a dacpac, which SqlPackage compares with or deploys to a database.
+The database's schema, kept as a SQL database project (Microsoft.Build.Sql): one script per table, with its keys, constraints and indexes, under `<schema>/Tables/`, and one per schema under `Security/`. The `legacy` schema's are in `legacy/Tables/`, beside the legacy project (see below). Building it checks every object and reference and produces a dacpac, which SqlPackage compares with or deploys to a database.
 
 The API reads and writes the database through EF Core (`api/src/PUSpecSheet.Api.Database`) but doesn't own the schema: there are no EF migrations. This project is the record of what the schema is. Change it here, deploy it, then update the EF schema classes and configurations to match.
 
@@ -10,7 +10,7 @@ All three restore SqlPackage as a local dotnet tool and take `-Server` and `-Dat
 
 | Script | What it does |
 | --- | --- |
-| `extract.ps1` | Writes a database's schema into the project, replacing the schema folders. Review the result with git before committing it. |
+| `extract.ps1` | Writes a database's schema into the project, replacing the schema folders (in `legacy/`, only the `Tables` folder). Review the result with git before committing it. |
 | `compare.ps1` | Builds the project and lists what deploying it would change in a database, objects only in the database included. Changes nothing. Exits with 1 when there are differences. |
 | `deploy.ps1` | Builds the project and makes a database match it, creating the database if needed. Stops instead of losing data. |
 
@@ -29,14 +29,14 @@ The project holds the schema only, with no data, and nothing seeds one: the type
    ```
 
    A `.bak` restored in SSMS works as well.
-2. List how the copy differs from the project. Expect the `spec`, `cell` and `approval` tables to be missing, and expect constraint and index names to differ (see below):
+2. List how the copy differs from the project. Expect the `spec`, `cell` and `approval` tables to be missing, the sheet copies to be moved to `legacy` if the copy has them in `dbo`, `values`, `references` and `workflow` (see [The legacy schema](#the-legacy-schema)), and expect constraint and index names to differ (see below):
 
    ```powershell
    ./compare.ps1 -Database PUSpecSheetLegacy
    ```
 
    Anything else it lists is a gap in the project. Settle it before going on.
-3. Add the revision tables beside the copies. The deployment stops rather than lose data:
+3. Add the revision tables beside the copies, moving the copies to `legacy` if they aren't there yet. The deployment stops rather than lose data:
 
    ```powershell
    ./deploy.ps1 -Database PUSpecSheetLegacy
@@ -55,7 +55,7 @@ Once one database is set up, `copy.ps1` makes more that are identical to it, dat
 
 ### Without a legacy database
 
-When there is no legacy database to copy, build one from the scripts. `legacy/PUSpecSheet.Legacy.Database.sqlproj` is the legacy schema on its own: it has no scripts of its own but builds this project's scripts minus the revision tables (`spec`, `cell`, `approval`), so the two can't drift apart. `deploy.ps1 -Legacy` deploys it:
+When there is no legacy database to copy, build one from the scripts. `legacy/PUSpecSheet.Legacy.Database.sqlproj` is the legacy schema on its own: it has no table scripts of its own but builds this project's scripts minus the revision tables (`spec`, `cell`, `approval`), so the two can't drift apart. The `legacy` schema's scripts live in its folder, `legacy/Tables/`. `deploy.ps1 -Legacy` deploys it:
 
 ```powershell
 ./deploy.ps1 -Database PUSpecSheetLegacy -Legacy   # the 40 legacy tables
@@ -75,10 +75,22 @@ The result has the whole schema and no rows. Nothing in it works until the refer
 | `types` | Phases, sheet types, their properties and structure levels, widget types. |
 | `template` | Table templates, their groups, rows and cells, cell types and template widgets. Sheets of both layouts are built from these. |
 | `configuration` | Cell configurations. |
-| `dbo`, `values`, `references`, `workflow` | Sheets as copies: every version of a sheet is a whole copy of its tables, groups, rows, cells and values, with workflow steps for approval. |
+| `legacy` | Sheets as copies: every version of a sheet is a whole copy of its tables, groups, rows, cells and values, with workflow steps for approval. These are the tables the revisions (`spec`, `cell`, `approval`) replace; see [The legacy schema](#the-legacy-schema). |
 | `spec` | Sheets as revisions (stage 3 onwards): see below. |
 | `cell` | The cell values of `spec` row revisions. |
 | `approval` | Submissions of a sheet's drafts and their approvers. |
+
+### The legacy schema
+
+The 19 tables of the sheet copies are in `legacy`, because the revisions replace them: `SpecSheets`, `SpecSheetTables`, `SpecSheetTableGroups`, `SpecSheetTableRows`, `SpecSheetTableCells`, `SpecSheetTableWidgets`, `SpecSheetTableGroupWidgets`, `SpecSheetTableNotes`, `SpecSheetLinkedTables` and `SpecSheetPropertyValues` (formerly `dbo`), `TextValues`, `NumericValues`, `PairValues`, `LinkedSpecSheetValues`, `TableWidgetValues` and `TableGroupWidgetValues` (formerly `values`), `SpecSheetExternalReferences` (formerly `references`), and `WorkflowSteps` and `WorkflowStepActors` (formerly `workflow`). Widgets and notes have no tables of their own in the revisions: a table or group revision holds them as JSON. Users, permissions, types, phases, templates and cell configurations aren't replaced, so they stay in `access`, `types`, `template` and `configuration`.
+
+The moves are in `PUSpecSheet.Database.refactorlog`, which both projects use. When `deploy.ps1` meets a database that still has the copies in their old schemas, SqlPackage moves them with `ALTER SCHEMA TRANSFER`, rows, keys and identity values included, rather than creating empty tables in `legacy`, and records the moves in `dbo.__RefactorLog` so it doesn't try them again. A database already using `legacy` (the legacy database itself, going by the dump) is left as it is. Run `compare.ps1` first to see what it will do. The old schemas are left behind, empty.
+
+To move the tables by hand instead (to check the move on its own before deploying, say), run `legacy/move-to-legacy-schema.sql`. It does the same transfers in one transaction, records them in `dbo.__RefactorLog` as SqlPackage would, drops `values`, `references` and `workflow` once they are empty, and can be run again. It changes nothing if a table is in both its old schema and `legacy`:
+
+```powershell
+sqlcmd -S "(localdb)\MSSQLLocalDB" -d PUSpecSheetLegacy -E -b -i legacy\move-to-legacy-schema.sql
+```
 
 ### Sheets as revisions
 
@@ -117,7 +129,7 @@ Foreign keys don't cascade, except SpecSheetTypePhases to SpecSheetTypes, the on
 
 The EF configurations have since been brought into line with the database: varchar column types, the two columns that allow NULL (`WorkflowStepActors.ActorUserID`, `TableTemplates.RequiresUserConfiguration`), the foreign keys EF didn't know about (`TableGroupTemplates.ParentTableGroupTemplateID`, `LinkedSpecSheetValues.LinkedSpecSheetTypeID` and `LinkedSpecSheetPhaseID`), and SpecSheetLinkedTables, which is now mapped with the columns it has.
 
-The dump puts the sheet copies (SpecSheets and its tables, groups, rows, cells, widgets, notes, linked tables, property values, values, external references and workflow steps) in a schema called `legacy`, but the EF model, which the API and migrator query, maps them to `dbo`, `values`, `references` and `workflow`. The scripts follow the EF model, so a database whose copies really are in `legacy` would need them moved or the EF model changed.
+The dump puts the sheet copies (SpecSheets and its tables, groups, rows, cells, widgets, notes, linked tables, property values, values, external references and workflow steps) in a schema called `legacy`. The scripts first followed the EF model, which had them in `dbo`, `values`, `references` and `workflow`; since 2026-11-17 the scripts and the EF model both use `legacy`, as the dump does.
 
 One difference is left on purpose: EF relates `SpecSheetTableNotes.CreatedByUserID` to Users so it can load the author, but the database has no foreign key for it. EF doesn't need one, and adding it could fail on notes whose author has gone.
 

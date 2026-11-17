@@ -9,7 +9,7 @@ public class SpecSheetPropertyValueConfiguration : IEntityTypeConfiguration<DbSp
     public void Configure(EntityTypeBuilder<DbSpecSheetPropertyValue> builder)
     {
         builder.HasKey(x => x.Id);
-        builder.ToTable("SpecSheetPropertyValues", "dbo");
+        builder.ToTable("SpecSheetPropertyValues", "legacy");
 
         builder.Property(x => x.Id)
             .HasColumnName("SpecSheetPropertyValueID")

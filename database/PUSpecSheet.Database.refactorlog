@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Operations Version="1.0" xmlns="http://schemas.microsoft.com/sqlserver/dac/Serialization/2012/02">
+  <Operation Name="Move Schema" Key="25f2e373-3041-41f5-a8a6-0b2cb6699146" ChangeDateTime="11/17/2026 20:45:00">
+    <Property Name="ElementName" Value="[dbo].[SpecSheetLinkedTables]" />
+    <Property Name="ElementType" Value="SqlTable" />
+    <Property Name="NewSchema" Value="legacy" />
+    <Property Name="IsNewSchemaExternal" Value="False" />
+  </Operation>
+  <Operation Name="Move Schema" Key="a82e9b5d-df38-402b-b4da-b5f832b80a06" ChangeDateTime="11/17/2026 20:45:00">
+    <Property Name="ElementName" Value="[dbo].[SpecSheetPropertyValues]" />
+    <Property Name="ElementType" Value="SqlTable" />
+    <Property Name="NewSchema" Value="legacy" />
+    <Property Name="IsNewSchemaExternal" Value="False" />
+  </Operation>
+  <Operation Name="Move Schema" Key="ad4158ba-a261-43c1-98fe-ce4a0ea12420" ChangeDateTime="11/17/2026 20:45:00">
+    <Property Name="ElementName" Value="[dbo].[SpecSheets]" />
+    <Property Name="ElementType" Value="SqlTable" />
+    <Property Name="NewSchema" Value="legacy" />
+    <Property Name="IsNewSchemaExternal" Value="False" />
+  </Operation>
+  <Operation Name="Move Schema" Key="b5313998-130e-4d39-a55f-65dc77be835f" ChangeDateTime="11/17/2026 20:45:00">
+    <Property Name="ElementName" Value="[dbo].[SpecSheetTableCells]" />
+    <Property Name="ElementType" Value="SqlTable" />
+    <Property Name="NewSchema" Value="legacy" />
+    <Property Name="IsNewSchemaExternal" Value="False" />
+  </Operation>
+  <Operation Name="Move Schema" Key="adcadec9-85e4-4744-b1d3-a4804030dd71" ChangeDateTime="11/17/2026 20:45:00">
+    <Property Name="ElementName" Value="[dbo].[SpecSheetTableGroups]" />
+    <Property Name="ElementType" Value="SqlTable" />
+    <Property Name="NewSchema" Value="legacy" />
+    <Property Name="IsNewSchemaExternal" Value="False" />
+  </Operation>
+  <Operation Name="Move Schema" Key="db37a30a-debe-419f-b1fc-eba58127bd5b" ChangeDateTime="11/17/2026 20:45:00">
+    <Property Name="ElementName" Value="[dbo].[SpecSheetTableGroupWidgets]" />
+    <Property Name="ElementType" Value="SqlTable" />
+    <Property Name="NewSchema" Value="legacy" />
+    <Property Name="IsNewSchemaExternal" Value="False" />
+  </Operation>
+  <Operation Name="Move Schema" Key="71ef54df-9c46-4acb-88b7-2f4099c76626" ChangeDateTime="11/17/2026 20:45:00">
+    <Property Name="ElementName" Value="[dbo].[SpecSheetTableNotes]" />
+    <Property Name="ElementType" Value="SqlTable" />
+    <Property Name="NewSchema" Value="legacy" />
+    <Property Name="IsNewSchemaExternal" Value="False" />
+  </Operation>
+  <Operation Name="Move Schema" Key="60881377-fbcf-40ca-bfd0-d02491709038" ChangeDateTime="11/17/2026 20:45:00">
+    <Property Name="ElementName" Value="[dbo].[SpecSheetTableRows]" />
+    <Property Name="ElementType" Value="SqlTable" />
+    <Property Name="NewSchema" Value="legacy" />
+    <Property Name="IsNewSchemaExternal" Value="False" />
+  </Operation>
+  <Operation Name="Move Schema" Key="79319395-63ad-4b14-94f1-7e183192b9bc" ChangeDateTime="11/17/2026 20:45:00">
+    <Property Name="ElementName" Value="[dbo].[SpecSheetTables]" />
+    <Property Name="ElementType" Value="SqlTable" />
+    <Property Name="NewSchema" Value="legacy" />
+    <Property Name="IsNewSchemaExternal" Value="False" />
+  </Operation>
+  <Operation Name="Move Schema" Key="010d40af-e92f-491d-a966-ee8320be60dc" ChangeDateTime="11/17/2026 20:45:00">
+    <Property Name="ElementName" Value="[dbo].[SpecSheetTableWidgets]" />
+    <Property Name="ElementType" Value="SqlTable" />
+    <Property Name="NewSchema" Value="legacy" />
+    <Property Name="IsNewSchemaExternal" Value="False" />
+  </Operation>
+  <Operation Name="Move Schema" Key="d3eb55ff-e465-4ea7-9c42-d6f537b55043" ChangeDateTime="11/17/2026 20:45:00">
+    <Property Name="ElementName" Value="[values].[LinkedSpecSheetValues]" />
+    <Property Name="ElementType" Value="SqlTable" />
+    <Property Name="NewSchema" Value="legacy" />
+    <Property Name="IsNewSchemaExternal" Value="False" />
+  </Operation>
+  <Operation Name="Move Schema" Key="52f21a90-88e4-432f-8814-d1c02c4df17c" ChangeDateTime="11/17/2026 20:45:00">
+    <Property Name="ElementName" Value="[values].[NumericValues]" />
+    <Property Name="ElementType" Value="SqlTable" />
+    <Property Name="NewSchema" Value="legacy" />
+    <Property Name="IsNewSchemaExternal" Value="False" />
+  </Operation>
+  <Operation Name="Move Schema" Key="e0373034-d203-4236-9327-fb0383a5e5d3" ChangeDateTime="11/17/2026 20:45:00">
+    <Property Name="ElementName" Value="[values].[PairValues]" />
+    <Property Name="ElementType" Value="SqlTable" />
+    <Property Name="NewSchema" Value="legacy" />
+    <Property Name="IsNewSchemaExternal" Value="False" />
+  </Operation>
+  <Operation Name="Move Schema" Key="8eae7245-d20a-4254-9ab5-689b8de02f21" ChangeDateTime="11/17/2026 20:45:00">
+    <Property Name="ElementName" Value="[values].[TableGroupWidgetValues]" />
+    <Property Name="ElementType" Value="SqlTable" />
+    <Property Name="NewSchema" Value="legacy" />
+    <Property Name="IsNewSchemaExternal" Value="False" />
+  </Operation>
+  <Operation Name="Move Schema" Key="bfcd3f17-3668-4180-9dfb-4fe53be2c1c8" ChangeDateTime="11/17/2026 20:45:00">
+    <Property Name="ElementName" Value="[values].[TableWidgetValues]" />
+    <Property Name="ElementType" Value="SqlTable" />
+    <Property Name="NewSchema" Value="legacy" />
+    <Property Name="IsNewSchemaExternal" Value="False" />
+  </Operation>
+  <Operation Name="Move Schema" Key="e85ff1db-c31b-4ca2-8424-cc566be675a2" ChangeDateTime="11/17/2026 20:45:00">
+    <Property Name="ElementName" Value="[values].[TextValues]" />
+    <Property Name="ElementType" Value="SqlTable" />
+    <Property Name="NewSchema" Value="legacy" />
+    <Property Name="IsNewSchemaExternal" Value="False" />
+  </Operation>
+  <Operation Name="Move Schema" Key="164315bb-532d-4dcf-8aee-ef286bb18bee" ChangeDateTime="11/17/2026 20:45:00">
+    <Property Name="ElementName" Value="[references].[SpecSheetExternalReferences]" />
+    <Property Name="ElementType" Value="SqlTable" />
+    <Property Name="NewSchema" Value="legacy" />
+    <Property Name="IsNewSchemaExternal" Value="False" />
+  </Operation>
+  <Operation Name="Move Schema" Key="311fc2ce-1b0e-4837-b1af-65e88f681ca6" ChangeDateTime="11/17/2026 20:45:00">
+    <Property Name="ElementName" Value="[workflow].[WorkflowStepActors]" />
+    <Property Name="ElementType" Value="SqlTable" />
+    <Property Name="NewSchema" Value="legacy" />
+    <Property Name="IsNewSchemaExternal" Value="False" />
+  </Operation>
+  <Operation Name="Move Schema" Key="e0ace85a-4afe-4074-b1ca-5c258d29b141" ChangeDateTime="11/17/2026 20:45:00">
+    <Property Name="ElementName" Value="[workflow].[WorkflowSteps]" />
+    <Property Name="ElementType" Value="SqlTable" />
+    <Property Name="NewSchema" Value="legacy" />
+    <Property Name="IsNewSchemaExternal" Value="False" />
+  </Operation>
+</Operations>

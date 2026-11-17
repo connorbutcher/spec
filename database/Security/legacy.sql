@@ -1,3 +1,3 @@
-CREATE SCHEMA [values]
+CREATE SCHEMA [legacy]
     AUTHORIZATION [dbo];
 

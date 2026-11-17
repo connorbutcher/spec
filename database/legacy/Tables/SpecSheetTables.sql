@@ -1,4 +1,4 @@
-CREATE TABLE [dbo].[SpecSheetTables] (
+CREATE TABLE [legacy].[SpecSheetTables] (
     [SpecSheetTableID]      INT IDENTITY (1, 1) NOT NULL,
     [SpecSheetID]           INT NOT NULL,
     [TableTemplateID]       TINYINT NOT NULL,
@@ -12,7 +12,7 @@ CREATE TABLE [dbo].[SpecSheetTables] (
     [LastModifiedDateTime]  DATETIME2 (0) NULL,
     [ConfigurationOverride] NVARCHAR (MAX) NULL,
     CONSTRAINT [PK_SpecSheetTables] PRIMARY KEY CLUSTERED ([SpecSheetTableID] ASC),
-    CONSTRAINT [FK_SpecSheetTables_SpecSheets] FOREIGN KEY ([SpecSheetID]) REFERENCES [dbo].[SpecSheets] ([SpecSheetID]),
+    CONSTRAINT [FK_SpecSheetTables_SpecSheets] FOREIGN KEY ([SpecSheetID]) REFERENCES [legacy].[SpecSheets] ([SpecSheetID]),
     CONSTRAINT [FK_SpecSheetTables_TableTemplates] FOREIGN KEY ([TableTemplateID]) REFERENCES [template].[TableTemplates] ([TableTemplateID]),
     CONSTRAINT [FK_SpecSheetTables_Users_CreatedByUserID] FOREIGN KEY ([CreatedByUserID]) REFERENCES [access].[Users] ([UserID]),
     CONSTRAINT [FK_SpecSheetTables_Users_LastModifiedByUserID] FOREIGN KEY ([LastModifiedByUserID]) REFERENCES [access].[Users] ([UserID])
@@ -20,17 +20,17 @@ CREATE TABLE [dbo].[SpecSheetTables] (
 
 GO
 CREATE NONCLUSTERED INDEX [IX_SpecSheetTables_SpecSheetID]
-    ON [dbo].[SpecSheetTables]([SpecSheetID] ASC);
+    ON [legacy].[SpecSheetTables]([SpecSheetID] ASC);
 
 GO
 CREATE NONCLUSTERED INDEX [IX_SpecSheetTables_TableTemplateID]
-    ON [dbo].[SpecSheetTables]([TableTemplateID] ASC);
+    ON [legacy].[SpecSheetTables]([TableTemplateID] ASC);
 
 GO
 CREATE NONCLUSTERED INDEX [IX_SpecSheetTables_CreatedByUserID]
-    ON [dbo].[SpecSheetTables]([CreatedByUserID] ASC);
+    ON [legacy].[SpecSheetTables]([CreatedByUserID] ASC);
 
 GO
 CREATE NONCLUSTERED INDEX [IX_SpecSheetTables_LastModifiedByUserID]
-    ON [dbo].[SpecSheetTables]([LastModifiedByUserID] ASC);
+    ON [legacy].[SpecSheetTables]([LastModifiedByUserID] ASC);
 

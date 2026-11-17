@@ -1,4 +1,4 @@
-CREATE TABLE [dbo].[SpecSheets] (
+CREATE TABLE [legacy].[SpecSheets] (
     [SpecSheetID]       INT IDENTITY (1, 1) NOT NULL,
     [SpecSheetPhaseID]  SMALLINT NOT NULL,
     [SpecSheetTypeID]   TINYINT NOT NULL,
@@ -19,17 +19,17 @@ CREATE TABLE [dbo].[SpecSheets] (
 
 GO
 CREATE NONCLUSTERED INDEX [IX_SpecSheets_SpecSheetPhaseID]
-    ON [dbo].[SpecSheets]([SpecSheetPhaseID] ASC);
+    ON [legacy].[SpecSheets]([SpecSheetPhaseID] ASC);
 
 GO
 CREATE NONCLUSTERED INDEX [IX_SpecSheets_SpecSheetTypeID]
-    ON [dbo].[SpecSheets]([SpecSheetTypeID] ASC);
+    ON [legacy].[SpecSheets]([SpecSheetTypeID] ASC);
 
 GO
 CREATE NONCLUSTERED INDEX [IX_SpecSheets_CreatedByUserID]
-    ON [dbo].[SpecSheets]([CreatedByUserID] ASC);
+    ON [legacy].[SpecSheets]([CreatedByUserID] ASC);
 
 GO
 CREATE NONCLUSTERED INDEX [IX_SpecSheets_PublishedByUserID]
-    ON [dbo].[SpecSheets]([PublishedByUserID] ASC);
+    ON [legacy].[SpecSheets]([PublishedByUserID] ASC);
 

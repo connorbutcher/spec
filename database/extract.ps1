@@ -43,6 +43,21 @@ try {
 
     # Replace every schema folder the extract wrote, so an object dropped from the database goes from the project too.
     foreach ($folder in Get-ChildItem $output -Directory) {
+        # legacy\ also holds the legacy project and the script that moves the tables by hand, which aren't schema
+        # objects, so only the folders the extract wrote there are replaced.
+        if ($folder.Name -eq 'legacy') {
+            foreach ($child in Get-ChildItem $folder.FullName -Directory) {
+                $target = Join-Path 'legacy' $child.Name
+                if (Test-Path $target) {
+                    Remove-Item $target -Recurse -Force
+                }
+
+                Move-Item $child.FullName $target
+            }
+
+            continue
+        }
+
         if (Test-Path $folder.Name) {
             Remove-Item $folder.Name -Recurse -Force
         }

@@ -1,4 +1,4 @@
-CREATE TABLE [dbo].[SpecSheetTableCells] (
+CREATE TABLE [legacy].[SpecSheetTableCells] (
     [SpecSheetTableCellID]  INT IDENTITY (1, 1) NOT NULL,
     [SpecSheetTableRowID]   INT NOT NULL,
     [TableCellTypeID]       TINYINT NOT NULL,
@@ -15,7 +15,7 @@ CREATE TABLE [dbo].[SpecSheetTableCells] (
     [LastModifiedDateTime]  DATETIME2 (0) NULL,
     [ConfigurationOverride] NVARCHAR (MAX) NULL,
     CONSTRAINT [PK_SpecSheetTableCells] PRIMARY KEY CLUSTERED ([SpecSheetTableCellID] ASC),
-    CONSTRAINT [FK_SpecSheetTableCells_SpecSheetTableRows] FOREIGN KEY ([SpecSheetTableRowID]) REFERENCES [dbo].[SpecSheetTableRows] ([SpecSheetTableRowID]),
+    CONSTRAINT [FK_SpecSheetTableCells_SpecSheetTableRows] FOREIGN KEY ([SpecSheetTableRowID]) REFERENCES [legacy].[SpecSheetTableRows] ([SpecSheetTableRowID]),
     CONSTRAINT [FK_SpecSheetTableCells_TableCellTypes] FOREIGN KEY ([TableCellTypeID]) REFERENCES [template].[TableCellTypes] ([TableCellTypeID]),
     CONSTRAINT [FK_SpecSheetTableCells_CellConfigurations] FOREIGN KEY ([CellConfigurationID]) REFERENCES [configuration].[CellConfigurations] ([CellConfigurationID]),
     CONSTRAINT [FK_SpecSheetTableCells_Users_CreatedByUserID] FOREIGN KEY ([CreatedByUserID]) REFERENCES [access].[Users] ([UserID]),
@@ -24,21 +24,21 @@ CREATE TABLE [dbo].[SpecSheetTableCells] (
 
 GO
 CREATE NONCLUSTERED INDEX [IX_SpecSheetTableCells_SpecSheetTableRowID]
-    ON [dbo].[SpecSheetTableCells]([SpecSheetTableRowID] ASC);
+    ON [legacy].[SpecSheetTableCells]([SpecSheetTableRowID] ASC);
 
 GO
 CREATE NONCLUSTERED INDEX [IX_SpecSheetTableCells_TableCellTypeID]
-    ON [dbo].[SpecSheetTableCells]([TableCellTypeID] ASC);
+    ON [legacy].[SpecSheetTableCells]([TableCellTypeID] ASC);
 
 GO
 CREATE NONCLUSTERED INDEX [IX_SpecSheetTableCells_CellConfigurationID]
-    ON [dbo].[SpecSheetTableCells]([CellConfigurationID] ASC);
+    ON [legacy].[SpecSheetTableCells]([CellConfigurationID] ASC);
 
 GO
 CREATE NONCLUSTERED INDEX [IX_SpecSheetTableCells_CreatedByUserID]
-    ON [dbo].[SpecSheetTableCells]([CreatedByUserID] ASC);
+    ON [legacy].[SpecSheetTableCells]([CreatedByUserID] ASC);
 
 GO
 CREATE NONCLUSTERED INDEX [IX_SpecSheetTableCells_LastModifiedByUserID]
-    ON [dbo].[SpecSheetTableCells]([LastModifiedByUserID] ASC);
+    ON [legacy].[SpecSheetTableCells]([LastModifiedByUserID] ASC);
 

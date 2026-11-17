@@ -9,7 +9,7 @@ internal class PairValueConfiguration : IEntityTypeConfiguration<DbPairValue>
     public void Configure(EntityTypeBuilder<DbPairValue> builder)
     {
         builder.HasKey(x => x.Id);
-        builder.ToTable("PairValues", "values");
+        builder.ToTable("PairValues", "legacy");
 
         builder.Property(x => x.Id)
             .HasColumnName("PairValueID")

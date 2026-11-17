@@ -9,7 +9,7 @@ internal class NumericValueConfiguration : IEntityTypeConfiguration<DbNumericVal
     public void Configure(EntityTypeBuilder<DbNumericValue> builder)
     {
         builder.HasKey(x => x.Id);
-        builder.ToTable("NumericValues", "values");
+        builder.ToTable("NumericValues", "legacy");
 
         builder.Property(x => x.Id)
             .HasColumnName("NumericValueID")

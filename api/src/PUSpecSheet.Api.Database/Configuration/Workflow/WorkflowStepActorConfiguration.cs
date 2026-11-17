@@ -9,7 +9,7 @@ internal class WorkflowStepActorsConfiguration : IEntityTypeConfiguration<DbWork
     public void Configure(EntityTypeBuilder<DbWorkflowStepActor> builder)
     {
         builder.HasKey(x => x.Id);
-        builder.ToTable("WorkflowStepActors", "workflow");
+        builder.ToTable("WorkflowStepActors", "legacy");
 
         builder.Property(x => x.Id)
             .HasColumnName("WorkflowStepActorID")

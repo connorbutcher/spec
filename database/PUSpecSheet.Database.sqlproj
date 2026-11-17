@@ -6,10 +6,14 @@
     <DSP>Microsoft.Data.Tools.Schema.Sql.Sql160DatabaseSchemaProvider</DSP>
     <ModelCollation>1033, CI</ModelCollation>
   </PropertyGroup>
-  <!-- The legacy project builds this project's legacy scripts; its own output isn't part of this one. -->
+  <!--
+    legacy\ holds the legacy schema's table scripts, which belong to this project, beside the legacy project and its
+    script for moving the tables by hand, which don't.
+  -->
   <ItemGroup>
     <Build Remove="legacy\**" />
     <None Remove="legacy\**" />
+    <Build Include="legacy\Tables\*.sql" />
   </ItemGroup>
   <!-- Filtered indexes and indexed computed columns need these on, whatever the database's own settings are. -->
   <ItemGroup>
@@ -17,6 +21,13 @@
       <AnsiNulls>On</AnsiNulls>
       <QuotedIdentifier>On</QuotedIdentifier>
     </Build>
+  </ItemGroup>
+  <!--
+    The sheet copies' tables moved from dbo, values, references and workflow to legacy. The log tells SqlPackage they
+    moved, so a deployment transfers them, rows and all, instead of creating empty tables beside them.
+  -->
+  <ItemGroup>
+    <RefactorLog Include="PUSpecSheet.Database.refactorlog" />
   </ItemGroup>
   <!-- The scripts that run SqlPackage aren't part of the schema. -->
   <ItemGroup>

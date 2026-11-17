@@ -9,7 +9,7 @@ internal class SpecSheetTableGroupConfiguration : IEntityTypeConfiguration<DbSpe
     public void Configure(EntityTypeBuilder<DbSpecSheetTableGroup> builder)
     {
         builder.HasKey(x => x.Id);
-        builder.ToTable("SpecSheetTableGroups", "dbo");
+        builder.ToTable("SpecSheetTableGroups", "legacy");
 
         builder.Property(x => x.Id)
             .HasColumnName("SpecSheetTableGroupID")

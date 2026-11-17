@@ -1,4 +1,4 @@
-CREATE TABLE [dbo].[SpecSheetTableGroups] (
+CREATE TABLE [legacy].[SpecSheetTableGroups] (
     [SpecSheetTableGroupID]       INT IDENTITY (1, 1) NOT NULL,
     [SpecSheetTableID]            INT NOT NULL,
     [LinkedSpecSheetTableGroupID] INT NULL,
@@ -11,8 +11,8 @@ CREATE TABLE [dbo].[SpecSheetTableGroups] (
     [LastModifiedByUserID]        SMALLINT NULL,
     [LastModifiedDateTime]        DATETIME2 (0) NULL,
     CONSTRAINT [PK_SpecSheetTableGroups] PRIMARY KEY CLUSTERED ([SpecSheetTableGroupID] ASC),
-    CONSTRAINT [FK_SpecSheetTableGroups_SpecSheetTables] FOREIGN KEY ([SpecSheetTableID]) REFERENCES [dbo].[SpecSheetTables] ([SpecSheetTableID]),
-    CONSTRAINT [FK_SpecSheetTableGroups_SpecSheetTableGroups_LinkedSpecSheetTableGroupID] FOREIGN KEY ([LinkedSpecSheetTableGroupID]) REFERENCES [dbo].[SpecSheetTableGroups] ([SpecSheetTableGroupID]),
+    CONSTRAINT [FK_SpecSheetTableGroups_SpecSheetTables] FOREIGN KEY ([SpecSheetTableID]) REFERENCES [legacy].[SpecSheetTables] ([SpecSheetTableID]),
+    CONSTRAINT [FK_SpecSheetTableGroups_SpecSheetTableGroups_LinkedSpecSheetTableGroupID] FOREIGN KEY ([LinkedSpecSheetTableGroupID]) REFERENCES [legacy].[SpecSheetTableGroups] ([SpecSheetTableGroupID]),
     CONSTRAINT [FK_SpecSheetTableGroups_TableGroupTemplates] FOREIGN KEY ([TableGroupTemplateID]) REFERENCES [template].[TableGroupTemplates] ([TableGroupTemplateID]),
     CONSTRAINT [FK_SpecSheetTableGroups_Users_CreatedByUserID] FOREIGN KEY ([CreatedByUserID]) REFERENCES [access].[Users] ([UserID]),
     CONSTRAINT [FK_SpecSheetTableGroups_Users_LastModifiedByUserID] FOREIGN KEY ([LastModifiedByUserID]) REFERENCES [access].[Users] ([UserID])
@@ -20,21 +20,21 @@ CREATE TABLE [dbo].[SpecSheetTableGroups] (
 
 GO
 CREATE NONCLUSTERED INDEX [IX_SpecSheetTableGroups_SpecSheetTableID]
-    ON [dbo].[SpecSheetTableGroups]([SpecSheetTableID] ASC);
+    ON [legacy].[SpecSheetTableGroups]([SpecSheetTableID] ASC);
 
 GO
 CREATE NONCLUSTERED INDEX [IX_SpecSheetTableGroups_LinkedSpecSheetTableGroupID]
-    ON [dbo].[SpecSheetTableGroups]([LinkedSpecSheetTableGroupID] ASC);
+    ON [legacy].[SpecSheetTableGroups]([LinkedSpecSheetTableGroupID] ASC);
 
 GO
 CREATE NONCLUSTERED INDEX [IX_SpecSheetTableGroups_TableGroupTemplateID]
-    ON [dbo].[SpecSheetTableGroups]([TableGroupTemplateID] ASC);
+    ON [legacy].[SpecSheetTableGroups]([TableGroupTemplateID] ASC);
 
 GO
 CREATE NONCLUSTERED INDEX [IX_SpecSheetTableGroups_CreatedByUserID]
-    ON [dbo].[SpecSheetTableGroups]([CreatedByUserID] ASC);
+    ON [legacy].[SpecSheetTableGroups]([CreatedByUserID] ASC);
 
 GO
 CREATE NONCLUSTERED INDEX [IX_SpecSheetTableGroups_LastModifiedByUserID]
-    ON [dbo].[SpecSheetTableGroups]([LastModifiedByUserID] ASC);
+    ON [legacy].[SpecSheetTableGroups]([LastModifiedByUserID] ASC);
 

@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  The legacy schema on its own: every table of the main project except the revision tables (spec, cell, approval).
-  It has no scripts of its own; it builds the main project's legacy scripts, so the two can't drift apart.
+  The legacy database on its own: every table of the main project except the revision tables (spec, cell, approval).
+  It has no table scripts of its own; it builds the main project's, so the two can't drift apart. The sheet copies'
+  scripts are in Tables\ here, as they are the legacy schema's.
   Use it to create a database shaped like the legacy one, then deploy the main project to add the revision tables.
 -->
 <Project DefaultTargets="Build">
@@ -15,25 +16,24 @@
   <ItemGroup>
     <Build Include="..\Security\access.sql" />
     <Build Include="..\Security\configuration.sql" />
-    <Build Include="..\Security\references.sql" />
+    <Build Include="..\Security\legacy.sql" />
     <Build Include="..\Security\template.sql" />
     <Build Include="..\Security\types.sql" />
-    <Build Include="..\Security\values.sql" />
-    <Build Include="..\Security\workflow.sql" />
     <Build Include="..\access\Tables\*.sql" />
     <Build Include="..\configuration\Tables\*.sql" />
-    <Build Include="..\dbo\Tables\*.sql" />
-    <Build Include="..\references\Tables\*.sql" />
     <Build Include="..\template\Tables\*.sql" />
     <Build Include="..\types\Tables\*.sql" />
-    <Build Include="..\values\Tables\*.sql" />
-    <Build Include="..\workflow\Tables\*.sql" />
+    <Build Include="Tables\*.sql" />
   </ItemGroup>
   <!-- Filtered indexes and indexed computed columns need these on, whatever the database's own settings are. -->
   <ItemGroup>
-    <Build Update="..\**\*.sql">
+    <Build Update="..\**\*.sql;Tables\*.sql">
       <AnsiNulls>On</AnsiNulls>
       <QuotedIdentifier>On</QuotedIdentifier>
     </Build>
+  </ItemGroup>
+  <!-- The same moves as the main project's, so a legacy deployment transfers the tables too. -->
+  <ItemGroup>
+    <RefactorLog Include="..\PUSpecSheet.Database.refactorlog" />
   </ItemGroup>
 </Project>

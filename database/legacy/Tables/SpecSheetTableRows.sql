@@ -1,4 +1,4 @@
-CREATE TABLE [dbo].[SpecSheetTableRows] (
+CREATE TABLE [legacy].[SpecSheetTableRows] (
     [SpecSheetTableRowID]   INT IDENTITY (1, 1) NOT NULL,
     [SpecSheetTableGroupID] INT NOT NULL,
     [TableRowTemplateID]    INT NOT NULL,
@@ -10,7 +10,7 @@ CREATE TABLE [dbo].[SpecSheetTableRows] (
     [LastModifiedByUserID]  SMALLINT NULL,
     [LastModifiedDateTime]  DATETIME2 (0) NULL,
     CONSTRAINT [PK_SpecSheetTableRows] PRIMARY KEY CLUSTERED ([SpecSheetTableRowID] ASC),
-    CONSTRAINT [FK_SpecSheetTableRows_SpecSheetTableGroups] FOREIGN KEY ([SpecSheetTableGroupID]) REFERENCES [dbo].[SpecSheetTableGroups] ([SpecSheetTableGroupID]),
+    CONSTRAINT [FK_SpecSheetTableRows_SpecSheetTableGroups] FOREIGN KEY ([SpecSheetTableGroupID]) REFERENCES [legacy].[SpecSheetTableGroups] ([SpecSheetTableGroupID]),
     CONSTRAINT [FK_SpecSheetTableRows_TableRowTemplates] FOREIGN KEY ([TableRowTemplateID]) REFERENCES [template].[TableRowTemplates] ([TableRowTemplateID]),
     CONSTRAINT [FK_SpecSheetTableRows_Users_CreatedByUserID] FOREIGN KEY ([CreatedByUserID]) REFERENCES [access].[Users] ([UserID]),
     CONSTRAINT [FK_SpecSheetTableRows_Users_LastModifiedByUserID] FOREIGN KEY ([LastModifiedByUserID]) REFERENCES [access].[Users] ([UserID])
@@ -18,17 +18,17 @@ CREATE TABLE [dbo].[SpecSheetTableRows] (
 
 GO
 CREATE NONCLUSTERED INDEX [IX_SpecSheetTableRows_SpecSheetTableGroupID]
-    ON [dbo].[SpecSheetTableRows]([SpecSheetTableGroupID] ASC);
+    ON [legacy].[SpecSheetTableRows]([SpecSheetTableGroupID] ASC);
 
 GO
 CREATE NONCLUSTERED INDEX [IX_SpecSheetTableRows_TableRowTemplateID]
-    ON [dbo].[SpecSheetTableRows]([TableRowTemplateID] ASC);
+    ON [legacy].[SpecSheetTableRows]([TableRowTemplateID] ASC);
 
 GO
 CREATE NONCLUSTERED INDEX [IX_SpecSheetTableRows_CreatedByUserID]
-    ON [dbo].[SpecSheetTableRows]([CreatedByUserID] ASC);
+    ON [legacy].[SpecSheetTableRows]([CreatedByUserID] ASC);
 
 GO
 CREATE NONCLUSTERED INDEX [IX_SpecSheetTableRows_LastModifiedByUserID]
-    ON [dbo].[SpecSheetTableRows]([LastModifiedByUserID] ASC);
+    ON [legacy].[SpecSheetTableRows]([LastModifiedByUserID] ASC);
 
