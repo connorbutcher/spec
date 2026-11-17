@@ -35,6 +35,8 @@ internal abstract class ChangeProcessorBase
             _operationHandlers[operation] = CreateHandler(operation);
         }
 
+        await BeforeApplyAsync(cancellationToken);
+
         var (nonDeleteOps, deleteOps) = PartitionByDeleteOperations(operations);
         var tempIdMap = new Dictionary<int, int>();
 
@@ -60,6 +62,14 @@ internal abstract class ChangeProcessorBase
     }
 
     protected abstract IOperationHandler CreateHandler(IChangeOp operation);
+
+    /// <summary>
+    /// Runs in the transaction once every operation has a handler, before any is applied.
+    /// </summary>
+    protected virtual Task BeforeApplyAsync(CancellationToken cancellationToken)
+    {
+        return Task.CompletedTask;
+    }
 
     /// <summary>
     /// Processes operations in dependency-resolved waves until all are applied.

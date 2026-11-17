@@ -11,9 +11,12 @@ using PUSpecSheet.Abstractions.Requests.Workflow;
 using PUSpecSheet.Abstractions.Types;
 using PUSpecSheet.Api.Common.Context;
 using PUSpecSheet.Api.DAL.Caching;
+using PUSpecSheet.Api.DAL.DataAccess.SpecSheets.Edits;
 using PUSpecSheet.Api.DAL.DataAccess.SpecSheets.Reads;
 using PUSpecSheet.Api.DAL.DataAccess.Types;
 using PUSpecSheet.Api.DAL.Processors;
+using PUSpecSheet.Api.DAL.Processors.Base;
+using PUSpecSheet.Api.DAL.Processors.Drafts;
 using PUSpecSheet.Api.Database;
 using PUSpecSheet.Api.Database.Mappers.Access;
 using PUSpecSheet.Api.Database.Mappers.SpecSheets;
@@ -33,6 +36,7 @@ internal class SpecSheetDataAccessService : ISpecSheetDataAccessService
     private readonly PUSpecSheetDbContext _dbContext;
     private readonly ISpecSheetCache _specSheetCache;
     private readonly ISpecSheetReader _specSheetReader;
+    private readonly SheetEditSwitch _editSwitch;
     private readonly ITypeDataAccessService _typeDataAccessService;
     private readonly IEmailBuilderService _emailBuilderService;
     private readonly IEmailService _emailService;
@@ -42,6 +46,7 @@ internal class SpecSheetDataAccessService : ISpecSheetDataAccessService
     public SpecSheetDataAccessService(PUSpecSheetDbContext dbContext,
         ISpecSheetCache specSheetCache,
         ISpecSheetReader specSheetReader,
+        SheetEditSwitch editSwitch,
         ITypeDataAccessService typeDataAccessService,
         IEmailBuilderService emailBuilderService,
         IEmailService emailService,
@@ -51,6 +56,7 @@ internal class SpecSheetDataAccessService : ISpecSheetDataAccessService
         ArgumentNullException.ThrowIfNull(dbContext, nameof(dbContext));
         ArgumentNullException.ThrowIfNull(specSheetCache, nameof(specSheetCache));
         ArgumentNullException.ThrowIfNull(specSheetReader, nameof(specSheetReader));
+        ArgumentNullException.ThrowIfNull(editSwitch, nameof(editSwitch));
         ArgumentNullException.ThrowIfNull(typeDataAccessService, nameof(typeDataAccessService));
         ArgumentNullException.ThrowIfNull(emailBuilderService, nameof(emailBuilderService));
         ArgumentNullException.ThrowIfNull(emailService, nameof(emailService));
@@ -60,6 +66,7 @@ internal class SpecSheetDataAccessService : ISpecSheetDataAccessService
         _dbContext = dbContext;
         _specSheetCache = specSheetCache;
         _specSheetReader = specSheetReader;
+        _editSwitch = editSwitch;
         _typeDataAccessService = typeDataAccessService;
         _emailBuilderService = emailBuilderService;
         _emailService = emailService;
@@ -358,6 +365,11 @@ internal class SpecSheetDataAccessService : ISpecSheetDataAccessService
         var creatingUser = await _userContext.EnsureUserAsync(cancellationToken)
             ?? throw new InvalidOperationException("Creating user not found in the context.");
 
+        if (_editSwitch.IsOnRevisions(createPUSpecSheetRequest.SpecSheetTypeId))
+        {
+            throw new NotSupportedException($"Spec Sheets of SpecSheetTypeId {createPUSpecSheetRequest.SpecSheetTypeId} are edited on the revisions, where creating one isn't supported yet.");
+        }
+
         var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
 
         try
@@ -456,7 +468,10 @@ internal class SpecSheetDataAccessService : ISpecSheetDataAccessService
 
         try
         {
-            var processor = new SpecSheetChangeProcessor(_dbContext, updatingUser, _logger);
+            var draftSheetId = await _editSwitch.FindDraftSheetIdAsync(specSheetChanges.SpecSheetId, cancellationToken);
+            ChangeProcessorBase processor = draftSheetId.HasValue
+                ? new SheetDraftChangeProcessor(_dbContext, updatingUser, draftSheetId.Value, _logger)
+                : new SpecSheetChangeProcessor(_dbContext, updatingUser, _logger);
             await processor.ApplyChangesAsync(specSheetChanges.Operations, cancellationToken);
 
             await _specSheetCache.RemoveAsync(specSheetChanges.SpecSheetId, cancellationToken);
@@ -478,6 +493,11 @@ internal class SpecSheetDataAccessService : ISpecSheetDataAccessService
             .Include(x => x.SpecSheetType)
             .FirstOrDefaultAsync(x => x.Id == publishSpecSheetRequest.Id, cancellationToken)
             ?? throw new KeyNotFoundException($"Spec Sheet with Id {publishSpecSheetRequest.Id} not found.");
+
+        if (_editSwitch.IsOnRevisions(specSheetToPublish.SpecSheetTypeId))
+        {
+            throw new NotSupportedException($"Spec Sheet with Id {publishSpecSheetRequest.Id} is edited on the revisions, where publishing isn't supported yet.");
+        }
 
         specSheetToPublish.PublishedByUserId = publishingUser.Id;
         specSheetToPublish.ChangeLog = publishSpecSheetRequest.ChangeLog;
@@ -547,6 +567,11 @@ internal class SpecSheetDataAccessService : ISpecSheetDataAccessService
 
     public async Task DeleteSpecSheetAsync(int id, CancellationToken cancellationToken)
     {
+        if (await _editSwitch.IsOnRevisionsAsync(id, cancellationToken))
+        {
+            throw new NotSupportedException($"Spec Sheet with Id {id} is edited on the revisions, where deleting isn't supported yet.");
+        }
+
         await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
 
         try
@@ -690,6 +715,11 @@ internal class SpecSheetDataAccessService : ISpecSheetDataAccessService
                 .AsSplitQuery()
                 .FirstOrDefaultAsync(ss => ss.Id == workflowStep.SpecSheetId, cancellationToken)
                     ?? throw new KeyNotFoundException($"Spec Sheet with Id {workflowStep.SpecSheetId} not found.");
+
+            if (_editSwitch.IsOnRevisions(specSheet.SpecSheetTypeId))
+            {
+                throw new NotSupportedException($"Spec Sheet with Id {specSheet.Id} is edited on the revisions, where approving isn't supported yet.");
+            }
 
             var workflowStepActor = workflowStep.Actors.FirstOrDefault(a => a.Id == updateWorkflowStepActorRequest.WorkflowStepActorId)
                 ?? throw new KeyNotFoundException($"Workflow step actor with Id {updateWorkflowStepActorRequest.WorkflowStepActorId} not found in workflow step with Id {updateWorkflowStepActorRequest.WorkflowStepId}");

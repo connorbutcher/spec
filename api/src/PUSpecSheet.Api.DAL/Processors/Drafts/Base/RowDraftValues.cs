@@ -1,0 +1,136 @@
+﻿using PUSpecSheet.Api.Database;
+using PUSpecSheet.Api.Database.Schema.Cell;
+using PUSpecSheet.Api.Database.Schema.Spec;
+
+namespace PUSpecSheet.Api.DAL.Processors.Drafts.Base;
+
+/// <summary>
+/// Sets the values of a row draft's cells. A cell without a value has no value row, as the migrator writes them.
+/// </summary>
+internal class RowDraftValues
+{
+    private readonly PUSpecSheetDbContext _dbContext;
+
+    public RowDraftValues(PUSpecSheetDbContext dbContext)
+    {
+        ArgumentNullException.ThrowIfNull(dbContext, nameof(dbContext));
+
+        _dbContext = dbContext;
+    }
+
+    public DbSheetPairValue? PairOf(DbSheetTableRowRevision draft, int cellId)
+    {
+        return draft.PairValues.FirstOrDefault(v => v.SheetTableCellId == cellId);
+    }
+
+    public DbSheetLinkedSheetValue? LinkedOf(DbSheetTableRowRevision draft, int cellId)
+    {
+        return draft.LinkedSheetValues.FirstOrDefault(v => v.SheetTableCellId == cellId);
+    }
+
+    public void SetText(DbSheetTableRowRevision draft, int cellId, string? value)
+    {
+        var existing = draft.TextValues.FirstOrDefault(v => v.SheetTableCellId == cellId);
+        if (value is null)
+        {
+            Remove(draft.TextValues, existing);
+            return;
+        }
+
+        if (existing is null)
+        {
+            draft.TextValues.Add(new DbSheetTextValue { SheetTableRowRevisionId = draft.Id, SheetTableCellId = cellId, Value = value });
+            return;
+        }
+
+        _dbContext.Entry(existing).Property(v => v.Value).CurrentValue = value;
+    }
+
+    public void SetNumber(DbSheetTableRowRevision draft, int cellId, double? value)
+    {
+        var existing = draft.NumericValues.FirstOrDefault(v => v.SheetTableCellId == cellId);
+        if (!value.HasValue)
+        {
+            Remove(draft.NumericValues, existing);
+            return;
+        }
+
+        if (existing is null)
+        {
+            draft.NumericValues.Add(new DbSheetNumericValue { SheetTableRowRevisionId = draft.Id, SheetTableCellId = cellId, Value = value.Value });
+            return;
+        }
+
+        _dbContext.Entry(existing).Property(v => v.Value).CurrentValue = value.Value;
+    }
+
+    public void SetPair(DbSheetTableRowRevision draft, int cellId, string? valueX, string? valueY)
+    {
+        var existing = PairOf(draft, cellId);
+        if (valueX is null && valueY is null)
+        {
+            Remove(draft.PairValues, existing);
+            return;
+        }
+
+        if (existing is null)
+        {
+            draft.PairValues.Add(new DbSheetPairValue
+            {
+                SheetTableRowRevisionId = draft.Id,
+                SheetTableCellId = cellId,
+                PairValueX = valueX,
+                PairValueY = valueY
+            });
+            return;
+        }
+
+        var entry = _dbContext.Entry(existing);
+        entry.Property(v => v.PairValueX).CurrentValue = valueX;
+        entry.Property(v => v.PairValueY).CurrentValue = valueY;
+    }
+
+    public void SetLinked(DbSheetTableRowRevision draft, int cellId, LinkedDraftValue value)
+    {
+        ArgumentNullException.ThrowIfNull(value, nameof(value));
+
+        var existing = LinkedOf(draft, cellId);
+        if (value.IsEmpty)
+        {
+            Remove(draft.LinkedSheetValues, existing);
+            return;
+        }
+
+        if (existing is null)
+        {
+            draft.LinkedSheetValues.Add(new DbSheetLinkedSheetValue
+            {
+                SheetTableRowRevisionId = draft.Id,
+                SheetTableCellId = cellId,
+                LinkedSpecSheetTypeId = value.LinkedSpecSheetTypeId,
+                LinkedSpecSheetPhaseId = value.LinkedSpecSheetPhaseId,
+                TableReferenceId = value.TableReferenceId,
+                LinkedReferenceId = value.LinkedReferenceId
+            });
+            return;
+        }
+
+        var entry = _dbContext.Entry(existing);
+        entry.Property(v => v.LinkedSpecSheetTypeId).CurrentValue = value.LinkedSpecSheetTypeId;
+        entry.Property(v => v.LinkedSpecSheetPhaseId).CurrentValue = value.LinkedSpecSheetPhaseId;
+        entry.Property(v => v.TableReferenceId).CurrentValue = value.TableReferenceId;
+        entry.Property(v => v.LinkedReferenceId).CurrentValue = value.LinkedReferenceId;
+    }
+
+    private void Remove<TValue>(ICollection<TValue> values, TValue? existing)
+        where TValue : class
+    {
+        if (existing is null)
+        {
+            return;
+        }
+
+        values.Remove(existing);
+        _dbContext.Remove(existing);
+    }
+}

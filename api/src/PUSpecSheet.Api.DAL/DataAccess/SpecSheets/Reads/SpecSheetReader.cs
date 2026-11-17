@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using PUSpecSheet.Abstractions.Domain.SpecSheets;
+using PUSpecSheet.Api.DAL.DataAccess.SpecSheets.Edits;
 
 namespace PUSpecSheet.Api.DAL.DataAccess.SpecSheets.Reads;
 
@@ -8,27 +9,37 @@ internal class SpecSheetReader : ISpecSheetReader
 {
     private readonly SpecSheetCopyReader _copyReader;
     private readonly SpecSheetRevisionReader _revisionReader;
+    private readonly SheetEditSwitch _editSwitch;
     private readonly IOptionsMonitor<SheetReadOptions> _options;
     private readonly ILogger<ISpecSheetReader> _logger;
 
     public SpecSheetReader(SpecSheetCopyReader copyReader,
         SpecSheetRevisionReader revisionReader,
+        SheetEditSwitch editSwitch,
         IOptionsMonitor<SheetReadOptions> options,
         ILogger<ISpecSheetReader> logger)
     {
         ArgumentNullException.ThrowIfNull(copyReader, nameof(copyReader));
         ArgumentNullException.ThrowIfNull(revisionReader, nameof(revisionReader));
+        ArgumentNullException.ThrowIfNull(editSwitch, nameof(editSwitch));
         ArgumentNullException.ThrowIfNull(options, nameof(options));
         ArgumentNullException.ThrowIfNull(logger, nameof(logger));
 
         _copyReader = copyReader;
         _revisionReader = revisionReader;
+        _editSwitch = editSwitch;
         _options = options;
         _logger = logger;
     }
 
     public async Task<SpecSheet> ReadAsync(int id, CancellationToken cancellationToken)
     {
+        var draftSheetId = await _editSwitch.FindDraftSheetIdAsync(id, cancellationToken);
+        if (draftSheetId.HasValue)
+        {
+            return await _revisionReader.ReadDraftAsync(id, draftSheetId.Value, cancellationToken);
+        }
+
         switch (_options.CurrentValue.Source)
         {
             case SheetReadSource.Revisions:

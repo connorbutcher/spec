@@ -9,6 +9,7 @@ using PUSpecSheet.Api.DAL.Context;
 using PUSpecSheet.Api.DAL.DataAccess.Admin;
 using PUSpecSheet.Api.DAL.DataAccess.Query;
 using PUSpecSheet.Api.DAL.DataAccess.SpecSheets;
+using PUSpecSheet.Api.DAL.DataAccess.SpecSheets.Edits;
 using PUSpecSheet.Api.DAL.DataAccess.SpecSheets.Reads;
 using PUSpecSheet.Api.DAL.DataAccess.Template;
 using PUSpecSheet.Api.DAL.DataAccess.Types;
@@ -56,6 +57,7 @@ public static class DataAccessLayerModule
         builder.Services.AddScoped<ISpecSheetCache, SpecSheetCache>();
 
         RegisterReaders(builder);
+        RegisterEdits(builder);
         RegisterResolvers(builder.Services);
     }
 
@@ -65,6 +67,12 @@ public static class DataAccessLayerModule
         builder.Services.AddScoped<SpecSheetCopyReader>();
         builder.Services.AddScoped<SpecSheetRevisionReader>();
         builder.Services.AddScoped<ISpecSheetReader, SpecSheetReader>();
+    }
+
+    private static void RegisterEdits(IHostApplicationBuilder builder)
+    {
+        builder.Services.Configure<SheetEditOptions>(builder.Configuration.GetSection(SheetEditOptions.SectionName));
+        builder.Services.AddScoped<SheetEditSwitch>();
     }
 
     private static void RegisterResolvers(IServiceCollection services)

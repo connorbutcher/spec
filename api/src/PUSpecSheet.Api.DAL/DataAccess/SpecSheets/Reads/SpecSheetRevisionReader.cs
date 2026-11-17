@@ -16,7 +16,8 @@ namespace PUSpecSheet.Api.DAL.DataAccess.SpecSheets.Reads;
 
 /// <summary>
 /// Reads a published spec sheet from the revisions: the version that was migrated from the SpecSheets copy with the
-/// given id, as its sheet stood when the version was published. It builds the same <see cref="DbSpecSheet"/> a copy is
+/// given id, as its sheet stood when the version was published, or the drafts of a sheet type edited on the revisions
+/// (<see cref="ReadDraftAsync"/>). It builds the same <see cref="DbSpecSheet"/> a copy is
 /// read into and maps it the same way, so everything after the read is the same whichever it came from.
 /// </summary>
 /// <remarks>
@@ -62,15 +63,11 @@ internal class SpecSheetRevisionReader
         }
 
         var version = found.Version;
-        var sheet = await ReadSheetAsync(version.SheetId, version.PublishedDateTime, cancellationToken);
+        var sheet = await ReadSheetAsync(version.SheetId, version.PublishedDateTime, false, cancellationToken);
         var submissions = await ReadSubmissionsAsync(version, found.PreviousPublishedDateTime, cancellationToken);
 
         var createdByUserId = version.SourceCreatedByUserId ?? version.PublishedByUserId;
-        var noteAuthorIds = sheet.Tables
-            .SelectMany(table => table.Revisions)
-            .SelectMany(revision => revision.Notes ?? [])
-            .Select(note => note.CreatedByUserId);
-        var users = await ReadUsersAsync(noteAuthorIds.Append(createdByUserId).Append(version.PublishedByUserId), cancellationToken);
+        var users = await ReadUsersAsync(NoteAuthorIds(sheet).Append(createdByUserId).Append(version.PublishedByUserId), cancellationToken);
 
         var ids = new RevisionItemNumbering();
         var dbSpecSheet = new DbSpecSheet
@@ -90,12 +87,43 @@ internal class SpecSheetRevisionReader
             PublishedByUser = users.GetValueOrDefault(version.PublishedByUserId),
             SpecSheetPhase = sheet.SpecSheetPhase,
             SpecSheetType = sheet.SpecSheetType,
-            Tables = [.. sheet.Tables.Select(table => MapTable(table, specSheetId, ids, users)).OrderBy(table => table.DisplayOrder)],
-            PropertyValues = [.. sheet.Properties.Select(property => MapProperty(property, specSheetId))],
+            Tables = MapTables(sheet, specSheetId, ids, users),
+            PropertyValues = MapProperties(sheet, specSheetId),
             WorkflowSteps = [.. submissions.Select(submission => MapSubmission(submission, specSheetId, ids))],
-            ExternalReferences = [.. sheet.ExternalReferences
-                .Where(reference => reference.Revisions.Count > 0)
-                .Select(reference => MapExternalReference(reference, specSheetId))]
+            ExternalReferences = MapExternalReferences(sheet, specSheetId)
+        };
+
+        return dbSpecSheet.MapToDomain();
+    }
+
+    /// <summary>
+    /// The unpublished spec sheet with this id as its drafts have it: each item's draft where it has one, otherwise its
+    /// current published revision. The spec sheet's own row gives what isn't kept in the revisions: who created it and
+    /// when, and its workflow steps.
+    /// </summary>
+    public async Task<SpecSheet> ReadDraftAsync(int specSheetId, int sheetId, CancellationToken cancellationToken)
+    {
+        var header = await _dbContext.SpecSheets
+            .Where(s => s.Id == specSheetId)
+            .Include(s => s.CreatedByUser)
+            .Include(s => s.WorkflowSteps)
+                .ThenInclude(step => step.Actors)
+                    .ThenInclude(actor => actor.ActorUser)
+            .AsSplitQuery()
+            .AsNoTracking()
+            .FirstOrDefaultAsync(cancellationToken)
+            ?? throw new KeyNotFoundException($"Spec Sheet with Id {specSheetId} not found.");
+
+        var sheet = await ReadSheetAsync(sheetId, DateTime.UtcNow, true, cancellationToken);
+        var users = await ReadUsersAsync(NoteAuthorIds(sheet), cancellationToken);
+
+        var dbSpecSheet = header with
+        {
+            SpecSheetPhase = sheet.SpecSheetPhase,
+            SpecSheetType = sheet.SpecSheetType,
+            Tables = MapTables(sheet, specSheetId, new RevisionItemNumbering(), users),
+            PropertyValues = MapProperties(sheet, specSheetId),
+            ExternalReferences = MapExternalReferences(sheet, specSheetId)
         };
 
         return dbSpecSheet.MapToDomain();
@@ -103,40 +131,47 @@ internal class SpecSheetRevisionReader
 
     // The sheet with what was shown at the moment: each table, group, row and property whose revision then doesn't
     // remove it, with that revision alone, and each external reference with its revision then, if it had one. Groups
-    // and rows are only read under tables and groups that are shown, so nothing in a removed table is.
-    private async Task<DbSheet> ReadSheetAsync(int sheetId, DateTime moment, CancellationToken cancellationToken)
+    // and rows are only read under tables and groups that are shown, so nothing in a removed table is. With drafts,
+    // each item's draft is read too, and is the revision shown where it has one (see Shown).
+    private async Task<DbSheet> ReadSheetAsync(int sheetId, DateTime moment, bool withDrafts, CancellationToken cancellationToken)
     {
         return await _dbContext.Sheets
             .Where(s => s.Id == sheetId)
             .Include(s => s.SpecSheetPhase)
             .Include(s => s.SpecSheetType)
 
-            .Include(s => s.Tables.Where(t => t.Revisions.Any(r => r.Status == RevisionStatus.Published
-                    && !r.IsDeleted
-                    && r.PublishedDateTime <= moment
-                    && (r.SupersededDateTime == null || r.SupersededDateTime > moment))))
-                .ThenInclude(t => t.Revisions.Where(r => r.Status == RevisionStatus.Published
-                    && r.PublishedDateTime <= moment
-                    && (r.SupersededDateTime == null || r.SupersededDateTime > moment)))
+            .Include(s => s.Tables.Where(t => t.Revisions.Any(r => !r.IsDeleted
+                    && ((withDrafts && r.Status == RevisionStatus.Draft)
+                        || (r.Status == RevisionStatus.Published
+                            && r.PublishedDateTime <= moment
+                            && (r.SupersededDateTime == null || r.SupersededDateTime > moment))))))
+                .ThenInclude(t => t.Revisions.Where(r => (withDrafts && r.Status == RevisionStatus.Draft)
+                    || (r.Status == RevisionStatus.Published
+                        && r.PublishedDateTime <= moment
+                        && (r.SupersededDateTime == null || r.SupersededDateTime > moment))))
 
             .Include(s => s.Tables)
-                .ThenInclude(t => t.Groups.Where(g => g.Revisions.Any(r => r.Status == RevisionStatus.Published
-                    && !r.IsDeleted
-                    && r.PublishedDateTime <= moment
-                    && (r.SupersededDateTime == null || r.SupersededDateTime > moment))))
-                    .ThenInclude(g => g.Revisions.Where(r => r.Status == RevisionStatus.Published
-                        && r.PublishedDateTime <= moment
-                        && (r.SupersededDateTime == null || r.SupersededDateTime > moment)))
+                .ThenInclude(t => t.Groups.Where(g => g.Revisions.Any(r => !r.IsDeleted
+                    && ((withDrafts && r.Status == RevisionStatus.Draft)
+                        || (r.Status == RevisionStatus.Published
+                            && r.PublishedDateTime <= moment
+                            && (r.SupersededDateTime == null || r.SupersededDateTime > moment))))))
+                    .ThenInclude(g => g.Revisions.Where(r => (withDrafts && r.Status == RevisionStatus.Draft)
+                        || (r.Status == RevisionStatus.Published
+                            && r.PublishedDateTime <= moment
+                            && (r.SupersededDateTime == null || r.SupersededDateTime > moment))))
 
             .Include(s => s.Tables)
                 .ThenInclude(t => t.Groups)
-                    .ThenInclude(g => g.Rows.Where(row => row.Revisions.Any(r => r.Status == RevisionStatus.Published
-                        && !r.IsDeleted
-                        && r.PublishedDateTime <= moment
-                        && (r.SupersededDateTime == null || r.SupersededDateTime > moment))))
-                        .ThenInclude(row => row.Revisions.Where(r => r.Status == RevisionStatus.Published
-                            && r.PublishedDateTime <= moment
-                            && (r.SupersededDateTime == null || r.SupersededDateTime > moment)))
+                    .ThenInclude(g => g.Rows.Where(row => row.Revisions.Any(r => !r.IsDeleted
+                        && ((withDrafts && r.Status == RevisionStatus.Draft)
+                            || (r.Status == RevisionStatus.Published
+                                && r.PublishedDateTime <= moment
+                                && (r.SupersededDateTime == null || r.SupersededDateTime > moment))))))
+                        .ThenInclude(row => row.Revisions.Where(r => (withDrafts && r.Status == RevisionStatus.Draft)
+                            || (r.Status == RevisionStatus.Published
+                                && r.PublishedDateTime <= moment
+                                && (r.SupersededDateTime == null || r.SupersededDateTime > moment))))
                             .ThenInclude(r => r.TextValues)
             .Include(s => s.Tables)
                 .ThenInclude(t => t.Groups)
@@ -172,13 +207,15 @@ internal class SpecSheetRevisionReader
                             .ThenInclude(c => c.TableCellTemplate)
                                 .ThenInclude(tc => tc!.CellConfiguration)
 
-            .Include(s => s.Properties.Where(p => p.Revisions.Any(r => r.Status == RevisionStatus.Published
-                    && !r.IsDeleted
-                    && r.PublishedDateTime <= moment
-                    && (r.SupersededDateTime == null || r.SupersededDateTime > moment))))
-                .ThenInclude(p => p.Revisions.Where(r => r.Status == RevisionStatus.Published
-                    && r.PublishedDateTime <= moment
-                    && (r.SupersededDateTime == null || r.SupersededDateTime > moment)))
+            .Include(s => s.Properties.Where(p => p.Revisions.Any(r => !r.IsDeleted
+                    && ((withDrafts && r.Status == RevisionStatus.Draft)
+                        || (r.Status == RevisionStatus.Published
+                            && r.PublishedDateTime <= moment
+                            && (r.SupersededDateTime == null || r.SupersededDateTime > moment))))))
+                .ThenInclude(p => p.Revisions.Where(r => (withDrafts && r.Status == RevisionStatus.Draft)
+                    || (r.Status == RevisionStatus.Published
+                        && r.PublishedDateTime <= moment
+                        && (r.SupersededDateTime == null || r.SupersededDateTime > moment))))
             .Include(s => s.Properties)
                 .ThenInclude(p => p.SpecSheetTypeProperty)
 
@@ -220,12 +257,66 @@ internal class SpecSheetRevisionReader
             .ToDictionaryAsync(user => user.Id, cancellationToken);
     }
 
+    private static IEnumerable<int> NoteAuthorIds(DbSheet sheet)
+    {
+        return sheet.Tables
+            .SelectMany(table => table.Revisions)
+            .SelectMany(revision => revision.Notes ?? [])
+            .Select(note => note.CreatedByUserId);
+    }
+
+    // Of an item's revisions read, the one shown: its draft where it has one, otherwise its published revision.
+    private static TRevision Shown<TRevision>(ICollection<TRevision> revisions)
+        where TRevision : IDbSheetRevision
+    {
+        return revisions.OrderBy(revision => revision.Status == RevisionStatus.Draft ? 0 : 1).First();
+    }
+
+    private static bool IsShown<TRevision>(ICollection<TRevision> revisions)
+        where TRevision : IDbSheetRevision
+    {
+        return !Shown(revisions).IsDeleted;
+    }
+
+    private static int? LastModifiedByUserId(IDbSheetRevision revision)
+    {
+        return revision.RevisionNumber > 1 ? revision.CreatedByUserId : null;
+    }
+
+    private static DateTime? LastModifiedDateTime(IDbSheetRevision revision)
+    {
+        return revision.RevisionNumber > 1 ? revision.PublishedDateTime ?? revision.LastModifiedDateTime : null;
+    }
+
+    private static List<DbSpecSheetTable> MapTables(DbSheet sheet, int specSheetId, RevisionItemNumbering ids, Dictionary<int, DbUser> users)
+    {
+        return [.. sheet.Tables
+            .Where(table => IsShown(table.Revisions))
+            .Select(table => MapTable(table, specSheetId, ids, users))
+            .OrderBy(table => table.DisplayOrder)];
+    }
+
+    private static List<DbSpecSheetPropertyValue> MapProperties(DbSheet sheet, int specSheetId)
+    {
+        return [.. sheet.Properties
+            .Where(property => IsShown(property.Revisions))
+            .Select(property => MapProperty(property, specSheetId))];
+    }
+
+    private static List<DbSpecSheetExternalReference> MapExternalReferences(DbSheet sheet, int specSheetId)
+    {
+        return [.. sheet.ExternalReferences
+            .Where(reference => reference.Revisions.Count > 0)
+            .Select(reference => MapExternalReference(reference, specSheetId))];
+    }
+
     private static DbSpecSheetTable MapTable(DbSheetTable table, int specSheetId, RevisionItemNumbering ids, Dictionary<int, DbUser> users)
     {
-        var revision = table.Revisions.Single();
+        var revision = Shown(table.Revisions);
 
         // A group is nested under the group it is linked to, which the revisions keep by ReferenceID.
         var groupIdsByReference = table.Groups
+            .Where(group => IsShown(group.Revisions))
             .GroupBy(group => group.ReferenceId)
             .ToDictionary(group => group.Key, group => group.First().Id);
 
@@ -240,10 +331,10 @@ internal class SpecSheetRevisionReader
             IsDeleted = false,
             CreatedByUserId = revision.CreatedByUserId,
             CreatedDateTime = table.CreatedDateTime,
-            LastModifiedByUserId = revision.RevisionNumber > 1 ? revision.CreatedByUserId : null,
-            LastModifiedDateTime = revision.RevisionNumber > 1 ? revision.PublishedDateTime : null,
+            LastModifiedByUserId = LastModifiedByUserId(revision),
+            LastModifiedDateTime = LastModifiedDateTime(revision),
             ConfigurationOverride = revision.ConfigurationOverride,
-            Groups = [.. table.Groups.Select(group => MapGroup(group, groupIdsByReference, ids))],
+            Groups = [.. table.Groups.Where(group => IsShown(group.Revisions)).Select(group => MapGroup(group, groupIdsByReference, ids))],
             Widgets = [.. (revision.WidgetValues ?? []).Select(widget => MapTableWidget(widget, table.Id, ids))],
             Notes = [.. (revision.Notes ?? []).Select(note => MapNote(note, table.Id, ids, users))]
         };
@@ -278,7 +369,7 @@ internal class SpecSheetRevisionReader
 
     private static DbSpecSheetTableGroup MapGroup(DbSheetTableGroup group, Dictionary<Guid, int> groupIdsByReference, RevisionItemNumbering ids)
     {
-        var revision = group.Revisions.Single();
+        var revision = Shown(group.Revisions);
         int? linkedGroupId = revision.LinkedSheetTableGroupReferenceId is { } linkedReference
             && groupIdsByReference.TryGetValue(linkedReference, out var linked)
                 ? linked
@@ -293,12 +384,12 @@ internal class SpecSheetRevisionReader
             Order = revision.DisplayOrder,
             ReferenceId = group.ReferenceId,
             IsDeleted = false,
-            Rows = [.. group.Rows.Select(MapRow).OrderBy(row => row.RowNumber)],
+            Rows = [.. group.Rows.Where(row => IsShown(row.Revisions)).Select(MapRow).OrderBy(row => row.RowNumber)],
             Widgets = [.. (revision.WidgetValues ?? []).Select(widget => MapGroupWidget(widget, group.Id, ids))],
             CreatedByUserId = revision.CreatedByUserId,
             CreatedDateTime = group.CreatedDateTime,
-            LastModifiedByUserId = revision.RevisionNumber > 1 ? revision.CreatedByUserId : null,
-            LastModifiedDateTime = revision.RevisionNumber > 1 ? revision.PublishedDateTime : null
+            LastModifiedByUserId = LastModifiedByUserId(revision),
+            LastModifiedDateTime = LastModifiedDateTime(revision)
         };
     }
 
@@ -316,7 +407,7 @@ internal class SpecSheetRevisionReader
 
     private static DbSpecSheetTableRow MapRow(DbSheetTableRow row)
     {
-        var revision = row.Revisions.Single();
+        var revision = Shown(row.Revisions);
         var values = new RowRevisionValues(revision);
 
         var mapped = new DbSpecSheetTableRow
@@ -329,8 +420,8 @@ internal class SpecSheetRevisionReader
             IsDeleted = false,
             CreatedByUserId = revision.CreatedByUserId,
             CreatedDateTime = row.CreatedDateTime,
-            LastModifiedByUserId = revision.RevisionNumber > 1 ? revision.CreatedByUserId : null,
-            LastModifiedDateTime = revision.RevisionNumber > 1 ? revision.PublishedDateTime : null
+            LastModifiedByUserId = LastModifiedByUserId(revision),
+            LastModifiedDateTime = LastModifiedDateTime(revision)
         };
 
         foreach (var cell in row.Cells.OrderBy(cell => cell.TableCellTemplate!.ColumnNumber))
@@ -377,7 +468,7 @@ internal class SpecSheetRevisionReader
             Id = property.Id,
             SpecSheetId = specSheetId,
             SpecSheetTypePropertyId = property.SpecSheetTypePropertyId,
-            PropertyValue = property.Revisions.Single().PropertyValue,
+            PropertyValue = Shown(property.Revisions).PropertyValue,
             SpecSheetTypeProperty = property.SpecSheetTypeProperty
         };
     }
