@@ -43,7 +43,7 @@ This codebase is the base. The rewrite it replaces, with revision-based versioni
 3. Add the revision tables in their own schemas, beside the existing ones. *(done: `spec`, `cell` and `approval`, built on the existing template tables)*
 4. Bring across the migrator, re-runnable, and keep the revision tables in step with the existing ones. *(done: `api/tools/PUSpecSheet.Migrator`)*
 5. Serve the query API and read-only screens from the revision tables, checked against the existing answers first. *(done: the `SheetReads:Source` switch, below)*
-6. Move editing onto drafts and revisions one sheet type at a time, behind a per-type switch.
+6. Move editing onto drafts and revisions one sheet type at a time, behind a per-type switch (`SheetEdits:RevisionSheetTypeIds`). *(in progress: cell value edits are done; the plan and slices are in `docs/PROGRESS.md`)*
 7. Port the remaining features one at a time: the published API, lookups, presence. Templates stay as they are: the template tables and their editing aren't replaced.
 8. Retire the copied-sheet tables and the code that writes them.
 

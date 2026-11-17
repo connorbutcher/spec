@@ -22,7 +22,7 @@ The legacy codebase is the base. The rewrite's features (revision model, drafts,
 | 3 | Revision tables beside the copy tables | Done | `7b2ddcf` |
 | 4 | Migrator (copies to revisions), re-runnable | Done | `1057cda`, `4f58572` |
 | 5 | Reads from revisions behind a switch | Done | `03a8f75`, `8eecb3b`, `2cd0f95` |
-| 6 | Per-sheet-type cutover of editing onto drafts and revisions | **Next, not started** | |
+| 6 | Per-sheet-type cutover of editing onto drafts and revisions | **In progress**: slice 1 of 6 | |
 | 7 | Port remaining features (published API, lookups, presence). Templates stay as they are | Not started | |
 | 8 | Retire the legacy copy code | Not started | |
 
@@ -56,9 +56,35 @@ The legacy codebase is the base. The rewrite's features (revision model, drafts,
 - `GET /revisions/compare` (AdminController) lists differences and sheets not yet migrated.
 - Compare mode doubles read cost on a cache miss.
 
-## Next: stage 6
+## Stage 6: editing on drafts and revisions
 
-Move editing onto drafts and revisions one sheet type at a time. Start by reading how editing, publishing and copying work today (copier, publisher, cell filler data services), then design draft create/edit/publish against the revision tables, switching per sheet type behind a setting like the read switch.
+**The switch.** `SheetEdits:RevisionSheetTypeIds` in appsettings, a list of sheet type ids, empty by default. For a listed type:
+- A draft (an unpublished SpecSheets row) is read from the revisions: each item's draft where it has one, otherwise its current published revision. Tables, groups, rows and cells carry their spec items' ids, and a value's id is its cell's, so the edits the screens send can be applied to the revisions as they are.
+- Edits are applied to the drafts (`Processors/Drafts`). A row's first edit starts its draft from its published revision, values included.
+- The SpecSheets row stays as the draft's header: its id, creator and place in the lists.
+- The first edit clears the sheet's `LegacySourceHash`, so the migrator leaves it alone from then on.
+- Published sheets of a listed type are read with `SheetReads:Source` = `Revisions`.
+
+**Before a type is listed:** the migrator has run with `--commit` and `/revisions/compare?specSheetTypeId=` is clean for it, and the scheduled migrator run is stopped for it.
+
+**Slices.** Each is a commit or two. Until slice 5 is done the switch is for scratch databases only: whatever a slice doesn't cover yet is refused for a listed type.
+
+| # | Slice | Status |
+|---|-------|--------|
+| 1 | The switch, the draft read from the revisions, and cell value edits (add and update text, number, pair and linked values on existing cells). Creating, publishing and deleting a listed type's sheets, and every other edit, are refused. | Done |
+| 2 | Rows and cells: add, reorder, delete, and values on new cells. | |
+| 3 | Groups and tables, with their widgets, notes and configuration overrides. | |
+| 4 | Create a draft (empty, or copied from another sheet) with its properties and external references; delete a draft (drop its draft revisions). | |
+| 5 | Publish: without approval (the drafts become a version), and with approval (submission, approvers, emails, approve, reject, reassign). | |
+| 6 | Version lists and property summaries from the revisions for listed types. | |
+
+**Order of sheet types.** First a test type made on a scratch copy. Then the types without an approval workflow, fewest sheets first. Then the approval types, once slice 5 has run on one of them. The busiest types last. Linked cells and tables read other sheets through `GetSpecSheetByIdAsync`, so a type can move before or after the types it links to.
+
+**Verifying a slice.** On two scratch databases restored from one backup, make the same edits to the same draft, one with the type unlisted (copies) and one listed (revisions), and compare the two drafts' reads with `SpecSheetReadComparer`, which matches items by ReferenceID and ignores ids. Then build and run the tests.
+
+**Slice 1 was checked** on a scratch database (one published copy and a working copy, migrated): the draft read shows the drafts over the published revisions; value edits in one call start a row's draft once and copy its values; text cleared removes the value row; a pair edit keeps the other half; the published read is unchanged; a batch with an unsupported operation changes nothing; the first edit clears the hash and the migrator then leaves the sheet alone.
+
+**Known limits of slice 1.** `UpdateSpecSheetAsync` logs and swallows errors, as it always has, so a refused edit only shows in the log. The draft's workflow steps are still the header's.
 
 ## Open items
 
