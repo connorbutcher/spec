@@ -1,9 +1,9 @@
-﻿namespace PUSpecSheet.Api.DAL.DataAccess.SpecSheets.Reads;
+﻿namespace PUSpecSheet.Abstractions.Domain.Revisions;
 
 /// <summary>
 /// How published spec sheets read from the revisions compare with the same sheets read from their copies.
 /// </summary>
-public record RevisionReadCheck
+public sealed record RevisionReadCheck
 {
     public required int Checked { get; init; }
 

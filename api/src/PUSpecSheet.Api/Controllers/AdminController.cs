@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using PUSpecSheet.Abstractions.Domain.Revisions;
 using PUSpecSheet.Api.DAL.DataAccess.Admin;
-using PUSpecSheet.Api.DAL.DataAccess.SpecSheets.Reads;
 
 namespace PUSpecSheet.Api.Controllers;
 

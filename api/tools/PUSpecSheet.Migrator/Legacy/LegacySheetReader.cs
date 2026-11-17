@@ -16,16 +16,18 @@ namespace PUSpecSheet.Migrator.Legacy;
 /// </summary>
 internal sealed class LegacySheetReader
 {
-    private readonly PUSpecSheetDbContext _db;
+    private readonly PUSpecSheetDbContext _dbContext;
 
-    public LegacySheetReader(PUSpecSheetDbContext db)
+    public LegacySheetReader(PUSpecSheetDbContext dbContext)
     {
-        _db = db;
+        ArgumentNullException.ThrowIfNull(dbContext, nameof(dbContext));
+
+        _dbContext = dbContext;
     }
 
     public async Task<IReadOnlyList<LegacySheet>> ListSheetsAsync(CancellationToken cancellationToken)
     {
-        var copies = await _db.SpecSheets.AsNoTracking()
+        var copies = await _dbContext.SpecSheets.AsNoTracking()
             .Select(copy => new { copy.SpecSheetPhaseId, copy.SpecSheetTypeId, copy.CreatedDateTime })
             .ToListAsync(cancellationToken);
 
@@ -47,15 +49,15 @@ internal sealed class LegacySheetReader
         var warnings = new List<string>();
 
         // Each query narrows the one before, so every read below is of this sheet's copies only.
-        var copies = _db.SpecSheets.AsNoTracking()
+        var copies = _dbContext.SpecSheets.AsNoTracking()
             .Where(copy => copy.SpecSheetPhaseId == sheet.PhaseId && copy.SpecSheetTypeId == sheet.SheetTypeId);
-        var tables = _db.SpecSheetTables.AsNoTracking()
+        var tables = _dbContext.SpecSheetTables.AsNoTracking()
             .Where(table => !table.IsDeleted && copies.Any(copy => copy.Id == table.SpecSheetId));
-        var groups = _db.SpecSheetTableGroups.AsNoTracking()
+        var groups = _dbContext.SpecSheetTableGroups.AsNoTracking()
             .Where(group => !group.IsDeleted && tables.Any(table => table.Id == group.SpecSheetTableId));
-        var rows = _db.SpecSheetTableRows.AsNoTracking()
+        var rows = _dbContext.SpecSheetTableRows.AsNoTracking()
             .Where(row => !row.IsDeleted && groups.Any(group => group.Id == row.SpecSheetTableGroupId));
-        var cells = _db.SpecSheetTableCells.AsNoTracking()
+        var cells = _dbContext.SpecSheetTableCells.AsNoTracking()
             .Where(cell => !cell.IsDeleted && rows.Any(row => row.Id == cell.SpecSheetTableRowId));
 
         var copyRows = await copies
@@ -117,7 +119,7 @@ internal sealed class LegacySheetReader
             .ToListAsync(cancellationToken);
 
         // A copied cell doesn't name its template cell: it is the one in its row's template at the same column.
-        var templateCells = (await _db.TableCellTemplates.AsNoTracking()
+        var templateCells = (await _dbContext.TableCellTemplates.AsNoTracking()
                 .Where(templateCell => rows.Any(row => row.TableRowTemplateId == templateCell.TableRowTemplateId))
                 .Select(templateCell => new
                 {
@@ -181,7 +183,7 @@ internal sealed class LegacySheetReader
         var tableWidgets = await ReadTableWidgetsAsync(tables, cancellationToken);
         var groupWidgets = await ReadGroupWidgetsAsync(groups, cancellationToken);
 
-        var notes = (await _db.SpecSheetTableNotes.AsNoTracking()
+        var notes = (await _dbContext.SpecSheetTableNotes.AsNoTracking()
                 .Where(note => tables.Any(table => table.Id == note.SpecSheetTableId))
                 .OrderBy(note => note.CreatedDateTime)
                 .ThenBy(note => note.Id)
@@ -199,7 +201,7 @@ internal sealed class LegacySheetReader
                 });
 
         var properties = new Dictionary<int, Dictionary<int, string?>>();
-        foreach (var property in await _db.SpecSheetPropertyValues.AsNoTracking()
+        foreach (var property in await _dbContext.SpecSheetPropertyValues.AsNoTracking()
             .Where(property => copies.Any(copy => copy.Id == property.SpecSheetId))
             .OrderBy(property => property.Id)
             .Select(property => new { property.SpecSheetId, property.SpecSheetTypePropertyId, property.PropertyValue })
@@ -209,7 +211,7 @@ internal sealed class LegacySheetReader
         }
 
         var references = new Dictionary<int, Dictionary<Guid, SnapshotExternalReference>>();
-        foreach (var reference in await _db.SpecSheetExternalReferences.AsNoTracking()
+        foreach (var reference in await _dbContext.SpecSheetExternalReferences.AsNoTracking()
             .Where(reference => copies.Any(copy => copy.Id == reference.SpecSheetId))
             .OrderBy(reference => reference.Id)
             .Select(reference => new
@@ -242,7 +244,7 @@ internal sealed class LegacySheetReader
         }
 
         var linkedTables = new Dictionary<int, Dictionary<Guid, SnapshotLinkedTable>>();
-        foreach (var link in await _db.SpecSheetLinkedTables.AsNoTracking()
+        foreach (var link in await _dbContext.SpecSheetLinkedTables.AsNoTracking()
             .Where(link => copies.Any(copy => copy.Id == link.SpecSheetId))
             .OrderBy(link => link.Id)
             .Select(link => new { link.Id, link.SpecSheetId, link.TableReferenceId, link.DisplayOrder, link.LinkedByUserId, link.LinkedDateTime })
@@ -366,7 +368,7 @@ internal sealed class LegacySheetReader
         var parts = new Dictionary<int, CellContentParts>();
         var repeated = 0;
 
-        foreach (var value in await _db.TextValues.AsNoTracking()
+        foreach (var value in await _dbContext.TextValues.AsNoTracking()
             .Where(value => value.Value != null && cells.Any(cell => cell.Id == value.SpecSheetTableCellId))
             .OrderBy(value => value.Id)
             .Select(value => new { value.SpecSheetTableCellId, value.Value })
@@ -377,7 +379,7 @@ internal sealed class LegacySheetReader
             cell.Text = value.Value;
         }
 
-        foreach (var value in await _db.NumericValues.AsNoTracking()
+        foreach (var value in await _dbContext.NumericValues.AsNoTracking()
             .Where(value => value.Value != null && cells.Any(cell => cell.Id == value.SpecSheetTableCellId))
             .OrderBy(value => value.Id)
             .Select(value => new { value.SpecSheetTableCellId, value.Value })
@@ -388,7 +390,7 @@ internal sealed class LegacySheetReader
             cell.Number = value.Value;
         }
 
-        foreach (var value in await _db.PairValues.AsNoTracking()
+        foreach (var value in await _dbContext.PairValues.AsNoTracking()
             .Where(value => (value.PairValueX != null || value.PairValueY != null) && cells.Any(cell => cell.Id == value.SpecSheetTableCellId))
             .OrderBy(value => value.Id)
             .Select(value => new { value.SpecSheetTableCellId, value.PairValueX, value.PairValueY })
@@ -400,7 +402,7 @@ internal sealed class LegacySheetReader
             cell.PairY = value.PairValueY;
         }
 
-        foreach (var value in await _db.LinkedSpecSheetValues.AsNoTracking()
+        foreach (var value in await _dbContext.LinkedSpecSheetValues.AsNoTracking()
             .Where(value => cells.Any(cell => cell.Id == value.SpecSheetTableCellId))
             .OrderBy(value => value.Id)
             .Select(value => new
@@ -437,13 +439,13 @@ internal sealed class LegacySheetReader
         IQueryable<DbSpecSheetTable> tables,
         CancellationToken cancellationToken)
     {
-        var widgets = _db.SpecSheetTableWidgets.AsNoTracking()
+        var widgets = _dbContext.SpecSheetTableWidgets.AsNoTracking()
             .Where(widget => tables.Any(table => table.Id == widget.SpecSheetTableId));
         var owners = await widgets
             .OrderBy(widget => widget.Id)
             .Select(widget => new { widget.Id, OwnerId = widget.SpecSheetTableId, TemplateWidgetId = widget.TableTemplateWidgetId })
             .ToListAsync(cancellationToken);
-        var values = await _db.TableWidgetValues.AsNoTracking()
+        var values = await _dbContext.TableWidgetValues.AsNoTracking()
             .Where(value => widgets.Any(widget => widget.Id == value.SpecSheetTableWidgetId))
             .OrderBy(value => value.Id)
             .Select(value => new { WidgetId = value.SpecSheetTableWidgetId, value.Value })
@@ -458,13 +460,13 @@ internal sealed class LegacySheetReader
         IQueryable<DbSpecSheetTableGroup> groups,
         CancellationToken cancellationToken)
     {
-        var widgets = _db.SpecSheetTableGroupWidgets.AsNoTracking()
+        var widgets = _dbContext.SpecSheetTableGroupWidgets.AsNoTracking()
             .Where(widget => groups.Any(group => group.Id == widget.SpecSheetTableGroupId));
         var owners = await widgets
             .OrderBy(widget => widget.Id)
             .Select(widget => new { widget.Id, OwnerId = widget.SpecSheetTableGroupId, TemplateWidgetId = widget.TableGroupTemplateWidgetId })
             .ToListAsync(cancellationToken);
-        var values = await _db.TableGroupWidgetValues.AsNoTracking()
+        var values = await _dbContext.TableGroupWidgetValues.AsNoTracking()
             .Where(value => widgets.Any(widget => widget.Id == value.SpecSheetTableGroupWidgetId))
             .OrderBy(value => value.Id)
             .Select(value => new { WidgetId = value.SpecSheetTableGroupWidgetId, value.Value })
@@ -503,10 +505,10 @@ internal sealed class LegacySheetReader
         IQueryable<DbSpecSheet> copies,
         CancellationToken cancellationToken)
     {
-        var steps = _db.WorkflowSteps.AsNoTracking()
+        var steps = _dbContext.WorkflowSteps.AsNoTracking()
             .Where(step => copies.Any(copy => copy.Id == step.SpecSheetId));
 
-        var actors = (await _db.WorkflowStepActors.AsNoTracking()
+        var actors = (await _dbContext.WorkflowStepActors.AsNoTracking()
                 .Where(actor => steps.Any(step => step.Id == actor.WorkflowStepId))
                 .OrderBy(actor => actor.Id)
                 .Select(actor => new { actor.Id, actor.WorkflowStepId, actor.ActorUserId, actor.Comment, actor.State, actor.ActionedDateTime })

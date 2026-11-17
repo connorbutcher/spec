@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using PUSpecSheet.Abstractions.Domain.Access;
+using PUSpecSheet.Abstractions.Domain.Revisions;
 using PUSpecSheet.Abstractions.Requests.Access;
 using PUSpecSheet.Abstractions.Requests.Access.Tables;
 using PUSpecSheet.Api.DAL.Caching;

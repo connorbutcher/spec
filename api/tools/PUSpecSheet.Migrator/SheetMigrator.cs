@@ -23,6 +23,11 @@ internal sealed class SheetMigrator
 
     public SheetMigrator(IDbContextFactory<PUSpecSheetDbContext> dbFactory, LegacySheetReader legacy, MigratorOptions options, ILogger logger)
     {
+        ArgumentNullException.ThrowIfNull(dbFactory, nameof(dbFactory));
+        ArgumentNullException.ThrowIfNull(legacy, nameof(legacy));
+        ArgumentNullException.ThrowIfNull(options, nameof(options));
+        ArgumentNullException.ThrowIfNull(logger, nameof(logger));
+
         _dbFactory = dbFactory;
         _legacy = legacy;
         _options = options;

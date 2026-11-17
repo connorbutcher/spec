@@ -9,7 +9,7 @@ namespace PUSpecSheet.Api.DAL.DataAccess.SpecSheets.Reads;
 /// <summary>
 /// The values a row revision holds, by the cell they are for, given to that row's cells as the value rows a copy has.
 /// </summary>
-internal sealed class RowRevisionValues
+internal class RowRevisionValues
 {
     private readonly Dictionary<int, DbSheetTextValue> _texts;
     private readonly Dictionary<int, DbSheetNumericValue> _numbers;
