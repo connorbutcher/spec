@@ -1,27 +1,31 @@
 using Microsoft.EntityFrameworkCore;
+using PUSpecSheet.DataAccess.Published.Queries;
 using PUSpecSheet.DataAccess.Published.Versions;
 using PUSpecSheet.Database;
 
-namespace PUSpecSheet.DataAccess.Published.Queries;
+namespace PUSpecSheet.DataAccess.Published;
 
-/// <summary>
-/// Reads a sheet's tables, sections and column blocks as they stood at a version: three small queries
-/// that return only the columns needed to place each item and tell whether it had been removed.
-/// </summary>
-public static class PublishedStructureQueries
+public sealed class PublishedStructureDataService : IPublishedStructureDataService
 {
-    public static async Task<PublishedStructure> ReadAsync(PuSpecSheetDbContext db, ResolvedSheetVersion version, CancellationToken cancellationToken)
+    private readonly PuSpecSheetDbContext _db;
+
+    public PublishedStructureDataService(PuSpecSheetDbContext db)
     {
-        var tables = await Tables(db, version).ToListAsync(cancellationToken);
-        var sections = await Sections(db, version).ToListAsync(cancellationToken);
-        var columnBlocks = await ColumnBlocks(db, version).ToListAsync(cancellationToken);
+        _db = db;
+    }
+
+    public async Task<PublishedStructure> ReadAsync(ResolvedSheetVersion version, CancellationToken cancellationToken)
+    {
+        var tables = await Tables(version).ToListAsync(cancellationToken);
+        var sections = await Sections(version).ToListAsync(cancellationToken);
+        var columnBlocks = await ColumnBlocks(version).ToListAsync(cancellationToken);
 
         return new PublishedStructure(tables, sections, columnBlocks);
     }
 
-    public static IQueryable<PublishedTableRecord> Tables(PuSpecSheetDbContext db, ResolvedSheetVersion version)
+    public IQueryable<PublishedTableRecord> Tables(ResolvedSheetVersion version)
     {
-        return db.SheetTableRevisions
+        return _db.SheetTableRevisions
             .AsNoTracking()
             .Where(revision => revision.SheetId == version.SheetId)
             .PublishedAt(version.PublishedAtUtc)
@@ -35,9 +39,9 @@ public static class PublishedStructureQueries
             });
     }
 
-    public static IQueryable<PublishedSectionRecord> Sections(PuSpecSheetDbContext db, ResolvedSheetVersion version)
+    public IQueryable<PublishedSectionRecord> Sections(ResolvedSheetVersion version)
     {
-        return db.SheetSectionRevisions
+        return _db.SheetSectionRevisions
             .AsNoTracking()
             .Where(revision => revision.SheetId == version.SheetId)
             .PublishedAt(version.PublishedAtUtc)
@@ -53,9 +57,9 @@ public static class PublishedStructureQueries
             });
     }
 
-    public static IQueryable<PublishedColumnBlockRecord> ColumnBlocks(PuSpecSheetDbContext db, ResolvedSheetVersion version)
+    public IQueryable<PublishedColumnBlockRecord> ColumnBlocks(ResolvedSheetVersion version)
     {
-        return db.SheetColumnBlockRevisions
+        return _db.SheetColumnBlockRevisions
             .AsNoTracking()
             .Where(revision => revision.SheetId == version.SheetId)
             .PublishedAt(version.PublishedAtUtc)

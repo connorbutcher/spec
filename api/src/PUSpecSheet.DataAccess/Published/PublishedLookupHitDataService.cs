@@ -6,35 +6,31 @@ using PUSpecSheet.Database;
 using PUSpecSheet.Database.Configurations.Values;
 using PUSpecSheet.Database.Models.Values;
 
-namespace PUSpecSheet.DataAccess.Published.Queries;
+namespace PUSpecSheet.DataAccess.Published;
 
-/// <summary>
-/// Finds the cells that held a value at a moment, in one query. It seeks the value in the text value
-/// indexes (text cells, and each value of a labelled text cell), then keeps the values whose cell has the
-/// lookup key and whose row revision was the published one at that moment, so the cost follows how many
-/// cells hold the value and not how much data there is.
-/// </summary>
-public static class PublishedLookupHitQueries
+public sealed class PublishedLookupHitDataService : IPublishedLookupHitDataService
 {
-    /// <param name="db">The database.</param>
-    /// <param name="criteria">The key and value to find, and the phase or sheet type to keep to.</param>
-    /// <param name="momentUtc">The moment the sheets are read at.</param>
-    /// <param name="sheetId">The one sheet to search, or null for every sheet.</param>
-    /// <param name="cancellationToken">Stops the query.</param>
-    public static async Task<List<PublishedLookupHit>> ListAsync(PuSpecSheetDbContext db, PublishedLookupCriteria criteria, DateTime momentUtc, int? sheetId, CancellationToken cancellationToken)
+    private readonly PuSpecSheetDbContext _db;
+
+    public PublishedLookupHitDataService(PuSpecSheetDbContext db)
     {
-        return await Query(db, criteria, momentUtc, sheetId).ToListAsync(cancellationToken);
+        _db = db;
     }
 
-    public static IQueryable<PublishedLookupHit> Query(PuSpecSheetDbContext db, PublishedLookupCriteria criteria, DateTime momentUtc, int? sheetId)
+    public async Task<List<PublishedLookupHit>> ListAsync(PublishedLookupCriteria criteria, DateTime momentUtc, int? sheetId, CancellationToken cancellationToken)
     {
-        var texts = Matching(db.TextValues, TextValueConfiguration.LookupValue, criteria, momentUtc);
-        var slots = Matching(db.LabelledTextValues, LabelledTextValueConfiguration.LookupValue, criteria, momentUtc);
+        return await Query(criteria, momentUtc, sheetId).ToListAsync(cancellationToken);
+    }
+
+    public IQueryable<PublishedLookupHit> Query(PublishedLookupCriteria criteria, DateTime momentUtc, int? sheetId)
+    {
+        var texts = Matching(_db.TextValues, TextValueConfiguration.LookupValue, criteria, momentUtc);
+        var slots = Matching(_db.LabelledTextValues, LabelledTextValueConfiguration.LookupValue, criteria, momentUtc);
 
         // The cells first, so a labelled text cell with the value in two of its slots is still one hit.
         var cellIds = Narrow(texts, criteria, sheetId).Select(found => found.SheetCellId)
             .Concat(Narrow(slots, criteria, sheetId).Select(found => found.SheetCellId));
-        return db.SheetCells
+        return _db.SheetCells
             .AsNoTracking()
             .Where(cell => cellIds.Contains(cell.Id))
             .Select(cell => new PublishedLookupHit
@@ -73,10 +69,7 @@ public static class PublishedLookupHitQueries
         return values;
     }
 
-    /// <summary>
-    /// The published values of one table under the key that equal the value at the moment. The index holds
-    /// the start of each value; the whole value is compared too for the rare long one.
-    /// </summary>
+    // The index holds the start of each value; the whole value is compared too for the rare long one.
     private static IQueryable<TValue> Matching<TValue>(
         DbSet<TValue> set,
         string lookupColumn,

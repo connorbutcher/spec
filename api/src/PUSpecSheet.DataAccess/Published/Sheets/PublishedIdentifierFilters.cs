@@ -1,32 +1,17 @@
-using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Abstractions.SheetTypes;
 using PUSpecSheet.DataAccess.Common;
-using PUSpecSheet.Database;
+using PUSpecSheet.Database.Models.SheetTypes;
 
 namespace PUSpecSheet.DataAccess.Published.Sheets;
 
-/// <summary>
-/// Turns the identifier values a caller gives by key (<c>?serialNumber=ESN-1</c>) into filters on stored
-/// values, so a number or date written another way still matches.
-/// </summary>
+// Values are normalised as stored, so a number or date written another way still matches.
 public static class PublishedIdentifierFilters
 {
-    public static async Task<List<PublishedIdentifierFilter>> ResolveAsync(
-        PuSpecSheetDbContext db,
+    public static List<PublishedIdentifierFilter> For(
         int sheetTypeId,
-        IReadOnlyDictionary<string, string> given,
-        CancellationToken cancellationToken)
+        IReadOnlyList<DbSheetTypeIdentifier> identifiers,
+        IReadOnlyDictionary<string, string> given)
     {
-        if (given.Count == 0)
-        {
-            return [];
-        }
-
-        var identifiers = await db.SheetTypeIdentifiers
-            .AsNoTracking()
-            .Where(identifier => identifier.SheetTypeId == sheetTypeId)
-            .ToListAsync(cancellationToken);
-
         var filters = new List<PublishedIdentifierFilter>();
         foreach (var (key, raw) in given)
         {

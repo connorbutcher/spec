@@ -3,10 +3,6 @@ using PUSpecSheet.DataAccess.Common;
 
 namespace PUSpecSheet.DataAccess.Published.Lookups;
 
-/// <summary>
-/// What a caller is looking for: the value typed into a cell that has a lookup key, optionally only on the
-/// sheets of one phase or one sheet type.
-/// </summary>
 public sealed record PublishedLookupCriteria
 {
     private const int MaxValueLength = 4000;

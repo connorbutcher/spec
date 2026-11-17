@@ -5,10 +5,6 @@ using PUSpecSheet.DataAccess.Common;
 
 namespace PUSpecSheet.DataAccess.Published.Sheets;
 
-/// <summary>
-/// What a caller wants from a published sheet: the tables, sections, rows and cells to read (all of them
-/// when nothing is named), the response shape, and whether to send names and captions.
-/// </summary>
 public sealed class PublishedSheetSelection
 {
     private PublishedSheetSelection(
@@ -40,10 +36,8 @@ public sealed class PublishedSheetSelection
 
     public bool IncludeLabels { get; }
 
-    /// <summary>True when nothing is named, so the whole sheet is read.</summary>
     public bool IsEverything => Tables.Count + Sections.Count + Rows.Count + Cells.Count == 0;
 
-    /// <summary>The same for the same selection whatever order the identifiers were given in.</summary>
     public string Key { get; }
 
     public static PublishedSheetSelection From(PublishedSheetQueryRequest request)
@@ -57,7 +51,6 @@ public sealed class PublishedSheetSelection
             request.IncludeLabels);
     }
 
-    /// <summary>Builds a selection from query string values, each a comma-separated list of identifiers.</summary>
     public static PublishedSheetSelection Parse(
         string? tables,
         string? sections,

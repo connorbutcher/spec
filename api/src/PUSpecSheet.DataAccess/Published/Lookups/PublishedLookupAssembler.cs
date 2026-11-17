@@ -5,26 +5,15 @@ using PUSpecSheet.DataAccess.Published.Versions;
 
 namespace PUSpecSheet.DataAccess.Published.Lookups;
 
-/// <summary>
-/// Builds what a caller receives for one cell a lookup found, as rows by identifier in the same shape as
-/// <see cref="PublishedRowsAssembler"/>. A cell in a column block brings the block's column: every row of
-/// the table with its own values and the block's values under the block's name. A cell among a row's own
-/// cells brings its rows: those of its section and sub-sections, or of the whole table when the cell is in
-/// the header. Rows that hold nothing besides the cell that was found are left out.
-/// </summary>
 public static class PublishedLookupAssembler
 {
-    /// <summary>Whether the cell's section, and its column block if it has one, were on the sheet at the version.</summary>
     public static bool IsOnSheet(PublishedLookupHit hit, PublishedStructure structure)
     {
         return structure.Sections.Any(section => section.Id == hit.SectionId)
             && (hit.ColumnBlockId is not { } blockId || structure.ColumnBlock(blockId) is not null);
     }
 
-    /// <summary>
-    /// The sections whose rows belong to the match: the cell's section and everything beneath it. Null
-    /// means every row of the table, which is what a cell in a column block or in the header brings.
-    /// </summary>
+    // Null means every row of the table: a cell in a column block, or in the header, belongs to all of them.
     public static IReadOnlyList<int>? ScopeSections(PublishedLookupHit hit, PublishedStructure structure)
     {
         if (hit.ColumnBlockId is not null || hit.IsHeader)
@@ -97,7 +86,6 @@ public static class PublishedLookupAssembler
         };
     }
 
-    /// <summary>Each section's place when the table is read top to bottom, sub-sections after their parent's rows.</summary>
     internal static Dictionary<int, int> SectionOrder(IEnumerable<PublishedSectionRecord> sections)
     {
         var byParent = sections
@@ -122,7 +110,6 @@ public static class PublishedLookupAssembler
         return order;
     }
 
-    /// <summary>Everything that was on the sheet, top to bottom and then left to right.</summary>
     private static List<PublishedLookupCellRecord> ShownCells(
         IReadOnlyList<PublishedLookupCellRecord> cells,
         Dictionary<int, PublishedSectionRecord> sections,
@@ -140,7 +127,6 @@ public static class PublishedLookupAssembler
             .ToList();
     }
 
-    /// <summary>The headings over the values: the block's for a cell in a block, the table's own otherwise.</summary>
     private static List<string> Headings(PublishedLookupHit hit, List<PublishedLookupCellRecord> shown)
     {
         return shown
@@ -152,7 +138,6 @@ public static class PublishedLookupAssembler
             .ToList();
     }
 
-    /// <summary>A row's values, or null when it holds nothing besides the cell that was found.</summary>
     private static PublishedRowValues? RowValues(
         PublishedLookupHit hit,
         IGrouping<int, PublishedLookupCellRecord> row,

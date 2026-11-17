@@ -1,39 +1,35 @@
 using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Abstractions.Sheets;
+using PUSpecSheet.DataAccess.Published.Queries;
 using PUSpecSheet.DataAccess.Published.Sheets;
 using PUSpecSheet.DataAccess.Published.Versions;
 using PUSpecSheet.Database;
 using PUSpecSheet.Database.Models.Sheets;
 
-namespace PUSpecSheet.DataAccess.Published.Queries;
+namespace PUSpecSheet.DataAccess.Published;
 
-/// <summary>
-/// Reads the cells of the rows that were on a sheet at a version, in one query: each cell joined to its
-/// row's revision at that moment. Nothing is loaded as an entity and no template is read beyond the
-/// cell's column (and its caption when labels are asked for).
-/// </summary>
-public static class PublishedCellQueries
+public sealed class PublishedCellDataService : IPublishedCellDataService
 {
-    /// <param name="db">The database.</param>
-    /// <param name="version">The version to read.</param>
-    /// <param name="scope">What to read, or null for the whole sheet.</param>
-    /// <param name="includeCaptions">Whether to read each cell's caption.</param>
-    /// <param name="cancellationToken">Stops the query.</param>
-    public static async Task<IReadOnlyList<PublishedCellRecord>> ReadAsync(
-        PuSpecSheetDbContext db,
+    private readonly PuSpecSheetDbContext _db;
+
+    public PublishedCellDataService(PuSpecSheetDbContext db)
+    {
+        _db = db;
+    }
+
+    public async Task<IReadOnlyList<PublishedCellRecord>> ReadAsync(
         ResolvedSheetVersion version,
         PublishedSelectionScope? scope,
         bool includeCaptions,
         CancellationToken cancellationToken)
     {
-        var query = Query(db, version, scope, includeCaptions);
+        var query = Query(version, scope, includeCaptions);
         return query is null ? [] : await query.ToListAsync(cancellationToken);
     }
 
-    /// <summary>The cell query, or null when the scope names nothing that is on the sheet.</summary>
-    public static IQueryable<PublishedCellRecord>? Query(PuSpecSheetDbContext db, ResolvedSheetVersion version, PublishedSelectionScope? scope, bool includeCaptions)
+    public IQueryable<PublishedCellRecord>? Query(ResolvedSheetVersion version, PublishedSelectionScope? scope, bool includeCaptions)
     {
-        var cells = db.SheetCells
+        var cells = _db.SheetCells
             .AsNoTracking()
             .Where(cell => cell.SheetRow.SheetSection.SheetTable.SheetId == version.SheetId);
 

@@ -5,10 +5,6 @@ using PUSpecSheet.DataAccess.Common;
 
 namespace PUSpecSheet.DataAccess.Published.Rows;
 
-/// <summary>
-/// Which rows a caller wants (all of them when none is named) and which sets of repeated columns to keep
-/// (all of them when none is named).
-/// </summary>
 public sealed class PublishedRowsSelection
 {
     private PublishedRowsSelection(IReadOnlySet<Guid> rows, IReadOnlySet<string> columns)
@@ -20,12 +16,10 @@ public sealed class PublishedRowsSelection
 
     public IReadOnlySet<Guid> Rows { get; }
 
-    /// <summary>Names of sets of repeated columns, compared without regard to case.</summary>
     public IReadOnlySet<string> Columns { get; }
 
     public bool IsEverything => Rows.Count == 0;
 
-    /// <summary>The same for the same selection whatever order it was given in.</summary>
     public string Key { get; }
 
     public static PublishedRowsSelection From(PublishedRowsQueryRequest request)
@@ -35,7 +29,6 @@ public sealed class PublishedRowsSelection
             Names(request.Columns ?? []));
     }
 
-    /// <summary>Builds a selection from query string values, each a comma-separated list.</summary>
     public static PublishedRowsSelection Parse(string? rows, string? columns)
     {
         var ids = new HashSet<Guid>();
@@ -52,7 +45,6 @@ public sealed class PublishedRowsSelection
         return new PublishedRowsSelection(ids, Names(Split(columns)));
     }
 
-    /// <summary>One row, as a selection.</summary>
     public static PublishedRowsSelection One(Guid row, string? columns)
     {
         return new PublishedRowsSelection(new HashSet<Guid> { row }, Names(Split(columns)));

@@ -4,10 +4,8 @@ using PUSpecSheet.Database.Models.Sheets;
 
 namespace PUSpecSheet.DataAccess.Published.Queries;
 
-/// <summary>
-/// Builds the "any of these" filter for the cell query from only the kinds of item the caller named, so a
-/// request for a few cells is a seek on their identifiers and not a scan of the sheet.
-/// </summary>
+// Only the kinds of item the caller named are filtered on, so asking for a few cells is a seek, not a scan of the
+// sheet.
 internal static class PublishedCellFilter
 {
     public static Expression<Func<DbSheetCell, bool>>? For(PublishedSelectionScope scope)

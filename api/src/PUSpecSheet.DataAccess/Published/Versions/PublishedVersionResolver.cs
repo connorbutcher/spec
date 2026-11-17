@@ -1,20 +1,15 @@
 using PUSpecSheet.DataAccess.Common;
-using PUSpecSheet.DataAccess.Published.Queries;
-using PUSpecSheet.Database;
 
 namespace PUSpecSheet.DataAccess.Published.Versions;
 
-/// <summary>
-/// Finds the published version a caller means, in one query. A sheet only changes when it is published,
-/// so "as it stood at a moment" is the newest version published at or before that moment.
-/// </summary>
+// A sheet only changes when published, so "as at a moment" is the newest version published at or before it.
 public sealed class PublishedVersionResolver
 {
-    private readonly PuSpecSheetDbContext _db;
+    private readonly IPublishedSheetDataService _publishedSheetData;
 
-    public PublishedVersionResolver(PuSpecSheetDbContext db)
+    public PublishedVersionResolver(IPublishedSheetDataService publishedSheetData)
     {
-        _db = db;
+        _publishedSheetData = publishedSheetData;
     }
 
     public async Task<ResolvedSheetVersion> ResolveAsync(
@@ -22,7 +17,7 @@ public sealed class PublishedVersionResolver
         PublishedVersionPoint point,
         CancellationToken cancellationToken)
     {
-        var found = await PublishedSheetQueries.FindVersionAsync(_db, sheetPublicId, point, cancellationToken)
+        var found = await _publishedSheetData.FindVersionAsync(sheetPublicId, point, cancellationToken)
             ?? throw new NotFoundException(Describe(sheetPublicId, point));
 
         return new ResolvedSheetVersion

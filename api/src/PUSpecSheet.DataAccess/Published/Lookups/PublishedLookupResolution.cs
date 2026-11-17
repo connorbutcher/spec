@@ -4,11 +4,6 @@ using PUSpecSheet.DataAccess.Published.Versions;
 
 namespace PUSpecSheet.DataAccess.Published.Lookups;
 
-/// <summary>
-/// What a lookup found before any data is read: the cells that hold the value, and the version of each
-/// sheet they are read at. <see cref="Key"/> names the answer, so a caller that already holds it can be
-/// told so without reading anything more.
-/// </summary>
 public sealed class PublishedLookupResolution
 {
     public PublishedLookupResolution(
@@ -24,16 +19,11 @@ public sealed class PublishedLookupResolution
 
     public PublishedLookupCriteria Criteria { get; }
 
-    /// <summary>The cells found, in the order their matches are returned.</summary>
     public IReadOnlyList<PublishedLookupHit> Hits { get; }
 
-    /// <summary>The version each sheet is read at, by the sheet's database id.</summary>
     public IReadOnlyDictionary<int, ResolvedSheetVersion> Versions { get; }
 
-    /// <summary>
-    /// The same for the same question answered from the same cells at the same sheet versions. A published
-    /// version never changes, so an equal key means an equal answer.
-    /// </summary>
+    // A published version never changes, so an equal key means an equal answer.
     public string Key { get; }
 
     private string BuildKey()

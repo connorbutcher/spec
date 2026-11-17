@@ -1,25 +1,36 @@
 using PUSpecSheet.Abstractions.Published;
 using PUSpecSheet.DataAccess.Common;
-using PUSpecSheet.DataAccess.Published.Queries;
 using PUSpecSheet.DataAccess.Published.Versions;
-using PUSpecSheet.Database;
+using PUSpecSheet.DataAccess.SheetTypes;
 
 namespace PUSpecSheet.DataAccess.Published.Sheets;
 
 public sealed class PublishedSheetsService : IPublishedSheetsService
 {
-    private readonly PuSpecSheetDbContext _db;
     private readonly PublishedVersionResolver _resolver;
     private readonly PublishedSheetCache _cache;
+    private readonly IPublishedCellDataService _publishedCellData;
+    private readonly IPublishedValueDataService _publishedValueData;
+    private readonly IPublishedSheetDataService _publishedSheetData;
+    private readonly IPublishedStructureDataService _publishedStructureData;
+    private readonly ISheetTypeDataService _sheetTypes;
 
     public PublishedSheetsService(
-        PuSpecSheetDbContext db,
         PublishedVersionResolver resolver,
-        PublishedSheetCache cache)
+        PublishedSheetCache cache,
+        IPublishedCellDataService publishedCellData,
+        IPublishedValueDataService publishedValueData,
+        IPublishedSheetDataService publishedSheetData,
+        IPublishedStructureDataService publishedStructureData,
+        ISheetTypeDataService sheetTypes)
     {
-        _db = db;
         _resolver = resolver;
         _cache = cache;
+        _publishedCellData = publishedCellData;
+        _publishedValueData = publishedValueData;
+        _publishedSheetData = publishedSheetData;
+        _publishedStructureData = publishedStructureData;
+        _sheetTypes = sheetTypes;
     }
 
     public async Task<PublishedSheetReference> FindAsync(string phaseCode, int sheetTypeId, IReadOnlyDictionary<string, string> identifiers, CancellationToken cancellationToken)
@@ -43,16 +54,18 @@ public sealed class PublishedSheetsService : IPublishedSheetsService
 
     public async Task<IReadOnlyList<PublishedSheetReference>> ListAsync(string phaseCode, int sheetTypeId, IReadOnlyDictionary<string, string> identifiers, CancellationToken cancellationToken)
     {
-        var filters = await PublishedIdentifierFilters.ResolveAsync(_db, sheetTypeId, identifiers, cancellationToken);
-        return await PublishedSheetQueries.ListReferencesAsync(_db, phaseCode, sheetTypeId, filters, cancellationToken);
+        List<PublishedIdentifierFilter> filters = identifiers.Count == 0
+            ? []
+            : PublishedIdentifierFilters.For(sheetTypeId, await _sheetTypes.ListIdentifiersAsync(sheetTypeId, cancellationToken), identifiers);
+        return await _publishedSheetData.ListReferencesAsync(phaseCode, sheetTypeId, filters, cancellationToken);
     }
 
     public async Task<IReadOnlyList<PublishedVersion>> VersionsAsync(Guid sheetPublicId, CancellationToken cancellationToken)
     {
-        var versions = await PublishedSheetQueries.ListVersionsAsync(_db, sheetPublicId, cancellationToken);
+        var versions = await _publishedSheetData.ListVersionsAsync(sheetPublicId, cancellationToken);
 
         if (versions.Count == 0
-            && !await PublishedSheetQueries.ExistsAsync(_db, sheetPublicId, cancellationToken))
+            && !await _publishedSheetData.ExistsAsync(sheetPublicId, cancellationToken))
         {
             throw new NotFoundException($"Sheet {sheetPublicId} was not found.");
         }
@@ -73,10 +86,10 @@ public sealed class PublishedSheetsService : IPublishedSheetsService
             return cached;
         }
 
-        var structure = await PublishedStructureQueries.ReadAsync(_db, version, cancellationToken);
+        var structure = await _publishedStructureData.ReadAsync(version, cancellationToken);
         var scope = selection.IsEverything ? null : structure.ScopeFor(selection);
-        var cells = await PublishedCellQueries.ReadAsync(_db, version, scope, selection.IncludeLabels, cancellationToken);
-        var values = await PublishedValueQueries.ReadAsync(_db, cells, selection.IsEverything ? version : null, cancellationToken);
+        var cells = await _publishedCellData.ReadAsync(version, scope, selection.IncludeLabels, cancellationToken);
+        var values = await _publishedValueData.ReadAsync(cells, selection.IsEverything ? version : null, cancellationToken);
 
         var sheet = PublishedSheetAssembler.Assemble(version, selection, structure, cells, values);
         _cache.Set(key, sheet, cells.Count);

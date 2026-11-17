@@ -3,10 +3,6 @@ using PUSpecSheet.DataAccess.Published.Versions;
 
 namespace PUSpecSheet.DataAccess.Published.Sheets;
 
-/// <summary>
-/// Builds the response from what the queries returned: drops anything inside a removed table, section or
-/// column block, puts the rest in display order, and lists what the caller named that wasn't on the sheet.
-/// </summary>
 public static class PublishedSheetAssembler
 {
     public static PublishedSheet Assemble(
@@ -51,7 +47,6 @@ public static class PublishedSheetAssembler
         };
     }
 
-    /// <summary>Each section's rows that have cells to show, in order.</summary>
     private static ILookup<int, PublishedRow> RowsBySection(
         PublishedSheetSelection selection,
         PublishedStructure structure,

@@ -21,6 +21,8 @@ public interface ISheetTypeDataService
 
     Task<List<int>> ListIdsByNamesAsync(IReadOnlyCollection<string> names, CancellationToken cancellationToken);
 
+    Task<List<DbSheetTypeIdentifier>> ListIdentifiersAsync(int sheetTypeId, CancellationToken cancellationToken);
+
     Task<List<DbSheetTypeIdentifier>> ListIdentifiersForEditAsync(int sheetTypeId, CancellationToken cancellationToken);
 
     Task<List<SheetIdentifierDefinition>> ListIdentifierDefinitionsAsync(int sheetTypeId, CancellationToken cancellationToken);

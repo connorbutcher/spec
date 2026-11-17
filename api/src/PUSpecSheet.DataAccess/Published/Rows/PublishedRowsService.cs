@@ -1,26 +1,30 @@
 using PUSpecSheet.Abstractions.Published;
 using PUSpecSheet.DataAccess.Common;
 using PUSpecSheet.DataAccess.Published.Lookups;
-using PUSpecSheet.DataAccess.Published.Queries;
 using PUSpecSheet.DataAccess.Published.Versions;
-using PUSpecSheet.Database;
 
 namespace PUSpecSheet.DataAccess.Published.Rows;
 
 public sealed class PublishedRowsService : IPublishedRowsService
 {
-    private readonly PuSpecSheetDbContext _db;
     private readonly PublishedRowsCache _cache;
     private readonly PublishedVersionResolver _resolver;
+    private readonly IPublishedValueDataService _publishedValueData;
+    private readonly IPublishedLookupCellDataService _publishedLookupCellData;
+    private readonly IPublishedStructureDataService _publishedStructureData;
 
     public PublishedRowsService(
-        PuSpecSheetDbContext db,
         PublishedRowsCache cache,
-        PublishedVersionResolver resolver)
+        PublishedVersionResolver resolver,
+        IPublishedValueDataService publishedValueData,
+        IPublishedLookupCellDataService publishedLookupCellData,
+        IPublishedStructureDataService publishedStructureData)
     {
-        _db = db;
         _cache = cache;
         _resolver = resolver;
+        _publishedValueData = publishedValueData;
+        _publishedLookupCellData = publishedLookupCellData;
+        _publishedStructureData = publishedStructureData;
     }
 
     public async Task<PublishedRows> ReadAsync(ResolvedSheetVersion version, PublishedRowsSelection selection, CancellationToken cancellationToken)
@@ -31,26 +35,26 @@ public sealed class PublishedRowsService : IPublishedRowsService
             return cached;
         }
 
-        var structure = await PublishedStructureQueries.ReadAsync(_db, version, cancellationToken);
+        var structure = await _publishedStructureData.ReadAsync(version, cancellationToken);
         PublishedRows rows;
         int cellCount;
 
         if (selection.IsEverything)
         {
-            var all = await PublishedLookupCellQueries.ListOnSheetAsync(_db, version, cancellationToken);
-            var allValues = await PublishedKindValueQueries.ReadAsync(_db, all, wholeSheet: version, cancellationToken);
+            var all = await _publishedLookupCellData.ListOnSheetAsync(version, cancellationToken);
+            var allValues = await _publishedValueData.ReadAsync(all, wholeSheet: version, cancellationToken);
             rows = PublishedRowsAssembler.Assemble(version, selection, structure, all, all, allValues);
             cellCount = all.Count;
         }
         else
         {
-            var cells = await PublishedLookupCellQueries.ListInRowsAsync(_db, version, [.. selection.Rows], cancellationToken);
+            var cells = await _publishedLookupCellData.ListInRowsAsync(version, [.. selection.Rows], cancellationToken);
             var headers = await HeadersAsync(version, structure, cells, cancellationToken);
             var read = cells
                 .Concat(headers.Where(cell => cell.ColumnBlockId is not null))
                 .DistinctBy(cell => cell.CellId)
                 .ToList();
-            var values = await PublishedKindValueQueries.ReadAsync(_db, read, wholeSheet: null, cancellationToken);
+            var values = await _publishedValueData.ReadAsync(read, wholeSheet: null, cancellationToken);
             rows = PublishedRowsAssembler.Assemble(version, selection, structure, cells, headers, values);
             cellCount = read.Count;
         }
@@ -85,10 +89,7 @@ public sealed class PublishedRowsService : IPublishedRowsService
         return _resolver.ResolveAsync(sheetPublicId, point, cancellationToken);
     }
 
-    /// <summary>
-    /// The header cells of the tables the rows are in. Only a table with repeated columns needs its header
-    /// read, to name each set of columns.
-    /// </summary>
+    // Only a table with column blocks needs its header read, to name each set of columns.
     private async Task<List<PublishedLookupCellRecord>> HeadersAsync(
         ResolvedSheetVersion version,
         PublishedStructure structure,
@@ -104,6 +105,6 @@ public sealed class PublishedRowsService : IPublishedRowsService
 
         return tableIds.Count == 0
             ? []
-            : await PublishedLookupCellQueries.ListHeadersAsync(_db, version, tableIds, cancellationToken);
+            : await _publishedLookupCellData.ListHeadersAsync(version, tableIds, cancellationToken);
     }
 }

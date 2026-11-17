@@ -5,11 +5,6 @@ using PUSpecSheet.DataAccess.Published.Versions;
 
 namespace PUSpecSheet.DataAccess.Published.Rows;
 
-/// <summary>
-/// Builds rows by identifier from what the queries returned. Each row has its own values and, on a table
-/// with column blocks, its values in each block under the block's name: the value at the top of the block
-/// in the table's header, such as a part number.
-/// </summary>
 public static class PublishedRowsAssembler
 {
     public static PublishedRows Assemble(
@@ -67,12 +62,6 @@ public static class PublishedRowsAssembler
         };
     }
 
-    /// <summary>
-    /// What each block is called: the first value in its header cells, top to bottom then left to right.
-    /// A block with no such value, or with one an earlier block of its table already has, goes by its
-    /// identifier, so no two blocks of a table share a name.
-    /// </summary>
-    /// <summary>Each kept block's values in the row, under the block's name; blocks with none are left out.</summary>
     internal static Dictionary<string, IReadOnlyList<object?>> BlockColumns(
         List<PublishedLookupCellRecord> valueCells,
         List<PublishedColumnBlockRecord> kept,
@@ -121,7 +110,6 @@ public static class PublishedRowsAssembler
         return names;
     }
 
-    /// <summary>The cells that were on the sheet, table by table, top to bottom and then left to right.</summary>
     private static IOrderedEnumerable<PublishedLookupCellRecord> ShownCells(
         IReadOnlyList<PublishedLookupCellRecord> cells,
         Dictionary<int, PublishedSectionRecord> sections,

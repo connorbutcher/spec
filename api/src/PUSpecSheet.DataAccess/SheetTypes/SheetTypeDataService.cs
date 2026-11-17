@@ -73,6 +73,14 @@ public sealed class SheetTypeDataService : ISheetTypeDataService
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<List<DbSheetTypeIdentifier>> ListIdentifiersAsync(int sheetTypeId, CancellationToken cancellationToken)
+    {
+        return await _db.SheetTypeIdentifiers
+            .AsNoTracking()
+            .Where(identifier => identifier.SheetTypeId == sheetTypeId)
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<List<DbSheetTypeIdentifier>> ListIdentifiersForEditAsync(int sheetTypeId, CancellationToken cancellationToken)
     {
         return await _db.SheetTypeIdentifiers

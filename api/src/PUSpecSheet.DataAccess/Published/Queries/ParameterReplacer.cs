@@ -2,7 +2,6 @@ using System.Linq.Expressions;
 
 namespace PUSpecSheet.DataAccess.Published.Queries;
 
-/// <summary>Swaps one lambda parameter for another, so two lambdas can be joined into one.</summary>
 internal sealed class ParameterReplacer : ExpressionVisitor
 {
     private readonly ParameterExpression _from;

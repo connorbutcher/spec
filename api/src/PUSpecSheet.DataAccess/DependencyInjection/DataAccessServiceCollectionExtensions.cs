@@ -2,6 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 using PUSpecSheet.DataAccess.Approvals;
 using PUSpecSheet.DataAccess.CellTypes;
 using PUSpecSheet.DataAccess.Phases;
+using PUSpecSheet.DataAccess.Published;
 using PUSpecSheet.DataAccess.Published.Lookups;
 using PUSpecSheet.DataAccess.Published.Rows;
 using PUSpecSheet.DataAccess.Published.Sheets;
@@ -120,6 +121,12 @@ public static class DataAccessServiceCollectionExtensions
 
     private static void AddPublished(IServiceCollection services)
     {
+        services.AddScoped<IPublishedCellDataService, PublishedCellDataService>();
+        services.AddScoped<IPublishedValueDataService, PublishedValueDataService>();
+        services.AddScoped<IPublishedLookupCellDataService, PublishedLookupCellDataService>();
+        services.AddScoped<IPublishedLookupHitDataService, PublishedLookupHitDataService>();
+        services.AddScoped<IPublishedSheetDataService, PublishedSheetDataService>();
+        services.AddScoped<IPublishedStructureDataService, PublishedStructureDataService>();
         services.AddSingleton<PublishedSheetCache>();
         services.AddSingleton<PublishedLookupCache>();
         services.AddSingleton<PublishedRowsCache>();

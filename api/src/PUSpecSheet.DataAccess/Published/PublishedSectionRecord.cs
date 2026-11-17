@@ -1,6 +1,5 @@
 namespace PUSpecSheet.DataAccess.Published;
 
-/// <summary>A sheet section as it stood at a version: where it sat and whether it had been removed.</summary>
 public sealed record PublishedSectionRecord
 {
     public required int Id { get; init; }

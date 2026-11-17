@@ -2,11 +2,7 @@ using PUSpecSheet.DataAccess.Published.Sheets;
 
 namespace PUSpecSheet.DataAccess.Published;
 
-/// <summary>
-/// The tables, sections and column blocks of a sheet at one version, and which of them were on the sheet.
-/// Removing a table or section removes everything inside it, so a section is only on the sheet when its
-/// table and every section above it are too.
-/// </summary>
+// Removing a table or section removes everything inside it, so a section is only on the sheet if every parent is.
 public sealed class PublishedStructure
 {
     private readonly Dictionary<int, PublishedTableRecord> _tables;
@@ -30,13 +26,10 @@ public sealed class PublishedStructure
             .ToDictionary(block => block.Id);
     }
 
-    /// <summary>The tables on the sheet, in display order.</summary>
     public IEnumerable<PublishedTableRecord> Tables => _tables.Values.OrderBy(table => table.DisplayOrder).ThenBy(table => table.Id);
 
-    /// <summary>The sections on the sheet, in no particular order.</summary>
     public IEnumerable<PublishedSectionRecord> Sections => _sections.Values;
 
-    /// <summary>The column blocks on the sheet, in no particular order.</summary>
     public IEnumerable<PublishedColumnBlockRecord> ColumnBlocks => _columnBlocks.Values;
 
     public PublishedColumnBlockRecord? ColumnBlock(int id)
@@ -44,14 +37,12 @@ public sealed class PublishedStructure
         return _columnBlocks.GetValueOrDefault(id);
     }
 
-    /// <summary>Whether the cell's section, and its column block if it has one, were on the sheet.</summary>
     public bool Shows(PublishedCellRecord cell)
     {
         return _sections.ContainsKey(cell.SectionId)
             && (cell.ColumnBlockId is not { } blockId || _columnBlocks.ContainsKey(blockId));
     }
 
-    /// <summary>Turns the caller's selection into the ids the cell query filters on.</summary>
     public PublishedSelectionScope ScopeFor(PublishedSheetSelection selection)
     {
         var tableIds = _tables.Values

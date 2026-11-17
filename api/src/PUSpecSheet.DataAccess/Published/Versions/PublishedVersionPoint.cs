@@ -1,9 +1,5 @@
 namespace PUSpecSheet.DataAccess.Published.Versions;
 
-/// <summary>
-/// Which published version of a sheet a caller wants: a version number, the version that was current at a
-/// moment, or (neither set) the newest.
-/// </summary>
 public sealed record PublishedVersionPoint
 {
     public int? VersionNumber { get; init; }

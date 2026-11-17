@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.DataAccess.Common;
+using PUSpecSheet.DataAccess.Published;
 using PUSpecSheet.DataAccess.Published.Lookups;
-using PUSpecSheet.DataAccess.Published.Queries;
 using PUSpecSheet.DataAccess.Published.Versions;
 using PUSpecSheet.Database;
 
@@ -28,6 +28,10 @@ public sealed class PublishedLookupQueryTests : IDisposable
             .UseSqlServer("Server=unused;Database=unused")
             .Options);
 
+    private PublishedLookupHitDataService LookupHitData => new(_db);
+
+    private PublishedLookupCellDataService LookupCellData => new(_db);
+
     public void Dispose()
     {
         _db.Dispose();
@@ -36,7 +40,7 @@ public sealed class PublishedLookupQueryTests : IDisposable
     [Fact]
     public void FindingAValue_SeeksTheIndexedStartOfTheValueAndChecksTheKeyAndTheMoment()
     {
-        var sql = PublishedLookupHitQueries.Query(_db, PublishedLookupCriteria.Create("partNumber", "P-1003"), _moment, null)
+        var sql = LookupHitData.Query(PublishedLookupCriteria.Create("partNumber", "P-1003"), _moment, null)
             .ToQueryString();
 
         Assert.Contains("[LookupValue] =", sql);
@@ -49,7 +53,7 @@ public sealed class PublishedLookupQueryTests : IDisposable
     [Fact]
     public void FindingAValue_AlsoSeeksEachValueOfLabelledTextCells()
     {
-        var sql = PublishedLookupHitQueries.Query(_db, PublishedLookupCriteria.Create("partNumber", "P-1003"), _moment, null)
+        var sql = LookupHitData.Query(PublishedLookupCriteria.Create("partNumber", "P-1003"), _moment, null)
             .ToQueryString();
 
         Assert.Contains("[cell].[TextValues]", sql);
@@ -60,7 +64,7 @@ public sealed class PublishedLookupQueryTests : IDisposable
     [Fact]
     public void FindingAValue_CanKeepToASheetAPhaseAndASheetType()
     {
-        var sql = PublishedLookupHitQueries.Query(_db, PublishedLookupCriteria.Create("partNumber", "P-1003", "V6", 3), _moment, 7)
+        var sql = LookupHitData.Query(PublishedLookupCriteria.Create("partNumber", "P-1003", "V6", 3), _moment, 7)
             .ToQueryString();
 
         var where = sql[sql.LastIndexOf("WHERE", StringComparison.Ordinal)..];
@@ -86,7 +90,7 @@ public sealed class PublishedLookupQueryTests : IDisposable
             IsHeader = true,
         };
 
-        var sql = PublishedLookupCellQueries.Query(_db, _version, hit, null).ToQueryString();
+        var sql = LookupCellData.Query(_version, hit, null).ToQueryString();
 
         Assert.Contains("[SheetColumnBlockId] IS NULL OR", sql);
         Assert.Contains("[SheetRowRevisions]", sql);
@@ -110,7 +114,7 @@ public sealed class PublishedLookupQueryTests : IDisposable
             IsHeader = false,
         };
 
-        var sql = PublishedLookupCellQueries.Query(_db, _version, hit, [50, 51]).ToQueryString();
+        var sql = LookupCellData.Query(_version, hit, [50, 51]).ToQueryString();
 
         Assert.Contains("[SheetSectionId] IN", sql);
         Assert.Contains("[Role] =", sql);
