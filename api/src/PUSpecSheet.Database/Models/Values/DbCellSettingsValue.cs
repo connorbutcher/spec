@@ -13,7 +13,7 @@ public class DbCellSettingsValue : IDbCellValue
 
     public int SheetCellId { get; set; }
 
-    public CellInstanceSettings Settings { get; set; } = null!;
+    public required CellInstanceSettings Settings { get; set; }
 
     public virtual DbSheetRowRevision SheetRowRevision { get; set; } = null!;
 

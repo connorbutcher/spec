@@ -13,7 +13,7 @@ public class DbTemplateColumnBlock
 
     public int TableTemplateVersionId { get; set; }
 
-    public string Name { get; set; } = string.Empty;
+    public required string Name { get; set; }
 
     /// <summary>Order among the version's column blocks, left to right.</summary>
     public int DisplayOrder { get; set; }

@@ -9,7 +9,7 @@ public class DbPhase
     public int Id { get; set; }
 
     /// <summary>The unique phase code, e.g. "V6" or "01-A2".</summary>
-    public string Code { get; set; } = string.Empty;
+    public required string Code { get; set; }
 
     public string? Description { get; set; }
 

@@ -153,9 +153,11 @@ In Development the API builds a showcase on start (`DataAccess/Seeding`, run fro
 
 ## Conventions
 
-The build enforces the mechanical ones and fails on any analyzer warning: braces always, file-scoped namespaces, explicit accessibility, one type per file named after it. The rest are by review:
+The build enforces the mechanical ones and fails on any analyzer warning: braces always, file-scoped namespaces, explicit accessibility, one type per file named after it, private fields named `_camelCase`, and no `this.`. The rest are by review:
 
-- Services, records and helpers are `sealed` (or `static`) unless designed for inheritance; entities are plain classes for EF. Never use primary constructors (classes or positional records): dependencies come in through an ordinary constructor that sets `private readonly` fields (`this.db = db;`).
+- Services, records and helpers are `sealed` (or `static`) unless designed for inheritance; entities are plain classes for EF. Never use primary constructors (classes or positional records): dependencies come in through an ordinary constructor that sets `private readonly` fields (`_db = db;`).
+- Records have `init` properties and no constructor, and are built with object initializers. A property a caller must always set is `required`; an optional one is nullable or has a default. A record keeps a constructor only when it must, such as a private one that makes callers use its factory (`PublishedLookupCriteria.Create`).
+- On `Db*` entities, a non-null text or JSON column with no sensible default is `required`, so a new row can't be created without it. Value tables built through `new()` generics (`DbTextValue`) can't use it.
 - A service does one job. When a method repeats itself for tables, sections, rows and column blocks, the shared part belongs in a generic helper constrained to `IDbSheetRevision` (see `SheetPublisher.SupersedeAsync`).
 - Reads use `AsNoTracking()` and project to what they need. Writes that span statements use a transaction and `SaveSheetChangesAsync`, which turns a concurrency clash into a 409.
 - Text from a request is trimmed, and blank optional text is stored as null.

@@ -13,9 +13,9 @@ public class DbSheetTypeIdentifier
     public int SheetTypeId { get; set; }
 
     /// <summary>Name used by the published API's filters, such as <c>serialNumber</c>. Fixed once created.</summary>
-    public string Key { get; set; } = string.Empty;
+    public required string Key { get; set; }
 
-    public string Name { get; set; } = string.Empty;
+    public required string Name { get; set; }
 
     public SheetIdentifierKind Kind { get; set; }
 

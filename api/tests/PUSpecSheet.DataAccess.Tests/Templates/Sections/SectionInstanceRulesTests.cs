@@ -30,7 +30,7 @@ public sealed class SectionInstanceRulesTests
     [Fact]
     public void TheHeader_IsAlwaysExactlyOne()
     {
-        var section = new DbTemplateSection { MinInstances = 0, MaxInstances = 9, InitialInstances = 4 };
+        var section = new DbTemplateSection { Name = "Header", MinInstances = 0, MaxInstances = 9, InitialInstances = 4 };
 
         SectionInstanceRules.ApplyHeader(section);
 
@@ -41,7 +41,7 @@ public sealed class SectionInstanceRulesTests
     [Fact]
     public void ANewAddableSection_IsOptionalAndUnlimited()
     {
-        var section = new DbTemplateSection();
+        var section = new DbTemplateSection { Name = "Body" };
 
         SectionInstanceRules.ApplyNewAddable(section);
 
@@ -52,7 +52,7 @@ public sealed class SectionInstanceRulesTests
     [Fact]
     public void AnAddableSection_TakesTheRequestedLimits_OnceTheyAreChecked()
     {
-        var section = new DbTemplateSection();
+        var section = new DbTemplateSection { Name = "Body" };
 
         SectionInstanceRules.ApplyAddable(new UpdateTemplateSectionRequest
         {

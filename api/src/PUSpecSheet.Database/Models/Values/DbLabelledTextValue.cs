@@ -13,12 +13,12 @@ public class DbLabelledTextValue : IDbCellValue
     public int SheetCellId { get; set; }
 
     /// <summary>The slot's key, such as "rh".</summary>
-    public string SlotKey { get; set; } = string.Empty;
+    public required string SlotKey { get; set; }
 
     /// <summary>Where the slot comes in the cell, from 0, as of when the value was saved.</summary>
     public int Position { get; set; }
 
-    public string Value { get; set; } = string.Empty;
+    public required string Value { get; set; }
 
     public virtual DbSheetRowRevision SheetRowRevision { get; set; } = null!;
 

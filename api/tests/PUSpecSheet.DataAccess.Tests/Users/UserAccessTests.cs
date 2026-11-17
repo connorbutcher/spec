@@ -101,7 +101,7 @@ public sealed class UserAccessTests
         var role = new DbRole { Id = id, Name = name };
         foreach (var key in permissions)
         {
-            role.Permissions.Add(new DbRolePermission { Role = role, RoleId = id, Permission = new DbPermission { Key = key } });
+            role.Permissions.Add(new DbRolePermission { Role = role, RoleId = id, Permission = new DbPermission { Key = key, Description = key } });
         }
 
         return role;

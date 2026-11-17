@@ -48,6 +48,7 @@ public sealed class CellTypeOptionsTests
     {
         var cellType = new DbCellType
         {
+            Name = "Result",
             Options =
             [
                 new DbCellTypeOption { Id = 1, Value = "Pass", DisplayOrder = 1 },

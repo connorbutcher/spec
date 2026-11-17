@@ -13,7 +13,7 @@ public class DbTableTemplate
     public int SheetTypeId { get; set; }
 
     /// <summary>The template name, unique within its sheet type.</summary>
-    public string Name { get; set; } = string.Empty;
+    public required string Name { get; set; }
 
     /// <summary>Order among the templates of the same sheet type.</summary>
     public int DisplayOrder { get; set; }

@@ -10,9 +10,9 @@ public class DbPermission
     public int Id { get; set; }
 
     /// <summary>The unique key the API and UI check, e.g. "phases.manage".</summary>
-    public string Key { get; set; } = string.Empty;
+    public required string Key { get; set; }
 
-    public string Description { get; set; } = string.Empty;
+    public required string Description { get; set; }
 
     public virtual ICollection<DbRolePermission> Roles { get; set; } = [];
 }

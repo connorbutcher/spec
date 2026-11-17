@@ -26,7 +26,7 @@ public sealed class CellTypesService : ICellTypesService
         await EnsureNameIsFreeAsync(request.Name, null, cancellationToken);
 
         var lastOrder = await _cellTypes.GetLastDisplayOrderAsync(cancellationToken) ?? 0;
-        var cellType = new DbCellType { DisplayOrder = lastOrder + 1 };
+        var cellType = new DbCellType { Name = request.Name.Trim(), DisplayOrder = lastOrder + 1 };
         CellTypeSettings.Apply(request, cellType);
 
         _cellTypes.Add(cellType);

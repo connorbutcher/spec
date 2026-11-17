@@ -190,7 +190,7 @@ public static class RowValueQueries
             {
                 if (!held.TryGetValue(key, out var value))
                 {
-                    value = new DbLabelledTextValue { SheetRowRevisionId = revisionId, SheetCellId = change.SheetCellId, SlotKey = key };
+                    value = new DbLabelledTextValue { SheetRowRevisionId = revisionId, SheetCellId = change.SheetCellId, SlotKey = key, Value = text };
                     db.LabelledTextValues.Add(value);
                 }
 
@@ -229,7 +229,7 @@ public static class RowValueQueries
 
             if (value is null)
             {
-                value = new DbCellSettingsValue { SheetRowRevisionId = revisionId, SheetCellId = cellId };
+                value = new DbCellSettingsValue { SheetRowRevisionId = revisionId, SheetCellId = cellId, Settings = settings };
                 db.CellSettings.Add(value);
             }
 

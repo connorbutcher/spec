@@ -7,7 +7,7 @@ public class DbCellTypeOption
 
     public int CellTypeId { get; set; }
 
-    public string Value { get; set; } = string.Empty;
+    public required string Value { get; set; }
 
     public int DisplayOrder { get; set; }
 

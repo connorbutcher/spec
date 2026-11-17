@@ -6,9 +6,9 @@ public class DbUser
     public int Id { get; set; }
 
     /// <summary>The unique sign-in name, e.g. a Windows account name.</summary>
-    public string UserName { get; set; } = string.Empty;
+    public required string UserName { get; set; }
 
-    public string DisplayName { get; set; } = string.Empty;
+    public required string DisplayName { get; set; }
 
     public string? Email { get; set; }
 
