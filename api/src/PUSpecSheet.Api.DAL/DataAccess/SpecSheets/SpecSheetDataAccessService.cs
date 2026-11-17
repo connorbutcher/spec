@@ -11,6 +11,7 @@ using PUSpecSheet.Abstractions.Requests.Workflow;
 using PUSpecSheet.Abstractions.Types;
 using PUSpecSheet.Api.Common.Context;
 using PUSpecSheet.Api.DAL.Caching;
+using PUSpecSheet.Api.DAL.DataAccess.SpecSheets.Reads;
 using PUSpecSheet.Api.DAL.DataAccess.Types;
 using PUSpecSheet.Api.DAL.Processors;
 using PUSpecSheet.Api.Database;
@@ -31,6 +32,7 @@ internal class SpecSheetDataAccessService : ISpecSheetDataAccessService
 {
     private readonly PUSpecSheetDbContext _dbContext;
     private readonly ISpecSheetCache _specSheetCache;
+    private readonly ISpecSheetReader _specSheetReader;
     private readonly ITypeDataAccessService _typeDataAccessService;
     private readonly IEmailBuilderService _emailBuilderService;
     private readonly IEmailService _emailService;
@@ -39,6 +41,7 @@ internal class SpecSheetDataAccessService : ISpecSheetDataAccessService
 
     public SpecSheetDataAccessService(PUSpecSheetDbContext dbContext,
         ISpecSheetCache specSheetCache,
+        ISpecSheetReader specSheetReader,
         ITypeDataAccessService typeDataAccessService,
         IEmailBuilderService emailBuilderService,
         IEmailService emailService,
@@ -47,6 +50,7 @@ internal class SpecSheetDataAccessService : ISpecSheetDataAccessService
     {
         ArgumentNullException.ThrowIfNull(dbContext, nameof(dbContext));
         ArgumentNullException.ThrowIfNull(specSheetCache, nameof(specSheetCache));
+        ArgumentNullException.ThrowIfNull(specSheetReader, nameof(specSheetReader));
         ArgumentNullException.ThrowIfNull(typeDataAccessService, nameof(typeDataAccessService));
         ArgumentNullException.ThrowIfNull(emailBuilderService, nameof(emailBuilderService));
         ArgumentNullException.ThrowIfNull(emailService, nameof(emailService));
@@ -55,6 +59,7 @@ internal class SpecSheetDataAccessService : ISpecSheetDataAccessService
 
         _dbContext = dbContext;
         _specSheetCache = specSheetCache;
+        _specSheetReader = specSheetReader;
         _typeDataAccessService = typeDataAccessService;
         _emailBuilderService = emailBuilderService;
         _emailService = emailService;
@@ -73,80 +78,7 @@ internal class SpecSheetDataAccessService : ISpecSheetDataAccessService
         domainSpecSheet = await _specSheetCache.GetAsync(id, cancellationToken);
         if (domainSpecSheet is null)
         {
-            var specSheet = await _dbContext.SpecSheets
-            .Where(x => x.Id == id)
-            .Include(x => x.CreatedByUser)
-            .Include(x => x.PublishedByUser)
-            .Include(x => x.SpecSheetType)
-            .Include(x => x.SpecSheetPhase)
-
-            .Include(x => x.PropertyValues)
-                .ThenInclude(x => x.SpecSheetTypeProperty)
-
-            .Include(x => x.WorkflowSteps)
-                .ThenInclude(x => x.Actors)
-                    .ThenInclude(x => x.ActorUser)
-
-            .Include(x => x.ExternalReferences)
-
-            .Include(x => x.Tables.Where(t => !t.IsDeleted).OrderBy(t => t.DisplayOrder))
-                .ThenInclude(x => x.Widgets)
-                    .ThenInclude(x => x.Value)
-            .Include(x => x.Tables.Where(t => !t.IsDeleted).OrderBy(t => t.DisplayOrder))
-                .ThenInclude(x => x.Widgets)
-                    .ThenInclude(x => x.TableTemplateWidget)
-            .Include(x => x.Tables.Where(t => !t.IsDeleted).OrderBy(t => t.DisplayOrder))
-                .ThenInclude(x => x.Notes)
-                    .ThenInclude(x => x.CreatedByUser)
-
-            .Include(x => x.Tables.Where(t => !t.IsDeleted).OrderBy(t => t.DisplayOrder))
-                .ThenInclude(x => x.Groups.Where(g => !g.IsDeleted).OrderBy(g => g.Order))
-                    .ThenInclude(x => x.Widgets)
-                        .ThenInclude(x => x.Value)
-            .Include(x => x.Tables.Where(t => !t.IsDeleted).OrderBy(t => t.DisplayOrder))
-                .ThenInclude(x => x.Groups.Where(g => !g.IsDeleted).OrderBy(g => g.Order))
-                    .ThenInclude(x => x.Widgets)
-                        .ThenInclude(x => x.TableGroupTemplateWidget)
-
-            .Include(x => x.Tables.Where(t => !t.IsDeleted).OrderBy(t => t.DisplayOrder))
-                .ThenInclude(x => x.Groups.Where(g => !g.IsDeleted).OrderBy(g => g.Order))
-                    .ThenInclude(x => x.Rows.Where(r => !r.IsDeleted).OrderBy(r => r.RowNumber))
-                        .ThenInclude(x => x.Cells.Where(c => !c.IsDeleted).OrderBy(c => c.RowNumber).ThenBy(c => c.ColumnNumber))
-                            .ThenInclude(x => x.CellConfiguration)
-
-            .Include(x => x.Tables.Where(t => !t.IsDeleted).OrderBy(t => t.DisplayOrder))
-                .ThenInclude(x => x.Groups.Where(g => !g.IsDeleted).OrderBy(g => g.Order))
-                    .ThenInclude(x => x.Rows.Where(r => !r.IsDeleted).OrderBy(r => r.RowNumber))
-                        .ThenInclude(x => x.Cells.Where(c => !c.IsDeleted).OrderBy(c => c.RowNumber).ThenBy(c => c.ColumnNumber))
-                            .ThenInclude(x => x.TableCellType)
-
-            .Include(x => x.Tables.Where(t => !t.IsDeleted).OrderBy(t => t.DisplayOrder))
-                .ThenInclude(x => x.Groups.Where(g => !g.IsDeleted).OrderBy(g => g.Order))
-                    .ThenInclude(x => x.Rows.Where(r => !r.IsDeleted).OrderBy(r => r.RowNumber))
-                        .ThenInclude(x => x.Cells.Where(c => !c.IsDeleted).OrderBy(c => c.RowNumber).ThenBy(c => c.ColumnNumber))
-                            .ThenInclude(x => x.TextValue)
-            .Include(x => x.Tables.Where(t => !t.IsDeleted).OrderBy(t => t.DisplayOrder))
-                .ThenInclude(x => x.Groups.Where(g => !g.IsDeleted).OrderBy(g => g.Order))
-                    .ThenInclude(x => x.Rows.Where(r => !r.IsDeleted).OrderBy(r => r.RowNumber))
-                        .ThenInclude(x => x.Cells.Where(c => !c.IsDeleted).OrderBy(c => c.RowNumber).ThenBy(c => c.ColumnNumber))
-                            .ThenInclude(x => x.NumericValue)
-            .Include(x => x.Tables.Where(t => !t.IsDeleted).OrderBy(t => t.DisplayOrder))
-                .ThenInclude(x => x.Groups.Where(g => !g.IsDeleted).OrderBy(g => g.Order))
-                    .ThenInclude(x => x.Rows.Where(r => !r.IsDeleted).OrderBy(r => r.RowNumber))
-                        .ThenInclude(x => x.Cells.Where(c => !c.IsDeleted).OrderBy(c => c.RowNumber).ThenBy(c => c.ColumnNumber))
-                            .ThenInclude(x => x.PairValue)
-            .Include(x => x.Tables.Where(t => !t.IsDeleted).OrderBy(t => t.DisplayOrder))
-                .ThenInclude(x => x.Groups.Where(g => !g.IsDeleted).OrderBy(g => g.Order))
-                    .ThenInclude(x => x.Rows.Where(r => !r.IsDeleted).OrderBy(r => r.RowNumber))
-                        .ThenInclude(x => x.Cells.Where(c => !c.IsDeleted).OrderBy(c => c.RowNumber).ThenBy(c => c.ColumnNumber))
-                            .ThenInclude(x => x.LinkedSpecSheetValue)
-
-            .AsSplitQuery()
-            .AsNoTracking()
-            .FirstOrDefaultAsync(cancellationToken)
-            ?? throw new KeyNotFoundException($"Spec Sheet with Id {id} not found.");
-
-            domainSpecSheet = specSheet.MapToDomain();
+            domainSpecSheet = await _specSheetReader.ReadAsync(id, cancellationToken);
             await _specSheetCache.SetAsync(domainSpecSheet, cancellationToken);
         }
 

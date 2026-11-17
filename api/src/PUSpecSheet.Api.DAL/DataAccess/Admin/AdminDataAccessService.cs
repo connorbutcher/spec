@@ -5,6 +5,7 @@ using PUSpecSheet.Abstractions.Requests.Access;
 using PUSpecSheet.Abstractions.Requests.Access.Tables;
 using PUSpecSheet.Api.DAL.Caching;
 using PUSpecSheet.Api.DAL.DataAccess.SpecSheets;
+using PUSpecSheet.Api.DAL.DataAccess.SpecSheets.Reads;
 using PUSpecSheet.Api.Database;
 using PUSpecSheet.Api.Database.Mappers.Access;
 using PUSpecSheet.Api.Database.Schema.Access;
@@ -16,11 +17,15 @@ internal class AdminDataAccessService : IAdminDataAccessService
     private readonly PUSpecSheetDbContext _dbContext;
     private readonly ISpecSheetDataAccessService _specSheetDataAccessService;
     private readonly ISpecSheetCache _specSheetCache;
+    private readonly SpecSheetCopyReader _copyReader;
+    private readonly SpecSheetRevisionReader _revisionReader;
     private readonly ILogger<IAdminDataAccessService> _logger;
 
     public AdminDataAccessService(PUSpecSheetDbContext dbContext,
         ISpecSheetDataAccessService specSheetDataAccessService,
         ISpecSheetCache specSheetCache,
+        SpecSheetCopyReader copyReader,
+        SpecSheetRevisionReader revisionReader,
         ILogger<IAdminDataAccessService> logger)
     {
         ArgumentNullException.ThrowIfNull(dbContext, nameof(dbContext));
@@ -29,6 +34,8 @@ internal class AdminDataAccessService : IAdminDataAccessService
         _dbContext = dbContext;
         _specSheetDataAccessService = specSheetDataAccessService;
         _specSheetCache = specSheetCache;
+        _copyReader = copyReader;
+        _revisionReader = revisionReader;
         _logger = logger;
     }
 
@@ -240,5 +247,57 @@ internal class AdminDataAccessService : IAdminDataAccessService
                 _logger.LogInformation("Removed cache entry for Spec Sheet ID {SpecSheetId} with Spec Sheet Type ID {SpecSheetTypeId}.", specSheet, specSheetTypeId);
             }
         }
+    }
+
+    public async Task<RevisionReadCheck> CompareRevisionReadsAsync(int? specSheetTypeId, int? specSheetPhaseId, CancellationToken cancellationToken)
+    {
+        var specSheetIds = await _dbContext.SpecSheets
+            .AsNoTracking()
+            .Where(s => s.IsPublished
+                && (!specSheetTypeId.HasValue || s.SpecSheetTypeId == specSheetTypeId.Value)
+                && (!specSheetPhaseId.HasValue || s.SpecSheetPhaseId == specSheetPhaseId.Value))
+            .OrderBy(s => s.Id)
+            .Select(s => s.Id)
+            .ToListAsync(cancellationToken);
+
+        var notMigrated = new List<int>();
+        var mismatches = new List<RevisionReadMismatch>();
+        foreach (var specSheetId in specSheetIds)
+        {
+            try
+            {
+                var fromRevisions = await _revisionReader.ReadPublishedAsync(specSheetId, cancellationToken);
+                if (fromRevisions is null)
+                {
+                    notMigrated.Add(specSheetId);
+                    continue;
+                }
+
+                var fromCopy = await _copyReader.ReadAsync(specSheetId, cancellationToken);
+                if (SpecSheetReadComparer.Difference(fromCopy, fromRevisions) is { } difference)
+                {
+                    mismatches.Add(new RevisionReadMismatch { SpecSheetId = specSheetId, Difference = difference });
+                }
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                _logger.LogError(ex, "Spec Sheet ID {SpecSheetId} couldn't be compared. Message: {Message}", specSheetId, ex.Message);
+                mismatches.Add(new RevisionReadMismatch { SpecSheetId = specSheetId, Difference = $"couldn't be read: {ex.Message}" });
+            }
+        }
+
+        _logger.LogInformation(
+            "Compared {Checked} published Spec Sheets with the revisions: {Mismatched} differ, {NotMigrated} not migrated.",
+            specSheetIds.Count,
+            mismatches.Count,
+            notMigrated.Count);
+
+        return new RevisionReadCheck
+        {
+            Checked = specSheetIds.Count,
+            Matched = specSheetIds.Count - mismatches.Count - notMigrated.Count,
+            NotMigrated = notMigrated,
+            Mismatches = mismatches
+        };
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using PUSpecSheet.Api.DAL.DataAccess.Admin;
+using PUSpecSheet.Api.DAL.DataAccess.SpecSheets.Reads;
 
 namespace PUSpecSheet.Api.Controllers;
 
@@ -39,5 +40,20 @@ public class AdminController : ControllerBase
 
         await _adminDataAccessService.ResetCacheForSpecSheetTypeAsync(specSheetTypeId, HttpContext.RequestAborted);
         return Ok();
+    }
+
+    /// <summary>
+    /// Reads every published spec sheet, of a type or phase when given, from its copy and from the revisions, and lists
+    /// those that read differently or haven't been migrated.
+    /// </summary>
+    [HttpGet("revisions/compare")]
+    public async Task<ActionResult<RevisionReadCheck>> CompareRevisionReadsAsync([FromQuery] int? specSheetTypeId, [FromQuery] int? specSheetPhaseId)
+    {
+        if (specSheetTypeId <= 0 || specSheetPhaseId <= 0)
+        {
+            return BadRequest("Spec sheet type and phase ids must be greater than 0.");
+        }
+
+        return Ok(await _adminDataAccessService.CompareRevisionReadsAsync(specSheetTypeId, specSheetPhaseId, HttpContext.RequestAborted));
     }
 }
