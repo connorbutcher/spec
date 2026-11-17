@@ -26,7 +26,7 @@ public sealed class CurrentUserController : ControllerBase
     /// <param name="cancellationToken">Cancels the request.</param>
     /// <response code="200">The current user and their permissions.</response>
     [HttpGet]
-    public async Task<ActionResult<CurrentUserDto>> Get(CancellationToken cancellationToken)
+    public async Task<ActionResult<CurrentUser>> Get(CancellationToken cancellationToken)
     {
         var result = await _userAccess.GetCurrentUserAsync(cancellationToken);
         return Ok(result);

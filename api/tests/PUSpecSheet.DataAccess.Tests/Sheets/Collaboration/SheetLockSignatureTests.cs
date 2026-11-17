@@ -10,8 +10,8 @@ public sealed class SheetLockSignatureTests
     [Fact]
     public void TheSameSheet_SeenByTwoPeople_HasTheSameSignature()
     {
-        var asHolder = Sheet(3, Row(10, new SheetLockDto { UserId = 1, UserName = "Developer", IsMine = true }));
-        var asOther = Sheet(3, Row(10, new SheetLockDto { UserId = 1, UserName = "Developer", IsMine = false }));
+        var asHolder = Sheet(3, Row(10, new SheetLock { UserId = 1, UserName = "Developer", IsMine = true }));
+        var asOther = Sheet(3, Row(10, new SheetLock { UserId = 1, UserName = "Developer", IsMine = false }));
 
         Assert.Equal(SheetLockSignature.Of(asHolder), SheetLockSignature.Of(asOther));
     }
@@ -20,7 +20,7 @@ public sealed class SheetLockSignatureTests
     public void CheckingARowOut_ChangesTheSignature()
     {
         var free = Sheet(3, Row(10, null));
-        var held = Sheet(3, Row(10, new SheetLockDto { UserId = 1, UserName = "Developer", IsMine = true }));
+        var held = Sheet(3, Row(10, new SheetLock { UserId = 1, UserName = "Developer", IsMine = true }));
 
         Assert.NotEqual(SheetLockSignature.Of(free), SheetLockSignature.Of(held));
     }
@@ -28,8 +28,8 @@ public sealed class SheetLockSignatureTests
     [Fact]
     public void HandingARowToSomeoneElse_ChangesTheSignature()
     {
-        var mine = Sheet(3, Row(10, new SheetLockDto { UserId = 1, UserName = "Developer", IsMine = true }));
-        var theirs = Sheet(3, Row(10, new SheetLockDto { UserId = 2, UserName = "Engineer Two", IsMine = false }));
+        var mine = Sheet(3, Row(10, new SheetLock { UserId = 1, UserName = "Developer", IsMine = true }));
+        var theirs = Sheet(3, Row(10, new SheetLock { UserId = 2, UserName = "Engineer Two", IsMine = false }));
 
         Assert.NotEqual(SheetLockSignature.Of(mine), SheetLockSignature.Of(theirs));
     }
@@ -44,7 +44,7 @@ public sealed class SheetLockSignatureTests
     public void ARowNobodyElseCanSeeYet_IsLeftOut()
     {
         var without = Sheet(3, Row(10, null));
-        var withPending = Sheet(3, Row(10, null), Row(11, new SheetLockDto
+        var withPending = Sheet(3, Row(10, null), Row(11, new SheetLock
         {
             UserId = 1,
             UserName = "Developer",
@@ -57,13 +57,13 @@ public sealed class SheetLockSignatureTests
     [Fact]
     public void WhenOnlyRowsChangeHands_TheyAreNamed()
     {
-        var before = SheetLockSignature.Entries(Sheet(3, Row(10, null), Row(11, new SheetLockDto
+        var before = SheetLockSignature.Entries(Sheet(3, Row(10, null), Row(11, new SheetLock
         {
             UserId = 1,
             UserName = "Developer",
             IsMine = true,
         }), Row(12, null)));
-        var after = SheetLockSignature.Entries(Sheet(3, Row(10, new SheetLockDto
+        var after = SheetLockSignature.Entries(Sheet(3, Row(10, new SheetLock
         {
             UserId = 2,
             UserName = "Engineer Two",
@@ -76,15 +76,15 @@ public sealed class SheetLockSignatureTests
     [Fact]
     public void WhenAVersionIsPublished_NoRowsAreNamed()
     {
-        var before = SheetLockSignature.Entries(Sheet(3, Row(10, new SheetLockDto { UserId = 1, UserName = "Developer", IsMine = true })));
+        var before = SheetLockSignature.Entries(Sheet(3, Row(10, new SheetLock { UserId = 1, UserName = "Developer", IsMine = true })));
         var after = SheetLockSignature.Entries(Sheet(4, Row(10, null)));
 
         Assert.Null(SheetLockSignature.ChangedRows(before, after));
     }
 
-    private static SheetRowDto Row(int id, SheetLockDto? held, bool isPending = false)
+    private static SheetRow Row(int id, SheetLock? held, bool isPending = false)
     {
-        return new SheetRowDto
+        return new SheetRow
         {
             Id = id,
             PublicId = Guid.Empty,
@@ -97,9 +97,9 @@ public sealed class SheetLockSignatureTests
         };
     }
 
-    private static SheetDto Sheet(int latestVersion, params SheetRowDto[] rows)
+    private static Sheet Sheet(int latestVersion, params SheetRow[] rows)
     {
-        var section = new SheetSectionDto
+        var section = new SheetSection
         {
             Id = 1,
             PublicId = Guid.Empty,
@@ -116,7 +116,7 @@ public sealed class SheetLockSignatureTests
             Sections = [],
             AddableSections = [],
         };
-        var table = new SheetTableDto
+        var table = new SheetTable
         {
             Id = 1,
             PublicId = Guid.Empty,
@@ -132,7 +132,7 @@ public sealed class SheetLockSignatureTests
             ColumnBlocks = [],
             AddableColumnBlocks = [],
         };
-        return new SheetDto
+        return new Sheet
         {
             Id = 1,
             PublicId = Guid.Empty,

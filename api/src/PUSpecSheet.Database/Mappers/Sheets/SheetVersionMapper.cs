@@ -3,13 +3,13 @@ using PUSpecSheet.Database.Models.Sheets;
 
 namespace PUSpecSheet.Database.Mappers.Sheets;
 
-/// <summary>Sheet versions as DTOs.</summary>
+/// <summary>Sheet versions as models.</summary>
 public static class SheetVersionMapper
 {
     /// <summary>Expects <see cref="DbSheetVersion.PublishedBy"/> to be loaded.</summary>
-    public static SheetVersionSummaryDto ToSummaryDto(this DbSheetVersion version)
+    public static SheetVersionSummary ToSummary(this DbSheetVersion version)
     {
-        return new SheetVersionSummaryDto
+        return new SheetVersionSummary
         {
             VersionNumber = version.VersionNumber,
             PublishedAtUtc = UtcTimes.AsUtc(version.PublishedAtUtc),

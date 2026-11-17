@@ -11,7 +11,7 @@ namespace PUSpecSheet.DataAccess.Sheets.Catalog;
 public static class SheetCatalogQueries
 {
     /// <summary>The phase's sheets, or only one of them, oldest first.</summary>
-    public static async Task<List<SheetSummaryDto>> ListAsync(PuSpecSheetDbContext db, int phaseId, int? sheetId, CancellationToken cancellationToken)
+    public static async Task<List<SheetSummary>> ListAsync(PuSpecSheetDbContext db, int phaseId, int? sheetId, CancellationToken cancellationToken)
     {
         var sheets = db.Sheets.Where(sheet => sheet.PhaseId == phaseId && (sheetId == null || sheet.Id == sheetId));
         var rows = await sheets
@@ -25,7 +25,7 @@ public static class SheetCatalogQueries
                 sheet.CreatedAtUtc,
                 Identifiers = sheet.IdentifierValues
                     .OrderBy(value => value.SheetTypeIdentifierId)
-                    .Select(value => new SheetIdentifierValueDto { IdentifierId = value.SheetTypeIdentifierId, Value = value.Value })
+                    .Select(value => new SheetIdentifierValue { IdentifierId = value.SheetTypeIdentifierId, Value = value.Value })
                     .ToList(),
                 Latest = sheet.Versions
                     .OrderByDescending(version => version.VersionNumber)
@@ -43,7 +43,7 @@ public static class SheetCatalogQueries
         Add(drafts, await CountDraftsAsync(db.SheetRowRevisions, sheetIds, cancellationToken));
 
         return rows
-            .Select(row => new SheetSummaryDto
+            .Select(row => new SheetSummary
             {
                 Id = row.Id,
                 PublicId = row.PublicId,

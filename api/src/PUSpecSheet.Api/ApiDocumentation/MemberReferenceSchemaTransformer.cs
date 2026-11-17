@@ -7,7 +7,7 @@ namespace PUSpecSheet.Api.ApiDocumentation;
 
 /// <summary>
 /// Tidies the descriptions taken from XML comments. A <c>&lt;see cref&gt;</c> to a property arrives as its
-/// C# signature, such as <c>Guid? PublishedCellDto.Column</c>; this turns it into the name the JSON uses,
+/// C# signature, such as <c>Guid? PublishedCell.Column</c>; this turns it into the name the JSON uses,
 /// <c>column</c>.
 /// </summary>
 public sealed partial class MemberReferenceSchemaTransformer : IOpenApiSchemaTransformer

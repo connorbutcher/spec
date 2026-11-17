@@ -15,7 +15,7 @@ internal static class LinkableColumns
     /// <param name="sections">The sections of one template version.</param>
     /// <param name="rows">The rows of those sections, with their cells.</param>
     /// <param name="cellTypes">Every cell type, by id.</param>
-    public static List<SheetLinkableColumnDto> For(
+    public static List<SheetLinkableColumn> For(
         IReadOnlyCollection<DbTemplateSection> sections,
         IReadOnlyCollection<DbTemplateRow> rows,
         IReadOnlyDictionary<int, DbCellType> cellTypes)
@@ -54,7 +54,7 @@ internal static class LinkableColumns
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
         return columns
-            .Select(column => new SheetLinkableColumnDto
+            .Select(column => new SheetLinkableColumn
             {
                 TemplateCellId = column.Cell.Id,
                 Label = repeated.Contains(column.Label) ? $"{column.Label} ({column.Section})" : column.Label,

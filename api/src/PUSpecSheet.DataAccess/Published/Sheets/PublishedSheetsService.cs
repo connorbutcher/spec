@@ -22,7 +22,7 @@ public sealed class PublishedSheetsService : IPublishedSheetsService
         _cache = cache;
     }
 
-    public async Task<PublishedSheetReferenceDto> FindAsync(string phaseCode, int sheetTypeId, IReadOnlyDictionary<string, string> identifiers, CancellationToken cancellationToken)
+    public async Task<PublishedSheetReference> FindAsync(string phaseCode, int sheetTypeId, IReadOnlyDictionary<string, string> identifiers, CancellationToken cancellationToken)
     {
         var found = await ListAsync(phaseCode, sheetTypeId, identifiers, cancellationToken);
         if (found.Count == 0)
@@ -41,13 +41,13 @@ public sealed class PublishedSheetsService : IPublishedSheetsService
         return found[0];
     }
 
-    public async Task<IReadOnlyList<PublishedSheetReferenceDto>> ListAsync(string phaseCode, int sheetTypeId, IReadOnlyDictionary<string, string> identifiers, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<PublishedSheetReference>> ListAsync(string phaseCode, int sheetTypeId, IReadOnlyDictionary<string, string> identifiers, CancellationToken cancellationToken)
     {
         var filters = await PublishedIdentifierFilters.ResolveAsync(_db, sheetTypeId, identifiers, cancellationToken);
         return await PublishedSheetQueries.ListReferencesAsync(_db, phaseCode, sheetTypeId, filters, cancellationToken);
     }
 
-    public async Task<IReadOnlyList<PublishedVersionDto>> VersionsAsync(Guid sheetPublicId, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<PublishedVersion>> VersionsAsync(Guid sheetPublicId, CancellationToken cancellationToken)
     {
         var versions = await PublishedSheetQueries.ListVersionsAsync(_db, sheetPublicId, cancellationToken);
 
@@ -65,7 +65,7 @@ public sealed class PublishedSheetsService : IPublishedSheetsService
         return _resolver.ResolveAsync(sheetPublicId, point, cancellationToken);
     }
 
-    public async Task<PublishedSheetDto> ReadAsync(ResolvedSheetVersion version, PublishedSheetSelection selection, CancellationToken cancellationToken)
+    public async Task<PublishedSheet> ReadAsync(ResolvedSheetVersion version, PublishedSheetSelection selection, CancellationToken cancellationToken)
     {
         var key = version.KeyFor(selection);
         if (_cache.TryGet(key, out var cached))

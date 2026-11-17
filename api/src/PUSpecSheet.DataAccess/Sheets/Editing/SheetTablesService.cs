@@ -45,7 +45,7 @@ public sealed class SheetTablesService : ISheetTablesService
         _sections = sections;
     }
 
-    public async Task<SheetDto> AddAsync(int sheetId, AddSheetTableRequest request, CancellationToken cancellationToken)
+    public async Task<Sheet> AddAsync(int sheetId, AddSheetTableRequest request, CancellationToken cancellationToken)
     {
         var sheet = await SheetQueries.FindAsync(_db, sheetId, cancellationToken)
             ?? throw new NotFoundException($"Sheet {sheetId} was not found.");
@@ -77,7 +77,7 @@ public sealed class SheetTablesService : ISheetTablesService
         return await _reader.ReadLiveAsync(sheetId, cancellationToken);
     }
 
-    public async Task<SheetDto> SetTitleAsync(int tableId, SetSheetTableTitleRequest request, CancellationToken cancellationToken)
+    public async Task<Sheet> SetTitleAsync(int tableId, SetSheetTableTitleRequest request, CancellationToken cancellationToken)
     {
         var state = await _drafts.LoadAsync(tableId, cancellationToken);
         var draft = await MyDraftAsync(tableId, state, cancellationToken);
@@ -88,7 +88,7 @@ public sealed class SheetTablesService : ISheetTablesService
         return await _reader.ReadLiveAsync(await SheetIdOfAsync(tableId, cancellationToken), cancellationToken);
     }
 
-    public async Task<SheetDto> MoveAsync(int tableId, MoveRequest request, CancellationToken cancellationToken)
+    public async Task<Sheet> MoveAsync(int tableId, MoveRequest request, CancellationToken cancellationToken)
     {
         var sheetId = await SheetIdOfAsync(tableId, cancellationToken);
         var state = await _drafts.LoadAsync(tableId, cancellationToken);
@@ -107,7 +107,7 @@ public sealed class SheetTablesService : ISheetTablesService
         return await _reader.ReadLiveAsync(sheetId, cancellationToken);
     }
 
-    public async Task<SheetDto> RemoveAsync(int tableId, CancellationToken cancellationToken)
+    public async Task<Sheet> RemoveAsync(int tableId, CancellationToken cancellationToken)
     {
         var sheetId = await SheetIdOfAsync(tableId, cancellationToken);
         var state = await _drafts.LoadAsync(tableId, cancellationToken);
@@ -129,7 +129,7 @@ public sealed class SheetTablesService : ISheetTablesService
         return await _reader.ReadLiveAsync(sheetId, cancellationToken);
     }
 
-    public Task<SheetDto> AddSectionAsync(int tableId, AddSheetSectionRequest request, CancellationToken cancellationToken)
+    public Task<Sheet> AddSectionAsync(int tableId, AddSheetSectionRequest request, CancellationToken cancellationToken)
     {
         return _sections.AddAsync(tableId, request, cancellationToken);
     }

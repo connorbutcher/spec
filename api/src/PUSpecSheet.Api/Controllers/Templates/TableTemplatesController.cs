@@ -27,7 +27,7 @@ public sealed class TableTemplatesController : ControllerBase
     /// <param name="cancellationToken">Cancels the request.</param>
     /// <response code="200">The template summaries.</response>
     [HttpGet]
-    public async Task<ActionResult<IReadOnlyList<TableTemplateSummaryDto>>> GetAll(
+    public async Task<ActionResult<IReadOnlyList<TableTemplateSummary>>> GetAll(
         [FromQuery] int? sheetTypeId,
         CancellationToken cancellationToken)
     {
@@ -45,7 +45,7 @@ public sealed class TableTemplatesController : ControllerBase
     /// <response code="200">The template at that version.</response>
     /// <response code="404">The template or version doesn't exist.</response>
     [HttpGet("{id:int}")]
-    public async Task<ActionResult<TableTemplateDto>> Get(
+    public async Task<ActionResult<TableTemplate>> Get(
         int id,
         [FromQuery] int? version,
         CancellationToken cancellationToken)
@@ -63,7 +63,7 @@ public sealed class TableTemplatesController : ControllerBase
     /// <response code="200">The template at its new version.</response>
     [HttpPost("{id:int}/versions")]
     [Authorize(Policy = PermissionKeys.TemplatesManage)]
-    public async Task<ActionResult<TableTemplateDto>> CreateVersion(int id, CancellationToken cancellationToken)
+    public async Task<ActionResult<TableTemplate>> CreateVersion(int id, CancellationToken cancellationToken)
     {
         var result = await _templates.CreateVersionAsync(id, cancellationToken);
         return Ok(result);
@@ -79,8 +79,8 @@ public sealed class TableTemplatesController : ControllerBase
     /// <response code="409">The sheet type already has a template with this name.</response>
     [HttpPost]
     [Authorize(Policy = PermissionKeys.TemplatesManage)]
-    [ProducesResponseType<TableTemplateDto>(StatusCodes.Status201Created)]
-    public async Task<ActionResult<TableTemplateDto>> Create(
+    [ProducesResponseType<TableTemplate>(StatusCodes.Status201Created)]
+    public async Task<ActionResult<TableTemplate>> Create(
         CreateTableTemplateRequest request,
         CancellationToken cancellationToken)
     {
@@ -98,7 +98,7 @@ public sealed class TableTemplatesController : ControllerBase
     /// <response code="200">The updated template.</response>
     [HttpPut("{id:int}")]
     [Authorize(Policy = PermissionKeys.TemplatesManage)]
-    public async Task<ActionResult<TableTemplateDto>> Update(
+    public async Task<ActionResult<TableTemplate>> Update(
         int id,
         UpdateTableTemplateRequest request,
         CancellationToken cancellationToken)

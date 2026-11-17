@@ -27,14 +27,14 @@ public sealed class PublishedSchemaTransformer : IOpenApiSchemaTransformer
 
     private static readonly Dictionary<Type, Func<JsonNode>> _examples = new()
     {
-        [typeof(PublishedSheetReferenceDto)] = Reference,
-        [typeof(PublishedVersionDto)] = Version,
+        [typeof(PublishedSheetReference)] = Reference,
+        [typeof(PublishedVersion)] = Version,
         [typeof(PublishedSheetQueryRequest)] = QueryRequest,
-        [typeof(PublishedSheetDto)] = SheetAsTree,
-        [typeof(PublishedRowsDto)] = Rows,
-        [typeof(PublishedSheetRowDto)] = OneRow,
+        [typeof(PublishedSheet)] = SheetAsTree,
+        [typeof(PublishedRows)] = Rows,
+        [typeof(PublishedSheetRow)] = OneRow,
         [typeof(PublishedRowsQueryRequest)] = RowsRequest,
-        [typeof(PublishedLookupDto)] = Lookup,
+        [typeof(PublishedLookup)] = Lookup,
     };
 
     public Task TransformAsync(OpenApiSchema schema, OpenApiSchemaTransformerContext context, CancellationToken cancellationToken)
@@ -45,7 +45,7 @@ public sealed class PublishedSchemaTransformer : IOpenApiSchemaTransformer
             schema.Examples = [example()];
         }
 
-        if (context.JsonTypeInfo.Type == typeof(PublishedCellDto)
+        if (context.JsonTypeInfo.Type == typeof(PublishedCell)
             && schema.Properties?.TryGetValue(ValueProperty, out var value) == true
             && value is OpenApiSchema valueSchema)
         {

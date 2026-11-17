@@ -9,7 +9,7 @@ namespace PUSpecSheet.DataAccess.Tests.Sheets.Collaboration;
 /// </summary>
 internal sealed class FakeRowCheckouts : IRowCheckouts
 {
-    private readonly Dictionary<int, RowCheckout> _checkedOut = [];
+    private readonly Dictionary<int, RowCheckoutState> _checkedOut = [];
     private readonly Dictionary<int, int> _sheetByRow = [];
     private readonly HashSet<int> _liveRows = [];
 
@@ -26,7 +26,7 @@ internal sealed class FakeRowCheckouts : IRowCheckouts
     public void CheckOut(int rowId, int sheetId, int holderUserId)
     {
         _sheetByRow[rowId] = sheetId;
-        _checkedOut[rowId] = new RowCheckout { SheetId = sheetId, HolderUserId = holderUserId, HasChanges = false };
+        _checkedOut[rowId] = new RowCheckoutState { SheetId = sheetId, HolderUserId = holderUserId, HasChanges = false };
         _liveRows.Remove(rowId);
     }
 
@@ -50,7 +50,7 @@ internal sealed class FakeRowCheckouts : IRowCheckouts
         _liveRows.Remove(rowId);
     }
 
-    public Task<RowCheckout?> FindAsync(int rowId, CancellationToken cancellationToken)
+    public Task<RowCheckoutState?> FindAsync(int rowId, CancellationToken cancellationToken)
     {
         return Task.FromResult(_checkedOut.GetValueOrDefault(rowId));
     }

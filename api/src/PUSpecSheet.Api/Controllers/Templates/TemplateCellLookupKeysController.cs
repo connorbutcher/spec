@@ -38,7 +38,7 @@ public sealed class TemplateCellLookupKeysController : ControllerBase
     /// <response code="200">The whole updated template.</response>
     /// <response code="400">The key isn't a valid name, or the cell isn't a text cell.</response>
     [HttpPut]
-    public async Task<ActionResult<TableTemplateDto>> Update(
+    public async Task<ActionResult<TableTemplate>> Update(
         int id,
         UpdateTemplateCellLookupKeyRequest request,
         CancellationToken cancellationToken)

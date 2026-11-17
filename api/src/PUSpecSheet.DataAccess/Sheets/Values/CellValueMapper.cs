@@ -8,7 +8,7 @@ namespace PUSpecSheet.DataAccess.Sheets.Values;
 
 /// <summary>
 /// Turns a stored cell value into the single value a cell carries in the API, and a value sent for a cell
-/// back into what is stored, by the cell's kind (see <see cref="SheetCellDto.Value"/>).
+/// back into what is stored, by the cell's kind (see <see cref="SheetCell.Value"/>).
 /// </summary>
 public static class CellValueMapper
 {

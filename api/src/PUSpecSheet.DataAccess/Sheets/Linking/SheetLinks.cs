@@ -10,7 +10,7 @@ namespace PUSpecSheet.DataAccess.Sheets.Linking;
 internal static class SheetLinks
 {
     /// <summary>Whether the table, and the column or row of it, are on the sheet and can be linked to.</summary>
-    public static bool SourceExists(SheetDto sheet, LinkedDropdownInstanceSettings settings)
+    public static bool SourceExists(Sheet sheet, LinkedDropdownInstanceSettings settings)
     {
         var table = sheet.Tables.FirstOrDefault(candidate => candidate.Id == settings.SourceSheetTableId);
         if (table is null || !settings.HasSource)
@@ -24,7 +24,7 @@ internal static class SheetLinks
     }
 
     /// <summary>The choices the settings give, or null when what they point at isn't on the sheet.</summary>
-    public static IReadOnlyList<string>? OptionsOf(SheetDto sheet, LinkedDropdownInstanceSettings? settings)
+    public static IReadOnlyList<string>? OptionsOf(Sheet sheet, LinkedDropdownInstanceSettings? settings)
     {
         if (settings is null || !SourceExists(sheet, settings))
         {
@@ -39,7 +39,7 @@ internal static class SheetLinks
     }
 
     /// <summary>The cell with the given id, wherever it is on the sheet.</summary>
-    public static SheetCellDto? FindCell(SheetDto sheet, int sheetCellId)
+    public static SheetCell? FindCell(Sheet sheet, int sheetCellId)
     {
         return sheet.Tables
             .SelectMany(table => table.Sections)
@@ -47,7 +47,7 @@ internal static class SheetLinks
             .FirstOrDefault(cell => cell.Id == sheetCellId);
     }
 
-    private static IEnumerable<SheetCellDto> CellsOf(SheetSectionDto section)
+    private static IEnumerable<SheetCell> CellsOf(SheetSection section)
     {
         return section.Rows
             .SelectMany(row => row.Cells)

@@ -5,12 +5,12 @@ using PUSpecSheet.Database.Models.SheetTypes;
 namespace PUSpecSheet.Database.Mappers.SheetTypes;
 
 /// <summary>
-/// Sheet types and their identifiers as DTOs. <see cref="Projection"/> is an expression, so a query can
-/// select straight into the DTO; <see cref="ToDto(DbSheetType)"/> maps an entity already loaded.
+/// Sheet types and their identifiers as models. <see cref="Projection"/> is an expression, so a query can
+/// select straight into the model; <see cref="ToModel(DbSheetType)"/> maps an entity already loaded.
 /// </summary>
 public static class SheetTypeMapper
 {
-    public static readonly Expression<Func<DbSheetType, SheetTypeDto>> Projection = sheetType => new SheetTypeDto
+    public static readonly Expression<Func<DbSheetType, SheetType>> Projection = sheetType => new SheetType
     {
         Id = sheetType.Id,
         Name = sheetType.Name,
@@ -18,7 +18,7 @@ public static class SheetTypeMapper
         Identifiers = sheetType.Identifiers
             .OrderBy(identifier => identifier.DisplayOrder)
             .ThenBy(identifier => identifier.Id)
-            .Select(identifier => new SheetTypeIdentifierDto
+            .Select(identifier => new SheetTypeIdentifier
             {
                 Id = identifier.Id,
                 Key = identifier.Key,
@@ -31,10 +31,10 @@ public static class SheetTypeMapper
             .ToList(),
     };
 
-    private static readonly Func<DbSheetType, SheetTypeDto> _compiled = Projection.Compile();
+    private static readonly Func<DbSheetType, SheetType> _compiled = Projection.Compile();
 
     /// <summary>Expects <see cref="DbSheetType.Identifiers"/> to be loaded, or to be empty for a new sheet type.</summary>
-    public static SheetTypeDto ToDto(this DbSheetType sheetType)
+    public static SheetType ToModel(this DbSheetType sheetType)
     {
         return _compiled(sheetType);
     }

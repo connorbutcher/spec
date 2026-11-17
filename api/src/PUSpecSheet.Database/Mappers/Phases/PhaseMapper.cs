@@ -3,13 +3,13 @@ using PUSpecSheet.Database.Models.Phases;
 
 namespace PUSpecSheet.Database.Mappers.Phases;
 
-/// <summary>Phases as DTOs.</summary>
+/// <summary>Phases as models.</summary>
 public static class PhaseMapper
 {
     /// <summary>Expects <see cref="DbPhase.SheetTypes"/> to be loaded.</summary>
-    public static PhaseDto ToDto(this DbPhase phase)
+    public static Phase ToModel(this DbPhase phase)
     {
-        return new PhaseDto
+        return new Phase
         {
             Id = phase.Id,
             Code = phase.Code,

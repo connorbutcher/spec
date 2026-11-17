@@ -9,18 +9,18 @@ namespace PUSpecSheet.DataAccess.Sheets.Collaboration;
 public interface ISheetLiveNotifier
 {
     /// <summary>Tells everyone on the sheet who has it open now.</summary>
-    Task PresenceChangedAsync(int sheetId, IReadOnlyList<SheetPresenceUserDto> users, CancellationToken cancellationToken);
+    Task PresenceChangedAsync(int sheetId, IReadOnlyList<SheetPresenceUser> users, CancellationToken cancellationToken);
 
     /// <summary>
     /// Tells everyone on the sheet that what they see is out of date (a row was checked out or released, or
     /// a version was published), leaving out the connection that made the change, which already has it.
     /// The notice names the rows to read again when nothing else changed.
     /// </summary>
-    Task SheetChangedAsync(int sheetId, SheetChangedNoticeDto notice, string? exceptConnectionId, CancellationToken cancellationToken);
+    Task SheetChangedAsync(int sheetId, SheetChangedNotice notice, string? exceptConnectionId, CancellationToken cancellationToken);
 
     /// <summary>Tells everyone on the sheet which rows people are in without having changed them yet.</summary>
-    Task CheckoutsChangedAsync(int sheetId, IReadOnlyList<RowCheckoutDto> checkouts, CancellationToken cancellationToken);
+    Task CheckoutsChangedAsync(int sheetId, IReadOnlyList<RowCheckout> checkouts, CancellationToken cancellationToken);
 
     /// <summary>Tells the requester and the holder of a takeover request where it has got to.</summary>
-    Task TakeoverChangedAsync(RowTakeoverDto takeover, CancellationToken cancellationToken);
+    Task TakeoverChangedAsync(RowTakeover takeover, CancellationToken cancellationToken);
 }

@@ -24,12 +24,12 @@ public sealed class SheetHub : Hub<ISheetHubClient>
     }
 
     /// <summary>Starts watching a sheet, in place of any sheet this connection was watching.</summary>
-    public async Task<SheetLiveStateDto> JoinSheet(int sheetId)
+    public async Task<SheetLiveState> JoinSheet(int sheetId)
     {
         await LeaveSheet();
 
         var userId = Context.User?.FindUserId() ?? throw new HubException("You are not signed in.");
-        SheetLiveStateDto state;
+        SheetLiveState state;
         try
         {
             state = await _presence.JoinAsync(Context.ConnectionId, sheetId, userId, Context.ConnectionAborted);

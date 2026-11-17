@@ -30,7 +30,7 @@ public sealed class TemplateRowsController : ControllerBase
     /// <param name="cancellationToken">Cancels the request.</param>
     /// <response code="200">The whole updated template.</response>
     [HttpPost]
-    public async Task<ActionResult<TableTemplateDto>> Create(
+    public async Task<ActionResult<TableTemplate>> Create(
         CreateTemplateRowRequest request,
         CancellationToken cancellationToken)
     {
@@ -47,7 +47,7 @@ public sealed class TemplateRowsController : ControllerBase
     /// <param name="cancellationToken">Cancels the request.</param>
     /// <response code="200">The whole updated template.</response>
     [HttpPost("{id:int}/move")]
-    public async Task<ActionResult<TableTemplateDto>> Move(int id, MoveRequest request, CancellationToken cancellationToken)
+    public async Task<ActionResult<TableTemplate>> Move(int id, MoveRequest request, CancellationToken cancellationToken)
     {
         var result = await _rows.MoveAsync(id, request, cancellationToken);
         return Ok(result);
@@ -61,7 +61,7 @@ public sealed class TemplateRowsController : ControllerBase
     /// <param name="cancellationToken">Cancels the request.</param>
     /// <response code="200">The whole updated template.</response>
     [HttpDelete("{id:int}")]
-    public async Task<ActionResult<TableTemplateDto>> Delete(int id, CancellationToken cancellationToken)
+    public async Task<ActionResult<TableTemplate>> Delete(int id, CancellationToken cancellationToken)
     {
         var result = await _rows.DeleteAsync(id, cancellationToken);
         return Ok(result);

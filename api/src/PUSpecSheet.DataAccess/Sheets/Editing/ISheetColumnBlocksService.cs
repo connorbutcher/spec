@@ -10,10 +10,10 @@ public interface ISheetColumnBlocksService
     /// Adds a copy of a template column block to the right of the existing ones, within the template's
     /// limits. Every row of the table gets its cells in it.
     /// </summary>
-    Task<SheetDto> AddAsync(int tableId, AddSheetColumnBlockRequest request, CancellationToken cancellationToken);
+    Task<Sheet> AddAsync(int tableId, AddSheetColumnBlockRequest request, CancellationToken cancellationToken);
 
-    Task<SheetDto> MoveAsync(int columnBlockId, MoveRequest request, CancellationToken cancellationToken);
+    Task<Sheet> MoveAsync(int columnBlockId, MoveRequest request, CancellationToken cancellationToken);
 
     /// <summary>Removes a column block copy, with its cells in every row, never below the template's minimum.</summary>
-    Task<SheetDto> RemoveAsync(int columnBlockId, CancellationToken cancellationToken);
+    Task<Sheet> RemoveAsync(int columnBlockId, CancellationToken cancellationToken);
 }

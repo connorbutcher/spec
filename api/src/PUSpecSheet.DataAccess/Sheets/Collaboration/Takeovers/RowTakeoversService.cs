@@ -40,21 +40,21 @@ public sealed class RowTakeoversService : IRowTakeoversService
         _clock = clock;
     }
 
-    public async Task<RowTakeoverAvailabilityDto> GetAvailabilityAsync(int rowId, CancellationToken cancellationToken)
+    public async Task<RowTakeoverAvailability> GetAvailabilityAsync(int rowId, CancellationToken cancellationToken)
     {
         // Asking the same question the request itself asks is what keeps the two from ever disagreeing.
         try
         {
             await CheckoutToAskForAsync(rowId, _currentUser.UserId, cancellationToken);
-            return new RowTakeoverAvailabilityDto { IsAvailable = true };
+            return new RowTakeoverAvailability { IsAvailable = true };
         }
         catch (Exception refusal) when (refusal is ConflictException or InvalidRequestException)
         {
-            return new RowTakeoverAvailabilityDto { IsAvailable = false, Reason = refusal.Message };
+            return new RowTakeoverAvailability { IsAvailable = false, Reason = refusal.Message };
         }
     }
 
-    public async Task<RowTakeoverDto> RequestAsync(int rowId, CancellationToken cancellationToken)
+    public async Task<RowTakeover> RequestAsync(int rowId, CancellationToken cancellationToken)
     {
         var me = _currentUser.UserId;
         var checkout = await CheckoutToAskForAsync(rowId, me, cancellationToken);
@@ -82,19 +82,19 @@ public sealed class RowTakeoversService : IRowTakeoversService
         return takeover;
     }
 
-    public async Task<RowTakeoverDto> ApproveAsync(Guid takeoverId, CancellationToken cancellationToken)
+    public async Task<RowTakeover> ApproveAsync(Guid takeoverId, CancellationToken cancellationToken)
     {
         var takeover = Take(takeoverId, RowTakeoverParty.Holder);
         return await _closer.GrantAsync(takeover, RowTakeoverStatus.Approved, cancellationToken);
     }
 
-    public async Task<RowTakeoverDto> DenyAsync(Guid takeoverId, CancellationToken cancellationToken)
+    public async Task<RowTakeover> DenyAsync(Guid takeoverId, CancellationToken cancellationToken)
     {
         var takeover = Take(takeoverId, RowTakeoverParty.Holder);
         return await _closer.CloseAsync(takeover, RowTakeoverStatus.Denied, cancellationToken);
     }
 
-    public async Task<RowTakeoverDto> CancelAsync(Guid takeoverId, CancellationToken cancellationToken)
+    public async Task<RowTakeover> CancelAsync(Guid takeoverId, CancellationToken cancellationToken)
     {
         var takeover = Take(takeoverId, RowTakeoverParty.Requester);
         return await _closer.CloseAsync(takeover, RowTakeoverStatus.Cancelled, cancellationToken);
@@ -104,7 +104,7 @@ public sealed class RowTakeoversService : IRowTakeoversService
     /// The row's checkout, once it is established that the user may ask for it. Every reason a request is
     /// refused is here, so the availability check and the request can't disagree.
     /// </summary>
-    private async Task<RowCheckout> CheckoutToAskForAsync(int rowId, int userId, CancellationToken cancellationToken)
+    private async Task<RowCheckoutState> CheckoutToAskForAsync(int rowId, int userId, CancellationToken cancellationToken)
     {
         var checkout = await _checkouts.FindAsync(rowId, cancellationToken);
         if (checkout is null)
@@ -138,11 +138,11 @@ public sealed class RowTakeoversService : IRowTakeoversService
         return checkout;
     }
 
-    private async Task<RowTakeoverDto> NewRequestAsync(int rowId, RowCheckout checkout, int requesterUserId, CancellationToken cancellationToken)
+    private async Task<RowTakeover> NewRequestAsync(int rowId, RowCheckoutState checkout, int requesterUserId, CancellationToken cancellationToken)
     {
         var names = await _checkouts.DisplayNamesAsync([requesterUserId, checkout.HolderUserId], cancellationToken);
         var now = _clock.GetUtcNow().UtcDateTime;
-        return new RowTakeoverDto
+        return new RowTakeover
         {
             Id = Guid.NewGuid(),
             SheetId = checkout.SheetId,
@@ -161,7 +161,7 @@ public sealed class RowTakeoversService : IRowTakeoversService
     /// Takes a waiting request out of the store for the current user to settle, who must be the given
     /// party to it. Taking it out first is what stops an answer and the timeout both settling it.
     /// </summary>
-    private RowTakeoverDto Take(Guid takeoverId, RowTakeoverParty party)
+    private RowTakeover Take(Guid takeoverId, RowTakeoverParty party)
     {
         var takeover = _store.Find(takeoverId) ?? throw new NotFoundException(NoLongerOpen);
 

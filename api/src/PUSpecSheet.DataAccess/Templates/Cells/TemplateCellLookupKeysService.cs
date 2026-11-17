@@ -22,7 +22,7 @@ public sealed class TemplateCellLookupKeysService : ITemplateCellLookupKeysServi
         _reader = reader;
     }
 
-    public async Task<TableTemplateDto> UpdateAsync(
+    public async Task<TableTemplate> UpdateAsync(
         int cellId,
         UpdateTemplateCellLookupKeyRequest request,
         CancellationToken cancellationToken)

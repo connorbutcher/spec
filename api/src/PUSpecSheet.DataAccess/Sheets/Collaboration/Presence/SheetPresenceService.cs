@@ -33,7 +33,7 @@ public sealed class SheetPresenceService : ISheetPresenceService
         _notifier = notifier;
     }
 
-    public async Task<SheetLiveStateDto> JoinAsync(string connectionId, int sheetId, int userId, CancellationToken cancellationToken)
+    public async Task<SheetLiveState> JoinAsync(string connectionId, int sheetId, int userId, CancellationToken cancellationToken)
     {
         if (!await SheetQueries.ExistsAsync(_db, sheetId, cancellationToken))
         {
@@ -47,7 +47,7 @@ public sealed class SheetPresenceService : ISheetPresenceService
         var users = _tracker.UsersOn(sheetId);
         await _notifier.PresenceChangedAsync(sheetId, users, cancellationToken);
 
-        return new SheetLiveStateDto
+        return new SheetLiveState
         {
             Users = users,
             Checkouts = _checkouts.OnSheet(sheetId),

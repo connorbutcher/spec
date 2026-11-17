@@ -9,7 +9,7 @@ namespace PUSpecSheet.DataAccess.Templates.Queries;
 public static class TableTemplateQueries
 {
     /// <summary>A summary of every template, or of one sheet type's, with its latest version.</summary>
-    public static async Task<List<TableTemplateSummaryDto>> ListSummariesAsync(PuSpecSheetDbContext db, int? sheetTypeId, CancellationToken cancellationToken)
+    public static async Task<List<TableTemplateSummary>> ListSummariesAsync(PuSpecSheetDbContext db, int? sheetTypeId, CancellationToken cancellationToken)
     {
         var query = db.TableTemplates.AsNoTracking();
         if (sheetTypeId is not null)
@@ -26,7 +26,7 @@ public static class TableTemplateQueries
                 template,
                 Latest = template.Versions.OrderByDescending(version => version.VersionNumber).First(),
             })
-            .Select(entry => new TableTemplateSummaryDto
+            .Select(entry => new TableTemplateSummary
             {
                 Id = entry.template.Id,
                 SheetTypeId = entry.template.SheetTypeId,

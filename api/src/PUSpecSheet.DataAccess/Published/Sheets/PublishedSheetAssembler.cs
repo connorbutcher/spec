@@ -9,7 +9,7 @@ namespace PUSpecSheet.DataAccess.Published.Sheets;
 /// </summary>
 public static class PublishedSheetAssembler
 {
-    public static PublishedSheetDto Assemble(
+    public static PublishedSheet Assemble(
         ResolvedSheetVersion version,
         PublishedSheetSelection selection,
         PublishedStructure structure,
@@ -30,7 +30,7 @@ public static class PublishedSheetAssembler
                 }
             }
 
-            return new PublishedSheetDto
+            return new PublishedSheet
             {
                 Sheet = version.SheetPublicId,
                 Version = version.VersionNumber,
@@ -41,7 +41,7 @@ public static class PublishedSheetAssembler
         }
 
         var tables = Tables(selection, structure, shown, values);
-        return new PublishedSheetDto
+        return new PublishedSheet
         {
             Sheet = version.SheetPublicId,
             Version = version.VersionNumber,
@@ -52,7 +52,7 @@ public static class PublishedSheetAssembler
     }
 
     /// <summary>Each section's rows that have cells to show, in order.</summary>
-    private static ILookup<int, PublishedRowDto> RowsBySection(
+    private static ILookup<int, PublishedRow> RowsBySection(
         PublishedSheetSelection selection,
         PublishedStructure structure,
         List<PublishedCellRecord> shown,
@@ -64,15 +64,15 @@ public static class PublishedSheetAssembler
             .Select(row => new
             {
                 First = row.First(),
-                Dto = new PublishedRowDto { Id = row.First().RowPublicId, Cells = Cells(row, selection, structure, blockOrder, values) },
+                Row = new PublishedRow { Id = row.First().RowPublicId, Cells = Cells(row, selection, structure, blockOrder, values) },
             })
-            .Where(row => row.Dto.Cells.Count > 0)
+            .Where(row => row.Row.Cells.Count > 0)
             .OrderBy(row => row.First.RowOrder)
             .ThenBy(row => row.First.RowId)
-            .ToLookup(row => row.First.SectionId, row => row.Dto);
+            .ToLookup(row => row.First.SectionId, row => row.Row);
     }
 
-    private static List<PublishedTableDto> Tables(
+    private static List<PublishedTable> Tables(
         PublishedSheetSelection selection,
         PublishedStructure structure,
         List<PublishedCellRecord> shown,
@@ -93,7 +93,7 @@ public static class PublishedSheetAssembler
             .ThenBy(block => block.Id)
             .ToLookup(block => block.TableId);
 
-        var tables = new List<PublishedTableDto>();
+        var tables = new List<PublishedTable>();
         foreach (var table in structure.Tables)
         {
             var sections = Sections(table.Id, null, selection, sectionsByParent, rowsBySection);
@@ -103,9 +103,9 @@ public static class PublishedSheetAssembler
             }
 
             var blocks = blocksByTable[table.Id]
-                .Select(block => new PublishedColumnBlockDto { Id = block.PublicId, Name = selection.IncludeLabels ? block.Name : null })
+                .Select(block => new PublishedColumnBlock { Id = block.PublicId, Name = selection.IncludeLabels ? block.Name : null })
                 .ToList();
-            tables.Add(new PublishedTableDto
+            tables.Add(new PublishedTable
             {
                 Id = table.PublicId,
                 Title = selection.IncludeLabels ? table.Title : null,
@@ -117,14 +117,14 @@ public static class PublishedSheetAssembler
         return tables;
     }
 
-    private static List<PublishedSectionDto> Sections(
+    private static List<PublishedSection> Sections(
         int tableId,
         int? parentSectionId,
         PublishedSheetSelection selection,
         ILookup<(int TableId, int? ParentSectionId), PublishedSectionRecord> sectionsByParent,
-        ILookup<int, PublishedRowDto> rowsBySection)
+        ILookup<int, PublishedRow> rowsBySection)
     {
-        var result = new List<PublishedSectionDto>();
+        var result = new List<PublishedSection>();
         foreach (var section in sectionsByParent[(tableId, parentSectionId)])
         {
             var rows = rowsBySection[section.Id].ToList();
@@ -136,7 +136,7 @@ public static class PublishedSheetAssembler
                 continue;
             }
 
-            result.Add(new PublishedSectionDto
+            result.Add(new PublishedSection
             {
                 Id = section.PublicId,
                 Name = selection.IncludeLabels ? section.Name : null,
@@ -148,14 +148,14 @@ public static class PublishedSheetAssembler
         return result;
     }
 
-    private static List<PublishedCellDto> Cells(
+    private static List<PublishedCell> Cells(
         IEnumerable<PublishedCellRecord> row,
         PublishedSheetSelection selection,
         PublishedStructure structure,
         Dictionary<int, int> blockOrder,
         IReadOnlyDictionary<int, object> values)
     {
-        var result = new List<PublishedCellDto>();
+        var result = new List<PublishedCell>();
 
         // The row's own cells come first, then each column block's cells, left to right.
         var ordered = row
@@ -170,7 +170,7 @@ public static class PublishedSheetAssembler
             }
 
             var column = cell.ColumnBlockId is { } blockId ? structure.ColumnBlock(blockId)?.PublicId : null;
-            result.Add(new PublishedCellDto
+            result.Add(new PublishedCell
             {
                 Id = cell.CellPublicId,
                 Value = value,

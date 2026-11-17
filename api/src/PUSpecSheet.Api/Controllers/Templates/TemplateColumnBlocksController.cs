@@ -31,7 +31,7 @@ public sealed class TemplateColumnBlocksController : ControllerBase
     /// <response code="200">The whole updated template.</response>
     /// <response code="409">The template version is in use, or the template isn't horizontal.</response>
     [HttpPost]
-    public async Task<ActionResult<TableTemplateDto>> Create(
+    public async Task<ActionResult<TableTemplate>> Create(
         CreateTemplateColumnBlockRequest request,
         CancellationToken cancellationToken)
     {
@@ -50,7 +50,7 @@ public sealed class TemplateColumnBlocksController : ControllerBase
     /// <param name="cancellationToken">Cancels the request.</param>
     /// <response code="200">The whole updated template.</response>
     [HttpPut("{id:int}")]
-    public async Task<ActionResult<TableTemplateDto>> Update(
+    public async Task<ActionResult<TableTemplate>> Update(
         int id,
         UpdateTemplateColumnBlockRequest request,
         CancellationToken cancellationToken)
@@ -68,7 +68,7 @@ public sealed class TemplateColumnBlocksController : ControllerBase
     /// <param name="cancellationToken">Cancels the request.</param>
     /// <response code="200">The whole updated template.</response>
     [HttpPost("{id:int}/move")]
-    public async Task<ActionResult<TableTemplateDto>> Move(int id, MoveRequest request, CancellationToken cancellationToken)
+    public async Task<ActionResult<TableTemplate>> Move(int id, MoveRequest request, CancellationToken cancellationToken)
     {
         var result = await _blocks.MoveAsync(id, request, cancellationToken);
         return Ok(result);
@@ -82,7 +82,7 @@ public sealed class TemplateColumnBlocksController : ControllerBase
     /// <param name="cancellationToken">Cancels the request.</param>
     /// <response code="200">The whole updated template.</response>
     [HttpDelete("{id:int}")]
-    public async Task<ActionResult<TableTemplateDto>> Delete(int id, CancellationToken cancellationToken)
+    public async Task<ActionResult<TableTemplate>> Delete(int id, CancellationToken cancellationToken)
     {
         var result = await _blocks.DeleteAsync(id, cancellationToken);
         return Ok(result);

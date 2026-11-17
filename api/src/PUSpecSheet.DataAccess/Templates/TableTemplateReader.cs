@@ -7,7 +7,7 @@ using PUSpecSheet.Database.Mappers.Templates;
 namespace PUSpecSheet.DataAccess.Templates;
 
 /// <summary>
-/// Loads a template at one version (sections, rows and cells) and returns it as the nested DTO. Every
+/// Loads a template at one version (sections, rows and cells) and returns it as the nested model. Every
 /// template change returns this so the UI can replace its copy in one go.
 /// </summary>
 public sealed class TableTemplateReader
@@ -20,7 +20,7 @@ public sealed class TableTemplateReader
     }
 
     /// <summary>Reads <paramref name="versionNumber"/>, or the latest version when it's null.</summary>
-    public async Task<TableTemplateDto> ReadAsync(int templateId, int? versionNumber, CancellationToken cancellationToken)
+    public async Task<TableTemplate> ReadAsync(int templateId, int? versionNumber, CancellationToken cancellationToken)
     {
         var template = await TableTemplateQueries.FindAsync(_db, templateId, cancellationToken);
 
@@ -43,10 +43,10 @@ public sealed class TableTemplateReader
         // The ids of the versions a sheet table is built from.
         var inUse = await TableTemplateQueries.GetVersionIdsInUseAsync(_db, versions.Select(candidate => candidate.Id).ToList(), cancellationToken);
         var summaries = versions
-            .Select(candidate => candidate.ToSummaryDto(inUse.Contains(candidate.Id)))
+            .Select(candidate => candidate.ToSummary(inUse.Contains(candidate.Id)))
             .ToList();
         var isEditable = version == versions[^1] && !inUse.Contains(version.Id);
-        return template.ToDto(
+        return template.ToModel(
             version,
             isEditable,
             summaries,
@@ -55,7 +55,7 @@ public sealed class TableTemplateReader
             await TemplateColumnBlockQueries.ListAsync(_db, version.Id, cancellationToken));
     }
 
-    public async Task<TableTemplateDto> ReadVersionAsync(int versionId, CancellationToken cancellationToken)
+    public async Task<TableTemplate> ReadVersionAsync(int versionId, CancellationToken cancellationToken)
     {
         var version = await TableTemplateQueries.FindVersionKeyAsync(_db, versionId, cancellationToken);
 

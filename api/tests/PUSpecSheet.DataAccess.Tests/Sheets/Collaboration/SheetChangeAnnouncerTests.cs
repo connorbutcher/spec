@@ -71,22 +71,22 @@ public sealed class SheetChangeAnnouncerTests
         Assert.Equal(["*", "10,11"], _notifier.Notices);
     }
 
-    private static SheetDto Sheet(int latestVersion, bool isLive = true, int? lockedRow = null)
+    private static Sheet Sheet(int latestVersion, bool isLive = true, int? lockedRow = null)
     {
         if (lockedRow is { } rowId)
         {
-            var row = new SheetRowDto
+            var row = new SheetRow
             {
                 Id = rowId,
                 PublicId = Guid.Empty,
                 TemplateRowId = 1,
                 DisplayOrder = 1,
-                Lock = new SheetLockDto { UserId = 2, UserName = "Engineer Two", IsMine = false },
+                Lock = new SheetLock { UserId = 2, UserName = "Engineer Two", IsMine = false },
                 IsPending = false,
                 CanRemove = true,
                 Cells = [],
             };
-            var section = new SheetSectionDto
+            var section = new SheetSection
             {
                 Id = 1,
                 PublicId = Guid.Empty,
@@ -103,7 +103,7 @@ public sealed class SheetChangeAnnouncerTests
                 Sections = [],
                 AddableSections = [],
             };
-            var table = new SheetTableDto
+            var table = new SheetTable
             {
                 Id = 1,
                 PublicId = Guid.Empty,
@@ -119,7 +119,7 @@ public sealed class SheetChangeAnnouncerTests
                 ColumnBlocks = [],
                 AddableColumnBlocks = [],
             };
-            return new SheetDto
+            return new Sheet
             {
                 Id = SheetId,
                 PublicId = Guid.Empty,
@@ -134,7 +134,7 @@ public sealed class SheetChangeAnnouncerTests
             };
         }
 
-        return new SheetDto
+        return new Sheet
         {
             Id = SheetId,
             PublicId = Guid.Empty,

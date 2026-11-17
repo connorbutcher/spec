@@ -26,7 +26,7 @@ public sealed class TemplateCellsService : ITemplateCellsService
         _cellTypes = cellTypes;
     }
 
-    public async Task<TableTemplateDto> CreateAsync(CreateTemplateCellRequest request, CancellationToken cancellationToken)
+    public async Task<TableTemplate> CreateAsync(CreateTemplateCellRequest request, CancellationToken cancellationToken)
     {
         var row = await LoadTargetAsync(request, cancellationToken);
         await _guard.EnsureEditableAsync(row.TableTemplateVersionId, cancellationToken);
@@ -61,7 +61,7 @@ public sealed class TemplateCellsService : ITemplateCellsService
         return await _reader.ReadVersionAsync(row.TableTemplateVersionId, cancellationToken);
     }
 
-    public async Task<TableTemplateDto> UpdateAsync(
+    public async Task<TableTemplate> UpdateAsync(
         int id,
         UpdateTemplateCellRequest request,
         CancellationToken cancellationToken)
@@ -88,7 +88,7 @@ public sealed class TemplateCellsService : ITemplateCellsService
         return await _reader.ReadVersionAsync(cell.TemplateRow.TemplateSection.TableTemplateVersionId, cancellationToken);
     }
 
-    public async Task<TableTemplateDto> DeleteAsync(int id, CancellationToken cancellationToken)
+    public async Task<TableTemplate> DeleteAsync(int id, CancellationToken cancellationToken)
     {
         var cell = await FindEditableAsync(id, cancellationToken);
 

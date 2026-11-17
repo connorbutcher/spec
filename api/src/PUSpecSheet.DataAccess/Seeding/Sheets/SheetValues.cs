@@ -19,8 +19,8 @@ public static class SheetValues
     /// or into its cells in one column block copy.
     /// </summary>
     public static List<CellValueRequest> For(
-        SheetDto sheet,
-        SheetRowDto row,
+        Sheet sheet,
+        SheetRow row,
         int? columnBlockId,
         ShowcaseCellTypeCatalog cellTypes,
         params object?[] values)

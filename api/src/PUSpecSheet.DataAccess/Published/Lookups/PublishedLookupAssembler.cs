@@ -49,7 +49,7 @@ public static class PublishedLookupAssembler
         return result;
     }
 
-    public static PublishedLookupMatchDto Assemble(
+    public static PublishedLookupMatch Assemble(
         PublishedLookupHit hit,
         ResolvedSheetVersion version,
         PublishedStructure structure,
@@ -73,7 +73,7 @@ public static class PublishedLookupAssembler
             ? blocks.Where(block => block.Id == matchedBlockId).ToList()
             : blocks;
         var scope = ScopeSections(hit, structure)?.ToHashSet();
-        var rows = new Dictionary<Guid, PublishedRowValuesDto>();
+        var rows = new Dictionary<Guid, PublishedRowValues>();
         foreach (var row in shown.Where(cell => scope is null || scope.Contains(cell.SectionId)).GroupBy(cell => cell.RowId))
         {
             if (RowValues(hit, row, kept, names, sections, values) is { } rowValues)
@@ -82,7 +82,7 @@ public static class PublishedLookupAssembler
             }
         }
 
-        return new PublishedLookupMatchDto
+        return new PublishedLookupMatch
         {
             Sheet = version.SheetPublicId,
             Phase = hit.PhaseCode,
@@ -153,7 +153,7 @@ public static class PublishedLookupAssembler
     }
 
     /// <summary>A row's values, or null when it holds nothing besides the cell that was found.</summary>
-    private static PublishedRowValuesDto? RowValues(
+    private static PublishedRowValues? RowValues(
         PublishedLookupHit hit,
         IGrouping<int, PublishedLookupCellRecord> row,
         List<PublishedColumnBlockRecord> kept,
@@ -174,7 +174,7 @@ public static class PublishedLookupAssembler
         var columns = row.Any(cell => cell.ColumnBlockId is not null)
             ? PublishedRowsAssembler.BlockColumns(valueCells, kept, names, values)
             : null;
-        return new PublishedRowValuesDto { Section = sections[row.First().SectionId].Name, Values = own, Columns = columns };
+        return new PublishedRowValues { Section = sections[row.First().SectionId].Name, Values = own, Columns = columns };
     }
 
     private static List<object?> ValuesOf(IEnumerable<PublishedLookupCellRecord> cells, IReadOnlyDictionary<int, object> values)

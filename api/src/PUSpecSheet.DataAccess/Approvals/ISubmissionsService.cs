@@ -10,20 +10,20 @@ namespace PUSpecSheet.DataAccess.Approvals;
 public interface ISubmissionsService
 {
     /// <summary>The people the current user can ask to approve their changes.</summary>
-    Task<IReadOnlyList<ApproverDto>> ApproversAsync(CancellationToken cancellationToken);
+    Task<IReadOnlyList<Approver>> ApproversAsync(CancellationToken cancellationToken);
 
     /// <summary>Submits drafts on the sheet for approval and returns the refreshed live sheet.</summary>
-    Task<SheetDto> SubmitAsync(int sheetId, SubmitSheetRequest request, CancellationToken cancellationToken);
+    Task<Sheet> SubmitAsync(int sheetId, SubmitSheetRequest request, CancellationToken cancellationToken);
 
     /// <summary>Submissions waiting for the current user's decision.</summary>
-    Task<IReadOnlyList<SheetSubmissionDto>> AwaitingMyDecisionAsync(CancellationToken cancellationToken);
+    Task<IReadOnlyList<SheetSubmission>> AwaitingMyDecisionAsync(CancellationToken cancellationToken);
 
     /// <summary>The current user's own submissions, pending or recently decided.</summary>
-    Task<IReadOnlyList<SheetSubmissionDto>> MineAsync(CancellationToken cancellationToken);
+    Task<IReadOnlyList<SheetSubmission>> MineAsync(CancellationToken cancellationToken);
 
-    Task<SheetSubmissionDto> ApproveAsync(int submissionId, CancellationToken cancellationToken);
+    Task<SheetSubmission> ApproveAsync(int submissionId, CancellationToken cancellationToken);
 
-    Task<SheetSubmissionDto> RejectAsync(int submissionId, RejectSubmissionRequest request, CancellationToken cancellationToken);
+    Task<SheetSubmission> RejectAsync(int submissionId, RejectSubmissionRequest request, CancellationToken cancellationToken);
 
-    Task<SheetSubmissionDto> WithdrawAsync(int submissionId, CancellationToken cancellationToken);
+    Task<SheetSubmission> WithdrawAsync(int submissionId, CancellationToken cancellationToken);
 }

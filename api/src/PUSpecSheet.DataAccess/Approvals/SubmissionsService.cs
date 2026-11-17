@@ -36,40 +36,40 @@ public sealed class SubmissionsService : ISubmissionsService
         _currentUser = currentUser;
     }
 
-    public Task<IReadOnlyList<ApproverDto>> ApproversAsync(CancellationToken cancellationToken)
+    public Task<IReadOnlyList<Approver>> ApproversAsync(CancellationToken cancellationToken)
     {
         return _approvers.ListAsync(_currentUser.UserId, cancellationToken);
     }
 
-    public async Task<SheetDto> SubmitAsync(int sheetId, SubmitSheetRequest request, CancellationToken cancellationToken)
+    public async Task<Sheet> SubmitAsync(int sheetId, SubmitSheetRequest request, CancellationToken cancellationToken)
     {
         await _submitter.SubmitAsync(sheetId, request, cancellationToken);
         return await _reader.ReadLiveAsync(sheetId, cancellationToken);
     }
 
-    public Task<IReadOnlyList<SheetSubmissionDto>> AwaitingMyDecisionAsync(CancellationToken cancellationToken)
+    public Task<IReadOnlyList<SheetSubmission>> AwaitingMyDecisionAsync(CancellationToken cancellationToken)
     {
         return _submissionReader.AwaitingDecisionOfAsync(_currentUser.UserId, cancellationToken);
     }
 
-    public Task<IReadOnlyList<SheetSubmissionDto>> MineAsync(CancellationToken cancellationToken)
+    public Task<IReadOnlyList<SheetSubmission>> MineAsync(CancellationToken cancellationToken)
     {
         return _submissionReader.SubmittedByAsync(_currentUser.UserId, cancellationToken);
     }
 
-    public async Task<SheetSubmissionDto> ApproveAsync(int submissionId, CancellationToken cancellationToken)
+    public async Task<SheetSubmission> ApproveAsync(int submissionId, CancellationToken cancellationToken)
     {
         var submission = await _decider.ApproveAsync(submissionId, cancellationToken);
         return await AfterDecisionAsync(submission, cancellationToken);
     }
 
-    public async Task<SheetSubmissionDto> RejectAsync(int submissionId, RejectSubmissionRequest request, CancellationToken cancellationToken)
+    public async Task<SheetSubmission> RejectAsync(int submissionId, RejectSubmissionRequest request, CancellationToken cancellationToken)
     {
         var submission = await _decider.RejectAsync(submissionId, request.Reason, cancellationToken);
         return await AfterDecisionAsync(submission, cancellationToken);
     }
 
-    public async Task<SheetSubmissionDto> WithdrawAsync(int submissionId, CancellationToken cancellationToken)
+    public async Task<SheetSubmission> WithdrawAsync(int submissionId, CancellationToken cancellationToken)
     {
         var submission = await _decider.WithdrawAsync(submissionId, cancellationToken);
         return await AfterDecisionAsync(submission, cancellationToken);
@@ -79,11 +79,11 @@ public sealed class SubmissionsService : ISubmissionsService
     /// Once a submission is decided, its locks have changed (released to their authors, or published), so
     /// everyone with the sheet open reads it again. A single approval among several changes nothing they see.
     /// </summary>
-    private async Task<SheetSubmissionDto> AfterDecisionAsync(DbSheetSubmission submission, CancellationToken cancellationToken)
+    private async Task<SheetSubmission> AfterDecisionAsync(DbSheetSubmission submission, CancellationToken cancellationToken)
     {
         if (submission.Status != SubmissionStatus.Pending)
         {
-            await _notifier.SheetChangedAsync(submission.SheetId, SheetChangedNoticeDto.Everything, exceptConnectionId: null, cancellationToken);
+            await _notifier.SheetChangedAsync(submission.SheetId, SheetChangedNotice.Everything, exceptConnectionId: null, cancellationToken);
         }
 
         return await _submissionReader.GetAsync(submission.Id, cancellationToken);

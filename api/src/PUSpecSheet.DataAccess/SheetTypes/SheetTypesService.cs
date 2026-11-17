@@ -15,12 +15,12 @@ public sealed class SheetTypesService : ISheetTypesService
         _sheetTypes = sheetTypes;
     }
 
-    public async Task<IReadOnlyList<SheetTypeDto>> GetAllAsync(CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<SheetType>> GetAllAsync(CancellationToken cancellationToken)
     {
         return await _sheetTypes.ListAsync(cancellationToken);
     }
 
-    public async Task<SheetTypeDto> CreateAsync(CreateSheetTypeRequest request, CancellationToken cancellationToken)
+    public async Task<SheetType> CreateAsync(CreateSheetTypeRequest request, CancellationToken cancellationToken)
     {
         var name = request.Name.Trim();
         if (await _sheetTypes.NameExistsAsync(name, cancellationToken))
@@ -34,10 +34,10 @@ public sealed class SheetTypesService : ISheetTypesService
         _sheetTypes.Add(sheetType);
         await _sheetTypes.SaveAsync(cancellationToken);
 
-        return sheetType.ToDto();
+        return sheetType.ToModel();
     }
 
-    public async Task<SheetTypeDto> AddIdentifierAsync(int sheetTypeId, SaveSheetTypeIdentifierRequest request, CancellationToken cancellationToken)
+    public async Task<SheetType> AddIdentifierAsync(int sheetTypeId, SaveSheetTypeIdentifierRequest request, CancellationToken cancellationToken)
     {
         var siblings = await ListIdentifiersForEditAsync(sheetTypeId, cancellationToken);
         if (siblings.Count >= SheetIdentifierRules.MaxIdentifiers)
@@ -62,7 +62,7 @@ public sealed class SheetTypesService : ISheetTypesService
         return await GetAsync(sheetTypeId, cancellationToken);
     }
 
-    public async Task<SheetTypeDto> UpdateIdentifierAsync(int sheetTypeId, int identifierId, SaveSheetTypeIdentifierRequest request, CancellationToken cancellationToken)
+    public async Task<SheetType> UpdateIdentifierAsync(int sheetTypeId, int identifierId, SaveSheetTypeIdentifierRequest request, CancellationToken cancellationToken)
     {
         var siblings = await ListIdentifiersForEditAsync(sheetTypeId, cancellationToken);
         var identifier = siblings.SingleOrDefault(candidate => candidate.Id == identifierId)
@@ -82,7 +82,7 @@ public sealed class SheetTypesService : ISheetTypesService
         return await GetAsync(sheetTypeId, cancellationToken);
     }
 
-    public async Task<SheetTypeDto> DeleteIdentifierAsync(int sheetTypeId, int identifierId, CancellationToken cancellationToken)
+    public async Task<SheetType> DeleteIdentifierAsync(int sheetTypeId, int identifierId, CancellationToken cancellationToken)
     {
         var siblings = await ListIdentifiersForEditAsync(sheetTypeId, cancellationToken);
         var identifier = siblings.SingleOrDefault(candidate => candidate.Id == identifierId)
@@ -167,7 +167,7 @@ public sealed class SheetTypesService : ISheetTypesService
         return await _sheetTypes.ListIdentifiersForEditAsync(sheetTypeId, cancellationToken);
     }
 
-    private async Task<SheetTypeDto> GetAsync(int sheetTypeId, CancellationToken cancellationToken)
+    private async Task<SheetType> GetAsync(int sheetTypeId, CancellationToken cancellationToken)
     {
         return await _sheetTypes.FindAsync(sheetTypeId, cancellationToken)
             ?? throw new NotFoundException($"Sheet type {sheetTypeId} was not found.");

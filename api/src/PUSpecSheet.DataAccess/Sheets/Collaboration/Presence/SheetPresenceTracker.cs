@@ -70,7 +70,7 @@ public sealed class SheetPresenceTracker
     }
 
     /// <summary>The people who have the sheet open, by name.</summary>
-    public IReadOnlyList<SheetPresenceUserDto> UsersOn(int sheetId)
+    public IReadOnlyList<SheetPresenceUser> UsersOn(int sheetId)
     {
         lock (_gate)
         {
@@ -81,7 +81,7 @@ public sealed class SheetPresenceTracker
 
             return onSheet
                 .GroupBy(connection => connection.UserId)
-                .Select(user => new SheetPresenceUserDto
+                .Select(user => new SheetPresenceUser
                 {
                     UserId = user.Key,
                     DisplayName = user.First().DisplayName,

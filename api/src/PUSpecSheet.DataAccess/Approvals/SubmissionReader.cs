@@ -27,21 +27,21 @@ public sealed class SubmissionReader
     }
 
     /// <summary>Pending submissions waiting for <paramref name="userId"/>'s decision, oldest first.</summary>
-    public Task<IReadOnlyList<SheetSubmissionDto>> AwaitingDecisionOfAsync(int userId, CancellationToken cancellationToken)
+    public Task<IReadOnlyList<SheetSubmission>> AwaitingDecisionOfAsync(int userId, CancellationToken cancellationToken)
     {
-        return ToDtosAsync(SheetSubmissionQueries.ListAwaitingDecisionOfAsync(_db, userId, cancellationToken), cancellationToken);
+        return ToModelsAsync(SheetSubmissionQueries.ListAwaitingDecisionOfAsync(_db, userId, cancellationToken), cancellationToken);
     }
 
     /// <summary>What <paramref name="userId"/> submitted that is still pending or was decided recently, newest first.</summary>
-    public Task<IReadOnlyList<SheetSubmissionDto>> SubmittedByAsync(int userId, CancellationToken cancellationToken)
+    public Task<IReadOnlyList<SheetSubmission>> SubmittedByAsync(int userId, CancellationToken cancellationToken)
     {
         var since = _clock.GetUtcNow().UtcDateTime - _decidedKeptFor;
-        return ToDtosAsync(SheetSubmissionQueries.ListSubmittedByAsync(_db, userId, since, cancellationToken), cancellationToken);
+        return ToModelsAsync(SheetSubmissionQueries.ListSubmittedByAsync(_db, userId, since, cancellationToken), cancellationToken);
     }
 
-    public async Task<SheetSubmissionDto> GetAsync(int submissionId, CancellationToken cancellationToken)
+    public async Task<SheetSubmission> GetAsync(int submissionId, CancellationToken cancellationToken)
     {
-        var found = await ToDtosAsync(SheetSubmissionQueries.ListByIdAsync(_db, submissionId, cancellationToken), cancellationToken);
+        var found = await ToModelsAsync(SheetSubmissionQueries.ListByIdAsync(_db, submissionId, cancellationToken), cancellationToken);
         return found.SingleOrDefault() ?? throw new NotFoundException($"Submission {submissionId} was not found.");
     }
 
@@ -64,12 +64,12 @@ public sealed class SubmissionReader
         }
     }
 
-    private async Task<IReadOnlyList<SheetSubmissionDto>> ToDtosAsync(Task<List<DbSheetSubmission>> loading, CancellationToken cancellationToken)
+    private async Task<IReadOnlyList<SheetSubmission>> ToModelsAsync(Task<List<DbSheetSubmission>> loading, CancellationToken cancellationToken)
     {
         var loaded = await loading;
         var counts = await CountChangesAsync(loaded.Select(submission => submission.Id).ToList(), cancellationToken);
         return loaded
-            .Select(submission => submission.ToDto(counts.GetValueOrDefault(submission.Id) ?? new SubmissionChangeCountsDto
+            .Select(submission => submission.ToModel(counts.GetValueOrDefault(submission.Id) ?? new SubmissionChangeCounts
             {
                 Tables = 0,
                 Sections = 0,
@@ -80,7 +80,7 @@ public sealed class SubmissionReader
     }
 
     /// <summary>How many items each submission changes, from the revisions still tagged with it.</summary>
-    private async Task<Dictionary<int, SubmissionChangeCountsDto>> CountChangesAsync(List<int> ids, CancellationToken cancellationToken)
+    private async Task<Dictionary<int, SubmissionChangeCounts>> CountChangesAsync(List<int> ids, CancellationToken cancellationToken)
     {
         if (ids.Count == 0)
         {
@@ -93,7 +93,7 @@ public sealed class SubmissionReader
         var blocks = await _db.SheetColumnBlockRevisions.CountBySubmissionAsync(ids, cancellationToken);
         return ids.ToDictionary(
             id => id,
-            id => new SubmissionChangeCountsDto
+            id => new SubmissionChangeCounts
             {
                 Tables = tables.GetValueOrDefault(id),
                 Sections = sections.GetValueOrDefault(id),

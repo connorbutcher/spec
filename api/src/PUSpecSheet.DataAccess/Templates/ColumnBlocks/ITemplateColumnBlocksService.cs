@@ -7,12 +7,12 @@ namespace PUSpecSheet.DataAccess.Templates.ColumnBlocks;
 public interface ITemplateColumnBlocksService
 {
     /// <summary>Adds a block after the others, with one cell in every row to start with.</summary>
-    Task<TableTemplateDto> CreateAsync(CreateTemplateColumnBlockRequest request, CancellationToken cancellationToken);
+    Task<TableTemplate> CreateAsync(CreateTemplateColumnBlockRequest request, CancellationToken cancellationToken);
 
-    Task<TableTemplateDto> UpdateAsync(int id, UpdateTemplateColumnBlockRequest request, CancellationToken cancellationToken);
+    Task<TableTemplate> UpdateAsync(int id, UpdateTemplateColumnBlockRequest request, CancellationToken cancellationToken);
 
-    Task<TableTemplateDto> MoveAsync(int id, MoveRequest request, CancellationToken cancellationToken);
+    Task<TableTemplate> MoveAsync(int id, MoveRequest request, CancellationToken cancellationToken);
 
     /// <summary>Deletes a block with its cells in every row.</summary>
-    Task<TableTemplateDto> DeleteAsync(int id, CancellationToken cancellationToken);
+    Task<TableTemplate> DeleteAsync(int id, CancellationToken cancellationToken);
 }

@@ -62,7 +62,7 @@ public sealed class PublishedLookupService : IPublishedLookupService
         return new PublishedLookupResolution(criteria, ordered, versions);
     }
 
-    public async Task<PublishedLookupDto> ReadAsync(PublishedLookupResolution resolution, CancellationToken cancellationToken)
+    public async Task<PublishedLookup> ReadAsync(PublishedLookupResolution resolution, CancellationToken cancellationToken)
     {
         if (_cache.TryGet(resolution.Key, out var cached))
         {
@@ -70,7 +70,7 @@ public sealed class PublishedLookupService : IPublishedLookupService
         }
 
         var structures = new Dictionary<int, PublishedStructure>();
-        var matches = new List<PublishedLookupMatchDto>();
+        var matches = new List<PublishedLookupMatch>();
         var cellCount = 0;
 
         foreach (var hit in resolution.Hits)
@@ -96,7 +96,7 @@ public sealed class PublishedLookupService : IPublishedLookupService
             matches.Add(PublishedLookupAssembler.Assemble(hit, version, structure, cells, values));
         }
 
-        var answer = new PublishedLookupDto { Key = resolution.Criteria.Key, Value = resolution.Criteria.Value, Matches = matches };
+        var answer = new PublishedLookup { Key = resolution.Criteria.Key, Value = resolution.Criteria.Value, Matches = matches };
         _cache.Set(resolution.Key, answer, cellCount);
         return answer;
     }

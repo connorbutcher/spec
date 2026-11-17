@@ -33,7 +33,7 @@ public sealed class TemplateCellOverridesController : ControllerBase
     /// <response code="200">The whole updated template.</response>
     /// <response code="400">The configuration override is for a different kind than the cell's type.</response>
     [HttpPut]
-    public async Task<ActionResult<TableTemplateDto>> Update(
+    public async Task<ActionResult<TableTemplate>> Update(
         int id,
         UpdateTemplateCellOverridesRequest request,
         CancellationToken cancellationToken)

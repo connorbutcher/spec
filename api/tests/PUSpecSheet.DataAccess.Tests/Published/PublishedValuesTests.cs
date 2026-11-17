@@ -40,7 +40,7 @@ public sealed class PublishedValuesTests
             [Guid.Parse("a41e0000-0000-0000-0000-000000000003")] = true,
             [Guid.Parse("a41e0000-0000-0000-0000-000000000004")] = new DateOnly(2026, 1, 2),
         };
-        var sheet = new PublishedSheetDto
+        var sheet = new PublishedSheet
         {
             Sheet = Guid.Parse("6f1c0000-0000-0000-0000-000000000001"),
             Version = 7,
@@ -61,7 +61,7 @@ public sealed class PublishedValuesTests
     [Fact]
     public void ATreeCell_IsSentWithoutEmptyFields()
     {
-        var cell = new PublishedCellDto
+        var cell = new PublishedCell
         {
             Id = Guid.Parse("a41e0000-0000-0000-0000-000000000001"),
             Value = 12.5m,

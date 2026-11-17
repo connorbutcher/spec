@@ -27,7 +27,7 @@ public sealed class TemplateRowsService : ITemplateRowsService
         _cellTypes = cellTypes;
     }
 
-    public async Task<TableTemplateDto> CreateAsync(CreateTemplateRowRequest request, CancellationToken cancellationToken)
+    public async Task<TableTemplate> CreateAsync(CreateTemplateRowRequest request, CancellationToken cancellationToken)
     {
         var versionId = await TemplateSectionQueries.FindVersionIdAsync(_db, request.TemplateSectionId, cancellationToken)
             ?? throw new NotFoundException($"Section {request.TemplateSectionId} was not found.");
@@ -54,7 +54,7 @@ public sealed class TemplateRowsService : ITemplateRowsService
         return await _reader.ReadVersionAsync(versionId, cancellationToken);
     }
 
-    public async Task<TableTemplateDto> MoveAsync(int id, MoveRequest request, CancellationToken cancellationToken)
+    public async Task<TableTemplate> MoveAsync(int id, MoveRequest request, CancellationToken cancellationToken)
     {
         var row = await FindEditableAsync(id, cancellationToken);
         var siblings = await LoadSiblingsAsync(row, cancellationToken);
@@ -65,7 +65,7 @@ public sealed class TemplateRowsService : ITemplateRowsService
         return await _reader.ReadVersionAsync(row.TemplateSection.TableTemplateVersionId, cancellationToken);
     }
 
-    public async Task<TableTemplateDto> DeleteAsync(int id, CancellationToken cancellationToken)
+    public async Task<TableTemplate> DeleteAsync(int id, CancellationToken cancellationToken)
     {
         var row = await FindEditableAsync(id, cancellationToken);
         var siblings = await LoadSiblingsAsync(row, cancellationToken);

@@ -24,5 +24,5 @@ public interface IPublishedLookupService
         CancellationToken cancellationToken);
 
     /// <summary>Reads what belongs to each cell that was found.</summary>
-    Task<PublishedLookupDto> ReadAsync(PublishedLookupResolution resolution, CancellationToken cancellationToken);
+    Task<PublishedLookup> ReadAsync(PublishedLookupResolution resolution, CancellationToken cancellationToken);
 }

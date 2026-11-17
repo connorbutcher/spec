@@ -9,5 +9,5 @@ public interface IUserAccessService
     Task<UserAccess> GetCurrentAsync(CancellationToken cancellationToken);
 
     /// <summary>The current user with their roles and effective permissions, for the UI.</summary>
-    Task<CurrentUserDto> GetCurrentUserAsync(CancellationToken cancellationToken);
+    Task<CurrentUser> GetCurrentUserAsync(CancellationToken cancellationToken);
 }

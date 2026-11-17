@@ -29,7 +29,7 @@ public sealed class SubmissionsController : ControllerBase
     /// <response code="200">The people you can ask, by name.</response>
     [HttpGet("api/approvers")]
     [Authorize(Policy = PermissionKeys.SheetsPublish)]
-    public async Task<ActionResult<IReadOnlyList<ApproverDto>>> Approvers(CancellationToken cancellationToken)
+    public async Task<ActionResult<IReadOnlyList<Approver>>> Approvers(CancellationToken cancellationToken)
     {
         var result = await _submissions.ApproversAsync(cancellationToken);
         return Ok(result);
@@ -40,7 +40,7 @@ public sealed class SubmissionsController : ControllerBase
     /// <param name="cancellationToken">Cancels the request.</param>
     /// <response code="200">The submissions waiting for your decision.</response>
     [HttpGet("api/submissions/awaiting-me")]
-    public async Task<ActionResult<IReadOnlyList<SheetSubmissionDto>>> AwaitingMe(CancellationToken cancellationToken)
+    public async Task<ActionResult<IReadOnlyList<SheetSubmission>>> AwaitingMe(CancellationToken cancellationToken)
     {
         var result = await _submissions.AwaitingMyDecisionAsync(cancellationToken);
         return Ok(result);
@@ -51,7 +51,7 @@ public sealed class SubmissionsController : ControllerBase
     /// <param name="cancellationToken">Cancels the request.</param>
     /// <response code="200">Your submissions.</response>
     [HttpGet("api/submissions/mine")]
-    public async Task<ActionResult<IReadOnlyList<SheetSubmissionDto>>> Mine(CancellationToken cancellationToken)
+    public async Task<ActionResult<IReadOnlyList<SheetSubmission>>> Mine(CancellationToken cancellationToken)
     {
         var result = await _submissions.MineAsync(cancellationToken);
         return Ok(result);
@@ -70,7 +70,7 @@ public sealed class SubmissionsController : ControllerBase
     /// <response code="409">It was already decided, you already decided, or someone decided at the same moment.</response>
     [HttpPost("api/submissions/{id:int}/approve")]
     [Authorize(Policy = PermissionKeys.SheetsApprove)]
-    public async Task<ActionResult<SheetSubmissionDto>> Approve(int id, CancellationToken cancellationToken)
+    public async Task<ActionResult<SheetSubmission>> Approve(int id, CancellationToken cancellationToken)
     {
         var result = await _submissions.ApproveAsync(id, cancellationToken);
         return Ok(result);
@@ -91,7 +91,7 @@ public sealed class SubmissionsController : ControllerBase
     /// <response code="409">It was already decided, you already decided, or someone decided at the same moment.</response>
     [HttpPost("api/submissions/{id:int}/reject")]
     [Authorize(Policy = PermissionKeys.SheetsApprove)]
-    public async Task<ActionResult<SheetSubmissionDto>> Reject(int id, RejectSubmissionRequest request, CancellationToken cancellationToken)
+    public async Task<ActionResult<SheetSubmission>> Reject(int id, RejectSubmissionRequest request, CancellationToken cancellationToken)
     {
         var result = await _submissions.RejectAsync(id, request, cancellationToken);
         return Ok(result);
@@ -107,7 +107,7 @@ public sealed class SubmissionsController : ControllerBase
     /// <response code="409">It was already decided, or someone decided at the same moment.</response>
     [HttpPost("api/submissions/{id:int}/withdraw")]
     [Authorize(Policy = PermissionKeys.SheetsPublish)]
-    public async Task<ActionResult<SheetSubmissionDto>> Withdraw(int id, CancellationToken cancellationToken)
+    public async Task<ActionResult<SheetSubmission>> Withdraw(int id, CancellationToken cancellationToken)
     {
         var result = await _submissions.WithdrawAsync(id, cancellationToken);
         return Ok(result);

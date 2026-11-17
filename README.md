@@ -8,8 +8,8 @@ Engine specification sheets: sections (Specification, PFKs, Parts, ...) that gro
 api/                          .NET 10 solution (PUSpecSheet.slnx)
   src/PUSpecSheet.Api           ASP.NET Core host: controllers, middleware, startup
   src/PUSpecSheet.DataAccess    Services: the rules of each feature and the data services they read and write through
-  src/PUSpecSheet.Database      EF Core DbContext, the Db* entities, their configurations and the mappers to DTOs (SQL Server, database first)
-  src/PUSpecSheet.Abstractions  By area: request/response DTOs shared with the UI, and the enums, configuration records and rules
+  src/PUSpecSheet.Database      EF Core DbContext, the Db* entities, their configurations and the mappers to models (SQL Server, database first)
+  src/PUSpecSheet.Abstractions  By area: request/response models shared with the UI, and the enums, configuration records and rules
 app/                          Angular 22 UI (PrimeNG)
 database/                     SQL database project: the source of truth for the schema, one script per object (see database/README.md)
 ```

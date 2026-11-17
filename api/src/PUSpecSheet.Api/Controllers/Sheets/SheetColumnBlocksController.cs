@@ -32,7 +32,7 @@ public sealed class SheetColumnBlocksController : ControllerBase
     /// <response code="200">The refreshed live view of the sheet.</response>
     /// <response code="409">The table is locked by someone else, or already holds the most copies the template allows.</response>
     [HttpPost("sheet-tables/{tableId:int}/column-blocks")]
-    public async Task<ActionResult<SheetDto>> Add(int tableId, AddSheetColumnBlockRequest request, CancellationToken cancellationToken)
+    public async Task<ActionResult<Sheet>> Add(int tableId, AddSheetColumnBlockRequest request, CancellationToken cancellationToken)
     {
         var result = await _columnBlocks.AddAsync(tableId, request, cancellationToken);
         return Ok(result);
@@ -47,7 +47,7 @@ public sealed class SheetColumnBlocksController : ControllerBase
     /// <param name="cancellationToken">Cancels the request.</param>
     /// <response code="200">The refreshed live view of the sheet.</response>
     [HttpPost("sheet-column-blocks/{id:int}/move")]
-    public async Task<ActionResult<SheetDto>> Move(int id, MoveRequest request, CancellationToken cancellationToken)
+    public async Task<ActionResult<Sheet>> Move(int id, MoveRequest request, CancellationToken cancellationToken)
     {
         var result = await _columnBlocks.MoveAsync(id, request, cancellationToken);
         return Ok(result);
@@ -62,7 +62,7 @@ public sealed class SheetColumnBlocksController : ControllerBase
     /// <response code="200">The refreshed live view of the sheet.</response>
     /// <response code="409">The table is locked by someone else, or the block is at the template's minimum.</response>
     [HttpDelete("sheet-column-blocks/{id:int}")]
-    public async Task<ActionResult<SheetDto>> Remove(int id, CancellationToken cancellationToken)
+    public async Task<ActionResult<Sheet>> Remove(int id, CancellationToken cancellationToken)
     {
         var result = await _columnBlocks.RemoveAsync(id, cancellationToken);
         return Ok(result);

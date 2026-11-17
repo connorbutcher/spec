@@ -14,17 +14,17 @@ public sealed class SignalRSheetLiveNotifier : ISheetLiveNotifier
         _hub = hub;
     }
 
-    public Task PresenceChangedAsync(int sheetId, IReadOnlyList<SheetPresenceUserDto> users, CancellationToken cancellationToken)
+    public Task PresenceChangedAsync(int sheetId, IReadOnlyList<SheetPresenceUser> users, CancellationToken cancellationToken)
     {
         return _hub.Clients.Group(SheetGroups.Sheet(sheetId)).PresenceChanged(users);
     }
 
-    public Task CheckoutsChangedAsync(int sheetId, IReadOnlyList<RowCheckoutDto> checkouts, CancellationToken cancellationToken)
+    public Task CheckoutsChangedAsync(int sheetId, IReadOnlyList<RowCheckout> checkouts, CancellationToken cancellationToken)
     {
         return _hub.Clients.Group(SheetGroups.Sheet(sheetId)).CheckoutsChanged(checkouts);
     }
 
-    public Task SheetChangedAsync(int sheetId, SheetChangedNoticeDto notice, string? exceptConnectionId, CancellationToken cancellationToken)
+    public Task SheetChangedAsync(int sheetId, SheetChangedNotice notice, string? exceptConnectionId, CancellationToken cancellationToken)
     {
         var group = SheetGroups.Sheet(sheetId);
         var clients = string.IsNullOrEmpty(exceptConnectionId)
@@ -33,7 +33,7 @@ public sealed class SignalRSheetLiveNotifier : ISheetLiveNotifier
         return clients.SheetChanged(notice);
     }
 
-    public Task TakeoverChangedAsync(RowTakeoverDto takeover, CancellationToken cancellationToken)
+    public Task TakeoverChangedAsync(RowTakeover takeover, CancellationToken cancellationToken)
     {
         return _hub.Clients
             .Groups(

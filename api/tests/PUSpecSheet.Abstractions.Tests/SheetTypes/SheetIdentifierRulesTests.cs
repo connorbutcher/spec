@@ -74,16 +74,16 @@ public sealed class SheetIdentifierRulesTests
         var serial = Definition(SheetIdentifierKind.Text, id: 1);
         var build = Definition(SheetIdentifierKind.Number, id: 2);
 
-        var first = SheetIdentifierRules.ComparisonKey([new SheetIdentifierValue
+        var first = SheetIdentifierRules.ComparisonKey([new StoredSheetIdentifierValue
         {
             Definition = serial,
             Value = "esn-1",
-        }, new SheetIdentifierValue { Definition = build, Value = "3" }]);
-        var second = SheetIdentifierRules.ComparisonKey([new SheetIdentifierValue
+        }, new StoredSheetIdentifierValue { Definition = build, Value = "3" }]);
+        var second = SheetIdentifierRules.ComparisonKey([new StoredSheetIdentifierValue
         {
             Definition = build,
             Value = "3",
-        }, new SheetIdentifierValue { Definition = serial, Value = "ESN-1" }]);
+        }, new StoredSheetIdentifierValue { Definition = serial, Value = "ESN-1" }]);
 
         Assert.Equal(first, second);
     }
@@ -100,8 +100,8 @@ public sealed class SheetIdentifierRulesTests
         var serial = Definition(SheetIdentifierKind.Text);
 
         Assert.NotEqual(
-            SheetIdentifierRules.ComparisonKey([new SheetIdentifierValue { Definition = serial, Value = "ESN-1" }]),
-            SheetIdentifierRules.ComparisonKey([new SheetIdentifierValue { Definition = serial, Value = "ESN-2" }]));
+            SheetIdentifierRules.ComparisonKey([new StoredSheetIdentifierValue { Definition = serial, Value = "ESN-1" }]),
+            SheetIdentifierRules.ComparisonKey([new StoredSheetIdentifierValue { Definition = serial, Value = "ESN-2" }]));
     }
 
     [Theory]

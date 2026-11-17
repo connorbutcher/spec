@@ -12,7 +12,7 @@ internal static class DraftSummaries
     }
 
     /// <summary>Everyone but <paramref name="userId"/> who holds a draft, by name, with how many they hold.</summary>
-    public static List<SheetDraftSummaryDto> OfOthers(
+    public static List<SheetDraftSummary> OfOthers(
         IEnumerable<IDbSheetRevision> drafts,
         int userId,
         Func<int, string> userName)
@@ -20,7 +20,7 @@ internal static class DraftSummaries
         return drafts
             .Where(draft => draft.AuthorUserId != userId)
             .GroupBy(draft => draft.AuthorUserId)
-            .Select(group => new SheetDraftSummaryDto { UserId = group.Key, UserName = userName(group.Key), DraftCount = group.Count() })
+            .Select(group => new SheetDraftSummary { UserId = group.Key, UserName = userName(group.Key), DraftCount = group.Count() })
             .OrderBy(summary => summary.UserName, StringComparer.OrdinalIgnoreCase)
             .ThenBy(summary => summary.UserId)
             .ToList();

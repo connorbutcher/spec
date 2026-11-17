@@ -47,9 +47,9 @@ public sealed class PublishedRowsController : ControllerBase
     /// <response code="200">The rows, by identifier.</response>
     /// <response code="404">The sheet doesn't exist or has no such version.</response>
     [HttpGet("{version:int}/rows")]
-    [ProducesResponseType<PublishedRowsDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<PublishedRows>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status304NotModified)]
-    public Task<ActionResult<PublishedRowsDto>> AtVersion(
+    public Task<ActionResult<PublishedRows>> AtVersion(
         Guid sheetPublicId,
         int version,
         [FromQuery] string? ids,
@@ -72,9 +72,9 @@ public sealed class PublishedRowsController : ControllerBase
     /// <response code="200">The rows, by identifier.</response>
     /// <response code="404">The sheet doesn't exist or nothing has been published on it.</response>
     [HttpGet("latest/rows")]
-    [ProducesResponseType<PublishedRowsDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<PublishedRows>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status304NotModified)]
-    public Task<ActionResult<PublishedRowsDto>> Latest(
+    public Task<ActionResult<PublishedRows>> Latest(
         Guid sheetPublicId,
         [FromQuery] string? ids,
         [FromQuery] string? columns,
@@ -96,9 +96,9 @@ public sealed class PublishedRowsController : ControllerBase
     /// <response code="200">The rows, by identifier.</response>
     /// <response code="404">The sheet doesn't exist or has no such version.</response>
     [HttpPost("{version:int}/rows/query")]
-    [ProducesResponseType<PublishedRowsDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<PublishedRows>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status304NotModified)]
-    public Task<ActionResult<PublishedRowsDto>> Query(
+    public Task<ActionResult<PublishedRows>> Query(
         Guid sheetPublicId,
         int version,
         PublishedRowsQueryRequest request,
@@ -117,9 +117,9 @@ public sealed class PublishedRowsController : ControllerBase
     /// <response code="200">The rows, by identifier.</response>
     /// <response code="404">The sheet doesn't exist or nothing has been published on it.</response>
     [HttpPost("latest/rows/query")]
-    [ProducesResponseType<PublishedRowsDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<PublishedRows>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status304NotModified)]
-    public Task<ActionResult<PublishedRowsDto>> QueryLatest(
+    public Task<ActionResult<PublishedRows>> QueryLatest(
         Guid sheetPublicId,
         PublishedRowsQueryRequest request,
         CancellationToken cancellationToken)
@@ -141,9 +141,9 @@ public sealed class PublishedRowsController : ControllerBase
     /// <response code="200">The row.</response>
     /// <response code="404">The sheet doesn't exist, has no such version, or the version doesn't hold the row.</response>
     [HttpGet("{version:int}/rows/{rowPublicId:guid}")]
-    [ProducesResponseType<PublishedSheetRowDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<PublishedSheetRow>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status304NotModified)]
-    public Task<ActionResult<PublishedSheetRowDto>> RowAtVersion(
+    public Task<ActionResult<PublishedSheetRow>> RowAtVersion(
         Guid sheetPublicId,
         int version,
         Guid rowPublicId,
@@ -164,9 +164,9 @@ public sealed class PublishedRowsController : ControllerBase
     /// <response code="200">The row.</response>
     /// <response code="404">The sheet doesn't exist, nothing has been published on it, or its newest version doesn't hold the row.</response>
     [HttpGet("latest/rows/{rowPublicId:guid}")]
-    [ProducesResponseType<PublishedSheetRowDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<PublishedSheetRow>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status304NotModified)]
-    public Task<ActionResult<PublishedSheetRowDto>> RowAtLatest(
+    public Task<ActionResult<PublishedSheetRow>> RowAtLatest(
         Guid sheetPublicId,
         Guid rowPublicId,
         [FromQuery] string? columns,
@@ -175,7 +175,7 @@ public sealed class PublishedRowsController : ControllerBase
         return ReadRowAsync(sheetPublicId, PublishedVersionPoint.Latest, rowPublicId, columns, cancellationToken);
     }
 
-    private async Task<ActionResult<PublishedRowsDto>> ReadAsync(
+    private async Task<ActionResult<PublishedRows>> ReadAsync(
         Guid sheetPublicId,
         PublishedVersionPoint point,
         PublishedRowsSelection selection,
@@ -191,7 +191,7 @@ public sealed class PublishedRowsController : ControllerBase
         return Ok(result);
     }
 
-    private async Task<ActionResult<PublishedSheetRowDto>> ReadRowAsync(
+    private async Task<ActionResult<PublishedSheetRow>> ReadRowAsync(
         Guid sheetPublicId,
         PublishedVersionPoint point,
         Guid rowPublicId,

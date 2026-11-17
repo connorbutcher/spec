@@ -14,14 +14,14 @@ public sealed class CellTypesService : ICellTypesService
         _cellTypes = cellTypes;
     }
 
-    public async Task<IReadOnlyList<CellTypeDto>> GetAllAsync(CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<CellType>> GetAllAsync(CancellationToken cancellationToken)
     {
         var all = await _cellTypes.ListAsync(cancellationToken);
         var usage = await _cellTypes.CountUsageByTypeAsync(cancellationToken);
-        return all.Select(cellType => cellType.ToDto(usage.GetValueOrDefault(cellType.Id))).ToList();
+        return all.Select(cellType => cellType.ToModel(usage.GetValueOrDefault(cellType.Id))).ToList();
     }
 
-    public async Task<CellTypeDto> CreateAsync(SaveCellTypeRequest request, CancellationToken cancellationToken)
+    public async Task<CellType> CreateAsync(SaveCellTypeRequest request, CancellationToken cancellationToken)
     {
         await EnsureNameIsFreeAsync(request.Name, null, cancellationToken);
 
@@ -31,10 +31,10 @@ public sealed class CellTypesService : ICellTypesService
 
         _cellTypes.Add(cellType);
         await _cellTypes.SaveAsync(cancellationToken);
-        return cellType.ToDto(0);
+        return cellType.ToModel(0);
     }
 
-    public async Task<CellTypeDto> UpdateAsync(int id, SaveCellTypeRequest request, CancellationToken cancellationToken)
+    public async Task<CellType> UpdateAsync(int id, SaveCellTypeRequest request, CancellationToken cancellationToken)
     {
         var cellType = await FindAsync(id, cancellationToken);
         await EnsureNameIsFreeAsync(request.Name, id, cancellationToken);
@@ -53,7 +53,7 @@ public sealed class CellTypesService : ICellTypesService
             await _cellTypes.SaveAsync(cancellationToken);
         }
 
-        return cellType.ToDto(await _cellTypes.CountUsageAsync(id, cancellationToken));
+        return cellType.ToModel(await _cellTypes.CountUsageAsync(id, cancellationToken));
     }
 
     public async Task DeleteAsync(int id, CancellationToken cancellationToken)

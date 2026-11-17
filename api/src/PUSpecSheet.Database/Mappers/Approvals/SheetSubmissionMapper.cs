@@ -3,7 +3,7 @@ using PUSpecSheet.Database.Models.Approvals;
 
 namespace PUSpecSheet.Database.Mappers.Approvals;
 
-/// <summary>Submissions waiting for approval, or decided, as DTOs.</summary>
+/// <summary>Submissions waiting for approval, or decided, as models.</summary>
 public static class SheetSubmissionMapper
 {
     /// <summary>
@@ -12,9 +12,9 @@ public static class SheetSubmissionMapper
     /// </summary>
     /// <param name="submission">The submission.</param>
     /// <param name="changes">How many items it changes, counted from the revisions that carry it.</param>
-    public static SheetSubmissionDto ToDto(this DbSheetSubmission submission, SubmissionChangeCountsDto changes)
+    public static SheetSubmission ToModel(this DbSheetSubmission submission, SubmissionChangeCounts changes)
     {
-        return new SheetSubmissionDto
+        return new SheetSubmission
         {
             Id = submission.Id,
             SheetId = submission.SheetId,
@@ -32,15 +32,15 @@ public static class SheetSubmissionMapper
             Changes = changes,
             Approvers = submission.Approvers
                 .OrderBy(approver => approver.User.DisplayName, StringComparer.OrdinalIgnoreCase)
-                .Select(approver => approver.ToDto())
+                .Select(approver => approver.ToModel())
                 .ToList(),
         };
     }
 
     /// <summary>Expects <see cref="DbSheetSubmissionApprover.User"/> to be loaded.</summary>
-    public static SubmissionApproverDto ToDto(this DbSheetSubmissionApprover approver)
+    public static SubmissionApprover ToModel(this DbSheetSubmissionApprover approver)
     {
-        return new SubmissionApproverDto
+        return new SubmissionApprover
         {
             UserId = approver.UserId,
             UserName = approver.User.DisplayName,

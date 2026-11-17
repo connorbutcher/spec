@@ -13,7 +13,7 @@ public static class PublishedSheetQueries
     /// The phase's sheets of the sheet type that match every filter, each with its latest version and
     /// identifier values by key, oldest first.
     /// </summary>
-    public static async Task<List<PublishedSheetReferenceDto>> ListReferencesAsync(
+    public static async Task<List<PublishedSheetReference>> ListReferencesAsync(
         PuSpecSheetDbContext db,
         string phaseCode,
         int sheetTypeId,
@@ -45,7 +45,7 @@ public static class PublishedSheetQueries
             .ToListAsync(cancellationToken);
 
         return found
-            .Select(sheet => new PublishedSheetReferenceDto
+            .Select(sheet => new PublishedSheetReference
             {
                 Sheet = sheet.PublicId,
                 Phase = sheet.Code,
@@ -62,7 +62,7 @@ public static class PublishedSheetQueries
     }
 
     /// <summary>The sheet's versions, oldest first.</summary>
-    public static async Task<List<PublishedVersionDto>> ListVersionsAsync(PuSpecSheetDbContext db, Guid sheetPublicId, CancellationToken cancellationToken)
+    public static async Task<List<PublishedVersion>> ListVersionsAsync(PuSpecSheetDbContext db, Guid sheetPublicId, CancellationToken cancellationToken)
     {
         var versions = await db.SheetVersions
             .AsNoTracking()
@@ -72,7 +72,7 @@ public static class PublishedSheetQueries
             .ToListAsync(cancellationToken);
 
         return versions
-            .Select(version => new PublishedVersionDto
+            .Select(version => new PublishedVersion
             {
                 Version = version.VersionNumber,
                 PublishedAtUtc = DateTime.SpecifyKind(version.PublishedAtUtc, DateTimeKind.Utc),

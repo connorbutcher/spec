@@ -17,13 +17,13 @@ public sealed class PhasesService : IPhasesService
         _sheetTypes = sheetTypes;
     }
 
-    public async Task<IReadOnlyList<PhaseDto>> GetAllAsync(CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<Phase>> GetAllAsync(CancellationToken cancellationToken)
     {
         var all = await _phases.ListAsync(cancellationToken);
-        return all.Select(phase => phase.ToDto()).ToList();
+        return all.Select(phase => phase.ToModel()).ToList();
     }
 
-    public async Task<PhaseDto> CreateAsync(CreatePhaseRequest request, CancellationToken cancellationToken)
+    public async Task<Phase> CreateAsync(CreatePhaseRequest request, CancellationToken cancellationToken)
     {
         var code = request.Code.Trim();
         if (await _phases.CodeExistsAsync(code, cancellationToken))
@@ -51,10 +51,10 @@ public sealed class PhasesService : IPhasesService
 
         _phases.Add(phase);
         await _phases.SaveAsync(cancellationToken);
-        return phase.ToDto();
+        return phase.ToModel();
     }
 
-    public async Task<PhaseDto> SetSheetTypesAsync(int id, SetPhaseSheetTypesRequest request, CancellationToken cancellationToken)
+    public async Task<Phase> SetSheetTypesAsync(int id, SetPhaseSheetTypesRequest request, CancellationToken cancellationToken)
     {
         var phase = await _phases.FindForEditAsync(id, cancellationToken)
             ?? throw new NotFoundException($"Phase {id} was not found.");
@@ -84,10 +84,10 @@ public sealed class PhasesService : IPhasesService
         }
 
         await _phases.SaveAsync(cancellationToken);
-        return phase.ToDto();
+        return phase.ToModel();
     }
 
-    public async Task<IReadOnlyList<PhaseDto>> MoveAsync(int id, MovePhaseRequest request, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<Phase>> MoveAsync(int id, MovePhaseRequest request, CancellationToken cancellationToken)
     {
         // Every phase is loaded: the move renumbers two groups of siblings and checks the whole chain of parents.
         var all = await _phases.ListForEditAsync(cancellationToken);
@@ -100,7 +100,7 @@ public sealed class PhasesService : IPhasesService
         return all
             .OrderBy(candidate => candidate.DisplayOrder)
             .ThenBy(candidate => candidate.Code)
-            .Select(candidate => candidate.ToDto())
+            .Select(candidate => candidate.ToModel())
             .ToList();
     }
 

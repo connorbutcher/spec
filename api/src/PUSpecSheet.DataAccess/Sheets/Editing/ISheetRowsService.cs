@@ -11,16 +11,16 @@ namespace PUSpecSheet.DataAccess.Sheets.Editing;
 public interface ISheetRowsService
 {
     /// <summary>Sets or clears cell values in the row, locking it to the current user.</summary>
-    Task<SheetDto> SaveValuesAsync(int rowId, SaveRowValuesRequest request, CancellationToken cancellationToken);
+    Task<Sheet> SaveValuesAsync(int rowId, SaveRowValuesRequest request, CancellationToken cancellationToken);
 
-    Task<SheetDto> MoveAsync(int rowId, MoveRequest request, CancellationToken cancellationToken);
+    Task<Sheet> MoveAsync(int rowId, MoveRequest request, CancellationToken cancellationToken);
 
     /// <summary>Removes a row. A row nobody has published is simply deleted. Not allowed in the header.</summary>
-    Task<SheetDto> RemoveAsync(int rowId, CancellationToken cancellationToken);
+    Task<Sheet> RemoveAsync(int rowId, CancellationToken cancellationToken);
 
     /// <summary>
     /// Sets or clears the settings of cells in the row, locking it to the current user. A cell whose
     /// settings really change loses its value, which was chosen under the old ones.
     /// </summary>
-    Task<SheetDto> SaveCellSettingsAsync(int rowId, SaveRowCellSettingsRequest request, CancellationToken cancellationToken);
+    Task<Sheet> SaveCellSettingsAsync(int rowId, SaveRowCellSettingsRequest request, CancellationToken cancellationToken);
 }

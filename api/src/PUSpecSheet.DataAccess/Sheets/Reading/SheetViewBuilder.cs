@@ -26,13 +26,13 @@ internal sealed class SheetViewBuilder
     private readonly Dictionary<int, List<DbSheetRow>> _rowsBySection;
     private readonly HashSet<int> _hiddenColumnBlockIds;
     private readonly Dictionary<int, int> _tableBySection;
-    private readonly Dictionary<int, List<SheetLinkableColumnDto>> _linkableColumnsByVersion = [];
+    private readonly Dictionary<int, List<SheetLinkableColumn>> _linkableColumnsByVersion = [];
     private readonly LinkedOptionCollector _linkedOptions;
     private readonly Dictionary<int, int> _columnBlockOrder;
-    private List<SheetLinkableRowDto> _linkableRows = [];
+    private List<SheetLinkableRow> _linkableRows = [];
 
     /// <summary>The template cells the sheet's cells were built from, each sent once, by id.</summary>
-    private readonly Dictionary<int, TemplateCellDto> _templateCells = [];
+    private readonly Dictionary<int, TemplateCell> _templateCells = [];
 
     public SheetViewBuilder(SheetSnapshot snapshot, int currentUserId)
     {
@@ -65,14 +65,14 @@ internal sealed class SheetViewBuilder
             .ToDictionary(group => group.Key, group => group.ToList());
     }
 
-    public SheetDto Build()
+    public Sheet Build()
     {
         var tables = BuildTables();
         var versions = BuildVersions();
         var templates = BuildAvailableTemplates();
         var isLive = _snapshot.AsOfUtc is null && _snapshot.ReviewedSubmissionId is null;
         var drafts = Drafts().ToList();
-        return new SheetDto
+        return new Sheet
         {
             Id = _snapshot.Sheet.Id,
             PublicId = _snapshot.Sheet.PublicId,
@@ -87,7 +87,7 @@ internal sealed class SheetViewBuilder
             Tables = tables,
             AvailableTemplates = templates,
             OtherDrafts = DraftSummaries.OfOthers(drafts, _currentUserId, UserName),
-            Identifiers = [.. _snapshot.Sheet.IdentifierValues.OrderBy(value => value.SheetTypeIdentifierId).Select(value => new SheetIdentifierValueDto
+            Identifiers = [.. _snapshot.Sheet.IdentifierValues.OrderBy(value => value.SheetTypeIdentifierId).Select(value => new SheetIdentifierValue
             {
                 IdentifierId = value.SheetTypeIdentifierId,
                 Value = value.Value,
@@ -100,7 +100,7 @@ internal sealed class SheetViewBuilder
         };
     }
 
-    private List<SheetTableDto> BuildTables()
+    private List<SheetTable> BuildTables()
     {
         return _snapshot.Tables
             .Where(table => RevisionResolver.IsVisible(_snapshot.TableRevisions.GetValueOrDefault(table.Id)))
@@ -110,17 +110,17 @@ internal sealed class SheetViewBuilder
             .ToList();
     }
 
-    private List<SheetVersionSummaryDto> BuildVersions()
+    private List<SheetVersionSummary> BuildVersions()
     {
         return _snapshot.Versions
-            .Select(version => version.ToSummaryDto())
+            .Select(version => version.ToSummary())
             .ToList();
     }
 
-    private List<AvailableTemplateDto> BuildAvailableTemplates()
+    private List<AvailableTemplate> BuildAvailableTemplates()
     {
         return _snapshot.AvailableTemplates
-            .Select(template => new AvailableTemplateDto
+            .Select(template => new AvailableTemplate
             {
                 Id = template.Id,
                 Name = template.Name,
@@ -129,7 +129,7 @@ internal sealed class SheetViewBuilder
             .ToList();
     }
 
-    private SheetTableDto BuildTable(DbSheetTable table)
+    private SheetTable BuildTable(DbSheetTable table)
     {
         var resolution = _snapshot.TableRevisions[table.Id];
         var version = table.TableTemplateVersion;
@@ -146,7 +146,7 @@ internal sealed class SheetViewBuilder
 
         var blocks = BuildColumnBlocks(table);
 
-        return new SheetTableDto
+        return new SheetTable
         {
             Id = table.Id,
             PublicId = table.PublicId,
@@ -169,7 +169,7 @@ internal sealed class SheetViewBuilder
     }
 
     /// <summary>The columns of a template version that can be linked to, worked out once per version.</summary>
-    private List<SheetLinkableColumnDto> LinkableColumnsOf(int versionId)
+    private List<SheetLinkableColumn> LinkableColumnsOf(int versionId)
     {
         if (!_linkableColumnsByVersion.TryGetValue(versionId, out var columns))
         {
@@ -181,7 +181,7 @@ internal sealed class SheetViewBuilder
         return columns;
     }
 
-    private SheetSectionDto BuildSection(DbSheetSection section, IReadOnlyList<DbSheetSection> siblings)
+    private SheetSection BuildSection(DbSheetSection section, IReadOnlyList<DbSheetSection> siblings)
     {
         var resolution = _snapshot.SectionRevisions[section.Id];
         var template = section.TemplateSection;
@@ -201,7 +201,7 @@ internal sealed class SheetViewBuilder
             .Select(child => BuildSection(child, children))
             .ToList();
 
-        return new SheetSectionDto
+        return new SheetSection
         {
             Id = section.Id,
             PublicId = section.PublicId,
@@ -222,7 +222,7 @@ internal sealed class SheetViewBuilder
         };
     }
 
-    private SheetRowDto BuildRow(DbSheetRow row, bool inHeader)
+    private SheetRow BuildRow(DbSheetRow row, bool inHeader)
     {
         var resolution = _snapshot.RowRevisions[row.Id];
         var shown = resolution.Shown!;
@@ -245,7 +245,7 @@ internal sealed class SheetViewBuilder
             })
             .ToList();
 
-        return new SheetRowDto
+        return new SheetRow
         {
             Id = row.Id,
             PublicId = row.PublicId,
@@ -259,15 +259,15 @@ internal sealed class SheetViewBuilder
         };
     }
 
-    private SheetCellDto BuildCell(DbSheetCell cell, CellValueBag? value, SheetChangeDto? change)
+    private SheetCell BuildCell(DbSheetCell cell, CellValueBag? value, SheetChange? change)
     {
         var template = cell.TemplateCell;
         if (!_templateCells.ContainsKey(template.Id))
         {
-            _templateCells[template.Id] = template.ToDto();
+            _templateCells[template.Id] = template.ToModel();
         }
 
-        return new SheetCellDto
+        return new SheetCell
         {
             Id = cell.Id,
             PublicId = cell.PublicId,
@@ -312,7 +312,7 @@ internal sealed class SheetViewBuilder
             return;
         }
 
-        _linkableRows.Add(new SheetLinkableRowDto { SheetRowId = row.Id, Label = name });
+        _linkableRows.Add(new SheetLinkableRow { SheetRowId = row.Id, Label = name });
         if (_linkedOptions.WantsRow(tableId, row.Id))
         {
             foreach (var text in LinkedRowValues.ChoicesOf(texts))
@@ -322,7 +322,7 @@ internal sealed class SheetViewBuilder
         }
     }
 
-    private List<SheetColumnBlockDto> BuildColumnBlocks(DbSheetTable table)
+    private List<SheetColumnBlock> BuildColumnBlocks(DbSheetTable table)
     {
         var visible = _snapshot.ColumnBlocks
             .Where(block => block.SheetTableId == table.Id
@@ -337,7 +337,7 @@ internal sealed class SheetViewBuilder
                 var resolution = _snapshot.ColumnBlockRevisions[block.Id];
                 var template = block.TemplateColumnBlock;
                 var copies = visible.Count(candidate => candidate.TemplateColumnBlockId == block.TemplateColumnBlockId);
-                return new SheetColumnBlockDto
+                return new SheetColumnBlock
                 {
                     Id = block.Id,
                     PublicId = block.PublicId,
@@ -358,7 +358,7 @@ internal sealed class SheetViewBuilder
     }
 
     /// <summary>The kinds of column block the table can still take, with their current counts.</summary>
-    private List<AddableColumnBlockDto> AddableColumnBlocksFor(int versionId, IReadOnlyList<SheetColumnBlockDto> existing)
+    private List<AddableColumnBlock> AddableColumnBlocksFor(int versionId, IReadOnlyList<SheetColumnBlock> existing)
     {
         return _snapshot.TemplateColumnBlocks
             .Where(template => template.TableTemplateVersionId == versionId)
@@ -367,7 +367,7 @@ internal sealed class SheetViewBuilder
             .Select(template =>
             {
                 var count = existing.Count(block => block.TemplateColumnBlockId == template.Id);
-                return new AddableColumnBlockDto
+                return new AddableColumnBlock
                 {
                     TemplateColumnBlockId = template.Id,
                     Name = template.Name,
@@ -381,7 +381,7 @@ internal sealed class SheetViewBuilder
     }
 
     /// <summary>The kinds of section that can be added under a parent (or the table), with their current counts.</summary>
-    private List<AddableSectionDto> AddableSectionsUnder(int versionId, int? parentTemplateSectionId, IReadOnlyList<DbSheetSection> existingCopies)
+    private List<AddableSection> AddableSectionsUnder(int versionId, int? parentTemplateSectionId, IReadOnlyList<DbSheetSection> existingCopies)
     {
         return _snapshot.TemplateSections
             .Where(template => template.TableTemplateVersionId == versionId
@@ -392,7 +392,7 @@ internal sealed class SheetViewBuilder
             .Select(template =>
             {
                 var count = existingCopies.Count(copy => copy.TemplateSectionId == template.Id);
-                return new AddableSectionDto
+                return new AddableSection
                 {
                     TemplateSectionId = template.Id,
                     Name = template.Name,
@@ -406,14 +406,14 @@ internal sealed class SheetViewBuilder
     }
 
     /// <summary>When and by whom an item last changed, or null if it never has.</summary>
-    private SheetChangeDto? ChangeOf(Dictionary<int, SheetChange> changes, int itemId)
+    private SheetChange? ChangeOf(Dictionary<int, SheetChangeRecord> changes, int itemId)
     {
         if (!changes.TryGetValue(itemId, out var change))
         {
             return null;
         }
 
-        return new SheetChangeDto { VersionNumber = change.VersionNumber, AtUtc = change.AtUtc, UserName = UserName(change.AuthorUserId) };
+        return new SheetChange { VersionNumber = change.VersionNumber, AtUtc = change.AtUtc, UserName = UserName(change.AuthorUserId) };
     }
 
     private string UserName(int userId)
@@ -421,7 +421,7 @@ internal sealed class SheetViewBuilder
         return _snapshot.UserNames.GetValueOrDefault(userId, "Unknown user");
     }
 
-    private SheetLockDto? LockOf<TRevision>(RevisionResolution<TRevision> resolution)
+    private SheetLock? LockOf<TRevision>(RevisionResolution<TRevision> resolution)
         where TRevision : class, IDbSheetRevision
     {
         if (resolution.Draft is not { } draft)
@@ -429,7 +429,7 @@ internal sealed class SheetViewBuilder
             return null;
         }
 
-        return new SheetLockDto
+        return new SheetLock
         {
             UserId = draft.AuthorUserId,
             UserName = UserName(draft.AuthorUserId),

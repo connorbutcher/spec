@@ -17,7 +17,7 @@ internal static class CellInstanceSettingsValidator
     /// <param name="kind">The cell's kind.</param>
     /// <param name="settings">The settings to check. Null, or nothing set, clears them and is always allowed.</param>
     /// <param name="sheet">The sheet as the user sees it.</param>
-    public static void Validate(string name, CellKind kind, CellInstanceSettings? settings, SheetDto sheet)
+    public static void Validate(string name, CellKind kind, CellInstanceSettings? settings, Sheet sheet)
     {
         if (!kind.HasInstanceSettings())
         {
@@ -45,7 +45,7 @@ internal static class CellInstanceSettingsValidator
         }
     }
 
-    private static void CheckLinkedDropdown(string name, LinkedDropdownInstanceSettings settings, SheetDto sheet)
+    private static void CheckLinkedDropdown(string name, LinkedDropdownInstanceSettings settings, Sheet sheet)
     {
         if (settings.SourceTemplateCellId is not null && settings.SourceSheetRowId is not null)
         {

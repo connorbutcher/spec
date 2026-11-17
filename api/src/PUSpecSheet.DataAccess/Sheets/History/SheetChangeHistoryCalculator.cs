@@ -88,7 +88,7 @@ internal static class SheetChangeHistoryCalculator
         DbSheetRowRevision revision,
         DbSheetRowRevision? previous,
         IReadOnlyDictionary<int, Dictionary<int, CellValueBag>> values,
-        SheetChange change)
+        SheetChangeRecord change)
     {
         var current = values.GetValueOrDefault(revision.Id) ?? [];
         var before = previous is null ? [] : values.GetValueOrDefault(previous.Id) ?? [];
@@ -105,7 +105,7 @@ internal static class SheetChangeHistoryCalculator
         return cellsChanged;
     }
 
-    private static SheetChange? ChangeOf(IDbSheetRevision revision, IReadOnlyDictionary<int, int> versionNumbers)
+    private static SheetChangeRecord? ChangeOf(IDbSheetRevision revision, IReadOnlyDictionary<int, int> versionNumbers)
     {
         if (revision.SheetVersionId is not { } versionId
             || revision.PublishedAtUtc is not { } at
@@ -114,7 +114,7 @@ internal static class SheetChangeHistoryCalculator
             return null;
         }
 
-        return new SheetChange
+        return new SheetChangeRecord
         {
             VersionNumber = number,
             AtUtc = DateTime.SpecifyKind(at, DateTimeKind.Utc),
@@ -126,7 +126,7 @@ internal static class SheetChangeHistoryCalculator
     /// Records a change to a section unless a later one is already recorded. Several rows and sub-sections
     /// feed the same section, in no particular order, and the section shows the most recent of them.
     /// </summary>
-    private static void KeepNewest(Dictionary<int, SheetChange> changes, int itemId, SheetChange change)
+    private static void KeepNewest(Dictionary<int, SheetChangeRecord> changes, int itemId, SheetChangeRecord change)
     {
         if (!changes.TryGetValue(itemId, out var recorded) || change.VersionNumber >= recorded.VersionNumber)
         {

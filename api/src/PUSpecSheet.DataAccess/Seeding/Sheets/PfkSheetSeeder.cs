@@ -185,7 +185,7 @@ public sealed class PfkSheetSeeder
     /// Points a feature's gauge cell at the gauge ids. Only the first feature needs it: the rows added after it
     /// start with the same choice.
     /// </summary>
-    private static async Task LinkGaugeAsync(SheetEditor editor, SheetRowDto row, CancellationToken cancellationToken)
+    private static async Task LinkGaugeAsync(SheetEditor editor, SheetRow row, CancellationToken cancellationToken)
     {
         var templateCells = editor.Sheet.TemplateCells.ToDictionary(cell => cell.Id);
         var cell = row.Cells
@@ -220,7 +220,7 @@ public sealed class PfkSheetSeeder
         return editor.Sheet.Tables.Single(table => table.TemplateName == GaugeTemplate.TemplateName).Id;
     }
 
-    private static SheetRowDto Row(SheetSectionDto section)
+    private static SheetRow Row(SheetSection section)
     {
         return section.Rows.OrderBy(row => row.DisplayOrder).First();
     }

@@ -31,10 +31,10 @@ public sealed class UserAccessService : IUserAccessService
         return _current;
     }
 
-    public async Task<CurrentUserDto> GetCurrentUserAsync(CancellationToken cancellationToken)
+    public async Task<CurrentUser> GetCurrentUserAsync(CancellationToken cancellationToken)
     {
         var access = await GetCurrentAsync(cancellationToken);
-        return new CurrentUserDto
+        return new CurrentUser
         {
             Id = access.UserId,
             UserName = access.UserName,

@@ -9,7 +9,7 @@ namespace PUSpecSheet.DataAccess.Sheets.Collaboration.Checkouts;
 public interface IRowCheckouts
 {
     /// <summary>The row's checkout of either kind, or null when nobody has it. A draft comes first.</summary>
-    Task<RowCheckout?> FindAsync(int rowId, CancellationToken cancellationToken);
+    Task<RowCheckoutState?> FindAsync(int rowId, CancellationToken cancellationToken);
 
     /// <summary>
     /// Who has saved something on the row, which makes its draft theirs, or null when nobody has. Cheaper

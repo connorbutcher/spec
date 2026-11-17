@@ -27,19 +27,19 @@ public sealed class TableTemplatesService : ITableTemplatesService
         _sheetTypes = sheetTypes;
     }
 
-    public async Task<IReadOnlyList<TableTemplateSummaryDto>> GetSummariesAsync(
+    public async Task<IReadOnlyList<TableTemplateSummary>> GetSummariesAsync(
         int? sheetTypeId,
         CancellationToken cancellationToken)
     {
         return await TableTemplateQueries.ListSummariesAsync(_db, sheetTypeId, cancellationToken);
     }
 
-    public Task<TableTemplateDto> GetAsync(int id, int? versionNumber, CancellationToken cancellationToken)
+    public Task<TableTemplate> GetAsync(int id, int? versionNumber, CancellationToken cancellationToken)
     {
         return _reader.ReadAsync(id, versionNumber, cancellationToken);
     }
 
-    public async Task<TableTemplateDto> CreateAsync(CreateTableTemplateRequest request, CancellationToken cancellationToken)
+    public async Task<TableTemplate> CreateAsync(CreateTableTemplateRequest request, CancellationToken cancellationToken)
     {
         await EnsureSheetTypeExistsAsync(request.SheetTypeId, cancellationToken);
         var name = request.Name.Trim();
@@ -53,7 +53,7 @@ public sealed class TableTemplatesService : ITableTemplatesService
         return await _reader.ReadAsync(template.Id, null, cancellationToken);
     }
 
-    public async Task<TableTemplateDto> UpdateAsync(
+    public async Task<TableTemplate> UpdateAsync(
         int id,
         UpdateTableTemplateRequest request,
         CancellationToken cancellationToken)
@@ -89,7 +89,7 @@ public sealed class TableTemplatesService : ITableTemplatesService
         return await _reader.ReadAsync(id, null, cancellationToken);
     }
 
-    public async Task<TableTemplateDto> CreateVersionAsync(int id, CancellationToken cancellationToken)
+    public async Task<TableTemplate> CreateVersionAsync(int id, CancellationToken cancellationToken)
     {
         await FindAsync(id, cancellationToken);
         var latest = await LatestVersionAsync(id, cancellationToken);

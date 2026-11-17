@@ -9,10 +9,10 @@ namespace PUSpecSheet.DataAccess.Sheets.Reading;
 /// </summary>
 public static class SheetRowsChanges
 {
-    public static SheetRowsChangeDto From(SheetDto sheet, IReadOnlyCollection<int> rowIds)
+    public static SheetRowsChange From(Sheet sheet, IReadOnlyCollection<int> rowIds)
     {
         var wanted = rowIds.ToHashSet();
-        var rows = new List<SheetRowDto>();
+        var rows = new List<SheetRow>();
         var tableIds = new HashSet<int>();
         foreach (var table in sheet.Tables)
         {
@@ -25,7 +25,7 @@ public static class SheetRowsChanges
         }
 
         var templateCellIds = rows.SelectMany(row => row.Cells).Select(cell => cell.TemplateCellId).ToHashSet();
-        return new SheetRowsChangeDto
+        return new SheetRowsChange
         {
             SheetId = sheet.Id,
             Rows = rows,
@@ -35,14 +35,14 @@ public static class SheetRowsChanges
             LinkedSources = sheet.LinkedSources,
             LinkableRows = sheet.Tables
                 .Where(table => tableIds.Contains(table.Id))
-                .Select(table => new SheetTableLinkableRowsDto { SheetTableId = table.Id, Rows = table.LinkableRows })
+                .Select(table => new SheetTableLinkableRows { SheetTableId = table.Id, Rows = table.LinkableRows })
                 .ToList(),
             TemplateCells = sheet.TemplateCells.Where(templateCell => templateCellIds.Contains(templateCell.Id)).ToList(),
             Sheet = sheet,
         };
     }
 
-    private static void Collect(IReadOnlyList<SheetSectionDto> sections, HashSet<int> wanted, List<SheetRowDto> rows)
+    private static void Collect(IReadOnlyList<SheetSection> sections, HashSet<int> wanted, List<SheetRow> rows)
     {
         foreach (var section in sections)
         {

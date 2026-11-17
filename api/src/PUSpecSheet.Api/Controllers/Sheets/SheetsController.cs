@@ -40,7 +40,7 @@ public sealed class SheetsController : ControllerBase
     /// <response code="200">The live sheet as you see it.</response>
     /// <response code="404">The phase doesn't exist, the sheet type isn't available to it, or the type needs identifiers.</response>
     [HttpGet("api/phases/{phaseId:int}/sheets/{sheetTypeId:int}")]
-    public async Task<ActionResult<SheetDto>> Open(int phaseId, int sheetTypeId, CancellationToken cancellationToken)
+    public async Task<ActionResult<Sheet>> Open(int phaseId, int sheetTypeId, CancellationToken cancellationToken)
     {
         var result = await _sheets.OpenAsync(phaseId, sheetTypeId, cancellationToken);
         return Ok(result);
@@ -58,7 +58,7 @@ public sealed class SheetsController : ControllerBase
     /// <response code="200">The phase's sheets.</response>
     /// <response code="404">The phase doesn't exist.</response>
     [HttpGet("api/phases/{phaseId:int}/sheets")]
-    public async Task<ActionResult<IReadOnlyList<SheetSummaryDto>>> List(int phaseId, CancellationToken cancellationToken)
+    public async Task<ActionResult<IReadOnlyList<SheetSummary>>> List(int phaseId, CancellationToken cancellationToken)
     {
         var result = await _sheets.ListAsync(phaseId, cancellationToken);
         return Ok(result);
@@ -80,7 +80,7 @@ public sealed class SheetsController : ControllerBase
     /// <response code="409">The phase already has a sheet of the type with these identifier values.</response>
     [HttpPost("api/phases/{phaseId:int}/sheets")]
     [Authorize(Policy = PermissionKeys.SheetsEdit)]
-    public async Task<ActionResult<SheetSummaryDto>> Create(int phaseId, CreateSheetRequest request, CancellationToken cancellationToken)
+    public async Task<ActionResult<SheetSummary>> Create(int phaseId, CreateSheetRequest request, CancellationToken cancellationToken)
     {
         var result = await _sheets.CreateAsync(phaseId, request, cancellationToken);
         return Ok(result);
@@ -96,7 +96,7 @@ public sealed class SheetsController : ControllerBase
     /// <response code="200">The live sheet as you see it.</response>
     /// <response code="404">The sheet doesn't exist.</response>
     [HttpGet("api/sheets/{id:int}")]
-    public async Task<ActionResult<SheetDto>> Get(int id, CancellationToken cancellationToken)
+    public async Task<ActionResult<Sheet>> Get(int id, CancellationToken cancellationToken)
     {
         var result = await _sheets.GetAsync(id, SheetViewPoint.Live, cancellationToken);
         return Ok(result);
@@ -112,7 +112,7 @@ public sealed class SheetsController : ControllerBase
     /// <response code="200">The sheet at that version.</response>
     /// <response code="404">The sheet or the version doesn't exist.</response>
     [HttpGet("api/sheets/{id:int}/versions/{version:int}")]
-    public async Task<ActionResult<SheetDto>> GetVersion(int id, int version, CancellationToken cancellationToken)
+    public async Task<ActionResult<Sheet>> GetVersion(int id, int version, CancellationToken cancellationToken)
     {
         var result = await _sheets.GetAsync(id, SheetViewPoint.AtVersion(version), cancellationToken);
         return Ok(result);
@@ -130,7 +130,7 @@ public sealed class SheetsController : ControllerBase
     /// <response code="400">The moment isn't a date and time.</response>
     /// <response code="404">The sheet doesn't exist.</response>
     [HttpGet("api/sheets/{id:int}/versions/at/{instant}")]
-    public async Task<ActionResult<SheetDto>> GetAtMoment(int id, string instant, CancellationToken cancellationToken)
+    public async Task<ActionResult<Sheet>> GetAtMoment(int id, string instant, CancellationToken cancellationToken)
     {
         var result = await _sheets.GetAsync(id, SheetViewPoint.AsOf(PublishedMoment.ParseUtc(instant)), cancellationToken);
         return Ok(result);
@@ -148,7 +148,7 @@ public sealed class SheetsController : ControllerBase
     /// <response code="404">The submission doesn't exist.</response>
     /// <response code="409">The submission has already been decided.</response>
     [HttpGet("api/submissions/{submissionId:int}/sheet")]
-    public async Task<ActionResult<SheetDto>> GetForReview(int submissionId, CancellationToken cancellationToken)
+    public async Task<ActionResult<Sheet>> GetForReview(int submissionId, CancellationToken cancellationToken)
     {
         var result = await _sheets.GetForReviewAsync(submissionId, cancellationToken);
         return Ok(result);
@@ -168,7 +168,7 @@ public sealed class SheetsController : ControllerBase
     /// <response code="400">No rows, or more than 500, were asked for.</response>
     /// <response code="404">The sheet doesn't exist.</response>
     [HttpGet("api/sheets/{id:int}/rows")]
-    public async Task<ActionResult<SheetRowsChangeDto>> GetRows(
+    public async Task<ActionResult<SheetRowsChange>> GetRows(
         int id,
         [FromQuery, MinLength(1), MaxLength(500)] int[] ids,
         CancellationToken cancellationToken)
@@ -187,7 +187,7 @@ public sealed class SheetsController : ControllerBase
     /// <response code="200">The refreshed live view of the sheet.</response>
     [HttpPost("api/sheets/{id:int}/tables")]
     [Authorize(Policy = PermissionKeys.SheetsEdit)]
-    public async Task<ActionResult<SheetDto>> AddTable(int id, AddSheetTableRequest request, CancellationToken cancellationToken)
+    public async Task<ActionResult<Sheet>> AddTable(int id, AddSheetTableRequest request, CancellationToken cancellationToken)
     {
         var result = await _sheets.AddTableAsync(id, request, cancellationToken);
         return Ok(result);
@@ -211,7 +211,7 @@ public sealed class SheetsController : ControllerBase
     /// <response code="409">Someone changed one of the drafts at the same moment.</response>
     [HttpPost("api/sheets/{id:int}/submissions")]
     [Authorize(Policy = PermissionKeys.SheetsPublish)]
-    public async Task<ActionResult<SheetDto>> Submit(int id, SubmitSheetRequest request, CancellationToken cancellationToken)
+    public async Task<ActionResult<Sheet>> Submit(int id, SubmitSheetRequest request, CancellationToken cancellationToken)
     {
         var result = await _sheets.SubmitAsync(id, request, cancellationToken);
         return Ok(result);

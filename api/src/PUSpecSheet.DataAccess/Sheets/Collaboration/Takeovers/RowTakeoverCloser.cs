@@ -25,7 +25,7 @@ public sealed class RowTakeoverCloser
     /// changed it since the request was made (closed as kept: a changed row stays with whoever changed it
     /// until they publish).
     /// </summary>
-    public async Task<RowTakeoverDto> GrantAsync(RowTakeoverDto takeover, RowTakeoverStatus status, CancellationToken cancellationToken)
+    public async Task<RowTakeover> GrantAsync(RowTakeover takeover, RowTakeoverStatus status, CancellationToken cancellationToken)
     {
         var obstacle = await ObstacleAsync(takeover, cancellationToken);
         if (obstacle is not null)
@@ -49,14 +49,14 @@ public sealed class RowTakeoverCloser
         // only changes the list of checkouts, which everyone was sent as it moved.
         if (moved == RowTransfer.Draft)
         {
-            await _notifier.SheetChangedAsync(takeover.SheetId, SheetChangedNoticeDto.Everything, exceptConnectionId: null, cancellationToken);
+            await _notifier.SheetChangedAsync(takeover.SheetId, SheetChangedNotice.Everything, exceptConnectionId: null, cancellationToken);
         }
 
         return granted;
     }
 
     /// <summary>Closes the request with <paramref name="status"/>, leaving the row where it is.</summary>
-    public async Task<RowTakeoverDto> CloseAsync(RowTakeoverDto takeover, RowTakeoverStatus status, CancellationToken cancellationToken)
+    public async Task<RowTakeover> CloseAsync(RowTakeover takeover, RowTakeoverStatus status, CancellationToken cancellationToken)
     {
         var closed = takeover with { Status = status };
         await _notifier.TakeoverChangedAsync(closed, cancellationToken);
@@ -67,7 +67,7 @@ public sealed class RowTakeoverCloser
     /// Why the row can no longer be handed over, as the status the request closes with, or null when it
     /// still can be. Also asked while a request waits, to close it as soon as it can't succeed.
     /// </summary>
-    public async Task<RowTakeoverStatus?> ObstacleAsync(RowTakeoverDto takeover, CancellationToken cancellationToken)
+    public async Task<RowTakeoverStatus?> ObstacleAsync(RowTakeover takeover, CancellationToken cancellationToken)
     {
         var checkout = await _checkouts.FindAsync(takeover.RowId, cancellationToken);
         if (checkout is null || checkout.HolderUserId != takeover.HolderUserId)

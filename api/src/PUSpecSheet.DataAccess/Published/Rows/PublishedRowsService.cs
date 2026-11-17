@@ -23,7 +23,7 @@ public sealed class PublishedRowsService : IPublishedRowsService
         _resolver = resolver;
     }
 
-    public async Task<PublishedRowsDto> ReadAsync(ResolvedSheetVersion version, PublishedRowsSelection selection, CancellationToken cancellationToken)
+    public async Task<PublishedRows> ReadAsync(ResolvedSheetVersion version, PublishedRowsSelection selection, CancellationToken cancellationToken)
     {
         var key = version.KeyFor(selection);
         if (_cache.TryGet(key, out var cached))
@@ -32,7 +32,7 @@ public sealed class PublishedRowsService : IPublishedRowsService
         }
 
         var structure = await PublishedStructureQueries.ReadAsync(_db, version, cancellationToken);
-        PublishedRowsDto rows;
+        PublishedRows rows;
         int cellCount;
 
         if (selection.IsEverything)
@@ -59,7 +59,7 @@ public sealed class PublishedRowsService : IPublishedRowsService
         return rows;
     }
 
-    public async Task<PublishedSheetRowDto> ReadRowAsync(ResolvedSheetVersion version, PublishedRowsSelection selection, CancellationToken cancellationToken)
+    public async Task<PublishedSheetRow> ReadRowAsync(ResolvedSheetVersion version, PublishedRowsSelection selection, CancellationToken cancellationToken)
     {
         var rowPublicId = selection.Rows.Single();
         var result = await ReadAsync(version, selection, cancellationToken);
@@ -68,7 +68,7 @@ public sealed class PublishedRowsService : IPublishedRowsService
             throw new NotFoundException($"Version {version.VersionNumber} of sheet {version.SheetPublicId} has no row {rowPublicId}.");
         }
 
-        return new PublishedSheetRowDto
+        return new PublishedSheetRow
         {
             Sheet = result.Sheet,
             Version = result.Version,

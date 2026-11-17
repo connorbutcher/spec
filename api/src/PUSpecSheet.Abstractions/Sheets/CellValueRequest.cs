@@ -9,7 +9,7 @@ public sealed record CellValueRequest
     public required int SheetCellId { get; init; }
 
     /// <summary>
-    /// The value in the shape the cell's kind takes, the same as <see cref="SheetCellDto.Value"/>: a string for
+    /// The value in the shape the cell's kind takes, the same as <see cref="SheetCell.Value"/>: a string for
     /// text and linked dropdown cells, a number for number cells, an ISO date (<c>yyyy-MM-dd</c>) for date cells,
     /// true or false for checkboxes, an option id for text and number dropdowns, and an object of slot key to
     /// text for labelled text cells. Null, or leaving it out, clears the cell.

@@ -8,7 +8,7 @@ namespace PUSpecSheet.DataAccess.Published.Lookups;
 /// answer's ETag is made from. The key names the cells found and the version each sheet is read at, so an
 /// equal key means an equal answer and an entry is never wrong. Size is counted in cells.
 /// </summary>
-public sealed class PublishedLookupCache : SizedMemoryCache<PublishedLookupDto>
+public sealed class PublishedLookupCache : SizedMemoryCache<PublishedLookup>
 {
     private const long MaximumCells = 500_000;
 

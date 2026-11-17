@@ -31,7 +31,7 @@ public sealed class SheetTablesController : ControllerBase
     /// <param name="cancellationToken">Cancels the request.</param>
     /// <response code="200">The refreshed live view of the sheet.</response>
     [HttpPut("{id:int}/title")]
-    public async Task<ActionResult<SheetDto>> SetTitle(int id, SetSheetTableTitleRequest request, CancellationToken cancellationToken)
+    public async Task<ActionResult<Sheet>> SetTitle(int id, SetSheetTableTitleRequest request, CancellationToken cancellationToken)
     {
         var result = await _tables.SetTitleAsync(id, request, cancellationToken);
         return Ok(result);
@@ -46,7 +46,7 @@ public sealed class SheetTablesController : ControllerBase
     /// <param name="cancellationToken">Cancels the request.</param>
     /// <response code="200">The refreshed live view of the sheet.</response>
     [HttpPost("{id:int}/move")]
-    public async Task<ActionResult<SheetDto>> Move(int id, MoveRequest request, CancellationToken cancellationToken)
+    public async Task<ActionResult<Sheet>> Move(int id, MoveRequest request, CancellationToken cancellationToken)
     {
         var result = await _tables.MoveAsync(id, request, cancellationToken);
         return Ok(result);
@@ -60,7 +60,7 @@ public sealed class SheetTablesController : ControllerBase
     /// <param name="cancellationToken">Cancels the request.</param>
     /// <response code="200">The refreshed live view of the sheet.</response>
     [HttpDelete("{id:int}")]
-    public async Task<ActionResult<SheetDto>> Remove(int id, CancellationToken cancellationToken)
+    public async Task<ActionResult<Sheet>> Remove(int id, CancellationToken cancellationToken)
     {
         var result = await _tables.RemoveAsync(id, cancellationToken);
         return Ok(result);
@@ -78,7 +78,7 @@ public sealed class SheetTablesController : ControllerBase
     /// <response code="200">The refreshed live view of the sheet.</response>
     /// <response code="409">The table is locked by someone else, or already holds the most copies the template allows.</response>
     [HttpPost("{id:int}/sections")]
-    public async Task<ActionResult<SheetDto>> AddSection(int id, AddSheetSectionRequest request, CancellationToken cancellationToken)
+    public async Task<ActionResult<Sheet>> AddSection(int id, AddSheetSectionRequest request, CancellationToken cancellationToken)
     {
         var result = await _tables.AddSectionAsync(id, request, cancellationToken);
         return Ok(result);

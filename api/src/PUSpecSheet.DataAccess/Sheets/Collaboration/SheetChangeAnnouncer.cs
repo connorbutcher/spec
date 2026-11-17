@@ -30,7 +30,7 @@ public sealed class SheetChangeAnnouncer
     /// <param name="sheet">The live sheet as it stands after the change.</param>
     /// <param name="exceptConnectionId">The connection that made the change, which already has the result.</param>
     /// <param name="cancellationToken">Cancels the announcement.</param>
-    public async Task AnnounceAsync(SheetDto sheet, string? exceptConnectionId, CancellationToken cancellationToken)
+    public async Task AnnounceAsync(Sheet sheet, string? exceptConnectionId, CancellationToken cancellationToken)
     {
         if (!sheet.IsLive || Announce(sheet.Id, SheetLockSignature.Entries(sheet)) is not { } notice)
         {
@@ -46,7 +46,7 @@ public sealed class SheetChangeAnnouncer
     /// no change at all. Nothing is announced: a read that announced could set two readers off refreshing
     /// each other.
     /// </summary>
-    public void Observe(SheetDto sheet)
+    public void Observe(Sheet sheet)
     {
         if (sheet.IsLive)
         {
@@ -65,7 +65,7 @@ public sealed class SheetChangeAnnouncer
     /// Remembers the signature. When it differs from the last one seen (or there was none), what to tell the
     /// others: the rows that differ from what they were last told, or everything. Null when nothing changed.
     /// </summary>
-    private SheetChangedNoticeDto? Announce(int sheetId, IReadOnlyList<string> signature)
+    private SheetChangedNotice? Announce(int sheetId, IReadOnlyList<string> signature)
     {
         lock (_gate)
         {
@@ -78,7 +78,7 @@ public sealed class SheetChangeAnnouncer
                 ? SheetLockSignature.ChangedRows(announced, signature)
                 : null;
             _lastAnnounced[sheetId] = signature;
-            return rows is null ? SheetChangedNoticeDto.Everything : new SheetChangedNoticeDto { RowIds = rows };
+            return rows is null ? SheetChangedNotice.Everything : new SheetChangedNotice { RowIds = rows };
         }
     }
 

@@ -31,7 +31,7 @@ public sealed class SheetSectionsController : ControllerBase
     /// <param name="cancellationToken">Cancels the request.</param>
     /// <response code="200">The refreshed live view of the sheet.</response>
     [HttpPost("{id:int}/move")]
-    public async Task<ActionResult<SheetDto>> Move(int id, MoveRequest request, CancellationToken cancellationToken)
+    public async Task<ActionResult<Sheet>> Move(int id, MoveRequest request, CancellationToken cancellationToken)
     {
         var result = await _sections.MoveAsync(id, request, cancellationToken);
         return Ok(result);
@@ -46,7 +46,7 @@ public sealed class SheetSectionsController : ControllerBase
     /// <response code="200">The refreshed live view of the sheet.</response>
     /// <response code="409">Someone else is editing inside the section, or it is at the template's minimum.</response>
     [HttpDelete("{id:int}")]
-    public async Task<ActionResult<SheetDto>> Remove(int id, CancellationToken cancellationToken)
+    public async Task<ActionResult<Sheet>> Remove(int id, CancellationToken cancellationToken)
     {
         var result = await _sections.RemoveAsync(id, cancellationToken);
         return Ok(result);

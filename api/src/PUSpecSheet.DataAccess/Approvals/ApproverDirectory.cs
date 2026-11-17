@@ -20,7 +20,7 @@ public sealed class ApproverDirectory
     }
 
     /// <summary>Everyone but <paramref name="submitterUserId"/> who could approve, by name.</summary>
-    public async Task<IReadOnlyList<ApproverDto>> ListAsync(int submitterUserId, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<Approver>> ListAsync(int submitterUserId, CancellationToken cancellationToken)
     {
         return await UserQueries.ListApproversAsync(_db, submitterUserId, cancellationToken);
     }

@@ -31,11 +31,11 @@ public sealed class SheetRowsChangesTests
         Assert.Empty(change.LinkableRows);
     }
 
-    private static SheetDto Sheet()
+    private static Sheet Sheet()
     {
         var first = Table(1, Section(1, [Row(11, 101)], []));
         var second = Table(2, Section(2, [], [Section(3, [Row(21, 201)], [])]));
-        return new SheetDto
+        return new Sheet
         {
             Id = 5,
             PublicId = Guid.Empty,
@@ -51,9 +51,9 @@ public sealed class SheetRowsChangesTests
         };
     }
 
-    private static SheetTableDto Table(int id, SheetSectionDto section)
+    private static SheetTable Table(int id, SheetSection section)
     {
-        return new SheetTableDto
+        return new SheetTable
         {
             Id = id,
             PublicId = Guid.Empty,
@@ -68,13 +68,13 @@ public sealed class SheetRowsChangesTests
             AddableSections = [],
             ColumnBlocks = [],
             AddableColumnBlocks = [],
-            LinkableRows = [new SheetLinkableRowDto { SheetRowId = id * 10, Label = "Row" }],
+            LinkableRows = [new SheetLinkableRow { SheetRowId = id * 10, Label = "Row" }],
         };
     }
 
-    private static SheetSectionDto Section(int id, IReadOnlyList<SheetRowDto> rows, IReadOnlyList<SheetSectionDto> sections)
+    private static SheetSection Section(int id, IReadOnlyList<SheetRow> rows, IReadOnlyList<SheetSection> sections)
     {
-        return new SheetSectionDto
+        return new SheetSection
         {
             Id = id,
             PublicId = Guid.Empty,
@@ -92,16 +92,16 @@ public sealed class SheetRowsChangesTests
         };
     }
 
-    private static SheetRowDto Row(int id, int templateCellId)
+    private static SheetRow Row(int id, int templateCellId)
     {
-        var cell = new SheetCellDto
+        var cell = new SheetCell
         {
             Id = id * 10,
             PublicId = Guid.Empty,
             TemplateCellId = templateCellId,
             Value = "x",
         };
-        return new SheetRowDto
+        return new SheetRow
         {
             Id = id,
             PublicId = Guid.Empty,
@@ -113,9 +113,9 @@ public sealed class SheetRowsChangesTests
         };
     }
 
-    private static TemplateCellDto TemplateCell(int id)
+    private static TemplateCell TemplateCell(int id)
     {
-        return new TemplateCellDto
+        return new TemplateCell
         {
             Id = id,
             CellTypeId = 1,

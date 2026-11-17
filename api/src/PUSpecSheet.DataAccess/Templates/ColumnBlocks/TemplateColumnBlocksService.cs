@@ -28,7 +28,7 @@ public sealed class TemplateColumnBlocksService : ITemplateColumnBlocksService
         _cellTypes = cellTypes;
     }
 
-    public async Task<TableTemplateDto> CreateAsync(
+    public async Task<TableTemplate> CreateAsync(
         CreateTemplateColumnBlockRequest request,
         CancellationToken cancellationToken)
     {
@@ -61,7 +61,7 @@ public sealed class TemplateColumnBlocksService : ITemplateColumnBlocksService
         return await _reader.ReadVersionAsync(versionId, cancellationToken);
     }
 
-    public async Task<TableTemplateDto> UpdateAsync(
+    public async Task<TableTemplate> UpdateAsync(
         int id,
         UpdateTemplateColumnBlockRequest request,
         CancellationToken cancellationToken)
@@ -79,7 +79,7 @@ public sealed class TemplateColumnBlocksService : ITemplateColumnBlocksService
         return await _reader.ReadVersionAsync(block.TableTemplateVersionId, cancellationToken);
     }
 
-    public async Task<TableTemplateDto> MoveAsync(int id, MoveRequest request, CancellationToken cancellationToken)
+    public async Task<TableTemplate> MoveAsync(int id, MoveRequest request, CancellationToken cancellationToken)
     {
         var block = await FindEditableAsync(id, cancellationToken);
         var siblings = await LoadSiblingsAsync(block, cancellationToken);
@@ -90,7 +90,7 @@ public sealed class TemplateColumnBlocksService : ITemplateColumnBlocksService
         return await _reader.ReadVersionAsync(block.TableTemplateVersionId, cancellationToken);
     }
 
-    public async Task<TableTemplateDto> DeleteAsync(int id, CancellationToken cancellationToken)
+    public async Task<TableTemplate> DeleteAsync(int id, CancellationToken cancellationToken)
     {
         var block = await FindEditableAsync(id, cancellationToken);
         var siblings = await LoadSiblingsAsync(block, cancellationToken);

@@ -26,7 +26,7 @@ public sealed class SheetTypesController : ControllerBase
     /// <param name="cancellationToken">Cancels the request.</param>
     /// <response code="200">All sheet types.</response>
     [HttpGet]
-    public async Task<ActionResult<IReadOnlyList<SheetTypeDto>>> GetAll(CancellationToken cancellationToken)
+    public async Task<ActionResult<IReadOnlyList<SheetType>>> GetAll(CancellationToken cancellationToken)
     {
         var result = await _sheetTypes.GetAllAsync(cancellationToken);
         return Ok(result);
@@ -44,7 +44,7 @@ public sealed class SheetTypesController : ControllerBase
     /// <response code="409">Another sheet type already has this name.</response>
     [HttpPost]
     [Authorize(Policy = PermissionKeys.SheetTypesManage)]
-    public async Task<ActionResult<SheetTypeDto>> Create(CreateSheetTypeRequest request, CancellationToken cancellationToken)
+    public async Task<ActionResult<SheetType>> Create(CreateSheetTypeRequest request, CancellationToken cancellationToken)
     {
         var result = await _sheetTypes.CreateAsync(request, cancellationToken);
         return Ok(result);
@@ -66,7 +66,7 @@ public sealed class SheetTypesController : ControllerBase
     /// <response code="409">The type already has an identifier with this name.</response>
     [HttpPost("{id:int}/identifiers")]
     [Authorize(Policy = PermissionKeys.SheetTypesManage)]
-    public async Task<ActionResult<SheetTypeDto>> AddIdentifier(int id, SaveSheetTypeIdentifierRequest request, CancellationToken cancellationToken)
+    public async Task<ActionResult<SheetType>> AddIdentifier(int id, SaveSheetTypeIdentifierRequest request, CancellationToken cancellationToken)
     {
         var result = await _sheetTypes.AddIdentifierAsync(id, request, cancellationToken);
         return Ok(result);
@@ -87,7 +87,7 @@ public sealed class SheetTypesController : ControllerBase
     /// <response code="409">Another identifier has this name, or the kind changed while sheets have values for it.</response>
     [HttpPut("{id:int}/identifiers/{identifierId:int}")]
     [Authorize(Policy = PermissionKeys.SheetTypesManage)]
-    public async Task<ActionResult<SheetTypeDto>> UpdateIdentifier(int id, int identifierId, SaveSheetTypeIdentifierRequest request, CancellationToken cancellationToken)
+    public async Task<ActionResult<SheetType>> UpdateIdentifier(int id, int identifierId, SaveSheetTypeIdentifierRequest request, CancellationToken cancellationToken)
     {
         var result = await _sheetTypes.UpdateIdentifierAsync(id, identifierId, request, cancellationToken);
         return Ok(result);
@@ -105,7 +105,7 @@ public sealed class SheetTypesController : ControllerBase
     /// <response code="409">Sheets have a value for the identifier.</response>
     [HttpDelete("{id:int}/identifiers/{identifierId:int}")]
     [Authorize(Policy = PermissionKeys.SheetTypesManage)]
-    public async Task<ActionResult<SheetTypeDto>> DeleteIdentifier(int id, int identifierId, CancellationToken cancellationToken)
+    public async Task<ActionResult<SheetType>> DeleteIdentifier(int id, int identifierId, CancellationToken cancellationToken)
     {
         var result = await _sheetTypes.DeleteIdentifierAsync(id, identifierId, cancellationToken);
         return Ok(result);

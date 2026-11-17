@@ -52,9 +52,9 @@ public sealed class PublishedLookupController : ControllerBase
     /// <response code="200">Every place the value was found, with what belongs to it.</response>
     /// <response code="400">The key isn't one any template cell has, the value is empty, or <c>at</c> isn't a date and time.</response>
     [HttpGet("lookup")]
-    [ProducesResponseType<PublishedLookupDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<PublishedLookup>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status304NotModified)]
-    public Task<ActionResult<PublishedLookupDto>> Find(
+    public Task<ActionResult<PublishedLookup>> Find(
         [FromQuery] string key,
         [FromQuery] string value,
         [FromQuery] string? phase,
@@ -85,9 +85,9 @@ public sealed class PublishedLookupController : ControllerBase
     /// <response code="400">The key isn't one any template cell has, or the value is empty.</response>
     /// <response code="404">The sheet doesn't exist or has no such version.</response>
     [HttpGet("sheets/{sheetPublicId:guid}/versions/{version:int}/lookup")]
-    [ProducesResponseType<PublishedLookupDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<PublishedLookup>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status304NotModified)]
-    public Task<ActionResult<PublishedLookupDto>> FindAtVersion(
+    public Task<ActionResult<PublishedLookup>> FindAtVersion(
         Guid sheetPublicId,
         int version,
         [FromQuery] string key,
@@ -110,9 +110,9 @@ public sealed class PublishedLookupController : ControllerBase
     /// <response code="400">The key isn't one any template cell has, or the value is empty.</response>
     /// <response code="404">The sheet doesn't exist or nothing has been published on it.</response>
     [HttpGet("sheets/{sheetPublicId:guid}/versions/latest/lookup")]
-    [ProducesResponseType<PublishedLookupDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<PublishedLookup>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status304NotModified)]
-    public Task<ActionResult<PublishedLookupDto>> FindAtLatest(
+    public Task<ActionResult<PublishedLookup>> FindAtLatest(
         Guid sheetPublicId,
         [FromQuery] string key,
         [FromQuery] string value,
@@ -122,7 +122,7 @@ public sealed class PublishedLookupController : ControllerBase
         return ReadAsync(criteria, sheetPublicId, PublishedVersionPoint.Latest, cancellationToken);
     }
 
-    private async Task<ActionResult<PublishedLookupDto>> ReadAsync(
+    private async Task<ActionResult<PublishedLookup>> ReadAsync(
         PublishedLookupCriteria criteria,
         Guid? sheetPublicId,
         PublishedVersionPoint point,

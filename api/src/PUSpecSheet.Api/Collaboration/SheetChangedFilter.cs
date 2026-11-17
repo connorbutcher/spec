@@ -7,8 +7,8 @@ using PUSpecSheet.DataAccess.Sheets.Collaboration.Takeovers;
 namespace PUSpecSheet.Api.Collaboration;
 
 /// <summary>
-/// Every action that reads or changes a sheet answers with a <see cref="SheetDto"/>, or with some of its
-/// rows in a <see cref="SheetRowsChangeDto"/> that keeps the sheet they were taken from. This filter looks
+/// Every action that reads or changes a sheet answers with a <see cref="Sheet"/>, or with some of its
+/// rows in a <see cref="SheetRowsChange"/> that keeps the sheet they were taken from. This filter looks
 /// at that sheet once the answer has been sent and, after a change, tells the other people who have the sheet open,
 /// so no controller or service has to remember to. The caller names its own live connection in the
 /// <see cref="ConnectionHeader"/> header so it isn't told about its own change.
@@ -61,12 +61,12 @@ public sealed partial class SheetChangedFilter : IAsyncResultFilter
         }
     }
 
-    private static SheetDto? LiveSheetOf(IActionResult result)
+    private static Sheet? LiveSheetOf(IActionResult result)
     {
         var sheet = result switch
         {
-            ObjectResult { Value: SheetDto whole } => whole,
-            ObjectResult { Value: SheetRowsChangeDto { Sheet: { } source } } => source,
+            ObjectResult { Value: Sheet whole } => whole,
+            ObjectResult { Value: SheetRowsChange { Sheet: { } source } } => source,
             _ => null,
         };
         return sheet is { IsLive: true } ? sheet : null;

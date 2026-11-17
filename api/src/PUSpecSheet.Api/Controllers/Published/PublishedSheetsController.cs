@@ -39,7 +39,7 @@ public sealed class PublishedSheetsController : ControllerBase
     /// <response code="200">The matching sheets. Empty when none match.</response>
     /// <response code="400">The sheet type has no identifier with a key given, or a value isn't of its identifier's kind.</response>
     [HttpGet]
-    public async Task<ActionResult<IReadOnlyList<PublishedSheetReferenceDto>>> List(
+    public async Task<ActionResult<IReadOnlyList<PublishedSheetReference>>> List(
         [FromQuery] string phase,
         [FromQuery] int sheetType,
         CancellationToken cancellationToken)
@@ -69,7 +69,7 @@ public sealed class PublishedSheetsController : ControllerBase
     /// <response code="404">No phase has this code, or the phase has no sheet of this type with those identifiers.</response>
     /// <response code="409">More than one sheet matches: give more identifier values.</response>
     [HttpGet("find")]
-    public async Task<ActionResult<PublishedSheetReferenceDto>> Find(
+    public async Task<ActionResult<PublishedSheetReference>> Find(
         [FromQuery] string phase,
         [FromQuery] int sheetType,
         CancellationToken cancellationToken)
@@ -87,7 +87,7 @@ public sealed class PublishedSheetsController : ControllerBase
     /// <param name="cancellationToken">Cancels the request.</param>
     /// <response code="200">The versions, oldest first. Empty when nothing has been published.</response>
     [HttpGet("{sheetPublicId:guid}/versions")]
-    public async Task<ActionResult<IReadOnlyList<PublishedVersionDto>>> Versions(Guid sheetPublicId, CancellationToken cancellationToken)
+    public async Task<ActionResult<IReadOnlyList<PublishedVersion>>> Versions(Guid sheetPublicId, CancellationToken cancellationToken)
     {
         var result = await _sheets.VersionsAsync(sheetPublicId, cancellationToken);
         return Ok(result);
@@ -109,9 +109,9 @@ public sealed class PublishedSheetsController : ControllerBase
     /// <response code="200">The selected values at that version.</response>
     /// <response code="404">The sheet doesn't exist or has no such version.</response>
     [HttpGet("{sheetPublicId:guid}/versions/{version:int}")]
-    [ProducesResponseType<PublishedSheetDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<PublishedSheet>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status304NotModified)]
-    public Task<ActionResult<PublishedSheetDto>> AtVersion(
+    public Task<ActionResult<PublishedSheet>> AtVersion(
         Guid sheetPublicId,
         int version,
         [FromQuery] PublishedSheetQueryOptions options,
@@ -132,9 +132,9 @@ public sealed class PublishedSheetsController : ControllerBase
     /// <response code="200">The selected values at the newest version.</response>
     /// <response code="404">The sheet doesn't exist or nothing has been published on it.</response>
     [HttpGet("{sheetPublicId:guid}/versions/latest")]
-    [ProducesResponseType<PublishedSheetDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<PublishedSheet>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status304NotModified)]
-    public Task<ActionResult<PublishedSheetDto>> Latest(
+    public Task<ActionResult<PublishedSheet>> Latest(
         Guid sheetPublicId,
         [FromQuery] PublishedSheetQueryOptions options,
         CancellationToken cancellationToken)
@@ -156,9 +156,9 @@ public sealed class PublishedSheetsController : ControllerBase
     /// <response code="400">The moment isn't a date and time.</response>
     /// <response code="404">The sheet doesn't exist or had nothing published by that moment.</response>
     [HttpGet("{sheetPublicId:guid}/versions/at/{instant}")]
-    [ProducesResponseType<PublishedSheetDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<PublishedSheet>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status304NotModified)]
-    public Task<ActionResult<PublishedSheetDto>> AtMoment(
+    public Task<ActionResult<PublishedSheet>> AtMoment(
         Guid sheetPublicId,
         string instant,
         [FromQuery] PublishedSheetQueryOptions options,
@@ -182,9 +182,9 @@ public sealed class PublishedSheetsController : ControllerBase
     /// <response code="200">The selected values at that version.</response>
     /// <response code="404">The sheet doesn't exist or has no such version.</response>
     [HttpPost("{sheetPublicId:guid}/versions/{version:int}/query")]
-    [ProducesResponseType<PublishedSheetDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<PublishedSheet>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status304NotModified)]
-    public Task<ActionResult<PublishedSheetDto>> Query(
+    public Task<ActionResult<PublishedSheet>> Query(
         Guid sheetPublicId,
         int version,
         PublishedSheetQueryRequest request,
@@ -193,7 +193,7 @@ public sealed class PublishedSheetsController : ControllerBase
         return ReadAsync(sheetPublicId, PublishedVersionPoint.Version(version), PublishedSheetSelection.From(request), true, cancellationToken);
     }
 
-    private async Task<ActionResult<PublishedSheetDto>> ReadAsync(
+    private async Task<ActionResult<PublishedSheet>> ReadAsync(
         Guid sheetPublicId,
         PublishedVersionPoint point,
         PublishedSheetSelection selection,

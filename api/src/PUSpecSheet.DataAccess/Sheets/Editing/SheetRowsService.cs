@@ -51,7 +51,7 @@ public sealed class SheetRowsService : ISheetRowsService
         _cellSettings = cellSettings;
     }
 
-    public async Task<SheetDto> SaveValuesAsync(int rowId, SaveRowValuesRequest request, CancellationToken cancellationToken)
+    public async Task<Sheet> SaveValuesAsync(int rowId, SaveRowValuesRequest request, CancellationToken cancellationToken)
     {
         var row = await LoadRowWithCellTypesAsync(rowId, cancellationToken);
 
@@ -77,7 +77,7 @@ public sealed class SheetRowsService : ISheetRowsService
         return await _reader.ReadLiveAsync(row.SheetSection.SheetTable.SheetId, cancellationToken);
     }
 
-    public async Task<SheetDto> MoveAsync(int rowId, MoveRequest request, CancellationToken cancellationToken)
+    public async Task<Sheet> MoveAsync(int rowId, MoveRequest request, CancellationToken cancellationToken)
     {
         var sectionId = await SectionIdOfAsync(rowId, cancellationToken);
         var sheetId = await SheetIdOfAsync(rowId, cancellationToken);
@@ -99,7 +99,7 @@ public sealed class SheetRowsService : ISheetRowsService
         return await _reader.ReadLiveAsync(sheetId, cancellationToken);
     }
 
-    public async Task<SheetDto> RemoveAsync(int rowId, CancellationToken cancellationToken)
+    public async Task<Sheet> RemoveAsync(int rowId, CancellationToken cancellationToken)
     {
         var row = await SheetRowQueries.FindWithSectionAsync(_db, rowId, cancellationToken)
             ?? throw new NotFoundException($"Row {rowId} was not found.");
@@ -129,7 +129,7 @@ public sealed class SheetRowsService : ISheetRowsService
         return await _reader.ReadLiveAsync(sheetId, cancellationToken);
     }
 
-    public Task<SheetDto> SaveCellSettingsAsync(int rowId, SaveRowCellSettingsRequest request, CancellationToken cancellationToken)
+    public Task<Sheet> SaveCellSettingsAsync(int rowId, SaveRowCellSettingsRequest request, CancellationToken cancellationToken)
     {
         return _cellSettings.SaveAsync(rowId, request, cancellationToken);
     }

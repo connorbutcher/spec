@@ -5,9 +5,9 @@ namespace PUSpecSheet.DataAccess.SheetTypes;
 
 public interface ISheetTypeDataService
 {
-    Task<List<SheetTypeDto>> ListAsync(CancellationToken cancellationToken);
+    Task<List<SheetType>> ListAsync(CancellationToken cancellationToken);
 
-    Task<SheetTypeDto?> FindAsync(int id, CancellationToken cancellationToken);
+    Task<SheetType?> FindAsync(int id, CancellationToken cancellationToken);
 
     Task<bool> ExistsAsync(int id, CancellationToken cancellationToken);
 

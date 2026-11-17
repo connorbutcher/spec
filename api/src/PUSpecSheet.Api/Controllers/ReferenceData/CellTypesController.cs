@@ -26,7 +26,7 @@ public sealed class CellTypesController : ControllerBase
     /// <param name="cancellationToken">Cancels the request.</param>
     /// <response code="200">All cell types.</response>
     [HttpGet]
-    public async Task<ActionResult<IReadOnlyList<CellTypeDto>>> GetAll(CancellationToken cancellationToken)
+    public async Task<ActionResult<IReadOnlyList<CellType>>> GetAll(CancellationToken cancellationToken)
     {
         var result = await _cellTypes.GetAllAsync(cancellationToken);
         return Ok(result);
@@ -44,7 +44,7 @@ public sealed class CellTypesController : ControllerBase
     /// <response code="409">Another cell type already has this name.</response>
     [HttpPost]
     [Authorize(Policy = PermissionKeys.CellTypesManage)]
-    public async Task<ActionResult<CellTypeDto>> Create(SaveCellTypeRequest request, CancellationToken cancellationToken)
+    public async Task<ActionResult<CellType>> Create(SaveCellTypeRequest request, CancellationToken cancellationToken)
     {
         var result = await _cellTypes.CreateAsync(request, cancellationToken);
         return Ok(result);
@@ -62,7 +62,7 @@ public sealed class CellTypesController : ControllerBase
     /// <response code="409">Another cell type has this name, or the change doesn't fit the cells that use it.</response>
     [HttpPut("{id:int}")]
     [Authorize(Policy = PermissionKeys.CellTypesManage)]
-    public async Task<ActionResult<CellTypeDto>> Update(
+    public async Task<ActionResult<CellType>> Update(
         int id,
         SaveCellTypeRequest request,
         CancellationToken cancellationToken)

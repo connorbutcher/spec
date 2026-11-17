@@ -232,13 +232,13 @@ public sealed class EngineSpecificationSheetSeeder
         return (((engine * 3) + (position * 7)) % 5) - 2;
     }
 
-    private static SheetRowDto MeasurementRow(SheetEditor editor, int tableId, int stageIndex, int measurementIndex)
+    private static SheetRow MeasurementRow(SheetEditor editor, int tableId, int stageIndex, int measurementIndex)
     {
         var stage = editor.Copies(tableId, null, BuildRecordTemplate.Stage)[stageIndex];
         return Row(editor.Copies(tableId, stage.Id, BuildRecordTemplate.Measurement)[measurementIndex], 0);
     }
 
-    private static SheetRowDto Row(SheetSectionDto section, int index)
+    private static SheetRow Row(SheetSection section, int index)
     {
         return section.Rows.OrderBy(row => row.DisplayOrder).ElementAt(index);
     }

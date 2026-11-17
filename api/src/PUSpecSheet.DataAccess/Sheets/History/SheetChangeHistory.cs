@@ -10,13 +10,13 @@ public sealed class SheetChangeHistory
 {
     public static SheetChangeHistory Empty { get; } = new();
 
-    public Dictionary<int, SheetChange> Cells { get; } = [];
+    public Dictionary<int, SheetChangeRecord> Cells { get; } = [];
 
-    public Dictionary<int, SheetChange> Rows { get; } = [];
+    public Dictionary<int, SheetChangeRecord> Rows { get; } = [];
 
-    public Dictionary<int, SheetChange> Sections { get; } = [];
+    public Dictionary<int, SheetChangeRecord> Sections { get; } = [];
 
-    public Dictionary<int, SheetChange> ColumnBlocks { get; } = [];
+    public Dictionary<int, SheetChangeRecord> ColumnBlocks { get; } = [];
 
     /// <summary>How many items have a recorded change, which is how much room the history takes when kept.</summary>
     public int Count => Cells.Count + Rows.Count + Sections.Count + ColumnBlocks.Count;

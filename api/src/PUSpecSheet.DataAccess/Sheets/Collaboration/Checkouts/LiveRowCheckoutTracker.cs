@@ -66,14 +66,14 @@ public sealed class LiveRowCheckoutTracker
     }
 
     /// <summary>Every row on a sheet that someone is in, by row id.</summary>
-    public IReadOnlyList<RowCheckoutDto> OnSheet(int sheetId)
+    public IReadOnlyList<RowCheckout> OnSheet(int sheetId)
     {
         lock (_gate)
         {
             return _byConnection.Values
                 .Where(checkout => checkout.SheetId == sheetId)
                 .OrderBy(checkout => checkout.RowId)
-                .Select(checkout => new RowCheckoutDto
+                .Select(checkout => new RowCheckout
                 {
                     RowId = checkout.RowId,
                     UserId = checkout.UserId,

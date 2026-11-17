@@ -27,7 +27,7 @@ public sealed class PhasesController : ControllerBase
     /// <param name="cancellationToken">Cancels the request.</param>
     /// <response code="200">All phases.</response>
     [HttpGet]
-    public async Task<ActionResult<IReadOnlyList<PhaseDto>>> GetAll(CancellationToken cancellationToken)
+    public async Task<ActionResult<IReadOnlyList<Phase>>> GetAll(CancellationToken cancellationToken)
     {
         var result = await _phases.GetAllAsync(cancellationToken);
         return Ok(result);
@@ -48,7 +48,7 @@ public sealed class PhasesController : ControllerBase
     [HttpPost]
     [Authorize(Policy = PermissionKeys.PhasesManage)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound, ProblemResponseDescriptionsTransformer.ContentType)]
-    public async Task<ActionResult<PhaseDto>> Create(CreatePhaseRequest request, CancellationToken cancellationToken)
+    public async Task<ActionResult<Phase>> Create(CreatePhaseRequest request, CancellationToken cancellationToken)
     {
         var result = await _phases.CreateAsync(request, cancellationToken);
         return Ok(result);
@@ -70,7 +70,7 @@ public sealed class PhasesController : ControllerBase
     /// <response code="404">The phase or the parent phase doesn't exist.</response>
     [HttpPost("{id:int}/move")]
     [Authorize(Policy = PermissionKeys.PhasesManage)]
-    public async Task<ActionResult<IReadOnlyList<PhaseDto>>> Move(int id, MovePhaseRequest request, CancellationToken cancellationToken)
+    public async Task<ActionResult<IReadOnlyList<Phase>>> Move(int id, MovePhaseRequest request, CancellationToken cancellationToken)
     {
         var result = await _phases.MoveAsync(id, request, cancellationToken);
         return Ok(result);
@@ -91,7 +91,7 @@ public sealed class PhasesController : ControllerBase
     /// <response code="409">A sheet type being removed has a sheet with tables on this phase.</response>
     [HttpPut("{id:int}/sheet-types")]
     [Authorize(Policy = PermissionKeys.PhasesManage)]
-    public async Task<ActionResult<PhaseDto>> SetSheetTypes(
+    public async Task<ActionResult<Phase>> SetSheetTypes(
         int id,
         SetPhaseSheetTypesRequest request,
         CancellationToken cancellationToken)

@@ -33,7 +33,7 @@ public sealed class RowCheckouts : IRowCheckouts
         _clock = clock;
     }
 
-    public async Task<RowCheckout?> FindAsync(int rowId, CancellationToken cancellationToken)
+    public async Task<RowCheckoutState?> FindAsync(int rowId, CancellationToken cancellationToken)
     {
         if (await FindDraftAsync(rowId, cancellationToken) is { } drafted)
         {
@@ -42,7 +42,7 @@ public sealed class RowCheckouts : IRowCheckouts
 
         // Someone who is only in the row has, by definition, changed nothing.
         return _live.HolderOf(rowId) is { } holder
-            ? new RowCheckout { SheetId = holder.SheetId, HolderUserId = holder.UserId, HasChanges = false }
+            ? new RowCheckoutState { SheetId = holder.SheetId, HolderUserId = holder.UserId, HasChanges = false }
             : null;
     }
 
@@ -74,7 +74,7 @@ public sealed class RowCheckouts : IRowCheckouts
     }
 
     /// <summary>The row's checkout only if it is a draft: someone has saved something on it.</summary>
-    private async Task<RowCheckout?> FindDraftAsync(int rowId, CancellationToken cancellationToken)
+    private async Task<RowCheckoutState?> FindDraftAsync(int rowId, CancellationToken cancellationToken)
     {
         var revisions = await SheetRowRevisionQueries.ListCurrentAndDraftAsync(_db, rowId, cancellationToken);
         var draft = revisions.SingleOrDefault(revision => revision.Status == RevisionStatus.Draft);
@@ -85,7 +85,7 @@ public sealed class RowCheckouts : IRowCheckouts
 
         // The draft carries its sheet, so finding the sheet takes no query of its own.
         var published = revisions.SingleOrDefault(revision => revision.Status == RevisionStatus.Published);
-        return new RowCheckout
+        return new RowCheckoutState
         {
             SheetId = draft.SheetId,
             HolderUserId = draft.AuthorUserId,

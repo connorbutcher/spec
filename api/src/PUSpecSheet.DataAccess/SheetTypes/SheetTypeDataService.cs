@@ -15,7 +15,7 @@ public sealed class SheetTypeDataService : ISheetTypeDataService
         _db = db;
     }
 
-    public async Task<List<SheetTypeDto>> ListAsync(CancellationToken cancellationToken)
+    public async Task<List<SheetType>> ListAsync(CancellationToken cancellationToken)
     {
         return await _db.SheetTypes
             .AsNoTracking()
@@ -25,7 +25,7 @@ public sealed class SheetTypeDataService : ISheetTypeDataService
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<SheetTypeDto?> FindAsync(int id, CancellationToken cancellationToken)
+    public async Task<SheetType?> FindAsync(int id, CancellationToken cancellationToken)
     {
         return await _db.SheetTypes
             .AsNoTracking()

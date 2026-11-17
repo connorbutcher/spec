@@ -11,7 +11,7 @@ namespace PUSpecSheet.Api.Controllers.Sheets;
 
 /// <summary>
 /// Changes to one row on a sheet. Saving values or cell settings answers with the row and what follows
-/// from it (a <see cref="SheetRowsChangeDto"/>); every other action returns the refreshed live view of the sheet.
+/// from it (a <see cref="SheetRowsChange"/>); every other action returns the refreshed live view of the sheet.
 /// </summary>
 [ApiController]
 [Tags(ApiTags.SheetRows)]
@@ -39,7 +39,7 @@ public sealed class SheetRowsController : ControllerBase
     /// <response code="400">A value doesn't fit its cell: the wrong kind, out of range, or not one of the dropdown's options.</response>
     /// <response code="409">The row is locked by someone else.</response>
     [HttpPut("{id:int}/values")]
-    public async Task<ActionResult<SheetRowsChangeDto>> SaveValues(int id, SaveRowValuesRequest request, CancellationToken cancellationToken)
+    public async Task<ActionResult<SheetRowsChange>> SaveValues(int id, SaveRowValuesRequest request, CancellationToken cancellationToken)
     {
         var result = await _rows.SaveValuesAsync(id, request, cancellationToken);
         return Ok(SheetRowsChanges.From(result, [id]));
@@ -61,7 +61,7 @@ public sealed class SheetRowsController : ControllerBase
     /// <response code="400">The cell's kind has no settings, they are for another kind, or what they point at isn't on the sheet.</response>
     /// <response code="409">The row is locked by someone else.</response>
     [HttpPut("{id:int}/cell-settings")]
-    public async Task<ActionResult<SheetRowsChangeDto>> SaveCellSettings(int id, SaveRowCellSettingsRequest request, CancellationToken cancellationToken)
+    public async Task<ActionResult<SheetRowsChange>> SaveCellSettings(int id, SaveRowCellSettingsRequest request, CancellationToken cancellationToken)
     {
         var result = await _rows.SaveCellSettingsAsync(id, request, cancellationToken);
         return Ok(SheetRowsChanges.From(result, [id]));
@@ -76,7 +76,7 @@ public sealed class SheetRowsController : ControllerBase
     /// <param name="cancellationToken">Cancels the request.</param>
     /// <response code="200">The refreshed live view of the sheet.</response>
     [HttpPost("{id:int}/move")]
-    public async Task<ActionResult<SheetDto>> Move(int id, MoveRequest request, CancellationToken cancellationToken)
+    public async Task<ActionResult<Sheet>> Move(int id, MoveRequest request, CancellationToken cancellationToken)
     {
         var result = await _rows.MoveAsync(id, request, cancellationToken);
         return Ok(result);
@@ -90,7 +90,7 @@ public sealed class SheetRowsController : ControllerBase
     /// <param name="cancellationToken">Cancels the request.</param>
     /// <response code="200">The refreshed live view of the sheet.</response>
     [HttpDelete("{id:int}")]
-    public async Task<ActionResult<SheetDto>> Remove(int id, CancellationToken cancellationToken)
+    public async Task<ActionResult<Sheet>> Remove(int id, CancellationToken cancellationToken)
     {
         var result = await _rows.RemoveAsync(id, cancellationToken);
         return Ok(result);

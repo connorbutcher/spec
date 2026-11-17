@@ -132,7 +132,7 @@ public sealed class LiveRowCheckoutServiceTests
         // In these tests a draft stands for the checkout the request was made against.
         _drafts.CheckOut(10, Sheet, Sam);
         await _service.CheckOutAsync("sam", 10, CancellationToken.None);
-        _takeovers.TryAdd(new RowTakeoverDto
+        _takeovers.TryAdd(new RowTakeover
         {
             Id = Guid.NewGuid(),
             SheetId = Sheet,

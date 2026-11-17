@@ -1,0 +1,15 @@
+using System.Text.Json.Serialization;
+
+namespace PUSpecSheet.Abstractions.Published;
+
+/// <summary>
+/// A set of repeated columns on a published table, such as one part's columns, left to right. A cell in
+/// the set carries this <see cref="Id"/> as its <c>column</c>.
+/// </summary>
+public sealed record PublishedColumnBlock
+{
+    public required Guid Id { get; init; }
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Name { get; init; }
+}

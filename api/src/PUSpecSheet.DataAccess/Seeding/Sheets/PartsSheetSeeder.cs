@@ -193,7 +193,7 @@ public sealed class PartsSheetSeeder
     /// </summary>
     private static async Task<IReadOnlyDictionary<string, string>> PartNumbersAsync(
         SheetEditor editor,
-        SheetRowDto header,
+        SheetRow header,
         int partId,
         int part,
         int step,
@@ -237,7 +237,7 @@ public sealed class PartsSheetSeeder
     }
 
     /// <summary>Every row of one kind of section, top to bottom through the groups.</summary>
-    private static List<SheetRowDto> Rows(SheetEditor editor, int table, string kind)
+    private static List<SheetRow> Rows(SheetEditor editor, int table, string kind)
     {
         return editor.Copies(table, null, PartsMatrixTemplate.Group)
             .SelectMany(group => editor.Copies(table, group.Id, kind))
@@ -250,7 +250,7 @@ public sealed class PartsSheetSeeder
         return editor.ColumnBlocks(table, PartsMatrixTemplate.Baseline).Single().Id;
     }
 
-    private static SheetRowDto Row(SheetSectionDto section)
+    private static SheetRow Row(SheetSection section)
     {
         return section.Rows.OrderBy(row => row.DisplayOrder).First();
     }

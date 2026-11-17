@@ -77,7 +77,7 @@ public static class UserQueries
     }
 
     /// <summary>Everyone but <paramref name="excludedUserId"/> who could approve, in name order.</summary>
-    public static async Task<List<ApproverDto>> ListApproversAsync(PuSpecSheetDbContext db, int excludedUserId, CancellationToken cancellationToken)
+    public static async Task<List<Approver>> ListApproversAsync(PuSpecSheetDbContext db, int excludedUserId, CancellationToken cancellationToken)
     {
         return await Approvers(db)
             .Where(user => user.Id != excludedUserId)

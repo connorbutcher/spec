@@ -26,7 +26,7 @@ public sealed class TemplateCellOverridesService : ITemplateCellOverridesService
         _guard = guard;
     }
 
-    public async Task<TableTemplateDto> UpdateAsync(
+    public async Task<TableTemplate> UpdateAsync(
         int cellId,
         UpdateTemplateCellOverridesRequest request,
         CancellationToken cancellationToken)

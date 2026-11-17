@@ -64,12 +64,12 @@ internal sealed class LinkedOptionCollector
         }
     }
 
-    public List<SheetLinkedSourceDto> Build()
+    public List<SheetLinkedSource> Build()
     {
         var ofColumns = _columns
             .OrderBy(entry => entry.Key.TableId)
             .ThenBy(entry => entry.Key.TemplateCellId)
-            .Select(entry => new SheetLinkedSourceDto
+            .Select(entry => new SheetLinkedSource
             {
                 SheetTableId = entry.Key.TableId,
                 TemplateCellId = entry.Key.TemplateCellId,
@@ -78,7 +78,7 @@ internal sealed class LinkedOptionCollector
         var ofRows = _rows
             .OrderBy(entry => entry.Key.TableId)
             .ThenBy(entry => entry.Key.RowId)
-            .Select(entry => new SheetLinkedSourceDto
+            .Select(entry => new SheetLinkedSource
             {
                 SheetTableId = entry.Key.TableId,
                 SheetRowId = entry.Key.RowId,

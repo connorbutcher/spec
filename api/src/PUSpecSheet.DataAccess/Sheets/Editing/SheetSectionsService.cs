@@ -52,7 +52,7 @@ public sealed class SheetSectionsService : ISheetSectionsService
         _currentUser = currentUser;
     }
 
-    public async Task<SheetDto> AddAsync(int tableId, AddSheetSectionRequest request, CancellationToken cancellationToken)
+    public async Task<Sheet> AddAsync(int tableId, AddSheetSectionRequest request, CancellationToken cancellationToken)
     {
         var table = await SheetTableQueries.FindForEditAsync(_db, tableId, cancellationToken)
             ?? throw new NotFoundException($"Table {tableId} was not found.");
@@ -78,7 +78,7 @@ public sealed class SheetSectionsService : ISheetSectionsService
         return await _reader.ReadLiveAsync(table.SheetId, cancellationToken);
     }
 
-    public async Task<SheetDto> MoveAsync(int sectionId, MoveRequest request, CancellationToken cancellationToken)
+    public async Task<Sheet> MoveAsync(int sectionId, MoveRequest request, CancellationToken cancellationToken)
     {
         var section = await LoadSectionAsync(sectionId, cancellationToken);
         if (section.TemplateSection.Role == SectionRole.Header)
@@ -106,7 +106,7 @@ public sealed class SheetSectionsService : ISheetSectionsService
         return await _reader.ReadLiveAsync(section.SheetTable.SheetId, cancellationToken);
     }
 
-    public async Task<SheetDto> RemoveAsync(int sectionId, CancellationToken cancellationToken)
+    public async Task<Sheet> RemoveAsync(int sectionId, CancellationToken cancellationToken)
     {
         var section = await LoadSectionAsync(sectionId, cancellationToken);
         var template = section.TemplateSection;

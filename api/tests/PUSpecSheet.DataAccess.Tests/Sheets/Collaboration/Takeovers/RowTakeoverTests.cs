@@ -122,7 +122,7 @@ public sealed class RowTakeoverTests
     [Fact]
     public async Task Availability_GivesTheSameAnswerAsAsking()
     {
-        Assert.Equal(new RowTakeoverAvailabilityDto
+        Assert.Equal(new RowTakeoverAvailability
         {
             IsAvailable = true,
         }, await _service.GetAvailabilityAsync(Row, CancellationToken.None));

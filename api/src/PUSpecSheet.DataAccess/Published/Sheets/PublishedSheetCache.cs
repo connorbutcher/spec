@@ -7,7 +7,7 @@ namespace PUSpecSheet.DataAccess.Published.Sheets;
 /// Keeps built published-sheet answers in memory, keyed by sheet, version and what was asked for. A
 /// published version never changes, so an entry is never wrong. Size is counted in cells.
 /// </summary>
-public sealed class PublishedSheetCache : SizedMemoryCache<PublishedSheetDto>
+public sealed class PublishedSheetCache : SizedMemoryCache<PublishedSheet>
 {
     private const long MaximumCells = 500_000;
 

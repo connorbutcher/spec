@@ -100,7 +100,7 @@ public sealed class SheetCreator
         return sheet.Id;
     }
 
-    private static List<SheetIdentifierValue> CheckedValues(List<SheetIdentifierDefinition> definitions, IReadOnlyList<SheetIdentifierValueRequest> given)
+    private static List<StoredSheetIdentifierValue> CheckedValues(List<SheetIdentifierDefinition> definitions, IReadOnlyList<SheetIdentifierValueRequest> given)
     {
         var unknown = given.FirstOrDefault(value => definitions.All(definition => definition.Id != value.IdentifierId));
         if (unknown is not null)
@@ -113,7 +113,7 @@ public sealed class SheetCreator
             throw new InvalidRequestException("Each identifier can be given only once.");
         }
 
-        var values = new List<SheetIdentifierValue>();
+        var values = new List<StoredSheetIdentifierValue>();
         var errors = new List<string>();
         foreach (var definition in definitions)
         {
@@ -124,7 +124,7 @@ public sealed class SheetCreator
             }
             else if (stored is not null)
             {
-                values.Add(new SheetIdentifierValue { Definition = definition, Value = stored });
+                values.Add(new StoredSheetIdentifierValue { Definition = definition, Value = stored });
             }
         }
 
@@ -136,7 +136,7 @@ public sealed class SheetCreator
         return values;
     }
 
-    private static string Describe(List<SheetIdentifierValue> values)
+    private static string Describe(List<StoredSheetIdentifierValue> values)
     {
         return string.Join(", ", values.Select(value => $"{value.Definition.Name} {value.Value}"));
     }
@@ -190,13 +190,13 @@ public sealed class SheetCreator
         int phaseId,
         int sheetTypeId,
         List<SheetIdentifierDefinition> definitions,
-        List<SheetIdentifierValue> values,
+        List<StoredSheetIdentifierValue> values,
         CancellationToken cancellationToken)
     {
         var byId = definitions.ToDictionary(definition => definition.Id);
         var wanted = SheetIdentifierRules.ComparisonKey(values);
         var sheets = await SheetQueries.ListWithIdentifiersAsync(_db, phaseId, sheetTypeId, cancellationToken);
         return sheets.Any(sheet => SheetIdentifierRules.ComparisonKey(sheet.IdentifierValues
-            .Select(value => new SheetIdentifierValue { Definition = byId[value.SheetTypeIdentifierId], Value = value.Value })) == wanted);
+            .Select(value => new StoredSheetIdentifierValue { Definition = byId[value.SheetTypeIdentifierId], Value = value.Value })) == wanted);
     }
 }

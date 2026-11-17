@@ -23,7 +23,7 @@ public sealed class TemplateSectionsService : ITemplateSectionsService
         _guard = guard;
     }
 
-    public async Task<TableTemplateDto> CreateAsync(CreateTemplateSectionRequest request, CancellationToken cancellationToken)
+    public async Task<TableTemplate> CreateAsync(CreateTemplateSectionRequest request, CancellationToken cancellationToken)
     {
         var versionId = request.TableTemplateVersionId;
         await _guard.EnsureEditableAsync(versionId, cancellationToken);
@@ -50,7 +50,7 @@ public sealed class TemplateSectionsService : ITemplateSectionsService
         return await _reader.ReadVersionAsync(versionId, cancellationToken);
     }
 
-    public async Task<TableTemplateDto> UpdateAsync(
+    public async Task<TableTemplate> UpdateAsync(
         int id,
         UpdateTemplateSectionRequest request,
         CancellationToken cancellationToken)
@@ -73,7 +73,7 @@ public sealed class TemplateSectionsService : ITemplateSectionsService
         return await _reader.ReadVersionAsync(section.TableTemplateVersionId, cancellationToken);
     }
 
-    public async Task<TableTemplateDto> MoveAsync(int id, MoveRequest request, CancellationToken cancellationToken)
+    public async Task<TableTemplate> MoveAsync(int id, MoveRequest request, CancellationToken cancellationToken)
     {
         var section = await FindEditableAsync(id, cancellationToken);
         EnsureNotHeader(section, "move");
@@ -86,7 +86,7 @@ public sealed class TemplateSectionsService : ITemplateSectionsService
         return await _reader.ReadVersionAsync(section.TableTemplateVersionId, cancellationToken);
     }
 
-    public async Task<TableTemplateDto> DeleteAsync(int id, CancellationToken cancellationToken)
+    public async Task<TableTemplate> DeleteAsync(int id, CancellationToken cancellationToken)
     {
         var section = await FindEditableAsync(id, cancellationToken);
         EnsureNotHeader(section, "delete");

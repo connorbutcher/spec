@@ -12,7 +12,7 @@ namespace PUSpecSheet.DataAccess.Published.Rows;
 /// </summary>
 public static class PublishedRowsAssembler
 {
-    public static PublishedRowsDto Assemble(
+    public static PublishedRows Assemble(
         ResolvedSheetVersion version,
         PublishedRowsSelection selection,
         PublishedStructure structure,
@@ -32,7 +32,7 @@ public static class PublishedRowsAssembler
                 || selection.Columns.Contains(block.PublicId.ToString()))
             .ToList();
 
-        var rows = new Dictionary<Guid, PublishedRowValuesDto>();
+        var rows = new Dictionary<Guid, PublishedRowValues>();
         foreach (var row in ShownCells(cells, sections, structure).GroupBy(cell => cell.RowId))
         {
             var valueCells = row.Where(cell => cell.Kind.StoresValue()).ToList();
@@ -48,7 +48,7 @@ public static class PublishedRowsAssembler
             var columns = row.Any(cell => cell.ColumnBlockId is not null)
                 ? BlockColumns(valueCells, kept, names, values)
                 : null;
-            rows[first.RowPublicId] = new PublishedRowValuesDto
+            rows[first.RowPublicId] = new PublishedRowValues
             {
                 Section = sections[first.SectionId].Name,
                 Values = own,
@@ -57,7 +57,7 @@ public static class PublishedRowsAssembler
         }
 
         var missing = selection.Rows.Where(id => !rows.ContainsKey(id)).Order().ToList();
-        return new PublishedRowsDto
+        return new PublishedRows
         {
             Sheet = version.SheetPublicId,
             Version = version.VersionNumber,

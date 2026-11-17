@@ -33,7 +33,7 @@ public sealed class RowTakeoversController : ControllerBase
     /// <param name="cancellationToken">Cancels the request.</param>
     /// <response code="200">Whether a takeover can be requested, and why not when it can't.</response>
     [HttpGet("api/sheet-rows/{rowId:int}/takeover-availability")]
-    public async Task<ActionResult<RowTakeoverAvailabilityDto>> GetAvailability(int rowId, CancellationToken cancellationToken)
+    public async Task<ActionResult<RowTakeoverAvailability>> GetAvailability(int rowId, CancellationToken cancellationToken)
     {
         var result = await _takeovers.GetAvailabilityAsync(rowId, cancellationToken);
         return Ok(result);
@@ -54,7 +54,7 @@ public sealed class RowTakeoversController : ControllerBase
     /// <response code="400">The row is already checked out to you.</response>
     /// <response code="409">The row has unpublished changes, isn't checked out to anyone, or someone else has already asked for it.</response>
     [HttpPost("api/sheet-rows/{rowId:int}/takeover-requests")]
-    public async Task<ActionResult<RowTakeoverDto>> Ask(int rowId, CancellationToken cancellationToken)
+    public async Task<ActionResult<RowTakeover>> Ask(int rowId, CancellationToken cancellationToken)
     {
         var result = await _takeovers.RequestAsync(rowId, cancellationToken);
         return Ok(result);
@@ -71,7 +71,7 @@ public sealed class RowTakeoversController : ControllerBase
     /// <response code="200">The settled request.</response>
     /// <response code="404">The request has already been answered, withdrawn or granted.</response>
     [HttpPost("api/row-takeovers/{id:guid}/approve")]
-    public async Task<ActionResult<RowTakeoverDto>> Approve(Guid id, CancellationToken cancellationToken)
+    public async Task<ActionResult<RowTakeover>> Approve(Guid id, CancellationToken cancellationToken)
     {
         var result = await _takeovers.ApproveAsync(id, cancellationToken);
         return Ok(result);
@@ -86,7 +86,7 @@ public sealed class RowTakeoversController : ControllerBase
     /// <response code="200">The settled request.</response>
     /// <response code="404">The request has already been answered, withdrawn or granted.</response>
     [HttpPost("api/row-takeovers/{id:guid}/deny")]
-    public async Task<ActionResult<RowTakeoverDto>> Deny(Guid id, CancellationToken cancellationToken)
+    public async Task<ActionResult<RowTakeover>> Deny(Guid id, CancellationToken cancellationToken)
     {
         var result = await _takeovers.DenyAsync(id, cancellationToken);
         return Ok(result);
@@ -101,7 +101,7 @@ public sealed class RowTakeoversController : ControllerBase
     /// <response code="200">The settled request.</response>
     /// <response code="404">The request has already been answered, withdrawn or granted.</response>
     [HttpDelete("api/row-takeovers/{id:guid}")]
-    public async Task<ActionResult<RowTakeoverDto>> Cancel(Guid id, CancellationToken cancellationToken)
+    public async Task<ActionResult<RowTakeover>> Cancel(Guid id, CancellationToken cancellationToken)
     {
         var result = await _takeovers.CancelAsync(id, cancellationToken);
         return Ok(result);

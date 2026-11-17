@@ -32,7 +32,7 @@ public sealed class SheetCellSettingsService : ISheetCellSettingsService
         _reader = reader;
     }
 
-    public async Task<SheetDto> SaveAsync(int rowId, SaveRowCellSettingsRequest request, CancellationToken cancellationToken)
+    public async Task<Sheet> SaveAsync(int rowId, SaveRowCellSettingsRequest request, CancellationToken cancellationToken)
     {
         var row = await LoadRowAsync(rowId, cancellationToken);
         var sheetId = row.SheetSection.SheetTable.SheetId;
@@ -56,7 +56,7 @@ public sealed class SheetCellSettingsService : ISheetCellSettingsService
     private static Dictionary<int, CellInstanceSettings?> WantedSettings(
         SaveRowCellSettingsRequest request,
         Dictionary<int, DbSheetCell> cellsById,
-        SheetDto sheet)
+        Sheet sheet)
     {
         var wanted = new Dictionary<int, CellInstanceSettings?>();
         foreach (var entry in request.Settings)

@@ -51,9 +51,9 @@ public sealed class RowTakeoverStoreTests
         Assert.Equal([10, 11], store.Involving(sheetId: 1, userId: 2).Select(takeover => takeover.RowId).Order());
     }
 
-    private static RowTakeoverDto Takeover(int rowId, int requester, int holder = 1, int sheetId = 1)
+    private static RowTakeover Takeover(int rowId, int requester, int holder = 1, int sheetId = 1)
     {
-        return new RowTakeoverDto
+        return new RowTakeover
         {
             Id = Guid.NewGuid(),
             SheetId = sheetId,

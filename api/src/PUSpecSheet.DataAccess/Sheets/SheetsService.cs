@@ -52,7 +52,7 @@ public sealed class SheetsService : ISheetsService
         _phases = phases;
     }
 
-    public async Task<SheetDto> OpenAsync(int phaseId, int sheetTypeId, CancellationToken cancellationToken)
+    public async Task<Sheet> OpenAsync(int phaseId, int sheetTypeId, CancellationToken cancellationToken)
     {
         var sheetId = await SheetQueries.FindIdAsync(_db, phaseId, sheetTypeId, cancellationToken);
 
@@ -64,7 +64,7 @@ public sealed class SheetsService : ISheetsService
         return await GetAsync(sheetId.Value, SheetViewPoint.Live, cancellationToken);
     }
 
-    public async Task<SheetDto> GetAsync(int sheetId, SheetViewPoint view, CancellationToken cancellationToken)
+    public async Task<Sheet> GetAsync(int sheetId, SheetViewPoint view, CancellationToken cancellationToken)
     {
         if (view.ReviewedSubmissionId is { } submissionId)
         {
@@ -79,14 +79,14 @@ public sealed class SheetsService : ISheetsService
         return await _reader.ReadAsync(sheetId, view, cancellationToken);
     }
 
-    public async Task<SheetDto> GetForReviewAsync(int submissionId, CancellationToken cancellationToken)
+    public async Task<Sheet> GetForReviewAsync(int submissionId, CancellationToken cancellationToken)
     {
         var sheetId = await SheetSubmissionQueries.FindSheetIdAsync(_db, submissionId, cancellationToken)
             ?? throw new NotFoundException($"Submission {submissionId} was not found.");
         return await GetAsync(sheetId, SheetViewPoint.Reviewing(submissionId), cancellationToken);
     }
 
-    public async Task<IReadOnlyList<SheetSummaryDto>> ListAsync(int phaseId, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<SheetSummary>> ListAsync(int phaseId, CancellationToken cancellationToken)
     {
         if (!await _phases.ExistsAsync(phaseId, cancellationToken))
         {
@@ -96,31 +96,31 @@ public sealed class SheetsService : ISheetsService
         return await SheetCatalogQueries.ListAsync(_db, phaseId, null, cancellationToken);
     }
 
-    public async Task<SheetSummaryDto> CreateAsync(int phaseId, CreateSheetRequest request, CancellationToken cancellationToken)
+    public async Task<SheetSummary> CreateAsync(int phaseId, CreateSheetRequest request, CancellationToken cancellationToken)
     {
         var sheetId = await _creator.CreateAsync(phaseId, request, cancellationToken);
         var created = await SheetCatalogQueries.ListAsync(_db, phaseId, sheetId, cancellationToken);
         return created[0];
     }
 
-    public async Task<SheetRowsChangeDto> GetRowsAsync(int sheetId, IReadOnlyCollection<int> rowIds, CancellationToken cancellationToken)
+    public async Task<SheetRowsChange> GetRowsAsync(int sheetId, IReadOnlyCollection<int> rowIds, CancellationToken cancellationToken)
     {
         var sheet = await _reader.ReadLiveAsync(sheetId, cancellationToken);
         return SheetRowsChanges.From(sheet, rowIds);
     }
 
-    public async Task<SheetDto> PublishAsync(int sheetId, string? note, PublishScope scope, CancellationToken cancellationToken)
+    public async Task<Sheet> PublishAsync(int sheetId, string? note, PublishScope scope, CancellationToken cancellationToken)
     {
         await _publisher.PublishAsync(sheetId, note, scope, cancellationToken);
         return await _reader.ReadLiveAsync(sheetId, cancellationToken);
     }
 
-    public Task<SheetDto> AddTableAsync(int sheetId, AddSheetTableRequest request, CancellationToken cancellationToken)
+    public Task<Sheet> AddTableAsync(int sheetId, AddSheetTableRequest request, CancellationToken cancellationToken)
     {
         return _tables.AddAsync(sheetId, request, cancellationToken);
     }
 
-    public Task<SheetDto> SubmitAsync(int sheetId, SubmitSheetRequest request, CancellationToken cancellationToken)
+    public Task<Sheet> SubmitAsync(int sheetId, SubmitSheetRequest request, CancellationToken cancellationToken)
     {
         return _submissionsService.SubmitAsync(sheetId, request, cancellationToken);
     }

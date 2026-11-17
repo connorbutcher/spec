@@ -184,7 +184,7 @@ public sealed class PublishedRowsAssemblerTests
         Assert.Throws<InvalidRequestException>(() => PublishedRowsSelection.Parse("not-an-id", null));
     }
 
-    private static PublishedRowsDto Assemble(PublishedRowsSelection selection)
+    private static PublishedRows Assemble(PublishedRowsSelection selection)
     {
         return PublishedRowsAssembler.Assemble(_version, selection, _structure, _cells, _cells, _values);
     }

@@ -13,9 +13,9 @@ public sealed class CellInstanceSettingsValidatorTests
 {
     private static readonly LinkedDropdownInstanceSettings _partNumbers = new() { SourceSheetTableId = 2, SourceTemplateCellId = 15 };
 
-    private static readonly SheetDto _sheet = SheetWith(
-        new SheetLinkedSourceDto { SheetTableId = 2, TemplateCellId = 15, Options = ["P-1001", "P-1002"] },
-        new SheetLinkedSourceDto { SheetTableId = 2, SheetRowId = 70, Options = ["0.8", "0.85"] });
+    private static readonly Sheet _sheet = SheetWith(
+        new SheetLinkedSource { SheetTableId = 2, TemplateCellId = 15, Options = ["P-1001", "P-1002"] },
+        new SheetLinkedSource { SheetTableId = 2, SheetRowId = 70, Options = ["0.8", "0.85"] });
 
     private static readonly LinkedDropdownInstanceSettings _pinOffsetRow = new() { SourceSheetTableId = 2, SourceSheetRowId = 70 };
 
@@ -104,9 +104,9 @@ public sealed class CellInstanceSettingsValidatorTests
         Assert.Null(SheetLinks.OptionsOf(_sheet, null));
     }
 
-    private static SheetDto SheetWith(params SheetLinkedSourceDto[] sources)
+    private static Sheet SheetWith(params SheetLinkedSource[] sources)
     {
-        var table = new SheetTableDto
+        var table = new SheetTable
         {
             Id = 2,
             PublicId = Guid.Empty,
@@ -121,10 +121,10 @@ public sealed class CellInstanceSettingsValidatorTests
             AddableSections = [],
             ColumnBlocks = [],
             AddableColumnBlocks = [],
-            LinkableColumns = [new SheetLinkableColumnDto { TemplateCellId = 15, Label = "Part number" }],
-            LinkableRows = [new SheetLinkableRowDto { SheetRowId = 70, Label = "Pin offset (mm)" }],
+            LinkableColumns = [new SheetLinkableColumn { TemplateCellId = 15, Label = "Part number" }],
+            LinkableRows = [new SheetLinkableRow { SheetRowId = 70, Label = "Pin offset (mm)" }],
         };
-        return new SheetDto
+        return new Sheet
         {
             Id = 1,
             PublicId = Guid.Empty,

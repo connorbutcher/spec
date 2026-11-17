@@ -15,13 +15,13 @@ public sealed class SheetReader
         _currentUser = currentUser;
     }
 
-    public async Task<SheetDto> ReadAsync(int sheetId, SheetViewPoint view, CancellationToken cancellationToken)
+    public async Task<Sheet> ReadAsync(int sheetId, SheetViewPoint view, CancellationToken cancellationToken)
     {
         var snapshot = await _loader.LoadAsync(sheetId, view, _currentUser.UserId, cancellationToken);
         return new SheetViewBuilder(snapshot, _currentUser.UserId).Build();
     }
 
-    public Task<SheetDto> ReadLiveAsync(int sheetId, CancellationToken cancellationToken)
+    public Task<Sheet> ReadLiveAsync(int sheetId, CancellationToken cancellationToken)
     {
         return ReadAsync(sheetId, SheetViewPoint.Live, cancellationToken);
     }

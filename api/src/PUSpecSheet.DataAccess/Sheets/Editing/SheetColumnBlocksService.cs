@@ -43,7 +43,7 @@ public sealed class SheetColumnBlocksService : ISheetColumnBlocksService
         _currentUser = currentUser;
     }
 
-    public async Task<SheetDto> AddAsync(int tableId, AddSheetColumnBlockRequest request, CancellationToken cancellationToken)
+    public async Task<Sheet> AddAsync(int tableId, AddSheetColumnBlockRequest request, CancellationToken cancellationToken)
     {
         var table = await SheetTableQueries.FindWithTemplateVersionAsync(_db, tableId, cancellationToken)
             ?? throw new NotFoundException($"Table {tableId} was not found.");
@@ -71,7 +71,7 @@ public sealed class SheetColumnBlocksService : ISheetColumnBlocksService
         return await _reader.ReadLiveAsync(table.SheetId, cancellationToken);
     }
 
-    public async Task<SheetDto> MoveAsync(int columnBlockId, MoveRequest request, CancellationToken cancellationToken)
+    public async Task<Sheet> MoveAsync(int columnBlockId, MoveRequest request, CancellationToken cancellationToken)
     {
         var block = await LoadAsync(columnBlockId, cancellationToken);
         await _removals.EnsurePlaceNotBeingRemovedAsync(block.SheetTableId, null, _currentUser.UserId, cancellationToken);
@@ -95,7 +95,7 @@ public sealed class SheetColumnBlocksService : ISheetColumnBlocksService
         return await _reader.ReadLiveAsync(block.SheetTable.SheetId, cancellationToken);
     }
 
-    public async Task<SheetDto> RemoveAsync(int columnBlockId, CancellationToken cancellationToken)
+    public async Task<Sheet> RemoveAsync(int columnBlockId, CancellationToken cancellationToken)
     {
         var block = await LoadAsync(columnBlockId, cancellationToken);
         var template = block.TemplateColumnBlock;

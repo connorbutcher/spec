@@ -16,13 +16,13 @@ namespace PUSpecSheet.DataAccess.Sheets.Collaboration;
 /// </summary>
 public static class SheetLockSignature
 {
-    public static string Of(SheetDto sheet)
+    public static string Of(Sheet sheet)
     {
         return string.Join(',', Entries(sheet));
     }
 
     /// <summary>The signature's entries, in order: the version first, then the locks.</summary>
-    public static IReadOnlyList<string> Entries(SheetDto sheet)
+    public static IReadOnlyList<string> Entries(Sheet sheet)
     {
         var locks = new List<string>();
         foreach (var table in sheet.Tables)
@@ -62,7 +62,7 @@ public static class SheetLockSignature
             .ToList();
     }
 
-    private static void AddSections(List<string> locks, IReadOnlyList<SheetSectionDto> sections)
+    private static void AddSections(List<string> locks, IReadOnlyList<SheetSection> sections)
     {
         foreach (var section in sections)
         {
@@ -76,7 +76,7 @@ public static class SheetLockSignature
         }
     }
 
-    private static void Add(List<string> locks, char kind, int id, SheetLockDto? held, bool isPending)
+    private static void Add(List<string> locks, char kind, int id, SheetLock? held, bool isPending)
     {
         if (held is not null && !isPending)
         {

@@ -93,7 +93,7 @@ public static class SheetIdentifierRules
     /// values has an empty key, so adding an optional identifier to a sheet type later doesn't change the
     /// identities of the sheets it already has.
     /// </summary>
-    public static string ComparisonKey(IEnumerable<SheetIdentifierValue> values)
+    public static string ComparisonKey(IEnumerable<StoredSheetIdentifierValue> values)
     {
         ArgumentNullException.ThrowIfNull(values);
         var parts = values
@@ -151,7 +151,7 @@ public static class SheetIdentifierRules
         return key.Length > MaxKeyLength ? key.ToString(0, MaxKeyLength) : key.ToString();
     }
 
-    private static string Compared(SheetIdentifierValue value)
+    private static string Compared(StoredSheetIdentifierValue value)
     {
         return value.Definition.Kind is SheetIdentifierKind.Text or SheetIdentifierKind.Option
             ? value.Value.ToUpperInvariant()

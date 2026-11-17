@@ -265,7 +265,7 @@ public sealed class SpecificationSheetSeeder
         return step is 1 or 2 && index % 3 == 1 ? "Under review" : "Released";
     }
 
-    private static SheetRowDto Row(SheetSectionDto section, int index)
+    private static SheetRow Row(SheetSection section, int index)
     {
         return section.Rows.OrderBy(row => row.DisplayOrder).ElementAt(index);
     }
