@@ -10,18 +10,26 @@
 
     Use it for a local or test database. Check what it would do to a shared one with compare.ps1 first.
 
+    With -Legacy it deploys the legacy project (legacy/) instead: the same scripts without the revision tables (spec,
+    cell, approval), for a database shaped like the legacy one. Deploying without -Legacy afterwards adds them.
+
 .EXAMPLE
     ./deploy.ps1
 
 .EXAMPLE
     ./deploy.ps1 -Server 'np:\\.\pipe\LOCALDB#1234ABCD\tsql\query' -Database PUSpecSheet
+
+.EXAMPLE
+    ./deploy.ps1 -Database PUSpecSheetLegacy -Legacy
 #>
 [CmdletBinding()]
 param(
     [string]$Server = '(localdb)\MSSQLLocalDB',
     [string]$Database = 'PUSpecSheet',
     # Defaults to Windows authentication. Pass a full connection string for anything else.
-    [string]$ConnectionString = ''
+    [string]$ConnectionString = '',
+    # Deploys the legacy tables only, without the revision tables.
+    [switch]$Legacy
 )
 
 $ErrorActionPreference = 'Stop'
@@ -36,7 +44,14 @@ try {
         throw 'dotnet tool restore failed.'
     }
 
-    dotnet build --nologo --verbosity quiet
+    $projectFolder = '.'
+    $dacpac = 'bin/Debug/PUSpecSheet.Database.dacpac'
+    if ($Legacy) {
+        $projectFolder = 'legacy'
+        $dacpac = 'legacy/bin/Debug/PUSpecSheet.Legacy.Database.dacpac'
+    }
+
+    dotnet build $projectFolder --nologo --verbosity quiet
     if ($LASTEXITCODE -ne 0) {
         throw 'Database project build failed.'
     }
@@ -44,13 +59,13 @@ try {
     # Windows PowerShell turns a native command's error output into a terminating error under 'Stop', which would hide
     # all but the first line of SqlPackage's message; the exit code is checked below instead.
     $ErrorActionPreference = 'Continue'
-    dotnet sqlpackage /Action:Publish /SourceFile:bin/Debug/PUSpecSheet.Database.dacpac "/TargetConnectionString:$ConnectionString" /p:BlockOnPossibleDataLoss=true /p:ScriptDatabaseOptions=false /p:ExcludeObjectTypes="Users;Logins;RoleMembership;Permissions"
+    dotnet sqlpackage /Action:Publish "/SourceFile:$dacpac" "/TargetConnectionString:$ConnectionString" /p:BlockOnPossibleDataLoss=true /p:ScriptDatabaseOptions=false /p:ExcludeObjectTypes="Users;Logins;RoleMembership;Permissions"
     $ErrorActionPreference = 'Stop'
     if ($LASTEXITCODE -ne 0) {
         throw 'SqlPackage publish failed.'
     }
 
-    Write-Host "Deployed the project to $Database."
+    Write-Host "Deployed $dacpac to $Database."
 }
 finally {
     Pop-Location

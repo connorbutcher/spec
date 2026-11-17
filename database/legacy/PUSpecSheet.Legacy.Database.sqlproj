@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The legacy schema on its own: every table of the main project except the revision tables (spec, cell, approval).
+  It has no scripts of its own; it builds the main project's legacy scripts, so the two can't drift apart.
+  Use it to create a database shaped like the legacy one, then deploy the main project to add the revision tables.
+-->
+<Project DefaultTargets="Build">
+  <Sdk Name="Microsoft.Build.Sql" Version="2.3.0" />
+  <PropertyGroup>
+    <Name>PUSpecSheet.Legacy.Database</Name>
+    <DSP>Microsoft.Data.Tools.Schema.Sql.Sql160DatabaseSchemaProvider</DSP>
+    <ModelCollation>1033, CI</ModelCollation>
+    <EnableDefaultSqlItems>false</EnableDefaultSqlItems>
+  </PropertyGroup>
+  <ItemGroup>
+    <Build Include="..\Security\access.sql" />
+    <Build Include="..\Security\configuration.sql" />
+    <Build Include="..\Security\references.sql" />
+    <Build Include="..\Security\template.sql" />
+    <Build Include="..\Security\types.sql" />
+    <Build Include="..\Security\values.sql" />
+    <Build Include="..\Security\workflow.sql" />
+    <Build Include="..\access\Tables\*.sql" />
+    <Build Include="..\configuration\Tables\*.sql" />
+    <Build Include="..\dbo\Tables\*.sql" />
+    <Build Include="..\references\Tables\*.sql" />
+    <Build Include="..\template\Tables\*.sql" />
+    <Build Include="..\types\Tables\*.sql" />
+    <Build Include="..\values\Tables\*.sql" />
+    <Build Include="..\workflow\Tables\*.sql" />
+  </ItemGroup>
+  <!-- Filtered indexes and indexed computed columns need these on, whatever the database's own settings are. -->
+  <ItemGroup>
+    <Build Update="..\**\*.sql">
+      <AnsiNulls>On</AnsiNulls>
+      <QuotedIdentifier>On</QuotedIdentifier>
+    </Build>
+  </ItemGroup>
+</Project>

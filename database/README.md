@@ -53,6 +53,20 @@ The project holds the schema only, with no data, and nothing seeds one: the type
 
 Once one database is set up, `copy.ps1` makes more that are identical to it, data included, without repeating the steps.
 
+### Without a legacy database
+
+When there is no legacy database to copy, build one from the scripts. `legacy/PUSpecSheet.Legacy.Database.sqlproj` is the legacy schema on its own: it has no scripts of its own but builds this project's scripts minus the revision tables (`spec`, `cell`, `approval`), so the two can't drift apart. `deploy.ps1 -Legacy` deploys it:
+
+```powershell
+./deploy.ps1 -Database PUSpecSheetLegacy -Legacy   # the 40 legacy tables
+./deploy.ps1 -Database PUSpecSheetLegacy           # adds the 22 revision tables beside them
+./compare.ps1 -Database PUSpecSheetLegacy          # should report no differences
+```
+
+The result has the whole schema and no rows. Nothing in it works until the reference data is there: users and permissions (`access`), phases, sheet types and their properties, structure levels and widget types (`types`), cell types, table templates and their groups, rows, cells and widgets (`template`), and cell configurations. Sheets, values and revisions start empty as well; the migrator runs against it but finds nothing to do.
+
+`PUSpecSheetLegacy` on `(localdb)\MSSQLLocalDB` was built this way on 2026-11-17.
+
 ## Schemas
 
 | Schema | Holds |
@@ -102,6 +116,8 @@ Foreign keys don't cascade, except SpecSheetTypePhases to SpecSheetTypes, the on
 ### Where the EF model and the database disagreed
 
 The EF configurations have since been brought into line with the database: varchar column types, the two columns that allow NULL (`WorkflowStepActors.ActorUserID`, `TableTemplates.RequiresUserConfiguration`), the foreign keys EF didn't know about (`TableGroupTemplates.ParentTableGroupTemplateID`, `LinkedSpecSheetValues.LinkedSpecSheetTypeID` and `LinkedSpecSheetPhaseID`), and SpecSheetLinkedTables, which is now mapped with the columns it has.
+
+The dump puts the sheet copies (SpecSheets and its tables, groups, rows, cells, widgets, notes, linked tables, property values, values, external references and workflow steps) in a schema called `legacy`, but the EF model, which the API and migrator query, maps them to `dbo`, `values`, `references` and `workflow`. The scripts follow the EF model, so a database whose copies really are in `legacy` would need them moved or the EF model changed.
 
 One difference is left on purpose: EF relates `SpecSheetTableNotes.CreatedByUserID` to Users so it can load the author, but the database has no foreign key for it. EF doesn't need one, and adding it could fail on notes whose author has gone.
 
