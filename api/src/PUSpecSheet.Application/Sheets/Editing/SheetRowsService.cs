@@ -1,3 +1,6 @@
+using PUSpecSheet.Abstractions.Common;
+using PUSpecSheet.Abstractions.Sheets;
+using PUSpecSheet.Abstractions.Templates;
 using PUSpecSheet.Application.Common;
 using PUSpecSheet.Application.Sheets.Collaboration.Checkouts;
 using PUSpecSheet.Application.Sheets.Drafts;
@@ -9,11 +12,8 @@ using PUSpecSheet.Application.Sheets.Removal;
 using PUSpecSheet.Application.Sheets.Revisions;
 using PUSpecSheet.Application.Sheets.Values;
 using PUSpecSheet.Application.Users;
-using PUSpecSheet.Contracts.Common;
-using PUSpecSheet.Contracts.Sheets;
 using PUSpecSheet.Database;
 using PUSpecSheet.Database.Models.Sheets;
-using PUSpecSheet.Domain.Templates;
 
 namespace PUSpecSheet.Application.Sheets.Editing;
 

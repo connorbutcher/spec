@@ -1,7 +1,7 @@
+using PUSpecSheet.Abstractions.Phases;
 using PUSpecSheet.Application.Common;
 using PUSpecSheet.Application.Phases.Queries;
 using PUSpecSheet.Application.SheetTypes.Queries;
-using PUSpecSheet.Contracts.Phases;
 using PUSpecSheet.Database;
 using PUSpecSheet.Database.Models.Phases;
 

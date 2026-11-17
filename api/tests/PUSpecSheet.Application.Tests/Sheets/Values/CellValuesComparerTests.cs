@@ -1,5 +1,5 @@
+using PUSpecSheet.Abstractions.CellTypes.InstanceSettings;
 using PUSpecSheet.Application.Sheets.Values;
-using PUSpecSheet.Domain.CellTypes.InstanceSettings;
 
 namespace PUSpecSheet.Application.Tests.Sheets.Values;
 

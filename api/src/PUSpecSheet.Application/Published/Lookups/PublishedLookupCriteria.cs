@@ -1,5 +1,5 @@
+using PUSpecSheet.Abstractions.Templates;
 using PUSpecSheet.Application.Common;
-using PUSpecSheet.Domain.Templates;
 
 namespace PUSpecSheet.Application.Published.Lookups;
 

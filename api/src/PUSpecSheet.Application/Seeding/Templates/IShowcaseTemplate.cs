@@ -1,4 +1,4 @@
-using PUSpecSheet.Domain.Templates;
+using PUSpecSheet.Abstractions.Templates;
 
 namespace PUSpecSheet.Application.Seeding.Templates;
 

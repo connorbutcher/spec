@@ -1,9 +1,9 @@
 using Microsoft.EntityFrameworkCore;
+using PUSpecSheet.Abstractions.Approvals;
+using PUSpecSheet.Abstractions.Sheets;
 using PUSpecSheet.Application.Sheets.Revisions;
-using PUSpecSheet.Contracts.Sheets;
 using PUSpecSheet.Database;
 using PUSpecSheet.Database.Models.Sheets;
-using PUSpecSheet.Domain.Approvals;
 
 namespace PUSpecSheet.Application.Sheets.Catalog;
 

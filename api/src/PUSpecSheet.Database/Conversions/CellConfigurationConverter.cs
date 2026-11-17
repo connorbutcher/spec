@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using PUSpecSheet.Domain.CellTypes.Configurations;
+using PUSpecSheet.Abstractions.CellTypes.Configurations;
 
 namespace PUSpecSheet.Database.Conversions;
 

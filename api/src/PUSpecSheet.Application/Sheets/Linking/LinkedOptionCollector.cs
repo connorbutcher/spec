@@ -1,6 +1,6 @@
+using PUSpecSheet.Abstractions.CellTypes.InstanceSettings;
+using PUSpecSheet.Abstractions.Sheets;
 using PUSpecSheet.Application.Sheets.Values;
-using PUSpecSheet.Contracts.Sheets;
-using PUSpecSheet.Domain.CellTypes.InstanceSettings;
 
 namespace PUSpecSheet.Application.Sheets.Linking;
 

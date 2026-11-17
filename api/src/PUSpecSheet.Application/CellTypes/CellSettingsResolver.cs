@@ -1,5 +1,5 @@
+using PUSpecSheet.Abstractions.CellTypes.Configurations;
 using PUSpecSheet.Database.Models.Templates;
-using PUSpecSheet.Domain.CellTypes.Configurations;
 
 namespace PUSpecSheet.Application.CellTypes;
 

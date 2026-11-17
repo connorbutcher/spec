@@ -1,3 +1,5 @@
+using PUSpecSheet.Abstractions.Approvals;
+using PUSpecSheet.Abstractions.Sheets;
 using PUSpecSheet.Application.Approvals;
 using PUSpecSheet.Application.Approvals.Queries;
 using PUSpecSheet.Application.Common;
@@ -9,8 +11,6 @@ using PUSpecSheet.Application.Sheets.Publishing;
 using PUSpecSheet.Application.Sheets.Queries;
 using PUSpecSheet.Application.Sheets.Reading;
 using PUSpecSheet.Application.Users;
-using PUSpecSheet.Contracts.Approvals;
-using PUSpecSheet.Contracts.Sheets;
 using PUSpecSheet.Database;
 
 namespace PUSpecSheet.Application.Sheets;

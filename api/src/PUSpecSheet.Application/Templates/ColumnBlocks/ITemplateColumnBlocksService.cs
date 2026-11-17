@@ -1,5 +1,5 @@
-using PUSpecSheet.Contracts.Common;
-using PUSpecSheet.Contracts.Templates;
+using PUSpecSheet.Abstractions.Common;
+using PUSpecSheet.Abstractions.Templates;
 
 namespace PUSpecSheet.Application.Templates.ColumnBlocks;
 

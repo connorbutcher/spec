@@ -1,6 +1,6 @@
+using PUSpecSheet.Abstractions.Sheets;
+using PUSpecSheet.Abstractions.Templates;
 using PUSpecSheet.Application.Sheets.Collaboration;
-using PUSpecSheet.Contracts.Sheets;
-using PUSpecSheet.Domain.Templates;
 
 namespace PUSpecSheet.Application.Tests.Sheets.Collaboration;
 

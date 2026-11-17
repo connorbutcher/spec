@@ -1,9 +1,9 @@
+using PUSpecSheet.Abstractions.CellTypes;
+using PUSpecSheet.Abstractions.CellTypes.Configurations;
+using PUSpecSheet.Abstractions.CellTypes.LabelledText;
 using PUSpecSheet.Application.CellTypes;
 using PUSpecSheet.Application.Common;
 using PUSpecSheet.Database.Models.Templates;
-using PUSpecSheet.Domain.CellTypes;
-using PUSpecSheet.Domain.CellTypes.Configurations;
-using PUSpecSheet.Domain.CellTypes.LabelledText;
 
 namespace PUSpecSheet.Application.Sheets.Values;
 

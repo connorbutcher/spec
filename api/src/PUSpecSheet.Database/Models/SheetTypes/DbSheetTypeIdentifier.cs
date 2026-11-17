@@ -1,4 +1,4 @@
-using PUSpecSheet.Domain.SheetTypes;
+using PUSpecSheet.Abstractions.SheetTypes;
 
 namespace PUSpecSheet.Database.Models.SheetTypes;
 

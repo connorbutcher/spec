@@ -1,9 +1,8 @@
+using PUSpecSheet.Abstractions.CellTypes;
 using PUSpecSheet.Application.CellTypes.Queries;
 using PUSpecSheet.Application.Common;
-using PUSpecSheet.Contracts.CellTypes;
 using PUSpecSheet.Database;
 using PUSpecSheet.Database.Models.CellTypes;
-using PUSpecSheet.Domain.CellTypes;
 
 namespace PUSpecSheet.Application.CellTypes;
 

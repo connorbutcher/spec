@@ -1,4 +1,4 @@
-using PUSpecSheet.Contracts.Users;
+using PUSpecSheet.Abstractions.Users;
 
 namespace PUSpecSheet.Application.Users;
 

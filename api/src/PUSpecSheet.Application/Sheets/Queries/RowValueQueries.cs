@@ -1,11 +1,11 @@
 using Microsoft.EntityFrameworkCore;
+using PUSpecSheet.Abstractions.CellTypes;
+using PUSpecSheet.Abstractions.CellTypes.InstanceSettings;
+using PUSpecSheet.Abstractions.CellTypes.LabelledText;
 using PUSpecSheet.Application.Sheets.Revisions;
 using PUSpecSheet.Application.Sheets.Values;
 using PUSpecSheet.Database;
 using PUSpecSheet.Database.Models.Values;
-using PUSpecSheet.Domain.CellTypes;
-using PUSpecSheet.Domain.CellTypes.InstanceSettings;
-using PUSpecSheet.Domain.CellTypes.LabelledText;
 
 namespace PUSpecSheet.Application.Sheets.Queries;
 

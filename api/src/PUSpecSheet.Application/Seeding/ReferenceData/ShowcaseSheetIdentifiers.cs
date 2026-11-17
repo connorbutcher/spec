@@ -1,8 +1,7 @@
+using PUSpecSheet.Abstractions.SheetTypes;
 using PUSpecSheet.Application.SheetTypes;
 using PUSpecSheet.Application.SheetTypes.Queries;
-using PUSpecSheet.Contracts.SheetTypes;
 using PUSpecSheet.Database;
-using PUSpecSheet.Domain.SheetTypes;
 
 namespace PUSpecSheet.Application.Seeding.ReferenceData;
 

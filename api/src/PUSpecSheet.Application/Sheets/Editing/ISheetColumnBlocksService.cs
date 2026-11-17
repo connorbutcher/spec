@@ -1,5 +1,5 @@
-using PUSpecSheet.Contracts.Common;
-using PUSpecSheet.Contracts.Sheets;
+using PUSpecSheet.Abstractions.Common;
+using PUSpecSheet.Abstractions.Sheets;
 
 namespace PUSpecSheet.Application.Sheets.Editing;
 

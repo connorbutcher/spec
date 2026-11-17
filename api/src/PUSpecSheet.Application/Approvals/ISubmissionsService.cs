@@ -1,5 +1,5 @@
-using PUSpecSheet.Contracts.Approvals;
-using PUSpecSheet.Contracts.Sheets;
+using PUSpecSheet.Abstractions.Approvals;
+using PUSpecSheet.Abstractions.Sheets;
 
 namespace PUSpecSheet.Application.Approvals;
 

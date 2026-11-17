@@ -1,9 +1,8 @@
+using PUSpecSheet.Abstractions.CellTypes;
+using PUSpecSheet.Abstractions.Templates;
 using PUSpecSheet.Application.Common;
 using PUSpecSheet.Application.Templates.Queries;
-using PUSpecSheet.Contracts.Templates;
 using PUSpecSheet.Database;
-using PUSpecSheet.Domain.CellTypes;
-using PUSpecSheet.Domain.Templates;
 
 namespace PUSpecSheet.Application.Templates.Cells;
 

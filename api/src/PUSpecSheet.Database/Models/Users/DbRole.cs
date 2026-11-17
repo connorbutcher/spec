@@ -1,4 +1,4 @@
-using PUSpecSheet.Domain.Users;
+using PUSpecSheet.Abstractions.Users;
 
 namespace PUSpecSheet.Database.Models.Users;
 

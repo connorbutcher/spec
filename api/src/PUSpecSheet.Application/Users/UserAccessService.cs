@@ -1,5 +1,5 @@
+using PUSpecSheet.Abstractions.Users;
 using PUSpecSheet.Application.Users.Queries;
-using PUSpecSheet.Contracts.Users;
 using PUSpecSheet.Database;
 
 namespace PUSpecSheet.Application.Users;

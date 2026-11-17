@@ -1,7 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
+using PUSpecSheet.Abstractions.Published;
 using PUSpecSheet.Application.Common;
-using PUSpecSheet.Contracts.Published;
 
 namespace PUSpecSheet.Application.Published.Rows;
 

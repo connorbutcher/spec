@@ -8,16 +8,18 @@ How the API is put together and how to change it. Running it, the linters and th
 src/PUSpecSheet.Api           ASP.NET Core host. Controllers (by area), authorization, exception handling, OpenAPI, compression, CORS.
 src/PUSpecSheet.Application   Use cases. One folder per feature: the service each controller calls, the rules it applies
                               and the EF Core queries it shares (<Feature>/Queries), against the DbContext in Database.
-src/PUSpecSheet.Contracts     Request and response records. The only types that cross the HTTP boundary.
 src/PUSpecSheet.Database      The EF Core side of the database (database first): the DbContext, the Db* entity classes
                               (DbSheet, DbSheetRowRevision, ...) in Models/<Area>, one configuration class per entity
-                              in Configurations/<Area>, and development seed data. No migrations: the schema is owned by the SQL project in database/.
-src/PUSpecSheet.Domain        Enums, configuration records and rules that need nothing but themselves. No EF Core either.
+                              in Configurations/<Area>, and the static mappers from entities to DTOs in Mappers.
+                              No migrations: the schema is owned by the SQL project in database/.
+src/PUSpecSheet.Abstractions  What needs nothing but itself, one folder per area (Sheets, Templates, CellTypes, ...):
+                              the request and response records that cross the HTTP boundary, and the enums,
+                              configuration records and rules everything else shares. No EF Core.
 tests/PUSpecSheet.*.Tests     One test project per source project.
 tools/PUSpecSheet.Migrator    One-off console tool that moves sheets from the old flat layout onto revisions; see its README.
 ```
 
-References go one way: `Api -> Application -> Database -> Domain`. `Database` is the only project that knows EF Core's model (the DbContext, the `Db*` classes and their configurations); `Application` queries it directly, with no repository layer in between. `Contracts` is used by `Api` and `Application` and references `Domain` only for enums and the cell configuration records. Nothing references `Api`.
+References go one way: `Api -> Application -> Database -> Abstractions`. `Database` is the only project that knows EF Core's model (the DbContext, the `Db*` classes and their configurations); `Application` queries it directly, with no repository layer in between. `Abstractions` references nothing, so anything (the UI's contract, the migrator, tests) can use it. Nothing references `Api`.
 
 ### Data access
 
@@ -113,7 +115,7 @@ To try it before sign-in exists, Development seeds two more users (`engineer2`, 
 
 ## Sheets of a phase and their identifiers
 
-A phase can hold many sheets of a sheet type, told apart by the type's identifiers (`setup.SheetTypeIdentifiers`, managed under `api/sheet-types/{id}/identifiers`): an engine specification's serial number, say. A sheet's values are given when it is created (`POST api/phases/{phaseId}/sheets`, `Sheets/Catalog/SheetCreator`) and never change. The values live only in `spec.SheetIdentifierValues`; `spec.Sheets` holds nothing about them. `SheetIdentifierRules` in Domain puts each value in one stored form per kind and builds a comparison key from them in memory. `SheetCreator` takes an application lock for the phase and sheet type inside its transaction, then compares the new values with every sheet of that type in the phase, so two people creating the same sheet at once get one sheet and a 409. A sheet with no values is how a sheet type without identifiers keeps one sheet per phase, opened (and created) by `GET api/phases/{phaseId}/sheets/{sheetTypeId}` as before. Versioning is per sheet and unchanged.
+A phase can hold many sheets of a sheet type, told apart by the type's identifiers (`setup.SheetTypeIdentifiers`, managed under `api/sheet-types/{id}/identifiers`): an engine specification's serial number, say. A sheet's values are given when it is created (`POST api/phases/{phaseId}/sheets`, `Sheets/Catalog/SheetCreator`) and never change. The values live only in `spec.SheetIdentifierValues`; `spec.Sheets` holds nothing about them. `SheetIdentifierRules` in Abstractions puts each value in one stored form per kind and builds a comparison key from them in memory. `SheetCreator` takes an application lock for the phase and sheet type inside its transaction, then compares the new values with every sheet of that type in the phase, so two people creating the same sheet at once get one sheet and a 409. A sheet with no values is how a sheet type without identifiers keeps one sheet per phase, opened (and created) by `GET api/phases/{phaseId}/sheets/{sheetTypeId}` as before. Versioning is per sheet and unchanged.
 
 A new sheet can start as a copy of another of its type (`copyFromSheetId`): `SheetCopier` builds the source's current published tables, column blocks, sections, rows, cells, values and cell settings again on the new sheet as the creator's first drafts, with linked dropdowns pointed at the copies of the tables and rows they read.
 
@@ -133,7 +135,7 @@ In Development the API builds a showcase on start (`Application/Seeding`, run fr
 
 **Add an endpoint to an existing feature**
 
-1. Add the request/response records to `Contracts/<Feature>`, one per file, with data annotations for required fields, lengths and ranges.
+1. Add the request/response records to `Abstractions/<Feature>`, one per file, with data annotations for required fields, lengths and ranges.
 2. Add the method to the service interface and implement it. A query it needs goes in the service, or in the area's `Queries` class when another class needs it too.
 3. Add the action to the controller with XML comments (`<summary>`, `<remarks>`, `<param>`, `<response>` for each status it can return). 400, 403, 404 and 409 are documented where they apply by `ProblemResponsesConvention`; add `[ProducesResponseType]` only for anything else.
 4. Decide who may call it. An action that changes anything takes `[Authorize(Policy = PermissionKeys.X)]` (on the controller when every action shares it); `EndpointPermissionTests` fails if one is missing. A read needs nothing more: the fallback policy already requires a signed-in user. Only the published API is `[AllowAnonymous]`. A new permission is a constant in `PermissionKeys` (add it to `All`) and a row in the Permissions block of `database/Script.PostDeployment.sql`, added on the next deploy.

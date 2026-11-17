@@ -1,8 +1,8 @@
 using System.Globalization;
+using PUSpecSheet.Abstractions.CellTypes;
+using PUSpecSheet.Abstractions.CellTypes.Configurations;
 using PUSpecSheet.Application.Sheets.Values;
 using PUSpecSheet.Database.Models.CellTypes;
-using PUSpecSheet.Domain.CellTypes;
-using PUSpecSheet.Domain.CellTypes.Configurations;
 
 namespace PUSpecSheet.Application.Sheets.Linking;
 

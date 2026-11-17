@@ -1,8 +1,8 @@
+using PUSpecSheet.Abstractions.CellTypes;
+using PUSpecSheet.Abstractions.Templates;
 using PUSpecSheet.Application.Sheets.Linking;
 using PUSpecSheet.Database.Models.CellTypes;
 using PUSpecSheet.Database.Models.Templates;
-using PUSpecSheet.Domain.CellTypes;
-using PUSpecSheet.Domain.Templates;
 
 namespace PUSpecSheet.Application.Tests.Sheets.Linking;
 

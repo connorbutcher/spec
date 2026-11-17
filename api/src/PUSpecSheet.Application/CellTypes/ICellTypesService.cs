@@ -1,4 +1,4 @@
-using PUSpecSheet.Contracts.CellTypes;
+using PUSpecSheet.Abstractions.CellTypes;
 
 namespace PUSpecSheet.Application.CellTypes;
 

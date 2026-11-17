@@ -1,13 +1,13 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using PUSpecSheet.Abstractions.Approvals;
+using PUSpecSheet.Abstractions.Sheets;
+using PUSpecSheet.Abstractions.Users;
 using PUSpecSheet.Api.ApiDocumentation;
 using PUSpecSheet.Api.Published;
 using PUSpecSheet.Application.Sheets;
 using PUSpecSheet.Application.Sheets.Reading;
-using PUSpecSheet.Contracts.Approvals;
-using PUSpecSheet.Contracts.Sheets;
-using PUSpecSheet.Domain.Users;
 
 namespace PUSpecSheet.Api.Controllers.Sheets;
 

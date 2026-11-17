@@ -1,5 +1,5 @@
 using System.Globalization;
-using PUSpecSheet.Domain.CellTypes;
+using PUSpecSheet.Abstractions.CellTypes;
 
 namespace PUSpecSheet.Application.Published;
 

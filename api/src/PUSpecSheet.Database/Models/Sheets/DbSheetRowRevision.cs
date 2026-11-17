@@ -1,6 +1,6 @@
+using PUSpecSheet.Abstractions.Sheets;
 using PUSpecSheet.Database.Models.Users;
 using PUSpecSheet.Database.Models.Values;
-using PUSpecSheet.Domain.Sheets;
 
 namespace PUSpecSheet.Database.Models.Sheets;
 

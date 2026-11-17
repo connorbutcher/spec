@@ -1,6 +1,6 @@
+using PUSpecSheet.Abstractions.Users;
 using PUSpecSheet.Application.Users;
 using PUSpecSheet.Database.Models.Users;
-using PUSpecSheet.Domain.Users;
 
 namespace PUSpecSheet.Application.Tests.Users;
 

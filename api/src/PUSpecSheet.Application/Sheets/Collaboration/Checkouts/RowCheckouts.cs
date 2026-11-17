@@ -1,3 +1,4 @@
+using PUSpecSheet.Abstractions.Sheets;
 using PUSpecSheet.Application.Common;
 using PUSpecSheet.Application.Sheets.Collaboration.Presence;
 using PUSpecSheet.Application.Sheets.Drafts;
@@ -7,7 +8,6 @@ using PUSpecSheet.Application.Sheets.Values;
 using PUSpecSheet.Application.Users.Queries;
 using PUSpecSheet.Database;
 using PUSpecSheet.Database.Models.Sheets;
-using PUSpecSheet.Domain.Sheets;
 
 namespace PUSpecSheet.Application.Sheets.Collaboration.Checkouts;
 

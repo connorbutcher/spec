@@ -1,11 +1,11 @@
 using Microsoft.EntityFrameworkCore;
+using PUSpecSheet.Abstractions.CellTypes.InstanceSettings;
+using PUSpecSheet.Abstractions.Sheets;
 using PUSpecSheet.Application.Sheets.Revisions;
 using PUSpecSheet.Application.Users;
 using PUSpecSheet.Database;
 using PUSpecSheet.Database.Models.Sheets;
 using PUSpecSheet.Database.Models.Values;
-using PUSpecSheet.Domain.CellTypes.InstanceSettings;
-using PUSpecSheet.Domain.Sheets;
 
 namespace PUSpecSheet.Application.Sheets.Catalog;
 

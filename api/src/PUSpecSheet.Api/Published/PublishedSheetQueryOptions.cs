@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
+using PUSpecSheet.Abstractions.Published;
 using PUSpecSheet.Application.Published.Sheets;
-using PUSpecSheet.Contracts.Published;
 
 namespace PUSpecSheet.Api.Published;
 

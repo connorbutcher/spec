@@ -2,7 +2,7 @@
   <!-- The EF Core side of the database: the DbContext, the Db* entities and their mappings. The schema itself is owned by
        the SQL database project in database/ (database first), so there are no migrations here. -->
   <ItemGroup>
-    <ProjectReference Include="..\PUSpecSheet.Domain\PUSpecSheet.Domain.csproj" />
+    <ProjectReference Include="..\PUSpecSheet.Abstractions\PUSpecSheet.Abstractions.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.14" />

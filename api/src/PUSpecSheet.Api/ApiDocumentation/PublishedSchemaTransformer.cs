@@ -1,7 +1,7 @@
 using System.Text.Json.Nodes;
 using Microsoft.AspNetCore.OpenApi;
 using Microsoft.OpenApi;
-using PUSpecSheet.Contracts.Published;
+using PUSpecSheet.Abstractions.Published;
 
 namespace PUSpecSheet.Api.ApiDocumentation;
 

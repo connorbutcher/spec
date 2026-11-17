@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using PUSpecSheet.Abstractions.Templates;
 using PUSpecSheet.Database.Conversions;
 using PUSpecSheet.Database.Models.Templates;
-using PUSpecSheet.Domain.Templates;
 
 namespace PUSpecSheet.Database.Configurations.Templates;
 

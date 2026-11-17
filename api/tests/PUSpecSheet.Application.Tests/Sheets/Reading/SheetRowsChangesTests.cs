@@ -1,7 +1,6 @@
+using PUSpecSheet.Abstractions.Sheets;
+using PUSpecSheet.Abstractions.Templates;
 using PUSpecSheet.Application.Sheets.Reading;
-using PUSpecSheet.Contracts.Sheets;
-using PUSpecSheet.Contracts.Templates;
-using PUSpecSheet.Domain.Templates;
 
 namespace PUSpecSheet.Application.Tests.Sheets.Reading;
 

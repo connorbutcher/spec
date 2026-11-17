@@ -1,5 +1,5 @@
-using PUSpecSheet.Contracts.Sheets;
-using PUSpecSheet.Domain.CellTypes.InstanceSettings;
+using PUSpecSheet.Abstractions.CellTypes.InstanceSettings;
+using PUSpecSheet.Abstractions.Sheets;
 
 namespace PUSpecSheet.Application.Sheets.Linking;
 

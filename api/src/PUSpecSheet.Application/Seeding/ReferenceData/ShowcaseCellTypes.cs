@@ -1,10 +1,10 @@
+using PUSpecSheet.Abstractions.CellTypes;
+using PUSpecSheet.Abstractions.CellTypes.Configurations;
+using PUSpecSheet.Abstractions.CellTypes.LabelledText;
+using PUSpecSheet.Abstractions.CellTypes.Styles;
 using PUSpecSheet.Application.CellTypes.Queries;
 using PUSpecSheet.Database;
 using PUSpecSheet.Database.Models.CellTypes;
-using PUSpecSheet.Domain.CellTypes;
-using PUSpecSheet.Domain.CellTypes.Configurations;
-using PUSpecSheet.Domain.CellTypes.LabelledText;
-using PUSpecSheet.Domain.CellTypes.Styles;
 
 namespace PUSpecSheet.Application.Seeding.ReferenceData;
 

@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
+using PUSpecSheet.Abstractions.Sheets;
 using PUSpecSheet.Application.Sheets.Revisions;
 using PUSpecSheet.Database;
-using PUSpecSheet.Domain.Sheets;
 using PUSpecSheet.Migrator.Snapshots;
 
 namespace PUSpecSheet.Migrator.Verification;

@@ -1,4 +1,4 @@
-using PUSpecSheet.Contracts.Phases;
+using PUSpecSheet.Abstractions.Phases;
 
 namespace PUSpecSheet.Application.Phases;
 

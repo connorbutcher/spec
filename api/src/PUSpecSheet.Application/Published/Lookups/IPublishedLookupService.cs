@@ -1,5 +1,5 @@
+using PUSpecSheet.Abstractions.Published;
 using PUSpecSheet.Application.Published.Versions;
-using PUSpecSheet.Contracts.Published;
 
 namespace PUSpecSheet.Application.Published.Lookups;
 

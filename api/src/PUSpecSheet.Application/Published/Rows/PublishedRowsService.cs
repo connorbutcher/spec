@@ -1,8 +1,8 @@
+using PUSpecSheet.Abstractions.Published;
 using PUSpecSheet.Application.Common;
 using PUSpecSheet.Application.Published.Lookups;
 using PUSpecSheet.Application.Published.Queries;
 using PUSpecSheet.Application.Published.Versions;
-using PUSpecSheet.Contracts.Published;
 using PUSpecSheet.Database;
 
 namespace PUSpecSheet.Application.Published.Rows;

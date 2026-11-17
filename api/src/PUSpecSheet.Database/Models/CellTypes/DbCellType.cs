@@ -1,6 +1,6 @@
-using PUSpecSheet.Domain.CellTypes;
-using PUSpecSheet.Domain.CellTypes.Configurations;
-using PUSpecSheet.Domain.CellTypes.Styles;
+using PUSpecSheet.Abstractions.CellTypes;
+using PUSpecSheet.Abstractions.CellTypes.Configurations;
+using PUSpecSheet.Abstractions.CellTypes.Styles;
 
 namespace PUSpecSheet.Database.Models.CellTypes;
 

@@ -1,8 +1,8 @@
+using PUSpecSheet.Abstractions.Sheets.Collaboration;
 using PUSpecSheet.Application.Common;
 using PUSpecSheet.Application.Sheets.Collaboration.Checkouts;
 using PUSpecSheet.Application.Sheets.Collaboration.Presence;
 using PUSpecSheet.Application.Sheets.Collaboration.Takeovers;
-using PUSpecSheet.Contracts.Sheets.Collaboration;
 
 namespace PUSpecSheet.Application.Tests.Sheets.Collaboration.Checkouts;
 

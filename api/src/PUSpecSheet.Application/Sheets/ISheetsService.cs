@@ -1,6 +1,6 @@
+using PUSpecSheet.Abstractions.Approvals;
+using PUSpecSheet.Abstractions.Sheets;
 using PUSpecSheet.Application.Sheets.Reading;
-using PUSpecSheet.Contracts.Approvals;
-using PUSpecSheet.Contracts.Sheets;
 
 namespace PUSpecSheet.Application.Sheets;
 

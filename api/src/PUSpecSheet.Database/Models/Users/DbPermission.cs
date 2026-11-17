@@ -1,5 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
-using PUSpecSheet.Domain.Users;
+using PUSpecSheet.Abstractions.Users;
 
 namespace PUSpecSheet.Database.Models.Users;
 

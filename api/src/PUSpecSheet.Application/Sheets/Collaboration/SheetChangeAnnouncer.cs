@@ -1,5 +1,5 @@
-using PUSpecSheet.Contracts.Sheets;
-using PUSpecSheet.Contracts.Sheets.Collaboration;
+using PUSpecSheet.Abstractions.Sheets;
+using PUSpecSheet.Abstractions.Sheets.Collaboration;
 
 namespace PUSpecSheet.Application.Sheets.Collaboration;
 

@@ -1,11 +1,10 @@
+using PUSpecSheet.Abstractions.Approvals;
+using PUSpecSheet.Abstractions.Sheets;
+using PUSpecSheet.Abstractions.Sheets.Collaboration;
 using PUSpecSheet.Application.Sheets.Collaboration;
 using PUSpecSheet.Application.Sheets.Reading;
 using PUSpecSheet.Application.Users;
-using PUSpecSheet.Contracts.Approvals;
-using PUSpecSheet.Contracts.Sheets;
-using PUSpecSheet.Contracts.Sheets.Collaboration;
 using PUSpecSheet.Database.Models.Approvals;
-using PUSpecSheet.Domain.Approvals;
 
 namespace PUSpecSheet.Application.Approvals;
 

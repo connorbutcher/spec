@@ -1,11 +1,11 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using PUSpecSheet.Abstractions.Common;
+using PUSpecSheet.Abstractions.Sheets;
+using PUSpecSheet.Abstractions.Users;
 using PUSpecSheet.Api.ApiDocumentation;
 using PUSpecSheet.Application.Sheets.Editing;
 using PUSpecSheet.Application.Sheets.Reading;
-using PUSpecSheet.Contracts.Common;
-using PUSpecSheet.Contracts.Sheets;
-using PUSpecSheet.Domain.Users;
 
 namespace PUSpecSheet.Api.Controllers.Sheets;
 

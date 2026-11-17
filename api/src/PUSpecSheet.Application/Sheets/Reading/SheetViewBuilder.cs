@@ -1,14 +1,12 @@
+using PUSpecSheet.Abstractions.CellTypes;
+using PUSpecSheet.Abstractions.Sheets;
+using PUSpecSheet.Abstractions.Templates;
 using PUSpecSheet.Application.Sheets.Drafts;
 using PUSpecSheet.Application.Sheets.History;
 using PUSpecSheet.Application.Sheets.Linking;
 using PUSpecSheet.Application.Sheets.Revisions;
 using PUSpecSheet.Application.Sheets.Values;
-using PUSpecSheet.Contracts.Sheets;
-using PUSpecSheet.Contracts.Templates;
 using PUSpecSheet.Database.Models.Sheets;
-using PUSpecSheet.Domain.CellTypes;
-using PUSpecSheet.Domain.Sheets;
-using PUSpecSheet.Domain.Templates;
 
 namespace PUSpecSheet.Application.Sheets.Reading;
 

@@ -2,11 +2,11 @@ using System.Reflection;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Routing;
+using PUSpecSheet.Abstractions.Users;
 using PUSpecSheet.Api.Controllers.ReferenceData;
 using PUSpecSheet.Api.Controllers.Sheets;
 using PUSpecSheet.Api.Controllers.Templates;
 using PUSpecSheet.Api.Controllers.Users;
-using PUSpecSheet.Domain.Users;
 
 namespace PUSpecSheet.Api.Tests.Authorization;
 

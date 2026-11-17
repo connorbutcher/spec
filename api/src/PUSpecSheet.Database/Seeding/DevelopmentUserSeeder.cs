@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using PUSpecSheet.Abstractions.Users;
 using PUSpecSheet.Database.Models.Users;
-using PUSpecSheet.Domain.Users;
 
 namespace PUSpecSheet.Database.Seeding;
 

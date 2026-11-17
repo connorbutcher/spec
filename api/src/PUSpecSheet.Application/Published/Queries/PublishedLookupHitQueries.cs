@@ -1,10 +1,10 @@
 using Microsoft.EntityFrameworkCore;
+using PUSpecSheet.Abstractions.Sheets;
+using PUSpecSheet.Abstractions.Templates;
 using PUSpecSheet.Application.Published.Lookups;
 using PUSpecSheet.Database;
 using PUSpecSheet.Database.Configurations.Values;
 using PUSpecSheet.Database.Models.Values;
-using PUSpecSheet.Domain.Sheets;
-using PUSpecSheet.Domain.Templates;
 
 namespace PUSpecSheet.Application.Published.Queries;
 

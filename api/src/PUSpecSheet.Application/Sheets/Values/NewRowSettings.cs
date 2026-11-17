@@ -1,10 +1,10 @@
+using PUSpecSheet.Abstractions.CellTypes.InstanceSettings;
 using PUSpecSheet.Application.Common;
 using PUSpecSheet.Application.Sheets.Queries;
 using PUSpecSheet.Application.Sheets.Revisions;
 using PUSpecSheet.Application.Users;
 using PUSpecSheet.Database;
 using PUSpecSheet.Database.Models.Sheets;
-using PUSpecSheet.Domain.CellTypes.InstanceSettings;
 
 namespace PUSpecSheet.Application.Sheets.Values;
 

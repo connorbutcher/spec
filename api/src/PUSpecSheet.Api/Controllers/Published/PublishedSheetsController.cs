@@ -1,10 +1,10 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using PUSpecSheet.Abstractions.Published;
 using PUSpecSheet.Api.ApiDocumentation;
 using PUSpecSheet.Api.Published;
 using PUSpecSheet.Application.Published.Sheets;
 using PUSpecSheet.Application.Published.Versions;
-using PUSpecSheet.Contracts.Published;
 
 namespace PUSpecSheet.Api.Controllers.Published;
 

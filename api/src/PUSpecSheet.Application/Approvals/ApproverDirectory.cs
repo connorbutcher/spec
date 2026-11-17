@@ -1,8 +1,8 @@
+using PUSpecSheet.Abstractions.Approvals;
+using PUSpecSheet.Abstractions.Users;
 using PUSpecSheet.Application.Common;
 using PUSpecSheet.Application.Users.Queries;
-using PUSpecSheet.Contracts.Approvals;
 using PUSpecSheet.Database;
-using PUSpecSheet.Domain.Users;
 
 namespace PUSpecSheet.Application.Approvals;
 

@@ -1,11 +1,11 @@
+using PUSpecSheet.Abstractions.CellTypes;
+using PUSpecSheet.Abstractions.CellTypes.Configurations;
+using PUSpecSheet.Abstractions.CellTypes.Styles;
+using PUSpecSheet.Abstractions.Templates;
 using PUSpecSheet.Application.CellTypes;
 using PUSpecSheet.Application.Common;
 using PUSpecSheet.Application.Templates.Queries;
-using PUSpecSheet.Contracts.Templates;
 using PUSpecSheet.Database;
-using PUSpecSheet.Domain.CellTypes;
-using PUSpecSheet.Domain.CellTypes.Configurations;
-using PUSpecSheet.Domain.CellTypes.Styles;
 
 namespace PUSpecSheet.Application.Templates.Cells;
 

@@ -1,12 +1,12 @@
 using Microsoft.EntityFrameworkCore;
+using PUSpecSheet.Abstractions.Sheets;
+using PUSpecSheet.Abstractions.SheetTypes;
 using PUSpecSheet.Application.Common;
 using PUSpecSheet.Application.Phases.Queries;
 using PUSpecSheet.Application.Sheets.Queries;
 using PUSpecSheet.Application.SheetTypes.Queries;
-using PUSpecSheet.Contracts.Sheets;
 using PUSpecSheet.Database;
 using PUSpecSheet.Database.Models.Sheets;
-using PUSpecSheet.Domain.SheetTypes;
 
 namespace PUSpecSheet.Application.Sheets.Catalog;
 

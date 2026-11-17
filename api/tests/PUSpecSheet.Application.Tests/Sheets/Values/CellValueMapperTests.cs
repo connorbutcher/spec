@@ -1,7 +1,7 @@
 using System.Text.Json;
+using PUSpecSheet.Abstractions.CellTypes;
 using PUSpecSheet.Application.Common;
 using PUSpecSheet.Application.Sheets.Values;
-using PUSpecSheet.Domain.CellTypes;
 
 namespace PUSpecSheet.Application.Tests.Sheets.Values;
 

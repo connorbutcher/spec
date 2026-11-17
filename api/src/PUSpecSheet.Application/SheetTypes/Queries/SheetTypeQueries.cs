@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using PUSpecSheet.Contracts.SheetTypes;
+using PUSpecSheet.Abstractions.SheetTypes;
 using PUSpecSheet.Database;
 
 namespace PUSpecSheet.Application.SheetTypes.Queries;

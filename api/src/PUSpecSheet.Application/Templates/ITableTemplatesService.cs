@@ -1,4 +1,4 @@
-using PUSpecSheet.Contracts.Templates;
+using PUSpecSheet.Abstractions.Templates;
 
 namespace PUSpecSheet.Application.Templates;
 

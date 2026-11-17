@@ -1,8 +1,8 @@
+using PUSpecSheet.Abstractions.CellTypes.InstanceSettings;
+using PUSpecSheet.Abstractions.CellTypes.LabelledText;
+using PUSpecSheet.Abstractions.Sheets;
 using PUSpecSheet.Application.Seeding.ReferenceData;
 using PUSpecSheet.Application.Seeding.Templates;
-using PUSpecSheet.Contracts.Sheets;
-using PUSpecSheet.Domain.CellTypes.InstanceSettings;
-using PUSpecSheet.Domain.CellTypes.LabelledText;
 
 namespace PUSpecSheet.Application.Seeding.Sheets;
 

@@ -1,7 +1,7 @@
+using PUSpecSheet.Abstractions.Users;
 using PUSpecSheet.Application.Users;
 using PUSpecSheet.Application.Users.Queries;
 using PUSpecSheet.Database;
-using PUSpecSheet.Domain.Users;
 
 namespace PUSpecSheet.Application.Seeding.ReferenceData;
 

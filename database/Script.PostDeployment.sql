@@ -1,7 +1,7 @@
 /*
     Reference data every PUSpecSheet database starts with. Runs after every deployment of this project, so each
     block only adds what is missing and never overwrites rows people may have edited since (cell types, sheet types).
-    Permissions are the exception: they are defined by the code (PUSpecSheet.Domain.Users.PermissionKeys), so their
+    Permissions are the exception: they are defined by the code (PUSpecSheet.Abstractions.Users.PermissionKeys), so their
     keys and descriptions are kept in step with it on every deployment. One row per PermissionKeys constant.
 */
 

@@ -1,7 +1,7 @@
+using PUSpecSheet.Abstractions.CellTypes.Configurations;
+using PUSpecSheet.Abstractions.CellTypes.Styles;
+using PUSpecSheet.Abstractions.Templates;
 using PUSpecSheet.Application.Seeding.ReferenceData;
-using PUSpecSheet.Domain.CellTypes.Configurations;
-using PUSpecSheet.Domain.CellTypes.Styles;
-using PUSpecSheet.Domain.Templates;
 
 namespace PUSpecSheet.Application.Seeding.Templates;
 

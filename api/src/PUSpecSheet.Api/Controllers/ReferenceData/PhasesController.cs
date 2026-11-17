@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using PUSpecSheet.Abstractions.Phases;
+using PUSpecSheet.Abstractions.Users;
 using PUSpecSheet.Api.ApiDocumentation;
 using PUSpecSheet.Application.Phases;
-using PUSpecSheet.Contracts.Phases;
-using PUSpecSheet.Domain.Users;
 
 namespace PUSpecSheet.Api.Controllers.ReferenceData;
 

@@ -1,11 +1,10 @@
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
+using PUSpecSheet.Abstractions.Sheets;
 using PUSpecSheet.Application.Sheets.Drafts;
 using PUSpecSheet.Application.Sheets.Removal;
 using PUSpecSheet.Application.Sheets.Revisions;
-using PUSpecSheet.Contracts.Sheets;
 using PUSpecSheet.Database.Models.Sheets;
-using PUSpecSheet.Domain.Sheets;
 
 namespace PUSpecSheet.Application.Sheets.Queries;
 

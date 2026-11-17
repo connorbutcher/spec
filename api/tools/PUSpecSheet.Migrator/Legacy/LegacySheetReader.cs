@@ -1,7 +1,7 @@
 using System.Data;
 using Microsoft.Data.SqlClient;
+using PUSpecSheet.Abstractions.CellTypes.InstanceSettings;
 using PUSpecSheet.Database.Conversions;
-using PUSpecSheet.Domain.CellTypes.InstanceSettings;
 using PUSpecSheet.Migrator.Snapshots;
 
 namespace PUSpecSheet.Migrator.Legacy;

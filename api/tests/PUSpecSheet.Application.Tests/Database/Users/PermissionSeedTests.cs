@@ -1,5 +1,5 @@
 using System.Text.RegularExpressions;
-using PUSpecSheet.Domain.Users;
+using PUSpecSheet.Abstractions.Users;
 
 namespace PUSpecSheet.Application.Tests.Database.Users;
 

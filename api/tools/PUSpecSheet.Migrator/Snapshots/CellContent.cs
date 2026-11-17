@@ -1,7 +1,7 @@
 using System.Globalization;
 using System.Text.Json;
+using PUSpecSheet.Abstractions.CellTypes.InstanceSettings;
 using PUSpecSheet.Database.Conversions;
-using PUSpecSheet.Domain.CellTypes.InstanceSettings;
 
 namespace PUSpecSheet.Migrator.Snapshots;
 

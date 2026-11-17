@@ -1,5 +1,5 @@
+using PUSpecSheet.Abstractions.CellTypes;
 using PUSpecSheet.Database.Models.CellTypes;
-using PUSpecSheet.Domain.CellTypes;
 
 namespace PUSpecSheet.Application.Seeding.ReferenceData;
 

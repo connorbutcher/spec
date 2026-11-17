@@ -1,10 +1,10 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using PUSpecSheet.Abstractions.Common;
+using PUSpecSheet.Abstractions.Templates;
+using PUSpecSheet.Abstractions.Users;
 using PUSpecSheet.Api.ApiDocumentation;
 using PUSpecSheet.Application.Templates.Sections;
-using PUSpecSheet.Contracts.Common;
-using PUSpecSheet.Contracts.Templates;
-using PUSpecSheet.Domain.Users;
 
 namespace PUSpecSheet.Api.Controllers.Templates;
 

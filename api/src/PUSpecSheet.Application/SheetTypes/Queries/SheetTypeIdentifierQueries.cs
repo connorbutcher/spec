@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using PUSpecSheet.Abstractions.SheetTypes;
 using PUSpecSheet.Database;
-using PUSpecSheet.Domain.SheetTypes;
 
 namespace PUSpecSheet.Application.SheetTypes.Queries;
 

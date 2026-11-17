@@ -1,5 +1,5 @@
+using PUSpecSheet.Abstractions.Sheets.Collaboration;
 using PUSpecSheet.Application.Sheets.Collaboration.Checkouts;
-using PUSpecSheet.Contracts.Sheets.Collaboration;
 
 namespace PUSpecSheet.Application.Sheets.Collaboration.Takeovers;
 

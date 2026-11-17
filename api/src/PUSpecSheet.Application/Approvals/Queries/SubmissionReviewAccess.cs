@@ -1,4 +1,4 @@
-using PUSpecSheet.Domain.Approvals;
+using PUSpecSheet.Abstractions.Approvals;
 
 namespace PUSpecSheet.Application.Approvals.Queries;
 

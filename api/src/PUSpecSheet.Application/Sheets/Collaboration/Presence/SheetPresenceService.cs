@@ -1,9 +1,9 @@
+using PUSpecSheet.Abstractions.Sheets.Collaboration;
 using PUSpecSheet.Application.Common;
 using PUSpecSheet.Application.Sheets.Collaboration.Checkouts;
 using PUSpecSheet.Application.Sheets.Collaboration.Takeovers;
 using PUSpecSheet.Application.Sheets.Queries;
 using PUSpecSheet.Application.Users.Queries;
-using PUSpecSheet.Contracts.Sheets.Collaboration;
 using PUSpecSheet.Database;
 
 namespace PUSpecSheet.Application.Sheets.Collaboration.Presence;

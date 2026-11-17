@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using PUSpecSheet.Abstractions.SheetTypes;
+using PUSpecSheet.Abstractions.Users;
 using PUSpecSheet.Api.ApiDocumentation;
 using PUSpecSheet.Application.SheetTypes;
-using PUSpecSheet.Contracts.SheetTypes;
-using PUSpecSheet.Domain.Users;
 
 namespace PUSpecSheet.Api.Controllers.ReferenceData;
 

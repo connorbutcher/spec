@@ -1,7 +1,7 @@
 using System.Globalization;
+using PUSpecSheet.Abstractions.CellTypes;
 using PUSpecSheet.Application.Common;
 using PUSpecSheet.Database.Models.CellTypes;
-using PUSpecSheet.Domain.CellTypes;
 
 namespace PUSpecSheet.Application.CellTypes;
 

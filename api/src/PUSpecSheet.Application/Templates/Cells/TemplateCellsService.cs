@@ -1,7 +1,7 @@
+using PUSpecSheet.Abstractions.Templates;
 using PUSpecSheet.Application.CellTypes.Queries;
 using PUSpecSheet.Application.Common;
 using PUSpecSheet.Application.Templates.Queries;
-using PUSpecSheet.Contracts.Templates;
 using PUSpecSheet.Database;
 using PUSpecSheet.Database.Models.Templates;
 

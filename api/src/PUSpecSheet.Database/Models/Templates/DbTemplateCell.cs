@@ -1,7 +1,7 @@
+using PUSpecSheet.Abstractions.CellTypes.Configurations;
+using PUSpecSheet.Abstractions.CellTypes.Styles;
+using PUSpecSheet.Abstractions.Templates;
 using PUSpecSheet.Database.Models.CellTypes;
-using PUSpecSheet.Domain.CellTypes.Configurations;
-using PUSpecSheet.Domain.CellTypes.Styles;
-using PUSpecSheet.Domain.Templates;
 
 namespace PUSpecSheet.Database.Models.Templates;
 

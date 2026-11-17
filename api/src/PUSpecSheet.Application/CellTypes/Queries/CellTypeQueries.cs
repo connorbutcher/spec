@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
+using PUSpecSheet.Abstractions.CellTypes;
+using PUSpecSheet.Abstractions.CellTypes.Configurations;
 using PUSpecSheet.Database;
 using PUSpecSheet.Database.Models.CellTypes;
-using PUSpecSheet.Domain.CellTypes;
-using PUSpecSheet.Domain.CellTypes.Configurations;
 
 namespace PUSpecSheet.Application.CellTypes.Queries;
 

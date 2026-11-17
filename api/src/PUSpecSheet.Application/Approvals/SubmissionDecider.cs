@@ -1,10 +1,10 @@
+using PUSpecSheet.Abstractions.Approvals;
 using PUSpecSheet.Application.Approvals.Queries;
 using PUSpecSheet.Application.Common;
 using PUSpecSheet.Application.Sheets.Publishing;
 using PUSpecSheet.Application.Users;
 using PUSpecSheet.Database;
 using PUSpecSheet.Database.Models.Approvals;
-using PUSpecSheet.Domain.Approvals;
 
 namespace PUSpecSheet.Application.Approvals;
 

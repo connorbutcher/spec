@@ -1,5 +1,5 @@
+using PUSpecSheet.Abstractions.Approvals;
 using PUSpecSheet.Database.Models.Users;
-using PUSpecSheet.Domain.Approvals;
 
 namespace PUSpecSheet.Database.Models.Approvals;
 

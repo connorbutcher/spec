@@ -1,7 +1,7 @@
+using PUSpecSheet.Abstractions.CellTypes;
 using PUSpecSheet.Application.Published;
 using PUSpecSheet.Application.Published.Lookups;
 using PUSpecSheet.Application.Published.Versions;
-using PUSpecSheet.Domain.CellTypes;
 
 namespace PUSpecSheet.Application.Tests.Published.Lookups;
 

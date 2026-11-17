@@ -1,5 +1,5 @@
 using System.Linq.Expressions;
-using PUSpecSheet.Contracts.SheetTypes;
+using PUSpecSheet.Abstractions.SheetTypes;
 using PUSpecSheet.Database.Models.SheetTypes;
 
 namespace PUSpecSheet.Application.SheetTypes;
