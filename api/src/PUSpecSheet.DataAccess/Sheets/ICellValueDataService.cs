@@ -1,5 +1,6 @@
 using PUSpecSheet.Abstractions.CellTypes.InstanceSettings;
 using PUSpecSheet.Abstractions.CellTypes.LabelledText;
+using PUSpecSheet.DataAccess.Sheets.Catalog;
 using PUSpecSheet.DataAccess.Sheets.Queries;
 using PUSpecSheet.DataAccess.Sheets.Values;
 
@@ -39,4 +40,6 @@ public interface ICellValueDataService
     Task<Dictionary<int, CellValueBag>> LoadCellValuesAsync(
         int rowRevisionId,
         CancellationToken cancellationToken);
+
+    Task<SheetValuesCopy> ListCurrentOnSheetAsync(int sheetId, CancellationToken cancellationToken);
 }

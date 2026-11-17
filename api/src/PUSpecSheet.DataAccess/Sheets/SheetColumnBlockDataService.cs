@@ -82,4 +82,20 @@ public sealed class SheetColumnBlockDataService : ISheetColumnBlockDataService
         await _db.SheetCells.Where(cell => cell.SheetColumnBlockId != null && blockIds.Contains(cell.SheetColumnBlockId.Value)).ExecuteDeleteAsync(cancellationToken);
         await _db.SheetColumnBlocks.Where(block => blockIds.Contains(block.Id)).ExecuteDeleteAsync(cancellationToken);
     }
+
+    public async Task<List<DbSheetColumnBlockRevision>> ListCurrentOnSheetAsync(int sheetId, CancellationToken cancellationToken)
+    {
+        return await _db.SheetColumnBlockRevisions
+            .AsNoTracking()
+            .Where(revision => revision.SheetId == sheetId)
+            .Current()
+            .Where(revision => !revision.IsDeleted)
+            .Include(revision => revision.SheetColumnBlock)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task SupersedeCurrentAsync(IReadOnlyCollection<int> columnBlockIds, DateTime nowUtc, CancellationToken cancellationToken)
+    {
+        await _db.SheetColumnBlockRevisions.Where(revision => columnBlockIds.Contains(revision.SheetColumnBlockId)).SupersedeCurrentAsync(nowUtc, cancellationToken);
+    }
 }

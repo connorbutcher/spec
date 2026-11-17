@@ -10,13 +10,15 @@ namespace PUSpecSheet.DataAccess.Sheets.Layout;
 // the same cell or leave a gap.
 public sealed class SheetCellFiller : ISheetCellFiller
 {
-    private const int LockTimeoutMilliseconds = 15000;
-
     private readonly PuSpecSheetDbContext _db;
+    private readonly ISheetTableDataService _sheetTableData;
+    private readonly ISheetCellDataService _sheetCellData;
 
-    public SheetCellFiller(PuSpecSheetDbContext db)
+    public SheetCellFiller(PuSpecSheetDbContext db, ISheetTableDataService sheetTableData, ISheetCellDataService sheetCellData)
     {
         _db = db;
+        _sheetTableData = sheetTableData;
+        _sheetCellData = sheetCellData;
     }
 
     public async Task FillAsync(int tableId, CancellationToken cancellationToken)
@@ -28,7 +30,7 @@ public sealed class SheetCellFiller : ISheetCellFiller
 
         try
         {
-            await TakeTableLockAsync(tableId, cancellationToken);
+            await _sheetTableData.LockForCellsAsync(tableId, cancellationToken);
             await AddMissingCellsAsync(tableId, cancellationToken);
             if (transaction is not null)
             {
@@ -46,7 +48,7 @@ public sealed class SheetCellFiller : ISheetCellFiller
 
     private async Task AddMissingCellsAsync(int tableId, CancellationToken cancellationToken)
     {
-        var missing = await PlanMissingCellsAsync(tableId, cancellationToken);
+        var missing = await _sheetCellData.ListMissingAsync(tableId, cancellationToken);
         if (missing.Count > 0)
         {
             _db.SheetCells.AddRange(missing.Select(cell => new DbSheetCell
@@ -57,58 +59,5 @@ public sealed class SheetCellFiller : ISheetCellFiller
             }));
             await _db.SaveSheetChangesAsync(cancellationToken);
         }
-    }
-
-    private async Task<IReadOnlyList<(int SheetRowId, int TemplateCellId, int? SheetColumnBlockId)>> PlanMissingCellsAsync(
-        int tableId,
-        CancellationToken cancellationToken)
-    {
-        var versionId = await _db.SheetTables
-            .Where(table => table.Id == tableId)
-            .Select(table => table.TableTemplateVersionId)
-            .SingleAsync(cancellationToken);
-
-        var rows = await _db.SheetRows
-            .AsNoTracking()
-            .Where(row => row.SheetSection.SheetTableId == tableId)
-            .Select(row => new { row.Id, row.TemplateRowId })
-            .ToListAsync(cancellationToken);
-        var templateCells = await _db.TemplateCells
-            .AsNoTracking()
-            .Where(cell => cell.TemplateRow.TemplateSection.TableTemplateVersionId == versionId)
-            .Select(cell => new { cell.Id, cell.TemplateRowId, cell.TemplateColumnBlockId })
-            .ToListAsync(cancellationToken);
-        var blocks = await _db.SheetColumnBlocks
-            .AsNoTracking()
-            .Where(block => block.SheetTableId == tableId)
-            .Select(block => new { block.Id, block.TemplateColumnBlockId })
-            .ToListAsync(cancellationToken);
-        var existing = await _db.SheetCells
-            .AsNoTracking()
-            .Where(cell => cell.SheetRow.SheetSection.SheetTableId == tableId)
-            .Select(cell => new { cell.SheetRowId, cell.TemplateCellId, cell.SheetColumnBlockId })
-            .ToListAsync(cancellationToken);
-
-        return SheetCellPlanner.Missing(
-            rows.Select(row => (row.Id, row.TemplateRowId)),
-            templateCells.Select(cell => (cell.Id, cell.TemplateRowId, cell.TemplateColumnBlockId)),
-            blocks.Select(block => (block.Id, block.TemplateColumnBlockId)),
-            existing.Select(cell => (cell.SheetRowId, cell.TemplateCellId, cell.SheetColumnBlockId)));
-    }
-
-    private async Task TakeTableLockAsync(int tableId, CancellationToken cancellationToken)
-    {
-        var resource = $"SheetCells:{tableId}";
-        await _db.Database.ExecuteSqlAsync(
-            $"""
-            DECLARE @result int;
-            EXEC @result = sp_getapplock
-                @Resource = {resource},
-                @LockMode = 'Exclusive',
-                @LockOwner = 'Transaction',
-                @LockTimeout = {LockTimeoutMilliseconds};
-            IF @result < 0 THROW 50000, 'Another change to this table is taking too long. Try again.', 1;
-            """,
-            cancellationToken);
     }
 }

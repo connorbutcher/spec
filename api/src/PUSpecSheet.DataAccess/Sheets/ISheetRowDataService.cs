@@ -43,4 +43,8 @@ public interface ISheetRowDataService
     Task<List<ContainedHold>> ListHoldsInSectionsAsync(IReadOnlyCollection<int> sectionIds, int userId, CancellationToken cancellationToken);
 
     Task<List<ContainedHold>> ListHoldsOnTableAsync(int tableId, int userId, CancellationToken cancellationToken);
+
+    Task<List<DbSheetRowRevision>> ListCurrentOnSheetAsync(int sheetId, CancellationToken cancellationToken);
+
+    Task SupersedeCurrentAsync(IReadOnlyCollection<int> rowIds, DateTime nowUtc, CancellationToken cancellationToken);
 }

@@ -29,6 +29,10 @@ public sealed class SheetPublisher
     private readonly ISheetDataService _sheetData;
     private readonly ISheetCellDataService _sheetCellData;
     private readonly ICellValueDataService _cellValueData;
+    private readonly ISheetTableDataService _sheetTableData;
+    private readonly ISheetSectionDataService _sheetSectionData;
+    private readonly ISheetRowDataService _sheetRowData;
+    private readonly ISheetColumnBlockDataService _sheetColumnBlockData;
 
     public SheetPublisher(
         PuSpecSheetDbContext db,
@@ -39,7 +43,11 @@ public sealed class SheetPublisher
         IUserDataService userData,
         ISheetDataService sheetData,
         ISheetCellDataService sheetCellData,
-        ICellValueDataService cellValueData)
+        ICellValueDataService cellValueData,
+        ISheetTableDataService sheetTableData,
+        ISheetSectionDataService sheetSectionData,
+        ISheetRowDataService sheetRowData,
+        ISheetColumnBlockDataService sheetColumnBlockData)
     {
         _db = db;
         _draftLoader = draftLoader;
@@ -50,6 +58,10 @@ public sealed class SheetPublisher
         _sheetData = sheetData;
         _sheetCellData = sheetCellData;
         _cellValueData = cellValueData;
+        _sheetTableData = sheetTableData;
+        _sheetSectionData = sheetSectionData;
+        _sheetRowData = sheetRowData;
+        _sheetColumnBlockData = sheetColumnBlockData;
     }
 
     public async Task PublishAsync(int sheetId, string? note, PublishScope scope, CancellationToken cancellationToken)
@@ -154,10 +166,10 @@ public sealed class SheetPublisher
         var sectionIds = drafts.Sections.Select(draft => draft.SheetSectionId).ToList();
         var rowIds = drafts.Rows.Select(draft => draft.SheetRowId).ToList();
         var columnBlockIds = drafts.ColumnBlocks.Select(draft => draft.SheetColumnBlockId).ToList();
-        await _db.SheetTableRevisions.Where(revision => tableIds.Contains(revision.SheetTableId)).SupersedeCurrentAsync(now, cancellationToken);
-        await _db.SheetSectionRevisions.Where(revision => sectionIds.Contains(revision.SheetSectionId)).SupersedeCurrentAsync(now, cancellationToken);
-        await _db.SheetRowRevisions.Where(revision => rowIds.Contains(revision.SheetRowId)).SupersedeCurrentAsync(now, cancellationToken);
-        await _db.SheetColumnBlockRevisions.Where(revision => columnBlockIds.Contains(revision.SheetColumnBlockId)).SupersedeCurrentAsync(now, cancellationToken);
+        await _sheetTableData.SupersedeCurrentAsync(tableIds, now, cancellationToken);
+        await _sheetSectionData.SupersedeCurrentAsync(sectionIds, now, cancellationToken);
+        await _sheetRowData.SupersedeCurrentAsync(rowIds, now, cancellationToken);
+        await _sheetColumnBlockData.SupersedeCurrentAsync(columnBlockIds, now, cancellationToken);
     }
 
     private async Task EnsureRequiredCellsFilledAsync(IReadOnlyList<DbSheetRowRevision> rowDrafts, CancellationToken cancellationToken)

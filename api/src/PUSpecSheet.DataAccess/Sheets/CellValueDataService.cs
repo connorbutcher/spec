@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Abstractions.CellTypes;
 using PUSpecSheet.Abstractions.CellTypes.InstanceSettings;
 using PUSpecSheet.Abstractions.CellTypes.LabelledText;
+using PUSpecSheet.DataAccess.Sheets.Catalog;
 using PUSpecSheet.DataAccess.Sheets.Queries;
 using PUSpecSheet.DataAccess.Sheets.Revisions;
 using PUSpecSheet.DataAccess.Sheets.Values;
@@ -337,5 +338,24 @@ public sealed class CellValueDataService : ICellValueDataService
         }
 
         return bag;
+    }
+
+    public async Task<SheetValuesCopy> ListCurrentOnSheetAsync(int sheetId, CancellationToken cancellationToken)
+    {
+        var revisionIds = _db.SheetRowRevisions
+            .Where(revision => revision.SheetId == sheetId)
+            .Current()
+            .Where(revision => !revision.IsDeleted)
+            .Select(revision => revision.Id);
+        return new SheetValuesCopy
+        {
+            Texts = await _db.TextValues.AsNoTracking().Where(value => revisionIds.Contains(value.SheetRowRevisionId)).ToListAsync(cancellationToken),
+            Numbers = await _db.NumericValues.AsNoTracking().Where(value => revisionIds.Contains(value.SheetRowRevisionId)).ToListAsync(cancellationToken),
+            Dates = await _db.DateValues.AsNoTracking().Where(value => revisionIds.Contains(value.SheetRowRevisionId)).ToListAsync(cancellationToken),
+            Booleans = await _db.BooleanValues.AsNoTracking().Where(value => revisionIds.Contains(value.SheetRowRevisionId)).ToListAsync(cancellationToken),
+            Options = await _db.OptionValues.AsNoTracking().Where(value => revisionIds.Contains(value.SheetRowRevisionId)).ToListAsync(cancellationToken),
+            LabelledTexts = await _db.LabelledTextValues.AsNoTracking().Where(value => revisionIds.Contains(value.SheetRowRevisionId)).ToListAsync(cancellationToken),
+            Settings = await _db.CellSettings.AsNoTracking().Where(value => revisionIds.Contains(value.SheetRowRevisionId)).ToListAsync(cancellationToken),
+        };
     }
 }

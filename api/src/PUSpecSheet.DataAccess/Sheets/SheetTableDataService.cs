@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Abstractions.Sheets;
+using PUSpecSheet.DataAccess.Sheets.Queries;
 using PUSpecSheet.DataAccess.Sheets.Removal;
 using PUSpecSheet.DataAccess.Sheets.Revisions;
 using PUSpecSheet.Database;
@@ -9,6 +10,8 @@ namespace PUSpecSheet.DataAccess.Sheets;
 
 public sealed class SheetTableDataService : ISheetTableDataService
 {
+    private const int LockTimeoutMilliseconds = 15000;
+
     private readonly PuSpecSheetDbContext _db;
 
     public SheetTableDataService(PuSpecSheetDbContext db)
@@ -80,5 +83,39 @@ public sealed class SheetTableDataService : ISheetTableDataService
                 AwaitingApproval = revision.SheetSubmissionId != null,
             })
             .ToListAsync(cancellationToken);
+    }
+
+    public async Task<List<DbSheetTableRevision>> ListCurrentOnSheetAsync(int sheetId, CancellationToken cancellationToken)
+    {
+        return await _db.SheetTableRevisions
+            .AsNoTracking()
+            .Where(revision => revision.SheetId == sheetId)
+            .Current()
+            .Where(revision => !revision.IsDeleted)
+            .Include(revision => revision.SheetTable)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task SupersedeCurrentAsync(IReadOnlyCollection<int> tableIds, DateTime nowUtc, CancellationToken cancellationToken)
+    {
+        await _db.SheetTableRevisions.Where(revision => tableIds.Contains(revision.SheetTableId)).SupersedeCurrentAsync(nowUtc, cancellationToken);
+    }
+
+    // An application lock for the table, held until the transaction ends, so two requests that each add a row or a
+    // block at the same moment can't both insert the same cell or leave a gap.
+    public async Task LockForCellsAsync(int tableId, CancellationToken cancellationToken)
+    {
+        var resource = $"SheetCells:{tableId}";
+        await _db.Database.ExecuteSqlAsync(
+            $"""
+            DECLARE @result int;
+            EXEC @result = sp_getapplock
+                @Resource = {resource},
+                @LockMode = 'Exclusive',
+                @LockOwner = 'Transaction',
+                @LockTimeout = {LockTimeoutMilliseconds};
+            IF @result < 0 THROW 50000, 'Another change to this table is taking too long. Try again.', 1;
+            """,
+            cancellationToken);
     }
 }

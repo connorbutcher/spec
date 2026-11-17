@@ -9,6 +9,8 @@ namespace PUSpecSheet.DataAccess.Sheets;
 
 public sealed class SheetDataService : ISheetDataService
 {
+    private const int LockTimeoutMilliseconds = 15000;
+
     private readonly PuSpecSheetDbContext _db;
 
     public SheetDataService(PuSpecSheetDbContext db)
@@ -149,5 +151,22 @@ public sealed class SheetDataService : ISheetDataService
         {
             totals[sheetId] = totals.GetValueOrDefault(sheetId) + count;
         }
+    }
+
+    // Held until the transaction ends, so two people creating the same sheet at once get one sheet and a conflict.
+    public async Task LockIdentityAsync(int phaseId, int sheetTypeId, CancellationToken cancellationToken)
+    {
+        var resource = $"SheetIdentity:{phaseId}:{sheetTypeId}";
+        await _db.Database.ExecuteSqlAsync(
+            $"""
+            DECLARE @result int;
+            EXEC @result = sp_getapplock
+                @Resource = {resource},
+                @LockMode = 'Exclusive',
+                @LockOwner = 'Transaction',
+                @LockTimeout = {LockTimeoutMilliseconds};
+            IF @result < 0 THROW 50000, 'Someone else is creating a sheet of this type and it is taking too long. Try again.', 1;
+            """,
+            cancellationToken);
     }
 }

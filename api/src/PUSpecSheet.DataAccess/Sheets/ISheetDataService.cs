@@ -24,4 +24,6 @@ public interface ISheetDataService
     Task<bool> AnyVersionWithNoteAsync(string note, CancellationToken cancellationToken);
 
     Task<List<SheetSummary>> ListAsync(int phaseId, int? sheetId, CancellationToken cancellationToken);
+
+    Task LockIdentityAsync(int phaseId, int sheetTypeId, CancellationToken cancellationToken);
 }

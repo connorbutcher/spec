@@ -118,4 +118,20 @@ public sealed class SheetSectionDataService : ISheetSectionDataService
     {
         return SheetRevisionQueries.ListHoldsAsync(_db.SheetSectionRevisions.Where(revision => revision.SheetSection.SheetTableId == tableId), userId, cancellationToken);
     }
+
+    public async Task<List<DbSheetSectionRevision>> ListCurrentOnSheetAsync(int sheetId, CancellationToken cancellationToken)
+    {
+        return await _db.SheetSectionRevisions
+            .AsNoTracking()
+            .Where(revision => revision.SheetId == sheetId)
+            .Current()
+            .Where(revision => !revision.IsDeleted)
+            .Include(revision => revision.SheetSection)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task SupersedeCurrentAsync(IReadOnlyCollection<int> sectionIds, DateTime nowUtc, CancellationToken cancellationToken)
+    {
+        await _db.SheetSectionRevisions.Where(revision => sectionIds.Contains(revision.SheetSectionId)).SupersedeCurrentAsync(nowUtc, cancellationToken);
+    }
 }

@@ -1,3 +1,4 @@
+using PUSpecSheet.DataAccess.Sheets.Queries;
 using PUSpecSheet.DataAccess.Sheets.Removal;
 using PUSpecSheet.Database.Models.Sheets;
 
@@ -20,4 +21,10 @@ public interface ISheetTableDataService
     Task<List<DbSheetTableRevision>> ListVisibleOnSheetAsync(int sheetId, int userId, CancellationToken cancellationToken);
 
     Task<List<PendingRemoval>> ListPendingRemovalsAsync(int tableId, CancellationToken cancellationToken);
+
+    Task<List<DbSheetTableRevision>> ListCurrentOnSheetAsync(int sheetId, CancellationToken cancellationToken);
+
+    Task SupersedeCurrentAsync(IReadOnlyCollection<int> tableIds, DateTime nowUtc, CancellationToken cancellationToken);
+
+    Task LockForCellsAsync(int tableId, CancellationToken cancellationToken);
 }

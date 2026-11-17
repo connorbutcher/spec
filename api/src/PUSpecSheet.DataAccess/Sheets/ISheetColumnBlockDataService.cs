@@ -19,4 +19,8 @@ public interface ISheetColumnBlockDataService
     Task<List<ContainedHold>> ListHoldsOnTableAsync(int tableId, int userId, CancellationToken cancellationToken);
 
     Task DeleteAsync(IReadOnlyCollection<int> blockIds, CancellationToken cancellationToken);
+
+    Task<List<DbSheetColumnBlockRevision>> ListCurrentOnSheetAsync(int sheetId, CancellationToken cancellationToken);
+
+    Task SupersedeCurrentAsync(IReadOnlyCollection<int> columnBlockIds, DateTime nowUtc, CancellationToken cancellationToken);
 }

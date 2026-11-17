@@ -15,8 +15,6 @@ namespace PUSpecSheet.DataAccess.Sheets.Catalog;
 // same sheet at once get one sheet and a conflict.
 public sealed class SheetCreator
 {
-    private const int LockTimeoutMilliseconds = 15000;
-
     private readonly PuSpecSheetDbContext _db;
     private readonly SheetCopier _copier;
     private readonly IPhaseDataService _phases;
@@ -45,7 +43,7 @@ public sealed class SheetCreator
         var copyFrom = await FindCopySourceAsync(request, cancellationToken);
 
         await using var transaction = await _db.Database.BeginTransactionAsync(cancellationToken);
-        await TakeIdentityLockAsync(phaseId, request.SheetTypeId, cancellationToken);
+        await _sheetData.LockIdentityAsync(phaseId, request.SheetTypeId, cancellationToken);
         if (await HasSheetWithIdentityAsync(phaseId, request.SheetTypeId, definitions, values, cancellationToken))
         {
             throw new ConflictException(values.Count == 0
@@ -81,7 +79,7 @@ public sealed class SheetCreator
         }
 
         await using var transaction = await _db.Database.BeginTransactionAsync(cancellationToken);
-        await TakeIdentityLockAsync(phaseId, sheetTypeId, cancellationToken);
+        await _sheetData.LockIdentityAsync(phaseId, sheetTypeId, cancellationToken);
         var existingId = await _sheetData.FindIdAsync(phaseId, sheetTypeId, cancellationToken);
         if (existingId is { } id)
         {
@@ -159,22 +157,6 @@ public sealed class SheetCreator
         }
 
         return sourceId;
-    }
-
-    private async Task TakeIdentityLockAsync(int phaseId, int sheetTypeId, CancellationToken cancellationToken)
-    {
-        var resource = $"SheetIdentity:{phaseId}:{sheetTypeId}";
-        await _db.Database.ExecuteSqlAsync(
-            $"""
-            DECLARE @result int;
-            EXEC @result = sp_getapplock
-                @Resource = {resource},
-                @LockMode = 'Exclusive',
-                @LockOwner = 'Transaction',
-                @LockTimeout = {LockTimeoutMilliseconds};
-            IF @result < 0 THROW 50000, 'Someone else is creating a sheet of this type and it is taking too long. Try again.', 1;
-            """,
-            cancellationToken);
     }
 
     private async Task<bool> HasSheetWithIdentityAsync(
