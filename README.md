@@ -34,13 +34,13 @@ cd app && npm install && npm start
 
 ## Bringing in the new app
 
-This codebase is the base. The rewrite it replaces, with revision-based versioning, approvals and the published API, is in commit `2c82183` (the commit before this one), and is ported onto this codebase in stages:
+This codebase is the base. The rewrite it replaces, with revision-based versioning, approvals and the published API, is in commit `2c82183`, and is ported onto this codebase in stages:
 
 1. Make this codebase the repo's base. *(done)*
 2. Put the database schema under source control in a SQL database project. *(done; generated from the DbContext and the schema dump, not yet compared with a live database)*
-3. Add the revision tables in their own schemas, beside the existing ones.
+3. Add the revision tables in their own schemas, beside the existing ones. *(done: `spec`, `cell` and `approval`, built on the existing template tables)*
 4. Bring across the migrator, re-runnable, and keep the revision tables in step with the existing ones.
 5. Serve the query API and read-only screens from the revision tables, checked against the existing answers first.
 6. Move editing onto drafts and revisions one sheet type at a time, behind a per-type switch.
-7. Port the remaining features one at a time: template versioning, cell kinds, the published API, lookups, presence.
+7. Port the remaining features one at a time: the published API, lookups, presence. Templates stay as they are: the template tables and their editing aren't replaced.
 8. Retire the copied-sheet tables and the code that writes them.

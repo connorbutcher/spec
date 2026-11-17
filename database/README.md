@@ -16,6 +16,42 @@ All three restore SqlPackage as a local dotnet tool and take `-Server` and `-Dat
 
 Database options, users, logins and permissions are kept out of the project and left alone by all three, since they differ between environments.
 
+## Schemas
+
+| Schema | Holds |
+| --- | --- |
+| `access` | Users and their permissions. |
+| `types` | Phases, sheet types, their properties and structure levels, widget types. |
+| `template` | Table templates, their groups, rows and cells, cell types and template widgets. Sheets of both layouts are built from these. |
+| `configuration` | Cell configurations. |
+| `dbo`, `values`, `references`, `workflow` | Sheets as copies: every version of a sheet is a whole copy of its tables, groups, rows, cells and values, with workflow steps for approval. |
+| `spec` | Sheets as revisions (stage 3 onwards): see below. |
+| `cell` | The cell values of `spec` row revisions. |
+| `approval` | Submissions of a sheet's drafts and their approvers. |
+
+### Sheets as revisions
+
+A sheet (`spec.Sheets`) is one per phase and sheet type. Its tables, groups, rows, properties, linked tables and external references are each an item with a stable identity, and everything about an item that can change is in its revisions:
+
+| Item | Revisions hold |
+| --- | --- |
+| `SheetTables` (a `template.TableTemplates` table) | Title, display order, configuration override, widget values and notes (JSON) |
+| `SheetTableGroups` (a `template.TableGroupTemplates` group) | Display order, the linked group's ReferenceID, widget values (JSON) |
+| `SheetTableRows` (a `template.TableRowTemplates` row) | Display order, and its cells' values in `cell.*` |
+| `SheetProperties` (a `types.SpecSheetTypeProperties` property) | The value |
+| `SheetLinkedTables` (another sheet's table, by ReferenceID) | Display order |
+| `SheetExternalReferences` | Everything, published only: references belong to versions |
+
+A row's cells (`SheetTableCells`, one per `template.TableCellTemplates` cell) have no revisions of their own; their values (`cell.TextValues`, `NumericValues`, `PairValues`, `LinkedSheetValues`) and any configuration override (`cell.CellConfigurationOverrides`) are keyed by the row revision and the cell.
+
+The revision tables share one shape: `RevisionNumber`, `Status` (0 draft, 1 published), `IsDeleted`, `CreatedByUserID`, created, last modified, published and superseded date times, the `SheetVersionID` it was published in and the `SheetSubmissionID` of the approval it waits on, and a `ROWVERSION`. Check constraints tie the published and superseded times to the status, and filtered unique indexes allow one draft and one current published revision per item. A sheet as it was at any time is the published revisions whose published time is at or before it and whose superseded time is after it or empty.
+
+Each publish is a `spec.SheetVersions` row, numbered from 1, with its change log. Migrated versions keep the `SpecSheets` copy they came from (`SourceSpecSheetID`) and its `LegacySpecSheetID` and `HasBeenMigrated`.
+
+Items keep the `ReferenceID` they have in the copies. A copy for another phase keeps them too, so a ReferenceID is unique within a sheet, not across sheets; linked values and linked tables name the sheet type and phase alongside it, as the copies do.
+
+Groups aren't nested, as copied groups aren't: nesting comes from the group templates. There are no template versions: a sheet's items point at the template tables directly, so a template change shows in every version of every sheet built from it, as it does with the copies.
+
 ## Where the scripts came from
 
 The scripts were written from the EF model (`PUSpecSheetDbContext` and its configurations), which decides the schemas, tables and columns, with the physical detail EF doesn't hold (varchar or nvarchar, lengths, nullability, defaults, column order and foreign key names) taken from the column dump of the database in `docs/legacy-schema.txt`. CellConfigurations isn't in the dump, so it comes from the EF model alone.

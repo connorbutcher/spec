@@ -1,7 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Api.Database.Configuration.Access;
+using PUSpecSheet.Api.Database.Configuration.Approval;
+using PUSpecSheet.Api.Database.Configuration.Cell;
 using PUSpecSheet.Api.Database.Configuration.Configuration;
 using PUSpecSheet.Api.Database.Configuration.References;
+using PUSpecSheet.Api.Database.Configuration.Spec;
 using PUSpecSheet.Api.Database.Configuration.SpecSheets;
 using PUSpecSheet.Api.Database.Configuration.Template;
 using PUSpecSheet.Api.Database.Configuration.Types;
@@ -9,8 +12,11 @@ using PUSpecSheet.Api.Database.Configuration.Values;
 using PUSpecSheet.Api.Database.Configuration.Workflow;
 using PUSpecSheet.Api.Database.Conventions;
 using PUSpecSheet.Api.Database.Schema.Access;
+using PUSpecSheet.Api.Database.Schema.Approval;
+using PUSpecSheet.Api.Database.Schema.Cell;
 using PUSpecSheet.Api.Database.Schema.Configuration;
 using PUSpecSheet.Api.Database.Schema.References;
+using PUSpecSheet.Api.Database.Schema.Spec;
 using PUSpecSheet.Api.Database.Schema.SpecSheets;
 using PUSpecSheet.Api.Database.Schema.Template;
 using PUSpecSheet.Api.Database.Schema.Types;
@@ -136,6 +142,62 @@ public class PUSpecSheetDbContext : DbContext
 
     #endregion References
 
+    #region Sheets
+
+    public required DbSet<DbSheet> Sheets { get; set; }
+
+    public required DbSet<DbSheetVersion> SheetVersions { get; set; }
+
+    public required DbSet<DbSheetTable> SheetTables { get; set; }
+
+    public required DbSet<DbSheetTableRevision> SheetTableRevisions { get; set; }
+
+    public required DbSet<DbSheetTableGroup> SheetTableGroups { get; set; }
+
+    public required DbSet<DbSheetTableGroupRevision> SheetTableGroupRevisions { get; set; }
+
+    public required DbSet<DbSheetTableRow> SheetTableRows { get; set; }
+
+    public required DbSet<DbSheetTableRowRevision> SheetTableRowRevisions { get; set; }
+
+    public required DbSet<DbSheetTableCell> SheetTableCells { get; set; }
+
+    public required DbSet<DbSheetProperty> SheetProperties { get; set; }
+
+    public required DbSet<DbSheetPropertyRevision> SheetPropertyRevisions { get; set; }
+
+    public required DbSet<DbSheetLinkedTable> SheetLinkedTables { get; set; }
+
+    public required DbSet<DbSheetLinkedTableRevision> SheetLinkedTableRevisions { get; set; }
+
+    public required DbSet<DbSheetExternalReference> SheetExternalReferences { get; set; }
+
+    public required DbSet<DbSheetExternalReferenceRevision> SheetExternalReferenceRevisions { get; set; }
+
+    #endregion Sheets
+
+    #region Cell values
+
+    public required DbSet<DbSheetTextValue> SheetTextValues { get; set; }
+
+    public required DbSet<DbSheetNumericValue> SheetNumericValues { get; set; }
+
+    public required DbSet<DbSheetPairValue> SheetPairValues { get; set; }
+
+    public required DbSet<DbSheetLinkedSheetValue> SheetLinkedSheetValues { get; set; }
+
+    public required DbSet<DbSheetCellConfigurationOverride> SheetCellConfigurationOverrides { get; set; }
+
+    #endregion Cell values
+
+    #region Approval
+
+    public required DbSet<DbSheetSubmission> SheetSubmissions { get; set; }
+
+    public required DbSet<DbSheetSubmissionApprover> SheetSubmissionApprovers { get; set; }
+
+    #endregion Approval
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfiguration(new UserConfiguration());
@@ -184,6 +246,31 @@ public class PUSpecSheetDbContext : DbContext
         modelBuilder.ApplyConfiguration(new WorkflowStepActorsConfiguration());
 
         modelBuilder.ApplyConfiguration(new SpecSheetExternalReferenceConfiguration());
+
+        modelBuilder.ApplyConfiguration(new SheetConfiguration());
+        modelBuilder.ApplyConfiguration(new SheetVersionConfiguration());
+        modelBuilder.ApplyConfiguration(new SheetTableConfiguration());
+        modelBuilder.ApplyConfiguration(new SheetTableRevisionConfiguration());
+        modelBuilder.ApplyConfiguration(new SheetTableGroupConfiguration());
+        modelBuilder.ApplyConfiguration(new SheetTableGroupRevisionConfiguration());
+        modelBuilder.ApplyConfiguration(new SheetTableRowConfiguration());
+        modelBuilder.ApplyConfiguration(new SheetTableRowRevisionConfiguration());
+        modelBuilder.ApplyConfiguration(new SheetTableCellConfiguration());
+        modelBuilder.ApplyConfiguration(new SheetPropertyConfiguration());
+        modelBuilder.ApplyConfiguration(new SheetPropertyRevisionConfiguration());
+        modelBuilder.ApplyConfiguration(new SheetLinkedTableConfiguration());
+        modelBuilder.ApplyConfiguration(new SheetLinkedTableRevisionConfiguration());
+        modelBuilder.ApplyConfiguration(new SheetExternalReferenceConfiguration());
+        modelBuilder.ApplyConfiguration(new SheetExternalReferenceRevisionConfiguration());
+
+        modelBuilder.ApplyConfiguration(new SheetTextValueConfiguration());
+        modelBuilder.ApplyConfiguration(new SheetNumericValueConfiguration());
+        modelBuilder.ApplyConfiguration(new SheetPairValueConfiguration());
+        modelBuilder.ApplyConfiguration(new SheetLinkedSheetValueConfiguration());
+        modelBuilder.ApplyConfiguration(new SheetCellConfigurationOverrideConfiguration());
+
+        modelBuilder.ApplyConfiguration(new SheetSubmissionConfiguration());
+        modelBuilder.ApplyConfiguration(new SheetSubmissionApproverConfiguration());
     }
 
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
