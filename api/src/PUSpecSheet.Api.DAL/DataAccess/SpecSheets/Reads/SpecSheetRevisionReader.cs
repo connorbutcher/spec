@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using PUSpecSheet.Abstractions.Domain.Sheets;
 using PUSpecSheet.Abstractions.Domain.SpecSheets;
 using PUSpecSheet.Abstractions.Types;
 using PUSpecSheet.Api.Database;
@@ -71,7 +72,7 @@ internal class SpecSheetRevisionReader
             .Select(note => note.CreatedByUserId);
         var users = await ReadUsersAsync(noteAuthorIds.Append(createdByUserId).Append(version.PublishedByUserId), cancellationToken);
 
-        var ids = new Numbering();
+        var ids = new RevisionItemNumbering();
         var dbSpecSheet = new DbSpecSheet
         {
             Id = specSheetId,
@@ -219,7 +220,7 @@ internal class SpecSheetRevisionReader
             .ToDictionaryAsync(user => user.Id, cancellationToken);
     }
 
-    private static DbSpecSheetTable MapTable(DbSheetTable table, int specSheetId, Numbering ids, Dictionary<int, DbUser> users)
+    private static DbSpecSheetTable MapTable(DbSheetTable table, int specSheetId, RevisionItemNumbering ids, Dictionary<int, DbUser> users)
     {
         var revision = table.Revisions.Single();
 
@@ -243,32 +244,39 @@ internal class SpecSheetRevisionReader
             LastModifiedDateTime = revision.RevisionNumber > 1 ? revision.PublishedDateTime : null,
             ConfigurationOverride = revision.ConfigurationOverride,
             Groups = [.. table.Groups.Select(group => MapGroup(group, groupIdsByReference, ids))],
-            Widgets = [.. (revision.WidgetValues ?? []).Select(widget =>
-            {
-                var widgetId = ids.Next("table widget");
-                return new DbSpecSheetTableWidget
-                {
-                    Id = widgetId,
-                    SpecSheetTableId = table.Id,
-                    TableTemplateWidgetId = widget.TemplateWidgetId,
-                    Value = new DbTableWidgetValue { Id = widgetId, SpecSheetTableWidgetId = widgetId, Value = widget.Value }
-                };
-            })],
-            Notes = [.. (revision.Notes ?? []).Select(note => new DbSpecSheetTableNote
-            {
-                Id = ids.Next("note"),
-                SpecSheetTableId = table.Id,
-                Note = note.Note,
-                SourceSystem = note.SourceSystem,
-                IsObsolete = note.IsObsolete,
-                CreatedByUserId = note.CreatedByUserId,
-                CreatedDateTime = note.CreatedDateTime,
-                CreatedByUser = users.GetValueOrDefault(note.CreatedByUserId)
-            })]
+            Widgets = [.. (revision.WidgetValues ?? []).Select(widget => MapTableWidget(widget, table.Id, ids))],
+            Notes = [.. (revision.Notes ?? []).Select(note => MapNote(note, table.Id, ids, users))]
         };
     }
 
-    private static DbSpecSheetTableGroup MapGroup(DbSheetTableGroup group, Dictionary<Guid, int> groupIdsByReference, Numbering ids)
+    private static DbSpecSheetTableWidget MapTableWidget(SheetWidgetValue widget, int tableId, RevisionItemNumbering ids)
+    {
+        var widgetId = ids.Next("table widget");
+        return new DbSpecSheetTableWidget
+        {
+            Id = widgetId,
+            SpecSheetTableId = tableId,
+            TableTemplateWidgetId = widget.TemplateWidgetId,
+            Value = new DbTableWidgetValue { Id = widgetId, SpecSheetTableWidgetId = widgetId, Value = widget.Value }
+        };
+    }
+
+    private static DbSpecSheetTableNote MapNote(SheetTableNote note, int tableId, RevisionItemNumbering ids, Dictionary<int, DbUser> users)
+    {
+        return new DbSpecSheetTableNote
+        {
+            Id = ids.Next("note"),
+            SpecSheetTableId = tableId,
+            Note = note.Note,
+            SourceSystem = note.SourceSystem,
+            IsObsolete = note.IsObsolete,
+            CreatedByUserId = note.CreatedByUserId,
+            CreatedDateTime = note.CreatedDateTime,
+            CreatedByUser = users.GetValueOrDefault(note.CreatedByUserId)
+        };
+    }
+
+    private static DbSpecSheetTableGroup MapGroup(DbSheetTableGroup group, Dictionary<Guid, int> groupIdsByReference, RevisionItemNumbering ids)
     {
         var revision = group.Revisions.Single();
         int? linkedGroupId = revision.LinkedSheetTableGroupReferenceId is { } linkedReference
@@ -286,17 +294,7 @@ internal class SpecSheetRevisionReader
             ReferenceId = group.ReferenceId,
             IsDeleted = false,
             Rows = [.. group.Rows.Select(MapRow).OrderBy(row => row.RowNumber)],
-            Widgets = [.. (revision.WidgetValues ?? []).Select(widget =>
-            {
-                var widgetId = ids.Next("group widget");
-                return new DbSpecSheetTableGroupWidget
-                {
-                    Id = widgetId,
-                    SpecSheetTableGroupId = group.Id,
-                    TableGroupTemplateWidgetId = widget.TemplateWidgetId,
-                    Value = new DbTableGroupWidgetValue { Id = widgetId, SpecSheetTableGroupWidgetId = widgetId, Value = widget.Value }
-                };
-            })],
+            Widgets = [.. (revision.WidgetValues ?? []).Select(widget => MapGroupWidget(widget, group.Id, ids))],
             CreatedByUserId = revision.CreatedByUserId,
             CreatedDateTime = group.CreatedDateTime,
             LastModifiedByUserId = revision.RevisionNumber > 1 ? revision.CreatedByUserId : null,
@@ -304,14 +302,22 @@ internal class SpecSheetRevisionReader
         };
     }
 
+    private static DbSpecSheetTableGroupWidget MapGroupWidget(SheetWidgetValue widget, int groupId, RevisionItemNumbering ids)
+    {
+        var widgetId = ids.Next("group widget");
+        return new DbSpecSheetTableGroupWidget
+        {
+            Id = widgetId,
+            SpecSheetTableGroupId = groupId,
+            TableGroupTemplateWidgetId = widget.TemplateWidgetId,
+            Value = new DbTableGroupWidgetValue { Id = widgetId, SpecSheetTableGroupWidgetId = widgetId, Value = widget.Value }
+        };
+    }
+
     private static DbSpecSheetTableRow MapRow(DbSheetTableRow row)
     {
         var revision = row.Revisions.Single();
-        var texts = revision.TextValues.ToDictionary(value => value.SheetTableCellId);
-        var numbers = revision.NumericValues.ToDictionary(value => value.SheetTableCellId);
-        var pairs = revision.PairValues.ToDictionary(value => value.SheetTableCellId);
-        var links = revision.LinkedSheetValues.ToDictionary(value => value.SheetTableCellId);
-        var overrides = revision.CellConfigurationOverrides.ToDictionary(value => value.SheetTableCellId);
+        var values = new RowRevisionValues(revision);
 
         var mapped = new DbSpecSheetTableRow
         {
@@ -329,88 +335,39 @@ internal class SpecSheetRevisionReader
 
         foreach (var cell in row.Cells.OrderBy(cell => cell.TableCellTemplate!.ColumnNumber))
         {
-            var templateCell = cell.TableCellTemplate!;
-            var mappedCell = new DbSpecSheetTableCell
-            {
-                Id = cell.Id,
-                SpecSheetTableRowId = row.Id,
-                TableCellTypeId = templateCell.TableCellTypeId,
-                CellConfigurationId = templateCell.CellConfigurationId,
-                RowNumber = mapped.RowNumber,
-                ColumnNumber = templateCell.ColumnNumber,
-                ColSpan = templateCell.ColSpan,
-                RowSpan = templateCell.RowSpan,
-                ReferenceId = cell.ReferenceId,
-                IsDeleted = false,
-                CreatedByUserId = mapped.CreatedByUserId,
-                CreatedDateTime = cell.CreatedDateTime,
-                LastModifiedByUserId = mapped.LastModifiedByUserId,
-                LastModifiedDateTime = mapped.LastModifiedDateTime,
-                ConfigurationOverride = overrides.GetValueOrDefault(cell.Id)?.ConfigurationOverride,
-                TableCellType = templateCell.TableCellType,
-                CellConfiguration = templateCell.CellConfiguration
-            };
-
-            // A copied cell always has a value row; where the revision holds no value, it is an empty one of the kind
-            // the cell's type holds, as the app gives a new cell.
-            if (numbers.TryGetValue(cell.Id, out var number))
-            {
-                mappedCell.NumericValue = new DbNumericValue { Id = cell.Id, SpecSheetTableCellId = cell.Id, Value = number.Value };
-            }
-            else if (texts.TryGetValue(cell.Id, out var text))
-            {
-                mappedCell.TextValue = new DbTextValue { Id = cell.Id, SpecSheetTableCellId = cell.Id, Value = text.Value };
-            }
-            else if (pairs.TryGetValue(cell.Id, out var pair))
-            {
-                mappedCell.PairValue = new DbPairValue { Id = cell.Id, SpecSheetTableCellId = cell.Id, PairValueX = pair.PairValueX, PairValueY = pair.PairValueY };
-            }
-            else if (links.TryGetValue(cell.Id, out var link))
-            {
-                mappedCell.LinkedSpecSheetValue = LinkedValue(cell.Id, link.TableReferenceId, link.LinkedSpecSheetTypeId, link.LinkedSpecSheetPhaseId, link.LinkedReferenceId);
-            }
-            else
-            {
-                SetEmptyValue(mappedCell, templateCell.TableCellType!.ModelType);
-            }
-
-            mapped.Cells.Add(mappedCell);
+            mapped.Cells.Add(MapCell(cell, mapped, values));
         }
 
         return mapped;
     }
 
-    private static void SetEmptyValue(DbSpecSheetTableCell cell, string modelType)
+    // A cell takes its place, type and configuration from its template cell, and who made and changed it from its row.
+    private static DbSpecSheetTableCell MapCell(DbSheetTableCell cell, DbSpecSheetTableRow row, RowRevisionValues values)
     {
-        switch (modelType)
+        var templateCell = cell.TableCellTemplate!;
+        var mapped = new DbSpecSheetTableCell
         {
-            case "numeric":
-            case "numericDropdown":
-                cell.NumericValue = new DbNumericValue { Id = cell.Id, SpecSheetTableCellId = cell.Id, Value = null };
-                break;
-            case "pair":
-                cell.PairValue = new DbPairValue { Id = cell.Id, SpecSheetTableCellId = cell.Id, PairValueX = null, PairValueY = null };
-                break;
-            case "linkedSpecSheet":
-                cell.LinkedSpecSheetValue = LinkedValue(cell.Id, null, null, null, null);
-                break;
-            default:
-                cell.TextValue = new DbTextValue { Id = cell.Id, SpecSheetTableCellId = cell.Id, Value = null };
-                break;
-        }
-    }
-
-    private static DbLinkedSpecSheetValue LinkedValue(int cellId, Guid? tableReferenceId, int? typeId, int? phaseId, Guid? linkedReferenceId)
-    {
-        return new DbLinkedSpecSheetValue
-        {
-            Id = cellId,
-            SpecSheetTableCellId = cellId,
-            TableReferenceId = tableReferenceId,
-            LinkedSpecSheetTypeId = typeId,
-            LinkedSpecSheetPhaseId = phaseId,
-            LinkedReferenceId = linkedReferenceId
+            Id = cell.Id,
+            SpecSheetTableRowId = row.Id,
+            TableCellTypeId = templateCell.TableCellTypeId,
+            CellConfigurationId = templateCell.CellConfigurationId,
+            RowNumber = row.RowNumber,
+            ColumnNumber = templateCell.ColumnNumber,
+            ColSpan = templateCell.ColSpan,
+            RowSpan = templateCell.RowSpan,
+            ReferenceId = cell.ReferenceId,
+            IsDeleted = false,
+            CreatedByUserId = row.CreatedByUserId,
+            CreatedDateTime = cell.CreatedDateTime,
+            LastModifiedByUserId = row.LastModifiedByUserId,
+            LastModifiedDateTime = row.LastModifiedDateTime,
+            ConfigurationOverride = values.ConfigurationOverrideOf(cell.Id),
+            TableCellType = templateCell.TableCellType,
+            CellConfiguration = templateCell.CellConfiguration
         };
+
+        values.SetValue(mapped, templateCell.TableCellType!.ModelType);
+        return mapped;
     }
 
     private static DbSpecSheetPropertyValue MapProperty(DbSheetProperty property, int specSheetId)
@@ -445,7 +402,7 @@ internal class SpecSheetRevisionReader
     }
 
     // A submission as the workflow step it was migrated from. A withdrawn submission was a step left pending.
-    private static DbWorkflowStep MapSubmission(DbSheetSubmission submission, int specSheetId, Numbering ids)
+    private static DbWorkflowStep MapSubmission(DbSheetSubmission submission, int specSheetId, RevisionItemNumbering ids)
     {
         return new DbWorkflowStep
         {
@@ -476,17 +433,5 @@ internal class SpecSheetRevisionReader
                     ActionedDateTime = approver.DecidedDateTime
                 })]
         };
-    }
-
-    // Ids for what the revisions keep inside their items, numbered from 1 within the sheet for each kind.
-    private sealed class Numbering
-    {
-        private readonly Dictionary<string, int> _last = [];
-
-        public int Next(string kind)
-        {
-            _last[kind] = _last.GetValueOrDefault(kind) + 1;
-            return _last[kind];
-        }
     }
 }

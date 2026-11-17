@@ -259,6 +259,17 @@ internal sealed class LegacySheetReader
 
         var workflow = await ReadWorkflowAsync(copies, cancellationToken);
 
+        // Each table, group, row and cell belongs to one copy. Grouping them by it once, in the order they were read,
+        // saves going through every copy's items for each copy. One whose parent wasn't read is under copy 0, which
+        // no copy is, so it is left out as before.
+        var copyOfTable = tableRows.ToDictionary(table => table.Id, table => table.SpecSheetId);
+        var copyOfGroup = groupRows.ToDictionary(group => group.Id, group => copyOfTable.GetValueOrDefault(group.SpecSheetTableId));
+        var copyOfRow = rowRows.ToDictionary(row => row.Id, row => copyOfGroup.GetValueOrDefault(row.SpecSheetTableGroupId));
+        var tablesByCopy = tableRows.ToLookup(table => table.SpecSheetId);
+        var groupsByCopy = groupRows.ToLookup(group => copyOfGroup[group.Id]);
+        var rowsByCopy = rowRows.ToLookup(row => copyOfRow[row.Id]);
+        var cellsByCopy = cellRows.ToLookup(cell => copyOfRow.GetValueOrDefault(cell.SpecSheetTableRowId));
+
         var built = new List<LegacyCopy>();
         foreach (var copy in copyRows)
         {
@@ -270,8 +281,7 @@ internal sealed class LegacySheetReader
             }
 
             var isPublished = copy.IsPublished;
-            var copyTables = tableRows
-                .Where(table => table.SpecSheetId == copy.Id)
+            var copyTables = tablesByCopy[copy.Id]
                 .Select(table => new SnapshotTable
                 {
                     Id = table.Id,
@@ -284,10 +294,8 @@ internal sealed class LegacySheetReader
                     Notes = notes[table.Id].ToList()
                 })
                 .ToList();
-            var tableIds = copyTables.Select(table => table.Id).ToHashSet();
 
-            var copyGroups = groupRows
-                .Where(group => tableIds.Contains(group.SpecSheetTableId))
+            var copyGroups = groupsByCopy[copy.Id]
                 .Select(group => new SnapshotGroup
                 {
                     Id = group.Id,
@@ -299,10 +307,8 @@ internal sealed class LegacySheetReader
                     LinkedGroupReferenceId = group.LinkedReferenceId
                 })
                 .ToList();
-            var groupIds = copyGroups.Select(group => group.Id).ToHashSet();
 
-            var copyRowsOfCopy = rowRows
-                .Where(row => groupIds.Contains(row.SpecSheetTableGroupId))
+            var copyRowsOfCopy = rowsByCopy[copy.Id]
                 .Select(row => new SnapshotRow
                 {
                     Id = row.Id,
@@ -312,10 +318,8 @@ internal sealed class LegacySheetReader
                     DisplayOrder = row.RowNumber
                 })
                 .ToList();
-            var rowIds = copyRowsOfCopy.Select(row => row.Id).ToHashSet();
 
-            var copyCells = cellRows
-                .Where(cell => rowIds.Contains(cell.SpecSheetTableRowId))
+            var copyCells = cellsByCopy[copy.Id]
                 .Select(cell => new SnapshotCell
                 {
                     Id = cell.Id,

@@ -16,13 +16,3 @@ public record RevisionReadCheck
 
     public required IReadOnlyList<RevisionReadMismatch> Mismatches { get; init; }
 }
-
-/// <summary>
-/// A published spec sheet that reads differently from the revisions, or couldn't be read from them.
-/// </summary>
-public record RevisionReadMismatch
-{
-    public required int SpecSheetId { get; init; }
-
-    public required string Difference { get; init; }
-}

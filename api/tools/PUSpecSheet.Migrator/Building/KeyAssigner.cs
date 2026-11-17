@@ -22,30 +22,36 @@ internal sealed class KeyAssigner
     public SnapshotKeys Assign(SheetSnapshot copy)
     {
         var keys = new SnapshotKeys();
+        var usedTables = new HashSet<int>();
         foreach (var table in copy.Tables)
         {
-            keys.Tables[table.Id] = KeyFor(keys.Tables.Values, "table", table.ReferenceId, Place(table.TableTemplateId));
+            keys.Tables[table.Id] = KeyFor(usedTables, "table", table.ReferenceId, Place(table.TableTemplateId));
         }
 
+        var usedGroups = new HashSet<int>();
         foreach (var group in copy.Groups)
         {
-            keys.Groups[group.Id] = KeyFor(keys.Groups.Values, "group", group.ReferenceId, Place(keys.Tables[group.TableId], group.TableGroupTemplateId));
+            keys.Groups[group.Id] = KeyFor(usedGroups, "group", group.ReferenceId, Place(keys.Tables[group.TableId], group.TableGroupTemplateId));
         }
 
+        var usedRows = new HashSet<int>();
         foreach (var row in copy.Rows)
         {
-            keys.Rows[row.Id] = KeyFor(keys.Rows.Values, "row", row.ReferenceId, Place(keys.Groups[row.GroupId], row.TableRowTemplateId));
+            keys.Rows[row.Id] = KeyFor(usedRows, "row", row.ReferenceId, Place(keys.Groups[row.GroupId], row.TableRowTemplateId));
         }
 
         return keys;
     }
 
-    private int KeyFor(IEnumerable<int> usedInCopy, string kind, Guid referenceId, string place)
+    // usedInCopy holds the keys of the kind already given out in this copy, as a set so each check is one lookup
+    // rather than a pass over every key so far. The key given out is added to it.
+    private int KeyFor(HashSet<int> usedInCopy, string kind, Guid referenceId, string place)
     {
         if (_known.TryGetValue((kind, referenceId), out var known) && !usedInCopy.Contains(known.Key))
         {
             if (string.Equals(known.Place, place, StringComparison.Ordinal))
             {
+                usedInCopy.Add(known.Key);
                 return known.Key;
             }
 
@@ -58,6 +64,7 @@ internal sealed class KeyAssigner
 
         var key = _nextKey++;
         _known[(kind, referenceId)] = (key, place);
+        usedInCopy.Add(key);
         return key;
     }
 

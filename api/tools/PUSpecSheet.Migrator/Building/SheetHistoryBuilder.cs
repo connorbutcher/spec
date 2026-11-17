@@ -248,7 +248,7 @@ internal sealed class SheetHistoryBuilder
             }
         }
 
-        var state = $"{row.DisplayOrder}|{RowSignature(snapshot, row.Id)}";
+        var state = $"{row.DisplayOrder}|{RowSignature(contents)}";
         var written = Write(context, track, state, revisionNumber =>
         {
             var revision = RowRevision(context, revisionNumber, row.DisplayOrder, isDeleted: false);
@@ -262,11 +262,11 @@ internal sealed class SheetHistoryBuilder
         }
     }
 
-    private static string RowSignature(SheetSnapshot snapshot, int rowId)
+    // What a row's cells hold, from the cells that hold something, in an order that doesn't depend on the copy's.
+    private static string RowSignature(List<(DbSheetTableCell Cell, CellContent Content)> contents)
     {
-        var cells = snapshot.CellsOf(rowId)
-            .Where(cell => !cell.Content.IsEmpty)
-            .Select(cell => $"{cell.TableCellTemplateId}={cell.Content.Signature}")
+        var cells = contents
+            .Select(content => $"{content.Cell.TableCellTemplateId}={content.Content.Signature}")
             .Order(StringComparer.Ordinal);
         return string.Join('\n', cells);
     }

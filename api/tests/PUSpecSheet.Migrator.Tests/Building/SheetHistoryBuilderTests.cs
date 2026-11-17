@@ -124,7 +124,7 @@ public sealed class SheetHistoryBuilderTests
             _legacy.Copy(null, "a", "B"));
 
         Assert.Single(built.Sheet.Versions);
-        var draft = Assert.Single(Rows(built).SelectMany(row => row.Revisions).Where(revision => revision.Status == RevisionStatus.Draft));
+        var draft = Assert.Single(Rows(built).SelectMany(row => row.Revisions), revision => revision.Status == RevisionStatus.Draft);
         Assert.Equal("B", Assert.Single(draft.TextValues).Value);
         Assert.Null(draft.SheetVersion);
         Assert.Null(draft.PublishedDateTime);
