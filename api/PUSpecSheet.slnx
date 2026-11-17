@@ -1,4 +1,7 @@
 <Solution>
+  <Folder Name="/Legacy/">
+    <File Path="legacy.txt" />
+  </Folder>
   <Folder Name="/src/">
     <Project Path="src/PUSpecSheet.Abstractions/PUSpecSheet.Abstractions.csproj" />
     <Project Path="src/PUSpecSheet.Api/PUSpecSheet.Api.csproj" />
