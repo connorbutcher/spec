@@ -15,6 +15,7 @@ api/                                .NET solution (PUSpecSheet.slnx)
   src/PUSpecSheet.Abstractions        Domain models, requests and operations shared with the UI
   src/PUSpecSheet.Query               The query models and requests
 app/                                Angular UI
+database/                           SQL database project: the schema, one script per object, and the SqlPackage scripts
 docs/legacy-schema.txt              The database's tables and columns
 ```
 
@@ -36,7 +37,7 @@ cd app && npm install && npm start
 This codebase is the base. The rewrite it replaces, with revision-based versioning, approvals and the published API, is in commit `2c82183` (the commit before this one), and is ported onto this codebase in stages:
 
 1. Make this codebase the repo's base. *(done)*
-2. Put the database schema under source control in a SQL database project.
+2. Put the database schema under source control in a SQL database project. *(project and scripts done; waiting on the first extract)*
 3. Add the revision tables in their own schemas, beside the existing ones.
 4. Bring across the migrator, re-runnable, and keep the revision tables in step with the existing ones.
 5. Serve the query API and read-only screens from the revision tables, checked against the existing answers first.

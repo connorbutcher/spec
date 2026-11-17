@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build">
+  <Sdk Name="Microsoft.Build.Sql" Version="2.3.0" />
+  <PropertyGroup>
+    <Name>PUSpecSheet.Database</Name>
+    <DSP>Microsoft.Data.Tools.Schema.Sql.Sql160DatabaseSchemaProvider</DSP>
+    <ModelCollation>1033, CI</ModelCollation>
+  </PropertyGroup>
+  <!-- Filtered indexes and indexed computed columns need these on, whatever the database's own settings are. -->
+  <ItemGroup>
+    <Build Update="**\*.sql">
+      <AnsiNulls>On</AnsiNulls>
+      <QuotedIdentifier>On</QuotedIdentifier>
+    </Build>
+  </ItemGroup>
+  <!-- The scripts that run SqlPackage aren't part of the schema. -->
+  <ItemGroup>
+    <None Include="*.ps1" />
+  </ItemGroup>
+</Project>
