@@ -148,7 +148,6 @@ public sealed class SheetPublisher
         return version;
     }
 
-
     private async Task SupersedeReplacedAsync(SheetDraftSet drafts, DateTime now, CancellationToken cancellationToken)
     {
         var tableIds = drafts.Tables.Select(draft => draft.SheetTableId).ToList();

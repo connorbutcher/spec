@@ -29,7 +29,6 @@ public sealed class PublishedVersionResolver
         };
     }
 
-
     private static string Describe(Guid sheetPublicId, PublishedVersionPoint point)
     {
         if (point.VersionNumber is { } number)

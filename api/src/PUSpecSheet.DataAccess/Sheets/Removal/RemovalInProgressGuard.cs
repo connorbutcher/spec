@@ -50,7 +50,6 @@ public sealed class RemovalInProgressGuard : IRemovalInProgressGuard
         throw new ConflictException(PendingRemovals.RefusalFor(blocking, name));
     }
 
-
     private async Task<List<PendingRemoval>> SectionRemovalsAroundAsync(int tableId, int sectionId, CancellationToken cancellationToken)
     {
         var onTable = await _sheetSectionData.ListPendingRemovalsOnTableAsync(tableId, cancellationToken);
