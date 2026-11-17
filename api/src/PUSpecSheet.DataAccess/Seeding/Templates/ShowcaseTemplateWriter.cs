@@ -6,11 +6,8 @@ using PUSpecSheet.Database.Models.Templates;
 
 namespace PUSpecSheet.DataAccess.Seeding.Templates;
 
-/// <summary>
-/// Writes showcase templates and their versions straight to the database, as the template designer would
-/// leave them: a new version is a whole new layout, and older versions stay as the sheets built from them
-/// had them.
-/// </summary>
+// Writes showcase templates and their versions straight to the database, as the template designer would leave them: a
+// new version is a whole new layout, and older versions stay as the sheets built from them had them.
 public sealed class ShowcaseTemplateWriter
 {
     private readonly PuSpecSheetDbContext _db;
@@ -27,7 +24,6 @@ public sealed class ShowcaseTemplateWriter
         _tableTemplateData = tableTemplateData;
     }
 
-    /// <summary>Adds <paramref name="template"/> with its version 1, at the end of its sheet type's list, and returns its id.</summary>
     public async Task<int> CreateAsync(IShowcaseTemplate template, ShowcaseCellTypeCatalog cellTypes, CancellationToken cancellationToken)
     {
         var sheetTypeId = await _sheetTypes.GetIdByNameAsync(template.SheetTypeName, cancellationToken);
@@ -41,7 +37,6 @@ public sealed class ShowcaseTemplateWriter
         return entity.Id;
     }
 
-    /// <summary>Adds version <paramref name="versionNumber"/> of the template <paramref name="templateId"/>, which new tables then use.</summary>
     public async Task AddVersionAsync(
         int templateId,
         IShowcaseTemplate template,

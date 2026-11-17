@@ -7,11 +7,9 @@ using PUSpecSheet.DataAccess.Sheets.Reading;
 
 namespace PUSpecSheet.DataAccess.Seeding.Sheets;
 
-/// <summary>
-/// Edits one sheet through the same services the API uses, so everything the showcase adds is real: drafts
-/// that lock what they change, and published versions with history. It keeps the live view the last change
-/// returned and finds tables, sections and column blocks in it by their template names.
-/// </summary>
+// Edits one sheet through the same services the API uses, so everything the showcase adds is real: drafts that lock
+// what they change, and published versions with history. It keeps the live view the last change returned and finds
+// tables, sections and column blocks in it by their template names.
 public sealed class SheetEditor
 {
     private readonly ShowcaseCellTypeCatalog _cellTypes;
@@ -42,10 +40,8 @@ public sealed class SheetEditor
         Sheet = sheet;
     }
 
-    /// <summary>The sheet as the current user last saw it.</summary>
     public Sheet Sheet { get; private set; }
 
-    /// <summary>Adds a table from the latest version of a template, gives it a title and returns its id.</summary>
     public async Task<int> AddTableAsync(int templateId, string title, CancellationToken cancellationToken)
     {
         var before = Sheet.Tables.Select(table => table.Id).ToHashSet();
@@ -60,11 +56,9 @@ public sealed class SheetEditor
         return Sheet.Tables.Single(table => table.Id == tableId);
     }
 
-    /// <summary>
-    /// The copy of the addable section called <paramref name="name"/> at <paramref name="index"/> under the
-    /// table or under <paramref name="parent"/>, adding copies until there is one there. Copies a table starts
-    /// with count, so the first call for a section with a minimum fills that in rather than adding another.
-    /// </summary>
+    // The copy of the addable section called name at index under the table or under parent, adding copies until there
+    // is one there. Copies a table starts with count, so the first call for a section with a minimum fills that in
+    // rather than adding another.
     public async Task<SheetSection> SectionAsync(int tableId, SheetSection? parent, string name, int index, CancellationToken cancellationToken)
     {
         while (true)
@@ -85,7 +79,6 @@ public sealed class SheetEditor
         }
     }
 
-    /// <summary>Adds one more copy of the addable section called <paramref name="name"/> and returns it.</summary>
     public async Task<SheetSection> AddSectionAsync(int tableId, SheetSection? parent, string name, CancellationToken cancellationToken)
     {
         return await SectionAsync(tableId, parent, name, Copies(tableId, parent?.Id, name).Count, cancellationToken);
@@ -96,20 +89,17 @@ public sealed class SheetEditor
         Sheet = await _sections.RemoveAsync(section.Id, cancellationToken);
     }
 
-    /// <summary>The section <paramref name="sectionId"/> as it is now.</summary>
     public SheetSection FindSection(int tableId, int sectionId)
     {
         return Flatten(Table(tableId).Sections).Single(section => section.Id == sectionId);
     }
 
-    /// <summary>The copies of a section under the table or a parent section, top to bottom.</summary>
     public List<SheetSection> Copies(int tableId, int? parentSectionId, string name)
     {
         var siblings = parentSectionId is null ? Table(tableId).Sections : FindSection(tableId, parentSectionId.Value).Sections;
         return siblings.Where(section => section.Name == name).OrderBy(section => section.DisplayOrder).ToList();
     }
 
-    /// <summary>Adds a copy of the column block called <paramref name="name"/> and returns it.</summary>
     public async Task<SheetColumnBlock> AddColumnBlockAsync(int tableId, string name, CancellationToken cancellationToken)
     {
         var before = Table(tableId).ColumnBlocks.Select(block => block.Id).ToHashSet();
@@ -121,19 +111,16 @@ public sealed class SheetEditor
         return Table(tableId).ColumnBlocks.Single(block => !before.Contains(block.Id));
     }
 
-    /// <summary>The copies of the column block called <paramref name="name"/>, left to right.</summary>
     public List<SheetColumnBlock> ColumnBlocks(int tableId, string name)
     {
         return Table(tableId).ColumnBlocks.Where(block => block.Name == name).OrderBy(block => block.DisplayOrder).ToList();
     }
 
-    /// <summary>Fills the row's own cells, left to right, with <paramref name="values"/>.</summary>
     public async Task FillAsync(SheetRow row, params object?[] values)
     {
         await SaveAsync(row, SheetValues.For(Sheet, row, null, _cellTypes, values), CancellationToken.None);
     }
 
-    /// <summary>The requests that fill a row's own cells, or its cells in one column block copy.</summary>
     public List<CellValueRequest> Values(SheetRow row, int? columnBlockId, params object?[] values)
     {
         return SheetValues.For(Sheet, row, columnBlockId, _cellTypes, values);
@@ -147,7 +134,6 @@ public sealed class SheetEditor
         }
     }
 
-    /// <summary>Chooses a cell's settings on the sheet: where a linked dropdown takes its choices from, for example.</summary>
     public async Task ChooseSettingsAsync(SheetRow row, SheetCell cell, CellInstanceSettings settings, CancellationToken cancellationToken)
     {
         Sheet = await _cellSettings.SaveAsync(row.Id, new SaveRowCellSettingsRequest
@@ -156,13 +142,11 @@ public sealed class SheetEditor
         }, cancellationToken);
     }
 
-    /// <summary>Publishes the current user's drafts as the sheet's next version.</summary>
     public async Task PublishAsync(string note, CancellationToken cancellationToken)
     {
         Sheet = await _sheets.PublishAsync(Sheet.Id, note, PublishScope.Mine, cancellationToken);
     }
 
-    /// <summary>Reads the sheet again, as whoever the current user now is.</summary>
     public async Task RefreshAsync(CancellationToken cancellationToken)
     {
         Sheet = await _sheets.GetAsync(Sheet.Id, SheetViewPoint.Live, cancellationToken);

@@ -5,13 +5,11 @@ using PUSpecSheet.DataAccess.Seeding.ReferenceData;
 
 namespace PUSpecSheet.DataAccess.Seeding.Templates;
 
-/// <summary>
-/// "PFK register", a wide vertical table on the PFKs sheet with its first two columns pinned. Each machining
-/// operation people add (at least one) holds the product features checked at it (at least one, at most
-/// twenty), and a feature can hold a reaction plan: three levels of addable sections. Version 2 allows up to
-/// three reaction plans and adds a free-text note under an operation. Version 3 is still being edited in the
-/// template designer, so no sheet uses it yet.
-/// </summary>
+// "PFK register", a wide vertical table on the PFKs sheet with its first two columns pinned. Each machining operation
+// people add (at least one) holds the product features checked at it (at least one, at most twenty), and a feature
+// can hold a reaction plan: three levels of addable sections. Version 2 allows up to three reaction plans and adds a
+// free-text note under an operation. Version 3 is still being edited in the template designer, so no sheet uses it
+// yet.
 public sealed class PfkRegisterTemplate : IShowcaseTemplate
 {
     public const string TemplateName = "PFK register";

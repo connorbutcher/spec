@@ -5,10 +5,6 @@ using PUSpecSheet.DataAccess.Seeding.ReferenceData;
 
 namespace PUSpecSheet.DataAccess.Seeding.Templates;
 
-/// <summary>
-/// "Gauges", a small vertical table on the PFKs sheet listing the gauges a phase checks with. The PFK
-/// register's gauge column is a linked dropdown pointed at this table's gauge ids.
-/// </summary>
 public sealed class GaugeTemplate : IShowcaseTemplate
 {
     public const string TemplateName = "Gauges";

@@ -6,10 +6,6 @@ using PUSpecSheet.DataAccess.SheetTypes;
 
 namespace PUSpecSheet.DataAccess.Seeding.Sheets;
 
-/// <summary>
-/// Opens a sheet for a <see cref="SheetEditor"/>: a phase's one sheet of a sheet type, creating it as the app
-/// does the first time, or a sheet by id.
-/// </summary>
 public sealed class SheetEditorFactory
 {
     private readonly ISheetsService _sheets;
@@ -45,7 +41,6 @@ public sealed class SheetEditorFactory
         return new SheetEditor(sheet, cellTypes, _sheets, _tables, _sections, _rows, _columnBlocks, _cellSettings);
     }
 
-    /// <summary>Opens the sheet <paramref name="sheetId"/>, one of several of its type in a phase, as the current user sees it.</summary>
     public async Task<SheetEditor> OpenSheetAsync(int sheetId, ShowcaseCellTypeCatalog cellTypes, CancellationToken cancellationToken)
     {
         var sheet = await _sheets.GetAsync(sheetId, SheetViewPoint.Live, cancellationToken);

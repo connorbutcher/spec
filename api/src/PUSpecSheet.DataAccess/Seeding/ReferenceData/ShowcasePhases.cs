@@ -4,11 +4,6 @@ using PUSpecSheet.Database.Models.Phases;
 
 namespace PUSpecSheet.DataAccess.Seeding.ReferenceData;
 
-/// <summary>
-/// The phases the showcase fills in: the V6 build and its A2 to A5 sub-phases. A missing one is added
-/// (the sub-phases under V6), and each is given the Specification, Parts and PFKs sheet types, and V6 the
-/// Engine Specifications one too. Phases that already exist keep everything else they have.
-/// </summary>
 public sealed class ShowcasePhases
 {
     public const string V6 = "V6";
@@ -21,10 +16,8 @@ public sealed class ShowcasePhases
     public const string PartsSheetType = "Parts";
     public const string PfksSheetType = "PFKs";
 
-    /// <summary>The one showcase sheet type with many sheets in a phase, told apart by serial number. Only V6 has it.</summary>
     public const string EngineSpecificationsSheetType = "Engine Specifications";
 
-    /// <summary>Every showcase phase, the build first.</summary>
     public static readonly string[] Codes = [V6, A2, A3, A4, A5];
 
     private readonly IPhaseDataService _phaseData;
@@ -36,7 +29,6 @@ public sealed class ShowcasePhases
         _sheetTypes = sheetTypes;
     }
 
-    /// <summary>The id of each showcase phase by code.</summary>
     public async Task<IReadOnlyDictionary<string, int>> EnsureAsync(CancellationToken cancellationToken)
     {
         var phases = await _phaseData.ListByCodesForEditAsync(Codes, cancellationToken);

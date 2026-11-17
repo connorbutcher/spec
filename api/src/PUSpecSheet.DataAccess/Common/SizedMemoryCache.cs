@@ -3,12 +3,10 @@ using Microsoft.Extensions.Caching.Memory;
 
 namespace PUSpecSheet.DataAccess.Common;
 
-/// <summary>
-/// Keeps built answers in memory under a key that names exactly what they were built from, such as a sheet
-/// and one of its published versions. What is published never changes, so an entry is never wrong and
-/// nothing has to be cleared; entries only leave when they go unused or the cache is full. Each entry says
-/// how big it is, so a few large ones can't push everything else out unnoticed.
-/// </summary>
+// Keeps built answers in memory under a key that names exactly what they were built from, such as a sheet and one of
+// its published versions. What is published never changes, so an entry is never wrong and nothing has to be cleared;
+// entries only leave when they go unused or the cache is full. Each entry says how big it is, so a few large ones
+// can't push everything else out unnoticed.
 public abstract class SizedMemoryCache<TValue> : IDisposable
     where TValue : class
 {

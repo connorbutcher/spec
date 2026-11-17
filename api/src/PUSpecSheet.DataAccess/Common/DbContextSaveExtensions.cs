@@ -4,19 +4,13 @@ using PUSpecSheet.Database;
 
 namespace PUSpecSheet.DataAccess.Common;
 
-/// <summary>
-/// How the services save: turning a clash with someone else's change into a conflict the screen can explain,
-/// and marking an entity changed so its row version moves on. Entities loaded for editing are tracked, so changing them and saving is
-/// enough to store the change.
-/// </summary>
+// How the services save: turning a clash with someone else's change into a conflict the screen can explain, and
+// marking an entity changed so its row version moves on. Entities loaded for editing are tracked, so changing them
+// and saving is enough to store the change.
 public static class DbContextSaveExtensions
 {
     private const string ClashMessage = "Someone else changed this at the same moment. Refresh the sheet and try again.";
 
-    /// <summary>
-    /// Saves, turning a clash with someone else's change made at the same moment (a stale row version,
-    /// or two people taking the same lock or revision number) into a conflict the screen can explain.
-    /// </summary>
     public static async Task SaveSheetChangesAsync(this PuSpecSheetDbContext db, CancellationToken cancellationToken)
     {
         try
@@ -33,7 +27,7 @@ public static class DbContextSaveExtensions
         }
     }
 
-    /// <summary>Marks a loaded entity as changed, so saving checks and moves its row version on.</summary>
+    // Marks a loaded entity as changed, so saving checks and moves its row version on.
     public static void MarkModified(this PuSpecSheetDbContext db, object entity)
     {
         db.Entry(entity).State = EntityState.Modified;

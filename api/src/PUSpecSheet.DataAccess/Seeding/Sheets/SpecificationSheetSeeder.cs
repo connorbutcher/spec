@@ -4,12 +4,10 @@ using PUSpecSheet.DataAccess.Seeding.Templates;
 
 namespace PUSpecSheet.DataAccess.Seeding.Sheets;
 
-/// <summary>
-/// Fills in the Specification sheets. V6 has two tables built from version 1 of the template and a
-/// history of three versions by two people, the last of which (<see cref="IssueV6Async"/>) is published at
-/// the very end of the showcase. The A2 to A5 sheets are built from version 2, so they also have surface
-/// finishes: A3 is left with rows locked by engineer2's unpublished changes, and A4 with the developer's own.
-/// </summary>
+// Fills in the Specification sheets. V6 has two tables built from version 1 of the template and a history of three
+// versions by two people, the last of which (IssueV6Async) is published at the very end of the showcase. The A2 to A5
+// sheets are built from version 2, so they also have surface finishes: A3 is left with rows locked by engineer2's
+// unpublished changes, and A4 with the developer's own.
 public sealed class SpecificationSheetSeeder
 {
     public const string ShortBlockTitle = "Short block";
@@ -85,7 +83,6 @@ public sealed class SpecificationSheetSeeder
         _users = users;
     }
 
-    /// <summary>V6, built from version 1 of the template: two versions now, the third from <see cref="IssueV6Async"/>.</summary>
     public async Task SeedV6Async(ShowcaseContext context, CancellationToken cancellationToken)
     {
         await _users.ActAsAsync(ShowcaseUsers.Developer, cancellationToken);
@@ -115,7 +112,6 @@ public sealed class SpecificationSheetSeeder
         _v6 = editor;
     }
 
-    /// <summary>The A phases, built from version 2 of the template, each a step further on from V6.</summary>
     public async Task SeedPhasesAsync(ShowcaseContext context, CancellationToken cancellationToken)
     {
         var templateId = context.TemplateIds[SpecificationTemplate.TemplateName];
@@ -166,10 +162,6 @@ public sealed class SpecificationSheetSeeder
         await a5.PublishAsync("Released for the A5 build", cancellationToken);
     }
 
-    /// <summary>
-    /// V6's third version: a release note and the approval, by the developer. The showcase publishes this
-    /// last and looks for its note to know it has been built.
-    /// </summary>
     public async Task IssueV6Async(string note, CancellationToken cancellationToken)
     {
         var editor = _v6 ?? throw new InvalidOperationException("The V6 specification has to be seeded first.");
@@ -213,10 +205,6 @@ public sealed class SpecificationSheetSeeder
         return tableId;
     }
 
-    /// <summary>
-    /// Fills the table's first system if it is still empty (a table starts with one), or adds another, and
-    /// adds its limits. Surface finishes go in only where the table's template version has them.
-    /// </summary>
     private static async Task AddSystemAsync(SheetEditor editor, int tableId, SpecificationSystem system, int step, CancellationToken cancellationToken)
     {
         var existing = editor.Copies(tableId, null, SpecificationTemplate.System);
@@ -254,7 +242,6 @@ public sealed class SpecificationSheetSeeder
         }
     }
 
-    /// <summary>Mostly released, with a few limits still provisional or under review in the earlier phases.</summary>
     private static string Status(int step, int index)
     {
         if (step < 3 && index % 3 == 2)

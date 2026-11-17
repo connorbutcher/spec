@@ -1,6 +1,5 @@
 namespace PUSpecSheet.DataAccess.Seeding.Sheets;
 
-/// <summary>One system of the sample specification and the limits under it, as on the V6 sheet.</summary>
 public sealed record SpecificationSystem
 {
     public required string Name { get; init; }

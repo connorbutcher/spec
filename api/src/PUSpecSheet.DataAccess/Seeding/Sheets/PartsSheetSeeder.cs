@@ -6,18 +6,10 @@ using PUSpecSheet.DataAccess.Seeding.Templates;
 
 namespace PUSpecSheet.DataAccess.Seeding.Sheets;
 
-/// <summary>
-/// Fills in the Parts sheets with the "Parts matrix": a part number and material over each part's columns,
-/// a baseline column, and groups of dimensions, single values, checks, first-article dates and (from
-/// version 2 of the template) fasteners. V6 starts with three parts and gains a fourth, then has a limit
-/// tightened, and engineer3 has a change waiting; the A phases are built from version 2, and A5 is left
-/// with a fifth part the developer hasn't published yet.
-/// </summary>
 public sealed class PartsSheetSeeder
 {
     private const int StartingParts = 3;
 
-    /// <summary>The part whose numbers are the same on both hands.</summary>
     private const int SymmetricPart = 2;
 
     private static readonly string[] _materials = ["EN AC-42100 T6", "42CrMo4 QT", "38MnVS6 forged", "EN AC-42100 T6", "42CrMo4 QT"];
@@ -69,7 +61,6 @@ public sealed class PartsSheetSeeder
         _users = users;
     }
 
-    /// <summary>V6, built from version 1 of the template, which has no fastener rows.</summary>
     public async Task SeedV6Async(ShowcaseContext context, CancellationToken cancellationToken)
     {
         var (editor, table) = await BuildAsync(context, ShowcasePhases.V6, ShowcaseUsers.Developer, cancellationToken);
@@ -102,7 +93,6 @@ public sealed class PartsSheetSeeder
         await editor.SaveAsync(firstArticle, editor.Values(firstArticle, parts[3].Id, new DateOnly(2026, 10, 28)), cancellationToken);
     }
 
-    /// <summary>The A phases, built from version 2 of the template.</summary>
     public async Task SeedPhasesAsync(ShowcaseContext context, CancellationToken cancellationToken)
     {
         var (a2, _) = await BuildAsync(context, ShowcasePhases.A2, ShowcaseUsers.Developer, cancellationToken);
@@ -147,7 +137,6 @@ public sealed class PartsSheetSeeder
         return (editor, table);
     }
 
-    /// <summary>The part number, material and every row's values for the parts from <paramref name="from"/> on.</summary>
     private static async Task FillPartsAsync(SheetEditor editor, int table, int step, int from, CancellationToken cancellationToken)
     {
         var parts = editor.ColumnBlocks(table, PartsMatrixTemplate.Part);
@@ -187,10 +176,8 @@ public sealed class PartsSheetSeeder
         }
     }
 
-    /// <summary>
-    /// A part's right-hand and left-hand numbers. The third part is the same on both hands, so on the sheet its
-    /// cell is changed to hold one number labelled "Both" instead of the template's RH and LH.
-    /// </summary>
+    // A part's right-hand and left-hand numbers. The third part is the same on both hands, so on the sheet its cell
+    // is changed to hold one number labelled "Both" instead of the template's RH and LH.
     private static async Task<IReadOnlyDictionary<string, string>> PartNumbersAsync(
         SheetEditor editor,
         SheetRow header,
@@ -236,7 +223,6 @@ public sealed class PartsSheetSeeder
         };
     }
 
-    /// <summary>Every row of one kind of section, top to bottom through the groups.</summary>
     private static List<SheetRow> Rows(SheetEditor editor, int table, string kind)
     {
         return editor.Copies(table, null, PartsMatrixTemplate.Group)

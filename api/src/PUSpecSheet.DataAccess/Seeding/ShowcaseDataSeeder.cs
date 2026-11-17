@@ -3,32 +3,23 @@ using PUSpecSheet.DataAccess.Seeding.ReferenceData;
 using PUSpecSheet.DataAccess.Seeding.Sheets;
 using PUSpecSheet.DataAccess.Seeding.Templates;
 using PUSpecSheet.DataAccess.Sheets;
-using PUSpecSheet.Database;
 
 namespace PUSpecSheet.DataAccess.Seeding;
 
-/// <summary>
-/// Development-only sample data that shows off the whole app: templates for the Specification, PFKs and
-/// Parts sheet types with several versions each (and an as-built record for Engine Specifications), every
-/// cell kind, addable sections nested three deep with minimums and maximums, column blocks, per-cell
-/// settings and styles and lookup keys, and sheets for V6 and A2 to A5 with published history by three
-/// people, unpublished changes and the locks they hold, and several Engine Specifications sheets in V6
-/// told apart by serial number, one of them copied from another.
-/// <para>
-/// <b>It clears the database first.</b> Every sheet, template and user-made cell type is deleted (see
-/// <see cref="SampleDataQueries"/>) and the showcase is built in their place. That happens once: the
-/// showcase's last publish carries <see cref="CompletedNote"/>, and while a version with that note exists
-/// nothing is touched again, so work done on top of the showcase is kept. Set <c>SampleData:Rebuild</c> to
-/// true to clear and rebuild it on the next start regardless. A failure is logged instead of stopping the
-/// API, and as the note is only written at the end, the next start tries again from a clean database.
-/// </para>
-/// </summary>
+// Development-only sample data that shows off the whole app: templates for the Specification, PFKs and Parts sheet
+// types with several versions each (and an as-built record for Engine Specifications), every cell kind, addable
+// sections nested three deep with minimums and maximums, column blocks, per-cell settings and styles and lookup keys,
+// and sheets for V6 and A2 to A5 with published history by three people, unpublished changes and the locks they hold,
+// and several Engine Specifications sheets in V6 told apart by serial number, one of them copied from another. <b>It
+// clears the database first.</b> Every sheet, template and user-made cell type is deleted (see SampleDataQueries) and
+// the showcase is built in their place. That happens once: the showcase's last publish carries CompletedNote, and
+// while a version with that note exists nothing is touched again, so work done on top of the showcase is kept. Set
+// SampleData:Rebuild to true to clear and rebuild it on the next start regardless. A failure is logged instead of
+// stopping the API, and as the note is only written at the end, the next start tries again from a clean database.
 public sealed partial class ShowcaseDataSeeder
 {
-    /// <summary>The note on the showcase's last publish, which marks it as built.</summary>
     public const string CompletedNote = "Issued for V6 build sign-off";
 
-    private readonly PuSpecSheetDbContext _db;
     private readonly ShowcaseCellTypes _cellTypes;
     private readonly ShowcasePhases _phases;
     private readonly ShowcaseTemplateWriter _templates;
@@ -39,9 +30,9 @@ public sealed partial class ShowcaseDataSeeder
     private readonly ShowcaseUsers _users;
     private readonly ILogger<ShowcaseDataSeeder> _logger;
     private readonly ISheetDataService _sheetData;
+    private readonly ISampleDataService _sampleData;
 
     public ShowcaseDataSeeder(
-        PuSpecSheetDbContext db,
         ShowcaseCellTypes cellTypes,
         ShowcasePhases phases,
         ShowcaseTemplateWriter templates,
@@ -51,9 +42,9 @@ public sealed partial class ShowcaseDataSeeder
         EngineSpecificationSheetSeeder engineSpecifications,
         ShowcaseUsers users,
         ILogger<ShowcaseDataSeeder> logger,
-        ISheetDataService sheetData)
+        ISheetDataService sheetData,
+        ISampleDataService sampleData)
     {
-        _db = db;
         _cellTypes = cellTypes;
         _phases = phases;
         _templates = templates;
@@ -64,6 +55,7 @@ public sealed partial class ShowcaseDataSeeder
         _users = users;
         _logger = logger;
         _sheetData = sheetData;
+        _sampleData = sampleData;
     }
 
     public async Task SeedAsync(bool rebuild, CancellationToken cancellationToken = default)
@@ -76,7 +68,7 @@ public sealed partial class ShowcaseDataSeeder
             }
 
             LogBuilding(_logger);
-            await SampleDataQueries.ClearAsync(_db, cancellationToken);
+            await _sampleData.ClearAsync(cancellationToken);
             await BuildAsync(cancellationToken);
             LogBuilt(_logger);
         }

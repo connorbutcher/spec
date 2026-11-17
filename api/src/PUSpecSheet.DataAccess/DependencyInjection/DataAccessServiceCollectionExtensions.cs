@@ -145,6 +145,7 @@ public static class DataAccessServiceCollectionExtensions
 
     private static void AddSeeding(IServiceCollection services)
     {
+        services.AddScoped<ISampleDataService, SampleDataService>();
         services.AddScoped<ShowcaseCellTypes>();
         services.AddScoped<ShowcasePhases>();
         services.AddScoped<ShowcaseUsers>();

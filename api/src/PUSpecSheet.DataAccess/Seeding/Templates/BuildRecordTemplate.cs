@@ -5,11 +5,6 @@ using PUSpecSheet.DataAccess.Seeding.ReferenceData;
 
 namespace PUSpecSheet.DataAccess.Seeding.Templates;
 
-/// <summary>
-/// "As-built record", a vertical table on the Engine Specifications sheets, one sheet per engine serial
-/// number: the assembly stages people add (at least one, at most eight), each holding the measurements taken
-/// at that stage against their limits with a pass or fail, then build notes after the stages.
-/// </summary>
 public sealed class BuildRecordTemplate : IShowcaseTemplate
 {
     public const string TemplateName = "As-built record";

@@ -6,10 +6,6 @@ using PUSpecSheet.Database.Models.Templates;
 
 namespace PUSpecSheet.DataAccess.Seeding.Templates;
 
-/// <summary>
-/// Lays out one version of a showcase template: its header, addable sections and sub-sections, column
-/// blocks, rows and cells, each numbered in the order it is added. Cell types are named, not given by id.
-/// </summary>
 public sealed class TemplateLayout
 {
     private readonly DbTableTemplateVersion _version;
@@ -23,13 +19,11 @@ public sealed class TemplateLayout
 
     public DbTableTemplateVersion Version => _version;
 
-    /// <summary>The table's one header section.</summary>
     public DbTemplateSection Header()
     {
         return Add(new DbTemplateSection { Name = "Header", Role = SectionRole.Header, MinInstances = 1, MaxInstances = 1, InitialInstances = 1 }, null);
     }
 
-    /// <summary>An addable section at the top level, or inside <paramref name="parent"/>.</summary>
     public DbTemplateSection Section(string name, DbTemplateSection? parent, int minimum = 0, int? maximum = null, int initial = 0)
     {
         var section = new DbTemplateSection
@@ -43,7 +37,6 @@ public sealed class TemplateLayout
         return Add(section, parent);
     }
 
-    /// <summary>A column block people add copies of across a horizontal table, to the right of the ones before it.</summary>
     public DbTemplateColumnBlock Block(string name, int minimum, int? maximum, int initial, int stickyColumns = 0)
     {
         var block = new DbTemplateColumnBlock
@@ -59,7 +52,6 @@ public sealed class TemplateLayout
         return block;
     }
 
-    /// <summary>A row at the end of <paramref name="section"/>'s own rows.</summary>
     public DbTemplateRow Row(DbTemplateSection section, params DbTemplateCell[] cells)
     {
         if (!_version.Sections.Contains(section))
@@ -77,7 +69,6 @@ public sealed class TemplateLayout
         return row;
     }
 
-    /// <summary>A cell of the cell type called <paramref name="cellType"/>, starting on <paramref name="column"/>.</summary>
     public DbTemplateCell Cell(
         string cellType,
         int column,

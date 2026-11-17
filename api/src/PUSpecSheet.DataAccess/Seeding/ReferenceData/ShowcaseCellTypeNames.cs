@@ -1,6 +1,5 @@
 namespace PUSpecSheet.DataAccess.Seeding.ReferenceData;
 
-/// <summary>The cell types the showcase templates use, by name. The first seven are the built-in ones.</summary>
 public static class ShowcaseCellTypeNames
 {
     public const string Heading = "Heading";

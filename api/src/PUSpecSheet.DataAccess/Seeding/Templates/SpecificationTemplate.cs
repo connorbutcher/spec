@@ -5,12 +5,6 @@ using PUSpecSheet.DataAccess.Seeding.ReferenceData;
 
 namespace PUSpecSheet.DataAccess.Seeding.Templates;
 
-/// <summary>
-/// "Engine specification", a vertical table on the Specification sheet: a two-row header with grouped
-/// column captions, then systems people add (at least one, at most eight, twelve from version 2), each
-/// holding the kinds of limit row people add under it: dimensions, materials, bolted joints (with a group
-/// caption row) and, from version 2, surface finishes. Release notes and one approval sit after the systems.
-/// </summary>
 public sealed class SpecificationTemplate : IShowcaseTemplate
 {
     public const string TemplateName = "Engine specification";

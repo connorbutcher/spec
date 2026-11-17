@@ -5,12 +5,6 @@ using PUSpecSheet.DataAccess.Seeding.Templates;
 
 namespace PUSpecSheet.DataAccess.Seeding.Sheets;
 
-/// <summary>
-/// Fills in the PFKs sheets: a "Gauges" table and a "PFK register" whose gauge column is a linked dropdown
-/// pointed at the gauge ids, with operations, features and reaction plans three levels deep. V6 is built
-/// from version 1 of the register and has two versions plus a change engineer2 hasn't published; the A
-/// phases are built from version 2, with an operation note, and A4 is left with the developer's own changes.
-/// </summary>
 public sealed class PfkSheetSeeder
 {
     private static readonly (string Id, string Description, DateOnly CalibratedUntil, bool InService)[] _gauges =
@@ -63,7 +57,6 @@ public sealed class PfkSheetSeeder
         _users = users;
     }
 
-    /// <summary>V6, built from version 1 of the register.</summary>
     public async Task SeedV6Async(ShowcaseContext context, CancellationToken cancellationToken)
     {
         var editor = await BuildAsync(context, ShowcasePhases.V6, ShowcaseUsers.Developer, _operations, cancellationToken);
@@ -92,7 +85,6 @@ public sealed class PfkSheetSeeder
         await editor.FillAsync(Row(deck), null, null, null, null, null, 10m, null, new DateOnly(2026, 10, 23), "Pass");
     }
 
-    /// <summary>The A phases, built from version 2 of the register.</summary>
     public async Task SeedPhasesAsync(ShowcaseContext context, CancellationToken cancellationToken)
     {
         PfkOperation[] all = [.. _operations, _torque];
@@ -152,10 +144,6 @@ public sealed class PfkSheetSeeder
         return editor;
     }
 
-    /// <summary>
-    /// Fills the register's first operation if it is still empty (a register starts with one, holding one
-    /// feature), or adds another, then its features and their reaction plans.
-    /// </summary>
     private static async Task AddOperationAsync(SheetEditor editor, int register, PfkOperation operation, int step, CancellationToken cancellationToken)
     {
         var existing = editor.Copies(register, null, PfkRegisterTemplate.Operation);
@@ -181,10 +169,6 @@ public sealed class PfkSheetSeeder
         }
     }
 
-    /// <summary>
-    /// Points a feature's gauge cell at the gauge ids. Only the first feature needs it: the rows added after it
-    /// start with the same choice.
-    /// </summary>
     private static async Task LinkGaugeAsync(SheetEditor editor, SheetRow row, CancellationToken cancellationToken)
     {
         var templateCells = editor.Sheet.TemplateCells.ToDictionary(cell => cell.Id);

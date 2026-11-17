@@ -7,10 +7,6 @@ using PUSpecSheet.Database.Models.CellTypes;
 
 namespace PUSpecSheet.DataAccess.Seeding.ReferenceData;
 
-/// <summary>
-/// Makes sure every cell type the showcase uses exists, one of each kind at least, with settings, styles and
-/// options of their own: a cell type that is already there under the same name is used as it is.
-/// </summary>
 public sealed class ShowcaseCellTypes
 {
     private static readonly CellStyle _right = new() { Align = CellTextAlign.Right };

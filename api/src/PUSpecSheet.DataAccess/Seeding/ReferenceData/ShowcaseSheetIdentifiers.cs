@@ -3,12 +3,10 @@ using PUSpecSheet.DataAccess.SheetTypes;
 
 namespace PUSpecSheet.DataAccess.Seeding.ReferenceData;
 
-/// <summary>
-/// The identifiers that tell the Engine Specifications sheets of a phase apart: a required serial number,
-/// and an optional build date and configuration. They are added through the sheet types service, as the
-/// admin page would, when the sheet type doesn't have one of that name already. Sheet types outlive a
-/// rebuild of the showcase, so ones that exist are kept as they are.
-/// </summary>
+// The identifiers that tell the Engine Specifications sheets of a phase apart: a required serial number, and an
+// optional build date and configuration. They are added through the sheet types service, as the admin page would,
+// when the sheet type doesn't have one of that name already. Sheet types outlive a rebuild of the showcase, so ones
+// that exist are kept as they are.
 public sealed class ShowcaseSheetIdentifiers
 {
     public const string SerialNumber = "Serial Number";
@@ -41,7 +39,6 @@ public sealed class ShowcaseSheetIdentifiers
         _sheetTypeData = sheetTypeData;
     }
 
-    /// <summary>Gives the Engine Specifications sheet type its identifiers and returns their ids by name.</summary>
     public async Task<IReadOnlyDictionary<string, int>> EnsureAsync(CancellationToken cancellationToken)
     {
         var sheetTypeId = await _sheetTypeData.GetIdByNameAsync(ShowcasePhases.EngineSpecificationsSheetType, cancellationToken);

@@ -1,6 +1,5 @@
 namespace PUSpecSheet.DataAccess.Common;
 
-/// <summary>The requested record doesn't exist. Maps to 404.</summary>
 public sealed class NotFoundException : Exception
 {
     public NotFoundException(string message)

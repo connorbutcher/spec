@@ -1,6 +1,5 @@
 namespace PUSpecSheet.DataAccess.Seeding.Sheets;
 
-/// <summary>One machining operation of the sample PFK register and the product features checked at it.</summary>
 public sealed record PfkOperation
 {
     public required string Name { get; init; }

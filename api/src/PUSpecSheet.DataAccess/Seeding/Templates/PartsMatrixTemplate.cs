@@ -6,15 +6,6 @@ using PUSpecSheet.Database.Models.Templates;
 
 namespace PUSpecSheet.DataAccess.Seeding.Templates;
 
-/// <summary>
-/// "Parts matrix", a horizontal table on the Parts sheet. Its own two columns (characteristic and drawing
-/// reference) are pinned; then a one-column "Baseline" block (exactly one copy, pinned once scrolled to) and
-/// a two-column "Part" block people add copies of, one per part (one to eight, three to start with). The
-/// three-row header carries each part's numbers, right hand and left hand with red RH and LH labels, in blue
-/// and looked up by "partNumber", and its material.
-/// Groups people add hold rows of dimensions (a Min and Max per part), single values (one value across a
-/// part's two columns), checks, first-article dates and, from version 2, fastener thread sizes and torques.
-/// </summary>
 public sealed class PartsMatrixTemplate : IShowcaseTemplate
 {
     public const string TemplateName = "Parts matrix";

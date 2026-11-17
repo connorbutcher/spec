@@ -7,14 +7,12 @@ using PUSpecSheet.DataAccess.SheetTypes;
 
 namespace PUSpecSheet.DataAccess.Seeding.Sheets;
 
-/// <summary>
-/// Fills in V6's Engine Specifications sheets, the showcase's example of many sheets of one type in a phase:
-/// one as-built record per engine, told apart by serial number, build date and configuration. Each is
-/// created through the sheets service as the phase's sheet list does, so the values are checked and kept
-/// unique the same way. PU6-0001 and PU6-0003 have two published versions each; PU6-0002 started as a copy of
-/// PU6-0001 and was published with its own readings; PU6-0004, a copy of PU6-0003 with no build date yet, is
-/// still the developer's unpublished drafts. No other phase or sheet type has more than one sheet.
-/// </summary>
+// Fills in V6's Engine Specifications sheets, the showcase's example of many sheets of one type in a phase: one
+// as-built record per engine, told apart by serial number, build date and configuration. Each is created through the
+// sheets service as the phase's sheet list does, so the values are checked and kept unique the same way. PU6-0001 and
+// PU6-0003 have two published versions each; PU6-0002 started as a copy of PU6-0001 and was published with its own
+// readings; PU6-0004, a copy of PU6-0003 with no build date yet, is still the developer's unpublished drafts. No
+// other phase or sheet type has more than one sheet.
 public sealed class EngineSpecificationSheetSeeder
 {
     public const string TableTitle = "As-built measurements";
@@ -73,7 +71,6 @@ public sealed class EngineSpecificationSheetSeeder
         _sheetTypes = sheetTypes;
     }
 
-    /// <summary>The four V6 engines, built from version 1 of the as-built record template.</summary>
     public async Task SeedV6Async(ShowcaseContext context, CancellationToken cancellationToken)
     {
         var identifierIds = await _identifiers.EnsureAsync(cancellationToken);
@@ -144,7 +141,6 @@ public sealed class EngineSpecificationSheetSeeder
         await fourth.FillAsync(MeasurementRow(fourth, fourthTable, 0, 2), null, 0.150m, null, null, "Pass");
     }
 
-    /// <summary>Creates the engine's sheet in V6 with its identifier values, optionally as a copy of another, and opens it.</summary>
     private async Task<SheetEditor> CreateAsync(SheetTarget target, EngineBuild build, int? copyFromSheetId, CancellationToken cancellationToken)
     {
         List<SheetIdentifierValueRequest> values = [new SheetIdentifierValueRequest
@@ -180,7 +176,6 @@ public sealed class EngineSpecificationSheetSeeder
         return await _editors.OpenSheetAsync(created.Id, target.Context.CellTypes, cancellationToken);
     }
 
-    /// <summary>Adds the as-built table with a stage for each of <paramref name="stages"/> and their readings, and returns its id.</summary>
     private static async Task<int> AddRecordAsync(SheetEditor editor, int templateId, BuildStage[] stages, int engine, CancellationToken cancellationToken)
     {
         var tableId = await editor.AddTableAsync(templateId, TableTitle, cancellationToken);
@@ -200,7 +195,6 @@ public sealed class EngineSpecificationSheetSeeder
         return tableId;
     }
 
-    /// <summary>Fills in this engine's measured values and results on a table that already has the stages' rows.</summary>
     private static async Task RecordReadingsAsync(SheetEditor editor, int tableId, BuildStage[] stages, int engine)
     {
         for (var stageIndex = 0; stageIndex < stages.Length; stageIndex++)
@@ -222,7 +216,6 @@ public sealed class EngineSpecificationSheetSeeder
         await editor.FillAsync(Row(note, 0), text, on);
     }
 
-    /// <summary>How far, in microns, an engine's reading sits from the nominal reading: a small spread from -2 to 2.</summary>
     private static int Spread(int engine, int position)
     {
         return (((engine * 3) + (position * 7)) % 5) - 2;

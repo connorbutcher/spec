@@ -6,18 +6,8 @@ using PUSpecSheet.DataAccess.Seeding.ReferenceData;
 
 namespace PUSpecSheet.DataAccess.Seeding.Sheets;
 
-/// <summary>
-/// Turns a plain list of values into the requests that fill a row's cells, left to right, skipping the
-/// heading and group cells that hold no value. A string fills a text or linked cell or picks a dropdown
-/// option by its text, a number fills a number cell or picks a number option, a date or a bool fills a
-/// date or checkbox, and a dictionary of slot key to text fills a labelled text cell. Null leaves a cell as it is.
-/// </summary>
 public static class SheetValues
 {
-    /// <summary>
-    /// The requests that put <paramref name="values"/> into the row's own cells (no <paramref name="columnBlockId"/>)
-    /// or into its cells in one column block copy.
-    /// </summary>
     public static List<CellValueRequest> For(
         Sheet sheet,
         SheetRow row,
