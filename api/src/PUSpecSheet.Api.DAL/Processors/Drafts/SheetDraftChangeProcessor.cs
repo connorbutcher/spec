@@ -4,6 +4,11 @@ using PUSpecSheet.Abstractions.Domain.Access;
 using PUSpecSheet.Abstractions.Operations;
 using PUSpecSheet.Abstractions.Operations.Cells;
 using PUSpecSheet.Abstractions.Operations.Rows;
+using PUSpecSheet.Abstractions.Operations.TableGroups;
+using PUSpecSheet.Abstractions.Operations.TableGroups.Widgets;
+using PUSpecSheet.Abstractions.Operations.Tables;
+using PUSpecSheet.Abstractions.Operations.Tables.Notes;
+using PUSpecSheet.Abstractions.Operations.Tables.Widgets;
 using PUSpecSheet.Abstractions.Operations.Values.Linked;
 using PUSpecSheet.Abstractions.Operations.Values.Number;
 using PUSpecSheet.Abstractions.Operations.Values.Pair;
@@ -11,6 +16,11 @@ using PUSpecSheet.Abstractions.Operations.Values.Text;
 using PUSpecSheet.Api.DAL.Processors.Base;
 using PUSpecSheet.Api.DAL.Processors.Drafts.Cells;
 using PUSpecSheet.Api.DAL.Processors.Drafts.Rows;
+using PUSpecSheet.Api.DAL.Processors.Drafts.TableGroups;
+using PUSpecSheet.Api.DAL.Processors.Drafts.TableGroups.Widgets;
+using PUSpecSheet.Api.DAL.Processors.Drafts.Tables;
+using PUSpecSheet.Api.DAL.Processors.Drafts.Tables.Notes;
+using PUSpecSheet.Api.DAL.Processors.Drafts.Tables.Widgets;
 using PUSpecSheet.Api.DAL.Processors.Drafts.Values.LinkedSpecSheetValue;
 using PUSpecSheet.Api.DAL.Processors.Drafts.Values.Numeric;
 using PUSpecSheet.Api.DAL.Processors.Drafts.Values.PairValue;
@@ -20,8 +30,7 @@ using PUSpecSheet.Api.Database;
 namespace PUSpecSheet.Api.DAL.Processors.Drafts;
 
 /// <summary>
-/// Applies changes to a sheet's drafts in the revisions, for a sheet type edited on the revisions. Operations that aren't
-/// applied to the revisions yet are refused, and nothing is changed.
+/// Applies changes to a sheet's drafts in the revisions, for a sheet type edited on the revisions.
 /// </summary>
 internal class SheetDraftChangeProcessor : ChangeProcessorBase
 {
@@ -37,6 +46,20 @@ internal class SheetDraftChangeProcessor : ChangeProcessorBase
     {
         return operation switch
         {
+            AddSpecSheetTableOp => new AddSpecSheetTableDraftOpHandler(DbContext, User, _sheetId),
+            UpdateSpecSheetTableOp => new UpdateSpecSheetTableDraftOpHandler(DbContext, User, _sheetId),
+            DeleteSpecSheetTableOp => new DeleteSpecSheetTableDraftOpHandler(DbContext, User, _sheetId),
+            AddSpecSheetTableWidgetOp => new AddSpecSheetTableWidgetDraftOpHandler(DbContext, User, _sheetId),
+            UpdateSpecSheetTableWidgetOp => new UpdateSpecSheetTableWidgetDraftOpHandler(DbContext, User, _sheetId),
+            AddSpecSheetTableNoteOp => new AddSpecSheetTableNoteDraftOpHandler(DbContext, User, _sheetId),
+            UpdateSpecSheetTableNoteOp => new UpdateSpecSheetTableNoteDraftOpHandler(DbContext, User, _sheetId),
+
+            AddSpecSheetTableGroupOp => new AddSpecSheetTableGroupDraftOpHandler(DbContext, User, _sheetId),
+            UpdateSpecSheetTableGroupOp => new UpdateSpecSheetTableGroupDraftOpHandler(DbContext, User, _sheetId),
+            DeleteSpecSheetTableGroupOp => new DeleteSpecSheetTableGroupDraftOpHandler(DbContext, User, _sheetId),
+            AddSpecSheetTableGroupWidgetOp => new AddSpecSheetTableGroupWidgetDraftOpHandler(DbContext, User, _sheetId),
+            UpdateSpecSheetTableGroupWidgetOp => new UpdateSpecSheetTableGroupWidgetDraftOpHandler(DbContext, User, _sheetId),
+
             AddSpecSheetTableRowOp => new AddSpecSheetTableRowDraftOpHandler(DbContext, User, _sheetId),
             UpdateSpecSheetTableRowOp => new UpdateSpecSheetTableRowDraftOpHandler(DbContext, User, _sheetId),
             DeleteSpecSheetTableRowOp => new DeleteSpecSheetTableRowDraftOpHandler(DbContext, User, _sheetId),
@@ -56,7 +79,7 @@ internal class SheetDraftChangeProcessor : ChangeProcessorBase
 
             AddLinkedSpecSheetValueOp => new AddLinkedSpecSheetValueDraftOpHandler(DbContext, User, _sheetId),
             UpdateLinkedSpecSheetValueOp => new UpdateLinkedSpecSheetValueDraftOpHandler(DbContext, User, _sheetId),
-            _ => throw new NotSupportedException($"Operation type {operation.GetType().Name} isn't applied to the revisions yet.")
+            _ => throw new NotSupportedException($"No handler registered for operation type {operation.GetType().Name}")
         };
     }
 

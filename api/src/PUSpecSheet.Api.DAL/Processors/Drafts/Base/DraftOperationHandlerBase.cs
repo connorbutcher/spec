@@ -7,7 +7,8 @@ namespace PUSpecSheet.Api.DAL.Processors.Drafts.Base;
 
 /// <summary>
 /// The base of the handlers that apply an operation to a sheet's drafts in the revisions, rather than to its copy. The ids
-/// in the operations are those the draft is read with: its items' own, and a value's is its cell's.
+/// in the operations are those the draft is read with: its items' own, a value's is its cell's, and widgets and notes
+/// are numbered within the sheet (see <see cref="DraftItemNumbers"/>).
 /// </summary>
 internal abstract class DraftOperationHandlerBase : OperationHandlerBase
 {
@@ -15,15 +16,33 @@ internal abstract class DraftOperationHandlerBase : OperationHandlerBase
         : base(dbContext, user)
     {
         SheetId = sheetId;
+        Tables = new TableDrafts(dbContext, user, sheetId);
+        Groups = new GroupDrafts(dbContext, user, sheetId);
         Rows = new RowDrafts(dbContext, user, sheetId);
         Values = new RowDraftValues(dbContext);
+        Numbers = new DraftItemNumbers(dbContext, sheetId);
     }
 
     protected int SheetId { get; }
 
+    protected TableDrafts Tables { get; }
+
+    protected GroupDrafts Groups { get; }
+
     protected RowDrafts Rows { get; }
 
     protected RowDraftValues Values { get; }
+
+    protected DraftItemNumbers Numbers { get; }
+
+    protected async Task EnsureTableOnSheetAsync(int tableId, CancellationToken ct)
+    {
+        var isOnSheet = await DbContext.SheetTables.AnyAsync(t => t.Id == tableId && t.SheetId == SheetId, ct);
+        if (!isOnSheet)
+        {
+            throw new KeyNotFoundException($"SheetTable with Id {tableId} not found on Sheet with Id {SheetId}.");
+        }
+    }
 
     protected async Task EnsureGroupOnSheetAsync(int groupId, CancellationToken ct)
     {

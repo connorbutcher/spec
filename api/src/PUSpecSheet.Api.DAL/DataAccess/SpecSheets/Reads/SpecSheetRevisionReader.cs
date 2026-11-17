@@ -25,7 +25,8 @@ namespace PUSpecSheet.Api.DAL.DataAccess.SpecSheets.Reads;
 /// shown at the version's moment and the revisions that show them, the values of those row revisions alone, and each
 /// cell with its template cell, type and configuration. Tables, groups, rows and cells have the ids of their spec
 /// items; widgets, notes and workflow step actors, which the revisions keep inside their items, are numbered from 1
-/// within the sheet. An item's creator is who wrote the revision shown, as the revisions don't keep it per item.
+/// within the sheet, in the order of their tables' and groups' ids (<see cref="Processors.Drafts.Base.DraftItemNumbers"/> finds them again for
+/// an edit). An item's creator is who wrote the revision shown, as the revisions don't keep it per item.
 /// </remarks>
 internal class SpecSheetRevisionReader
 {
@@ -292,6 +293,7 @@ internal class SpecSheetRevisionReader
     {
         return [.. sheet.Tables
             .Where(table => IsShown(table.Revisions))
+            .OrderBy(table => table.Id)
             .Select(table => MapTable(table, specSheetId, ids, users))
             .OrderBy(table => table.DisplayOrder)];
     }
@@ -334,7 +336,7 @@ internal class SpecSheetRevisionReader
             LastModifiedByUserId = LastModifiedByUserId(revision),
             LastModifiedDateTime = LastModifiedDateTime(revision),
             ConfigurationOverride = revision.ConfigurationOverride,
-            Groups = [.. table.Groups.Where(group => IsShown(group.Revisions)).Select(group => MapGroup(group, groupIdsByReference, ids))],
+            Groups = [.. table.Groups.Where(group => IsShown(group.Revisions)).OrderBy(group => group.Id).Select(group => MapGroup(group, groupIdsByReference, ids))],
             Widgets = [.. (revision.WidgetValues ?? []).Select(widget => MapTableWidget(widget, table.Id, ids))],
             Notes = [.. (revision.Notes ?? []).Select(note => MapNote(note, table.Id, ids, users))]
         };
