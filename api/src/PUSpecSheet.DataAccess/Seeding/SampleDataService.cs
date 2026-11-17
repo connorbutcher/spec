@@ -28,6 +28,7 @@ public sealed class SampleDataService : ISampleDataService
         await _db.OptionValues.ExecuteDeleteAsync(cancellationToken);
         await _db.CellSettings.ExecuteDeleteAsync(cancellationToken);
         await _db.LabelledTextValues.ExecuteDeleteAsync(cancellationToken);
+        await _db.LinkedSheetValues.ExecuteDeleteAsync(cancellationToken);
         await _db.SheetRowRevisions.ExecuteDeleteAsync(cancellationToken);
         await _db.SheetCells.ExecuteDeleteAsync(cancellationToken);
         await _db.SheetRows.ExecuteDeleteAsync(cancellationToken);
@@ -37,6 +38,9 @@ public sealed class SampleDataService : ISampleDataService
         await _db.SheetColumnBlocks.ExecuteDeleteAsync(cancellationToken);
         await _db.SheetSections.ExecuteDeleteAsync(cancellationToken);
         await _db.SheetTables.ExecuteDeleteAsync(cancellationToken);
+        await _db.SheetLinkedTableRevisions.ExecuteDeleteAsync(cancellationToken);
+        await _db.SheetPropertyRevisions.ExecuteDeleteAsync(cancellationToken);
+        await _db.SheetExternalReferenceRevisions.ExecuteDeleteAsync(cancellationToken);
         await _db.SheetVersions.ExecuteDeleteAsync(cancellationToken);
         await _db.SheetIdentifierValues.ExecuteDeleteAsync(cancellationToken);
         await _db.Sheets.ExecuteDeleteAsync(cancellationToken);
@@ -44,7 +48,9 @@ public sealed class SampleDataService : ISampleDataService
         await _db.TemplateCells.ExecuteDeleteAsync(cancellationToken);
         await _db.TemplateColumnBlocks.ExecuteDeleteAsync(cancellationToken);
         await _db.TemplateRows.ExecuteDeleteAsync(cancellationToken);
+        await _db.TemplateSectionWidgets.ExecuteDeleteAsync(cancellationToken);
         await _db.TemplateSections.ExecuteDeleteAsync(cancellationToken);
+        await _db.TableTemplateWidgets.ExecuteDeleteAsync(cancellationToken);
         await _db.TableTemplateVersions.ExecuteDeleteAsync(cancellationToken);
         await _db.TableTemplates.ExecuteDeleteAsync(cancellationToken);
 

@@ -15,8 +15,8 @@ public sealed class SheetVersionConfiguration : IEntityTypeConfiguration<DbSheet
         builder.HasIndex(version => new { version.SheetId, version.VersionNumber })
             .IsUnique();
 
-        builder.Property(version => version.Note)
-            .HasMaxLength(1000);
+        builder.Property(version => version.HasBeenMigrated)
+            .HasDefaultValue(false);
 
         builder.HasOne(version => version.Sheet)
             .WithMany(sheet => sheet.Versions)

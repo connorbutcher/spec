@@ -28,6 +28,11 @@ public class DbSheetSectionRevision : IDbSheetRevision
     /// <summary>Order among sibling sections as of this revision.</summary>
     public int DisplayOrder { get; set; }
 
+    // JSON: the value of each of the template's widgets, by TemplateSectionWidget id.
+    public string? WidgetValues { get; set; }
+
+    public Guid? LinkedSectionPublicId { get; set; }
+
     /// <summary>True when this revision removes the section (and everything in it) from the sheet.</summary>
     public bool IsDeleted { get; set; }
 

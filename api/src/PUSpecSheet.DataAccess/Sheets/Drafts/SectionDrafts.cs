@@ -35,4 +35,10 @@ public sealed class SectionDrafts : DraftGateway<DbSheetSectionRevision>
     {
         revision.SheetSectionId = itemId;
     }
+
+    protected override void CopyContent(DbSheetSectionRevision current, DbSheetSectionRevision draft)
+    {
+        draft.WidgetValues = current.WidgetValues;
+        draft.LinkedSectionPublicId = current.LinkedSectionPublicId;
+    }
 }

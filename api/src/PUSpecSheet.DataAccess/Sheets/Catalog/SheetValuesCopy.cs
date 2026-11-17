@@ -17,4 +17,6 @@ public sealed record SheetValuesCopy
     public required IReadOnlyList<DbLabelledTextValue> LabelledTexts { get; init; }
 
     public required IReadOnlyList<DbCellSettingsValue> Settings { get; init; }
+
+    public required IReadOnlyList<DbLinkedSheetValue> LinkedSheets { get; init; }
 }

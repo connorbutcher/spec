@@ -27,6 +27,8 @@ public sealed class PuSpecSheetDbContext : DbContext
 
     public DbSet<DbSheetTypeIdentifier> SheetTypeIdentifiers => Set<DbSheetTypeIdentifier>();
 
+    public DbSet<DbSheetTypeProperty> SheetTypeProperties => Set<DbSheetTypeProperty>();
+
     public DbSet<DbPhase> Phases => Set<DbPhase>();
 
     public DbSet<DbPhaseSheetType> PhaseSheetTypes => Set<DbPhaseSheetType>();
@@ -46,6 +48,12 @@ public sealed class PuSpecSheetDbContext : DbContext
     public DbSet<DbTemplateCell> TemplateCells => Set<DbTemplateCell>();
 
     public DbSet<DbTemplateColumnBlock> TemplateColumnBlocks => Set<DbTemplateColumnBlock>();
+
+    public DbSet<DbWidgetType> WidgetTypes => Set<DbWidgetType>();
+
+    public DbSet<DbTableTemplateWidget> TableTemplateWidgets => Set<DbTableTemplateWidget>();
+
+    public DbSet<DbTemplateSectionWidget> TemplateSectionWidgets => Set<DbTemplateSectionWidget>();
 
     public DbSet<DbUser> Users => Set<DbUser>();
 
@@ -93,6 +101,10 @@ public sealed class PuSpecSheetDbContext : DbContext
 
     public DbSet<DbSheetExternalReferenceRevision> SheetExternalReferenceRevisions => Set<DbSheetExternalReferenceRevision>();
 
+    public DbSet<DbSheetLinkedTable> SheetLinkedTables => Set<DbSheetLinkedTable>();
+
+    public DbSet<DbSheetLinkedTableRevision> SheetLinkedTableRevisions => Set<DbSheetLinkedTableRevision>();
+
     public DbSet<DbTextValue> TextValues => Set<DbTextValue>();
 
     public DbSet<DbNumericValue> NumericValues => Set<DbNumericValue>();
@@ -106,6 +118,8 @@ public sealed class PuSpecSheetDbContext : DbContext
     public DbSet<DbCellSettingsValue> CellSettings => Set<DbCellSettingsValue>();
 
     public DbSet<DbLabelledTextValue> LabelledTextValues => Set<DbLabelledTextValue>();
+
+    public DbSet<DbLinkedSheetValue> LinkedSheetValues => Set<DbLinkedSheetValue>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

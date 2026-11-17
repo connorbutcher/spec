@@ -29,6 +29,8 @@ public class DbSheetPropertyRevision : IDbSheetRevision
     /// <summary>Order among the sheet's properties, as of this revision.</summary>
     public int DisplayOrder { get; set; }
 
+    public string? Value { get; set; }
+
     /// <summary>True when this revision removes the property from the sheet.</summary>
     public bool IsDeleted { get; set; }
 

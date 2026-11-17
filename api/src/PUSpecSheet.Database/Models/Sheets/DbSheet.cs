@@ -42,5 +42,7 @@ public class DbSheet
     public virtual ICollection<DbSheetExternalReference> ExternalReferences { get; set; } = [];
 
     /// <summary>The numbered publishes of this sheet, oldest first.</summary>
+    public virtual ICollection<DbSheetLinkedTable> LinkedTables { get; set; } = [];
+
     public virtual ICollection<DbSheetVersion> Versions { get; set; } = [];
 }

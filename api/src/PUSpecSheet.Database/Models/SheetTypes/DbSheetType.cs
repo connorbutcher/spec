@@ -15,4 +15,6 @@ public class DbSheetType
 
     /// <summary>The values that tell one sheet of this type from another within a phase.</summary>
     public virtual ICollection<DbSheetTypeIdentifier> Identifiers { get; set; } = [];
+
+    public virtual ICollection<DbSheetTypeProperty> Properties { get; set; } = [];
 }

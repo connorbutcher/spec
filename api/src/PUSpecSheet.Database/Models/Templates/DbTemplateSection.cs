@@ -41,4 +41,6 @@ public class DbTemplateSection
 
     /// <summary>This section's own rows, shown before its child sections.</summary>
     public virtual ICollection<DbTemplateRow> Rows { get; set; } = [];
+
+    public virtual ICollection<DbTemplateSectionWidget> Widgets { get; set; } = [];
 }

@@ -37,6 +37,12 @@ public sealed class TableDrafts : DraftGateway<DbSheetTableRevision>
         revision.SheetTableId = itemId;
     }
 
+    protected override void CopyContent(DbSheetTableRevision current, DbSheetTableRevision draft)
+    {
+        draft.WidgetValues = current.WidgetValues;
+        draft.Notes = current.Notes;
+    }
+
     protected override Task<HashSet<DbSheetTableRevision>> UnchangedAsync(
         IReadOnlyList<(DbSheetTableRevision Draft, DbSheetTableRevision Current)> pairs,
         CancellationToken cancellationToken)

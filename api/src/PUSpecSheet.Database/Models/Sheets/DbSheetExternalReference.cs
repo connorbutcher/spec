@@ -13,6 +13,9 @@ public class DbSheetExternalReference
 
     public int SheetId { get; set; }
 
+    // The external system's id for what is referenced; it stays the same from one version to the next.
+    public Guid ReferenceId { get; set; }
+
     public DateTime CreatedAtUtc { get; set; }
 
     public virtual DbSheet Sheet { get; set; } = null!;

@@ -17,6 +17,9 @@ public sealed class SheetExternalReferenceConfiguration : IEntityTypeConfigurati
         builder.Property(reference => reference.CreatedAtUtc)
             .HasDefaultValueSql("SYSUTCDATETIME()");
 
+        builder.HasIndex(reference => new { reference.SheetId, reference.ReferenceId })
+            .IsUnique();
+
         builder.HasOne(reference => reference.Sheet)
             .WithMany(sheet => sheet.ExternalReferences)
             .HasForeignKey(reference => reference.SheetId)

@@ -79,6 +79,7 @@ public sealed class SheetColumnBlockDataService : ISheetColumnBlockDataService
         await _db.OptionValues.Where(value => value.SheetCell.SheetColumnBlockId != null && blockIds.Contains(value.SheetCell.SheetColumnBlockId.Value)).ExecuteDeleteAsync(cancellationToken);
         await _db.LabelledTextValues.Where(value => value.SheetCell.SheetColumnBlockId != null && blockIds.Contains(value.SheetCell.SheetColumnBlockId.Value)).ExecuteDeleteAsync(cancellationToken);
         await _db.CellSettings.Where(value => value.SheetCell.SheetColumnBlockId != null && blockIds.Contains(value.SheetCell.SheetColumnBlockId.Value)).ExecuteDeleteAsync(cancellationToken);
+        await _db.LinkedSheetValues.Where(value => value.SheetCell.SheetColumnBlockId != null && blockIds.Contains(value.SheetCell.SheetColumnBlockId.Value)).ExecuteDeleteAsync(cancellationToken);
         await _db.SheetCells.Where(cell => cell.SheetColumnBlockId != null && blockIds.Contains(cell.SheetColumnBlockId.Value)).ExecuteDeleteAsync(cancellationToken);
         await _db.SheetColumnBlocks.Where(block => blockIds.Contains(block.Id)).ExecuteDeleteAsync(cancellationToken);
     }

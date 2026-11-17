@@ -45,6 +45,22 @@ public class DbSheetExternalReferenceRevision
     /// <summary>When the external system pushed it, which may be well after its version was published.</summary>
     public DateTime PushedAtUtc { get; set; }
 
+    public int ExternalId { get; set; }
+
+    public required string SystemName { get; set; }
+
+    public required string OwnerName { get; set; }
+
+    public required string Url { get; set; }
+
+    public required string Type { get; set; }
+
+    public string? Grouping { get; set; }
+
+    public string? SystemIconUrl { get; set; }
+
+    public string? Description { get; set; }
+
     /// <summary>Concurrency token: two pushes for the same reference at once can't both win.</summary>
     public byte[] RowVersion { get; set; } = [];
 

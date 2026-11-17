@@ -1,3 +1,5 @@
+using PUSpecSheet.Database.Models.SheetTypes;
+
 namespace PUSpecSheet.Database.Models.Sheets;
 
 /// <summary>
@@ -14,9 +16,13 @@ public class DbSheetProperty
 
     public int SheetId { get; set; }
 
+    public int SheetTypePropertyId { get; set; }
+
     public DateTime CreatedAtUtc { get; set; }
 
     public virtual DbSheet Sheet { get; set; } = null!;
+
+    public virtual DbSheetTypeProperty SheetTypeProperty { get; set; } = null!;
 
     public virtual ICollection<DbSheetPropertyRevision> Revisions { get; set; } = [];
 }

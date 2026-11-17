@@ -82,4 +82,6 @@ public class DbSheetRowRevision : IDbSheetRevision
 
     /// <summary>The settings chosen on the sheet for the revision's cells, kept beside their values.</summary>
     public virtual ICollection<DbCellSettingsValue> CellSettings { get; set; } = [];
+
+    public virtual ICollection<DbLinkedSheetValue> LinkedSheetValues { get; set; } = [];
 }

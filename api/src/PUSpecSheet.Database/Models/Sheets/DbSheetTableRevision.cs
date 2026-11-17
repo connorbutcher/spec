@@ -29,6 +29,12 @@ public class DbSheetTableRevision : IDbSheetRevision
     /// <summary>The table's title as the user entered it.</summary>
     public string? Title { get; set; }
 
+    // JSON: the value of each of the template's widgets, by TableTemplateWidget id.
+    public string? WidgetValues { get; set; }
+
+    // JSON: the table's notes, an array of SheetTableNote.
+    public string? Notes { get; set; }
+
     /// <summary>Order among the sheet's tables as of this revision.</summary>
     public int DisplayOrder { get; set; }
 

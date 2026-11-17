@@ -54,6 +54,8 @@ public sealed class SheetCopier
             var table = new DbSheetTable { SheetId = targetSheetId, TableTemplateVersionId = revision.SheetTable.TableTemplateVersionId };
             var copy = Draft<DbSheetTableRevision>(targetSheetId, revision.DisplayOrder, now);
             copy.Title = revision.Title;
+            copy.WidgetValues = revision.WidgetValues;
+            copy.Notes = revision.Notes;
             table.Revisions.Add(copy);
             _db.SheetTables.Add(table);
             map.Tables[revision.SheetTableId] = table;
@@ -101,6 +103,16 @@ public sealed class SheetCopier
         CopyValues(values.Booleans, map, value => new DbBooleanValue { Value = value.Value });
         CopyValues(values.Options, map, value => new DbOptionValue { CellTypeOptionId = value.CellTypeOptionId });
         CopyValues(values.LabelledTexts, map, value => new DbLabelledTextValue { SlotKey = value.SlotKey, Position = value.Position, Value = value.Value });
+        CopyValues(
+            values.LinkedSheets,
+            map,
+            value => new DbLinkedSheetValue
+            {
+                LinkedSheetTypeId = value.LinkedSheetTypeId,
+                LinkedPhaseId = value.LinkedPhaseId,
+                LinkedTablePublicId = value.LinkedTablePublicId,
+                LinkedItemPublicId = value.LinkedItemPublicId,
+            });
         var linked = CopyPlainSettings(values.Settings, map);
 
         await _db.SaveChangesAsync(cancellationToken);
@@ -157,7 +169,10 @@ public sealed class SheetCopier
                 section.ParentSheetSection = map.Sections[parentId];
             }
 
-            section.Revisions.Add(Draft<DbSheetSectionRevision>(targetSheetId, revision.DisplayOrder, now));
+            var copy = Draft<DbSheetSectionRevision>(targetSheetId, revision.DisplayOrder, now);
+            copy.WidgetValues = revision.WidgetValues;
+            copy.LinkedSectionPublicId = revision.LinkedSectionPublicId;
+            section.Revisions.Add(copy);
             table.Sections.Add(section);
             map.Sections[source.Id] = section;
 

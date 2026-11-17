@@ -28,6 +28,21 @@ public sealed class SheetExternalReferenceRevisionConfiguration : IEntityTypeCon
 
         builder.Property(revision => revision.PushedAtUtc)
             .HasDefaultValueSql("SYSUTCDATETIME()");
+
+        builder.Property(revision => revision.SystemName)
+            .IsRequired()
+            .HasMaxLength(256);
+
+        builder.Property(revision => revision.OwnerName)
+            .IsRequired()
+            .HasMaxLength(256);
+
+        builder.Property(revision => revision.Url)
+            .IsRequired();
+
+        builder.Property(revision => revision.Type)
+            .IsRequired()
+            .HasMaxLength(32);
     }
 
     private static void ConfigureIndexes(EntityTypeBuilder<DbSheetExternalReferenceRevision> builder)

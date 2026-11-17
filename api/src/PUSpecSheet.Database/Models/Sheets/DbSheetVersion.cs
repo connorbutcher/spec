@@ -21,6 +21,14 @@ public class DbSheetVersion
 
     public string? Note { get; set; }
 
+    // The SpecSheets row (one copy of the sheet) a migrated version came from.
+    public int? SourceSpecSheetId { get; set; }
+
+    // Kept as the old app had them: the copy's id in the system before it, and whether it came from there.
+    public int? LegacySpecSheetId { get; set; }
+
+    public bool HasBeenMigrated { get; set; }
+
     public virtual DbSheet Sheet { get; set; } = null!;
 
     public virtual DbUser PublishedBy { get; set; } = null!;
@@ -41,4 +49,6 @@ public class DbSheetVersion
 
     /// <summary>The external reference revisions pushed for this version; at most one per reference.</summary>
     public virtual ICollection<DbSheetExternalReferenceRevision> ExternalReferenceRevisions { get; set; } = [];
+
+    public virtual ICollection<DbSheetLinkedTableRevision> LinkedTableRevisions { get; set; } = [];
 }

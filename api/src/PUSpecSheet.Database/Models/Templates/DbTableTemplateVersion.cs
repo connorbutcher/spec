@@ -33,4 +33,6 @@ public class DbTableTemplateVersion
 
     /// <summary>The column blocks people add copies of across a horizontal table. Vertical tables have none.</summary>
     public virtual ICollection<DbTemplateColumnBlock> ColumnBlocks { get; set; } = [];
+
+    public virtual ICollection<DbTableTemplateWidget> Widgets { get; set; } = [];
 }

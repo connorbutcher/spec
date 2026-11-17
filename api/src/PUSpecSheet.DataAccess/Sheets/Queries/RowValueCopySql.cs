@@ -20,6 +20,7 @@ public static class RowValueCopySql
         typeof(DbOptionValue),
         typeof(DbCellSettingsValue),
         typeof(DbLabelledTextValue),
+        typeof(DbLinkedSheetValue),
     ];
 
     public static string Build(IModel model)

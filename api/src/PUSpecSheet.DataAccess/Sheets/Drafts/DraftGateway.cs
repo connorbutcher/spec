@@ -40,6 +40,11 @@ public abstract class DraftGateway<TRevision>
 
     protected abstract void SetItem(TRevision revision, int itemId);
 
+    // What a new draft carries over from the current revision besides its order and removal.
+    protected virtual void CopyContent(TRevision current, TRevision draft)
+    {
+    }
+
     // The drafts that make no net difference to the published revision they started from, so they needn't be kept:
     // the same place in the order and the same existence. Revision types with more to compare add to this. It takes
     // every pair at once so a type that has to read more (a row's values) reads it in one go.
@@ -187,6 +192,7 @@ public abstract class DraftGateway<TRevision>
             UpdatedAtUtc = now,
         };
         SetItem(draft, itemId);
+        CopyContent(current, draft);
         Revisions.Add(draft);
         return (draft, true);
     }

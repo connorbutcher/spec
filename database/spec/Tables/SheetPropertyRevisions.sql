@@ -4,6 +4,7 @@ CREATE TABLE [spec].[SheetPropertyRevisions] (
     [RevisionNumber]    INT           NOT NULL,
     [Status]            INT           NOT NULL,
     [DisplayOrder]      INT           NOT NULL,
+    [Value]             NVARCHAR (MAX) NULL,
     [IsDeleted]         BIT           NOT NULL,
     [AuthorUserId]      INT           NOT NULL,
     [CreatedAtUtc]      DATETIME2 (7) DEFAULT (sysutcdatetime()) NOT NULL,

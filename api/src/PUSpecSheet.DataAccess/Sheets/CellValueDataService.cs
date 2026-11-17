@@ -356,6 +356,7 @@ public sealed class CellValueDataService : ICellValueDataService
             Options = await _db.OptionValues.AsNoTracking().Where(value => revisionIds.Contains(value.SheetRowRevisionId)).ToListAsync(cancellationToken),
             LabelledTexts = await _db.LabelledTextValues.AsNoTracking().Where(value => revisionIds.Contains(value.SheetRowRevisionId)).ToListAsync(cancellationToken),
             Settings = await _db.CellSettings.AsNoTracking().Where(value => revisionIds.Contains(value.SheetRowRevisionId)).ToListAsync(cancellationToken),
+            LinkedSheets = await _db.LinkedSheetValues.AsNoTracking().Where(value => revisionIds.Contains(value.SheetRowRevisionId)).ToListAsync(cancellationToken),
         };
     }
 }
