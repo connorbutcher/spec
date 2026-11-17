@@ -132,11 +132,13 @@ internal static class SpecSheetReadComparer
 
                 // Items are found by their ReferenceID; anything else by what it holds, so a list's order doesn't matter.
                 var seen = new Dictionary<string, int>(StringComparer.Ordinal);
-                foreach (var element in list.OrderBy(element => element?.ToJsonString(), StringComparer.Ordinal))
-                {
-                    var key = element is JsonObject { } withReference && withReference["ReferenceId"] is { } reference
+                var keyed = list
+                    .Select(element => (Key: element is JsonObject withReference && withReference["ReferenceId"] is { } reference
                         ? reference.GetValue<string>()
-                        : Without(element, parentName);
+                        : Without(element, parentName), Element: element))
+                    .OrderBy(keyedElement => keyedElement.Key, StringComparer.Ordinal);
+                foreach (var (key, element) in keyed)
+                {
                     seen[key] = seen.GetValueOrDefault(key) + 1;
                     var segment = seen[key] == 1 ? key : $"{key}#{seen[key]}";
                     Flatten(element, $"{path}[{segment}]", parentName, lines);
