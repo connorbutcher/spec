@@ -8,14 +8,9 @@ using PUSpecSheet.Migrator.Verification;
 
 namespace PUSpecSheet.Migrator;
 
-/// <summary>
-/// Migrates one legacy sheet at a time, each in its own transaction: reads every copy, builds the revisions
-/// (<see cref="SheetHistoryBuilder"/>), saves them, then reads the sheet back as of every version, and with its
-/// drafts, and compares each with the copy it came from. The transaction is committed only when every one
-/// matches and this isn't a dry run, so a sheet is either migrated whole and checked, or not at all. A sheet
-/// whose public id is already in the target database is skipped, so the migrator can be run again after a
-/// failure and carries on where it stopped.
-/// </summary>
+// Migrates one legacy sheet in its own transaction: reads every copy, builds the history, saves it, reads it back as
+// of every version (and with its drafts) and compares each with its legacy copy. It commits only when every check
+// matches and --commit was given.
 internal sealed class SheetMigrator
 {
     private readonly Func<PuSpecSheetDbContext> _createTarget;
@@ -34,16 +29,18 @@ internal sealed class SheetMigrator
     public async Task<SheetOutcome> MigrateAsync(LegacySheet legacySheet, CancellationToken cancellationToken)
     {
         await using var db = _createTarget();
-        if (await db.Sheets.AnyAsync(sheet => sheet.PublicId == legacySheet.PublicId, cancellationToken))
+
+        // Legacy sheets have no public id; a sheet of the same phase and type already there is taken to be this one.
+        if (await db.Sheets.AnyAsync(sheet => sheet.PhaseId == legacySheet.PhaseId && sheet.SheetTypeId == legacySheet.SheetTypeId, cancellationToken))
         {
-            _logger.Skipped(legacySheet.Name, legacySheet.PublicId);
+            _logger.Skipped(legacySheet.Name);
             return SheetOutcome.Skipped;
         }
 
-        IReadOnlyList<LegacyCopy> copies;
+        LegacyCopies legacy;
         try
         {
-            copies = await _legacy.LoadCopiesAsync(legacySheet, cancellationToken);
+            legacy = await _legacy.LoadCopiesAsync(legacySheet, cancellationToken);
         }
         catch (MigrationException exception)
         {
@@ -58,7 +55,6 @@ internal sealed class SheetMigrator
         {
             var sheet = new DbSheet
             {
-                PublicId = legacySheet.PublicId,
                 PhaseId = legacySheet.PhaseId,
                 SheetTypeId = legacySheet.SheetTypeId,
                 CreatedAtUtc = legacySheet.CreatedAtUtc,
@@ -66,8 +62,9 @@ internal sealed class SheetMigrator
             db.Sheets.Add(sheet);
             await db.SaveChangesAsync(cancellationToken);
 
-            built = SheetHistoryBuilder.Build(sheet, copies, DateTime.UtcNow);
+            built = SheetHistoryBuilder.Build(sheet, legacy.Copies, DateTime.UtcNow);
             await db.SaveChangesAsync(cancellationToken);
+            await SaveSubmissionsAsync(db, built, cancellationToken);
         }
         catch (MigrationException exception)
         {
@@ -80,7 +77,7 @@ internal sealed class SheetMigrator
             return SheetOutcome.Failed;
         }
 
-        foreach (var warning in built.Warnings)
+        foreach (var warning in legacy.Warnings.Concat(built.Warnings))
         {
             _logger.SheetWarning(legacySheet.Name, warning);
         }
@@ -107,14 +104,44 @@ internal sealed class SheetMigrator
             await transaction.CommitAsync(cancellationToken);
         }
 
-        _logger.Done(legacySheet.Name, copies.Count, built.Sheet.Versions.Count, revisions, outcome);
+        _logger.Done(legacySheet.Name, legacy.Copies.Count, built.Sheet.Versions.Count, revisions, built.Submissions.Count, outcome);
         return outcome;
+    }
+
+    // Submissions go in once the versions they published have ids, and then their revisions are pointed at them.
+    private static async Task SaveSubmissionsAsync(PuSpecSheetDbContext db, BuiltSheet built, CancellationToken cancellationToken)
+    {
+        if (built.Submissions.Count == 0)
+        {
+            return;
+        }
+
+        foreach (var planned in built.Submissions)
+        {
+            planned.Submission.SheetVersionId = planned.Version?.Id;
+            db.SheetSubmissions.Add(planned.Submission);
+        }
+
+        await db.SaveChangesAsync(cancellationToken);
+
+        foreach (var planned in built.Submissions)
+        {
+            foreach (var revision in planned.Revisions)
+            {
+                revision.SheetSubmissionId = planned.Submission.Id;
+            }
+        }
+
+        await db.SaveChangesAsync(cancellationToken);
     }
 
     private static int CountRevisions(DbSheet sheet)
     {
         return sheet.Tables.Sum(table => table.Revisions.Count
-            + table.ColumnBlocks.Sum(block => block.Revisions.Count)
-            + table.Sections.Sum(section => section.Revisions.Count + section.Rows.Sum(row => row.Revisions.Count)));
+                + table.ColumnBlocks.Sum(block => block.Revisions.Count)
+                + table.Sections.Sum(section => section.Revisions.Count + section.Rows.Sum(row => row.Revisions.Count)))
+            + sheet.Properties.Sum(property => property.Revisions.Count)
+            + sheet.LinkedTables.Sum(linked => linked.Revisions.Count)
+            + sheet.ExternalReferences.Sum(reference => reference.Revisions.Count);
     }
 }

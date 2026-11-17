@@ -3,10 +3,9 @@ using PUSpecSheet.Migrator.Snapshots;
 
 namespace PUSpecSheet.Migrator.Tests.Building;
 
-/// <summary>
-/// Builds legacy copies of a small sheet: one table with one section, whose rows each have a single text cell.
-/// Every copy gets its own ids, as legacy copies do, so the builder has to match items up itself.
-/// </summary>
+// Builds legacy copies of a small sheet: one table with one section, whose rows each have a single text cell. Every
+// copy gets its own ids, as legacy copies do, but keeps each item's ReferenceID, as a copy made from another does. A
+// row's ReferenceID comes from its text, ignoring case, so "b" and "B" are one row whose text changed.
 internal sealed class LegacySheetFactory
 {
     public const int TemplateVersionId = 10;
@@ -15,15 +14,32 @@ internal sealed class LegacySheetFactory
     public const int TemplateCellId = 40;
     public const int UserId = 5;
 
+    private readonly Dictionary<string, Guid> _references = [];
     private int _nextId = 1000;
 
-    /// <summary>A copy whose section has a row for each text, in order. A null text is a row with an empty cell.</summary>
-    public LegacyCopy Copy(int versionNumber, DateTime? publishedAtUtc, params string?[] texts)
+    public Guid ReferenceOf(string name)
+    {
+        var key = name.ToUpperInvariant();
+        if (!_references.TryGetValue(key, out var reference))
+        {
+            reference = Guid.NewGuid();
+            _references[key] = reference;
+        }
+
+        return reference;
+    }
+
+    public LegacyCopy Copy(DateTime? publishedAtUtc, params string[] texts)
+    {
+        return Copy(publishedAtUtc, snapshot => snapshot, texts);
+    }
+
+    public LegacyCopy Copy(DateTime? publishedAtUtc, Func<SheetSnapshot, SheetSnapshot> change, params string[] texts)
     {
         var table = new SnapshotTable
         {
             Id = _nextId++,
-            PublicId = Guid.NewGuid(),
+            PublicId = ReferenceOf("table"),
             TableTemplateVersionId = TemplateVersionId,
             Title = "Engine",
             DisplayOrder = 1024,
@@ -31,7 +47,7 @@ internal sealed class LegacySheetFactory
         var section = new SnapshotSection
         {
             Id = _nextId++,
-            PublicId = Guid.NewGuid(),
+            PublicId = ReferenceOf("section"),
             TableId = table.Id,
             TemplateSectionId = TemplateSectionId,
             DisplayOrder = 1024,
@@ -44,7 +60,7 @@ internal sealed class LegacySheetFactory
             var row = new SnapshotRow
             {
                 Id = _nextId++,
-                PublicId = Guid.NewGuid(),
+                PublicId = ReferenceOf("row " + texts[index]),
                 SectionId = section.Id,
                 TemplateRowId = TemplateRowId,
                 DisplayOrder = (index + 1) * 1024,
@@ -53,20 +69,28 @@ internal sealed class LegacySheetFactory
             cells.Add(new SnapshotCell
             {
                 Id = _nextId++,
-                PublicId = Guid.NewGuid(),
+                PublicId = ReferenceOf("cell " + texts[index]),
                 RowId = row.Id,
                 TemplateCellId = TemplateCellId,
-                Content = texts[index] is { } text ? new CellContent(text: text) : CellContent.Empty,
+                Content = new CellContent(text: texts[index]),
             });
         }
 
         return new LegacyCopy
         {
             Id = _nextId++,
-            VersionNumber = versionNumber,
             PublishedAtUtc = publishedAtUtc,
-            UserId = UserId,
-            Snapshot = new SheetSnapshot { Tables = [table], Sections = [section], Rows = rows, Cells = cells },
+            PublishedByUserId = publishedAtUtc is null ? null : UserId,
+            CreatedByUserId = UserId,
+            CreatedAtUtc = publishedAtUtc ?? DateTime.MaxValue,
+            Snapshot = change(new SheetSnapshot
+            {
+                Tables = [table],
+                Sections = [section],
+                Rows = rows,
+                Cells = cells,
+                ExternalReferences = publishedAtUtc is null ? null : [],
+            }),
         };
     }
 }

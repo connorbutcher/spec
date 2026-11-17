@@ -85,7 +85,11 @@ BEGIN
     BEGIN
         SELECT @from = SCHEMA_NAME([schema_id])
         FROM sys.tables
-        WHERE [name] = @table AND SCHEMA_NAME([schema_id]) IN (N'dbo', N'values', N'template');
+        WHERE [name] = @table
+            AND (SCHEMA_NAME([schema_id]) IN (N'dbo', N'values')
+                -- The legacy app also has a [template] schema (template.TableCellTemplates gives it away); its tables
+                -- are read by the migrator and must stay where they are.
+                OR (SCHEMA_NAME([schema_id]) = N'template' AND OBJECT_ID(N'[template].[TableCellTemplates]', N'U') IS NULL));
 
         IF @from IS NULL
         BEGIN

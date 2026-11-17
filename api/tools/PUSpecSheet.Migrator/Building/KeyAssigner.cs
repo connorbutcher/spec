@@ -3,157 +3,89 @@ using PUSpecSheet.Migrator.Snapshots;
 
 namespace PUSpecSheet.Migrator.Building;
 
-/// <summary>
-/// Gives the items of each copy their keys, copy by copy in order, by matching them with the copy before (see
-/// <see cref="SiblingMatcher"/>). Items are only matched with items of the same template under the same matched
-/// parent, as neither can change: tables by template version, then each table's column blocks, its sections top
-/// down, and each section's rows. Rows are matched on their contents, tables on their titles, the rest on order.
-/// An item with no partner, and everything inside it, gets a new key.
-/// </summary>
+// Gives each item in a copy a key that follows it from one copy to the next: its legacy ReferenceID, which a copy
+// keeps when it is made from another. An item whose ReferenceID turns up under another parent or template than before
+// is a new item, since the new layout can't move an item or change its template; the warning says so.
 internal sealed class KeyAssigner
 {
+    private readonly Dictionary<(string Kind, Guid PublicId), (int Key, string Place)> _known = [];
+    private readonly List<string> _warnings;
     private int _nextKey = 1;
-    private SheetSnapshot _previous = new();
-    private SnapshotKeys _previousKeys = new();
 
-    public SnapshotKeys Assign(SheetSnapshot current)
+    public KeyAssigner(List<string> warnings)
+    {
+        _warnings = warnings;
+    }
+
+    public SnapshotKeys Assign(SheetSnapshot copy)
     {
         var keys = new SnapshotKeys();
-
-        AssignTables(current, keys);
-        foreach (var table in current.Tables)
+        foreach (var table in copy.Tables)
         {
-            AssignColumnBlocks(current, keys, table);
-            AssignSections(current, keys, table, parent: null);
+            keys.Tables[table.Id] = KeyFor(keys.Tables.Values, "table", table.PublicId, Place(table.TableTemplateVersionId));
         }
 
-        foreach (var section in current.Sections)
+        foreach (var block in copy.ColumnBlocks)
         {
-            AssignRows(current, keys, section);
+            keys.ColumnBlocks[block.Id] = KeyFor(keys.ColumnBlocks.Values, "column block", block.PublicId, Place(keys.Tables[block.TableId], block.TemplateColumnBlockId));
         }
 
-        _previous = current;
-        _previousKeys = keys;
+        foreach (var section in ParentsFirst(copy.Sections))
+        {
+            int? parentKey = section.ParentSectionId is { } parentId ? keys.Sections[parentId] : null;
+            keys.Sections[section.Id] = KeyFor(keys.Sections.Values, "section", section.PublicId, Place(keys.Tables[section.TableId], parentKey, section.TemplateSectionId));
+        }
+
+        foreach (var row in copy.Rows)
+        {
+            keys.Rows[row.Id] = KeyFor(keys.Rows.Values, "row", row.PublicId, Place(keys.Sections[row.SectionId], row.TemplateRowId));
+        }
+
         return keys;
     }
 
-    /// <summary>A row's contents, by its cells' keys, for matching it with its previous self.</summary>
-    public static string RowSignature(SheetSnapshot snapshot, SnapshotKeys keys, int rowId)
+    public static List<SnapshotSection> ParentsFirst(IReadOnlyList<SnapshotSection> all)
     {
-        var cells = snapshot.CellsOf(rowId)
-            .Where(cell => !cell.Content.IsEmpty)
-            .Select(cell => $"{cell.TemplateCellId}@{BlockKey(keys, cell.ColumnBlockId)}={cell.Content.Signature}")
-            .Order(StringComparer.Ordinal);
-        return string.Join('\n', cells);
-    }
+        var byId = all.ToDictionary(section => section.Id);
+        var depths = new Dictionary<int, int>();
 
-    private static string BlockKey(SnapshotKeys keys, int? columnBlockId)
-    {
-        return columnBlockId is { } id && keys.ColumnBlocks.TryGetValue(id, out var key) ? key.ToString(CultureInfo.InvariantCulture) : "-";
-    }
-
-    private void AssignTables(SheetSnapshot current, SnapshotKeys keys)
-    {
-        foreach (var group in current.Tables.GroupBy(table => table.TableTemplateVersionId))
+        int Depth(SnapshotSection section)
         {
-            var before = _previous.Tables
-                .Where(table => table.TableTemplateVersionId == group.Key)
-                .OrderBy(table => table.DisplayOrder)
-                .ThenBy(table => table.Id)
-                .ToList();
-            var now = group.OrderBy(table => table.DisplayOrder).ThenBy(table => table.Id).ToList();
+            if (!depths.TryGetValue(section.Id, out var depth))
+            {
+                depth = section.ParentSectionId is { } parentId ? Depth(byId[parentId]) + 1 : 0;
+                depths[section.Id] = depth;
+            }
 
-            Pair(
-                before.Select(table => (_previousKeys.Tables[table.Id], table.Title ?? string.Empty)).ToList(),
-                now.Select(table => (table.Id, table.Title ?? string.Empty)).ToList(),
-                keys.Tables);
-        }
-    }
-
-    private void AssignColumnBlocks(SheetSnapshot current, SnapshotKeys keys, SnapshotTable table)
-    {
-        var tableKey = keys.Tables[table.Id];
-        foreach (var group in current.ColumnBlocks.Where(block => block.TableId == table.Id).GroupBy(block => block.TemplateColumnBlockId))
-        {
-            var before = _previous.ColumnBlocks
-                .Where(block => block.TemplateColumnBlockId == group.Key && _previousKeys.Tables.GetValueOrDefault(block.TableId) == tableKey)
-                .OrderBy(block => block.DisplayOrder)
-                .ThenBy(block => block.Id)
-                .ToList();
-            var now = group.OrderBy(block => block.DisplayOrder).ThenBy(block => block.Id).ToList();
-
-            Pair(
-                before.Select(block => (_previousKeys.ColumnBlocks[block.Id], string.Empty)).ToList(),
-                now.Select(block => (block.Id, string.Empty)).ToList(),
-                keys.ColumnBlocks);
-        }
-    }
-
-    private void AssignSections(SheetSnapshot current, SnapshotKeys keys, SnapshotTable table, SnapshotSection? parent)
-    {
-        var tableKey = keys.Tables[table.Id];
-        int? parentKey = parent is null ? null : keys.Sections[parent.Id];
-        var children = current.Sections
-            .Where(section => section.TableId == table.Id && section.ParentSectionId == parent?.Id)
-            .ToList();
-
-        foreach (var group in children.GroupBy(section => section.TemplateSectionId))
-        {
-            var before = _previous.Sections
-                .Where(section => section.TemplateSectionId == group.Key
-                    && _previousKeys.Tables.GetValueOrDefault(section.TableId) == tableKey
-                    && ParentKeyBefore(section) == parentKey)
-                .OrderBy(section => section.DisplayOrder)
-                .ThenBy(section => section.Id)
-                .ToList();
-            var now = group.OrderBy(section => section.DisplayOrder).ThenBy(section => section.Id).ToList();
-
-            Pair(
-                before.Select(section => (_previousKeys.Sections[section.Id], string.Empty)).ToList(),
-                now.Select(section => (section.Id, string.Empty)).ToList(),
-                keys.Sections);
+            return depth;
         }
 
-        foreach (var child in children)
-        {
-            AssignSections(current, keys, table, child);
-        }
+        return all.OrderBy(Depth).ToList();
     }
 
-    private void AssignRows(SheetSnapshot current, SnapshotKeys keys, SnapshotSection section)
+    private int KeyFor(IEnumerable<int> usedInCopy, string kind, Guid publicId, string place)
     {
-        var sectionKey = keys.Sections[section.Id];
-        foreach (var group in current.Rows.Where(row => row.SectionId == section.Id).GroupBy(row => row.TemplateRowId))
+        if (_known.TryGetValue((kind, publicId), out var known) && !usedInCopy.Contains(known.Key))
         {
-            var before = _previous.Rows
-                .Where(row => row.TemplateRowId == group.Key && _previousKeys.Sections.GetValueOrDefault(row.SectionId) == sectionKey)
-                .OrderBy(row => row.DisplayOrder)
-                .ThenBy(row => row.Id)
-                .ToList();
-            var now = group.OrderBy(row => row.DisplayOrder).ThenBy(row => row.Id).ToList();
+            if (string.Equals(known.Place, place, StringComparison.Ordinal))
+            {
+                return known.Key;
+            }
 
-            Pair(
-                before.Select(row => (_previousKeys.Rows[row.Id], RowSignature(_previous, _previousKeys, row.Id))).ToList(),
-                now.Select(row => (row.Id, RowSignature(current, keys, row.Id))).ToList(),
-                keys.Rows);
+            _warnings.Add($"The {kind} {publicId} moved to another parent or template, which the new layout can't do; it is removed from where it was and added again.");
         }
+        else if (_known.ContainsKey((kind, publicId)))
+        {
+            _warnings.Add($"The ReferenceID {publicId} is on more than one {kind} in one copy; the second is treated as a new {kind}.");
+        }
+
+        var key = _nextKey++;
+        _known[(kind, publicId)] = (key, place);
+        return key;
     }
 
-    private int? ParentKeyBefore(SnapshotSection section)
+    private static string Place(params int?[] parts)
     {
-        return section.ParentSectionId is { } parentId ? _previousKeys.Sections[parentId] : null;
-    }
-
-    /// <summary>Gives each current item its partner's key, or a new one.</summary>
-    private void Pair(List<(int Key, string Signature)> before, List<(int Id, string Signature)> now, Dictionary<int, int> keys)
-    {
-        var partners = SiblingMatcher.Match(
-            before.Select(item => item.Signature).ToList(),
-            now.Select(item => item.Signature).ToList());
-
-        for (var index = 0; index < now.Count; index++)
-        {
-            keys[now[index].Id] = partners[index] >= 0 ? before[partners[index]].Key : _nextKey++;
-        }
+        return string.Join('/', parts.Select(part => part?.ToString(CultureInfo.InvariantCulture) ?? "-"));
     }
 }

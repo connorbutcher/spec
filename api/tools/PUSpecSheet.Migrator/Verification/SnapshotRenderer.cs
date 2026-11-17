@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.Json;
 using PUSpecSheet.Migrator.Snapshots;
 
@@ -16,7 +17,16 @@ internal static class SnapshotRenderer
         var lines = new List<string>();
         foreach (var table in snapshot.Tables.OrderBy(table => table.DisplayOrder).ThenBy(table => table.TableTemplateVersionId).ThenBy(table => table.Title, StringComparer.Ordinal))
         {
-            lines.Add($"table template-version {table.TableTemplateVersionId} {JsonSerializer.Serialize(table.Title)}");
+            lines.Add($"table {table.PublicId} template-version {table.TableTemplateVersionId} {JsonSerializer.Serialize(table.Title)}");
+            if (table.WidgetValues is not null)
+            {
+                lines.Add($"  widgets {table.WidgetValues}");
+            }
+
+            if (table.Notes is not null)
+            {
+                lines.Add($"  notes {table.Notes}");
+            }
 
             var blocks = snapshot.ColumnBlocks
                 .Where(block => block.TableId == table.Id)
@@ -33,6 +43,21 @@ internal static class SnapshotRenderer
             lines.AddRange(Sections(snapshot, table.Id, null, blockPlaces, "  "));
         }
 
+        foreach (var (propertyId, value) in snapshot.Properties.OrderBy(pair => pair.Key))
+        {
+            lines.Add($"property {propertyId} = {JsonSerializer.Serialize(value)}");
+        }
+
+        foreach (var link in snapshot.LinkedTables.OrderBy(link => link.DisplayOrder).ThenBy(link => link.LinkedTablePublicId))
+        {
+            lines.Add(string.Create(CultureInfo.InvariantCulture, $"linked table {link.LinkedTablePublicId} by user {link.LinkedByUserId} at {link.LinkedAtUtc:O}"));
+        }
+
+        foreach (var reference in (snapshot.ExternalReferences ?? []).OrderBy(reference => reference.ReferenceId))
+        {
+            lines.Add($"external reference {reference.ReferenceId} {reference.Signature}");
+        }
+
         return lines;
     }
 
@@ -42,7 +67,17 @@ internal static class SnapshotRenderer
             .Where(section => section.TableId == tableId && section.ParentSectionId == parentId)
             .Select(section =>
             {
-                var lines = new List<string> { $"{indent}section template {section.TemplateSectionId}" };
+                var lines = new List<string> { $"{indent}section {section.PublicId} template {section.TemplateSectionId}" };
+                if (section.WidgetValues is not null)
+                {
+                    lines.Add($"{indent}  widgets {section.WidgetValues}");
+                }
+
+                if (section.LinkedSectionPublicId is { } linked)
+                {
+                    lines.Add($"{indent}  linked to section {linked}");
+                }
+
                 lines.AddRange(Rows(snapshot, section.Id, blockPlaces, indent + "  "));
                 lines.AddRange(Sections(snapshot, tableId, section.Id, blockPlaces, indent + "  "));
                 return (section.DisplayOrder, section.TemplateSectionId, lines);
@@ -57,10 +92,10 @@ internal static class SnapshotRenderer
             .Where(row => row.SectionId == sectionId)
             .Select(row =>
             {
-                var lines = new List<string> { $"{indent}row template {row.TemplateRowId}" };
+                var lines = new List<string> { $"{indent}row {row.PublicId} template {row.TemplateRowId}" };
                 lines.AddRange(snapshot.CellsOf(row.Id)
                     .Where(cell => !cell.Content.IsEmpty)
-                    .Select(cell => $"{indent}  cell template {cell.TemplateCellId} block {BlockPlace(blockPlaces, cell.ColumnBlockId)}: {cell.Content.Signature}")
+                    .Select(cell => $"{indent}  cell {cell.PublicId} template {cell.TemplateCellId} block {BlockPlace(blockPlaces, cell.ColumnBlockId)}: {cell.Content.Signature}")
                     .Order(StringComparer.Ordinal));
                 return (row.DisplayOrder, row.TemplateRowId, lines);
             });

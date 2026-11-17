@@ -69,7 +69,7 @@ sqlcmd -S "(localdb)\MSSQLLocalDB" -d PUSpecSheet -b -i database/OneTime/MoveTab
 
 Without it, a deploy would see the old tables as ones to drop and the new ones as ones to create, and stop rather than lose the data.
 
-Databases still on the flat layout, where every version of a sheet is a whole copy of it, need their sheets migrated. `OneTime/MoveFlatTablesToLegacy.sql` moves the flat sheet and value tables into a `legacy` schema. Then a deploy creates the revision tables beside them, and the migrator in `api/tools/PUSpecSheet.Migrator` rebuilds each sheet's history as revisions and checks it against every copy. Its README has the steps.
+Sheets from the legacy app (its tables are in `api/legacy.txt`), where every version of a sheet is a whole copy of it, are moved over by the migrator in `api/tools/PUSpecSheet.Migrator`. It rebuilds each sheet's history as revisions and checks it against every copy. The legacy tables can stay where they are, as the new tables are in other schemas. Its README has the steps.
 
 Databases deployed with `spec.Sheets.IdentityKey` (16 November 2026, sheets told apart by identifiers) need that column dropped before the next deploy, because it holds values and a deploy stops rather than drop it. Its contents are still in `spec.SheetIdentifierValues`. The one-time script is safe to run twice:
 
@@ -85,6 +85,7 @@ sqlcmd -S "(localdb)\MSSQLLocalDB" -d PUSpecSheet -b -i database/OneTime/DropShe
 | `setup.Phases` | Phase tree (`ParentPhaseId` self-reference), with `Code` and `DisplayOrder`. |
 | `setup.SheetTypes` | Kinds of sheet (Specification, PFKs, Parts, ...). |
 | `setup.SheetTypeIdentifiers` | The values that tell one sheet of a type from another within a phase (an engine specification's serial number, say): `Key` (the published API's filter name, fixed once created), `Name`, `Kind` (0 text, 1 number, 2 date, 3 option), `IsRequired`, `DisplayOrder`, and `Options` as a JSON array for the option kind. |
+| `setup.SheetTypeProperties` | Values a sheet of a type records about itself (from the legacy app's sheet type properties): `Key`, `Name`, `ValueType`, `ControlType`, `DisplayOrder` and the form settings. A sheet's values are in `spec.SheetProperties`. |
 | `setup.PhaseSheetTypes` | Which sheet types a phase uses. Composite key (`PhaseId`, `SheetTypeId`). |
 
 ### Templates (`design` schema)
@@ -97,6 +98,8 @@ sqlcmd -S "(localdb)\MSSQLLocalDB" -d PUSpecSheet -b -i database/OneTime/DropShe
 | `design.TemplateColumnBlocks` | Repeatable groups of columns with instance limits. |
 | `design.TemplateRows` | Rows within a template section. |
 | `design.TemplateCells` | Cells of a template row: position, spans, caption, cell type, overrides, optional `LookupKey` (filtered index where not null). |
+| `design.WidgetTypes` | Kinds of widget a table or section can show, with a fixed `Key`. |
+| `design.TableTemplateWidgets` / `design.TemplateSectionWidgets` | The widgets a template version or template section shows. A sheet's values for them are JSON on the table or section revision (`WidgetValues`), by widget id. |
 | `design.CellTypes` | Cell types (`Kind`, `Configuration`, `Style`). |
 | `design.CellTypeOptions` | The choices of an option-kind cell type. |
 
@@ -108,16 +111,17 @@ Each sheet object is split into an identity table (stable `Id` plus a `PublicId`
 | --- | --- |
 | `spec.Sheets` | Sheets of a phase and sheet type, indexed by (`PhaseId`, `SheetTypeId`). A sheet's identity is its values in `spec.SheetIdentifierValues` and nothing on this table; the API keeps those value sets unique per phase and type (under an application lock), and allows one sheet with no values, so a sheet type without identifiers keeps one sheet per phase. Has a `RowVersion`. |
 | `spec.SheetIdentifierValues` | A sheet's value for each of its type's identifiers, set when the sheet is created and never changed; the only place a sheet's identity is stored. Composite key (`SheetId`, `SheetTypeIdentifierId`); indexed by identifier and value for the published API's filters. |
-| `spec.SheetVersions` | Published versions of a sheet: number, when, by whom, note. |
-| `spec.SheetTables` / `spec.SheetTableRevisions` | A table on a sheet, built from a template version; revisions carry title and order. |
-| `spec.SheetSections` / `spec.SheetSectionRevisions` | Section instances (nestable) and their revisions. |
+| `spec.SheetVersions` | Published versions of a sheet: number, when, by whom, note. A version migrated from the legacy app keeps the `SpecSheets` row it came from (`SourceSpecSheetId`), and that row's `LegacySpecSheetId` and `HasBeenMigrated` from the system before it. |
+| `spec.SheetTables` / `spec.SheetTableRevisions` | A table on a sheet, built from a template version; revisions carry title, order, widget values and the table's notes (a JSON array: note, source system, obsolete, who and when). |
+| `spec.SheetSections` / `spec.SheetSectionRevisions` | Section instances (nestable) and their revisions, which carry widget values and, for a linked section, the public id of the section it links to. |
 | `spec.SheetColumnBlocks` / `spec.SheetColumnBlockRevisions` | Column block instances and their revisions. |
 | `spec.SheetRows` / `spec.SheetRowRevisions` | Row instances and their revisions; cell values hang off the row revision. |
 | `spec.SheetCells` | A cell of a sheet row, tied to its template cell and optional column block. |
-| `spec.SheetProperties` / `spec.SheetPropertyRevisions` | Values about the sheet as a whole, and their revisions. |
-| `spec.SheetExternalReferences` / `spec.SheetExternalReferenceRevisions` | References pushed in by external systems, and their revisions, each tied to a version. |
+| `spec.SheetProperties` / `spec.SheetPropertyRevisions` | The sheet's value of each sheet type property (one per property), and their revisions, which hold the `Value`. |
+| `spec.SheetExternalReferences` / `spec.SheetExternalReferenceRevisions` | References pushed in by external systems, one per `ReferenceId`, and their revisions (system, owner, URL, type, grouping, icon, description), each tied to a version. |
+| `spec.SheetLinkedTables` / `spec.SheetLinkedTableRevisions` | Tables from other sheets shown on this one, held by the table's public id (so the sheet may not exist yet, or any more), and their revisions, which carry the order. |
 
-The table, section, column block and row revision tables share one shape: `RevisionNumber`, `Status` (0 draft, 1 published), `IsDeleted`, author, created/updated/published/superseded timestamps, the `SheetVersionId` they were published in, the `SheetSubmissionId` of the approval they wait on, and a `ROWVERSION` column for optimistic concurrency. Check constraints tie `PublishedAtUtc` and `SupersededAtUtc` to `Status`, and filtered unique indexes allow one draft (`Status = 0`) and one current published revision (`Status = 1 AND SupersededAtUtc IS NULL`) per object.
+The table, section, column block, row and linked table revision tables share one shape: `RevisionNumber`, `Status` (0 draft, 1 published), `IsDeleted`, author, created/updated/published/superseded timestamps, the `SheetVersionId` they were published in, the `SheetSubmissionId` of the approval they wait on, and a `ROWVERSION` column for optimistic concurrency. Check constraints tie `PublishedAtUtc` and `SupersededAtUtc` to `Status`, and filtered unique indexes allow one draft (`Status = 0`) and one current published revision (`Status = 1 AND SupersededAtUtc IS NULL`) per object.
 
 Property revisions have the same shape and rules, plus two more. A published revision must name its version (`CK_SheetPropertyRevisions_Version`), and a property has at most one revision per version (`UX_SheetPropertyRevisions_OnePerVersion`), so its value changes at most once from one version to the next.
 
@@ -135,6 +139,7 @@ One table per value kind. Each has the composite primary key (`SheetRowRevisionI
 | `cell.BooleanValues` | Boolean value. |
 | `cell.OptionValues` | Reference to a `design.CellTypeOptions` row. |
 | `cell.LabelledTextValues` | One row per slot of a labelled text cell, keyed by revision, cell and `SlotKey`, with its `Position`; `LookupValue` is computed and indexed as for text. |
+| `cell.LinkedSheetValues` | A cell pointing at a table, or an item in it, on another sheet: the sheet type, phase and the public ids of the table and item. |
 | `cell.CellSettings` | The settings chosen on the sheet for a cell (which table a linked dropdown reads, for example), as JSON whose `kind` names the cell kind. Same key as the value tables, so they are versioned with the row. |
 
 ### Approvals (`approval` schema)

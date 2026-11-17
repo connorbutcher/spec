@@ -22,7 +22,7 @@ internal static class TargetSnapshotReader
         var tableRevisions = Latest(await db.SheetTableRevisions.AsNoTracking()
             .Where(revision => revision.SheetId == sheetId)
             .InView(moment)
-            .Select(revision => new { revision.Id, ItemId = revision.SheetTableId, revision.Status, revision.IsDeleted, revision.DisplayOrder, revision.Title })
+            .Select(revision => new { revision.Id, ItemId = revision.SheetTableId, revision.Status, revision.IsDeleted, revision.DisplayOrder, revision.Title, revision.WidgetValues, revision.Notes })
             .ToListAsync(cancellationToken), revision => revision.ItemId, revision => revision.Status);
         var tableItems = await db.SheetTables.AsNoTracking()
             .Where(table => table.SheetId == sheetId)
@@ -42,7 +42,7 @@ internal static class TargetSnapshotReader
         var sectionRevisions = Latest(await db.SheetSectionRevisions.AsNoTracking()
             .Where(revision => revision.SheetId == sheetId)
             .InView(moment)
-            .Select(revision => new { revision.Id, ItemId = revision.SheetSectionId, revision.Status, revision.IsDeleted, revision.DisplayOrder })
+            .Select(revision => new { revision.Id, ItemId = revision.SheetSectionId, revision.Status, revision.IsDeleted, revision.DisplayOrder, revision.WidgetValues, revision.LinkedSectionPublicId })
             .ToListAsync(cancellationToken), revision => revision.ItemId, revision => revision.Status);
         var sectionItems = await db.SheetSections.AsNoTracking()
             .Where(section => section.SheetTable.SheetId == sheetId)
@@ -69,6 +69,8 @@ internal static class TargetSnapshotReader
                 TableTemplateVersionId = tableItems[table.ItemId].TableTemplateVersionId,
                 Title = table.Title,
                 DisplayOrder = table.DisplayOrder,
+                WidgetValues = table.WidgetValues,
+                Notes = table.Notes,
             })
             .ToList();
         var tableIds = tables.Select(table => table.Id).ToHashSet();
@@ -112,6 +114,8 @@ internal static class TargetSnapshotReader
                 ParentSectionId = sectionItems[section.ItemId].ParentSheetSectionId,
                 TemplateSectionId = sectionItems[section.ItemId].TemplateSectionId,
                 DisplayOrder = section.DisplayOrder,
+                WidgetValues = section.WidgetValues,
+                LinkedSectionPublicId = section.LinkedSectionPublicId,
             })
             .ToList();
         var sectionIds = sections.Select(section => section.Id).ToHashSet();
@@ -150,6 +154,27 @@ internal static class TargetSnapshotReader
             })
             .ToList();
 
+        var properties = Latest(await db.SheetPropertyRevisions.AsNoTracking()
+            .Where(revision => revision.SheetId == sheetId)
+            .InView(moment)
+            .Select(revision => new { ItemId = revision.SheetPropertyId, revision.SheetProperty.SheetTypePropertyId, revision.Status, revision.IsDeleted, revision.Value })
+            .ToListAsync(cancellationToken), revision => revision.ItemId, revision => revision.Status);
+
+        var linkedTables = Latest(await db.SheetLinkedTableRevisions.AsNoTracking()
+            .Where(revision => revision.SheetId == sheetId)
+            .InView(moment)
+            .Select(revision => new
+            {
+                ItemId = revision.SheetLinkedTableId,
+                revision.Status,
+                revision.IsDeleted,
+                revision.DisplayOrder,
+                revision.SheetLinkedTable.LinkedTablePublicId,
+                revision.SheetLinkedTable.LinkedByUserId,
+                revision.SheetLinkedTable.LinkedAtUtc,
+            })
+            .ToListAsync(cancellationToken), revision => revision.ItemId, revision => revision.Status);
+
         return new SheetSnapshot
         {
             Tables = tables,
@@ -157,7 +182,48 @@ internal static class TargetSnapshotReader
             ColumnBlocks = blocks,
             Rows = rows,
             Cells = cells,
+            Properties = properties.Values
+                .Where(property => !property.IsDeleted)
+                .ToDictionary(property => property.SheetTypePropertyId, property => property.Value),
+            LinkedTables = linkedTables.Values
+                .Where(link => !link.IsDeleted)
+                .Select(link => new SnapshotLinkedTable
+                {
+                    LinkedTablePublicId = link.LinkedTablePublicId,
+                    DisplayOrder = link.DisplayOrder,
+                    LinkedByUserId = link.LinkedByUserId,
+                    LinkedAtUtc = link.LinkedAtUtc,
+                })
+                .ToList(),
+            ExternalReferences = moment is { } at ? await ReadExternalReferencesAsync(db, sheetId, at, cancellationToken) : null,
         };
+    }
+
+    // External references have no drafts: as of a moment is the revision published at or before it and not yet replaced.
+    private static async Task<List<SnapshotExternalReference>> ReadExternalReferencesAsync(
+        PuSpecSheetDbContext db,
+        int sheetId,
+        DateTime moment,
+        CancellationToken cancellationToken)
+    {
+        return await db.SheetExternalReferenceRevisions.AsNoTracking()
+            .Where(revision => revision.SheetId == sheetId
+                && revision.PublishedAtUtc <= moment
+                && (revision.SupersededAtUtc == null || revision.SupersededAtUtc > moment)
+                && !revision.IsDeleted)
+            .Select(revision => new SnapshotExternalReference
+            {
+                ReferenceId = revision.SheetExternalReference.ReferenceId,
+                ExternalId = revision.ExternalId,
+                SystemName = revision.SystemName,
+                OwnerName = revision.OwnerName,
+                Url = revision.Url,
+                Type = revision.Type,
+                Grouping = revision.Grouping,
+                SystemIconUrl = revision.SystemIconUrl,
+                Description = revision.Description,
+            })
+            .ToListAsync(cancellationToken);
     }
 
     /// <summary>The values of the given row revisions, by cell. A cell has one revision in view, so one set of values.</summary>
@@ -235,6 +301,21 @@ internal static class TargetSnapshotReader
                 Position = value.Position,
                 Value = value.Value,
             });
+        }
+
+        foreach (var value in await db.SheetRowRevisions.AsNoTracking()
+            .Where(revision => revisionIds.Contains(revision.Id))
+            .SelectMany(revision => revision.LinkedSheetValues)
+            .Select(value => new { value.SheetCellId, value.LinkedSheetTypeId, value.LinkedPhaseId, value.LinkedTablePublicId, value.LinkedItemPublicId })
+            .ToListAsync(cancellationToken))
+        {
+            For(value.SheetCellId).Linked = new LinkedSheetTarget
+            {
+                SheetTypeId = value.LinkedSheetTypeId,
+                PhaseId = value.LinkedPhaseId,
+                TablePublicId = value.LinkedTablePublicId,
+                ItemPublicId = value.LinkedItemPublicId,
+            };
         }
 
         foreach (var value in await db.SheetRowRevisions.AsNoTracking()

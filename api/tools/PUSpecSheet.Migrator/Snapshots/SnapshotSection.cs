@@ -1,6 +1,5 @@
 namespace PUSpecSheet.Migrator.Snapshots;
 
-/// <summary>A section of a table on a sheet snapshot, inside another section when <see cref="ParentSectionId"/> is set.</summary>
 internal sealed record SnapshotSection
 {
     public int Id { get; init; }
@@ -14,4 +13,8 @@ internal sealed record SnapshotSection
     public int TemplateSectionId { get; init; }
 
     public int DisplayOrder { get; init; }
+
+    public string? WidgetValues { get; init; }
+
+    public Guid? LinkedSectionPublicId { get; init; }
 }

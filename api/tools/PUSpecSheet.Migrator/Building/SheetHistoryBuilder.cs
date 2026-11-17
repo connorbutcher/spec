@@ -1,5 +1,7 @@
 using System.Globalization;
+using PUSpecSheet.Abstractions.Approvals;
 using PUSpecSheet.Abstractions.Sheets;
+using PUSpecSheet.Database.Models.Approvals;
 using PUSpecSheet.Database.Models.Sheets;
 using PUSpecSheet.Database.Models.Values;
 using PUSpecSheet.Migrator.Legacy;
@@ -7,124 +9,119 @@ using PUSpecSheet.Migrator.Snapshots;
 
 namespace PUSpecSheet.Migrator.Building;
 
-/// <summary>
-/// Rebuilds a legacy sheet, a whole copy per version, as identity rows and revisions. The copies are replayed
-/// oldest first. Each becomes a <see cref="DbSheetVersion"/>, and each item in it is matched with itself in the
-/// copy before (<see cref="KeyAssigner"/>). An item gets a published revision only when it is new or differs
-/// from its last one: a table's title or order, a section's or column block's order, a row's order or any of
-/// its cells' contents. An item missing from a copy gets a revision removing it, unless what it was in went too,
-/// as removing a table or section takes what is in it with it. The working copy, if there is one, is replayed
-/// last in the same way but as drafts held by its editor.
-/// <para>
-/// Nothing touches the database: the result is a graph of new entities under the given <see cref="DbSheet"/>,
-/// with every <c>SupersededAtUtc</c> already set, so it saves as inserts only and the one-current-revision
-/// indexes are never broken along the way.
-/// </para>
-/// </summary>
+// Turns the copies of one legacy sheet into its history on the revision tables. Each published copy, oldest first,
+// becomes a version, and each item gets a published revision only when it is new or differs from its last one; the
+// revision replaces the one before at the version's moment. An item missing from a copy gets a removing revision,
+// unless what it was in went too. The working copy, if there is one, becomes drafts by its editor. Workflow steps
+// become submissions.
 internal sealed class SheetHistoryBuilder
 {
     private const string Removed = "removed";
+    private const int LongestReason = 1000;
+    private const string NoReason = "(no reason given)";
 
     private readonly DbSheet _sheet;
     private readonly DateTime _nowUtc;
-    private readonly KeyAssigner _assigner = new();
     private readonly List<string> _warnings = [];
+    private readonly KeyAssigner _assigner;
     private readonly List<BuiltVersion> _checks = [];
+    private readonly List<PlannedSubmission> _submissions = [];
+    private readonly List<IDbSheetRevision> _writtenForCopy = [];
     private readonly Dictionary<int, ItemTrack<DbSheetTable, DbSheetTableRevision>> _tables = [];
     private readonly Dictionary<int, ItemTrack<DbSheetColumnBlock, DbSheetColumnBlockRevision>> _blocks = [];
     private readonly Dictionary<int, ItemTrack<DbSheetSection, DbSheetSectionRevision>> _sections = [];
     private readonly Dictionary<int, ItemTrack<DbSheetRow, DbSheetRowRevision>> _rows = [];
+    private readonly Dictionary<int, ItemTrack<DbSheetProperty, DbSheetPropertyRevision>> _properties = [];
+    private readonly Dictionary<Guid, ItemTrack<DbSheetLinkedTable, DbSheetLinkedTableRevision>> _linkedTables = [];
+    private readonly Dictionary<Guid, ExternalReferenceTrack> _references = [];
     private readonly Dictionary<CellKey, DbSheetCell> _cells = [];
     private readonly Dictionary<CellKey, Guid> _cellPublicIds = [];
     private SnapshotKeys _previousKeys = new();
+    private HashSet<int> _previousProperties = [];
+    private HashSet<Guid> _previousLinkedTables = [];
+    private HashSet<Guid> _previousReferences = [];
 
     private SheetHistoryBuilder(DbSheet sheet, DateTime nowUtc)
     {
         _sheet = sheet;
         _nowUtc = nowUtc;
+        _assigner = new KeyAssigner(_warnings);
     }
 
-    /// <param name="sheet">The migrated sheet, already saved so that it has its <c>Id</c>. Its tables and versions are added to it.</param>
-    /// <param name="copies">Every copy of the legacy sheet, in any order.</param>
-    /// <param name="nowUtc">When the migration runs: the time on the working copy's drafts.</param>
     public static BuiltSheet Build(DbSheet sheet, IReadOnlyList<LegacyCopy> copies, DateTime nowUtc)
     {
         var builder = new SheetHistoryBuilder(sheet, nowUtc);
         builder.BuildAll(copies);
-        return new BuiltSheet { Sheet = sheet, Checks = builder._checks, Warnings = builder._warnings };
+        return new BuiltSheet
+        {
+            Sheet = sheet,
+            Checks = builder._checks,
+            Submissions = builder._submissions,
+            Warnings = builder._warnings,
+        };
     }
 
     private void BuildAll(IReadOnlyList<LegacyCopy> copies)
     {
-        var published = copies.Where(copy => !copy.IsWorkingCopy).OrderBy(copy => copy.VersionNumber).ToList();
+        var published = copies.Where(copy => !copy.IsWorkingCopy).OrderBy(copy => copy.PublishedAtUtc).ThenBy(copy => copy.Id).ToList();
         var working = copies.Where(copy => copy.IsWorkingCopy).ToList();
-        Validate(published, working);
-
-        DateTime? last = null;
-        foreach (var copy in published)
-        {
-            var at = copy.PublishedAtUtc!.Value;
-            if (last is { } previous && at <= previous)
-            {
-                // Two versions at one moment can't be told apart "as of" a time, and one older than the version
-                // before it would break the timeline, so the later version moves to just after the earlier one.
-                at = previous.AddTicks(1);
-                _warnings.Add(string.Create(
-                    CultureInfo.InvariantCulture,
-                    $"Version {copy.VersionNumber} was published at {copy.PublishedAtUtc:O}, not after the version before it; it is moved to {at:O}."));
-            }
-
-            var version = new DbSheetVersion
-            {
-                VersionNumber = copy.VersionNumber,
-                PublishedAtUtc = at,
-                PublishedByUserId = copy.UserId,
-            };
-            _sheet.Versions.Add(version);
-
-            Apply(copy, version, at);
-            _checks.Add(new BuiltVersion { VersionNumber = copy.VersionNumber, MomentUtc = at, Expected = copy.Snapshot });
-            last = at;
-        }
-
-        if (working.Count == 1)
-        {
-            Apply(working[0], null, _nowUtc);
-            _checks.Add(new BuiltVersion { VersionNumber = working[0].VersionNumber, Expected = working[0].Snapshot });
-        }
-
-        KeepPublicIds();
-    }
-
-    private static void Validate(List<LegacyCopy> published, List<LegacyCopy> working)
-    {
         if (working.Count > 1)
         {
             throw new MigrationException($"It has {working.Count} unpublished copies; a sheet can only have one working copy.");
         }
 
-        var duplicate = published.GroupBy(copy => copy.VersionNumber).FirstOrDefault(group => group.Count() > 1);
-        if (duplicate is not null)
+        DateTime? last = null;
+        var number = 0;
+        foreach (var copy in published)
         {
-            throw new MigrationException($"It has more than one version {duplicate.Key}.");
+            number++;
+            var at = copy.PublishedAtUtc!.Value;
+            if (last is { } previous && at <= previous)
+            {
+                // Two versions at one moment can't be told apart "as of" a time, so the later moves to just after.
+                at = previous.AddTicks(1);
+                _warnings.Add(string.Create(
+                    CultureInfo.InvariantCulture,
+                    $"Version {number} (copy {copy.Id}) was published at {copy.PublishedAtUtc:O}, the same moment as the version before it; it is moved to {at:O}."));
+            }
+
+            var version = new DbSheetVersion
+            {
+                VersionNumber = number,
+                PublishedAtUtc = at,
+                PublishedByUserId = copy.UserId,
+                Note = string.IsNullOrWhiteSpace(copy.ChangeLog) ? null : copy.ChangeLog,
+                SourceSpecSheetId = copy.Id,
+                LegacySpecSheetId = copy.LegacySpecSheetId,
+                HasBeenMigrated = copy.HasBeenMigrated,
+            };
+            _sheet.Versions.Add(version);
+
+            Apply(copy, version, at);
+            PlanSubmissions(copy, version, at);
+            _checks.Add(new BuiltVersion { VersionNumber = number, MomentUtc = at, Expected = copy.Snapshot });
+            last = at;
         }
 
-        if (working.Count == 1 && published.Count > 0 && working[0].VersionNumber <= published[^1].VersionNumber)
+        if (working.Count == 1)
         {
-            throw new MigrationException(
-                $"Its unpublished copy is version {working[0].VersionNumber}, but version {published[^1].VersionNumber} is published; an unpublished copy must come after every published one.");
+            var copy = working[0];
+            if (last is { } lastPublished && copy.CreatedAtUtc < lastPublished)
+            {
+                _warnings.Add($"The working copy (copy {copy.Id}) was started before the last version was published; it is kept as drafts on top of that version.");
+            }
+
+            Apply(copy, null, _nowUtc);
+            PlanSubmissions(copy, null, _nowUtc);
+            _checks.Add(new BuiltVersion { VersionNumber = number + 1, Expected = copy.Snapshot });
         }
 
-        if (published.Count > 0 && published[0].VersionNumber < 1)
-        {
-            throw new MigrationException($"It has a version {published[0].VersionNumber}; version numbers start at 1.");
-        }
+        KeepPublicIds();
     }
 
-    /// <summary>Writes the revisions that take every item from how it was to how it is in <paramref name="copy"/>.</summary>
-    /// <param name="version">The version the copy becomes, or null for the working copy, whose revisions are drafts.</param>
     private void Apply(LegacyCopy copy, DbSheetVersion? version, DateTime at)
     {
+        _writtenForCopy.Clear();
         var snapshot = copy.Snapshot;
         var keys = _assigner.Assign(snapshot);
         var context = new WriteContext { Version = version, At = at, UserId = copy.UserId };
@@ -149,7 +146,7 @@ internal sealed class SheetHistoryBuilder
             ApplyColumnBlock(context, keys, block);
         }
 
-        foreach (var section in ParentsFirst(snapshot.Sections))
+        foreach (var section in KeyAssigner.ParentsFirst(snapshot.Sections))
         {
             ApplySection(context, keys, section with { DisplayOrder = sectionOrders[section.Id] });
         }
@@ -160,14 +157,15 @@ internal sealed class SheetHistoryBuilder
         }
 
         RemoveMissing(context, keys);
-
+        ApplyProperties(context, snapshot);
+        ApplyLinkedTables(context, snapshot);
         if (version is not null)
         {
+            ApplyExternalReferences(version, at, snapshot.ExternalReferences ?? []);
             _previousKeys = keys;
         }
     }
 
-    /// <summary>The display order of each item, by id, given by <see cref="OrderKeeper"/> among its siblings.</summary>
     private static Dictionary<int, int> KeepOrders<TItem, TParent>(
         IEnumerable<TItem> items,
         Func<TItem, int> id,
@@ -189,8 +187,8 @@ internal sealed class SheetHistoryBuilder
         return orders;
     }
 
-    /// <summary>The order an item's last published revision gives it, or null when it has none.</summary>
-    private static int? ExistingOrder<TIdentity, TRevision>(Dictionary<int, ItemTrack<TIdentity, TRevision>> tracks, int key)
+    private static int? ExistingOrder<TKey, TIdentity, TRevision>(Dictionary<TKey, ItemTrack<TIdentity, TRevision>> tracks, TKey key)
+        where TKey : notnull
         where TIdentity : class
         where TRevision : class, IDbSheetRevision
     {
@@ -209,10 +207,12 @@ internal sealed class SheetHistoryBuilder
         }
 
         track.PublicId = table.PublicId;
-        Write(context, track, $"{table.DisplayOrder}|{table.Title}", () => new DbSheetTableRevision
+        Write(context, track, $"{table.DisplayOrder}|{table.Title}|{table.WidgetValues}|{table.Notes}", () => new DbSheetTableRevision
         {
             Title = table.Title,
             DisplayOrder = table.DisplayOrder,
+            WidgetValues = table.WidgetValues,
+            Notes = table.Notes,
         });
     }
 
@@ -251,7 +251,12 @@ internal sealed class SheetHistoryBuilder
         }
 
         track.PublicId = section.PublicId;
-        Write(context, track, $"{section.DisplayOrder}", () => new DbSheetSectionRevision { DisplayOrder = section.DisplayOrder });
+        Write(context, track, $"{section.DisplayOrder}|{section.WidgetValues}|{section.LinkedSectionPublicId}", () => new DbSheetSectionRevision
+        {
+            DisplayOrder = section.DisplayOrder,
+            WidgetValues = section.WidgetValues,
+            LinkedSectionPublicId = section.LinkedSectionPublicId,
+        });
     }
 
     private void ApplyRow(WriteContext context, SheetSnapshot snapshot, SnapshotKeys keys, SnapshotRow row)
@@ -278,7 +283,7 @@ internal sealed class SheetHistoryBuilder
             }
         }
 
-        var state = $"{row.DisplayOrder}|{KeyAssigner.RowSignature(snapshot, keys, row.Id)}";
+        var state = $"{row.DisplayOrder}|{RowSignature(snapshot, row.Id)}";
         var written = Write(context, track, state, () =>
         {
             var revision = new DbSheetRowRevision { DisplayOrder = row.DisplayOrder };
@@ -292,7 +297,15 @@ internal sealed class SheetHistoryBuilder
         }
     }
 
-    /// <summary>The identity cell of a row's cell, made the first time the row has it.</summary>
+    private static string RowSignature(SheetSnapshot snapshot, int rowId)
+    {
+        var cells = snapshot.CellsOf(rowId)
+            .Where(cell => !cell.Content.IsEmpty)
+            .Select(cell => $"{cell.TemplateCellId}={cell.Content.Signature}")
+            .Order(StringComparer.Ordinal);
+        return string.Join('\n', cells);
+    }
+
     private DbSheetCell CellFor(DbSheetRow row, int rowKey, SnapshotKeys keys, SnapshotCell cell)
     {
         int? blockKey = cell.ColumnBlockId is { } blockId ? keys.ColumnBlocks[blockId] : null;
@@ -312,10 +325,6 @@ internal sealed class SheetHistoryBuilder
         return sheetCell;
     }
 
-    /// <summary>
-    /// Removes what was in the copy before and isn't in this one. Only the outermost thing that went is removed,
-    /// as the app does: a row whose section went with it stays as it was, hidden by its section.
-    /// </summary>
     private void RemoveMissing(WriteContext context, SnapshotKeys keys)
     {
         var tablesNow = keys.Tables.Values.ToHashSet();
@@ -327,7 +336,14 @@ internal sealed class SheetHistoryBuilder
         {
             var track = _tables[key];
             var last = track.LastPublished!;
-            Write(context, track, Removed, () => new DbSheetTableRevision { Title = last.Title, DisplayOrder = last.DisplayOrder, IsDeleted = true });
+            Write(context, track, Removed, () => new DbSheetTableRevision
+            {
+                Title = last.Title,
+                DisplayOrder = last.DisplayOrder,
+                WidgetValues = last.WidgetValues,
+                Notes = last.Notes,
+                IsDeleted = true,
+            });
         }
 
         foreach (var key in _previousKeys.ColumnBlocks.Values.Where(key => !blocksNow.Contains(key)))
@@ -347,7 +363,13 @@ internal sealed class SheetHistoryBuilder
             if (containerKept)
             {
                 var last = track.LastPublished!;
-                Write(context, track, Removed, () => new DbSheetSectionRevision { DisplayOrder = last.DisplayOrder, IsDeleted = true });
+                Write(context, track, Removed, () => new DbSheetSectionRevision
+                {
+                    DisplayOrder = last.DisplayOrder,
+                    WidgetValues = last.WidgetValues,
+                    LinkedSectionPublicId = last.LinkedSectionPublicId,
+                    IsDeleted = true,
+                });
             }
         }
 
@@ -369,11 +391,152 @@ internal sealed class SheetHistoryBuilder
         }
     }
 
-    /// <summary>
-    /// Adds a revision recording <paramref name="state"/>, unless the item's last published revision already
-    /// does. A published revision replaces the one before it at the same moment.
-    /// </summary>
-    /// <returns>Whether a revision was added.</returns>
+    private void ApplyProperties(WriteContext context, SheetSnapshot snapshot)
+    {
+        foreach (var (propertyId, value) in snapshot.Properties)
+        {
+            if (!_properties.TryGetValue(propertyId, out var track))
+            {
+                var identity = new DbSheetProperty { SheetTypePropertyId = propertyId, CreatedAtUtc = context.At };
+                _sheet.Properties.Add(identity);
+                track = new ItemTrack<DbSheetProperty, DbSheetPropertyRevision>(identity, null, null);
+                _properties[propertyId] = track;
+            }
+
+            Write(context, track, $"={value}", () => new DbSheetPropertyRevision { Value = value });
+        }
+
+        foreach (var propertyId in _previousProperties.Where(id => !snapshot.Properties.ContainsKey(id)))
+        {
+            var last = _properties[propertyId].LastPublished!;
+            Write(context, _properties[propertyId], Removed, () => new DbSheetPropertyRevision { Value = last.Value, IsDeleted = true });
+        }
+
+        if (context.Version is not null)
+        {
+            _previousProperties = snapshot.Properties.Keys.ToHashSet();
+        }
+    }
+
+    private void ApplyLinkedTables(WriteContext context, SheetSnapshot snapshot)
+    {
+        var orders = KeepOrders(
+            snapshot.LinkedTables.Select((link, index) => (Index: index, Link: link)).ToList(),
+            item => item.Index,
+            item => item.Link.DisplayOrder,
+            _ => 0,
+            item => ExistingOrder(_linkedTables, item.Link.LinkedTablePublicId));
+
+        for (var index = 0; index < snapshot.LinkedTables.Count; index++)
+        {
+            var link = snapshot.LinkedTables[index];
+            if (!_linkedTables.TryGetValue(link.LinkedTablePublicId, out var track))
+            {
+                var identity = new DbSheetLinkedTable
+                {
+                    LinkedTablePublicId = link.LinkedTablePublicId,
+                    LinkedByUserId = link.LinkedByUserId,
+                    LinkedAtUtc = link.LinkedAtUtc,
+                    CreatedAtUtc = context.At,
+                };
+                _sheet.LinkedTables.Add(identity);
+                track = new ItemTrack<DbSheetLinkedTable, DbSheetLinkedTableRevision>(identity, null, null);
+                _linkedTables[link.LinkedTablePublicId] = track;
+            }
+
+            var order = orders[index];
+            Write(context, track, $"{order}", () => new DbSheetLinkedTableRevision { DisplayOrder = order });
+        }
+
+        var now = snapshot.LinkedTables.Select(link => link.LinkedTablePublicId).ToHashSet();
+        foreach (var linkedId in _previousLinkedTables.Where(id => !now.Contains(id)))
+        {
+            var last = _linkedTables[linkedId].LastPublished!;
+            Write(context, _linkedTables[linkedId], Removed, () => new DbSheetLinkedTableRevision { DisplayOrder = last.DisplayOrder, IsDeleted = true });
+        }
+
+        if (context.Version is not null)
+        {
+            _previousLinkedTables = now;
+        }
+    }
+
+    // External references are pushed for a version, not edited, so they have no drafts or authors: each version
+    // gets a revision for a reference that is new, changed or gone.
+    private void ApplyExternalReferences(DbSheetVersion version, DateTime at, IReadOnlyList<SnapshotExternalReference> references)
+    {
+        foreach (var reference in references)
+        {
+            if (!_references.TryGetValue(reference.ReferenceId, out var track))
+            {
+                var identity = new DbSheetExternalReference { ReferenceId = reference.ReferenceId, CreatedAtUtc = at };
+                _sheet.ExternalReferences.Add(identity);
+                track = new ExternalReferenceTrack(identity);
+                _references[reference.ReferenceId] = track;
+            }
+
+            if (!string.Equals(track.Signature, reference.Signature, StringComparison.Ordinal))
+            {
+                WriteReference(track, version, at, reference, isDeleted: false);
+                track.Signature = reference.Signature;
+            }
+        }
+
+        var now = references.Select(reference => reference.ReferenceId).ToHashSet();
+        foreach (var referenceId in _previousReferences.Where(id => !now.Contains(id)))
+        {
+            var track = _references[referenceId];
+            var last = track.Last!;
+            WriteReference(
+                track,
+                version,
+                at,
+                new SnapshotExternalReference
+                {
+                    ReferenceId = referenceId,
+                    ExternalId = last.ExternalId,
+                    SystemName = last.SystemName,
+                    OwnerName = last.OwnerName,
+                    Url = last.Url,
+                    Type = last.Type,
+                    Grouping = last.Grouping,
+                    SystemIconUrl = last.SystemIconUrl,
+                    Description = last.Description,
+                },
+                isDeleted: true);
+            track.Signature = Removed;
+        }
+
+        _previousReferences = now;
+    }
+
+    private static void WriteReference(ExternalReferenceTrack track, DbSheetVersion version, DateTime at, SnapshotExternalReference reference, bool isDeleted)
+    {
+        var revision = new DbSheetExternalReferenceRevision
+        {
+            RevisionNumber = ++track.RevisionCount,
+            IsDeleted = isDeleted,
+            PublishedAtUtc = at,
+            PushedAtUtc = at,
+            ExternalId = reference.ExternalId,
+            SystemName = reference.SystemName,
+            OwnerName = reference.OwnerName,
+            Url = reference.Url,
+            Type = reference.Type,
+            Grouping = reference.Grouping,
+            SystemIconUrl = reference.SystemIconUrl,
+            Description = reference.Description,
+            SheetVersion = version,
+        };
+        track.Identity.Revisions.Add(revision);
+        if (track.Last is { } replaced)
+        {
+            replaced.SupersededAtUtc = at;
+        }
+
+        track.Last = revision;
+    }
+
     private bool Write<TIdentity, TRevision>(WriteContext context, ItemTrack<TIdentity, TRevision> track, string state, Func<TRevision> create)
         where TIdentity : class
         where TRevision : class, IDbSheetRevision
@@ -390,6 +553,7 @@ internal sealed class SheetHistoryBuilder
         revision.CreatedAtUtc = context.At;
         revision.UpdatedAtUtc = context.At;
         Attach(track.Identity, revision, context.Version);
+        _writtenForCopy.Add(revision);
 
         if (context.Version is null)
         {
@@ -409,7 +573,6 @@ internal sealed class SheetHistoryBuilder
         return true;
     }
 
-    /// <summary>Hangs a revision off its item, and off its version when published, so it is saved with the sheet.</summary>
     private static void Attach(object identity, IDbSheetRevision revision, DbSheetVersion? version)
     {
         switch (identity, revision)
@@ -429,6 +592,14 @@ internal sealed class SheetHistoryBuilder
             case (DbSheetRow row, DbSheetRowRevision rowRevision):
                 row.Revisions.Add(rowRevision);
                 rowRevision.SheetVersion = version;
+                break;
+            case (DbSheetProperty property, DbSheetPropertyRevision propertyRevision):
+                property.Revisions.Add(propertyRevision);
+                propertyRevision.SheetVersion = version;
+                break;
+            case (DbSheetLinkedTable linked, DbSheetLinkedTableRevision linkedRevision):
+                linked.Revisions.Add(linkedRevision);
+                linkedRevision.SheetVersion = version;
                 break;
             default:
                 throw new InvalidOperationException($"A {revision.GetType().Name} can't belong to a {identity.GetType().Name}.");
@@ -479,34 +650,119 @@ internal sealed class SheetHistoryBuilder
             {
                 revision.CellSettings.Add(new DbCellSettingsValue { SheetCell = cell, Settings = settings });
             }
+
+            if (content.Linked is { } linked)
+            {
+                revision.LinkedSheetValues.Add(new DbLinkedSheetValue
+                {
+                    SheetCell = cell,
+                    LinkedSheetTypeId = linked.SheetTypeId,
+                    LinkedPhaseId = linked.PhaseId,
+                    LinkedTablePublicId = linked.TablePublicId,
+                    LinkedItemPublicId = linked.ItemPublicId,
+                });
+            }
         }
     }
 
-    /// <summary>Sections ordered so each comes after the section it is in.</summary>
-    private static List<SnapshotSection> ParentsFirst(IReadOnlyList<SnapshotSection> all)
+    // A copy's workflow steps become submissions. The step that approved a published copy is the submission that
+    // published its version, and the revisions written for that version are its changes. A pending step on the
+    // working copy is a submission awaiting approval, holding the drafts. Every other step is kept as decided.
+    private void PlanSubmissions(LegacyCopy copy, DbSheetVersion? version, DateTime at)
     {
-        var byId = all.ToDictionary(section => section.Id);
-        var depths = new Dictionary<int, int>();
-
-        int Depth(SnapshotSection section)
+        var steps = copy.Workflow.OrderBy(step => step.StartedAtUtc).ThenBy(step => step.Id).ToList();
+        var publishing = version is null ? null : steps.LastOrDefault(step => LegacyWorkflowStates.Step(step) == SubmissionStatus.Approved);
+        var awaiting = version is null ? steps.LastOrDefault() : null;
+        if (awaiting is not null && LegacyWorkflowStates.Step(awaiting) != SubmissionStatus.Pending)
         {
-            if (!depths.TryGetValue(section.Id, out var depth))
+            awaiting = null;
+        }
+
+        for (var index = 0; index < steps.Count; index++)
+        {
+            var step = steps[index];
+            var status = LegacyWorkflowStates.Step(step);
+            var next = index + 1 < steps.Count ? steps[index + 1].StartedAtUtc : (DateTime?)null;
+            DateTime? decidedAt = null;
+            if (step == publishing || step == awaiting)
             {
-                depth = section.ParentSectionId is { } parentId ? Depth(byId[parentId]) + 1 : 0;
-                depths[section.Id] = depth;
+                decidedAt = step == publishing ? LatestAction(step) ?? at : null;
+            }
+            else if (status == SubmissionStatus.Pending)
+            {
+                // Overtaken by a later step or by publishing, so withdrawn when that happened.
+                status = SubmissionStatus.Withdrawn;
+                decidedAt = next ?? at;
+                _warnings.Add($"Workflow step {step.Id} (copy {copy.Id}) was never decided; it is kept as withdrawn.");
+            }
+            else
+            {
+                if (status == SubmissionStatus.Approved)
+                {
+                    _warnings.Add($"Workflow step {step.Id} (copy {copy.Id}) approved a copy that a later step decided again, or that wasn't published; it is kept as approved without a version.");
+                }
+
+                decidedAt = LatestAction(step) ?? next ?? at;
             }
 
-            return depth;
-        }
+            var submission = new DbSheetSubmission
+            {
+                Sheet = _sheet,
+                SubmittedByUserId = copy.CreatedByUserId,
+                SubmittedAtUtc = step.StartedAtUtc,
+                Status = status,
+                DecidedAtUtc = decidedAt,
+            };
+            AddApprovers(submission, step, copy);
 
-        return all.OrderBy(Depth).ToList();
+            _submissions.Add(new PlannedSubmission
+            {
+                Submission = submission,
+                Version = step == publishing ? version : null,
+                Revisions = step == publishing || step == awaiting ? [.. _writtenForCopy] : [],
+            });
+        }
     }
 
-    /// <summary>
-    /// Gives each identity row the public id its item had in the latest copy it was in, so links into the
-    /// current sheet keep working. An item with no public id (<see cref="Guid.Empty"/>), or one already taken by
-    /// another item, gets a new one instead.
-    /// </summary>
+    private void AddApprovers(DbSheetSubmission submission, LegacyWorkflowStep step, LegacyCopy copy)
+    {
+        foreach (var actors in step.Actors.Where(actor => actor.UserId is not null).GroupBy(actor => actor.UserId!.Value))
+        {
+            var ordered = actors.OrderBy(candidate => candidate.Id).ToList();
+            if (ordered.Count > 1)
+            {
+                _warnings.Add($"User {actors.Key} is an actor of workflow step {step.Id} (copy {copy.Id}) more than once; the last is kept.");
+            }
+
+            var actor = ordered[^1];
+            var decision = LegacyWorkflowStates.Actor(actor);
+            var reason = string.IsNullOrWhiteSpace(actor.Comment) ? null : actor.Comment.Trim();
+            if (reason is { Length: > LongestReason })
+            {
+                _warnings.Add($"The comment of workflow step actor {actor.Id} (copy {copy.Id}) is cut to {LongestReason} characters.");
+                reason = reason[..LongestReason];
+            }
+
+            if (decision == ApprovalDecision.Rejected && reason is null)
+            {
+                reason = NoReason;
+            }
+
+            submission.Approvers.Add(new DbSheetSubmissionApprover
+            {
+                UserId = actors.Key,
+                Decision = decision,
+                DecidedAtUtc = decision == ApprovalDecision.Pending ? null : actor.ActionedAtUtc ?? submission.DecidedAtUtc ?? step.StartedAtUtc,
+                Reason = reason,
+            });
+        }
+    }
+
+    private static DateTime? LatestAction(LegacyWorkflowStep step)
+    {
+        return step.Actors.Max(actor => actor.ActionedAtUtc);
+    }
+
     private void KeepPublicIds()
     {
         var used = new HashSet<Guid>();
@@ -522,7 +778,7 @@ internal sealed class SheetHistoryBuilder
             used.Add(fresh);
             if (publicId != Guid.Empty)
             {
-                _warnings.Add($"The public id {publicId} of a {what} was used more than once; it was given {fresh}.");
+                _warnings.Add($"The ReferenceID {publicId} of a {what} was used more than once; it was given {fresh}.");
             }
 
             return fresh;

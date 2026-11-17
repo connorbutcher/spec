@@ -6,7 +6,8 @@ namespace PUSpecSheet.Migrator;
 internal sealed record MigratorOptions
 {
     public const string Usage = """
-        Moves sheets from the legacy layout (each version a whole copy) onto the revision tables.
+        Moves sheets from the legacy layout (each version a whole copy) onto the revision tables. Widget types,
+        template widgets and sheet type properties are added first, even on a dry run.
 
           --legacy <connection string>   the database holding the [legacy] tables (required)
           --target <connection string>   the database to migrate into; defaults to --legacy

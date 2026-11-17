@@ -29,14 +29,27 @@ var targetOptions = new DbContextOptionsBuilder<PuSpecSheetDbContext>()
     .ConfigureWarnings(warnings => warnings.Ignore(SqlServerEventId.SavepointsDisabledBecauseOfMARS))
     .Options;
 
-DesignLookup design;
-await using (var designDb = new PuSpecSheetDbContext(targetOptions))
-{
-    design = await DesignLookup.LoadAsync(designDb, cancellation.Token);
-}
-
 await using var legacyConnection = new SqlConnection(options.LegacyConnectionString);
 await legacyConnection.OpenAsync(cancellation.Token);
+
+DesignLookup design;
+await using (var setupDb = new PuSpecSheetDbContext(targetOptions))
+{
+    design = await DesignLookup.LoadAsync(setupDb, legacyConnection, cancellation.Token);
+    try
+    {
+        if (!await new ReferenceDataMigrator(legacyConnection, setupDb, design, logger).MigrateAsync(cancellation.Token))
+        {
+            return 1;
+        }
+    }
+    catch (MigrationException exception)
+    {
+        logger.ReferenceDataFailed(exception.Message);
+        return 1;
+    }
+}
+
 var reader = new LegacySheetReader(legacyConnection, design);
 
 var migrator = new SheetMigrator(() => new PuSpecSheetDbContext(targetOptions), reader, options.Commit, logger);

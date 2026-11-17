@@ -5,11 +5,7 @@ using PUSpecSheet.Database.Conversions;
 
 namespace PUSpecSheet.Migrator.Snapshots;
 
-/// <summary>
-/// Everything a cell holds: at most one value of its kind (labelled text has one per slot) and the settings
-/// chosen for it on the sheet. Two contents are the same when their <see cref="Signature"/>s are, which ignores
-/// trailing zeros on numbers, the order slots were read in and how the settings JSON was laid out.
-/// </summary>
+// What one cell holds in one copy. Signature puts it all in one string, so two contents are compared as text.
 internal sealed class CellContent
 {
     public static readonly CellContent Empty = new();
@@ -21,7 +17,8 @@ internal sealed class CellContent
         bool? boolean = null,
         int? optionId = null,
         IReadOnlyList<LabelledSlot>? labelledText = null,
-        CellInstanceSettings? settings = null)
+        CellInstanceSettings? settings = null,
+        LinkedSheetTarget? linked = null)
     {
         Text = text;
         Number = number;
@@ -30,6 +27,7 @@ internal sealed class CellContent
         OptionId = optionId;
         LabelledText = labelledText ?? [];
         Settings = settings;
+        Linked = linked;
         Signature = BuildSignature();
     }
 
@@ -47,11 +45,12 @@ internal sealed class CellContent
 
     public CellInstanceSettings? Settings { get; }
 
-    /// <summary>A canonical text form of the content, for comparing and for telling a user what differs.</summary>
+    public LinkedSheetTarget? Linked { get; }
+
     public string Signature { get; }
 
     public bool IsEmpty => Text is null && Number is null && Date is null && Boolean is null && OptionId is null
-        && LabelledText.Count == 0 && Settings is null;
+        && LabelledText.Count == 0 && Settings is null && Linked is null;
 
     private string BuildSignature()
     {
@@ -68,6 +67,7 @@ internal sealed class CellContent
                 .Select(slot => new object[] { slot.SlotKey, slot.Position, slot.Value })
                 .ToArray(),
             Settings is null ? null : CellJson.Serialize(Settings),
+            Linked is null ? null : new object?[] { Linked.SheetTypeId, Linked.PhaseId, Linked.TablePublicId, Linked.ItemPublicId },
         };
 
         return JsonSerializer.Serialize(parts);

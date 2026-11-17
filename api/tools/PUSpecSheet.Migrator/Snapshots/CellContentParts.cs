@@ -2,7 +2,6 @@ using PUSpecSheet.Abstractions.CellTypes.InstanceSettings;
 
 namespace PUSpecSheet.Migrator.Snapshots;
 
-/// <summary>A cell's content while its values are read from the separate value tables, one kind at a time.</summary>
 internal sealed class CellContentParts
 {
     public string? Text { get; set; }
@@ -19,8 +18,10 @@ internal sealed class CellContentParts
 
     public CellInstanceSettings? Settings { get; set; }
 
+    public LinkedSheetTarget? Linked { get; set; }
+
     public CellContent Build()
     {
-        return new CellContent(Text, Number, Date, Boolean, OptionId, LabelledText, Settings);
+        return new CellContent(Text, Number, Date, Boolean, OptionId, LabelledText, Settings, Linked);
     }
 }
