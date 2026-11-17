@@ -78,17 +78,30 @@ public sealed class SheetHistoryBuilderTests
     }
 
     [Fact]
-    public void ARowAddedInTheMiddle_LeavesTheRowsAroundItAlone()
+    public void ARowAddedInTheMiddle_RenumbersTheRowsBelowItAsTheCopyDoes()
     {
         var built = Build(
             _legacy.Copy(_monday, "a", "c"),
             _legacy.Copy(_tuesday, "a", "b", "c"));
 
-        var rows = Rows(built);
+        var rows = Rows(built).ToDictionary(row => row.Revisions.First().TextValues.Single().Value);
         Assert.Equal(3, rows.Count);
-        Assert.All(rows, row => Assert.Single(row.Revisions));
-        var orders = rows.ToDictionary(row => row.Revisions.Single().TextValues.Single().Value, row => row.Revisions.Single().DisplayOrder);
-        Assert.True(orders["a"] < orders["b"] && orders["b"] < orders["c"]);
+        Assert.Equal(1, Assert.Single(rows["a"].Revisions).DisplayOrder);
+        Assert.Equal(2, Assert.Single(rows["b"].Revisions).DisplayOrder);
+        int[] numbers = [2, 3];
+        Assert.Equal(numbers, rows["c"].Revisions.OrderBy(revision => revision.RevisionNumber).Select(revision => revision.DisplayOrder));
+    }
+
+    [Fact]
+    public void AVersion_KeepsItsCopysCreatorAndABlankChangeLog()
+    {
+        var copy = _legacy.Copy(_monday, "a") with { ChangeLog = "", CreatedByUserId = 9, CreatedDateTime = _monday.AddHours(-3) };
+
+        var version = Assert.Single(Build(copy).Sheet.Versions);
+
+        Assert.Equal("", version.ChangeLog);
+        Assert.Equal(9, version.SourceCreatedByUserId);
+        Assert.Equal(_monday.AddHours(-3), version.SourceCreatedDateTime);
     }
 
     [Fact]

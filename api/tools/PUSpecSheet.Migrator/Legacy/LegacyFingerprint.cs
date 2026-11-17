@@ -15,7 +15,7 @@ internal static class LegacyFingerprint
 {
     // Change this when a change to the migrator would build a sheet differently from the same copies, so that every
     // sheet is built again on the next run.
-    private const string BuildVersion = "1";
+    private const string BuildVersion = "2";
 
     public static byte[] Of(LegacyCopies legacy)
     {

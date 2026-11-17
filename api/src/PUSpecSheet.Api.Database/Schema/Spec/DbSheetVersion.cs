@@ -3,7 +3,7 @@
 namespace PUSpecSheet.Api.Database.Schema.Spec;
 
 /// <summary>
-/// A published version of a sheet. <see cref="SourceSpecSheetId"/> is the SpecSheets copy it was migrated from.
+/// A published version of a sheet. A version migrated from a SpecSheets copy keeps the copy's id, creator and creation time in the Source columns.
 /// </summary>
 public record DbSheetVersion
 {
@@ -24,6 +24,10 @@ public record DbSheetVersion
     public required int? LegacySpecSheetId { get; init; }
 
     public required bool HasBeenMigrated { get; init; }
+
+    public required int? SourceCreatedByUserId { get; init; }
+
+    public required DateTime? SourceCreatedDateTime { get; init; }
 
     public virtual DbUser? PublishedByUser { get; init; }
 }

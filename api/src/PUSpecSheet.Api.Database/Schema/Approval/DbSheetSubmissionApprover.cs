@@ -8,6 +8,11 @@ namespace PUSpecSheet.Api.Database.Schema.Approval;
 /// </summary>
 public record DbSheetSubmissionApprover
 {
+    /// <summary>
+    /// The reason given to a rejection that came without one, as a rejection needs a reason.
+    /// </summary>
+    public const string NoReasonGiven = "(no reason given)";
+
     public required int SheetSubmissionId { get; init; }
 
     public required int UserId { get; init; }

@@ -3,9 +3,10 @@ using PUSpecSheet.Migrator.Snapshots;
 
 namespace PUSpecSheet.Migrator.Tests.Building;
 
-// Builds copies of a small sheet: one table with one group, whose rows each have a single text cell. Every copy gets
-// its own ids, as copies do, but keeps each item's ReferenceID, as a copy made from another does. A row's ReferenceID
-// comes from its text, ignoring case, so "b" and "B" are one row whose text changed.
+// Builds copies of a small sheet: one table with one group, whose rows each have a single text cell and are numbered
+// from 1, as the app numbers them. Every copy gets its own ids, as copies do, but keeps each item's ReferenceID, as a
+// copy made from another does. A row's ReferenceID comes from its text, ignoring case, so "b" and "B" are one row
+// whose text changed.
 internal sealed class LegacySheetFactory
 {
     public const int TableTemplateId = 10;
@@ -42,7 +43,7 @@ internal sealed class LegacySheetFactory
             ReferenceId = ReferenceOf("table"),
             TableTemplateId = TableTemplateId,
             Title = "Engine",
-            DisplayOrder = 1024,
+            DisplayOrder = 1,
             ConfigurationOverride = null,
             WidgetValues = [],
             Notes = []
@@ -53,7 +54,7 @@ internal sealed class LegacySheetFactory
             ReferenceId = ReferenceOf("group"),
             TableId = table.Id,
             TableGroupTemplateId = TableGroupTemplateId,
-            DisplayOrder = 1024,
+            DisplayOrder = 1,
             WidgetValues = [],
             LinkedGroupReferenceId = null
         };
@@ -68,7 +69,7 @@ internal sealed class LegacySheetFactory
                 ReferenceId = ReferenceOf("row " + texts[index]),
                 GroupId = group.Id,
                 TableRowTemplateId = TableRowTemplateId,
-                DisplayOrder = (index + 1) * 1024
+                DisplayOrder = index + 1
             };
             rows.Add(row);
             cells.Add(new SnapshotCell

@@ -11,13 +11,11 @@ namespace PUSpecSheet.Migrator.Legacy;
 /// Reads every copy of a sheet (its SpecSheets rows and the tables under them) into <see cref="SheetSnapshot"/>s,
 /// through the app's own Db records. Deleted tables, groups, rows and cells are left out: the copy doesn't show them.
 /// Items keep their ReferenceIDs, which a copy made from another keeps, and that is how an item is followed from one
-/// copy to the next.
+/// copy to the next. Their orders are kept as the copy has them: a row's RowNumber is how the app matches it with the
+/// row of the same number in its parent group, so it is data, not just a place.
 /// </summary>
 internal sealed class LegacySheetReader
 {
-    // Items are numbered by their place among their siblings, this far apart, as the app numbers new items.
-    private const int OrderGap = 1024;
-
     private readonly PUSpecSheetDbContext _db;
 
     public LegacySheetReader(PUSpecSheetDbContext db)
@@ -109,6 +107,7 @@ internal sealed class LegacySheetReader
             {
                 cell.Id,
                 cell.SpecSheetTableRowId,
+                cell.RowNumber,
                 cell.ColumnNumber,
                 cell.ReferenceId,
                 cell.TableCellTypeId,
@@ -131,11 +130,13 @@ internal sealed class LegacySheetReader
                 .ToListAsync(cancellationToken))
             .ToLookup(templateCell => (templateCell.TableRowTemplateId, templateCell.ColumnNumber));
         var rowTemplates = rowRows.ToDictionary(row => row.Id, row => row.TableRowTemplateId);
+        var rowNumbers = rowRows.ToDictionary(row => row.Id, row => row.RowNumber);
 
         var contents = await ReadContentsAsync(cells, warnings, cancellationToken);
 
         var templateCellOfCell = new Dictionary<int, int>();
         var differing = 0;
+        var offRow = 0;
         foreach (var cell in cellRows)
         {
             var candidates = templateCells[(rowTemplates[cell.SpecSheetTableRowId], cell.ColumnNumber)].ToList();
@@ -156,10 +157,20 @@ internal sealed class LegacySheetReader
                 differing++;
             }
 
+            if (cell.RowNumber != rowNumbers[cell.SpecSheetTableRowId])
+            {
+                offRow++;
+            }
+
             if (cell.ConfigurationOverride is not null)
             {
                 Get(contents, cell.Id).ConfigurationOverride = cell.ConfigurationOverride;
             }
+        }
+
+        if (offRow > 0)
+        {
+            warnings.Add($"{offRow} cell(s), across all copies, have a RowNumber other than their row's; the revisions give a cell its row's.");
         }
 
         if (differing > 0)
@@ -230,20 +241,20 @@ internal sealed class LegacySheetReader
             };
         }
 
-        var linkedTables = new Dictionary<int, Dictionary<Guid, (int Id, SnapshotLinkedTable Link)>>();
+        var linkedTables = new Dictionary<int, Dictionary<Guid, SnapshotLinkedTable>>();
         foreach (var link in await _db.SpecSheetLinkedTables.AsNoTracking()
             .Where(link => copies.Any(copy => copy.Id == link.SpecSheetId))
             .OrderBy(link => link.Id)
             .Select(link => new { link.Id, link.SpecSheetId, link.TableReferenceId, link.DisplayOrder, link.LinkedByUserId, link.LinkedDateTime })
             .ToListAsync(cancellationToken))
         {
-            Get(linkedTables, link.SpecSheetId)[link.TableReferenceId] = (link.Id, new SnapshotLinkedTable
+            Get(linkedTables, link.SpecSheetId)[link.TableReferenceId] = new SnapshotLinkedTable
             {
                 TableReferenceId = link.TableReferenceId,
                 DisplayOrder = link.DisplayOrder,
                 LinkedByUserId = link.LinkedByUserId,
                 LinkedDateTime = link.LinkedDateTime
-            });
+            };
         }
 
         var workflow = await ReadWorkflowAsync(copies, cancellationToken);
@@ -327,21 +338,12 @@ internal sealed class LegacySheetReader
                 HasBeenMigrated = copy.HasBeenMigrated,
                 Snapshot = new SheetSnapshot
                 {
-                    // Orders become places among siblings, so the copies' own numbering doesn't matter.
-                    Tables = Ordered(copyTables, _ => 0, table => table.DisplayOrder, table => table.Id)
-                        .Select(item => item.Item with { DisplayOrder = item.Order })
-                        .ToList(),
-                    Groups = Ordered(copyGroups, group => group.TableId, group => group.DisplayOrder, group => group.Id)
-                        .Select(item => item.Item with { DisplayOrder = item.Order })
-                        .ToList(),
-                    Rows = Ordered(copyRowsOfCopy, row => row.GroupId, row => row.DisplayOrder, row => row.Id)
-                        .Select(item => item.Item with { DisplayOrder = item.Order })
-                        .ToList(),
+                    Tables = copyTables,
+                    Groups = copyGroups,
+                    Rows = copyRowsOfCopy,
                     Cells = copyCells,
                     Properties = properties.GetValueOrDefault(copy.Id) ?? new Dictionary<int, string?>(),
-                    LinkedTables = Ordered(linkedTables.GetValueOrDefault(copy.Id)?.Values.ToList() ?? [], _ => 0, link => link.Link.DisplayOrder, link => link.Id)
-                        .Select(item => item.Item.Link with { DisplayOrder = item.Order })
-                        .ToList(),
+                    LinkedTables = linkedTables.GetValueOrDefault(copy.Id)?.Values.ToList() ?? [],
                     ExternalReferences = isPublished ? references.GetValueOrDefault(copy.Id)?.Values.ToList() ?? [] : null
                 },
                 Workflow = workflow[copy.Id].ToList()
@@ -349,22 +351,6 @@ internal sealed class LegacySheetReader
         }
 
         return new LegacyCopies { Copies = built, Warnings = warnings };
-    }
-
-    // Among the items of one parent, by their copy's order and then by id, spaced OrderGap apart.
-    private static List<(TItem Item, int Order)> Ordered<TItem, TParent>(
-        List<TItem> items,
-        Func<TItem, TParent> parent,
-        Func<TItem, int> order,
-        Func<TItem, int> id)
-    {
-        return items
-            .GroupBy(parent)
-            .SelectMany(siblings => siblings
-                .OrderBy(order)
-                .ThenBy(id)
-                .Select((item, index) => (item, (index + 1) * OrderGap)))
-            .ToList();
     }
 
     // A cell has at most one value of each kind; where a copy has more, the newest (highest id) is kept.

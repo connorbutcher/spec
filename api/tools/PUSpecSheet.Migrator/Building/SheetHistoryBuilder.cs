@@ -20,7 +20,6 @@ namespace PUSpecSheet.Migrator.Building;
 internal sealed class SheetHistoryBuilder
 {
     private const string Removed = "removed";
-    private const string NoReason = "(no reason given)";
 
     private readonly DbSheet _sheet;
     private readonly DateTime _now;
@@ -96,10 +95,12 @@ internal sealed class SheetHistoryBuilder
                 VersionNumber = number,
                 PublishedDateTime = at,
                 PublishedByUserId = copy.UserId,
-                ChangeLog = string.IsNullOrWhiteSpace(copy.ChangeLog) ? null : copy.ChangeLog,
+                ChangeLog = copy.ChangeLog,
                 SourceSpecSheetId = copy.Id,
                 LegacySpecSheetId = copy.LegacySpecSheetId,
-                HasBeenMigrated = copy.HasBeenMigrated
+                HasBeenMigrated = copy.HasBeenMigrated,
+                SourceCreatedByUserId = copy.CreatedByUserId,
+                SourceCreatedDateTime = copy.CreatedDateTime
             };
             _sheet.Versions.Add(version);
 
@@ -130,39 +131,20 @@ internal sealed class SheetHistoryBuilder
         var keys = _assigner.Assign(snapshot);
         var context = new WriteContext { Version = version, At = at, UserId = copy.UserId };
 
-        // Orders already published are kept where they still fit, so a moved neighbour doesn't make an item look changed.
-        var tableOrders = KeepOrders(
-            snapshot.Tables,
-            table => table.Id,
-            table => table.DisplayOrder,
-            _ => 0,
-            table => ExistingOrder(_tables, keys.Tables[table.Id], revision => revision.DisplayOrder));
-        var groupOrders = KeepOrders(
-            snapshot.Groups,
-            group => group.Id,
-            group => group.DisplayOrder,
-            group => group.TableId,
-            group => ExistingOrder(_groups, keys.Groups[group.Id], revision => revision.DisplayOrder));
-        var rowOrders = KeepOrders(
-            snapshot.Rows,
-            row => row.Id,
-            row => row.DisplayOrder,
-            row => row.GroupId,
-            row => ExistingOrder(_rows, keys.Rows[row.Id], revision => revision.DisplayOrder));
-
+        // Orders are kept as the copy has them, so an item whose order the copy changed gets a revision for it.
         foreach (var table in snapshot.Tables)
         {
-            ApplyTable(context, keys, table with { DisplayOrder = tableOrders[table.Id] });
+            ApplyTable(context, keys, table);
         }
 
         foreach (var group in snapshot.Groups)
         {
-            ApplyGroup(context, keys, group with { DisplayOrder = groupOrders[group.Id] });
+            ApplyGroup(context, keys, group);
         }
 
         foreach (var row in snapshot.Rows)
         {
-            ApplyRow(context, snapshot, keys, row with { DisplayOrder = rowOrders[row.Id] });
+            ApplyRow(context, snapshot, keys, row);
         }
 
         RemoveMissing(context, keys);
@@ -173,38 +155,6 @@ internal sealed class SheetHistoryBuilder
             ApplyExternalReferences(version, at, snapshot.ExternalReferences ?? []);
             _previousKeys = keys;
         }
-    }
-
-    private static Dictionary<int, int> KeepOrders<TItem, TParent>(
-        IEnumerable<TItem> items,
-        Func<TItem, int> id,
-        Func<TItem, int> copyOrder,
-        Func<TItem, TParent> parent,
-        Func<TItem, int?> existingOrder)
-    {
-        var orders = new Dictionary<int, int>();
-        foreach (var siblings in items.GroupBy(parent))
-        {
-            var sorted = siblings.OrderBy(copyOrder).ThenBy(id).ToList();
-            var kept = OrderKeeper.Assign(sorted.Select(existingOrder).ToList());
-            for (var index = 0; index < sorted.Count; index++)
-            {
-                orders[id(sorted[index])] = kept[index];
-            }
-        }
-
-        return orders;
-    }
-
-    private static int? ExistingOrder<TKey, TItem, TRevision>(
-        Dictionary<TKey, ItemTrack<TItem, TRevision>> tracks,
-        TKey key,
-        Func<TRevision, int> order)
-        where TKey : notnull
-        where TItem : class
-        where TRevision : class, IDbSheetRevision
-    {
-        return tracks.TryGetValue(key, out var track) && track.LastPublished is { IsDeleted: false } last ? order(last) : null;
     }
 
     private void ApplyTable(WriteContext context, SnapshotKeys keys, SnapshotTable table)
@@ -432,16 +382,8 @@ internal sealed class SheetHistoryBuilder
 
     private void ApplyLinkedTables(WriteContext context, SheetSnapshot snapshot)
     {
-        var orders = KeepOrders(
-            snapshot.LinkedTables.Select((link, index) => (Index: index, Link: link)).ToList(),
-            item => item.Index,
-            item => item.Link.DisplayOrder,
-            _ => 0,
-            item => ExistingOrder(_linkedTables, item.Link.TableReferenceId, revision => revision.DisplayOrder));
-
-        for (var index = 0; index < snapshot.LinkedTables.Count; index++)
+        foreach (var link in snapshot.LinkedTables)
         {
-            var link = snapshot.LinkedTables[index];
             if (!_linkedTables.TryGetValue(link.TableReferenceId, out var track))
             {
                 var item = new DbSheetLinkedTable
@@ -458,8 +400,7 @@ internal sealed class SheetHistoryBuilder
                 _linkedTables[link.TableReferenceId] = track;
             }
 
-            var order = orders[index];
-            Write(context, track, $"{order}", revisionNumber => LinkedTableRevision(context, revisionNumber, order, isDeleted: false));
+            Write(context, track, $"{link.DisplayOrder}", revisionNumber => LinkedTableRevision(context, revisionNumber, link.DisplayOrder, isDeleted: false));
         }
 
         var now = snapshot.LinkedTables.Select(link => link.TableReferenceId).ToHashSet();
@@ -893,7 +834,7 @@ internal sealed class SheetHistoryBuilder
             var reason = string.IsNullOrWhiteSpace(actor.Comment) ? null : actor.Comment.Trim();
             if (decision == ApproverDecision.Rejected && reason is null)
             {
-                reason = NoReason;
+                reason = DbSheetSubmissionApprover.NoReasonGiven;
             }
 
             submission.Approvers.Add(new DbSheetSubmissionApprover

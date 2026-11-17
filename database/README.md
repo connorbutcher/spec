@@ -36,8 +36,8 @@ A sheet (`spec.Sheets`) is one per phase and sheet type. Its tables, groups, row
 | Item | Revisions hold |
 | --- | --- |
 | `SheetTables` (a `template.TableTemplates` table) | Title, display order, configuration override, widget values and notes (JSON) |
-| `SheetTableGroups` (a `template.TableGroupTemplates` group) | Display order, the linked group's ReferenceID, widget values (JSON) |
-| `SheetTableRows` (a `template.TableRowTemplates` row) | Display order, and its cells' values in `cell.*` |
+| `SheetTableGroups` (a `template.TableGroupTemplates` group) | Display order (the copies' `Order`), the linked (parent) group's ReferenceID, widget values (JSON) |
+| `SheetTableRows` (a `template.TableRowTemplates` row) | Display order (the copies' `RowNumber`, by which a nested group's rows are matched with its parent's), and its cells' values in `cell.*` |
 | `SheetProperties` (a `types.SpecSheetTypeProperties` property) | The value |
 | `SheetLinkedTables` (another sheet's table, by ReferenceID) | Display order |
 | `SheetExternalReferences` | Everything, published only: references belong to versions |
@@ -48,7 +48,7 @@ The revision tables share one shape: `RevisionNumber`, `Status` (0 draft, 1 publ
 
 Until editing moves onto the revisions, they are built from the copies by `api/tools/PUSpecSheet.Migrator`, which keeps a hash of the copies a sheet was built from in `spec.Sheets.LegacySourceHash` and rebuilds the sheet when they change.
 
-Each publish is a `spec.SheetVersions` row, numbered from 1, with its change log. Migrated versions keep the `SpecSheets` copy they came from (`SourceSpecSheetID`) and its `LegacySpecSheetID` and `HasBeenMigrated`.
+Each publish is a `spec.SheetVersions` row, numbered from 1, with its change log. Migrated versions keep the `SpecSheets` copy they came from (`SourceSpecSheetID`), its creator and creation time (`SourceCreatedByUserID`, `SourceCreatedDateTime`) and its `LegacySpecSheetID` and `HasBeenMigrated`.
 
 Items keep the `ReferenceID` they have in the copies. A copy for another phase keeps them too, so a ReferenceID is unique within a sheet, not across sheets; linked values and linked tables name the sheet type and phase alongside it, as the copies do.
 
