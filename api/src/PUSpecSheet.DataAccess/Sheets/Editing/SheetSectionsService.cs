@@ -8,6 +8,7 @@ using PUSpecSheet.DataAccess.Sheets.Queries;
 using PUSpecSheet.DataAccess.Sheets.Reading;
 using PUSpecSheet.DataAccess.Sheets.Removal;
 using PUSpecSheet.DataAccess.Sheets.Values;
+using PUSpecSheet.DataAccess.Templates;
 using PUSpecSheet.DataAccess.Users;
 using PUSpecSheet.Database;
 using PUSpecSheet.Database.Models.Sheets;
@@ -27,6 +28,8 @@ public sealed class SheetSectionsService : ISheetSectionsService
     private readonly RemovalContentsGuard _contents;
     private readonly IRemovalInProgressGuard _removals;
     private readonly ICurrentUser _currentUser;
+    private readonly ITemplateSectionDataService _templateSectionData;
+    private readonly ITemplateColumnBlockDataService _templateColumnBlockData;
 
     public SheetSectionsService(
         PuSpecSheetDbContext db,
@@ -38,7 +41,9 @@ public sealed class SheetSectionsService : ISheetSectionsService
         SheetReader reader,
         RemovalContentsGuard contents,
         IRemovalInProgressGuard removals,
-        ICurrentUser currentUser)
+        ICurrentUser currentUser,
+        ITemplateSectionDataService templateSectionData,
+        ITemplateColumnBlockDataService templateColumnBlockData)
     {
         _db = db;
         _drafts = drafts;
@@ -50,6 +55,8 @@ public sealed class SheetSectionsService : ISheetSectionsService
         _contents = contents;
         _removals = removals;
         _currentUser = currentUser;
+        _templateSectionData = templateSectionData;
+        _templateColumnBlockData = templateColumnBlockData;
     }
 
     public async Task<Sheet> AddAsync(int tableId, AddSheetSectionRequest request, CancellationToken cancellationToken)
@@ -57,7 +64,9 @@ public sealed class SheetSectionsService : ISheetSectionsService
         var table = await SheetTableQueries.FindForEditAsync(_db, tableId, cancellationToken)
             ?? throw new NotFoundException($"Table {tableId} was not found.");
 
-        var tree = await TemplateTree.LoadAsync(_db, table.TableTemplateVersionId, cancellationToken);
+        var tree = new TemplateTree(
+            await _templateSectionData.ListForLayoutAsync(table.TableTemplateVersionId, cancellationToken),
+            await _templateColumnBlockData.ListAsync(table.TableTemplateVersionId, cancellationToken));
         var template = tree.Find(request.TemplateSectionId)
             ?? throw new InvalidRequestException("That section isn't part of this table's template.");
         if (template.Role == SectionRole.Header)

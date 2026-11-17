@@ -3,7 +3,6 @@ using PUSpecSheet.DataAccess.Sheets;
 using PUSpecSheet.DataAccess.Sheets.Editing;
 using PUSpecSheet.DataAccess.Sheets.Reading;
 using PUSpecSheet.DataAccess.SheetTypes;
-using PUSpecSheet.Database;
 
 namespace PUSpecSheet.DataAccess.Seeding.Sheets;
 
@@ -13,7 +12,6 @@ namespace PUSpecSheet.DataAccess.Seeding.Sheets;
 /// </summary>
 public sealed class SheetEditorFactory
 {
-    private readonly PuSpecSheetDbContext _db;
     private readonly ISheetsService _sheets;
     private readonly ISheetTablesService _tables;
     private readonly ISheetSectionsService _sections;
@@ -23,7 +21,6 @@ public sealed class SheetEditorFactory
     private readonly ISheetTypeDataService _sheetTypes;
 
     public SheetEditorFactory(
-        PuSpecSheetDbContext db,
         ISheetsService sheets,
         ISheetTablesService tables,
         ISheetSectionsService sections,
@@ -32,7 +29,6 @@ public sealed class SheetEditorFactory
         ISheetCellSettingsService cellSettings,
         ISheetTypeDataService sheetTypes)
     {
-        _db = db;
         _sheets = sheets;
         _tables = tables;
         _sections = sections;

@@ -1,7 +1,6 @@
 using PUSpecSheet.Abstractions.Templates;
 using PUSpecSheet.DataAccess.CellTypes;
 using PUSpecSheet.DataAccess.Common;
-using PUSpecSheet.DataAccess.Templates.Queries;
 using PUSpecSheet.Database;
 using PUSpecSheet.Database.Models.Templates;
 
@@ -13,17 +12,26 @@ public sealed class TemplateCellsService : ITemplateCellsService
     private readonly TableTemplateReader _reader;
     private readonly TemplateVersionGuard _guard;
     private readonly ICellTypeDataService _cellTypes;
+    private readonly ITemplateRowDataService _templateRowData;
+    private readonly ITemplateCellDataService _templateCellData;
+    private readonly ITemplateColumnBlockDataService _templateColumnBlockData;
 
     public TemplateCellsService(
         PuSpecSheetDbContext db,
         TableTemplateReader reader,
         TemplateVersionGuard guard,
-        ICellTypeDataService cellTypes)
+        ICellTypeDataService cellTypes,
+        ITemplateRowDataService templateRowData,
+        ITemplateCellDataService templateCellData,
+        ITemplateColumnBlockDataService templateColumnBlockData)
     {
         _db = db;
         _reader = reader;
         _guard = guard;
         _cellTypes = cellTypes;
+        _templateRowData = templateRowData;
+        _templateCellData = templateCellData;
+        _templateColumnBlockData = templateColumnBlockData;
     }
 
     public async Task<TableTemplate> CreateAsync(CreateTemplateCellRequest request, CancellationToken cancellationToken)
@@ -69,7 +77,7 @@ public sealed class TemplateCellsService : ITemplateCellsService
         var cell = await FindEditableAsync(id, cancellationToken);
         await EnsureCellTypeExistsAsync(request.CellTypeId, cancellationToken);
 
-        var columnTaken = await TemplateCellQueries.ColumnTakenAsync(_db, cell.TemplateRowId, cell.TemplateColumnBlockId, request.Column, id, cancellationToken);
+        var columnTaken = await _templateCellData.ColumnTakenAsync(cell.TemplateRowId, cell.TemplateColumnBlockId, request.Column, id, cancellationToken);
 
         if (columnTaken)
         {
@@ -100,7 +108,7 @@ public sealed class TemplateCellsService : ITemplateCellsService
 
     private async Task<DbTemplateCell> FindEditableAsync(int id, CancellationToken cancellationToken)
     {
-        var cell = await TemplateCellQueries.FindForEditAsync(_db, id, cancellationToken);
+        var cell = await _templateCellData.FindForEditAsync(id, cancellationToken);
 
         if (cell is null)
         {
@@ -113,7 +121,7 @@ public sealed class TemplateCellsService : ITemplateCellsService
 
     private async Task EnsureBlockInVersionAsync(int blockId, int versionId, CancellationToken cancellationToken)
     {
-        var exists = await TemplateColumnBlockQueries.IsInVersionAsync(_db, blockId, versionId, cancellationToken);
+        var exists = await _templateColumnBlockData.IsInVersionAsync(blockId, versionId, cancellationToken);
         if (!exists)
         {
             throw new InvalidRequestException($"Column block {blockId} isn't part of this table version.");
@@ -131,13 +139,12 @@ public sealed class TemplateCellsService : ITemplateCellsService
 
     private async Task<TemplateCellTarget> LoadTargetAsync(CreateTemplateCellRequest request, CancellationToken cancellationToken)
     {
-        return await TemplateRowQueries.FindCellTargetAsync(_db, request.TemplateRowId, request.TemplateColumnBlockId, cancellationToken)
+        return await _templateRowData.FindCellTargetAsync(request.TemplateRowId, request.TemplateColumnBlockId, cancellationToken)
             ?? throw new NotFoundException($"Row {request.TemplateRowId} was not found.");
     }
 
-    /// <summary>Moves the cells from this column on one to the right.</summary>
     private Task MakeRoomAsync(CreateTemplateCellRequest request, int column, CancellationToken cancellationToken)
     {
-        return TemplateCellQueries.ShiftRightAsync(_db, request.TemplateRowId, request.TemplateColumnBlockId, column, cancellationToken);
+        return _templateCellData.ShiftRightAsync(request.TemplateRowId, request.TemplateColumnBlockId, column, cancellationToken);
     }
 }

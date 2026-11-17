@@ -2,7 +2,6 @@ using PUSpecSheet.Abstractions.Approvals;
 using PUSpecSheet.Abstractions.Users;
 using PUSpecSheet.DataAccess.Common;
 using PUSpecSheet.DataAccess.Users;
-using PUSpecSheet.Database;
 
 namespace PUSpecSheet.DataAccess.Approvals;
 
@@ -12,12 +11,10 @@ namespace PUSpecSheet.DataAccess.Approvals;
 /// </summary>
 public sealed class ApproverDirectory
 {
-    private readonly PuSpecSheetDbContext _db;
     private readonly IUserDataService _userData;
 
-    public ApproverDirectory(PuSpecSheetDbContext db, IUserDataService userData)
+    public ApproverDirectory(IUserDataService userData)
     {
-        _db = db;
         _userData = userData;
     }
 

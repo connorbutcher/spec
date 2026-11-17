@@ -8,7 +8,7 @@ using PUSpecSheet.DataAccess.Sheets.Queries;
 using PUSpecSheet.DataAccess.Sheets.Reading;
 using PUSpecSheet.DataAccess.Sheets.Removal;
 using PUSpecSheet.DataAccess.Sheets.Revisions;
-using PUSpecSheet.DataAccess.Templates.Queries;
+using PUSpecSheet.DataAccess.Templates;
 using PUSpecSheet.DataAccess.Users;
 using PUSpecSheet.Database;
 using PUSpecSheet.Database.Models.Sheets;
@@ -24,6 +24,7 @@ public sealed class SheetColumnBlocksService : ISheetColumnBlocksService
     private readonly SheetReader _reader;
     private readonly IRemovalInProgressGuard _removals;
     private readonly ICurrentUser _currentUser;
+    private readonly ITemplateColumnBlockDataService _templateColumnBlockData;
 
     public SheetColumnBlocksService(
         PuSpecSheetDbContext db,
@@ -32,7 +33,8 @@ public sealed class SheetColumnBlocksService : ISheetColumnBlocksService
         ISheetCellFiller filler,
         SheetReader reader,
         IRemovalInProgressGuard removals,
-        ICurrentUser currentUser)
+        ICurrentUser currentUser,
+        ITemplateColumnBlockDataService templateColumnBlockData)
     {
         _db = db;
         _drafts = drafts;
@@ -41,6 +43,7 @@ public sealed class SheetColumnBlocksService : ISheetColumnBlocksService
         _reader = reader;
         _removals = removals;
         _currentUser = currentUser;
+        _templateColumnBlockData = templateColumnBlockData;
     }
 
     public async Task<Sheet> AddAsync(int tableId, AddSheetColumnBlockRequest request, CancellationToken cancellationToken)
@@ -52,7 +55,7 @@ public sealed class SheetColumnBlocksService : ISheetColumnBlocksService
             throw new InvalidRequestException("Only horizontal tables have column blocks.");
         }
 
-        var template = await TemplateColumnBlockQueries.FindInVersionAsync(_db, request.TemplateColumnBlockId, table.TableTemplateVersionId, cancellationToken)
+        var template = await _templateColumnBlockData.FindInVersionAsync(request.TemplateColumnBlockId, table.TableTemplateVersionId, cancellationToken)
             ?? throw new InvalidRequestException("That column block isn't part of this table's template.");
         await _removals.EnsurePlaceNotBeingRemovedAsync(tableId, null, _currentUser.UserId, cancellationToken);
 

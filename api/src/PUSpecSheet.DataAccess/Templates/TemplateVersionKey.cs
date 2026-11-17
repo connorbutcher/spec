@@ -1,6 +1,5 @@
-namespace PUSpecSheet.DataAccess.Templates.Queries;
+namespace PUSpecSheet.DataAccess.Templates;
 
-/// <summary>Which template a version belongs to, and its number there.</summary>
 public sealed record TemplateVersionKey
 {
     public required int TableTemplateId { get; init; }

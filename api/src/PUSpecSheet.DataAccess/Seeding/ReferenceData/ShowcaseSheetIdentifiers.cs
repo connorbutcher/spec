@@ -1,6 +1,5 @@
 using PUSpecSheet.Abstractions.SheetTypes;
 using PUSpecSheet.DataAccess.SheetTypes;
-using PUSpecSheet.Database;
 
 namespace PUSpecSheet.DataAccess.Seeding.ReferenceData;
 
@@ -33,13 +32,11 @@ public sealed class ShowcaseSheetIdentifiers
         },
     ];
 
-    private readonly PuSpecSheetDbContext _db;
     private readonly ISheetTypesService _sheetTypes;
     private readonly ISheetTypeDataService _sheetTypeData;
 
-    public ShowcaseSheetIdentifiers(PuSpecSheetDbContext db, ISheetTypesService sheetTypes, ISheetTypeDataService sheetTypeData)
+    public ShowcaseSheetIdentifiers(ISheetTypesService sheetTypes, ISheetTypeDataService sheetTypeData)
     {
-        _db = db;
         _sheetTypes = sheetTypes;
         _sheetTypeData = sheetTypeData;
     }

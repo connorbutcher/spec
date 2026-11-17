@@ -1,5 +1,4 @@
 using PUSpecSheet.Abstractions.Users;
-using PUSpecSheet.Database;
 
 namespace PUSpecSheet.DataAccess.Users;
 
@@ -7,13 +6,11 @@ public sealed class UserAccessService : IUserAccessService
 {
     private UserAccess? _current;
 
-    private readonly PuSpecSheetDbContext _db;
     private readonly ICurrentUser _currentUser;
     private readonly IUserDataService _userData;
 
-    public UserAccessService(PuSpecSheetDbContext db, ICurrentUser currentUser, IUserDataService userData)
+    public UserAccessService(ICurrentUser currentUser, IUserDataService userData)
     {
-        _db = db;
         _currentUser = currentUser;
         _userData = userData;
     }

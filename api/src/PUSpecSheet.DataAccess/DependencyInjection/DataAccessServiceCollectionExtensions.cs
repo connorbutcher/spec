@@ -60,6 +60,11 @@ public static class DataAccessServiceCollectionExtensions
 
     private static void AddTemplates(IServiceCollection services)
     {
+        services.AddScoped<ITableTemplateDataService, TableTemplateDataService>();
+        services.AddScoped<ITemplateSectionDataService, TemplateSectionDataService>();
+        services.AddScoped<ITemplateRowDataService, TemplateRowDataService>();
+        services.AddScoped<ITemplateCellDataService, TemplateCellDataService>();
+        services.AddScoped<ITemplateColumnBlockDataService, TemplateColumnBlockDataService>();
         services.AddScoped<TableTemplateReader>();
         services.AddScoped<TemplateVersionGuard>();
         services.AddScoped<ITableTemplatesService, TableTemplatesService>();

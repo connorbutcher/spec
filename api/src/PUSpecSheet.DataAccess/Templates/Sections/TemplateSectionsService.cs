@@ -1,7 +1,6 @@
 using PUSpecSheet.Abstractions.Common;
 using PUSpecSheet.Abstractions.Templates;
 using PUSpecSheet.DataAccess.Common;
-using PUSpecSheet.DataAccess.Templates.Queries;
 using PUSpecSheet.Database;
 using PUSpecSheet.Database.Models.Templates;
 
@@ -12,15 +11,18 @@ public sealed class TemplateSectionsService : ITemplateSectionsService
     private readonly PuSpecSheetDbContext _db;
     private readonly TableTemplateReader _reader;
     private readonly TemplateVersionGuard _guard;
+    private readonly ITemplateSectionDataService _templateSectionData;
 
     public TemplateSectionsService(
         PuSpecSheetDbContext db,
         TableTemplateReader reader,
-        TemplateVersionGuard guard)
+        TemplateVersionGuard guard,
+        ITemplateSectionDataService templateSectionData)
     {
         _db = db;
         _reader = reader;
         _guard = guard;
+        _templateSectionData = templateSectionData;
     }
 
     public async Task<TableTemplate> CreateAsync(CreateTemplateSectionRequest request, CancellationToken cancellationToken)
@@ -33,7 +35,7 @@ public sealed class TemplateSectionsService : ITemplateSectionsService
             await EnsureCanHoldSectionsAsync(versionId, parentId, cancellationToken);
         }
 
-        var lastOrder = await TemplateSectionQueries.GetLastDisplayOrderAsync(_db, versionId, request.ParentSectionId, cancellationToken);
+        var lastOrder = await _templateSectionData.GetLastDisplayOrderAsync(versionId, request.ParentSectionId, cancellationToken);
 
         // The header is created with the table, so every section added here is an addable section.
         var section = new DbTemplateSection
@@ -78,7 +80,7 @@ public sealed class TemplateSectionsService : ITemplateSectionsService
         var section = await FindEditableAsync(id, cancellationToken);
         EnsureNotHeader(section, "move");
 
-        var siblings = await TemplateSectionQueries.ListSiblingsForEditAsync(_db, section.TableTemplateVersionId, section.ParentSectionId, cancellationToken);
+        var siblings = await _templateSectionData.ListSiblingsForEditAsync(section.TableTemplateVersionId, section.ParentSectionId, cancellationToken);
 
         DisplayOrdering.Move(siblings, section, request.DisplayOrder, sibling => sibling.DisplayOrder, SetOrder);
         await _db.SaveChangesAsync(cancellationToken);
@@ -93,7 +95,7 @@ public sealed class TemplateSectionsService : ITemplateSectionsService
 
         // Child sections can't cascade in SQL Server (the version already cascades to every section), so
         // the whole subtree is removed here. Rows and cells cascade from their sections.
-        var versionSections = await TemplateSectionQueries.ListForEditAsync(_db, section.TableTemplateVersionId, cancellationToken);
+        var versionSections = await _templateSectionData.ListForEditAsync(section.TableTemplateVersionId, cancellationToken);
 
         _db.TemplateSections.RemoveRange(CollectSubtree(section, versionSections));
 
@@ -131,7 +133,7 @@ public sealed class TemplateSectionsService : ITemplateSectionsService
         section.DisplayOrder = order;
     }
 
-    /// <summary>The header is part of every table: it can't be moved or removed on its own.</summary>
+    // The header is part of every table, so it can't be moved or removed on its own.
     private static void EnsureNotHeader(DbTemplateSection section, string action)
     {
         if (section.Role == SectionRole.Header)
@@ -142,7 +144,7 @@ public sealed class TemplateSectionsService : ITemplateSectionsService
 
     private async Task EnsureCanHoldSectionsAsync(int versionId, int parentId, CancellationToken cancellationToken)
     {
-        var parentRole = await TemplateSectionQueries.FindRoleAsync(_db, versionId, parentId, cancellationToken);
+        var parentRole = await _templateSectionData.FindRoleAsync(versionId, parentId, cancellationToken);
 
         if (parentRole is null)
         {
@@ -158,7 +160,7 @@ public sealed class TemplateSectionsService : ITemplateSectionsService
 
     private async Task<DbTemplateSection> FindEditableAsync(int id, CancellationToken cancellationToken)
     {
-        var section = await TemplateSectionQueries.FindForEditAsync(_db, id, cancellationToken);
+        var section = await _templateSectionData.FindForEditAsync(id, cancellationToken);
         if (section is null)
         {
             throw new NotFoundException($"Section {id} was not found.");

@@ -1,25 +1,20 @@
 using PUSpecSheet.DataAccess.Common;
-using PUSpecSheet.DataAccess.Templates.Queries;
-using PUSpecSheet.Database;
 
 namespace PUSpecSheet.DataAccess.Templates;
 
-/// <summary>
-/// Keeps sheets' layouts stable: only a template's latest version can change, and only while no sheet
-/// table uses it. Changes to a version in use go into a new version instead.
-/// </summary>
+// Keeps sheets' layouts stable: only the latest version can change, and only while no sheet table uses it.
 public sealed class TemplateVersionGuard
 {
-    private readonly PuSpecSheetDbContext _db;
+    private readonly ITableTemplateDataService _tableTemplateData;
 
-    public TemplateVersionGuard(PuSpecSheetDbContext db)
+    public TemplateVersionGuard(ITableTemplateDataService tableTemplateData)
     {
-        _db = db;
+        _tableTemplateData = tableTemplateData;
     }
 
     public async Task EnsureEditableAsync(int versionId, CancellationToken cancellationToken)
     {
-        var version = await TableTemplateQueries.FindVersionStateAsync(_db, versionId, cancellationToken);
+        var version = await _tableTemplateData.FindVersionStateAsync(versionId, cancellationToken);
 
         if (version is null)
         {
@@ -41,7 +36,7 @@ public sealed class TemplateVersionGuard
 
     public async Task EnsureTemplateUnusedAsync(int templateId, CancellationToken cancellationToken)
     {
-        if (await TableTemplateQueries.IsUsedAsync(_db, templateId, cancellationToken))
+        if (await _tableTemplateData.IsUsedAsync(templateId, cancellationToken))
         {
             throw new ConflictException("Sheets already use this table, so it can't be deleted.");
         }

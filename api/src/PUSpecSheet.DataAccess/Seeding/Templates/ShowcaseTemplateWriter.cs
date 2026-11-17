@@ -1,6 +1,6 @@
 using PUSpecSheet.DataAccess.Seeding.ReferenceData;
 using PUSpecSheet.DataAccess.SheetTypes;
-using PUSpecSheet.DataAccess.Templates.Queries;
+using PUSpecSheet.DataAccess.Templates;
 using PUSpecSheet.Database;
 using PUSpecSheet.Database.Models.Templates;
 
@@ -15,18 +15,23 @@ public sealed class ShowcaseTemplateWriter
 {
     private readonly PuSpecSheetDbContext _db;
     private readonly ISheetTypeDataService _sheetTypes;
+    private readonly ITableTemplateDataService _tableTemplateData;
 
-    public ShowcaseTemplateWriter(PuSpecSheetDbContext db, ISheetTypeDataService sheetTypes)
+    public ShowcaseTemplateWriter(
+        PuSpecSheetDbContext db,
+        ISheetTypeDataService sheetTypes,
+        ITableTemplateDataService tableTemplateData)
     {
         _db = db;
         _sheetTypes = sheetTypes;
+        _tableTemplateData = tableTemplateData;
     }
 
     /// <summary>Adds <paramref name="template"/> with its version 1, at the end of its sheet type's list, and returns its id.</summary>
     public async Task<int> CreateAsync(IShowcaseTemplate template, ShowcaseCellTypeCatalog cellTypes, CancellationToken cancellationToken)
     {
         var sheetTypeId = await _sheetTypes.GetIdByNameAsync(template.SheetTypeName, cancellationToken);
-        var order = await TableTemplateQueries.GetLastDisplayOrderAsync(_db, sheetTypeId, cancellationToken) ?? 0;
+        var order = await _tableTemplateData.GetLastDisplayOrderAsync(sheetTypeId, cancellationToken) ?? 0;
 
         var entity = new DbTableTemplate { SheetTypeId = sheetTypeId, Name = template.Name, DisplayOrder = order + 1 };
         entity.Versions.Add(Lay(template, cellTypes, 1));

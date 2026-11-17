@@ -4,7 +4,6 @@ using PUSpecSheet.DataAccess.Seeding.ReferenceData;
 using PUSpecSheet.DataAccess.Seeding.Templates;
 using PUSpecSheet.DataAccess.Sheets;
 using PUSpecSheet.DataAccess.SheetTypes;
-using PUSpecSheet.Database;
 
 namespace PUSpecSheet.DataAccess.Seeding.Sheets;
 
@@ -54,7 +53,6 @@ public sealed class EngineSpecificationSheetSeeder
         ],
     };
 
-    private readonly PuSpecSheetDbContext _db;
     private readonly ISheetsService _sheets;
     private readonly SheetEditorFactory _editors;
     private readonly ShowcaseSheetIdentifiers _identifiers;
@@ -62,14 +60,12 @@ public sealed class EngineSpecificationSheetSeeder
     private readonly ISheetTypeDataService _sheetTypes;
 
     public EngineSpecificationSheetSeeder(
-        PuSpecSheetDbContext db,
         ISheetsService sheets,
         SheetEditorFactory editors,
         ShowcaseSheetIdentifiers identifiers,
         ShowcaseUsers users,
         ISheetTypeDataService sheetTypes)
     {
-        _db = db;
         _sheets = sheets;
         _editors = editors;
         _identifiers = identifiers;

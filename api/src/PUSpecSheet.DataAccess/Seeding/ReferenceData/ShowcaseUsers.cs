@@ -1,6 +1,5 @@
 using PUSpecSheet.Abstractions.Users;
 using PUSpecSheet.DataAccess.Users;
-using PUSpecSheet.Database;
 
 namespace PUSpecSheet.DataAccess.Seeding.ReferenceData;
 
@@ -17,13 +16,11 @@ public sealed class ShowcaseUsers
 
     private Dictionary<string, int>? _ids;
 
-    private readonly PuSpecSheetDbContext _db;
     private readonly BackgroundUser _backgroundUser;
     private readonly IUserDataService _userData;
 
-    public ShowcaseUsers(PuSpecSheetDbContext db, BackgroundUser backgroundUser, IUserDataService userData)
+    public ShowcaseUsers(BackgroundUser backgroundUser, IUserDataService userData)
     {
-        _db = db;
         _backgroundUser = backgroundUser;
         _userData = userData;
     }

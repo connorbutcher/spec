@@ -4,7 +4,7 @@ using PUSpecSheet.DataAccess.Sheets.History;
 using PUSpecSheet.DataAccess.Sheets.Queries;
 using PUSpecSheet.DataAccess.Sheets.Revisions;
 using PUSpecSheet.DataAccess.Sheets.Values;
-using PUSpecSheet.DataAccess.Templates.Queries;
+using PUSpecSheet.DataAccess.Templates;
 using PUSpecSheet.DataAccess.Users;
 using PUSpecSheet.Database;
 using PUSpecSheet.Database.Models.Sheets;
@@ -23,17 +23,32 @@ public sealed class SheetSnapshotLoader
     private readonly SheetChangeHistoryLoader _changeLoader;
     private readonly ICellTypeDataService _cellTypes;
     private readonly IUserDataService _userData;
+    private readonly ITableTemplateDataService _tableTemplateData;
+    private readonly ITemplateSectionDataService _templateSectionData;
+    private readonly ITemplateRowDataService _templateRowData;
+    private readonly ITemplateCellDataService _templateCellData;
+    private readonly ITemplateColumnBlockDataService _templateColumnBlockData;
 
     public SheetSnapshotLoader(
         PuSpecSheetDbContext db,
         SheetChangeHistoryLoader changeLoader,
         ICellTypeDataService cellTypes,
-        IUserDataService userData)
+        IUserDataService userData,
+        ITableTemplateDataService tableTemplateData,
+        ITemplateSectionDataService templateSectionData,
+        ITemplateRowDataService templateRowData,
+        ITemplateCellDataService templateCellData,
+        ITemplateColumnBlockDataService templateColumnBlockData)
     {
         _db = db;
         _changeLoader = changeLoader;
         _cellTypes = cellTypes;
         _userData = userData;
+        _tableTemplateData = tableTemplateData;
+        _templateSectionData = templateSectionData;
+        _templateRowData = templateRowData;
+        _templateCellData = templateCellData;
+        _templateColumnBlockData = templateColumnBlockData;
     }
 
     public async Task<SheetSnapshot> LoadAsync(int sheetId, SheetViewPoint view, int currentUserId, CancellationToken cancellationToken)
@@ -54,9 +69,9 @@ public sealed class SheetSnapshotLoader
         var shownValues = await LoadShownValuesAsync(sheetId, rowRevisions, moment, cancellationToken);
 
         var versionIds = tables.Select(table => table.TableTemplateVersionId).Distinct().ToList();
-        var templateRows = await TemplateRowQueries.ListWithCellsInVersionsAsync(_db, versionIds, cancellationToken);
+        var templateRows = await _templateRowData.ListWithCellsInVersionsAsync(versionIds, cancellationToken);
         await AttachTemplateCellsAsync(rows, templateRows, cancellationToken);
-        var availableTemplates = await TableTemplateQueries.ListForSheetTypeAsync(_db, found.SheetTypeId, cancellationToken);
+        var availableTemplates = await _tableTemplateData.ListForSheetTypeAsync(found.SheetTypeId, cancellationToken);
 
         var snapshot = new SheetSnapshot
         {
@@ -74,14 +89,12 @@ public sealed class SheetSnapshotLoader
             RowRevisions = rowRevisions,
             ColumnBlockRevisions = columnBlockRevisions,
             Values = shownValues,
-            TemplateSections = await TemplateSectionQueries.ListInVersionsAsync(_db, versionIds, cancellationToken),
-            TemplateColumnBlocks = await TemplateColumnBlockQueries.ListInVersionsAsync(_db, versionIds, cancellationToken),
+            TemplateSections = await _templateSectionData.ListInVersionsAsync(versionIds, cancellationToken),
+            TemplateColumnBlocks = await _templateColumnBlockData.ListInVersionsAsync(versionIds, cancellationToken),
             TemplateRows = templateRows,
             CellTypes = await _cellTypes.ListByIdAsync(cancellationToken),
             AvailableTemplates = availableTemplates,
-            LatestTemplateVersions = await TableTemplateQueries.GetLatestVersionNumbersAsync(
-                _db,
-                availableTemplates.Select(template => template.Id).ToList(),
+            LatestTemplateVersions = await _tableTemplateData.GetLatestVersionNumbersAsync(availableTemplates.Select(template => template.Id).ToList(),
                 cancellationToken),
             UserNames = await _userData.GetAllDisplayNamesAsync(cancellationToken),
         };
@@ -129,7 +142,7 @@ public sealed class SheetSnapshotLoader
             .ToList();
         if (missingIds.Count > 0)
         {
-            foreach (var templateCell in await TemplateCellQueries.ListAsync(_db, missingIds, cancellationToken))
+            foreach (var templateCell in await _templateCellData.ListAsync(missingIds, cancellationToken))
             {
                 templateCells[templateCell.Id] = templateCell;
             }

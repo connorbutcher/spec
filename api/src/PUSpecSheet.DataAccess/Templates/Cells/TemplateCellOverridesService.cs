@@ -4,26 +4,27 @@ using PUSpecSheet.Abstractions.CellTypes.Styles;
 using PUSpecSheet.Abstractions.Templates;
 using PUSpecSheet.DataAccess.CellTypes;
 using PUSpecSheet.DataAccess.Common;
-using PUSpecSheet.DataAccess.Templates.Queries;
 using PUSpecSheet.Database;
 
 namespace PUSpecSheet.DataAccess.Templates.Cells;
 
-/// <summary>Saves the configuration and style a template cell changes from its cell type's defaults.</summary>
 public sealed class TemplateCellOverridesService : ITemplateCellOverridesService
 {
     private readonly PuSpecSheetDbContext _db;
     private readonly TableTemplateReader _reader;
     private readonly TemplateVersionGuard _guard;
+    private readonly ITemplateCellDataService _templateCellData;
 
     public TemplateCellOverridesService(
         PuSpecSheetDbContext db,
         TableTemplateReader reader,
-        TemplateVersionGuard guard)
+        TemplateVersionGuard guard,
+        ITemplateCellDataService templateCellData)
     {
         _db = db;
         _reader = reader;
         _guard = guard;
+        _templateCellData = templateCellData;
     }
 
     public async Task<TableTemplate> UpdateAsync(
@@ -31,7 +32,7 @@ public sealed class TemplateCellOverridesService : ITemplateCellOverridesService
         UpdateTemplateCellOverridesRequest request,
         CancellationToken cancellationToken)
     {
-        var cell = await TemplateCellQueries.FindWithTypeForEditAsync(_db, cellId, cancellationToken);
+        var cell = await _templateCellData.FindWithTypeForEditAsync(cellId, cancellationToken);
 
         if (cell is null)
         {

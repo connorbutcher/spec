@@ -2,7 +2,6 @@ using PUSpecSheet.Abstractions.Common;
 using PUSpecSheet.Abstractions.Templates;
 using PUSpecSheet.DataAccess.CellTypes;
 using PUSpecSheet.DataAccess.Common;
-using PUSpecSheet.DataAccess.Templates.Queries;
 using PUSpecSheet.Database;
 using PUSpecSheet.Database.Models.Templates;
 
@@ -14,30 +13,39 @@ public sealed class TemplateRowsService : ITemplateRowsService
     private readonly TableTemplateReader _reader;
     private readonly TemplateVersionGuard _guard;
     private readonly ICellTypeDataService _cellTypes;
+    private readonly ITemplateSectionDataService _templateSectionData;
+    private readonly ITemplateRowDataService _templateRowData;
+    private readonly ITemplateColumnBlockDataService _templateColumnBlockData;
 
     public TemplateRowsService(
         PuSpecSheetDbContext db,
         TableTemplateReader reader,
         TemplateVersionGuard guard,
-        ICellTypeDataService cellTypes)
+        ICellTypeDataService cellTypes,
+        ITemplateSectionDataService templateSectionData,
+        ITemplateRowDataService templateRowData,
+        ITemplateColumnBlockDataService templateColumnBlockData)
     {
         _db = db;
         _reader = reader;
         _guard = guard;
         _cellTypes = cellTypes;
+        _templateSectionData = templateSectionData;
+        _templateRowData = templateRowData;
+        _templateColumnBlockData = templateColumnBlockData;
     }
 
     public async Task<TableTemplate> CreateAsync(CreateTemplateRowRequest request, CancellationToken cancellationToken)
     {
-        var versionId = await TemplateSectionQueries.FindVersionIdAsync(_db, request.TemplateSectionId, cancellationToken)
+        var versionId = await _templateSectionData.FindVersionIdAsync(request.TemplateSectionId, cancellationToken)
             ?? throw new NotFoundException($"Section {request.TemplateSectionId} was not found.");
         await _guard.EnsureEditableAsync(versionId, cancellationToken);
 
-        var sectionRows = await TemplateRowQueries.ListInSectionWithCellsForEditAsync(_db, request.TemplateSectionId, cancellationToken);
+        var sectionRows = await _templateRowData.ListInSectionWithCellsForEditAsync(request.TemplateSectionId, cancellationToken);
         var source = CopySource(sectionRows, request.CopyFromRowId);
         var insertIndex = Math.Clamp((request.Position ?? sectionRows.Count + 1) - 1, 0, sectionRows.Count);
         var defaultCellTypeId = await _cellTypes.GetDefaultIdAsync(cancellationToken);
-        var columnBlockIds = await TemplateColumnBlockQueries.ListIdsAsync(_db, versionId, cancellationToken);
+        var columnBlockIds = await _templateColumnBlockData.ListIdsAsync(versionId, cancellationToken);
 
         var row = new DbTemplateRow
         {
@@ -84,7 +92,7 @@ public sealed class TemplateRowsService : ITemplateRowsService
 
     private async Task<DbTemplateRow> FindEditableAsync(int id, CancellationToken cancellationToken)
     {
-        var row = await TemplateRowQueries.FindForEditAsync(_db, id, cancellationToken);
+        var row = await _templateRowData.FindForEditAsync(id, cancellationToken);
 
         if (row is null)
         {
@@ -97,10 +105,9 @@ public sealed class TemplateRowsService : ITemplateRowsService
 
     private Task<List<DbTemplateRow>> LoadSiblingsAsync(DbTemplateRow row, CancellationToken cancellationToken)
     {
-        return TemplateRowQueries.ListInSectionForEditAsync(_db, row.TemplateSectionId, cancellationToken);
+        return _templateRowData.ListInSectionForEditAsync(row.TemplateSectionId, cancellationToken);
     }
 
-    /// <summary>The row a new row copies its cells from: the one asked for, or the section's last.</summary>
     private static DbTemplateRow? CopySource(List<DbTemplateRow> rows, int? copyFromRowId)
     {
         if (copyFromRowId is not int copyFromId)

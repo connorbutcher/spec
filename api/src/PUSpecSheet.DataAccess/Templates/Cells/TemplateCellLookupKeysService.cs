@@ -1,25 +1,25 @@
 using PUSpecSheet.Abstractions.CellTypes;
 using PUSpecSheet.Abstractions.Templates;
 using PUSpecSheet.DataAccess.Common;
-using PUSpecSheet.DataAccess.Templates.Queries;
 using PUSpecSheet.Database;
 
 namespace PUSpecSheet.DataAccess.Templates.Cells;
 
-/// <summary>
-/// Saves a template cell's lookup key. The key changes nothing about a sheet's layout or values, so it
-/// isn't held back by <see cref="TemplateVersionGuard"/>: sheets that already use the version can be
-/// looked up as soon as the key is set.
-/// </summary>
+// A lookup key changes nothing about a sheet's layout or values, so TemplateVersionGuard doesn't hold it back.
 public sealed class TemplateCellLookupKeysService : ITemplateCellLookupKeysService
 {
     private readonly PuSpecSheetDbContext _db;
     private readonly TableTemplateReader _reader;
+    private readonly ITemplateCellDataService _templateCellData;
 
-    public TemplateCellLookupKeysService(PuSpecSheetDbContext db, TableTemplateReader reader)
+    public TemplateCellLookupKeysService(
+        PuSpecSheetDbContext db,
+        TableTemplateReader reader,
+        ITemplateCellDataService templateCellData)
     {
         _db = db;
         _reader = reader;
+        _templateCellData = templateCellData;
     }
 
     public async Task<TableTemplate> UpdateAsync(
@@ -27,7 +27,7 @@ public sealed class TemplateCellLookupKeysService : ITemplateCellLookupKeysServi
         UpdateTemplateCellLookupKeyRequest request,
         CancellationToken cancellationToken)
     {
-        var cell = await TemplateCellQueries.FindWithTypeForEditAsync(_db, cellId, cancellationToken);
+        var cell = await _templateCellData.FindWithTypeForEditAsync(cellId, cancellationToken);
 
         if (cell is null)
         {

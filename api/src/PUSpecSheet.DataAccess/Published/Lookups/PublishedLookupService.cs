@@ -2,7 +2,7 @@ using PUSpecSheet.Abstractions.Published;
 using PUSpecSheet.DataAccess.Common;
 using PUSpecSheet.DataAccess.Published.Queries;
 using PUSpecSheet.DataAccess.Published.Versions;
-using PUSpecSheet.DataAccess.Templates.Queries;
+using PUSpecSheet.DataAccess.Templates;
 using PUSpecSheet.Database;
 
 namespace PUSpecSheet.DataAccess.Published.Lookups;
@@ -12,15 +12,18 @@ public sealed class PublishedLookupService : IPublishedLookupService
     private readonly PuSpecSheetDbContext _db;
     private readonly PublishedVersionResolver _resolver;
     private readonly PublishedLookupCache _cache;
+    private readonly ITemplateCellDataService _templateCellData;
 
     public PublishedLookupService(
         PuSpecSheetDbContext db,
         PublishedVersionResolver resolver,
-        PublishedLookupCache cache)
+        PublishedLookupCache cache,
+        ITemplateCellDataService templateCellData)
     {
         _db = db;
         _resolver = resolver;
         _cache = cache;
+        _templateCellData = templateCellData;
     }
 
     public async Task<PublishedLookupResolution> ResolveAsync(
@@ -137,7 +140,7 @@ public sealed class PublishedLookupService : IPublishedLookupService
     /// <summary>A key nobody has given to a cell is a mistake in the request, not an empty answer.</summary>
     private async Task EnsureKeyExistsAsync(string key, CancellationToken cancellationToken)
     {
-        if (!await TemplateCellQueries.LookupKeyExistsAsync(_db, key, cancellationToken))
+        if (!await _templateCellData.LookupKeyExistsAsync(key, cancellationToken))
         {
             throw new InvalidRequestException($"No template cell has the lookup key \"{key}\".");
         }

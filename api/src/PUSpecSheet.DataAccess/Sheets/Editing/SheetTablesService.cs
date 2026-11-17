@@ -7,7 +7,7 @@ using PUSpecSheet.DataAccess.Sheets.Queries;
 using PUSpecSheet.DataAccess.Sheets.Reading;
 using PUSpecSheet.DataAccess.Sheets.Removal;
 using PUSpecSheet.DataAccess.Sheets.Revisions;
-using PUSpecSheet.DataAccess.Templates.Queries;
+using PUSpecSheet.DataAccess.Templates;
 using PUSpecSheet.DataAccess.Users;
 using PUSpecSheet.Database;
 using PUSpecSheet.Database.Models.Sheets;
@@ -24,6 +24,9 @@ public sealed class SheetTablesService : ISheetTablesService
     private readonly RemovalContentsGuard _contents;
     private readonly ICurrentUser _currentUser;
     private readonly ISheetSectionsService _sections;
+    private readonly ITableTemplateDataService _tableTemplateData;
+    private readonly ITemplateSectionDataService _templateSectionData;
+    private readonly ITemplateColumnBlockDataService _templateColumnBlockData;
 
     public SheetTablesService(
         PuSpecSheetDbContext db,
@@ -33,7 +36,10 @@ public sealed class SheetTablesService : ISheetTablesService
         SheetReader reader,
         RemovalContentsGuard contents,
         ICurrentUser currentUser,
-        ISheetSectionsService sections)
+        ISheetSectionsService sections,
+        ITableTemplateDataService tableTemplateData,
+        ITemplateSectionDataService templateSectionData,
+        ITemplateColumnBlockDataService templateColumnBlockData)
     {
         _db = db;
         _drafts = drafts;
@@ -43,6 +49,9 @@ public sealed class SheetTablesService : ISheetTablesService
         _contents = contents;
         _currentUser = currentUser;
         _sections = sections;
+        _tableTemplateData = tableTemplateData;
+        _templateSectionData = templateSectionData;
+        _templateColumnBlockData = templateColumnBlockData;
     }
 
     public async Task<Sheet> AddAsync(int sheetId, AddSheetTableRequest request, CancellationToken cancellationToken)
@@ -50,11 +59,13 @@ public sealed class SheetTablesService : ISheetTablesService
         var sheet = await SheetQueries.FindAsync(_db, sheetId, cancellationToken)
             ?? throw new NotFoundException($"Sheet {sheetId} was not found.");
 
-        var template = await TableTemplateQueries.FindForSheetTypeAsync(_db, request.TableTemplateId, sheet.SheetTypeId, cancellationToken)
+        var template = await _tableTemplateData.FindForSheetTypeAsync(request.TableTemplateId, sheet.SheetTypeId, cancellationToken)
             ?? throw new InvalidRequestException("That table template isn't for this kind of sheet.");
 
-        var version = await TableTemplateQueries.GetLatestVersionAsync(_db, template.Id, cancellationToken);
-        var tree = await TemplateTree.LoadAsync(_db, version.Id, cancellationToken);
+        var version = await _tableTemplateData.GetLatestVersionAsync(template.Id, cancellationToken);
+        var tree = new TemplateTree(
+            await _templateSectionData.ListForLayoutAsync(version.Id, cancellationToken),
+            await _templateColumnBlockData.ListAsync(version.Id, cancellationToken));
 
         var orders = await VisibleTableOrdersAsync(sheetId, excludingTableId: null, cancellationToken);
         var table = new DbSheetTable { SheetId = sheetId, TableTemplateVersionId = version.Id };

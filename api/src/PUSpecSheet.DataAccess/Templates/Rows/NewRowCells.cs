@@ -2,15 +2,9 @@ using PUSpecSheet.Database.Models.Templates;
 
 namespace PUSpecSheet.DataAccess.Templates.Rows;
 
-/// <summary>Works out the cells a new row starts with.</summary>
 internal static class NewRowCells
 {
-    /// <summary>
-    /// Copies the columns of <paramref name="source"/> (type, column block, column and column span, single
-    /// row span), skipping any column that a cell in an earlier row still spans down into at
-    /// <paramref name="insertIndex"/> (0-based). A section without rows starts with one cell of
-    /// <paramref name="defaultCellTypeId"/>, plus one in each of <paramref name="columnBlockIds"/>.
-    /// </summary>
+    // Columns that a cell in an earlier row still spans down into are skipped, so the new row never overlaps them.
     public static List<DbTemplateCell> For(
         IReadOnlyList<DbTemplateRow> orderedRows,
         DbTemplateRow? source,
@@ -47,10 +41,6 @@ internal static class NewRowCells
             .ToList();
     }
 
-    /// <summary>
-    /// The columns, by column block (null for the row's own cells), that cells in rows before
-    /// <paramref name="rowIndex"/> (0-based) span down into it.
-    /// </summary>
     private static HashSet<(int? BlockId, int Column)> CoveredColumns(IReadOnlyList<DbTemplateRow> orderedRows, int rowIndex)
     {
         var covered = new HashSet<(int? BlockId, int Column)>();

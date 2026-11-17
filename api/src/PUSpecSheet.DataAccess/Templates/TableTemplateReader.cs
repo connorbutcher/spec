@@ -1,35 +1,39 @@
 using PUSpecSheet.Abstractions.Templates;
 using PUSpecSheet.DataAccess.Common;
-using PUSpecSheet.DataAccess.Templates.Queries;
-using PUSpecSheet.Database;
 using PUSpecSheet.Database.Mappers.Templates;
 
 namespace PUSpecSheet.DataAccess.Templates;
 
-/// <summary>
-/// Loads a template at one version (sections, rows and cells) and returns it as the nested model. Every
-/// template change returns this so the UI can replace its copy in one go.
-/// </summary>
+// Every template change returns the whole template so the UI can replace its copy in one go.
 public sealed class TableTemplateReader
 {
-    private readonly PuSpecSheetDbContext _db;
+    private readonly ITableTemplateDataService _tableTemplateData;
+    private readonly ITemplateSectionDataService _templateSectionData;
+    private readonly ITemplateRowDataService _templateRowData;
+    private readonly ITemplateColumnBlockDataService _templateColumnBlockData;
 
-    public TableTemplateReader(PuSpecSheetDbContext db)
+    public TableTemplateReader(
+        ITableTemplateDataService tableTemplateData,
+        ITemplateSectionDataService templateSectionData,
+        ITemplateRowDataService templateRowData,
+        ITemplateColumnBlockDataService templateColumnBlockData)
     {
-        _db = db;
+        _tableTemplateData = tableTemplateData;
+        _templateSectionData = templateSectionData;
+        _templateRowData = templateRowData;
+        _templateColumnBlockData = templateColumnBlockData;
     }
 
-    /// <summary>Reads <paramref name="versionNumber"/>, or the latest version when it's null.</summary>
     public async Task<TableTemplate> ReadAsync(int templateId, int? versionNumber, CancellationToken cancellationToken)
     {
-        var template = await TableTemplateQueries.FindAsync(_db, templateId, cancellationToken);
+        var template = await _tableTemplateData.FindAsync(templateId, cancellationToken);
 
         if (template is null)
         {
             throw new NotFoundException($"Table template {templateId} was not found.");
         }
 
-        var versions = await TableTemplateQueries.ListVersionsAsync(_db, templateId, cancellationToken);
+        var versions = await _tableTemplateData.ListVersionsAsync(templateId, cancellationToken);
 
         var version = versionNumber is null
             ? versions.LastOrDefault()
@@ -41,7 +45,7 @@ public sealed class TableTemplateReader
         }
 
         // The ids of the versions a sheet table is built from.
-        var inUse = await TableTemplateQueries.GetVersionIdsInUseAsync(_db, versions.Select(candidate => candidate.Id).ToList(), cancellationToken);
+        var inUse = await _tableTemplateData.GetVersionIdsInUseAsync(versions.Select(candidate => candidate.Id).ToList(), cancellationToken);
         var summaries = versions
             .Select(candidate => candidate.ToSummary(inUse.Contains(candidate.Id)))
             .ToList();
@@ -50,14 +54,14 @@ public sealed class TableTemplateReader
             version,
             isEditable,
             summaries,
-            await TemplateSectionQueries.ListAsync(_db, version.Id, cancellationToken),
-            await TemplateRowQueries.ListWithCellsAsync(_db, version.Id, cancellationToken),
-            await TemplateColumnBlockQueries.ListAsync(_db, version.Id, cancellationToken));
+            await _templateSectionData.ListAsync(version.Id, cancellationToken),
+            await _templateRowData.ListWithCellsAsync(version.Id, cancellationToken),
+            await _templateColumnBlockData.ListAsync(version.Id, cancellationToken));
     }
 
     public async Task<TableTemplate> ReadVersionAsync(int versionId, CancellationToken cancellationToken)
     {
-        var version = await TableTemplateQueries.FindVersionKeyAsync(_db, versionId, cancellationToken);
+        var version = await _tableTemplateData.FindVersionKeyAsync(versionId, cancellationToken);
 
         if (version is null)
         {

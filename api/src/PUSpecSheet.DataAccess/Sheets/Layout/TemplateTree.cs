@@ -1,5 +1,3 @@
-using PUSpecSheet.DataAccess.Templates.Queries;
-using PUSpecSheet.Database;
 using PUSpecSheet.Database.Models.Templates;
 
 namespace PUSpecSheet.DataAccess.Sheets.Layout;
@@ -10,7 +8,7 @@ public sealed class TemplateTree
     private readonly Dictionary<int, DbTemplateSection> _byId;
     private readonly ILookup<int?, DbTemplateSection> _byParent;
 
-    private TemplateTree(List<DbTemplateSection> sections, List<DbTemplateColumnBlock> columnBlocks)
+    public TemplateTree(List<DbTemplateSection> sections, List<DbTemplateColumnBlock> columnBlocks)
     {
         ColumnBlocks = columnBlocks
             .OrderBy(block => block.DisplayOrder)
@@ -18,16 +16,6 @@ public sealed class TemplateTree
             .ToList();
         _byId = sections.ToDictionary(section => section.Id);
         _byParent = sections.ToLookup(section => section.ParentSectionId);
-    }
-
-    public static async Task<TemplateTree> LoadAsync(
-        PuSpecSheetDbContext db,
-        int versionId,
-        CancellationToken cancellationToken)
-    {
-        return new TemplateTree(
-            await TemplateSectionQueries.ListForLayoutAsync(db, versionId, cancellationToken),
-            await TemplateColumnBlockQueries.ListAsync(db, versionId, cancellationToken));
     }
 
     /// <summary>The version's column blocks, left to right. Empty for a vertical table.</summary>

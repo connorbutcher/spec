@@ -2,13 +2,9 @@ using PUSpecSheet.Database.Models.Templates;
 
 namespace PUSpecSheet.DataAccess.Templates;
 
-/// <summary>Deep-copies a template version (column blocks, sections, rows and cells) into the next version number.</summary>
 internal static class TemplateVersionCopier
 {
-    /// <summary>
-    /// Builds the copy from the source version's <paramref name="sections"/> (with their rows and cells) and
-    /// <paramref name="columnBlocks"/>; the caller adds and saves it.
-    /// </summary>
+    // The caller adds and saves the copy.
     public static DbTableTemplateVersion Copy(
         DbTableTemplateVersion source,
         int newVersionNumber,
