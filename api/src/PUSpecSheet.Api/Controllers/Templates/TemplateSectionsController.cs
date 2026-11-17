@@ -4,7 +4,7 @@ using PUSpecSheet.Abstractions.Common;
 using PUSpecSheet.Abstractions.Templates;
 using PUSpecSheet.Abstractions.Users;
 using PUSpecSheet.Api.ApiDocumentation;
-using PUSpecSheet.Application.Templates.Sections;
+using PUSpecSheet.DataAccess.Templates.Sections;
 
 namespace PUSpecSheet.Api.Controllers.Templates;
 

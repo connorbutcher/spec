@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using PUSpecSheet.Abstractions.Users;
 using PUSpecSheet.Api.Users;
-using PUSpecSheet.Application.Users;
+using PUSpecSheet.DataAccess.Users;
 
 namespace PUSpecSheet.Api.Authorization;
 

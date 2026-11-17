@@ -1,7 +1,7 @@
 using Microsoft.Net.Http.Headers;
-using PUSpecSheet.Application.Published.Rows;
-using PUSpecSheet.Application.Published.Sheets;
-using PUSpecSheet.Application.Published.Versions;
+using PUSpecSheet.DataAccess.Published.Rows;
+using PUSpecSheet.DataAccess.Published.Sheets;
+using PUSpecSheet.DataAccess.Published.Versions;
 
 namespace PUSpecSheet.Api.Published;
 

@@ -5,7 +5,7 @@
     <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="10.2.3" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\PUSpecSheet.Application\PUSpecSheet.Application.csproj" />
+    <ProjectReference Include="..\PUSpecSheet.DataAccess\PUSpecSheet.DataAccess.csproj" />
     <ProjectReference Include="..\PUSpecSheet.Abstractions\PUSpecSheet.Abstractions.csproj" />
     <ProjectReference Include="..\PUSpecSheet.Database\PUSpecSheet.Database.csproj" />
   </ItemGroup>

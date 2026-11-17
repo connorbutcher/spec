@@ -5,8 +5,8 @@ using PUSpecSheet.Api.Collaboration;
 using PUSpecSheet.Api.Compression;
 using PUSpecSheet.Api.Cors;
 using PUSpecSheet.Api.ExceptionHandling;
-using PUSpecSheet.Application.DependencyInjection;
-using PUSpecSheet.Application.Seeding;
+using PUSpecSheet.DataAccess.DependencyInjection;
+using PUSpecSheet.DataAccess.Seeding;
 using PUSpecSheet.Database;
 using PUSpecSheet.Database.DependencyInjection;
 using PUSpecSheet.Database.Seeding;
@@ -32,7 +32,7 @@ builder.Services.AddPuSpecSheetCors(builder.Configuration);
 builder.Services.AddPuSpecSheetResponseCompression(builder.Configuration);
 
 builder.Services.AddPuSpecSheetDatabase(connectionString);
-builder.Services.AddPuSpecSheetApplication();
+builder.Services.AddPuSpecSheetDataAccess();
 
 // Multi-user editing: who has each sheet open, live checkouts and takeover requests, over SignalR.
 builder.Services.AddPuSpecSheetCollaboration(builder.Configuration);

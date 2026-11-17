@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using PUSpecSheet.Abstractions.SheetTypes;
 using PUSpecSheet.Abstractions.Users;
 using PUSpecSheet.Api.ApiDocumentation;
-using PUSpecSheet.Application.SheetTypes;
+using PUSpecSheet.DataAccess.SheetTypes;
 
 namespace PUSpecSheet.Api.Controllers.ReferenceData;
 

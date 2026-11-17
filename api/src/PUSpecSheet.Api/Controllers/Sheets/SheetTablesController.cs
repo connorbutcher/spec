@@ -4,7 +4,7 @@ using PUSpecSheet.Abstractions.Common;
 using PUSpecSheet.Abstractions.Sheets;
 using PUSpecSheet.Abstractions.Users;
 using PUSpecSheet.Api.ApiDocumentation;
-using PUSpecSheet.Application.Sheets.Editing;
+using PUSpecSheet.DataAccess.Sheets.Editing;
 
 namespace PUSpecSheet.Api.Controllers.Sheets;
 

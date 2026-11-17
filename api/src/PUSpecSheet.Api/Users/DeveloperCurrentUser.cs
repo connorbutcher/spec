@@ -1,5 +1,5 @@
 using PUSpecSheet.Abstractions.Users;
-using PUSpecSheet.Application.Users;
+using PUSpecSheet.DataAccess.Users;
 
 namespace PUSpecSheet.Api.Users;
 

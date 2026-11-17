@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using PUSpecSheet.Abstractions.Sheets;
-using PUSpecSheet.Application.Sheets.Collaboration;
-using PUSpecSheet.Application.Sheets.Collaboration.Takeovers;
+using PUSpecSheet.DataAccess.Sheets.Collaboration;
+using PUSpecSheet.DataAccess.Sheets.Collaboration.Takeovers;
 
 namespace PUSpecSheet.Api.Collaboration;
 

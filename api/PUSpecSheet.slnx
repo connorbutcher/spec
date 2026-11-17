@@ -2,13 +2,13 @@
   <Folder Name="/src/">
     <Project Path="src/PUSpecSheet.Abstractions/PUSpecSheet.Abstractions.csproj" />
     <Project Path="src/PUSpecSheet.Api/PUSpecSheet.Api.csproj" />
-    <Project Path="src/PUSpecSheet.Application/PUSpecSheet.Application.csproj" />
+    <Project Path="src/PUSpecSheet.DataAccess/PUSpecSheet.DataAccess.csproj" />
     <Project Path="src/PUSpecSheet.Database/PUSpecSheet.Database.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/PUSpecSheet.Abstractions.Tests/PUSpecSheet.Abstractions.Tests.csproj" />
     <Project Path="tests/PUSpecSheet.Api.Tests/PUSpecSheet.Api.Tests.csproj" />
-    <Project Path="tests/PUSpecSheet.Application.Tests/PUSpecSheet.Application.Tests.csproj" />
+    <Project Path="tests/PUSpecSheet.DataAccess.Tests/PUSpecSheet.DataAccess.Tests.csproj" />
     <Project Path="tests/PUSpecSheet.Migrator.Tests/PUSpecSheet.Migrator.Tests.csproj" />
   </Folder>
   <Folder Name="/tools/">

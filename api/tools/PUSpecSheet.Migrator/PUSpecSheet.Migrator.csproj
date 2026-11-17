@@ -5,7 +5,7 @@
     <OutputType>Exe</OutputType>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\PUSpecSheet.Application\PUSpecSheet.Application.csproj" />
+    <ProjectReference Include="..\..\src\PUSpecSheet.DataAccess\PUSpecSheet.DataAccess.csproj" />
     <ProjectReference Include="..\..\src\PUSpecSheet.Database\PUSpecSheet.Database.csproj" />
   </ItemGroup>
   <ItemGroup>

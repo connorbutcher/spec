@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Abstractions.Sheets;
-using PUSpecSheet.Application.Sheets.Revisions;
+using PUSpecSheet.DataAccess.Sheets.Revisions;
 using PUSpecSheet.Database;
 using PUSpecSheet.Migrator.Snapshots;
 

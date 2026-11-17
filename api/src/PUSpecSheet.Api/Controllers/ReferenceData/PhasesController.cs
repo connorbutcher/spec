@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using PUSpecSheet.Abstractions.Phases;
 using PUSpecSheet.Abstractions.Users;
 using PUSpecSheet.Api.ApiDocumentation;
-using PUSpecSheet.Application.Phases;
+using PUSpecSheet.DataAccess.Phases;
 
 namespace PUSpecSheet.Api.Controllers.ReferenceData;
 

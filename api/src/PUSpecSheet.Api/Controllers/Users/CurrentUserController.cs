@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using PUSpecSheet.Abstractions.Users;
 using PUSpecSheet.Api.ApiDocumentation;
-using PUSpecSheet.Application.Users;
+using PUSpecSheet.DataAccess.Users;
 
 namespace PUSpecSheet.Api.Controllers.Users;
 

@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
-using PUSpecSheet.Application.Common;
+using PUSpecSheet.DataAccess.Common;
 
 namespace PUSpecSheet.Api.ExceptionHandling;
 

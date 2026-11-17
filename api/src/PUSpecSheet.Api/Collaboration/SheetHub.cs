@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.SignalR;
 using PUSpecSheet.Abstractions.Sheets.Collaboration;
 using PUSpecSheet.Api.Users;
-using PUSpecSheet.Application.Common;
-using PUSpecSheet.Application.Sheets.Collaboration.Checkouts;
-using PUSpecSheet.Application.Sheets.Collaboration.Presence;
+using PUSpecSheet.DataAccess.Common;
+using PUSpecSheet.DataAccess.Sheets.Collaboration.Checkouts;
+using PUSpecSheet.DataAccess.Sheets.Collaboration.Presence;
 
 namespace PUSpecSheet.Api.Collaboration;
 

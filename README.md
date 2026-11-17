@@ -7,14 +7,14 @@ Engine specification sheets: sections (Specification, PFKs, Parts, ...) that gro
 ```
 api/                          .NET 10 solution (PUSpecSheet.slnx)
   src/PUSpecSheet.Api           ASP.NET Core host: controllers, middleware, startup
-  src/PUSpecSheet.Application   Application services / use cases
+  src/PUSpecSheet.DataAccess    Services: the rules of each feature and the data services they read and write through
   src/PUSpecSheet.Database      EF Core DbContext, the Db* entities, their configurations and the mappers to DTOs (SQL Server, database first)
   src/PUSpecSheet.Abstractions  By area: request/response DTOs shared with the UI, and the enums, configuration records and rules
 app/                          Angular 22 UI (PrimeNG)
 database/                     SQL database project: the source of truth for the schema, one script per object (see database/README.md)
 ```
 
-Project references flow one way: `Api -> Application -> Database -> Abstractions`. How the API is put together, and how to add an endpoint or a table, is in [api/README.md](api/README.md).
+Project references flow one way: `Api -> DataAccess -> Database -> Abstractions`. How the API is put together, and how to add an endpoint or a table, is in [api/README.md](api/README.md).
 
 ## Conventions
 
@@ -93,7 +93,7 @@ The Parts matrix showcase uses one for its part numbers (the "Part numbers" cell
 **To give another kind settings**
 
 1. API, `Abstractions/CellTypes/InstanceSettings`: a sealed record deriving from `CellInstanceSettings` with nullable `init` properties, a `[JsonDerivedType]` line for it on `CellInstanceSettings`, and a line in `CellInstanceSettingsCatalog.CreateEmpty`. `CellInstanceSettingsTests` fails if the two disagree.
-2. API, `Application/Sheets/CellInstanceSettingsValidator`: a `case` that checks the new settings against the sheet, if there is anything to check. Storage, drafts, publishing, change history and the endpoint need nothing.
+2. API, `DataAccess/Sheets/CellInstanceSettingsValidator`: a `case` that checks the new settings against the sheet, if there is anything to check. Storage, drafts, publishing, change history and the endpoint need nothing.
 3. UI, `features/sheets/models`: an interface for the settings, joined into `cell-instance-settings.ts`. Add the kind to `hasInstanceSettings` in `features/templates/models/cell-kinds.ts`.
 4. UI: a form component for the settings (copy the shape of `sheet-linked-source-form`: input `settings`, outputs `applied` and `cancelled`) and its `@case` in `sheet-cell-settings.html`, the one place a kind is mapped to its form.
 5. Whatever the settings change about the cell (its choices, its limits) is read from `cell.settings` where the cell is drawn or validated.

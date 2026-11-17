@@ -6,8 +6,8 @@ using PUSpecSheet.Abstractions.Sheets;
 using PUSpecSheet.Abstractions.Users;
 using PUSpecSheet.Api.ApiDocumentation;
 using PUSpecSheet.Api.Published;
-using PUSpecSheet.Application.Sheets;
-using PUSpecSheet.Application.Sheets.Reading;
+using PUSpecSheet.DataAccess.Sheets;
+using PUSpecSheet.DataAccess.Sheets.Reading;
 
 namespace PUSpecSheet.Api.Controllers.Sheets;
 

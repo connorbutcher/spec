@@ -3,8 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using PUSpecSheet.Abstractions.Published;
 using PUSpecSheet.Api.ApiDocumentation;
 using PUSpecSheet.Api.Published;
-using PUSpecSheet.Application.Published.Sheets;
-using PUSpecSheet.Application.Published.Versions;
+using PUSpecSheet.DataAccess.Published.Sheets;
+using PUSpecSheet.DataAccess.Published.Versions;
 
 namespace PUSpecSheet.Api.Controllers.Published;
 

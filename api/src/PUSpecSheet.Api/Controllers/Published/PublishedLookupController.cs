@@ -4,8 +4,8 @@ using Microsoft.Net.Http.Headers;
 using PUSpecSheet.Abstractions.Published;
 using PUSpecSheet.Api.ApiDocumentation;
 using PUSpecSheet.Api.Published;
-using PUSpecSheet.Application.Published.Lookups;
-using PUSpecSheet.Application.Published.Versions;
+using PUSpecSheet.DataAccess.Published.Lookups;
+using PUSpecSheet.DataAccess.Published.Versions;
 
 namespace PUSpecSheet.Api.Controllers.Published;
 

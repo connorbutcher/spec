@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using PUSpecSheet.Abstractions.Sheets.Collaboration;
 using PUSpecSheet.Abstractions.Users;
 using PUSpecSheet.Api.ApiDocumentation;
-using PUSpecSheet.Application.Sheets.Collaboration.Takeovers;
+using PUSpecSheet.DataAccess.Sheets.Collaboration.Takeovers;
 
 namespace PUSpecSheet.Api.Controllers.Sheets;
 

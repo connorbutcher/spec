@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using PUSpecSheet.Abstractions.Templates;
 using PUSpecSheet.Abstractions.Users;
 using PUSpecSheet.Api.ApiDocumentation;
-using PUSpecSheet.Application.Templates.Cells;
+using PUSpecSheet.DataAccess.Templates.Cells;
 
 namespace PUSpecSheet.Api.Controllers.Templates;
 

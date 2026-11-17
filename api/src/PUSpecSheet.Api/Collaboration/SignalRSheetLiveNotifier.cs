@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.SignalR;
 using PUSpecSheet.Abstractions.Sheets.Collaboration;
-using PUSpecSheet.Application.Sheets.Collaboration;
+using PUSpecSheet.DataAccess.Sheets.Collaboration;
 
 namespace PUSpecSheet.Api.Collaboration;
 

@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using PUSpecSheet.Abstractions.Approvals;
 using PUSpecSheet.Abstractions.Users;
 using PUSpecSheet.Api.ApiDocumentation;
-using PUSpecSheet.Application.Approvals;
+using PUSpecSheet.DataAccess.Approvals;
 
 namespace PUSpecSheet.Api.Controllers.Approvals;
 

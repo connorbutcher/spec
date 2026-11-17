@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
-using PUSpecSheet.Application.Users;
+using PUSpecSheet.DataAccess.Users;
 
 namespace PUSpecSheet.Api.Authorization;
 

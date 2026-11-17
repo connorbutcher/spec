@@ -6,7 +6,7 @@ How the API is put together and how to change it. Running it, the linters and th
 
 ```
 src/PUSpecSheet.Api           ASP.NET Core host. Controllers (by area), authorization, exception handling, OpenAPI, compression, CORS.
-src/PUSpecSheet.Application   Use cases. One folder per feature: the service each controller calls, the rules it applies
+src/PUSpecSheet.DataAccess   Use cases. One folder per feature: the service each controller calls, the rules it applies
                               and the EF Core queries it shares (<Feature>/Queries), against the DbContext in Database.
 src/PUSpecSheet.Database      The EF Core side of the database (database first): the DbContext, the Db* entity classes
                               (DbSheet, DbSheetRowRevision, ...) in Models/<Area>, one configuration class per entity
@@ -19,21 +19,21 @@ tests/PUSpecSheet.*.Tests     One test project per source project.
 tools/PUSpecSheet.Migrator    One-off console tool that moves sheets from the old flat layout onto revisions; see its README.
 ```
 
-References go one way: `Api -> Application -> Database -> Abstractions`. `Database` is the only project that knows EF Core's model (the DbContext, the `Db*` classes and their configurations); `Application` queries it directly, with no repository layer in between. `Abstractions` references nothing, so anything (the UI's contract, the migrator, tests) can use it. Nothing references `Api`.
+References go one way: `Api -> DataAccess -> Database -> Abstractions`. `Database` is the only project that knows EF Core's model (the DbContext, the `Db*` classes and their configurations); `DataAccess` queries it directly, with no repository layer in between. `Abstractions` references nothing, so anything (the UI's contract, the migrator, tests) can use it. Nothing references `Api`.
 
 ### Data access
 
 | Where | What |
 | --- | --- |
-| `Application/<Feature>/...Service` | Each service takes `PuSpecSheetDbContext` and writes its own queries. A query only it needs stays in it. |
-| `Application/<Feature>/Queries/<Entity>Queries` | Static classes for the queries more than one class needs, one per entity, called as `SheetRowQueries.FindPlaceAsync(db, id, cancellationToken)`. Methods are named for what they return: `Find...` gives one or null, `List...` a list, `...ForEditAsync` tracked entities to change and save, everything else is read only. |
-| `Application/Sheets/Queries/SheetRevisionQueries` | The revision reads and changes every kind of item shares, as extension methods on any revision set: `db.SheetRowRevisions.ListInViewAsync(sheetId, moment, cancellationToken)`. The type-specific ones are in `Sheet<Item>RevisionQueries`. |
-| `Application/Common/DbContextSaveExtensions` | `SaveSheetChangesAsync` (turns a clash with someone else's change into a 409) and `MarkModified`. Transactions are `db.Database.BeginTransactionAsync`. |
-| `Application/DependencyInjection/ApplicationServiceCollectionExtensions` | Registers every Application service, one method per area. `ServiceRegistrationTests` fails if a service or controller can't be built. |
+| `DataAccess/<Feature>/...Service` | Each service takes `PuSpecSheetDbContext` and writes its own queries. A query only it needs stays in it. |
+| `DataAccess/<Feature>/Queries/<Entity>Queries` | Static classes for the queries more than one class needs, one per entity, called as `SheetRowQueries.FindPlaceAsync(db, id, cancellationToken)`. Methods are named for what they return: `Find...` gives one or null, `List...` a list, `...ForEditAsync` tracked entities to change and save, everything else is read only. |
+| `DataAccess/Sheets/Queries/SheetRevisionQueries` | The revision reads and changes every kind of item shares, as extension methods on any revision set: `db.SheetRowRevisions.ListInViewAsync(sheetId, moment, cancellationToken)`. The type-specific ones are in `Sheet<Item>RevisionQueries`. |
+| `DataAccess/Common/DbContextSaveExtensions` | `SaveSheetChangesAsync` (turns a clash with someone else's change into a 409) and `MarkModified`. Transactions are `db.Database.BeginTransactionAsync`. |
+| `DataAccess/DependencyInjection/DataAccessServiceCollectionExtensions` | Registers every DataAccess service, one method per area. `ServiceRegistrationTests` fails if a service or controller can't be built. |
 
 The LINQ specs those queries share stay with the rules: `SheetRevisionQueryExtensions` (which revisions are live, drafts, in view at a moment) and the `DraftSelection` a publish passes in.
 
-| Folder in `Application` | What it holds |
+| Folder in `DataAccess` | What it holds |
 | --- | --- |
 | `Sheets` | Reading a sheet, editing it through drafts (`Editing`), publishing (`Publishing`). The largest feature; see below. |
 | `Approvals` | Submitting drafts for approval, deciding a submission, and reading submissions (`SubmissionReader`). |
@@ -46,9 +46,9 @@ The LINQ specs those queries share stay with the rules: `SheetRevisionQueryExten
 ## A request, end to end
 
 1. **Controller** (`Api/Controllers/<Area>`). Takes exactly one service, named after it (`SheetsController` -> `ISheetsService`). Binds the route and body, calls one service method and returns its result. No rules, no `try`/`catch`, no EF. `[ApiController]` turns a request that fails its data annotations into a 400 before the action runs.
-2. **Service** (`Application/<Feature>`). Loads what it needs through the DbContext, applies the rules, saves, and returns a contract record. When a controller's action belongs to another area (adding a section from `SheetTablesController`), its service passes the call on to that area's service. Anything wrong is thrown as `NotFoundException`, `InvalidRequestException` or `ConflictException`.
+2. **Service** (`DataAccess/<Feature>`). Loads what it needs through the DbContext, applies the rules, saves, and returns a contract record. When a controller's action belongs to another area (adding a section from `SheetTablesController`), its service passes the call on to that area's service. Anything wrong is thrown as `NotFoundException`, `InvalidRequestException` or `ConflictException`.
 3. **`ApplicationExceptionHandler`** turns those three into 404, 400 and 409 ProblemDetails. `PermissionDeniedResultHandler` does the same for a missing permission (403). Everything else is a 500.
-4. **Mapping** from an entity to its DTO is a static mapper in `Database/Mappers/<Area>` (`CellTypeMapper`, `PhaseMapper`, `SheetTypeMapper`, `TableTemplateMapper`, `SheetSubmissionMapper`, `SheetVersionMapper`, `UserMapper`), called as an extension (`phase.ToDto()`) or, where a query should select straight into the DTO, as an expression (`.Select(SheetTypeMapper.Projection)`). A mapper only maps: it says in its summary which navigations it expects loaded, and anything it can't read off the entity (a usage count, whether a version is in use) is a parameter. Views assembled from many entities under rules, such as the sheet a user sees (`SheetViewBuilder`) or the published API's answers, are built in `Application`. Entities never leave `Application`.
+4. **Mapping** from an entity to its DTO is a static mapper in `Database/Mappers/<Area>` (`CellTypeMapper`, `PhaseMapper`, `SheetTypeMapper`, `TableTemplateMapper`, `SheetSubmissionMapper`, `SheetVersionMapper`, `UserMapper`), called as an extension (`phase.ToDto()`) or, where a query should select straight into the DTO, as an expression (`.Select(SheetTypeMapper.Projection)`). A mapper only maps: it says in its summary which navigations it expects loaded, and anything it can't read off the entity (a usage count, whether a version is in use) is a parameter. Views assembled from many entities under rules, such as the sheet a user sees (`SheetViewBuilder`) or the published API's answers, are built in `DataAccess`. Entities never leave `DataAccess`.
 
 Every method that touches the database is `async` and takes the request's `CancellationToken` as its last parameter.
 
@@ -123,13 +123,13 @@ The published API lists a phase's sheets of a type by phase code, sheet type and
 
 ## Sample data
 
-In Development the API builds a showcase on start (`Application/Seeding`, run from `ShowcaseDataSeeder`): templates for Specification ("Engine specification"), PFKs ("Gauges", "PFK register") and Parts ("Parts matrix", horizontal) that use every cell kind, and sheets built from them for V6 and 01-A2 to A5, with published versions by `developer`, `engineer2` and `engineer3` and some of their changes left unpublished, so there are locks to see. Changes are made through the same services the API uses, as whichever user `BackgroundUser` names.
+In Development the API builds a showcase on start (`DataAccess/Seeding`, run from `ShowcaseDataSeeder`): templates for Specification ("Engine specification"), PFKs ("Gauges", "PFK register") and Parts ("Parts matrix", horizontal) that use every cell kind, and sheets built from them for V6 and 01-A2 to A5, with published versions by `developer`, `engineer2` and `engineer3` and some of their changes left unpublished, so there are locks to see. Changes are made through the same services the API uses, as whichever user `BackgroundUser` names.
 
 **It clears the database the first time.** Every sheet, template and user-made cell type is deleted first (`SampleDataQueries`); phases, sheet types, users and permissions are kept. After that it does nothing while a sheet version with the note `ShowcaseDataSeeder.CompletedNote` exists, so work done on top of it stays. Set `SampleData:Rebuild` to `true` in `appsettings.Development.json` to clear and rebuild on every start until it is set back. A failure is logged and tried again, from a clean database, on the next start.
 
 ## Published API
 
-`Published` reads only published revisions, by public identifier (the GUIDs), never by database id. What a version held never changes, so answers are cached in memory (`PublishedSheetCache`, `PublishedRowsCache`, `PublishedLookupCache`) and served with ETags; `PublishedSheetHttpCache` holds the HTTP side. Its queries (`Application/Published/Queries`) project straight to small records (`Published...Record`) and the `...Assembler` classes, which are pure, build the response. The field names and routes of this API are a contract with other applications: change them only on purpose.
+`Published` reads only published revisions, by public identifier (the GUIDs), never by database id. What a version held never changes, so answers are cached in memory (`PublishedSheetCache`, `PublishedRowsCache`, `PublishedLookupCache`) and served with ETags; `PublishedSheetHttpCache` holds the HTTP side. Its queries (`DataAccess/Published/Queries`) project straight to small records (`Published...Record`) and the `...Assembler` classes, which are pure, build the response. The field names and routes of this API are a contract with other applications: change them only on purpose.
 
 ## How to
 
@@ -140,7 +140,7 @@ In Development the API builds a showcase on start (`Application/Seeding`, run fr
 3. Add the action to the controller with XML comments (`<summary>`, `<remarks>`, `<param>`, `<response>` for each status it can return). 400, 403, 404 and 409 are documented where they apply by `ProblemResponsesConvention`; add `[ProducesResponseType]` only for anything else.
 4. Decide who may call it. An action that changes anything takes `[Authorize(Policy = PermissionKeys.X)]` (on the controller when every action shares it); `EndpointPermissionTests` fails if one is missing. A read needs nothing more: the fallback policy already requires a signed-in user. Only the published API is `[AllowAnonymous]`. A new permission is a constant in `PermissionKeys` (add it to `All`) and a row in the Permissions block of `database/Script.PostDeployment.sql`, added on the next deploy.
 
-**Add a feature**: a folder in `Application` with `I<Feature>Service` and its implementation, registered in `ApplicationServiceCollectionExtensions`; shared queries in `Application/<Feature>/Queries`; a controller in `Api/Controllers/<Feature>` that takes that one service, with `[Tags(ApiTags.X)]`, the tag added to `ApiTags` and `ApiTagCatalog`.
+**Add a feature**: a folder in `DataAccess` with `I<Feature>Service` and its implementation, registered in `DataAccessServiceCollectionExtensions`; shared queries in `DataAccess/<Feature>/Queries`; a controller in `Api/Controllers/<Feature>` that takes that one service, with `[Tags(ApiTags.X)]`, the tag added to `ApiTags` and `ApiTagCatalog`.
 
 **Add a table** (database first: the SQL comes first)
 
@@ -171,6 +171,6 @@ Tests run without a database. Three kinds:
 
 - **Rules as pure functions.** Logic is kept out of the classes that query (`SheetChangeHistoryCalculator`, `SheetCellPlanner`, `OrderGaps`, `PhaseMover`, the published assemblers) so it can be tested with plain objects. New logic should follow the same split.
 - **SQL shape.** `PublishedQueryTranslationTests` and `SheetRevisionQueryTranslationTests` build a context with no server and assert on `ToQueryString()`, which catches a query that stops translating, pulls extra columns or stops matching an index.
-- **Model.** The tests in `Application.Tests/Database` check the EF model itself (public ids), and `PermissionSeedTests` checks the post-deployment script seeds every permission.
+- **Model.** The tests in `DataAccess.Tests/Database` check the EF model itself (public ids), and `PermissionSeedTests` checks the post-deployment script seeds every permission.
 
 What they don't cover is anything that needs real SQL Server behaviour: the publish transaction, draft locking under concurrency, cascade deletes. Those have been checked by replaying a scripted scenario against a scratch copy of the database and comparing every response before and after a change.
