@@ -5,13 +5,13 @@ public sealed record PublishedSectionRecord
 {
     public PublishedSectionRecord(int id, Guid publicId, int tableId, int? parentSectionId, int displayOrder, bool isDeleted, string name)
     {
-        this.Id = id;
-        this.PublicId = publicId;
-        this.TableId = tableId;
-        this.ParentSectionId = parentSectionId;
-        this.DisplayOrder = displayOrder;
-        this.IsDeleted = isDeleted;
-        this.Name = name;
+        Id = id;
+        PublicId = publicId;
+        TableId = tableId;
+        ParentSectionId = parentSectionId;
+        DisplayOrder = displayOrder;
+        IsDeleted = isDeleted;
+        Name = name;
     }
 
     public int Id { get; init; }

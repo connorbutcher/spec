@@ -5,9 +5,9 @@ public sealed record TemplateRowDto
 {
     public TemplateRowDto(int id, int displayOrder, IReadOnlyList<TemplateCellDto> cells)
     {
-        this.Id = id;
-        this.DisplayOrder = displayOrder;
-        this.Cells = cells;
+        Id = id;
+        DisplayOrder = displayOrder;
+        Cells = cells;
     }
 
     public int Id { get; init; }

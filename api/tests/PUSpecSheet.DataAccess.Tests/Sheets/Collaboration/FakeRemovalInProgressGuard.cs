@@ -6,17 +6,17 @@ namespace PUSpecSheet.DataAccess.Tests.Sheets.Collaboration;
 /// <summary>Rows whose section or table someone is removing, standing in for the removal drafts in the database.</summary>
 internal sealed class FakeRemovalInProgressGuard : IRemovalInProgressGuard
 {
-    private readonly Dictionary<int, (int RemoverUserId, string RemoverName)> removedRows = [];
+    private readonly Dictionary<int, (int RemoverUserId, string RemoverName)> _removedRows = [];
 
     /// <summary>Someone starts removing the section row <paramref name="rowId"/> is in.</summary>
     public void RemoveSectionOf(int rowId, int removerUserId, string removerName)
     {
-        removedRows[rowId] = (removerUserId, removerName);
+        _removedRows[rowId] = (removerUserId, removerName);
     }
 
     public Task EnsureRowNotBeingRemovedAsync(int rowId, int userId, CancellationToken cancellationToken)
     {
-        if (removedRows.TryGetValue(rowId, out var removal))
+        if (_removedRows.TryGetValue(rowId, out var removal))
         {
             var refusal = PendingRemovals.Blocking([new PendingRemoval(RemovedContainer.Section, removal.RemoverUserId, awaitingApproval: false)], userId);
             if (refusal is not null)

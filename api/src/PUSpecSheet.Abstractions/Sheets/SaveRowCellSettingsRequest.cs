@@ -10,7 +10,7 @@ public sealed record SaveRowCellSettingsRequest
 {
     public SaveRowCellSettingsRequest([MinLength(1)] IReadOnlyList<CellSettingsRequest> settings)
     {
-        this.Settings = settings;
+        Settings = settings;
     }
 
     public IReadOnlyList<CellSettingsRequest> Settings { get; init; }

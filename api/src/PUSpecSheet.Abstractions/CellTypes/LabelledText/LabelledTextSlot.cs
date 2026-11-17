@@ -8,8 +8,8 @@ public sealed record LabelledTextSlot
 {
     public LabelledTextSlot(string key, string label)
     {
-        this.Key = key;
-        this.Label = label;
+        Key = key;
+        Label = label;
     }
 
     public string Key { get; init; }

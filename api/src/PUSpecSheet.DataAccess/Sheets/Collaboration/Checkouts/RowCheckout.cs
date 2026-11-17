@@ -8,9 +8,9 @@ public sealed record RowCheckout
 {
     public RowCheckout(int sheetId, int holderUserId, bool hasChanges)
     {
-        this.SheetId = sheetId;
-        this.HolderUserId = holderUserId;
-        this.HasChanges = hasChanges;
+        SheetId = sheetId;
+        HolderUserId = holderUserId;
+        HasChanges = hasChanges;
     }
 
     public int SheetId { get; init; }

@@ -22,7 +22,7 @@ public sealed class SpecificationTemplate : IShowcaseTemplate
     public const string ReleaseNote = "Release note";
     public const string Approval = "Approval";
 
-    private static readonly CellStyle Banner = new() { BackgroundColor = "#e2e8f0", Align = CellTextAlign.Center };
+    private static readonly CellStyle _banner = new() { BackgroundColor = "#e2e8f0", Align = CellTextAlign.Center };
 
     public string SheetTypeName => ShowcasePhases.SpecificationSheetType;
 
@@ -38,8 +38,8 @@ public sealed class SpecificationTemplate : IShowcaseTemplate
         layout.Row(
             header,
             layout.Cell(ShowcaseCellTypeNames.Heading, 1, "Characteristic", rowSpan: 2),
-            layout.Cell(ShowcaseCellTypeNames.Heading, 2, "Limits", columnSpan: 3, style: Banner),
-            layout.Cell(ShowcaseCellTypeNames.Heading, 5, "Release", columnSpan: 2, style: Banner));
+            layout.Cell(ShowcaseCellTypeNames.Heading, 2, "Limits", columnSpan: 3, style: _banner),
+            layout.Cell(ShowcaseCellTypeNames.Heading, 5, "Release", columnSpan: 2, style: _banner));
         layout.Row(
             header,
             layout.Cell(ShowcaseCellTypeNames.Heading, 2, "Nominal"),

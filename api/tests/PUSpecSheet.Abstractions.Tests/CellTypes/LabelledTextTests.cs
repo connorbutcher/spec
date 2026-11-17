@@ -8,12 +8,12 @@ namespace PUSpecSheet.Abstractions.Tests.CellTypes;
 /// <summary>A labelled text cell's slots: set on the cell type, changed by the template cell, and changed again on the sheet.</summary>
 public sealed class LabelledTextTests
 {
-    private static readonly JsonSerializerOptions Options = new(JsonSerializerDefaults.Web)
+    private static readonly JsonSerializerOptions _options = new(JsonSerializerDefaults.Web)
     {
         AllowOutOfOrderMetadataProperties = true,
     };
 
-    private static readonly LabelledTextCellConfiguration Hands = new()
+    private static readonly LabelledTextCellConfiguration _hands = new()
     {
         MaxLength = 20,
         Slots = [new LabelledTextSlot("rh", "RH"), new LabelledTextSlot("lh", "LH")],
@@ -25,8 +25,8 @@ public sealed class LabelledTextTests
     {
         CellInstanceSettings settings = new LabelledTextInstanceSettings { Slots = [new LabelledTextSlot("both", "Both")] };
 
-        var json = JsonSerializer.Serialize(settings, Options);
-        var read = JsonSerializer.Deserialize<CellInstanceSettings>(json, Options);
+        var json = JsonSerializer.Serialize(settings, _options);
+        var read = JsonSerializer.Deserialize<CellInstanceSettings>(json, _options);
 
         Assert.Equal("""{"kind":"LabelledText","slots":[{"key":"both","label":"Both"}]}""", json);
         Assert.Equal(settings, read);
@@ -43,7 +43,7 @@ public sealed class LabelledTextTests
     [Fact]
     public void AnOverride_ReplacesOnlyWhatItSets()
     {
-        var applied = (LabelledTextCellConfiguration)Hands.Apply(new LabelledTextCellConfiguration { Slots = [new LabelledTextSlot("upper", "Upper")] });
+        var applied = (LabelledTextCellConfiguration)_hands.Apply(new LabelledTextCellConfiguration { Slots = [new LabelledTextSlot("upper", "Upper")] });
 
         Assert.Equal(20, applied.MaxLength);
         Assert.Equal("#dc2626", applied.LabelColor);
@@ -53,10 +53,10 @@ public sealed class LabelledTextTests
     [Fact]
     public void ConfigurationsWithTheSameSlots_AreEqual()
     {
-        var copy = Hands with { Slots = [new LabelledTextSlot("rh", "RH"), new LabelledTextSlot("lh", "LH")] };
+        var copy = _hands with { Slots = [new LabelledTextSlot("rh", "RH"), new LabelledTextSlot("lh", "LH")] };
 
-        Assert.Equal(Hands, copy);
-        Assert.NotEqual(Hands, Hands with { Slots = [new LabelledTextSlot("lh", "LH"), new LabelledTextSlot("rh", "RH")] });
+        Assert.Equal(_hands, copy);
+        Assert.NotEqual(_hands, _hands with { Slots = [new LabelledTextSlot("lh", "LH"), new LabelledTextSlot("rh", "RH")] });
     }
 
     [Fact]
@@ -64,8 +64,8 @@ public sealed class LabelledTextTests
     {
         var sheet = new LabelledTextInstanceSettings { Slots = [new LabelledTextSlot("both", "Both")] };
 
-        Assert.Equal("both", LabelledTextSlots.Effective(Hands, sheet).Single().Key);
-        Assert.Equal(["rh", "lh"], LabelledTextSlots.Effective(Hands, null).Select(slot => slot.Key));
+        Assert.Equal("both", LabelledTextSlots.Effective(_hands, sheet).Single().Key);
+        Assert.Equal(["rh", "lh"], LabelledTextSlots.Effective(_hands, null).Select(slot => slot.Key));
         Assert.Equal(LabelledTextRules.DefaultSlots, LabelledTextSlots.Effective(new LabelledTextCellConfiguration(), null));
     }
 
@@ -74,7 +74,7 @@ public sealed class LabelledTextTests
     [InlineData("rh", "Right hand side of the engine", "at most")]
     public void BadSlots_AreRefused(string key, string label, string expected)
     {
-        var problem = (Hands with { Slots = [new LabelledTextSlot(key, label)] }).Validate();
+        var problem = (_hands with { Slots = [new LabelledTextSlot(key, label)] }).Validate();
 
         Assert.Contains(expected, problem, StringComparison.Ordinal);
     }
@@ -82,7 +82,7 @@ public sealed class LabelledTextTests
     [Fact]
     public void TwoSlotsWithTheSameKey_AreRefused()
     {
-        var problem = (Hands with { Slots = [new LabelledTextSlot("rh", "RH"), new LabelledTextSlot("rh", "LH")] }).Validate();
+        var problem = (_hands with { Slots = [new LabelledTextSlot("rh", "RH"), new LabelledTextSlot("rh", "LH")] }).Validate();
 
         Assert.Equal("Each value needs its own key.", problem);
     }

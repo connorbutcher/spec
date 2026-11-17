@@ -7,9 +7,9 @@ public sealed record CellValueChange
 {
     public CellValueChange(int sheetCellId, CellKind kind, CellValueBag value)
     {
-        this.SheetCellId = sheetCellId;
-        this.Kind = kind;
-        this.Value = value;
+        SheetCellId = sheetCellId;
+        Kind = kind;
+        Value = value;
     }
 
     public int SheetCellId { get; init; }

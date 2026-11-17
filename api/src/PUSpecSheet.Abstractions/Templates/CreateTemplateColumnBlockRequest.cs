@@ -10,8 +10,8 @@ public sealed record CreateTemplateColumnBlockRequest
 {
     public CreateTemplateColumnBlockRequest(int tableTemplateVersionId, [Required, MaxLength(100)] string name)
     {
-        this.TableTemplateVersionId = tableTemplateVersionId;
-        this.Name = name;
+        TableTemplateVersionId = tableTemplateVersionId;
+        Name = name;
     }
 
     public int TableTemplateVersionId { get; init; }

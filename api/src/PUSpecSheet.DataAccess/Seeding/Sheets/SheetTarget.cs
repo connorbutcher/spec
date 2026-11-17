@@ -5,9 +5,9 @@ public sealed record SheetTarget
 {
     public SheetTarget(ShowcaseContext context, int sheetTypeId, IReadOnlyDictionary<string, int> identifierIds)
     {
-        this.Context = context;
-        this.SheetTypeId = sheetTypeId;
-        this.IdentifierIds = identifierIds;
+        Context = context;
+        SheetTypeId = sheetTypeId;
+        IdentifierIds = identifierIds;
     }
 
     public ShowcaseContext Context { get; init; }

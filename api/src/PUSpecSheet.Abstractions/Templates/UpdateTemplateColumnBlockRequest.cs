@@ -15,11 +15,11 @@ public sealed record UpdateTemplateColumnBlockRequest
         [Range(0, 1000)] int initialInstances,
         [Range(0, 50)] int stickyColumnCount)
     {
-        this.Name = name;
-        this.MinInstances = minInstances;
-        this.MaxInstances = maxInstances;
-        this.InitialInstances = initialInstances;
-        this.StickyColumnCount = stickyColumnCount;
+        Name = name;
+        MinInstances = minInstances;
+        MaxInstances = maxInstances;
+        InitialInstances = initialInstances;
+        StickyColumnCount = stickyColumnCount;
     }
 
     public string Name { get; init; }

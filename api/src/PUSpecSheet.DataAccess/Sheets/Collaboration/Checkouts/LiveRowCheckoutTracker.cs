@@ -11,9 +11,9 @@ namespace PUSpecSheet.DataAccess.Sheets.Collaboration.Checkouts;
 /// </summary>
 public sealed class LiveRowCheckoutTracker
 {
-    private readonly Lock gate = new();
-    private readonly Dictionary<string, LiveRowCheckout> byConnection = new(StringComparer.Ordinal);
-    private readonly Dictionary<int, string> connectionByRow = [];
+    private readonly Lock _gate = new();
+    private readonly Dictionary<string, LiveRowCheckout> _byConnection = new(StringComparer.Ordinal);
+    private readonly Dictionary<int, string> _connectionByRow = [];
 
     /// <summary>
     /// Gives the row to a connection, in place of whichever row it held. False, with who holds it, when
@@ -21,7 +21,7 @@ public sealed class LiveRowCheckoutTracker
     /// </summary>
     public bool TryCheckOut(string connectionId, LiveRowCheckout wanted, out LiveRowCheckout? heldBy)
     {
-        lock (gate)
+        lock (_gate)
         {
             heldBy = Holder(wanted.RowId);
             if (heldBy is not null && heldBy.UserId != wanted.UserId)
@@ -31,8 +31,8 @@ public sealed class LiveRowCheckoutTracker
 
             ReleaseRowHeld(wanted.RowId);
             ReleaseConnection(connectionId);
-            byConnection[connectionId] = wanted;
-            connectionByRow[wanted.RowId] = connectionId;
+            _byConnection[connectionId] = wanted;
+            _connectionByRow[wanted.RowId] = connectionId;
             heldBy = wanted;
             return true;
         }
@@ -41,7 +41,7 @@ public sealed class LiveRowCheckoutTracker
     /// <summary>Frees whatever row a connection held. Returns it, or null when it held none.</summary>
     public LiveRowCheckout? Release(string connectionId)
     {
-        lock (gate)
+        lock (_gate)
         {
             return ReleaseConnection(connectionId);
         }
@@ -50,7 +50,7 @@ public sealed class LiveRowCheckoutTracker
     /// <summary>Frees a row whoever is in it. Returns the checkout that ended, or null when nobody was.</summary>
     public LiveRowCheckout? ReleaseRow(int rowId)
     {
-        lock (gate)
+        lock (_gate)
         {
             return ReleaseRowHeld(rowId);
         }
@@ -59,7 +59,7 @@ public sealed class LiveRowCheckoutTracker
     /// <summary>Who is in the row, or null when nobody is.</summary>
     public LiveRowCheckout? HolderOf(int rowId)
     {
-        lock (gate)
+        lock (_gate)
         {
             return Holder(rowId);
         }
@@ -68,9 +68,9 @@ public sealed class LiveRowCheckoutTracker
     /// <summary>Every row on a sheet that someone is in, by row id.</summary>
     public IReadOnlyList<RowCheckoutDto> OnSheet(int sheetId)
     {
-        lock (gate)
+        lock (_gate)
         {
-            return byConnection.Values
+            return _byConnection.Values
                 .Where(checkout => checkout.SheetId == sheetId)
                 .OrderBy(checkout => checkout.RowId)
                 .Select(checkout => new RowCheckoutDto(checkout.RowId, checkout.UserId, checkout.DisplayName))
@@ -80,22 +80,22 @@ public sealed class LiveRowCheckoutTracker
 
     private LiveRowCheckout? Holder(int rowId)
     {
-        return connectionByRow.TryGetValue(rowId, out var connectionId) ? byConnection[connectionId] : null;
+        return _connectionByRow.TryGetValue(rowId, out var connectionId) ? _byConnection[connectionId] : null;
     }
 
     private LiveRowCheckout? ReleaseConnection(string connectionId)
     {
-        if (!byConnection.Remove(connectionId, out var checkout))
+        if (!_byConnection.Remove(connectionId, out var checkout))
         {
             return null;
         }
 
-        connectionByRow.Remove(checkout.RowId);
+        _connectionByRow.Remove(checkout.RowId);
         return checkout;
     }
 
     private LiveRowCheckout? ReleaseRowHeld(int rowId)
     {
-        return connectionByRow.TryGetValue(rowId, out var connectionId) ? ReleaseConnection(connectionId) : null;
+        return _connectionByRow.TryGetValue(rowId, out var connectionId) ? ReleaseConnection(connectionId) : null;
     }
 }

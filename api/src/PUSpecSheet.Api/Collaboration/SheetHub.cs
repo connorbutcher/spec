@@ -14,13 +14,13 @@ namespace PUSpecSheet.Api.Collaboration;
 /// </summary>
 public sealed class SheetHub : Hub<ISheetHubClient>
 {
-    private readonly ISheetPresenceService presence;
-    private readonly ILiveRowCheckoutService rowCheckouts;
+    private readonly ISheetPresenceService _presence;
+    private readonly ILiveRowCheckoutService _rowCheckouts;
 
     public SheetHub(ISheetPresenceService presence, ILiveRowCheckoutService rowCheckouts)
     {
-        this.presence = presence;
-        this.rowCheckouts = rowCheckouts;
+        _presence = presence;
+        _rowCheckouts = rowCheckouts;
     }
 
     /// <summary>Starts watching a sheet, in place of any sheet this connection was watching.</summary>
@@ -32,7 +32,7 @@ public sealed class SheetHub : Hub<ISheetHubClient>
         SheetLiveStateDto state;
         try
         {
-            state = await presence.JoinAsync(Context.ConnectionId, sheetId, userId, Context.ConnectionAborted);
+            state = await _presence.JoinAsync(Context.ConnectionId, sheetId, userId, Context.ConnectionAborted);
         }
         catch (NotFoundException exception)
         {
@@ -47,7 +47,7 @@ public sealed class SheetHub : Hub<ISheetHubClient>
     /// <summary>Stops watching the sheet this connection has open, if it has one.</summary>
     public async Task LeaveSheet()
     {
-        var left = await presence.LeaveAsync(Context.ConnectionId, Context.ConnectionAborted);
+        var left = await _presence.LeaveAsync(Context.ConnectionId, Context.ConnectionAborted);
         if (left is null)
         {
             return;
@@ -65,7 +65,7 @@ public sealed class SheetHub : Hub<ISheetHubClient>
     {
         try
         {
-            await rowCheckouts.CheckOutAsync(Context.ConnectionId, rowId, Context.ConnectionAborted);
+            await _rowCheckouts.CheckOutAsync(Context.ConnectionId, rowId, Context.ConnectionAborted);
         }
         catch (Exception refusal) when (refusal is NotFoundException or ConflictException or InvalidRequestException)
         {
@@ -76,13 +76,13 @@ public sealed class SheetHub : Hub<ISheetHubClient>
     /// <summary>The user left the row they were in. If they changed it, the sheet already shows it as theirs.</summary>
     public Task ReleaseRow()
     {
-        return rowCheckouts.ReleaseAsync(Context.ConnectionId, Context.ConnectionAborted);
+        return _rowCheckouts.ReleaseAsync(Context.ConnectionId, Context.ConnectionAborted);
     }
 
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
         // The connection has gone, and its groups with it; the others still need to hear that it left.
-        await presence.LeaveAsync(Context.ConnectionId, CancellationToken.None);
+        await _presence.LeaveAsync(Context.ConnectionId, CancellationToken.None);
         await base.OnDisconnectedAsync(exception);
     }
 }

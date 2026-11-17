@@ -10,8 +10,8 @@ public sealed record RevisionResolution<TRevision>
 {
     public RevisionResolution(TRevision? shown, TRevision? draft)
     {
-        this.Shown = shown;
-        this.Draft = draft;
+        Shown = shown;
+        Draft = draft;
     }
 
     public TRevision? Shown { get; init; }

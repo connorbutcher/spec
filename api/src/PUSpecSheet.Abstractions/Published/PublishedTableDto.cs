@@ -14,10 +14,10 @@ public sealed record PublishedTableDto
         IReadOnlyList<PublishedSectionDto> sections,
         IReadOnlyList<PublishedColumnBlockDto>? columns)
     {
-        this.Id = id;
-        this.Title = title;
-        this.Sections = sections;
-        this.Columns = columns;
+        Id = id;
+        Title = title;
+        Sections = sections;
+        Columns = columns;
     }
 
     public Guid Id { get; init; }

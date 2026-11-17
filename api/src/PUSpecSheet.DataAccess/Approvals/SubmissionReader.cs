@@ -15,33 +15,33 @@ namespace PUSpecSheet.DataAccess.Approvals;
 public sealed class SubmissionReader
 {
     /// <summary>How far back a submitter's decided submissions are still listed, so a rejection's reason can be read.</summary>
-    private static readonly TimeSpan DecidedKeptFor = TimeSpan.FromDays(30);
+    private static readonly TimeSpan _decidedKeptFor = TimeSpan.FromDays(30);
 
-    private readonly PuSpecSheetDbContext db;
-    private readonly TimeProvider clock;
+    private readonly PuSpecSheetDbContext _db;
+    private readonly TimeProvider _clock;
 
     public SubmissionReader(PuSpecSheetDbContext db, TimeProvider clock)
     {
-        this.db = db;
-        this.clock = clock;
+        _db = db;
+        _clock = clock;
     }
 
     /// <summary>Pending submissions waiting for <paramref name="userId"/>'s decision, oldest first.</summary>
     public Task<IReadOnlyList<SheetSubmissionDto>> AwaitingDecisionOfAsync(int userId, CancellationToken cancellationToken)
     {
-        return ToDtosAsync(SheetSubmissionQueries.ListAwaitingDecisionOfAsync(db, userId, cancellationToken), cancellationToken);
+        return ToDtosAsync(SheetSubmissionQueries.ListAwaitingDecisionOfAsync(_db, userId, cancellationToken), cancellationToken);
     }
 
     /// <summary>What <paramref name="userId"/> submitted that is still pending or was decided recently, newest first.</summary>
     public Task<IReadOnlyList<SheetSubmissionDto>> SubmittedByAsync(int userId, CancellationToken cancellationToken)
     {
-        var since = clock.GetUtcNow().UtcDateTime - DecidedKeptFor;
-        return ToDtosAsync(SheetSubmissionQueries.ListSubmittedByAsync(db, userId, since, cancellationToken), cancellationToken);
+        var since = _clock.GetUtcNow().UtcDateTime - _decidedKeptFor;
+        return ToDtosAsync(SheetSubmissionQueries.ListSubmittedByAsync(_db, userId, since, cancellationToken), cancellationToken);
     }
 
     public async Task<SheetSubmissionDto> GetAsync(int submissionId, CancellationToken cancellationToken)
     {
-        var found = await ToDtosAsync(SheetSubmissionQueries.ListByIdAsync(db, submissionId, cancellationToken), cancellationToken);
+        var found = await ToDtosAsync(SheetSubmissionQueries.ListByIdAsync(_db, submissionId, cancellationToken), cancellationToken);
         return found.SingleOrDefault() ?? throw new NotFoundException($"Submission {submissionId} was not found.");
     }
 
@@ -51,7 +51,7 @@ public sealed class SubmissionReader
     /// </summary>
     public async Task EnsureCanReviewAsync(int sheetId, int submissionId, int userId, CancellationToken cancellationToken)
     {
-        var submission = await SheetSubmissionQueries.FindReviewAccessAsync(db, sheetId, submissionId, userId, cancellationToken)
+        var submission = await SheetSubmissionQueries.FindReviewAccessAsync(_db, sheetId, submissionId, userId, cancellationToken)
             ?? throw new NotFoundException($"Submission {submissionId} was not found on this sheet.");
         if (submission.SubmittedByUserId != userId && !submission.IsApprover)
         {
@@ -81,10 +81,10 @@ public sealed class SubmissionReader
             return [];
         }
 
-        var tables = await db.SheetTableRevisions.CountBySubmissionAsync(ids, cancellationToken);
-        var sections = await db.SheetSectionRevisions.CountBySubmissionAsync(ids, cancellationToken);
-        var rows = await db.SheetRowRevisions.CountBySubmissionAsync(ids, cancellationToken);
-        var blocks = await db.SheetColumnBlockRevisions.CountBySubmissionAsync(ids, cancellationToken);
+        var tables = await _db.SheetTableRevisions.CountBySubmissionAsync(ids, cancellationToken);
+        var sections = await _db.SheetSectionRevisions.CountBySubmissionAsync(ids, cancellationToken);
+        var rows = await _db.SheetRowRevisions.CountBySubmissionAsync(ids, cancellationToken);
+        var blocks = await _db.SheetColumnBlockRevisions.CountBySubmissionAsync(ids, cancellationToken);
         return ids.ToDictionary(
             id => id,
             id => new SubmissionChangeCountsDto(

@@ -18,7 +18,7 @@ public sealed class PhaseMoverTests
     private const int Top = 6;
     private const int Rig = 7;
 
-    private readonly List<DbPhase> phases =
+    private readonly List<DbPhase> _phases =
     [
         Phase(V6, "V6", null, 1),
         Phase(A2, "01-A2", V6, 1),
@@ -38,7 +38,7 @@ public sealed class PhaseMoverTests
     [InlineData(A2, 99, "A3,A4,01-A2")]
     public void MovingAmongSiblings_PutsThePhaseAtThePositionAndRenumbers(int id, int position, string expected)
     {
-        PhaseMover.Move(phases, Find(id), V6, position);
+        PhaseMover.Move(_phases, Find(id), V6, position);
 
         Assert.Equal(expected, CodesUnder(V6));
         Assert.Equal([1, 2, 3], OrdersUnder(V6));
@@ -47,7 +47,7 @@ public sealed class PhaseMoverTests
     [Fact]
     public void MovingUnderAnotherParent_JoinsItsPhasesAndClosesTheGapLeftBehind()
     {
-        PhaseMover.Move(phases, Find(A3), A2, 1);
+        PhaseMover.Move(_phases, Find(A3), A2, 1);
 
         Assert.Equal("A3,Rig", CodesUnder(A2));
         Assert.Equal([1, 2], OrdersUnder(A2));
@@ -58,7 +58,7 @@ public sealed class PhaseMoverTests
     [Fact]
     public void MovingToTheTopLevel_TakesThePhasesBeneathItAlong()
     {
-        PhaseMover.Move(phases, Find(A2), null, 2);
+        PhaseMover.Move(_phases, Find(A2), null, 2);
 
         Assert.Equal("V6,01-A2,SC,TOP", CodesUnder(null));
         Assert.Equal([1, 2, 3, 4], OrdersUnder(null));
@@ -69,7 +69,7 @@ public sealed class PhaseMoverTests
     [Fact]
     public void MovingUnderAPhaseWithNoPhases_MakesItTheFirst()
     {
-        PhaseMover.Move(phases, Find(Top), Sc, 5);
+        PhaseMover.Move(_phases, Find(Top), Sc, 5);
 
         Assert.Equal("TOP", CodesUnder(Sc));
         Assert.Equal([1], OrdersUnder(Sc));
@@ -82,7 +82,7 @@ public sealed class PhaseMoverTests
         Find(A3).DisplayOrder = 1;
         Find(A4).DisplayOrder = 1;
 
-        PhaseMover.Move(phases, Find(Top), V6, 99);
+        PhaseMover.Move(_phases, Find(Top), V6, 99);
 
         Assert.Equal("01-A2,A3,A4,TOP", CodesUnder(V6));
         Assert.Equal([1, 2, 3, 4], OrdersUnder(V6));
@@ -95,7 +95,7 @@ public sealed class PhaseMoverTests
     [InlineData(A2, Rig)]
     public void MovingUnderItselfOrAPhaseBeneathIt_IsRefusedAndChangesNothing(int id, int parentId)
     {
-        Assert.Throws<InvalidRequestException>(() => PhaseMover.Move(phases, Find(id), parentId, 1));
+        Assert.Throws<InvalidRequestException>(() => PhaseMover.Move(_phases, Find(id), parentId, 1));
 
         Assert.Equal("V6,SC,TOP", CodesUnder(null));
         Assert.Equal("01-A2,A3,A4", CodesUnder(V6));
@@ -105,7 +105,7 @@ public sealed class PhaseMoverTests
     [Fact]
     public void MovingUnderAParentThatDoesNotExist_IsRefused()
     {
-        Assert.Throws<NotFoundException>(() => PhaseMover.Move(phases, Find(A3), 99, 1));
+        Assert.Throws<NotFoundException>(() => PhaseMover.Move(_phases, Find(A3), 99, 1));
 
         Assert.Equal(V6, Find(A3).ParentPhaseId);
     }
@@ -115,8 +115,8 @@ public sealed class PhaseMoverTests
     {
         Find(V6).ParentPhaseId = Rig;
 
-        Assert.False(PhaseMover.IsInSubtree(phases, Sc, A3));
-        Assert.True(PhaseMover.IsInSubtree(phases, A2, A3));
+        Assert.False(PhaseMover.IsInSubtree(_phases, Sc, A3));
+        Assert.True(PhaseMover.IsInSubtree(_phases, A2, A3));
     }
 
     private static DbPhase Phase(int id, string code, int? parentId, int order)
@@ -126,7 +126,7 @@ public sealed class PhaseMoverTests
 
     private DbPhase Find(int id)
     {
-        return phases.Single(phase => phase.Id == id);
+        return _phases.Single(phase => phase.Id == id);
     }
 
     private string CodesUnder(int? parentId)
@@ -141,6 +141,6 @@ public sealed class PhaseMoverTests
 
     private IEnumerable<DbPhase> Under(int? parentId)
     {
-        return phases.Where(phase => phase.ParentPhaseId == parentId).OrderBy(phase => phase.DisplayOrder);
+        return _phases.Where(phase => phase.ParentPhaseId == parentId).OrderBy(phase => phase.DisplayOrder);
     }
 }

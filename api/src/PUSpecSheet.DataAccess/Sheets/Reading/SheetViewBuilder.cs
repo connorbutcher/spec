@@ -19,47 +19,47 @@ namespace PUSpecSheet.DataAccess.Sheets.Reading;
 /// </summary>
 internal sealed class SheetViewBuilder
 {
-    private readonly SheetSnapshot snapshot;
-    private readonly int currentUserId;
-    private readonly Dictionary<int, List<DbSheetSection>> topLevelByTable;
-    private readonly Dictionary<int, List<DbSheetSection>> childrenByParent;
-    private readonly Dictionary<int, List<DbSheetRow>> rowsBySection;
-    private readonly HashSet<int> hiddenColumnBlockIds;
-    private readonly Dictionary<int, int> tableBySection;
-    private readonly Dictionary<int, List<SheetLinkableColumnDto>> linkableColumnsByVersion = [];
-    private readonly LinkedOptionCollector linkedOptions;
-    private readonly Dictionary<int, int> columnBlockOrder;
-    private List<SheetLinkableRowDto> linkableRows = [];
+    private readonly SheetSnapshot _snapshot;
+    private readonly int _currentUserId;
+    private readonly Dictionary<int, List<DbSheetSection>> _topLevelByTable;
+    private readonly Dictionary<int, List<DbSheetSection>> _childrenByParent;
+    private readonly Dictionary<int, List<DbSheetRow>> _rowsBySection;
+    private readonly HashSet<int> _hiddenColumnBlockIds;
+    private readonly Dictionary<int, int> _tableBySection;
+    private readonly Dictionary<int, List<SheetLinkableColumnDto>> _linkableColumnsByVersion = [];
+    private readonly LinkedOptionCollector _linkedOptions;
+    private readonly Dictionary<int, int> _columnBlockOrder;
+    private List<SheetLinkableRowDto> _linkableRows = [];
 
     /// <summary>The template cells the sheet's cells were built from, each sent once, by id.</summary>
-    private readonly Dictionary<int, TemplateCellDto> templateCells = [];
+    private readonly Dictionary<int, TemplateCellDto> _templateCells = [];
 
     public SheetViewBuilder(SheetSnapshot snapshot, int currentUserId)
     {
-        this.snapshot = snapshot;
-        this.currentUserId = currentUserId;
-        tableBySection = snapshot.Sections.ToDictionary(section => section.Id, section => section.SheetTableId);
-        linkedOptions = new LinkedOptionCollector(snapshot.Values.Values.SelectMany(cells => cells.Values));
-        columnBlockOrder = snapshot.ColumnBlocks.ToDictionary(
+        _snapshot = snapshot;
+        _currentUserId = currentUserId;
+        _tableBySection = snapshot.Sections.ToDictionary(section => section.Id, section => section.SheetTableId);
+        _linkedOptions = new LinkedOptionCollector(snapshot.Values.Values.SelectMany(cells => cells.Values));
+        _columnBlockOrder = snapshot.ColumnBlocks.ToDictionary(
             block => block.Id,
             block => snapshot.ColumnBlockRevisions.GetValueOrDefault(block.Id)?.Shown?.DisplayOrder ?? 0);
 
         var visibleSections = snapshot.Sections
             .Where(section => RevisionResolver.IsVisible(snapshot.SectionRevisions.GetValueOrDefault(section.Id)))
             .ToList();
-        hiddenColumnBlockIds = snapshot.ColumnBlocks
+        _hiddenColumnBlockIds = snapshot.ColumnBlocks
             .Where(block => !RevisionResolver.IsVisible(snapshot.ColumnBlockRevisions.GetValueOrDefault(block.Id)))
             .Select(block => block.Id)
             .ToHashSet();
-        topLevelByTable = visibleSections
+        _topLevelByTable = visibleSections
             .Where(section => section.ParentSheetSectionId is null)
             .GroupBy(section => section.SheetTableId)
             .ToDictionary(group => group.Key, group => group.ToList());
-        childrenByParent = visibleSections
+        _childrenByParent = visibleSections
             .Where(section => section.ParentSheetSectionId is not null)
             .GroupBy(section => section.ParentSheetSectionId!.Value)
             .ToDictionary(group => group.Key, group => group.ToList());
-        rowsBySection = snapshot.Rows
+        _rowsBySection = snapshot.Rows
             .Where(row => RevisionResolver.IsVisible(snapshot.RowRevisions.GetValueOrDefault(row.Id)))
             .GroupBy(row => row.SheetSectionId)
             .ToDictionary(group => group.Key, group => group.ToList());
@@ -70,39 +70,39 @@ internal sealed class SheetViewBuilder
         var tables = BuildTables();
         var versions = BuildVersions();
         var templates = BuildAvailableTemplates();
-        var isLive = snapshot.AsOfUtc is null && snapshot.ReviewedSubmissionId is null;
+        var isLive = _snapshot.AsOfUtc is null && _snapshot.ReviewedSubmissionId is null;
         var drafts = Drafts().ToList();
         return new SheetDto(
-            snapshot.Sheet.Id,
-            snapshot.Sheet.PublicId,
-            snapshot.Sheet.PhaseId,
-            snapshot.Sheet.SheetTypeId,
+            _snapshot.Sheet.Id,
+            _snapshot.Sheet.PublicId,
+            _snapshot.Sheet.PhaseId,
+            _snapshot.Sheet.SheetTypeId,
             isLive,
-            snapshot.ViewedVersionNumber,
-            snapshot.AsOfUtc is { } moment ? Utc(moment) : null,
+            _snapshot.ViewedVersionNumber,
+            _snapshot.AsOfUtc is { } moment ? Utc(moment) : null,
             versions.Count == 0 ? null : versions[^1].VersionNumber,
-            DraftSummaries.CountOf(drafts, currentUserId),
+            DraftSummaries.CountOf(drafts, _currentUserId),
             versions,
             tables,
             templates)
         {
-            OtherDrafts = DraftSummaries.OfOthers(drafts, currentUserId, UserName),
-            Identifiers = [.. snapshot.Sheet.IdentifierValues.OrderBy(value => value.SheetTypeIdentifierId).Select(value => new SheetIdentifierValueDto(value.SheetTypeIdentifierId, value.Value))],
-            ReviewedSubmissionId = snapshot.ReviewedSubmissionId,
+            OtherDrafts = DraftSummaries.OfOthers(drafts, _currentUserId, UserName),
+            Identifiers = [.. _snapshot.Sheet.IdentifierValues.OrderBy(value => value.SheetTypeIdentifierId).Select(value => new SheetIdentifierValueDto(value.SheetTypeIdentifierId, value.Value))],
+            ReviewedSubmissionId = _snapshot.ReviewedSubmissionId,
 
             // Gathered while the tables above were built, so they hold exactly what the viewer can see.
-            LinkedSources = linkedOptions.Build(),
+            LinkedSources = _linkedOptions.Build(),
 
             // Gathered with the cells, so it holds the template of every cell shown and nothing more.
-            TemplateCells = [.. templateCells.Values.OrderBy(templateCell => templateCell.Id)],
+            TemplateCells = [.. _templateCells.Values.OrderBy(templateCell => templateCell.Id)],
         };
     }
 
     private List<SheetTableDto> BuildTables()
     {
-        return snapshot.Tables
-            .Where(table => RevisionResolver.IsVisible(snapshot.TableRevisions.GetValueOrDefault(table.Id)))
-            .OrderBy(table => snapshot.TableRevisions[table.Id].Shown!.DisplayOrder)
+        return _snapshot.Tables
+            .Where(table => RevisionResolver.IsVisible(_snapshot.TableRevisions.GetValueOrDefault(table.Id)))
+            .OrderBy(table => _snapshot.TableRevisions[table.Id].Shown!.DisplayOrder)
             .ThenBy(table => table.Id)
             .Select(BuildTable)
             .ToList();
@@ -110,32 +110,32 @@ internal sealed class SheetViewBuilder
 
     private List<SheetVersionSummaryDto> BuildVersions()
     {
-        return snapshot.Versions
+        return _snapshot.Versions
             .Select(version => version.ToSummaryDto())
             .ToList();
     }
 
     private List<AvailableTemplateDto> BuildAvailableTemplates()
     {
-        return snapshot.AvailableTemplates
+        return _snapshot.AvailableTemplates
             .Select(template => new AvailableTemplateDto(
                 template.Id,
                 template.Name,
-                snapshot.LatestTemplateVersions.GetValueOrDefault(template.Id, 1)))
+                _snapshot.LatestTemplateVersions.GetValueOrDefault(template.Id, 1)))
             .ToList();
     }
 
     private SheetTableDto BuildTable(DbSheetTable table)
     {
-        var resolution = snapshot.TableRevisions[table.Id];
+        var resolution = _snapshot.TableRevisions[table.Id];
         var version = table.TableTemplateVersion;
-        var topLevel = topLevelByTable.GetValueOrDefault(table.Id) ?? [];
+        var topLevel = _topLevelByTable.GetValueOrDefault(table.Id) ?? [];
 
         // Filled as the table's rows are built just below, so it is in the order they appear.
-        linkableRows = [];
+        _linkableRows = [];
         var sections = topLevel
             .OrderBy(section => section.TemplateSection.Role == SectionRole.Header ? 0 : 1)
-            .ThenBy(section => snapshot.SectionRevisions[section.Id].Shown!.DisplayOrder)
+            .ThenBy(section => _snapshot.SectionRevisions[section.Id].Shown!.DisplayOrder)
             .ThenBy(section => section.Id)
             .Select(section => BuildSection(section, topLevel))
             .ToList();
@@ -160,18 +160,18 @@ internal sealed class SheetViewBuilder
             AddableColumnBlocksFor(version.Id, blocks))
         {
             LinkableColumns = LinkableColumnsOf(version.Id),
-            LinkableRows = linkableRows,
+            LinkableRows = _linkableRows,
         };
     }
 
     /// <summary>The columns of a template version that can be linked to, worked out once per version.</summary>
     private List<SheetLinkableColumnDto> LinkableColumnsOf(int versionId)
     {
-        if (!linkableColumnsByVersion.TryGetValue(versionId, out var columns))
+        if (!_linkableColumnsByVersion.TryGetValue(versionId, out var columns))
         {
-            var sections = snapshot.TemplateSections.Where(section => section.TableTemplateVersionId == versionId).ToList();
-            columns = LinkableColumns.For(sections, snapshot.TemplateRows, snapshot.CellTypes);
-            linkableColumnsByVersion[versionId] = columns;
+            var sections = _snapshot.TemplateSections.Where(section => section.TableTemplateVersionId == versionId).ToList();
+            columns = LinkableColumns.For(sections, _snapshot.TemplateRows, _snapshot.CellTypes);
+            _linkableColumnsByVersion[versionId] = columns;
         }
 
         return columns;
@@ -179,20 +179,20 @@ internal sealed class SheetViewBuilder
 
     private SheetSectionDto BuildSection(DbSheetSection section, IReadOnlyList<DbSheetSection> siblings)
     {
-        var resolution = snapshot.SectionRevisions[section.Id];
+        var resolution = _snapshot.SectionRevisions[section.Id];
         var template = section.TemplateSection;
         var copies = siblings.Count(sibling => sibling.TemplateSectionId == section.TemplateSectionId);
-        var children = childrenByParent.GetValueOrDefault(section.Id) ?? [];
+        var children = _childrenByParent.GetValueOrDefault(section.Id) ?? [];
         var isHeader = template.Role == SectionRole.Header;
 
-        var rows = (rowsBySection.GetValueOrDefault(section.Id) ?? [])
-            .OrderBy(row => snapshot.RowRevisions[row.Id].Shown!.DisplayOrder)
+        var rows = (_rowsBySection.GetValueOrDefault(section.Id) ?? [])
+            .OrderBy(row => _snapshot.RowRevisions[row.Id].Shown!.DisplayOrder)
             .ThenBy(row => row.Id)
             .Select(row => BuildRow(row, isHeader))
             .ToList();
 
         var childSections = children
-            .OrderBy(child => snapshot.SectionRevisions[child.Id].Shown!.DisplayOrder)
+            .OrderBy(child => _snapshot.SectionRevisions[child.Id].Shown!.DisplayOrder)
             .ThenBy(child => child.Id)
             .Select(child => BuildSection(child, children))
             .ToList();
@@ -213,18 +213,18 @@ internal sealed class SheetViewBuilder
             rows,
             childSections,
             AddableSectionsUnder(template.TableTemplateVersionId, template.Id, children),
-            ChangeOf(snapshot.Changes.Sections, section.Id));
+            ChangeOf(_snapshot.Changes.Sections, section.Id));
     }
 
     private SheetRowDto BuildRow(DbSheetRow row, bool inHeader)
     {
-        var resolution = snapshot.RowRevisions[row.Id];
+        var resolution = _snapshot.RowRevisions[row.Id];
         var shown = resolution.Shown!;
-        var values = snapshot.Values.GetValueOrDefault(shown.Id);
-        var tableId = tableBySection[row.SheetSectionId];
+        var values = _snapshot.Values.GetValueOrDefault(shown.Id);
+        var tableId = _tableBySection[row.SheetSectionId];
 
         var onSheet = row.Cells
-            .Where(cell => cell.SheetColumnBlockId is not { } blockId || !hiddenColumnBlockIds.Contains(blockId))
+            .Where(cell => cell.SheetColumnBlockId is not { } blockId || !_hiddenColumnBlockIds.Contains(blockId))
             .ToList();
         OfferRowToLinkedDropdowns(tableId, row, onSheet, values);
 
@@ -235,7 +235,7 @@ internal sealed class SheetViewBuilder
             {
                 var value = values?.GetValueOrDefault(cell.Id);
                 OfferToLinkedDropdowns(tableId, cell, value);
-                return BuildCell(cell, value, ChangeOf(snapshot.Changes.Cells, cell.Id));
+                return BuildCell(cell, value, ChangeOf(_snapshot.Changes.Cells, cell.Id));
             })
             .ToList();
 
@@ -248,15 +248,15 @@ internal sealed class SheetViewBuilder
             IsPending(resolution),
             !inHeader,
             cells,
-            ChangeOf(snapshot.Changes.Rows, row.Id));
+            ChangeOf(_snapshot.Changes.Rows, row.Id));
     }
 
     private SheetCellDto BuildCell(DbSheetCell cell, CellValueBag? value, SheetChangeDto? change)
     {
         var template = cell.TemplateCell;
-        if (!templateCells.ContainsKey(template.Id))
+        if (!_templateCells.ContainsKey(template.Id))
         {
-            templateCells[template.Id] = template.ToDto();
+            _templateCells[template.Id] = template.ToDto();
         }
 
         return new SheetCellDto(
@@ -274,11 +274,11 @@ internal sealed class SheetViewBuilder
     /// <summary>Adds a visible cell's value to the choices of its column, when a linked dropdown is pointed at it.</summary>
     private void OfferToLinkedDropdowns(int tableId, DbSheetCell cell, CellValueBag? value)
     {
-        if (linkedOptions.Wants(tableId, cell.TemplateCellId)
-            && snapshot.CellTypes.TryGetValue(cell.TemplateCell.CellTypeId, out var cellType)
+        if (_linkedOptions.Wants(tableId, cell.TemplateCellId)
+            && _snapshot.CellTypes.TryGetValue(cell.TemplateCell.CellTypeId, out var cellType)
             && LinkedOptionText.Of(value, cellType, cell.TemplateCell.ConfigurationOverride) is { } text)
         {
-            linkedOptions.Add(tableId, cell.TemplateCellId, text);
+            _linkedOptions.Add(tableId, cell.TemplateCellId, text);
         }
     }
 
@@ -290,11 +290,11 @@ internal sealed class SheetViewBuilder
     private void OfferRowToLinkedDropdowns(int tableId, DbSheetRow row, List<DbSheetCell> cells, Dictionary<int, CellValueBag>? values)
     {
         var texts = cells
-            .OrderBy(cell => cell.SheetColumnBlockId is { } blockId ? 1 + columnBlockOrder.GetValueOrDefault(blockId) : 0)
+            .OrderBy(cell => cell.SheetColumnBlockId is { } blockId ? 1 + _columnBlockOrder.GetValueOrDefault(blockId) : 0)
             .ThenBy(cell => cell.SheetColumnBlockId ?? 0)
             .ThenBy(cell => cell.TemplateCell.Column)
             .ThenBy(cell => cell.Id)
-            .Select(cell => snapshot.CellTypes.TryGetValue(cell.TemplateCell.CellTypeId, out var cellType) && cellType.Kind.CanBeLinkedTo()
+            .Select(cell => _snapshot.CellTypes.TryGetValue(cell.TemplateCell.CellTypeId, out var cellType) && cellType.Kind.CanBeLinkedTo()
                 ? LinkedOptionText.Of(values?.GetValueOrDefault(cell.Id), cellType, cell.TemplateCell.ConfigurationOverride)
                 : null)
             .OfType<string>()
@@ -304,29 +304,29 @@ internal sealed class SheetViewBuilder
             return;
         }
 
-        linkableRows.Add(new SheetLinkableRowDto(row.Id, name));
-        if (linkedOptions.WantsRow(tableId, row.Id))
+        _linkableRows.Add(new SheetLinkableRowDto(row.Id, name));
+        if (_linkedOptions.WantsRow(tableId, row.Id))
         {
             foreach (var text in LinkedRowValues.ChoicesOf(texts))
             {
-                linkedOptions.AddToRow(tableId, row.Id, text);
+                _linkedOptions.AddToRow(tableId, row.Id, text);
             }
         }
     }
 
     private List<SheetColumnBlockDto> BuildColumnBlocks(DbSheetTable table)
     {
-        var visible = snapshot.ColumnBlocks
+        var visible = _snapshot.ColumnBlocks
             .Where(block => block.SheetTableId == table.Id
-                && RevisionResolver.IsVisible(snapshot.ColumnBlockRevisions.GetValueOrDefault(block.Id)))
+                && RevisionResolver.IsVisible(_snapshot.ColumnBlockRevisions.GetValueOrDefault(block.Id)))
             .ToList();
 
         return visible
-            .OrderBy(block => snapshot.ColumnBlockRevisions[block.Id].Shown!.DisplayOrder)
+            .OrderBy(block => _snapshot.ColumnBlockRevisions[block.Id].Shown!.DisplayOrder)
             .ThenBy(block => block.Id)
             .Select(block =>
             {
-                var resolution = snapshot.ColumnBlockRevisions[block.Id];
+                var resolution = _snapshot.ColumnBlockRevisions[block.Id];
                 var template = block.TemplateColumnBlock;
                 var copies = visible.Count(candidate => candidate.TemplateColumnBlockId == block.TemplateColumnBlockId);
                 return new SheetColumnBlockDto(
@@ -342,7 +342,7 @@ internal sealed class SheetViewBuilder
                     LockOf(resolution),
                     IsPending(resolution),
                     copies > template.MinInstances,
-                    ChangeOf(snapshot.Changes.ColumnBlocks, block.Id));
+                    ChangeOf(_snapshot.Changes.ColumnBlocks, block.Id));
             })
             .ToList();
     }
@@ -350,7 +350,7 @@ internal sealed class SheetViewBuilder
     /// <summary>The kinds of column block the table can still take, with their current counts.</summary>
     private List<AddableColumnBlockDto> AddableColumnBlocksFor(int versionId, IReadOnlyList<SheetColumnBlockDto> existing)
     {
-        return snapshot.TemplateColumnBlocks
+        return _snapshot.TemplateColumnBlocks
             .Where(template => template.TableTemplateVersionId == versionId)
             .OrderBy(template => template.DisplayOrder)
             .ThenBy(template => template.Id)
@@ -371,7 +371,7 @@ internal sealed class SheetViewBuilder
     /// <summary>The kinds of section that can be added under a parent (or the table), with their current counts.</summary>
     private List<AddableSectionDto> AddableSectionsUnder(int versionId, int? parentTemplateSectionId, IReadOnlyList<DbSheetSection> existingCopies)
     {
-        return snapshot.TemplateSections
+        return _snapshot.TemplateSections
             .Where(template => template.TableTemplateVersionId == versionId
                 && template.ParentSectionId == parentTemplateSectionId
                 && template.Role == SectionRole.Addable)
@@ -404,7 +404,7 @@ internal sealed class SheetViewBuilder
 
     private string UserName(int userId)
     {
-        return snapshot.UserNames.GetValueOrDefault(userId, "Unknown user");
+        return _snapshot.UserNames.GetValueOrDefault(userId, "Unknown user");
     }
 
     private SheetLockDto? LockOf<TRevision>(RevisionResolution<TRevision> resolution)
@@ -415,7 +415,7 @@ internal sealed class SheetViewBuilder
             return null;
         }
 
-        return new SheetLockDto(draft.AuthorUserId, UserName(draft.AuthorUserId), draft.AuthorUserId == currentUserId)
+        return new SheetLockDto(draft.AuthorUserId, UserName(draft.AuthorUserId), draft.AuthorUserId == _currentUserId)
         {
             IsAwaitingApproval = draft.SheetSubmissionId is not null,
         };
@@ -437,10 +437,10 @@ internal sealed class SheetViewBuilder
     /// </summary>
     private IEnumerable<IDbSheetRevision> Drafts()
     {
-        return snapshot.TableRevisions.Values.Select(resolution => (IDbSheetRevision?)resolution.Draft)
-            .Concat(snapshot.SectionRevisions.Values.Select(resolution => resolution.Draft))
-            .Concat(snapshot.RowRevisions.Values.Select(resolution => resolution.Draft))
-            .Concat(snapshot.ColumnBlockRevisions.Values.Select(resolution => resolution.Draft))
+        return _snapshot.TableRevisions.Values.Select(resolution => (IDbSheetRevision?)resolution.Draft)
+            .Concat(_snapshot.SectionRevisions.Values.Select(resolution => resolution.Draft))
+            .Concat(_snapshot.RowRevisions.Values.Select(resolution => resolution.Draft))
+            .Concat(_snapshot.ColumnBlockRevisions.Values.Select(resolution => resolution.Draft))
             .OfType<IDbSheetRevision>()
             .Where(draft => draft.SheetSubmissionId is null);
     }

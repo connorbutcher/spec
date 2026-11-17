@@ -20,16 +20,16 @@ public sealed record RowTakeoverDto
         DateTime expiresAtUtc,
         RowTakeoverStatus status)
     {
-        this.Id = id;
-        this.SheetId = sheetId;
-        this.RowId = rowId;
-        this.RequesterUserId = requesterUserId;
-        this.RequesterName = requesterName;
-        this.HolderUserId = holderUserId;
-        this.HolderName = holderName;
-        this.RequestedAtUtc = requestedAtUtc;
-        this.ExpiresAtUtc = expiresAtUtc;
-        this.Status = status;
+        Id = id;
+        SheetId = sheetId;
+        RowId = rowId;
+        RequesterUserId = requesterUserId;
+        RequesterName = requesterName;
+        HolderUserId = holderUserId;
+        HolderName = holderName;
+        RequestedAtUtc = requestedAtUtc;
+        ExpiresAtUtc = expiresAtUtc;
+        Status = status;
     }
 
     public Guid Id { get; init; }

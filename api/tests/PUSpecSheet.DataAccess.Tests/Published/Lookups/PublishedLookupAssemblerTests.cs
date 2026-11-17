@@ -13,12 +13,12 @@ public sealed class PublishedLookupAssemblerTests
 {
     private const string PartNumberKey = "partNumber";
 
-    private static readonly ResolvedSheetVersion Version = new(1, Id(1), 2, new DateTime(2026, 10, 4, 18, 0, 0, DateTimeKind.Utc));
+    private static readonly ResolvedSheetVersion _version = new(1, Id(1), 2, new DateTime(2026, 10, 4, 18, 0, 0, DateTimeKind.Utc));
 
     // Table 1 is horizontal: a header (10), a "Limits" section (20) and a "Single value" section (30),
     // with part blocks 5 then 6. Block 7 was removed. Table 2 is vertical: a header (40) and a group (50)
     // holding a limits section (51).
-    private static readonly PublishedStructure Structure = new(
+    private static readonly PublishedStructure _structure = new(
         [
             new PublishedTableRecord(1, Id(100), 0, false, "Piston parts"),
             new PublishedTableRecord(2, Id(200), 1, false, "Pressures"),
@@ -39,7 +39,7 @@ public sealed class PublishedLookupAssemblerTests
         ]);
 
     // The horizontal table as read for a match in block 6: the rows' own cells and block 6's cells.
-    private static readonly PublishedLookupCellRecord[] PartColumn =
+    private static readonly PublishedLookupCellRecord[] _partColumn =
     [
         Cell(row: 1, section: 10, rowOrder: 0, cell: 1, column: 1, kind: CellKind.Heading, caption: "Description", header: true),
         Cell(row: 1, section: 10, rowOrder: 0, cell: 2, column: 1, block: 6, key: PartNumberKey, header: true),
@@ -52,7 +52,7 @@ public sealed class PublishedLookupAssemblerTests
         Cell(row: 3, section: 20, rowOrder: 0, cell: 5, column: 1),
     ];
 
-    private static readonly Dictionary<int, object> PartValues = new()
+    private static readonly Dictionary<int, object> _partValues = new()
     {
         [2] = "P-1003",
         [5] = "Bore (mm)",
@@ -65,7 +65,7 @@ public sealed class PublishedLookupAssemblerTests
     [Fact]
     public void ACellInAColumnBlock_BringsThatColumnWithEachRowsOwnValues()
     {
-        var match = PublishedLookupAssembler.Assemble(PartHit(), Version, Structure, PartColumn, PartValues);
+        var match = PublishedLookupAssembler.Assemble(PartHit(), _version, _structure, _partColumn, _partValues);
 
         Assert.Equal(Id(100), match.Table);
         Assert.Equal("Piston parts", match.Title);
@@ -88,10 +88,10 @@ public sealed class PublishedLookupAssemblerTests
     [Fact]
     public void AnEmptyCell_KeepsItsPlaceAsNull()
     {
-        var values = new Dictionary<int, object>(PartValues);
+        var values = new Dictionary<int, object>(_partValues);
         values.Remove(6);
 
-        var match = PublishedLookupAssembler.Assemble(PartHit(), Version, Structure, PartColumn, values);
+        var match = PublishedLookupAssembler.Assemble(PartHit(), _version, _structure, _partColumn, values);
 
         Assert.Equal([null, 82.04m], match.Rows[RowId(3)].Columns!["P-1003"]);
     }
@@ -101,7 +101,7 @@ public sealed class PublishedLookupAssemblerTests
     {
         var values = new Dictionary<int, object> { [2] = "P-1003" };
 
-        var match = PublishedLookupAssembler.Assemble(PartHit(), Version, Structure, PartColumn, values);
+        var match = PublishedLookupAssembler.Assemble(PartHit(), _version, _structure, _partColumn, values);
 
         Assert.Empty(match.Rows);
     }
@@ -111,12 +111,12 @@ public sealed class PublishedLookupAssemblerTests
     {
         PublishedLookupCellRecord[] cells =
         [
-            .. PartColumn,
+            .. _partColumn,
             Cell(row: 1, section: 10, rowOrder: 0, cell: 30, column: 1, block: 5, key: PartNumberKey, header: true),
         ];
-        var values = new Dictionary<int, object>(PartValues) { [30] = "P-1002" };
+        var values = new Dictionary<int, object>(_partValues) { [30] = "P-1002" };
 
-        var match = PublishedLookupAssembler.Assemble(PartHit(), Version, Structure, cells, values);
+        var match = PublishedLookupAssembler.Assemble(PartHit(), _version, _structure, cells, values);
 
         Assert.Equal("P-1003", match.Column);
         Assert.Equal([RowId(3), RowId(4)], match.Rows.Keys);
@@ -139,9 +139,9 @@ public sealed class PublishedLookupAssemblerTests
         var values = new Dictionary<int, object> { [23] = "Oil system", [24] = "Oil pressure (bar)", [25] = 2.5m, [26] = 4.2m };
         var hit = Hit(table: 2, section: 50, row: 11, cell: 23, block: null, header: false);
 
-        Assert.Equal([50, 51], PublishedLookupAssembler.ScopeSections(hit, Structure)!.Order());
+        Assert.Equal([50, 51], PublishedLookupAssembler.ScopeSections(hit, _structure)!.Order());
 
-        var match = PublishedLookupAssembler.Assemble(hit, Version, Structure, cells, values);
+        var match = PublishedLookupAssembler.Assemble(hit, _version, _structure, cells, values);
 
         Assert.Null(match.Column);
         Assert.Equal(["Description", "Min", "Max"], match.Headings);
@@ -184,7 +184,7 @@ public sealed class PublishedLookupAssemblerTests
         };
         var hit = Hit(table: 1, section: 20, row: 3, cell: 5, block: null, header: false);
 
-        var match = PublishedLookupAssembler.Assemble(hit, Version, Structure, cells, values);
+        var match = PublishedLookupAssembler.Assemble(hit, _version, _structure, cells, values);
 
         Assert.Null(match.Column);
         Assert.Equal(["Description"], match.Headings);
@@ -201,15 +201,15 @@ public sealed class PublishedLookupAssemblerTests
     {
         var hit = Hit(table: 2, section: 40, row: 10, cell: 20, block: null, header: true);
 
-        Assert.Null(PublishedLookupAssembler.ScopeSections(hit, Structure));
+        Assert.Null(PublishedLookupAssembler.ScopeSections(hit, _structure));
     }
 
     [Fact]
     public void ACellInARemovedBlockOrSection_IsNotOnTheSheet()
     {
-        Assert.True(PublishedLookupAssembler.IsOnSheet(PartHit(), Structure));
-        Assert.False(PublishedLookupAssembler.IsOnSheet(Hit(table: 1, section: 10, row: 1, cell: 31, block: 7, header: true), Structure));
-        Assert.False(PublishedLookupAssembler.IsOnSheet(Hit(table: 1, section: 99, row: 1, cell: 2, block: null, header: false), Structure));
+        Assert.True(PublishedLookupAssembler.IsOnSheet(PartHit(), _structure));
+        Assert.False(PublishedLookupAssembler.IsOnSheet(Hit(table: 1, section: 10, row: 1, cell: 31, block: 7, header: true), _structure));
+        Assert.False(PublishedLookupAssembler.IsOnSheet(Hit(table: 1, section: 99, row: 1, cell: 2, block: null, header: false), _structure));
     }
 
     private static PublishedLookupHit PartHit()

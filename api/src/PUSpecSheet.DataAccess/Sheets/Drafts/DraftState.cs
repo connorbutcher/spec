@@ -6,8 +6,8 @@ public sealed record DraftState<TRevision>
 {
     public DraftState(TRevision? current, TRevision? draft)
     {
-        this.Current = current;
-        this.Draft = draft;
+        Current = current;
+        Draft = draft;
     }
 
     public TRevision? Current { get; init; }

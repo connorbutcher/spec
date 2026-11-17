@@ -5,8 +5,8 @@ public sealed record PublishedRowDto
 {
     public PublishedRowDto(Guid id, IReadOnlyList<PublishedCellDto> cells)
     {
-        this.Id = id;
-        this.Cells = cells;
+        Id = id;
+        Cells = cells;
     }
 
     public Guid Id { get; init; }

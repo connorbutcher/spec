@@ -10,11 +10,11 @@ namespace PUSpecSheet.DataAccess.Published.Versions;
 /// </summary>
 public sealed class PublishedVersionResolver
 {
-    private readonly PuSpecSheetDbContext db;
+    private readonly PuSpecSheetDbContext _db;
 
     public PublishedVersionResolver(PuSpecSheetDbContext db)
     {
-        this.db = db;
+        _db = db;
     }
 
     public async Task<ResolvedSheetVersion> ResolveAsync(
@@ -22,7 +22,7 @@ public sealed class PublishedVersionResolver
         PublishedVersionPoint point,
         CancellationToken cancellationToken)
     {
-        var found = await PublishedSheetQueries.FindVersionAsync(db, sheetPublicId, point, cancellationToken)
+        var found = await PublishedSheetQueries.FindVersionAsync(_db, sheetPublicId, point, cancellationToken)
             ?? throw new NotFoundException(Describe(sheetPublicId, point));
 
         return new ResolvedSheetVersion(

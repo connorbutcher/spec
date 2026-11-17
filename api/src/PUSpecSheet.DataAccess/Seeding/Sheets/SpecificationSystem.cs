@@ -10,11 +10,11 @@ public sealed record SpecificationSystem
         (string Fastener, int Thread, decimal Torque, int Angle)[] joints,
         (string Surface, decimal Ra)[] finishes)
     {
-        this.Name = name;
-        this.Dimensions = dimensions;
-        this.Materials = materials;
-        this.Joints = joints;
-        this.Finishes = finishes;
+        Name = name;
+        Dimensions = dimensions;
+        Materials = materials;
+        Joints = joints;
+        Finishes = finishes;
     }
 
     public string Name { get; init; }

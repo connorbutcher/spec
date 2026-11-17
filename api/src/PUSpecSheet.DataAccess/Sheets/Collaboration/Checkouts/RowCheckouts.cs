@@ -13,11 +13,11 @@ namespace PUSpecSheet.DataAccess.Sheets.Collaboration.Checkouts;
 
 public sealed class RowCheckouts : IRowCheckouts
 {
-    private readonly PuSpecSheetDbContext db;
-    private readonly LiveRowCheckoutTracker live;
-    private readonly SheetPresenceTracker presence;
-    private readonly ISheetLiveNotifier notifier;
-    private readonly TimeProvider clock;
+    private readonly PuSpecSheetDbContext _db;
+    private readonly LiveRowCheckoutTracker _live;
+    private readonly SheetPresenceTracker _presence;
+    private readonly ISheetLiveNotifier _notifier;
+    private readonly TimeProvider _clock;
 
     public RowCheckouts(
         PuSpecSheetDbContext db,
@@ -26,11 +26,11 @@ public sealed class RowCheckouts : IRowCheckouts
         ISheetLiveNotifier notifier,
         TimeProvider clock)
     {
-        this.db = db;
-        this.live = live;
-        this.presence = presence;
-        this.notifier = notifier;
-        this.clock = clock;
+        _db = db;
+        _live = live;
+        _presence = presence;
+        _notifier = notifier;
+        _clock = clock;
     }
 
     public async Task<RowCheckout?> FindAsync(int rowId, CancellationToken cancellationToken)
@@ -41,19 +41,19 @@ public sealed class RowCheckouts : IRowCheckouts
         }
 
         // Someone who is only in the row has, by definition, changed nothing.
-        return live.HolderOf(rowId) is { } holder
+        return _live.HolderOf(rowId) is { } holder
             ? new RowCheckout(holder.SheetId, holder.UserId, hasChanges: false)
             : null;
     }
 
     public async Task<int?> DraftHolderAsync(int rowId, CancellationToken cancellationToken)
     {
-        return await SheetRowRevisionQueries.FindDraftAuthorAsync(db, rowId, cancellationToken);
+        return await SheetRowRevisionQueries.FindDraftAuthorAsync(_db, rowId, cancellationToken);
     }
 
     public async Task<int?> SheetOfAsync(int rowId, CancellationToken cancellationToken)
     {
-        return await SheetRowQueries.FindSheetIdAsync(db, rowId, cancellationToken);
+        return await SheetRowQueries.FindSheetIdAsync(_db, rowId, cancellationToken);
     }
 
     public async Task<RowTransfer> TransferAsync(int rowId, int fromUserId, int toUserId, CancellationToken cancellationToken)
@@ -70,13 +70,13 @@ public sealed class RowCheckouts : IRowCheckouts
 
     public async Task<IReadOnlyDictionary<int, string>> DisplayNamesAsync(IReadOnlyCollection<int> userIds, CancellationToken cancellationToken)
     {
-        return await UserQueries.GetDisplayNamesAsync(db, userIds, cancellationToken);
+        return await UserQueries.GetDisplayNamesAsync(_db, userIds, cancellationToken);
     }
 
     /// <summary>The row's checkout only if it is a draft: someone has saved something on it.</summary>
     private async Task<RowCheckout?> FindDraftAsync(int rowId, CancellationToken cancellationToken)
     {
-        var revisions = await SheetRowRevisionQueries.ListCurrentAndDraftAsync(db, rowId, cancellationToken);
+        var revisions = await SheetRowRevisionQueries.ListCurrentAndDraftAsync(_db, rowId, cancellationToken);
         var draft = revisions.SingleOrDefault(revision => revision.Status == RevisionStatus.Draft);
         if (draft is null)
         {
@@ -90,7 +90,7 @@ public sealed class RowCheckouts : IRowCheckouts
 
     private async Task<bool> TransferDraftAsync(int rowId, int fromUserId, int toUserId, CancellationToken cancellationToken)
     {
-        var draft = await SheetRowRevisionQueries.FindDraftForEditAsync(db, rowId, cancellationToken);
+        var draft = await SheetRowRevisionQueries.FindDraftForEditAsync(_db, rowId, cancellationToken);
         // A draft waiting for approval stays with its author until it is decided.
         if (draft is null || draft.AuthorUserId != fromUserId || draft.SheetSubmissionId is not null)
         {
@@ -99,8 +99,8 @@ public sealed class RowCheckouts : IRowCheckouts
 
         // The draft's row version makes this fail, as a conflict, if its holder saves at the same moment.
         draft.AuthorUserId = toUserId;
-        draft.UpdatedAtUtc = clock.GetUtcNow().UtcDateTime;
-        await db.SaveSheetChangesAsync(cancellationToken);
+        draft.UpdatedAtUtc = _clock.GetUtcNow().UtcDateTime;
+        await _db.SaveSheetChangesAsync(cancellationToken);
         return true;
     }
 
@@ -110,19 +110,19 @@ public sealed class RowCheckouts : IRowCheckouts
     /// </summary>
     private async Task<bool> TransferLiveAsync(int rowId, int fromUserId, int toUserId, CancellationToken cancellationToken)
     {
-        if (live.HolderOf(rowId) is not { } holder || holder.UserId != fromUserId)
+        if (_live.HolderOf(rowId) is not { } holder || holder.UserId != fromUserId)
         {
             return false;
         }
 
-        live.ReleaseRow(rowId);
-        if (presence.FindConnectionOf(holder.SheetId, toUserId) is { } tab)
+        _live.ReleaseRow(rowId);
+        if (_presence.FindConnectionOf(holder.SheetId, toUserId) is { } tab)
         {
             var handedOn = holder with { UserId = toUserId, DisplayName = tab.Connection.DisplayName };
-            live.TryCheckOut(tab.ConnectionId, handedOn, out _);
+            _live.TryCheckOut(tab.ConnectionId, handedOn, out _);
         }
 
-        await notifier.CheckoutsChangedAsync(holder.SheetId, live.OnSheet(holder.SheetId), cancellationToken);
+        await _notifier.CheckoutsChangedAsync(holder.SheetId, _live.OnSheet(holder.SheetId), cancellationToken);
         return true;
     }
 
@@ -138,7 +138,7 @@ public sealed class RowCheckouts : IRowCheckouts
             return true;
         }
 
-        var held = await RowValueQueries.LoadAsync(db, [draft.Id, published.Id], cancellationToken);
+        var held = await RowValueQueries.LoadAsync(_db, [draft.Id, published.Id], cancellationToken);
         return !CellValuesComparer.Same(held.GetValueOrDefault(draft.Id), held.GetValueOrDefault(published.Id));
     }
 }

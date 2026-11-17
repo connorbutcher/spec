@@ -15,9 +15,9 @@ public sealed record SubmitSheetRequest
         [Required, MinLength(1), MaxLength(20)] IReadOnlyList<int> approverUserIds,
         [EnumDataType(typeof(PublishScope))] PublishScope scope = PublishScope.Mine)
     {
-        this.Note = note;
-        this.ApproverUserIds = approverUserIds;
-        this.Scope = scope;
+        Note = note;
+        ApproverUserIds = approverUserIds;
+        Scope = scope;
     }
 
     public string? Note { get; init; }

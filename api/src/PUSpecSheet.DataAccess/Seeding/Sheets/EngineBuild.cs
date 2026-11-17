@@ -5,9 +5,9 @@ public sealed record EngineBuild
 {
     public EngineBuild(string serialNumber, DateOnly? buildDate, string? configuration)
     {
-        this.SerialNumber = serialNumber;
-        this.BuildDate = buildDate;
-        this.Configuration = configuration;
+        SerialNumber = serialNumber;
+        BuildDate = buildDate;
+        Configuration = configuration;
     }
 
     public string SerialNumber { get; init; }

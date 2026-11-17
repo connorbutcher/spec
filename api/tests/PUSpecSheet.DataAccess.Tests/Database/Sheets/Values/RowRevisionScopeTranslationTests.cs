@@ -11,26 +11,26 @@ namespace PUSpecSheet.DataAccess.Tests.Database.Sheets.Values;
 /// </summary>
 public sealed class RowRevisionScopeTranslationTests : IDisposable
 {
-    private readonly PuSpecSheetDbContext db = new(
+    private readonly PuSpecSheetDbContext _db = new(
         new DbContextOptionsBuilder<PuSpecSheetDbContext>()
             .UseSqlServer("Server=unused;Database=unused")
             .Options);
 
     public void Dispose()
     {
-        db.Dispose();
+        _db.Dispose();
     }
 
     [Fact]
     public void AQueryScope_IsASubqueryOnTheSheet_WithNoListOfIds()
     {
         var sheetId = 7;
-        var scope = RowRevisionScope.Of(db.SheetRowRevisions
+        var scope = RowRevisionScope.Of(_db.SheetRowRevisions
             .Where(revision => revision.SheetId == sheetId)
             .CurrentAndDrafts()
             .Select(revision => revision.Id));
 
-        var sql = scope.Apply(db.NumericValues).ToQueryString();
+        var sql = scope.Apply(_db.NumericValues).ToQueryString();
 
         Assert.Contains("[SheetId] = @sheetId", sql);
         Assert.Contains("UNION ALL", sql);
@@ -43,7 +43,7 @@ public sealed class RowRevisionScopeTranslationTests : IDisposable
     {
         var scope = RowRevisionScope.Of([1, 2, 3]);
 
-        var sql = scope.Apply(db.TextValues).ToQueryString();
+        var sql = scope.Apply(_db.TextValues).ToQueryString();
 
         Assert.Contains("IN (@listed1, @listed2, @listed3)", sql);
         Assert.False(scope.IsEmpty);

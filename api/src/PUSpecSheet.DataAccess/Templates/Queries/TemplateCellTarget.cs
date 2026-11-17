@@ -5,8 +5,8 @@ public sealed record TemplateCellTarget
 {
     public TemplateCellTarget(int tableTemplateVersionId, int nextColumn)
     {
-        this.TableTemplateVersionId = tableTemplateVersionId;
-        this.NextColumn = nextColumn;
+        TableTemplateVersionId = tableTemplateVersionId;
+        NextColumn = nextColumn;
     }
 
     public int TableTemplateVersionId { get; init; }

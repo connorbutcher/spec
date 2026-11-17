@@ -8,12 +8,12 @@ public sealed record AddableSectionDto
 {
     public AddableSectionDto(int templateSectionId, string name, int count, int minInstances, int? maxInstances, bool canAdd)
     {
-        this.TemplateSectionId = templateSectionId;
-        this.Name = name;
-        this.Count = count;
-        this.MinInstances = minInstances;
-        this.MaxInstances = maxInstances;
-        this.CanAdd = canAdd;
+        TemplateSectionId = templateSectionId;
+        Name = name;
+        Count = count;
+        MinInstances = minInstances;
+        MaxInstances = maxInstances;
+        CanAdd = canAdd;
     }
 
     public int TemplateSectionId { get; init; }

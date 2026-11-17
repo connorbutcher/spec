@@ -20,17 +20,17 @@ public sealed class SheetCreator
 {
     private const int LockTimeoutMilliseconds = 15000;
 
-    private readonly PuSpecSheetDbContext db;
-    private readonly SheetCopier copier;
-    private readonly IPhaseDataService phases;
-    private readonly ISheetTypeDataService sheetTypes;
+    private readonly PuSpecSheetDbContext _db;
+    private readonly SheetCopier _copier;
+    private readonly IPhaseDataService _phases;
+    private readonly ISheetTypeDataService _sheetTypes;
 
     public SheetCreator(PuSpecSheetDbContext db, SheetCopier copier, IPhaseDataService phases, ISheetTypeDataService sheetTypes)
     {
-        this.db = db;
-        this.copier = copier;
-        this.phases = phases;
-        this.sheetTypes = sheetTypes;
+        _db = db;
+        _copier = copier;
+        _phases = phases;
+        _sheetTypes = sheetTypes;
     }
 
     /// <summary>
@@ -40,11 +40,11 @@ public sealed class SheetCreator
     public async Task<int> CreateAsync(int phaseId, CreateSheetRequest request, CancellationToken cancellationToken)
     {
         await EnsureAvailableAsync(phaseId, request.SheetTypeId, cancellationToken);
-        var definitions = await sheetTypes.ListIdentifierDefinitionsAsync(request.SheetTypeId, cancellationToken);
+        var definitions = await _sheetTypes.ListIdentifierDefinitionsAsync(request.SheetTypeId, cancellationToken);
         var values = CheckedValues(definitions, request.Identifiers);
         var copyFrom = await FindCopySourceAsync(request, cancellationToken);
 
-        await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
+        await using var transaction = await _db.Database.BeginTransactionAsync(cancellationToken);
         await TakeIdentityLockAsync(phaseId, request.SheetTypeId, cancellationToken);
         if (await HasSheetWithIdentityAsync(phaseId, request.SheetTypeId, definitions, values, cancellationToken))
         {
@@ -59,12 +59,12 @@ public sealed class SheetCreator
             sheet.IdentifierValues.Add(new DbSheetIdentifierValue { SheetTypeIdentifierId = value.Definition.Id, Value = value.Value });
         }
 
-        db.Sheets.Add(sheet);
-        await db.SaveChangesAsync(cancellationToken);
+        _db.Sheets.Add(sheet);
+        await _db.SaveChangesAsync(cancellationToken);
 
         if (copyFrom is { } sourceId)
         {
-            await copier.CopyAsync(sourceId, sheet.Id, cancellationToken);
+            await _copier.CopyAsync(sourceId, sheet.Id, cancellationToken);
         }
 
         await transaction.CommitAsync(cancellationToken);
@@ -79,23 +79,23 @@ public sealed class SheetCreator
     public async Task<int> CreateUnidentifiedAsync(int phaseId, int sheetTypeId, CancellationToken cancellationToken)
     {
         await EnsureAvailableAsync(phaseId, sheetTypeId, cancellationToken);
-        var definitions = await sheetTypes.ListIdentifierDefinitionsAsync(sheetTypeId, cancellationToken);
+        var definitions = await _sheetTypes.ListIdentifierDefinitionsAsync(sheetTypeId, cancellationToken);
         if (definitions.Any(definition => definition.IsRequired))
         {
             throw new InvalidRequestException("Sheets of this type need their identifiers. Create one from the phase's list of sheets.");
         }
 
-        await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
+        await using var transaction = await _db.Database.BeginTransactionAsync(cancellationToken);
         await TakeIdentityLockAsync(phaseId, sheetTypeId, cancellationToken);
-        var existingId = await SheetQueries.FindIdAsync(db, phaseId, sheetTypeId, cancellationToken);
+        var existingId = await SheetQueries.FindIdAsync(_db, phaseId, sheetTypeId, cancellationToken);
         if (existingId is { } id)
         {
             return id;
         }
 
         var sheet = new DbSheet { PhaseId = phaseId, SheetTypeId = sheetTypeId };
-        db.Sheets.Add(sheet);
-        await db.SaveChangesAsync(cancellationToken);
+        _db.Sheets.Add(sheet);
+        await _db.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
         return sheet.Id;
     }
@@ -143,7 +143,7 @@ public sealed class SheetCreator
 
     private async Task EnsureAvailableAsync(int phaseId, int sheetTypeId, CancellationToken cancellationToken)
     {
-        if (!await phases.HasSheetTypeAsync(phaseId, sheetTypeId, cancellationToken))
+        if (!await _phases.HasSheetTypeAsync(phaseId, sheetTypeId, cancellationToken))
         {
             throw new NotFoundException("That sheet type isn't available to that phase.");
         }
@@ -156,7 +156,7 @@ public sealed class SheetCreator
             return null;
         }
 
-        var source = await SheetQueries.FindAsync(db, sourceId, cancellationToken)
+        var source = await SheetQueries.FindAsync(_db, sourceId, cancellationToken)
             ?? throw new NotFoundException($"Sheet {sourceId} was not found.");
         if (source.SheetTypeId != request.SheetTypeId)
         {
@@ -172,7 +172,7 @@ public sealed class SheetCreator
     private async Task TakeIdentityLockAsync(int phaseId, int sheetTypeId, CancellationToken cancellationToken)
     {
         var resource = $"SheetIdentity:{phaseId}:{sheetTypeId}";
-        await db.Database.ExecuteSqlAsync(
+        await _db.Database.ExecuteSqlAsync(
             $"""
             DECLARE @result int;
             EXEC @result = sp_getapplock
@@ -195,7 +195,7 @@ public sealed class SheetCreator
     {
         var byId = definitions.ToDictionary(definition => definition.Id);
         var wanted = SheetIdentifierRules.ComparisonKey(values);
-        var sheets = await SheetQueries.ListWithIdentifiersAsync(db, phaseId, sheetTypeId, cancellationToken);
+        var sheets = await SheetQueries.ListWithIdentifiersAsync(_db, phaseId, sheetTypeId, cancellationToken);
         return sheets.Any(sheet => SheetIdentifierRules.ComparisonKey(sheet.IdentifierValues
             .Select(value => new SheetIdentifierValue(byId[value.SheetTypeIdentifierId], value.Value))) == wanted);
     }

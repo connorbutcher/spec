@@ -7,7 +7,7 @@ public sealed record SetPhaseSheetTypesRequest
 {
     public SetPhaseSheetTypesRequest([Required] IReadOnlyList<int> sheetTypeIds)
     {
-        this.SheetTypeIds = sheetTypeIds;
+        SheetTypeIds = sheetTypeIds;
     }
 
     public IReadOnlyList<int> SheetTypeIds { get; init; }

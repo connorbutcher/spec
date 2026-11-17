@@ -13,11 +13,11 @@ namespace PUSpecSheet.DataAccess.Sheets.Layout;
 /// </summary>
 public sealed class SheetInstantiator
 {
-    private readonly ICurrentUser currentUser;
+    private readonly ICurrentUser _currentUser;
 
     public SheetInstantiator(ICurrentUser currentUser)
     {
-        this.currentUser = currentUser;
+        _currentUser = currentUser;
     }
 
     /// <summary>How many copies of a section a new table or parent starts with. The header is always at least one.</summary>
@@ -80,7 +80,7 @@ public sealed class SheetInstantiator
             RevisionNumber = 1,
             Status = RevisionStatus.Draft,
             DisplayOrder = displayOrder,
-            AuthorUserId = currentUser.UserId,
+            AuthorUserId = _currentUser.UserId,
             CreatedAtUtc = DateTime.UtcNow,
             UpdatedAtUtc = DateTime.UtcNow,
         });
@@ -127,7 +127,7 @@ public sealed class SheetInstantiator
             RevisionNumber = 1,
             Status = RevisionStatus.Draft,
             DisplayOrder = displayOrder,
-            AuthorUserId = currentUser.UserId,
+            AuthorUserId = _currentUser.UserId,
             CreatedAtUtc = DateTime.UtcNow,
             UpdatedAtUtc = DateTime.UtcNow,
         });
@@ -153,7 +153,7 @@ public sealed class SheetInstantiator
             RevisionNumber = 1,
             Status = RevisionStatus.Draft,
             DisplayOrder = displayOrder,
-            AuthorUserId = currentUser.UserId,
+            AuthorUserId = _currentUser.UserId,
             CreatedAtUtc = DateTime.UtcNow,
             UpdatedAtUtc = DateTime.UtcNow,
         });

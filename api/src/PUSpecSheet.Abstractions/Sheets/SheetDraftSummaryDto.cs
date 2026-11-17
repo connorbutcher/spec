@@ -5,9 +5,9 @@ public sealed record SheetDraftSummaryDto
 {
     public SheetDraftSummaryDto(int userId, string userName, int draftCount)
     {
-        this.UserId = userId;
-        this.UserName = userName;
-        this.DraftCount = draftCount;
+        UserId = userId;
+        UserName = userName;
+        DraftCount = draftCount;
     }
 
     public int UserId { get; init; }

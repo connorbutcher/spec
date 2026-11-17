@@ -7,8 +7,8 @@ public sealed record CellValueRequest
 {
     public CellValueRequest(int sheetCellId, JsonElement? value)
     {
-        this.SheetCellId = sheetCellId;
-        this.Value = value;
+        SheetCellId = sheetCellId;
+        Value = value;
     }
 
     /// <summary>The cell to set.</summary>

@@ -9,7 +9,7 @@ namespace PUSpecSheet.DataAccess.Tests.Sheets.Layout;
 public sealed class SheetCellPlannerTests
 {
     // Template: a header row (cells 1 = stub, 2 = in block 10) and a data row (cells 3 = stub, 4 and 5 = in block 10).
-    private static readonly (int TemplateCellId, int TemplateRowId, int? TemplateColumnBlockId)[] TemplateCells =
+    private static readonly (int TemplateCellId, int TemplateRowId, int? TemplateColumnBlockId)[] _templateCells =
     [
         (1, 100, null),
         (2, 100, 10),
@@ -23,7 +23,7 @@ public sealed class SheetCellPlannerTests
     {
         var missing = SheetCellPlanner.Missing(
             [(1, 100), (2, 200)],
-            TemplateCells,
+            _templateCells,
             [(50, 10)],
             []);
 
@@ -43,10 +43,10 @@ public sealed class SheetCellPlannerTests
     {
         var rows = new[] { (1, 100), (2, 200), (3, 200), (4, 200) };
         var existing = SheetCellPlanner
-            .Missing(rows, TemplateCells, [(50, 10)], [])
+            .Missing(rows, _templateCells, [(50, 10)], [])
             .ToList();
 
-        var missing = SheetCellPlanner.Missing(rows, TemplateCells, [(50, 10), (51, 10)], existing);
+        var missing = SheetCellPlanner.Missing(rows, _templateCells, [(50, 10), (51, 10)], existing);
 
         Assert.Equal(
             [(1, 2, 51), (2, 4, 51), (2, 5, 51), (3, 4, 51), (3, 5, 51), (4, 4, 51), (4, 5, 51)],
@@ -57,9 +57,9 @@ public sealed class SheetCellPlannerTests
     public void AddingARow_GivesItCellsInEveryBlockCopy()
     {
         var blocks = new[] { (50, 10), (51, 10), (52, 10) };
-        var existing = SheetCellPlanner.Missing([(1, 100)], TemplateCells, blocks, []).ToList();
+        var existing = SheetCellPlanner.Missing([(1, 100)], _templateCells, blocks, []).ToList();
 
-        var missing = SheetCellPlanner.Missing([(1, 100), (2, 200)], TemplateCells, blocks, existing);
+        var missing = SheetCellPlanner.Missing([(1, 100), (2, 200)], _templateCells, blocks, existing);
 
         Assert.Equal(
             [(2, 3, (int?)null), (2, 4, 50), (2, 4, 51), (2, 4, 52), (2, 5, 50), (2, 5, 51), (2, 5, 52)],
@@ -71,9 +71,9 @@ public sealed class SheetCellPlannerTests
     {
         var rows = new[] { (1, 100), (2, 200) };
         var blocks = new[] { (50, 10), (51, 10) };
-        var filled = SheetCellPlanner.Missing(rows, TemplateCells, blocks, []).ToList();
+        var filled = SheetCellPlanner.Missing(rows, _templateCells, blocks, []).ToList();
 
-        Assert.Empty(SheetCellPlanner.Missing(rows, TemplateCells, blocks, filled));
+        Assert.Empty(SheetCellPlanner.Missing(rows, _templateCells, blocks, filled));
     }
 
     [Fact]
@@ -93,7 +93,7 @@ public sealed class SheetCellPlannerTests
     {
         var missing = SheetCellPlanner.Missing(
             [(1, 200)],
-            TemplateCells,
+            _templateCells,
             [(60, 99)],
             []);
 

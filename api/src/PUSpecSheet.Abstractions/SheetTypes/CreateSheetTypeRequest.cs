@@ -7,7 +7,7 @@ public sealed record CreateSheetTypeRequest
 {
     public CreateSheetTypeRequest([Required, MaxLength(100)] string name)
     {
-        this.Name = name;
+        Name = name;
     }
 
     public string Name { get; init; }

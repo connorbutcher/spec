@@ -15,11 +15,11 @@ namespace PUSpecSheet.Api.Controllers.Sheets;
 [Authorize(Policy = PermissionKeys.SheetsEdit)]
 public sealed class SheetColumnBlocksController : ControllerBase
 {
-    private readonly ISheetColumnBlocksService columnBlocks;
+    private readonly ISheetColumnBlocksService _columnBlocks;
 
     public SheetColumnBlocksController(ISheetColumnBlocksService columnBlocks)
     {
-        this.columnBlocks = columnBlocks;
+        _columnBlocks = columnBlocks;
     }
 
     /// <summary>Add a column block to a table</summary>
@@ -34,7 +34,7 @@ public sealed class SheetColumnBlocksController : ControllerBase
     [HttpPost("sheet-tables/{tableId:int}/column-blocks")]
     public async Task<ActionResult<SheetDto>> Add(int tableId, AddSheetColumnBlockRequest request, CancellationToken cancellationToken)
     {
-        var result = await columnBlocks.AddAsync(tableId, request, cancellationToken);
+        var result = await _columnBlocks.AddAsync(tableId, request, cancellationToken);
         return Ok(result);
     }
 
@@ -49,7 +49,7 @@ public sealed class SheetColumnBlocksController : ControllerBase
     [HttpPost("sheet-column-blocks/{id:int}/move")]
     public async Task<ActionResult<SheetDto>> Move(int id, MoveRequest request, CancellationToken cancellationToken)
     {
-        var result = await columnBlocks.MoveAsync(id, request, cancellationToken);
+        var result = await _columnBlocks.MoveAsync(id, request, cancellationToken);
         return Ok(result);
     }
 
@@ -64,7 +64,7 @@ public sealed class SheetColumnBlocksController : ControllerBase
     [HttpDelete("sheet-column-blocks/{id:int}")]
     public async Task<ActionResult<SheetDto>> Remove(int id, CancellationToken cancellationToken)
     {
-        var result = await columnBlocks.RemoveAsync(id, cancellationToken);
+        var result = await _columnBlocks.RemoveAsync(id, cancellationToken);
         return Ok(result);
     }
 }

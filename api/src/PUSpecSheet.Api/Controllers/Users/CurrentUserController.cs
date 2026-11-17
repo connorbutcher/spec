@@ -10,11 +10,11 @@ namespace PUSpecSheet.Api.Controllers.Users;
 [Route("api/me")]
 public sealed class CurrentUserController : ControllerBase
 {
-    private readonly IUserAccessService userAccess;
+    private readonly IUserAccessService _userAccess;
 
     public CurrentUserController(IUserAccessService userAccess)
     {
-        this.userAccess = userAccess;
+        _userAccess = userAccess;
     }
 
     /// <summary>Get the current user</summary>
@@ -28,7 +28,7 @@ public sealed class CurrentUserController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<CurrentUserDto>> Get(CancellationToken cancellationToken)
     {
-        var result = await userAccess.GetCurrentUserAsync(cancellationToken);
+        var result = await _userAccess.GetCurrentUserAsync(cancellationToken);
         return Ok(result);
     }
 }

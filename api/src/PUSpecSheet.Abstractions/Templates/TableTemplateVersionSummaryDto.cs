@@ -5,10 +5,10 @@ public sealed record TableTemplateVersionSummaryDto
 {
     public TableTemplateVersionSummaryDto(int id, int versionNumber, DateTime createdAtUtc, bool isInUse)
     {
-        this.Id = id;
-        this.VersionNumber = versionNumber;
-        this.CreatedAtUtc = createdAtUtc;
-        this.IsInUse = isInUse;
+        Id = id;
+        VersionNumber = versionNumber;
+        CreatedAtUtc = createdAtUtc;
+        IsInUse = isInUse;
     }
 
     public int Id { get; init; }

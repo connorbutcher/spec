@@ -12,20 +12,20 @@ namespace PUSpecSheet.DataAccess.Tests.Database.Sheets.Revisions;
 /// </summary>
 public sealed class SheetRevisionQueryTranslationTests : IDisposable
 {
-    private readonly PuSpecSheetDbContext db = new(
+    private readonly PuSpecSheetDbContext _db = new(
         new DbContextOptionsBuilder<PuSpecSheetDbContext>()
             .UseSqlServer("Server=unused;Database=unused")
             .Options);
 
     public void Dispose()
     {
-        db.Dispose();
+        _db.Dispose();
     }
 
     [Fact]
     public void CurrentAndDrafts_IsTheTwoIndexedCases_NotOnePredicateOverEveryRevision()
     {
-        var sql = db.SheetRowRevisions.Where(revision => revision.SheetRowId == 5).CurrentAndDrafts().ToQueryString();
+        var sql = _db.SheetRowRevisions.Where(revision => revision.SheetRowId == 5).CurrentAndDrafts().ToQueryString();
 
         Assert.Contains("[Status] = 1 AND [s].[SupersededAtUtc] IS NULL", sql);
         Assert.Contains("UNION ALL", sql);
@@ -35,7 +35,7 @@ public sealed class SheetRevisionQueryTranslationTests : IDisposable
     [Fact]
     public void VisibleTo_TakesOnlyThatUsersDrafts()
     {
-        var sql = db.SheetSectionRevisions.Where(revision => revision.SheetSectionId == 5).VisibleTo(42).ToQueryString();
+        var sql = _db.SheetSectionRevisions.Where(revision => revision.SheetSectionId == 5).VisibleTo(42).ToQueryString();
 
         Assert.Contains("[Status] = 1 AND [s].[SupersededAtUtc] IS NULL", sql);
         Assert.Contains("UNION ALL", sql);
@@ -45,7 +45,7 @@ public sealed class SheetRevisionQueryTranslationTests : IDisposable
     [Fact]
     public void Current_MatchesTheOneCurrentRevisionIndex()
     {
-        var sql = db.SheetTableRevisions.Current().ToQueryString();
+        var sql = _db.SheetTableRevisions.Current().ToQueryString();
 
         Assert.Contains("[Status] = 1 AND [s].[SupersededAtUtc] IS NULL", sql);
         Assert.DoesNotContain("UNION", sql);
@@ -54,7 +54,7 @@ public sealed class SheetRevisionQueryTranslationTests : IDisposable
     [Fact]
     public void DraftsInAPublishOfMyOwn_AreOnlyMine()
     {
-        var sql = db.SheetRowRevisions.DraftsIn(PublishScope.Mine, 42).ToQueryString();
+        var sql = _db.SheetRowRevisions.DraftsIn(PublishScope.Mine, 42).ToQueryString();
 
         Assert.Contains("[Status] = 0 AND [s].[AuthorUserId] = @userId", sql);
     }
@@ -62,7 +62,7 @@ public sealed class SheetRevisionQueryTranslationTests : IDisposable
     [Fact]
     public void DraftsInAPublishOfEverything_AreEveryonesDrafts_AndNothingPublished()
     {
-        var sql = db.SheetRowRevisions.DraftsIn(PublishScope.All, 42).ToQueryString();
+        var sql = _db.SheetRowRevisions.DraftsIn(PublishScope.All, 42).ToQueryString();
 
         Assert.Contains("[Status] = 0", sql);
         Assert.DoesNotContain("AuthorUserId] =", sql);
@@ -71,7 +71,7 @@ public sealed class SheetRevisionQueryTranslationTests : IDisposable
     [Fact]
     public void DraftsInAPublish_LeaveOutDraftsWaitingForApproval()
     {
-        var sql = db.SheetRowRevisions.DraftsIn(PublishScope.All, 42).ToQueryString();
+        var sql = _db.SheetRowRevisions.DraftsIn(PublishScope.All, 42).ToQueryString();
 
         Assert.Contains("[SheetSubmissionId] IS NULL", sql);
     }
@@ -79,7 +79,7 @@ public sealed class SheetRevisionQueryTranslationTests : IDisposable
     [Fact]
     public void InSubmission_IsThatSubmissionsDrafts()
     {
-        var sql = db.SheetTableRevisions.InSubmission(12).ToQueryString();
+        var sql = _db.SheetTableRevisions.InSubmission(12).ToQueryString();
 
         Assert.Contains("[Status] = 0 AND [s].[SheetSubmissionId] = @submissionId", sql);
     }
@@ -91,7 +91,7 @@ public sealed class SheetRevisionQueryTranslationTests : IDisposable
     {
         var ids = Enumerable.Range(1, count).ToList();
 
-        var sql = db.SheetRowRevisions.Where(revision => ids.Contains(revision.SheetRowId)).Current().ToQueryString();
+        var sql = _db.SheetRowRevisions.Where(revision => ids.Contains(revision.SheetRowId)).Current().ToQueryString();
 
         Assert.Contains(expected, sql);
     }
@@ -101,7 +101,7 @@ public sealed class SheetRevisionQueryTranslationTests : IDisposable
     {
         var sheetId = 7;
 
-        var sql = db.SheetRowRevisions.Where(revision => revision.SheetId == sheetId).DraftsOf(42).ToQueryString();
+        var sql = _db.SheetRowRevisions.Where(revision => revision.SheetId == sheetId).DraftsOf(42).ToQueryString();
 
         Assert.Contains("[SheetId] = @sheetId", sql);
         Assert.Contains("[Status] = 0 AND [s].[AuthorUserId] = @userId", sql);

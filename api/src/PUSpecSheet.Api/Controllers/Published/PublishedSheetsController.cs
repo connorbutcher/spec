@@ -19,11 +19,11 @@ namespace PUSpecSheet.Api.Controllers.Published;
 [AllowAnonymous]
 public sealed class PublishedSheetsController : ControllerBase
 {
-    private readonly IPublishedSheetsService sheets;
+    private readonly IPublishedSheetsService _sheets;
 
     public PublishedSheetsController(IPublishedSheetsService sheets)
     {
-        this.sheets = sheets;
+        _sheets = sheets;
     }
 
     /// <summary>List a phase's sheets of a type</summary>
@@ -45,7 +45,7 @@ public sealed class PublishedSheetsController : ControllerBase
         CancellationToken cancellationToken)
     {
         var identifiers = PublishedIdentifierQuery.From(Request.Query, nameof(phase), nameof(sheetType));
-        var result = await sheets.ListAsync(phase, sheetType, identifiers, cancellationToken);
+        var result = await _sheets.ListAsync(phase, sheetType, identifiers, cancellationToken);
         return Ok(result);
     }
 
@@ -75,7 +75,7 @@ public sealed class PublishedSheetsController : ControllerBase
         CancellationToken cancellationToken)
     {
         var identifiers = PublishedIdentifierQuery.From(Request.Query, nameof(phase), nameof(sheetType));
-        var result = await sheets.FindAsync(phase, sheetType, identifiers, cancellationToken);
+        var result = await _sheets.FindAsync(phase, sheetType, identifiers, cancellationToken);
         return Ok(result);
     }
 
@@ -89,7 +89,7 @@ public sealed class PublishedSheetsController : ControllerBase
     [HttpGet("{sheetPublicId:guid}/versions")]
     public async Task<ActionResult<IReadOnlyList<PublishedVersionDto>>> Versions(Guid sheetPublicId, CancellationToken cancellationToken)
     {
-        var result = await sheets.VersionsAsync(sheetPublicId, cancellationToken);
+        var result = await _sheets.VersionsAsync(sheetPublicId, cancellationToken);
         return Ok(result);
     }
 
@@ -200,7 +200,7 @@ public sealed class PublishedSheetsController : ControllerBase
         bool isFixed,
         CancellationToken cancellationToken)
     {
-        var version = await sheets.ResolveAsync(sheetPublicId, point, cancellationToken);
+        var version = await _sheets.ResolveAsync(sheetPublicId, point, cancellationToken);
         var etag = PublishedSheetHttpCache.ETagFor(version, selection);
         PublishedSheetHttpCache.Apply(Response, etag, isFixed);
 
@@ -214,7 +214,7 @@ public sealed class PublishedSheetsController : ControllerBase
             return StatusCode(StatusCodes.Status304NotModified);
         }
 
-        var result = await sheets.ReadAsync(version, selection, cancellationToken);
+        var result = await _sheets.ReadAsync(version, selection, cancellationToken);
         return Ok(result);
     }
 }

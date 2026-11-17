@@ -14,13 +14,13 @@ namespace PUSpecSheet.DataAccess.Seeding.Sheets;
 /// </summary>
 public sealed class SheetEditor
 {
-    private readonly ShowcaseCellTypeCatalog cellTypes;
-    private readonly ISheetsService sheets;
-    private readonly ISheetTablesService tables;
-    private readonly ISheetSectionsService sections;
-    private readonly ISheetRowsService rows;
-    private readonly ISheetColumnBlocksService columnBlocks;
-    private readonly ISheetCellSettingsService cellSettings;
+    private readonly ShowcaseCellTypeCatalog _cellTypes;
+    private readonly ISheetsService _sheets;
+    private readonly ISheetTablesService _tables;
+    private readonly ISheetSectionsService _sections;
+    private readonly ISheetRowsService _rows;
+    private readonly ISheetColumnBlocksService _columnBlocks;
+    private readonly ISheetCellSettingsService _cellSettings;
 
     public SheetEditor(
         SheetDto sheet,
@@ -32,14 +32,14 @@ public sealed class SheetEditor
         ISheetColumnBlocksService columnBlocks,
         ISheetCellSettingsService cellSettings)
     {
-        this.cellTypes = cellTypes;
-        this.sheets = sheets;
-        this.tables = tables;
-        this.sections = sections;
-        this.rows = rows;
-        this.columnBlocks = columnBlocks;
-        this.cellSettings = cellSettings;
-        this.Sheet = sheet;
+        _cellTypes = cellTypes;
+        _sheets = sheets;
+        _tables = tables;
+        _sections = sections;
+        _rows = rows;
+        _columnBlocks = columnBlocks;
+        _cellSettings = cellSettings;
+        Sheet = sheet;
     }
 
     /// <summary>The sheet as the current user last saw it.</summary>
@@ -49,9 +49,9 @@ public sealed class SheetEditor
     public async Task<int> AddTableAsync(int templateId, string title, CancellationToken cancellationToken)
     {
         var before = Sheet.Tables.Select(table => table.Id).ToHashSet();
-        Sheet = await tables.AddAsync(Sheet.Id, new AddSheetTableRequest(templateId), cancellationToken);
+        Sheet = await _tables.AddAsync(Sheet.Id, new AddSheetTableRequest(templateId), cancellationToken);
         var tableId = Sheet.Tables.Single(table => !before.Contains(table.Id)).Id;
-        Sheet = await tables.SetTitleAsync(tableId, new SetSheetTableTitleRequest(title), cancellationToken);
+        Sheet = await _tables.SetTitleAsync(tableId, new SetSheetTableTitleRequest(title), cancellationToken);
         return tableId;
     }
 
@@ -77,7 +77,7 @@ public sealed class SheetEditor
 
             var addable = (parent is null ? Table(tableId).AddableSections : FindSection(tableId, parent.Id).AddableSections)
                 .Single(section => section.Name == name);
-            Sheet = await sections.AddAsync(tableId, new AddSheetSectionRequest(addable.TemplateSectionId, parent?.Id), cancellationToken);
+            Sheet = await _sections.AddAsync(tableId, new AddSheetSectionRequest(addable.TemplateSectionId, parent?.Id), cancellationToken);
         }
     }
 
@@ -89,7 +89,7 @@ public sealed class SheetEditor
 
     public async Task RemoveSectionAsync(SheetSectionDto section, CancellationToken cancellationToken)
     {
-        Sheet = await sections.RemoveAsync(section.Id, cancellationToken);
+        Sheet = await _sections.RemoveAsync(section.Id, cancellationToken);
     }
 
     /// <summary>The section <paramref name="sectionId"/> as it is now.</summary>
@@ -110,7 +110,7 @@ public sealed class SheetEditor
     {
         var before = Table(tableId).ColumnBlocks.Select(block => block.Id).ToHashSet();
         var addable = Table(tableId).AddableColumnBlocks.Single(block => block.Name == name);
-        Sheet = await columnBlocks.AddAsync(tableId, new AddSheetColumnBlockRequest(addable.TemplateColumnBlockId), cancellationToken);
+        Sheet = await _columnBlocks.AddAsync(tableId, new AddSheetColumnBlockRequest(addable.TemplateColumnBlockId), cancellationToken);
         return Table(tableId).ColumnBlocks.Single(block => !before.Contains(block.Id));
     }
 
@@ -123,39 +123,39 @@ public sealed class SheetEditor
     /// <summary>Fills the row's own cells, left to right, with <paramref name="values"/>.</summary>
     public async Task FillAsync(SheetRowDto row, params object?[] values)
     {
-        await SaveAsync(row, SheetValues.For(Sheet, row, null, cellTypes, values), CancellationToken.None);
+        await SaveAsync(row, SheetValues.For(Sheet, row, null, _cellTypes, values), CancellationToken.None);
     }
 
     /// <summary>The requests that fill a row's own cells, or its cells in one column block copy.</summary>
     public List<CellValueRequest> Values(SheetRowDto row, int? columnBlockId, params object?[] values)
     {
-        return SheetValues.For(Sheet, row, columnBlockId, cellTypes, values);
+        return SheetValues.For(Sheet, row, columnBlockId, _cellTypes, values);
     }
 
     public async Task SaveAsync(SheetRowDto row, List<CellValueRequest> requests, CancellationToken cancellationToken)
     {
         if (requests.Count > 0)
         {
-            Sheet = await rows.SaveValuesAsync(row.Id, new SaveRowValuesRequest(requests), cancellationToken);
+            Sheet = await _rows.SaveValuesAsync(row.Id, new SaveRowValuesRequest(requests), cancellationToken);
         }
     }
 
     /// <summary>Chooses a cell's settings on the sheet: where a linked dropdown takes its choices from, for example.</summary>
     public async Task ChooseSettingsAsync(SheetRowDto row, SheetCellDto cell, CellInstanceSettings settings, CancellationToken cancellationToken)
     {
-        Sheet = await cellSettings.SaveAsync(row.Id, new SaveRowCellSettingsRequest([new CellSettingsRequest(cell.Id, settings)]), cancellationToken);
+        Sheet = await _cellSettings.SaveAsync(row.Id, new SaveRowCellSettingsRequest([new CellSettingsRequest(cell.Id, settings)]), cancellationToken);
     }
 
     /// <summary>Publishes the current user's drafts as the sheet's next version.</summary>
     public async Task PublishAsync(string note, CancellationToken cancellationToken)
     {
-        Sheet = await sheets.PublishAsync(Sheet.Id, note, PublishScope.Mine, cancellationToken);
+        Sheet = await _sheets.PublishAsync(Sheet.Id, note, PublishScope.Mine, cancellationToken);
     }
 
     /// <summary>Reads the sheet again, as whoever the current user now is.</summary>
     public async Task RefreshAsync(CancellationToken cancellationToken)
     {
-        Sheet = await sheets.GetAsync(Sheet.Id, SheetViewPoint.Live, cancellationToken);
+        Sheet = await _sheets.GetAsync(Sheet.Id, SheetViewPoint.Live, cancellationToken);
     }
 
     private static IEnumerable<SheetSectionDto> Flatten(IEnumerable<SheetSectionDto> sections)

@@ -7,7 +7,7 @@ public sealed record MoveRequest
 {
     public MoveRequest([Range(1, int.MaxValue)] int displayOrder)
     {
-        this.DisplayOrder = displayOrder;
+        DisplayOrder = displayOrder;
     }
 
     public int DisplayOrder { get; init; }

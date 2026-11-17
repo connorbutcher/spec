@@ -21,7 +21,7 @@ public sealed class PfkRegisterTemplate : IShowcaseTemplate
     public const string OperationNote = "Operation note";
     public const string Revalidation = "Revalidation";
 
-    private static readonly CellStyle Banner = new() { BackgroundColor = "#e2e8f0", Align = CellTextAlign.Center };
+    private static readonly CellStyle _banner = new() { BackgroundColor = "#e2e8f0", Align = CellTextAlign.Center };
 
     public string SheetTypeName => ShowcasePhases.PfksSheetType;
 
@@ -39,8 +39,8 @@ public sealed class PfkRegisterTemplate : IShowcaseTemplate
             layout.Cell(ShowcaseCellTypeNames.Heading, 1, "PFK no.", rowSpan: 2),
             layout.Cell(ShowcaseCellTypeNames.Heading, 2, "Feature", rowSpan: 2),
             layout.Cell(ShowcaseCellTypeNames.Heading, 3, "Class", rowSpan: 2),
-            layout.Cell(ShowcaseCellTypeNames.Heading, 4, "Tolerance", columnSpan: 2, style: Banner),
-            layout.Cell(ShowcaseCellTypeNames.Heading, 6, "Control", columnSpan: 4, style: Banner));
+            layout.Cell(ShowcaseCellTypeNames.Heading, 4, "Tolerance", columnSpan: 2, style: _banner),
+            layout.Cell(ShowcaseCellTypeNames.Heading, 6, "Control", columnSpan: 4, style: _banner));
         layout.Row(
             header,
             layout.Cell(ShowcaseCellTypeNames.Heading, 4, "Lower"),

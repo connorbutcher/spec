@@ -9,29 +9,29 @@ namespace PUSpecSheet.DataAccess.Seeding.ReferenceData;
 /// </summary>
 public sealed class ShowcaseCellTypeCatalog
 {
-    private readonly Dictionary<string, DbCellType> byName;
+    private readonly Dictionary<string, DbCellType> _byName;
 
-    private readonly Dictionary<int, DbCellType> byId;
+    private readonly Dictionary<int, DbCellType> _byId;
 
     public ShowcaseCellTypeCatalog(IReadOnlyList<DbCellType> cellTypes)
     {
-        this.byName = cellTypes.ToDictionary(cellType => cellType.Name, StringComparer.OrdinalIgnoreCase);
-        this.byId = cellTypes.ToDictionary(cellType => cellType.Id);
+        _byName = cellTypes.ToDictionary(cellType => cellType.Name, StringComparer.OrdinalIgnoreCase);
+        _byId = cellTypes.ToDictionary(cellType => cellType.Id);
     }
 
     /// <summary>The id of the cell type called <paramref name="name"/>.</summary>
-    public int this[string name] => byName[name].Id;
+    public int this[string name] => _byName[name].Id;
 
     /// <summary>The kind of the cell type <paramref name="cellTypeId"/>.</summary>
     public CellKind KindOf(int cellTypeId)
     {
-        return byId[cellTypeId].Kind;
+        return _byId[cellTypeId].Kind;
     }
 
     /// <summary>The id of the option of dropdown cell type <paramref name="cellTypeId"/> whose value is <paramref name="value"/>.</summary>
     public int OptionId(int cellTypeId, string value)
     {
-        var option = byId[cellTypeId].Options.FirstOrDefault(candidate => string.Equals(candidate.Value, value, StringComparison.OrdinalIgnoreCase));
-        return option?.Id ?? throw new InvalidOperationException($"'{byId[cellTypeId].Name}' has no option '{value}'.");
+        var option = _byId[cellTypeId].Options.FirstOrDefault(candidate => string.Equals(candidate.Value, value, StringComparison.OrdinalIgnoreCase));
+        return option?.Id ?? throw new InvalidOperationException($"'{_byId[cellTypeId].Name}' has no option '{value}'.");
     }
 }

@@ -10,9 +10,9 @@ public sealed record CreateTemplateSectionRequest
 {
     public CreateTemplateSectionRequest(int tableTemplateVersionId, int? parentSectionId, [Required, MaxLength(100)] string name)
     {
-        this.TableTemplateVersionId = tableTemplateVersionId;
-        this.ParentSectionId = parentSectionId;
-        this.Name = name;
+        TableTemplateVersionId = tableTemplateVersionId;
+        ParentSectionId = parentSectionId;
+        Name = name;
     }
 
     public int TableTemplateVersionId { get; init; }

@@ -8,9 +8,9 @@ public sealed record PublishedLookupDto
 {
     public PublishedLookupDto(string key, string value, IReadOnlyList<PublishedLookupMatchDto> matches)
     {
-        this.Key = key;
-        this.Value = value;
-        this.Matches = matches;
+        Key = key;
+        Value = value;
+        Matches = matches;
     }
 
     public string Key { get; init; }

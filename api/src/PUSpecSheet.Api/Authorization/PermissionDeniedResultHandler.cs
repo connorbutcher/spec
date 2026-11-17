@@ -10,13 +10,13 @@ namespace PUSpecSheet.Api.Authorization;
 /// </summary>
 public sealed class PermissionDeniedResultHandler : IAuthorizationMiddlewareResultHandler
 {
-    private readonly AuthorizationMiddlewareResultHandler fallback = new();
+    private readonly AuthorizationMiddlewareResultHandler _fallback = new();
 
-    private readonly IProblemDetailsService problemDetails;
+    private readonly IProblemDetailsService _problemDetails;
 
     public PermissionDeniedResultHandler(IProblemDetailsService problemDetails)
     {
-        this.problemDetails = problemDetails;
+        _problemDetails = problemDetails;
     }
 
     public async Task HandleAsync(
@@ -31,12 +31,12 @@ public sealed class PermissionDeniedResultHandler : IAuthorizationMiddlewareResu
 
         if (!authorizeResult.Forbidden || missing is null)
         {
-            await fallback.HandleAsync(next, context, policy, authorizeResult);
+            await _fallback.HandleAsync(next, context, policy, authorizeResult);
             return;
         }
 
         context.Response.StatusCode = StatusCodes.Status403Forbidden;
-        await problemDetails.TryWriteAsync(new ProblemDetailsContext
+        await _problemDetails.TryWriteAsync(new ProblemDetailsContext
         {
             HttpContext = context,
             ProblemDetails = new ProblemDetails

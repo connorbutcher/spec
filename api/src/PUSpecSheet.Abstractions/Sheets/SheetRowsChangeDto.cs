@@ -13,10 +13,10 @@ public sealed record SheetRowsChangeDto
 {
     public SheetRowsChangeDto(int sheetId, IReadOnlyList<SheetRowDto> rows, int? latestVersionNumber, int myDraftCount)
     {
-        this.SheetId = sheetId;
-        this.Rows = rows;
-        this.LatestVersionNumber = latestVersionNumber;
-        this.MyDraftCount = myDraftCount;
+        SheetId = sheetId;
+        Rows = rows;
+        LatestVersionNumber = latestVersionNumber;
+        MyDraftCount = myDraftCount;
     }
 
     /// <summary>The sheet's id.</summary>

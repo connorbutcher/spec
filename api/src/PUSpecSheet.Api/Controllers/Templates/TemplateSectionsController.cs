@@ -15,11 +15,11 @@ namespace PUSpecSheet.Api.Controllers.Templates;
 [Authorize(Policy = PermissionKeys.TemplatesManage)]
 public sealed class TemplateSectionsController : ControllerBase
 {
-    private readonly ITemplateSectionsService sections;
+    private readonly ITemplateSectionsService _sections;
 
     public TemplateSectionsController(ITemplateSectionsService sections)
     {
-        this.sections = sections;
+        _sections = sections;
     }
 
     /// <summary>Add a section</summary>
@@ -34,7 +34,7 @@ public sealed class TemplateSectionsController : ControllerBase
         CreateTemplateSectionRequest request,
         CancellationToken cancellationToken)
     {
-        var result = await sections.CreateAsync(request, cancellationToken);
+        var result = await _sections.CreateAsync(request, cancellationToken);
         return Ok(result);
     }
 
@@ -54,7 +54,7 @@ public sealed class TemplateSectionsController : ControllerBase
         UpdateTemplateSectionRequest request,
         CancellationToken cancellationToken)
     {
-        var result = await sections.UpdateAsync(id, request, cancellationToken);
+        var result = await _sections.UpdateAsync(id, request, cancellationToken);
         return Ok(result);
     }
 
@@ -69,7 +69,7 @@ public sealed class TemplateSectionsController : ControllerBase
     [HttpPost("{id:int}/move")]
     public async Task<ActionResult<TableTemplateDto>> Move(int id, MoveRequest request, CancellationToken cancellationToken)
     {
-        var result = await sections.MoveAsync(id, request, cancellationToken);
+        var result = await _sections.MoveAsync(id, request, cancellationToken);
         return Ok(result);
     }
 
@@ -83,7 +83,7 @@ public sealed class TemplateSectionsController : ControllerBase
     [HttpDelete("{id:int}")]
     public async Task<ActionResult<TableTemplateDto>> Delete(int id, CancellationToken cancellationToken)
     {
-        var result = await sections.DeleteAsync(id, cancellationToken);
+        var result = await _sections.DeleteAsync(id, cancellationToken);
         return Ok(result);
     }
 }

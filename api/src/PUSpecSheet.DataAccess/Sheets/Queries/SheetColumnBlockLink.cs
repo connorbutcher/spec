@@ -5,8 +5,8 @@ public sealed record SheetColumnBlockLink
 {
     public SheetColumnBlockLink(int id, int templateColumnBlockId)
     {
-        this.Id = id;
-        this.TemplateColumnBlockId = templateColumnBlockId;
+        Id = id;
+        TemplateColumnBlockId = templateColumnBlockId;
     }
 
     public int Id { get; init; }

@@ -4,9 +4,9 @@ public sealed record CellTypeOptionDto
 {
     public CellTypeOptionDto(int id, string value, int displayOrder)
     {
-        this.Id = id;
-        this.Value = value;
-        this.DisplayOrder = displayOrder;
+        Id = id;
+        Value = value;
+        DisplayOrder = displayOrder;
     }
 
     public int Id { get; init; }

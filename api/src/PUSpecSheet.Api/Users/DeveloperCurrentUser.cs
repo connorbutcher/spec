@@ -11,14 +11,14 @@ namespace PUSpecSheet.Api.Users;
 /// </summary>
 public sealed class DeveloperCurrentUser : ICurrentUser
 {
-    private readonly IHttpContextAccessor httpContext;
-    private readonly BackgroundUser backgroundUser;
+    private readonly IHttpContextAccessor _httpContext;
+    private readonly BackgroundUser _backgroundUser;
 
     public DeveloperCurrentUser(IHttpContextAccessor httpContext, BackgroundUser backgroundUser)
     {
-        this.httpContext = httpContext;
-        this.backgroundUser = backgroundUser;
+        _httpContext = httpContext;
+        _backgroundUser = backgroundUser;
     }
 
-    public int UserId => httpContext.HttpContext?.User.FindUserId() ?? backgroundUser.UserId ?? WellKnownUsers.DeveloperId;
+    public int UserId => _httpContext.HttpContext?.User.FindUserId() ?? _backgroundUser.UserId ?? WellKnownUsers.DeveloperId;
 }

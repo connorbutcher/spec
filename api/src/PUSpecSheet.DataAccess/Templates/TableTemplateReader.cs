@@ -12,24 +12,24 @@ namespace PUSpecSheet.DataAccess.Templates;
 /// </summary>
 public sealed class TableTemplateReader
 {
-    private readonly PuSpecSheetDbContext db;
+    private readonly PuSpecSheetDbContext _db;
 
     public TableTemplateReader(PuSpecSheetDbContext db)
     {
-        this.db = db;
+        _db = db;
     }
 
     /// <summary>Reads <paramref name="versionNumber"/>, or the latest version when it's null.</summary>
     public async Task<TableTemplateDto> ReadAsync(int templateId, int? versionNumber, CancellationToken cancellationToken)
     {
-        var template = await TableTemplateQueries.FindAsync(db, templateId, cancellationToken);
+        var template = await TableTemplateQueries.FindAsync(_db, templateId, cancellationToken);
 
         if (template is null)
         {
             throw new NotFoundException($"Table template {templateId} was not found.");
         }
 
-        var versions = await TableTemplateQueries.ListVersionsAsync(db, templateId, cancellationToken);
+        var versions = await TableTemplateQueries.ListVersionsAsync(_db, templateId, cancellationToken);
 
         var version = versionNumber is null
             ? versions.LastOrDefault()
@@ -41,7 +41,7 @@ public sealed class TableTemplateReader
         }
 
         // The ids of the versions a sheet table is built from.
-        var inUse = await TableTemplateQueries.GetVersionIdsInUseAsync(db, versions.Select(candidate => candidate.Id).ToList(), cancellationToken);
+        var inUse = await TableTemplateQueries.GetVersionIdsInUseAsync(_db, versions.Select(candidate => candidate.Id).ToList(), cancellationToken);
         var summaries = versions
             .Select(candidate => candidate.ToSummaryDto(inUse.Contains(candidate.Id)))
             .ToList();
@@ -50,14 +50,14 @@ public sealed class TableTemplateReader
             version,
             isEditable,
             summaries,
-            await TemplateSectionQueries.ListAsync(db, version.Id, cancellationToken),
-            await TemplateRowQueries.ListWithCellsAsync(db, version.Id, cancellationToken),
-            await TemplateColumnBlockQueries.ListAsync(db, version.Id, cancellationToken));
+            await TemplateSectionQueries.ListAsync(_db, version.Id, cancellationToken),
+            await TemplateRowQueries.ListWithCellsAsync(_db, version.Id, cancellationToken),
+            await TemplateColumnBlockQueries.ListAsync(_db, version.Id, cancellationToken));
     }
 
     public async Task<TableTemplateDto> ReadVersionAsync(int versionId, CancellationToken cancellationToken)
     {
-        var version = await TableTemplateQueries.FindVersionKeyAsync(db, versionId, cancellationToken);
+        var version = await TableTemplateQueries.FindVersionKeyAsync(_db, versionId, cancellationToken);
 
         if (version is null)
         {

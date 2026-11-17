@@ -5,8 +5,8 @@ public sealed record BuildStage
 {
     public BuildStage(string name, (string Name, decimal Measured, decimal Min, decimal Max)[] measurements)
     {
-        this.Name = name;
-        this.Measurements = measurements;
+        Name = name;
+        Measurements = measurements;
     }
 
     public string Name { get; init; }

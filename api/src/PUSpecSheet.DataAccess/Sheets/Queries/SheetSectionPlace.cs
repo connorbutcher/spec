@@ -5,9 +5,9 @@ public sealed record SheetSectionPlace
 {
     public SheetSectionPlace(int id, int templateSectionId, int? parentSheetSectionId)
     {
-        this.Id = id;
-        this.TemplateSectionId = templateSectionId;
-        this.ParentSheetSectionId = parentSheetSectionId;
+        Id = id;
+        TemplateSectionId = templateSectionId;
+        ParentSheetSectionId = parentSheetSectionId;
     }
 
     public int Id { get; init; }

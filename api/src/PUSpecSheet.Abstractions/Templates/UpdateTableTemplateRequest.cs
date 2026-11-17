@@ -9,9 +9,9 @@ public sealed record UpdateTableTemplateRequest
         TemplateOrientation orientation,
         [Range(0, 50)] int stickyColumnCount)
     {
-        this.Name = name;
-        this.Orientation = orientation;
-        this.StickyColumnCount = stickyColumnCount;
+        Name = name;
+        Orientation = orientation;
+        StickyColumnCount = stickyColumnCount;
     }
 
     public string Name { get; init; }

@@ -7,8 +7,8 @@ namespace PUSpecSheet.DataAccess.Sheets.Layout;
 /// <summary>One template version's sections with their rows and cells, for building sheet content from it.</summary>
 public sealed class TemplateTree
 {
-    private readonly Dictionary<int, DbTemplateSection> byId;
-    private readonly ILookup<int?, DbTemplateSection> byParent;
+    private readonly Dictionary<int, DbTemplateSection> _byId;
+    private readonly ILookup<int?, DbTemplateSection> _byParent;
 
     private TemplateTree(List<DbTemplateSection> sections, List<DbTemplateColumnBlock> columnBlocks)
     {
@@ -16,8 +16,8 @@ public sealed class TemplateTree
             .OrderBy(block => block.DisplayOrder)
             .ThenBy(block => block.Id)
             .ToList();
-        byId = sections.ToDictionary(section => section.Id);
-        byParent = sections.ToLookup(section => section.ParentSectionId);
+        _byId = sections.ToDictionary(section => section.Id);
+        _byParent = sections.ToLookup(section => section.ParentSectionId);
     }
 
     public static async Task<TemplateTree> LoadAsync(
@@ -35,13 +35,13 @@ public sealed class TemplateTree
 
     public DbTemplateSection? Find(int templateSectionId)
     {
-        return byId.GetValueOrDefault(templateSectionId);
+        return _byId.GetValueOrDefault(templateSectionId);
     }
 
     /// <summary>The sections directly under a section (or the top-level ones for null), in template order.</summary>
     public IReadOnlyList<DbTemplateSection> ChildrenOf(int? parentTemplateSectionId)
     {
-        return byParent[parentTemplateSectionId]
+        return _byParent[parentTemplateSectionId]
             .OrderBy(section => section.DisplayOrder)
             .ThenBy(section => section.Id)
             .ToList();

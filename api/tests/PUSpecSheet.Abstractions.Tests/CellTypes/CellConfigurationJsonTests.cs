@@ -6,7 +6,7 @@ namespace PUSpecSheet.Abstractions.Tests.CellTypes;
 
 public sealed class CellConfigurationJsonTests
 {
-    private static readonly JsonSerializerOptions Options = new(JsonSerializerDefaults.Web)
+    private static readonly JsonSerializerOptions _options = new(JsonSerializerDefaults.Web)
     {
         AllowOutOfOrderMetadataProperties = true,
     };
@@ -16,7 +16,7 @@ public sealed class CellConfigurationJsonTests
     {
         CellConfiguration configuration = new NumberDropdownCellConfiguration { Unit = "mm" };
 
-        var json = JsonSerializer.Serialize(configuration, Options);
+        var json = JsonSerializer.Serialize(configuration, _options);
 
         Assert.Equal("""{"kind":"NumberDropdown","decimalPlaces":null,"unit":"mm"}""", json);
     }
@@ -24,7 +24,7 @@ public sealed class CellConfigurationJsonTests
     [Fact]
     public void Deserialize_ReadsTheDerivedTypeWhereverTheKindIs()
     {
-        var configuration = JsonSerializer.Deserialize<CellConfiguration>("""{"maxLength":20,"kind":"Text"}""", Options);
+        var configuration = JsonSerializer.Deserialize<CellConfiguration>("""{"maxLength":20,"kind":"Text"}""", _options);
 
         Assert.Equal(new TextCellConfiguration { MaxLength = 20 }, configuration);
     }
@@ -34,9 +34,9 @@ public sealed class CellConfigurationJsonTests
     {
         var style = new CellStyle { Align = CellTextAlign.Center, Italic = true };
 
-        var json = JsonSerializer.Serialize(style, Options);
+        var json = JsonSerializer.Serialize(style, _options);
 
         Assert.Contains("\"align\":\"Center\"", json);
-        Assert.Equal(style, JsonSerializer.Deserialize<CellStyle>(json, Options));
+        Assert.Equal(style, JsonSerializer.Deserialize<CellStyle>(json, _options));
     }
 }

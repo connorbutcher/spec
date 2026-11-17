@@ -15,11 +15,11 @@ namespace PUSpecSheet.Api.Controllers.Sheets;
 [Authorize(Policy = PermissionKeys.SheetsEdit)]
 public sealed class SheetTablesController : ControllerBase
 {
-    private readonly ISheetTablesService tables;
+    private readonly ISheetTablesService _tables;
 
     public SheetTablesController(ISheetTablesService tables)
     {
-        this.tables = tables;
+        _tables = tables;
     }
 
     /// <summary>Set a table's title</summary>
@@ -33,7 +33,7 @@ public sealed class SheetTablesController : ControllerBase
     [HttpPut("{id:int}/title")]
     public async Task<ActionResult<SheetDto>> SetTitle(int id, SetSheetTableTitleRequest request, CancellationToken cancellationToken)
     {
-        var result = await tables.SetTitleAsync(id, request, cancellationToken);
+        var result = await _tables.SetTitleAsync(id, request, cancellationToken);
         return Ok(result);
     }
 
@@ -48,7 +48,7 @@ public sealed class SheetTablesController : ControllerBase
     [HttpPost("{id:int}/move")]
     public async Task<ActionResult<SheetDto>> Move(int id, MoveRequest request, CancellationToken cancellationToken)
     {
-        var result = await tables.MoveAsync(id, request, cancellationToken);
+        var result = await _tables.MoveAsync(id, request, cancellationToken);
         return Ok(result);
     }
 
@@ -62,7 +62,7 @@ public sealed class SheetTablesController : ControllerBase
     [HttpDelete("{id:int}")]
     public async Task<ActionResult<SheetDto>> Remove(int id, CancellationToken cancellationToken)
     {
-        var result = await tables.RemoveAsync(id, cancellationToken);
+        var result = await _tables.RemoveAsync(id, cancellationToken);
         return Ok(result);
     }
 
@@ -80,7 +80,7 @@ public sealed class SheetTablesController : ControllerBase
     [HttpPost("{id:int}/sections")]
     public async Task<ActionResult<SheetDto>> AddSection(int id, AddSheetSectionRequest request, CancellationToken cancellationToken)
     {
-        var result = await tables.AddSectionAsync(id, request, cancellationToken);
+        var result = await _tables.AddSectionAsync(id, request, cancellationToken);
         return Ok(result);
     }
 }

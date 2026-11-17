@@ -8,12 +8,12 @@ namespace PUSpecSheet.Api.Collaboration;
 /// </summary>
 public sealed partial class RowTakeoverExpiryWorker : BackgroundService
 {
-    private static readonly TimeSpan CheckEvery = TimeSpan.FromSeconds(2);
+    private static readonly TimeSpan _checkEvery = TimeSpan.FromSeconds(2);
 
-    private readonly RowTakeoverStore store;
-    private readonly TimeProvider clock;
-    private readonly IServiceScopeFactory scopes;
-    private readonly ILogger<RowTakeoverExpiryWorker> logger;
+    private readonly RowTakeoverStore _store;
+    private readonly TimeProvider _clock;
+    private readonly IServiceScopeFactory _scopes;
+    private readonly ILogger<RowTakeoverExpiryWorker> _logger;
 
     public RowTakeoverExpiryWorker(
         RowTakeoverStore store,
@@ -21,30 +21,30 @@ public sealed partial class RowTakeoverExpiryWorker : BackgroundService
         IServiceScopeFactory scopes,
         ILogger<RowTakeoverExpiryWorker> logger)
     {
-        this.store = store;
-        this.clock = clock;
-        this.scopes = scopes;
-        this.logger = logger;
+        _store = store;
+        _clock = clock;
+        _scopes = scopes;
+        _logger = logger;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        using var timer = new PeriodicTimer(CheckEvery, clock);
+        using var timer = new PeriodicTimer(_checkEvery, _clock);
         while (await timer.WaitForNextTickAsync(stoppingToken))
         {
-            if (store.Due(clock.GetUtcNow().UtcDateTime).Count == 0)
+            if (_store.Due(_clock.GetUtcNow().UtcDateTime).Count == 0)
             {
                 continue;
             }
 
             try
             {
-                await using var scope = scopes.CreateAsyncScope();
+                await using var scope = _scopes.CreateAsyncScope();
                 await scope.ServiceProvider.GetRequiredService<IRowTakeoverSettler>().GrantOverdueAsync(stoppingToken);
             }
             catch (Exception exception) when (exception is not OperationCanceledException)
             {
-                LogGrantFailed(logger, exception);
+                LogGrantFailed(_logger, exception);
             }
         }
     }

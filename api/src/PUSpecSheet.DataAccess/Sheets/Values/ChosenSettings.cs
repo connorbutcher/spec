@@ -7,10 +7,10 @@ public sealed record ChosenSettings
 {
     public ChosenSettings(int sheetRowRevisionId, CellInstanceSettings settings, int templateCellId, int? sheetColumnBlockId)
     {
-        this.SheetRowRevisionId = sheetRowRevisionId;
-        this.Settings = settings;
-        this.TemplateCellId = templateCellId;
-        this.SheetColumnBlockId = sheetColumnBlockId;
+        SheetRowRevisionId = sheetRowRevisionId;
+        Settings = settings;
+        TemplateCellId = templateCellId;
+        SheetColumnBlockId = sheetColumnBlockId;
     }
 
     public int SheetRowRevisionId { get; init; }

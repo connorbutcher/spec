@@ -15,10 +15,10 @@ public sealed record UpdateTemplateSectionRequest
         [Range(1, 1000)] int? maxInstances,
         [Range(0, 1000)] int initialInstances)
     {
-        this.Name = name;
-        this.MinInstances = minInstances;
-        this.MaxInstances = maxInstances;
-        this.InitialInstances = initialInstances;
+        Name = name;
+        MinInstances = minInstances;
+        MaxInstances = maxInstances;
+        InitialInstances = initialInstances;
     }
 
     public string Name { get; init; }

@@ -18,13 +18,13 @@ namespace PUSpecSheet.DataAccess.Sheets.Catalog;
 /// </summary>
 public sealed class SheetCopier
 {
-    private readonly PuSpecSheetDbContext db;
-    private readonly ICurrentUser currentUser;
+    private readonly PuSpecSheetDbContext _db;
+    private readonly ICurrentUser _currentUser;
 
     public SheetCopier(PuSpecSheetDbContext db, ICurrentUser currentUser)
     {
-        this.db = db;
-        this.currentUser = currentUser;
+        _db = db;
+        _currentUser = currentUser;
     }
 
     /// <summary>Copies the published content of one sheet onto another, empty, sheet. The caller holds the transaction.</summary>
@@ -33,18 +33,18 @@ public sealed class SheetCopier
         var map = new SheetCopyMap();
         var now = DateTime.UtcNow;
 
-        var tables = await ListCurrent(db.SheetTableRevisions, sourceSheetId).Include(revision => revision.SheetTable).ToListAsync(cancellationToken);
+        var tables = await ListCurrent(_db.SheetTableRevisions, sourceSheetId).Include(revision => revision.SheetTable).ToListAsync(cancellationToken);
         foreach (var revision in tables)
         {
             var table = new DbSheetTable { SheetId = targetSheetId, TableTemplateVersionId = revision.SheetTable.TableTemplateVersionId };
             var copy = Draft<DbSheetTableRevision>(targetSheetId, revision.DisplayOrder, now);
             copy.Title = revision.Title;
             table.Revisions.Add(copy);
-            db.SheetTables.Add(table);
+            _db.SheetTables.Add(table);
             map.Tables[revision.SheetTableId] = table;
         }
 
-        var blocks = await ListCurrent(db.SheetColumnBlockRevisions, sourceSheetId).Include(revision => revision.SheetColumnBlock).ToListAsync(cancellationToken);
+        var blocks = await ListCurrent(_db.SheetColumnBlockRevisions, sourceSheetId).Include(revision => revision.SheetColumnBlock).ToListAsync(cancellationToken);
         foreach (var revision in blocks)
         {
             if (map.Tables.TryGetValue(revision.SheetColumnBlock.SheetTableId, out var table))
@@ -56,10 +56,10 @@ public sealed class SheetCopier
             }
         }
 
-        var sections = await ListCurrent(db.SheetSectionRevisions, sourceSheetId).Include(revision => revision.SheetSection).ToListAsync(cancellationToken);
+        var sections = await ListCurrent(_db.SheetSectionRevisions, sourceSheetId).Include(revision => revision.SheetSection).ToListAsync(cancellationToken);
         CopySections(sections, map, targetSheetId, now);
 
-        var rows = await ListCurrent(db.SheetRowRevisions, sourceSheetId).Include(revision => revision.SheetRow).ToListAsync(cancellationToken);
+        var rows = await ListCurrent(_db.SheetRowRevisions, sourceSheetId).Include(revision => revision.SheetRow).ToListAsync(cancellationToken);
         foreach (var revision in rows)
         {
             if (map.Sections.TryGetValue(revision.SheetRow.SheetSectionId, out var section))
@@ -73,28 +73,28 @@ public sealed class SheetCopier
             }
         }
 
-        var rowIds = ListCurrent(db.SheetRowRevisions, sourceSheetId).Select(revision => revision.SheetRowId);
-        var cells = await db.SheetCells.AsNoTracking().Where(cell => rowIds.Contains(cell.SheetRowId)).ToListAsync(cancellationToken);
+        var rowIds = ListCurrent(_db.SheetRowRevisions, sourceSheetId).Select(revision => revision.SheetRowId);
+        var cells = await _db.SheetCells.AsNoTracking().Where(cell => rowIds.Contains(cell.SheetRowId)).ToListAsync(cancellationToken);
         foreach (var cell in cells)
         {
             CopyCell(cell, map);
         }
 
-        var revisionIds = ListCurrent(db.SheetRowRevisions, sourceSheetId).Select(revision => revision.Id);
-        await CopyValuesAsync(db.TextValues, revisionIds, map, value => new DbTextValue { Value = value.Value }, cancellationToken);
-        await CopyValuesAsync(db.NumericValues, revisionIds, map, value => new DbNumericValue { Value = value.Value }, cancellationToken);
-        await CopyValuesAsync(db.DateValues, revisionIds, map, value => new DbDateValue { Value = value.Value }, cancellationToken);
-        await CopyValuesAsync(db.BooleanValues, revisionIds, map, value => new DbBooleanValue { Value = value.Value }, cancellationToken);
-        await CopyValuesAsync(db.OptionValues, revisionIds, map, value => new DbOptionValue { CellTypeOptionId = value.CellTypeOptionId }, cancellationToken);
+        var revisionIds = ListCurrent(_db.SheetRowRevisions, sourceSheetId).Select(revision => revision.Id);
+        await CopyValuesAsync(_db.TextValues, revisionIds, map, value => new DbTextValue { Value = value.Value }, cancellationToken);
+        await CopyValuesAsync(_db.NumericValues, revisionIds, map, value => new DbNumericValue { Value = value.Value }, cancellationToken);
+        await CopyValuesAsync(_db.DateValues, revisionIds, map, value => new DbDateValue { Value = value.Value }, cancellationToken);
+        await CopyValuesAsync(_db.BooleanValues, revisionIds, map, value => new DbBooleanValue { Value = value.Value }, cancellationToken);
+        await CopyValuesAsync(_db.OptionValues, revisionIds, map, value => new DbOptionValue { CellTypeOptionId = value.CellTypeOptionId }, cancellationToken);
         await CopyValuesAsync(
-            db.LabelledTextValues,
+            _db.LabelledTextValues,
             revisionIds,
             map,
             value => new DbLabelledTextValue { SlotKey = value.SlotKey, Position = value.Position, Value = value.Value },
             cancellationToken);
         var linked = await CopyPlainSettingsAsync(revisionIds, map, cancellationToken);
 
-        await db.SaveChangesAsync(cancellationToken);
+        await _db.SaveChangesAsync(cancellationToken);
 
         // The tables and rows a linked dropdown reads only have ids once saved.
         foreach (var settings in linked)
@@ -102,7 +102,7 @@ public sealed class SheetCopier
             AddLinkedSettings(settings, map);
         }
 
-        await db.SaveChangesAsync(cancellationToken);
+        await _db.SaveChangesAsync(cancellationToken);
     }
 
     private static IQueryable<TRevision> ListCurrent<TRevision>(DbSet<TRevision> revisions, int sheetId)
@@ -188,7 +188,7 @@ public sealed class SheetCopier
     /// <summary>Copies the cell settings that point at nothing on the sheet, and returns the linked dropdowns' for later.</summary>
     private async Task<List<DbCellSettingsValue>> CopyPlainSettingsAsync(IQueryable<int> revisionIds, SheetCopyMap map, CancellationToken cancellationToken)
     {
-        var source = await db.CellSettings.AsNoTracking().Where(value => revisionIds.Contains(value.SheetRowRevisionId)).ToListAsync(cancellationToken);
+        var source = await _db.CellSettings.AsNoTracking().Where(value => revisionIds.Contains(value.SheetRowRevisionId)).ToListAsync(cancellationToken);
         var linked = new List<DbCellSettingsValue>();
         foreach (var value in source)
         {
@@ -198,7 +198,7 @@ public sealed class SheetCopier
             }
             else if (map.RowRevisions.TryGetValue(value.SheetRowRevisionId, out var revision) && map.Cells.TryGetValue(value.SheetCellId, out var cell))
             {
-                db.CellSettings.Add(new DbCellSettingsValue { SheetRowRevision = revision, SheetCell = cell, Settings = value.Settings });
+                _db.CellSettings.Add(new DbCellSettingsValue { SheetRowRevision = revision, SheetCell = cell, Settings = value.Settings });
             }
         }
 
@@ -236,7 +236,7 @@ public sealed class SheetCopier
             rowId = row.Id;
         }
 
-        db.CellSettings.Add(new DbCellSettingsValue
+        _db.CellSettings.Add(new DbCellSettingsValue
         {
             SheetRowRevisionId = revision.Id,
             SheetCellId = cell.Id,
@@ -253,7 +253,7 @@ public sealed class SheetCopier
             RevisionNumber = 1,
             Status = RevisionStatus.Draft,
             DisplayOrder = displayOrder,
-            AuthorUserId = currentUser.UserId,
+            AuthorUserId = _currentUser.UserId,
             CreatedAtUtc = now,
             UpdatedAtUtc = now,
         };

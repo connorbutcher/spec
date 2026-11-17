@@ -11,10 +11,10 @@ public sealed record SheetDraftSet
         IReadOnlyList<DbSheetRowRevision> rows,
         IReadOnlyList<DbSheetColumnBlockRevision> columnBlocks)
     {
-        this.Tables = tables;
-        this.Sections = sections;
-        this.Rows = rows;
-        this.ColumnBlocks = columnBlocks;
+        Tables = tables;
+        Sections = sections;
+        Rows = rows;
+        ColumnBlocks = columnBlocks;
     }
 
     public IReadOnlyList<DbSheetTableRevision> Tables { get; init; }

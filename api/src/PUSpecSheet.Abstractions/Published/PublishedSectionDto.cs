@@ -7,10 +7,10 @@ public sealed record PublishedSectionDto
 {
     public PublishedSectionDto(Guid id, string? name, IReadOnlyList<PublishedRowDto> rows, IReadOnlyList<PublishedSectionDto> sections)
     {
-        this.Id = id;
-        this.Name = name;
-        this.Rows = rows;
-        this.Sections = sections;
+        Id = id;
+        Name = name;
+        Rows = rows;
+        Sections = sections;
     }
 
     public Guid Id { get; init; }

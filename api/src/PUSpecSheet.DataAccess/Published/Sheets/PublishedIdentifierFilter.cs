@@ -8,8 +8,8 @@ public sealed record PublishedIdentifierFilter
 {
     public PublishedIdentifierFilter(int identifierId, string? value)
     {
-        this.IdentifierId = identifierId;
-        this.Value = value;
+        IdentifierId = identifierId;
+        Value = value;
     }
 
     public int IdentifierId { get; init; }

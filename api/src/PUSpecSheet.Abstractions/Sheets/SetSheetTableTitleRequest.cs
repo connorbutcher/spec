@@ -7,7 +7,7 @@ public sealed record SetSheetTableTitleRequest
 {
     public SetSheetTableTitleRequest([StringLength(200)] string? title)
     {
-        this.Title = title;
+        Title = title;
     }
 
     public string? Title { get; init; }

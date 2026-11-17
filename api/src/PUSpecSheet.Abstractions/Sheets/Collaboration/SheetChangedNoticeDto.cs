@@ -9,7 +9,7 @@ public sealed record SheetChangedNoticeDto
 {
     public SheetChangedNoticeDto(IReadOnlyList<int>? rowIds)
     {
-        this.RowIds = rowIds;
+        RowIds = rowIds;
     }
 
     public IReadOnlyList<int>? RowIds { get; init; }

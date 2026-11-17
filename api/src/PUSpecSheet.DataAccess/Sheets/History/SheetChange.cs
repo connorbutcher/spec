@@ -5,9 +5,9 @@ public sealed record SheetChange
 {
     public SheetChange(int versionNumber, DateTime atUtc, int authorUserId)
     {
-        this.VersionNumber = versionNumber;
-        this.AtUtc = atUtc;
-        this.AuthorUserId = authorUserId;
+        VersionNumber = versionNumber;
+        AtUtc = atUtc;
+        AuthorUserId = authorUserId;
     }
 
     public int VersionNumber { get; init; }

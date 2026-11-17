@@ -19,11 +19,11 @@ namespace PUSpecSheet.Api.Controllers.Sheets;
 [Authorize(Policy = PermissionKeys.SheetsEdit)]
 public sealed class SheetRowsController : ControllerBase
 {
-    private readonly ISheetRowsService rows;
+    private readonly ISheetRowsService _rows;
 
     public SheetRowsController(ISheetRowsService rows)
     {
-        this.rows = rows;
+        _rows = rows;
     }
 
     /// <summary>Save a row's values</summary>
@@ -41,7 +41,7 @@ public sealed class SheetRowsController : ControllerBase
     [HttpPut("{id:int}/values")]
     public async Task<ActionResult<SheetRowsChangeDto>> SaveValues(int id, SaveRowValuesRequest request, CancellationToken cancellationToken)
     {
-        var result = await rows.SaveValuesAsync(id, request, cancellationToken);
+        var result = await _rows.SaveValuesAsync(id, request, cancellationToken);
         return Ok(SheetRowsChanges.From(result, [id]));
     }
 
@@ -63,7 +63,7 @@ public sealed class SheetRowsController : ControllerBase
     [HttpPut("{id:int}/cell-settings")]
     public async Task<ActionResult<SheetRowsChangeDto>> SaveCellSettings(int id, SaveRowCellSettingsRequest request, CancellationToken cancellationToken)
     {
-        var result = await rows.SaveCellSettingsAsync(id, request, cancellationToken);
+        var result = await _rows.SaveCellSettingsAsync(id, request, cancellationToken);
         return Ok(SheetRowsChanges.From(result, [id]));
     }
 
@@ -78,7 +78,7 @@ public sealed class SheetRowsController : ControllerBase
     [HttpPost("{id:int}/move")]
     public async Task<ActionResult<SheetDto>> Move(int id, MoveRequest request, CancellationToken cancellationToken)
     {
-        var result = await rows.MoveAsync(id, request, cancellationToken);
+        var result = await _rows.MoveAsync(id, request, cancellationToken);
         return Ok(result);
     }
 
@@ -92,7 +92,7 @@ public sealed class SheetRowsController : ControllerBase
     [HttpDelete("{id:int}")]
     public async Task<ActionResult<SheetDto>> Remove(int id, CancellationToken cancellationToken)
     {
-        var result = await rows.RemoveAsync(id, cancellationToken);
+        var result = await _rows.RemoveAsync(id, cancellationToken);
         return Ok(result);
     }
 }

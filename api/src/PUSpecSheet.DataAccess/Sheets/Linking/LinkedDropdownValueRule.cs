@@ -13,11 +13,11 @@ namespace PUSpecSheet.DataAccess.Sheets.Linking;
 /// </summary>
 public sealed class LinkedDropdownValueRule
 {
-    private readonly SheetReader reader;
+    private readonly SheetReader _reader;
 
     public LinkedDropdownValueRule(SheetReader reader)
     {
-        this.reader = reader;
+        _reader = reader;
     }
 
     /// <summary>Expects each cell's template cell and cell type to be loaded.</summary>
@@ -39,7 +39,7 @@ public sealed class LinkedDropdownValueRule
         }
 
         // The sheet as the user sees it, so the choices are the ones the screen offered.
-        var sheet = await reader.ReadLiveAsync(sheetId, cancellationToken);
+        var sheet = await _reader.ReadLiveAsync(sheetId, cancellationToken);
         foreach (var value in linked)
         {
             var template = cellsById[value.SheetCellId].TemplateCell;

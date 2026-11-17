@@ -18,9 +18,9 @@ public sealed record PublishedRowValuesDto
         IReadOnlyList<object?> values,
         IReadOnlyDictionary<string, IReadOnlyList<object?>>? columns)
     {
-        this.Section = section;
-        this.Values = values;
-        this.Columns = columns;
+        Section = section;
+        Values = values;
+        Columns = columns;
     }
 
     public string Section { get; init; }

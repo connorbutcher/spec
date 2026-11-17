@@ -20,10 +20,10 @@ namespace PUSpecSheet.DataAccess.Approvals;
 /// </summary>
 public sealed class SubmissionDecider
 {
-    private readonly PuSpecSheetDbContext db;
-    private readonly SheetPublisher publisher;
-    private readonly ICurrentUser currentUser;
-    private readonly TimeProvider clock;
+    private readonly PuSpecSheetDbContext _db;
+    private readonly SheetPublisher _publisher;
+    private readonly ICurrentUser _currentUser;
+    private readonly TimeProvider _clock;
 
     public SubmissionDecider(
         PuSpecSheetDbContext db,
@@ -31,10 +31,10 @@ public sealed class SubmissionDecider
         ICurrentUser currentUser,
         TimeProvider clock)
     {
-        this.db = db;
-        this.publisher = publisher;
-        this.currentUser = currentUser;
-        this.clock = clock;
+        _db = db;
+        _publisher = publisher;
+        _currentUser = currentUser;
+        _clock = clock;
     }
 
     /// <returns>The submission as it now stands.</returns>
@@ -45,17 +45,17 @@ public sealed class SubmissionDecider
         var now = Now();
         approver.Decision = ApprovalDecision.Approved;
         approver.DecidedAtUtc = now;
-        db.MarkModified(submission);
+        _db.MarkModified(submission);
 
         if (submission.Approvers.All(candidate => candidate.Decision == ApprovalDecision.Approved))
         {
             submission.Status = SubmissionStatus.Approved;
             submission.DecidedAtUtc = now;
-            await publisher.PublishSubmissionAsync(submission, cancellationToken);
+            await _publisher.PublishSubmissionAsync(submission, cancellationToken);
         }
         else
         {
-            await db.SaveSheetChangesAsync(cancellationToken);
+            await _db.SaveSheetChangesAsync(cancellationToken);
         }
 
         return submission;
@@ -81,7 +81,7 @@ public sealed class SubmissionDecider
     public async Task<DbSheetSubmission> WithdrawAsync(int submissionId, CancellationToken cancellationToken)
     {
         var submission = await LoadPendingAsync(submissionId, cancellationToken);
-        if (submission.SubmittedByUserId != currentUser.UserId)
+        if (submission.SubmittedByUserId != _currentUser.UserId)
         {
             throw new ForbiddenException("Only the person who submitted these changes can withdraw them.");
         }
@@ -95,15 +95,15 @@ public sealed class SubmissionDecider
     {
         submission.Status = status;
         submission.DecidedAtUtc = now;
-        await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
-        await db.SaveSheetChangesAsync(cancellationToken);
-        await SubmittedDrafts.ReleaseAsync(db, submission.SheetId, submission.Id, cancellationToken);
+        await using var transaction = await _db.Database.BeginTransactionAsync(cancellationToken);
+        await _db.SaveSheetChangesAsync(cancellationToken);
+        await SubmittedDrafts.ReleaseAsync(_db, submission.SheetId, submission.Id, cancellationToken);
         await transaction.CommitAsync(cancellationToken);
     }
 
     private async Task<DbSheetSubmission> LoadPendingAsync(int submissionId, CancellationToken cancellationToken)
     {
-        var submission = await SheetSubmissionQueries.FindWithApproversForEditAsync(db, submissionId, cancellationToken)
+        var submission = await SheetSubmissionQueries.FindWithApproversForEditAsync(_db, submissionId, cancellationToken)
             ?? throw new NotFoundException($"Submission {submissionId} was not found.");
         if (submission.Status != SubmissionStatus.Pending)
         {
@@ -115,7 +115,7 @@ public sealed class SubmissionDecider
 
     private DbSheetSubmissionApprover MyPendingDecision(DbSheetSubmission submission)
     {
-        var me = currentUser.UserId;
+        var me = _currentUser.UserId;
         var approver = submission.Approvers.SingleOrDefault(candidate => candidate.UserId == me)
             ?? throw new ForbiddenException("You weren't asked to approve these changes.");
         if (approver.Decision != ApprovalDecision.Pending)
@@ -128,6 +128,6 @@ public sealed class SubmissionDecider
 
     private DateTime Now()
     {
-        return clock.GetUtcNow().UtcDateTime;
+        return _clock.GetUtcNow().UtcDateTime;
     }
 }

@@ -13,14 +13,14 @@ namespace PUSpecSheet.DataAccess.Seeding.Sheets;
 /// </summary>
 public sealed class SheetEditorFactory
 {
-    private readonly PuSpecSheetDbContext db;
-    private readonly ISheetsService sheets;
-    private readonly ISheetTablesService tables;
-    private readonly ISheetSectionsService sections;
-    private readonly ISheetRowsService rows;
-    private readonly ISheetColumnBlocksService columnBlocks;
-    private readonly ISheetCellSettingsService cellSettings;
-    private readonly ISheetTypeDataService sheetTypes;
+    private readonly PuSpecSheetDbContext _db;
+    private readonly ISheetsService _sheets;
+    private readonly ISheetTablesService _tables;
+    private readonly ISheetSectionsService _sections;
+    private readonly ISheetRowsService _rows;
+    private readonly ISheetColumnBlocksService _columnBlocks;
+    private readonly ISheetCellSettingsService _cellSettings;
+    private readonly ISheetTypeDataService _sheetTypes;
 
     public SheetEditorFactory(
         PuSpecSheetDbContext db,
@@ -32,27 +32,27 @@ public sealed class SheetEditorFactory
         ISheetCellSettingsService cellSettings,
         ISheetTypeDataService sheetTypes)
     {
-        this.db = db;
-        this.sheets = sheets;
-        this.tables = tables;
-        this.sections = sections;
-        this.rows = rows;
-        this.columnBlocks = columnBlocks;
-        this.cellSettings = cellSettings;
-        this.sheetTypes = sheetTypes;
+        _db = db;
+        _sheets = sheets;
+        _tables = tables;
+        _sections = sections;
+        _rows = rows;
+        _columnBlocks = columnBlocks;
+        _cellSettings = cellSettings;
+        _sheetTypes = sheetTypes;
     }
 
     public async Task<SheetEditor> OpenAsync(int phaseId, string sheetTypeName, ShowcaseCellTypeCatalog cellTypes, CancellationToken cancellationToken)
     {
-        var sheetTypeId = await sheetTypes.GetIdByNameAsync(sheetTypeName, cancellationToken);
-        var sheet = await sheets.OpenAsync(phaseId, sheetTypeId, cancellationToken);
-        return new SheetEditor(sheet, cellTypes, sheets, tables, sections, rows, columnBlocks, cellSettings);
+        var sheetTypeId = await _sheetTypes.GetIdByNameAsync(sheetTypeName, cancellationToken);
+        var sheet = await _sheets.OpenAsync(phaseId, sheetTypeId, cancellationToken);
+        return new SheetEditor(sheet, cellTypes, _sheets, _tables, _sections, _rows, _columnBlocks, _cellSettings);
     }
 
     /// <summary>Opens the sheet <paramref name="sheetId"/>, one of several of its type in a phase, as the current user sees it.</summary>
     public async Task<SheetEditor> OpenSheetAsync(int sheetId, ShowcaseCellTypeCatalog cellTypes, CancellationToken cancellationToken)
     {
-        var sheet = await sheets.GetAsync(sheetId, SheetViewPoint.Live, cancellationToken);
-        return new SheetEditor(sheet, cellTypes, sheets, tables, sections, rows, columnBlocks, cellSettings);
+        var sheet = await _sheets.GetAsync(sheetId, SheetViewPoint.Live, cancellationToken);
+        return new SheetEditor(sheet, cellTypes, _sheets, _tables, _sections, _rows, _columnBlocks, _cellSettings);
     }
 }

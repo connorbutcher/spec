@@ -5,9 +5,9 @@ public sealed record PublishedVersionStamp
 {
     public PublishedVersionStamp(int sheetId, int versionNumber, DateTime publishedAtUtc)
     {
-        this.SheetId = sheetId;
-        this.VersionNumber = versionNumber;
-        this.PublishedAtUtc = publishedAtUtc;
+        SheetId = sheetId;
+        VersionNumber = versionNumber;
+        PublishedAtUtc = publishedAtUtc;
     }
 
     public int SheetId { get; init; }

@@ -7,9 +7,9 @@ public sealed record SubmissionReviewAccess
 {
     public SubmissionReviewAccess(SubmissionStatus status, int submittedByUserId, bool isApprover)
     {
-        this.Status = status;
-        this.SubmittedByUserId = submittedByUserId;
-        this.IsApprover = isApprover;
+        Status = status;
+        SubmittedByUserId = submittedByUserId;
+        IsApprover = isApprover;
     }
 
     public SubmissionStatus Status { get; init; }

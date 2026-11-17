@@ -11,7 +11,7 @@ public sealed class PublishedSheetSelectionTests
     private const string First = "a41e0000-0000-0000-0000-000000000001";
     private const string Second = "b7d00000-0000-0000-0000-000000000002";
 
-    private static readonly ResolvedSheetVersion Version = new(1, Guid.Parse(First), 7, DateTime.UnixEpoch);
+    private static readonly ResolvedSheetVersion _version = new(1, Guid.Parse(First), 7, DateTime.UnixEpoch);
 
     [Fact]
     public void TheSameIdentifiersInAnotherOrder_GiveTheSameKey()
@@ -20,7 +20,7 @@ public sealed class PublishedSheetSelectionTests
         var other = PublishedSheetSelection.Parse(null, null, null, $" {Second} , {First},", PublishedSheetShape.Flat, null);
 
         Assert.Equal(one.Key, other.Key);
-        Assert.Equal(Version.KeyFor(one), Version.KeyFor(other));
+        Assert.Equal(_version.KeyFor(one), _version.KeyFor(other));
     }
 
     [Fact]
@@ -54,7 +54,7 @@ public sealed class PublishedSheetSelectionTests
         var everything = PublishedSheetSelection.Parse(null, null, null, null, PublishedSheetShape.Tree, null);
 
         Assert.True(everything.IsEverything);
-        Assert.Equal("a41e0000000000000000000000000001-v7-t-all", Version.KeyFor(everything));
+        Assert.Equal("a41e0000000000000000000000000001-v7-t-all", _version.KeyFor(everything));
     }
 
     [Theory]

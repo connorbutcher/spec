@@ -12,16 +12,16 @@ namespace PUSpecSheet.DataAccess.Seeding.Templates;
 /// </summary>
 public sealed class TemplateLayout
 {
-    private readonly DbTableTemplateVersion version;
-    private readonly ShowcaseCellTypeCatalog cellTypes;
+    private readonly DbTableTemplateVersion _version;
+    private readonly ShowcaseCellTypeCatalog _cellTypes;
 
     public TemplateLayout(DbTableTemplateVersion version, ShowcaseCellTypeCatalog cellTypes)
     {
-        this.version = version;
-        this.cellTypes = cellTypes;
+        _version = version;
+        _cellTypes = cellTypes;
     }
 
-    public DbTableTemplateVersion Version => version;
+    public DbTableTemplateVersion Version => _version;
 
     /// <summary>The table's one header section.</summary>
     public DbTemplateSection Header()
@@ -49,20 +49,20 @@ public sealed class TemplateLayout
         var block = new DbTemplateColumnBlock
         {
             Name = name,
-            DisplayOrder = version.ColumnBlocks.Count + 1,
+            DisplayOrder = _version.ColumnBlocks.Count + 1,
             MinInstances = minimum,
             MaxInstances = maximum,
             InitialInstances = Math.Max(minimum, initial),
             StickyColumnCount = stickyColumns,
         };
-        version.ColumnBlocks.Add(block);
+        _version.ColumnBlocks.Add(block);
         return block;
     }
 
     /// <summary>A row at the end of <paramref name="section"/>'s own rows.</summary>
     public DbTemplateRow Row(DbTemplateSection section, params DbTemplateCell[] cells)
     {
-        if (!version.Sections.Contains(section))
+        if (!_version.Sections.Contains(section))
         {
             throw new InvalidOperationException($"'{section.Name}' isn't a section of this template version.");
         }
@@ -92,7 +92,7 @@ public sealed class TemplateLayout
     {
         return new DbTemplateCell
         {
-            CellTypeId = cellTypes[cellType],
+            CellTypeId = _cellTypes[cellType],
             Column = column,
             ColumnSpan = columnSpan,
             RowSpan = rowSpan,
@@ -108,9 +108,9 @@ public sealed class TemplateLayout
     private DbTemplateSection Add(DbTemplateSection section, DbTemplateSection? parent)
     {
         section.DisplayOrder = parent is null
-            ? version.Sections.Count(candidate => candidate.ParentSection is null) + 1
+            ? _version.Sections.Count(candidate => candidate.ParentSection is null) + 1
             : parent.ChildSections.Count + 1;
-        version.Sections.Add(section);
+        _version.Sections.Add(section);
         parent?.ChildSections.Add(section);
         if (parent is not null)
         {

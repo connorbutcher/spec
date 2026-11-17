@@ -12,28 +12,28 @@ namespace PUSpecSheet.DataAccess.Common;
 public abstract class SizedMemoryCache<TValue> : IDisposable
     where TValue : class
 {
-    private static readonly TimeSpan Unused = TimeSpan.FromMinutes(30);
+    private static readonly TimeSpan _unused = TimeSpan.FromMinutes(30);
 
-    private readonly MemoryCache cache;
+    private readonly MemoryCache _cache;
 
     protected SizedMemoryCache(long sizeLimit)
     {
-        this.cache = new(new MemoryCacheOptions { SizeLimit = sizeLimit });
+        _cache = new(new MemoryCacheOptions { SizeLimit = sizeLimit });
     }
 
     public bool TryGet(string key, [NotNullWhen(true)] out TValue? value)
     {
-        return cache.TryGetValue(key, out value) && value is not null;
+        return _cache.TryGetValue(key, out value) && value is not null;
     }
 
     public void Set(string key, TValue value, long size)
     {
-        cache.Set(key, value, new MemoryCacheEntryOptions { Size = size + 1, SlidingExpiration = Unused });
+        _cache.Set(key, value, new MemoryCacheEntryOptions { Size = size + 1, SlidingExpiration = _unused });
     }
 
     public void Dispose()
     {
-        cache.Dispose();
+        _cache.Dispose();
         GC.SuppressFinalize(this);
     }
 }

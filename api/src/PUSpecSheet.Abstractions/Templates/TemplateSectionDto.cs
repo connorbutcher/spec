@@ -19,16 +19,16 @@ public sealed record TemplateSectionDto
         IReadOnlyList<TemplateSectionDto> sections,
         IReadOnlyList<TemplateRowDto> rows)
     {
-        this.Id = id;
-        this.ParentSectionId = parentSectionId;
-        this.Name = name;
-        this.DisplayOrder = displayOrder;
-        this.Role = role;
-        this.MinInstances = minInstances;
-        this.MaxInstances = maxInstances;
-        this.InitialInstances = initialInstances;
-        this.Sections = sections;
-        this.Rows = rows;
+        Id = id;
+        ParentSectionId = parentSectionId;
+        Name = name;
+        DisplayOrder = displayOrder;
+        Role = role;
+        MinInstances = minInstances;
+        MaxInstances = maxInstances;
+        InitialInstances = initialInstances;
+        Sections = sections;
+        Rows = rows;
     }
 
     public int Id { get; init; }

@@ -11,14 +11,14 @@ public sealed class RowTakeoversService : IRowTakeoversService
     private const string NoLongerOpen = "That request is no longer open.";
     private const string UnknownUser = "Another user";
 
-    private readonly IRowCheckouts checkouts;
-    private readonly ICurrentUser currentUser;
-    private readonly RowTakeoverStore store;
-    private readonly SheetPresenceTracker presence;
-    private readonly RowTakeoverCloser closer;
-    private readonly ISheetLiveNotifier notifier;
-    private readonly RowTakeoverOptions options;
-    private readonly TimeProvider clock;
+    private readonly IRowCheckouts _checkouts;
+    private readonly ICurrentUser _currentUser;
+    private readonly RowTakeoverStore _store;
+    private readonly SheetPresenceTracker _presence;
+    private readonly RowTakeoverCloser _closer;
+    private readonly ISheetLiveNotifier _notifier;
+    private readonly RowTakeoverOptions _options;
+    private readonly TimeProvider _clock;
 
     public RowTakeoversService(
         IRowCheckouts checkouts,
@@ -30,14 +30,14 @@ public sealed class RowTakeoversService : IRowTakeoversService
         RowTakeoverOptions options,
         TimeProvider clock)
     {
-        this.checkouts = checkouts;
-        this.currentUser = currentUser;
-        this.store = store;
-        this.presence = presence;
-        this.closer = closer;
-        this.notifier = notifier;
-        this.options = options;
-        this.clock = clock;
+        _checkouts = checkouts;
+        _currentUser = currentUser;
+        _store = store;
+        _presence = presence;
+        _closer = closer;
+        _notifier = notifier;
+        _options = options;
+        _clock = clock;
     }
 
     public async Task<RowTakeoverAvailabilityDto> GetAvailabilityAsync(int rowId, CancellationToken cancellationToken)
@@ -45,7 +45,7 @@ public sealed class RowTakeoversService : IRowTakeoversService
         // Asking the same question the request itself asks is what keeps the two from ever disagreeing.
         try
         {
-            await CheckoutToAskForAsync(rowId, currentUser.UserId, cancellationToken);
+            await CheckoutToAskForAsync(rowId, _currentUser.UserId, cancellationToken);
             return new RowTakeoverAvailabilityDto(true, null);
         }
         catch (Exception refusal) when (refusal is ConflictException or InvalidRequestException)
@@ -56,11 +56,11 @@ public sealed class RowTakeoversService : IRowTakeoversService
 
     public async Task<RowTakeoverDto> RequestAsync(int rowId, CancellationToken cancellationToken)
     {
-        var me = currentUser.UserId;
+        var me = _currentUser.UserId;
         var checkout = await CheckoutToAskForAsync(rowId, me, cancellationToken);
 
         // Asking again for a row already asked for is the same request, not a second one.
-        if (store.ForRow(rowId) is { } mine)
+        if (_store.ForRow(rowId) is { } mine)
         {
             return mine;
         }
@@ -68,36 +68,36 @@ public sealed class RowTakeoversService : IRowTakeoversService
         var takeover = await NewRequestAsync(rowId, checkout, me, cancellationToken);
 
         // Nobody is there to ask, and waiting a minute for silence helps no one.
-        if (!presence.IsPresent(takeover.SheetId, takeover.HolderUserId))
+        if (!_presence.IsPresent(takeover.SheetId, takeover.HolderUserId))
         {
-            return await closer.GrantAsync(takeover, RowTakeoverStatus.GrantedHolderAway, cancellationToken);
+            return await _closer.GrantAsync(takeover, RowTakeoverStatus.GrantedHolderAway, cancellationToken);
         }
 
-        if (!store.TryAdd(takeover))
+        if (!_store.TryAdd(takeover))
         {
             throw new ConflictException("Someone else has just asked to take over this row.");
         }
 
-        await notifier.TakeoverChangedAsync(takeover, cancellationToken);
+        await _notifier.TakeoverChangedAsync(takeover, cancellationToken);
         return takeover;
     }
 
     public async Task<RowTakeoverDto> ApproveAsync(Guid takeoverId, CancellationToken cancellationToken)
     {
         var takeover = Take(takeoverId, RowTakeoverParty.Holder);
-        return await closer.GrantAsync(takeover, RowTakeoverStatus.Approved, cancellationToken);
+        return await _closer.GrantAsync(takeover, RowTakeoverStatus.Approved, cancellationToken);
     }
 
     public async Task<RowTakeoverDto> DenyAsync(Guid takeoverId, CancellationToken cancellationToken)
     {
         var takeover = Take(takeoverId, RowTakeoverParty.Holder);
-        return await closer.CloseAsync(takeover, RowTakeoverStatus.Denied, cancellationToken);
+        return await _closer.CloseAsync(takeover, RowTakeoverStatus.Denied, cancellationToken);
     }
 
     public async Task<RowTakeoverDto> CancelAsync(Guid takeoverId, CancellationToken cancellationToken)
     {
         var takeover = Take(takeoverId, RowTakeoverParty.Requester);
-        return await closer.CloseAsync(takeover, RowTakeoverStatus.Cancelled, cancellationToken);
+        return await _closer.CloseAsync(takeover, RowTakeoverStatus.Cancelled, cancellationToken);
     }
 
     /// <summary>
@@ -106,10 +106,10 @@ public sealed class RowTakeoversService : IRowTakeoversService
     /// </summary>
     private async Task<RowCheckout> CheckoutToAskForAsync(int rowId, int userId, CancellationToken cancellationToken)
     {
-        var checkout = await checkouts.FindAsync(rowId, cancellationToken);
+        var checkout = await _checkouts.FindAsync(rowId, cancellationToken);
         if (checkout is null)
         {
-            if (await checkouts.SheetOfAsync(rowId, cancellationToken) is null)
+            if (await _checkouts.SheetOfAsync(rowId, cancellationToken) is null)
             {
                 throw new NotFoundException($"Row {rowId} was not found.");
             }
@@ -125,12 +125,12 @@ public sealed class RowTakeoversService : IRowTakeoversService
         // A row someone has changed stays theirs until they publish: handing it on would hand on their work.
         if (checkout.HasChanges)
         {
-            var names = await checkouts.DisplayNamesAsync([checkout.HolderUserId], cancellationToken);
+            var names = await _checkouts.DisplayNamesAsync([checkout.HolderUserId], cancellationToken);
             var holder = names.GetValueOrDefault(checkout.HolderUserId, UnknownUser);
             throw new ConflictException($"{holder} has unpublished changes on this row. It can be taken over once they publish them or change them back.");
         }
 
-        if (store.ForRow(rowId) is { } waiting && waiting.RequesterUserId != userId)
+        if (_store.ForRow(rowId) is { } waiting && waiting.RequesterUserId != userId)
         {
             throw new ConflictException($"{waiting.RequesterName} has already asked to take over this row.");
         }
@@ -140,8 +140,8 @@ public sealed class RowTakeoversService : IRowTakeoversService
 
     private async Task<RowTakeoverDto> NewRequestAsync(int rowId, RowCheckout checkout, int requesterUserId, CancellationToken cancellationToken)
     {
-        var names = await checkouts.DisplayNamesAsync([requesterUserId, checkout.HolderUserId], cancellationToken);
-        var now = clock.GetUtcNow().UtcDateTime;
+        var names = await _checkouts.DisplayNamesAsync([requesterUserId, checkout.HolderUserId], cancellationToken);
+        var now = _clock.GetUtcNow().UtcDateTime;
         return new RowTakeoverDto(
             Guid.NewGuid(),
             checkout.SheetId,
@@ -151,7 +151,7 @@ public sealed class RowTakeoversService : IRowTakeoversService
             checkout.HolderUserId,
             names.GetValueOrDefault(checkout.HolderUserId, UnknownUser),
             now,
-            now + options.ResponseTime,
+            now + _options.ResponseTime,
             RowTakeoverStatus.Pending);
     }
 
@@ -161,16 +161,16 @@ public sealed class RowTakeoversService : IRowTakeoversService
     /// </summary>
     private RowTakeoverDto Take(Guid takeoverId, RowTakeoverParty party)
     {
-        var takeover = store.Find(takeoverId) ?? throw new NotFoundException(NoLongerOpen);
+        var takeover = _store.Find(takeoverId) ?? throw new NotFoundException(NoLongerOpen);
 
         var (partyUserId, refusal) = party == RowTakeoverParty.Holder
             ? (takeover.HolderUserId, "Only the person the row is checked out to can answer this request.")
             : (takeover.RequesterUserId, "Only the person who asked can withdraw this request.");
-        if (partyUserId != currentUser.UserId)
+        if (partyUserId != _currentUser.UserId)
         {
             throw new InvalidRequestException(refusal);
         }
 
-        return store.TryRemove(takeover) ? takeover : throw new NotFoundException(NoLongerOpen);
+        return _store.TryRemove(takeover) ? takeover : throw new NotFoundException(NoLongerOpen);
     }
 }

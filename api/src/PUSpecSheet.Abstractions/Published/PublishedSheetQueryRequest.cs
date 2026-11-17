@@ -14,12 +14,12 @@ public sealed record PublishedSheetQueryRequest
         PublishedSheetShape shape = PublishedSheetShape.Tree,
         bool includeLabels = false)
     {
-        this.Tables = tables;
-        this.Sections = sections;
-        this.Rows = rows;
-        this.Cells = cells;
-        this.Shape = shape;
-        this.IncludeLabels = includeLabels;
+        Tables = tables;
+        Sections = sections;
+        Rows = rows;
+        Cells = cells;
+        Shape = shape;
+        IncludeLabels = includeLabels;
     }
 
     public IReadOnlyList<Guid>? Tables { get; init; }

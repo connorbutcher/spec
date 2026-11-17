@@ -12,17 +12,17 @@ namespace PUSpecSheet.DataAccess.Approvals;
 /// </summary>
 public sealed class ApproverDirectory
 {
-    private readonly PuSpecSheetDbContext db;
+    private readonly PuSpecSheetDbContext _db;
 
     public ApproverDirectory(PuSpecSheetDbContext db)
     {
-        this.db = db;
+        _db = db;
     }
 
     /// <summary>Everyone but <paramref name="submitterUserId"/> who could approve, by name.</summary>
     public async Task<IReadOnlyList<ApproverDto>> ListAsync(int submitterUserId, CancellationToken cancellationToken)
     {
-        return await UserQueries.ListApproversAsync(db, submitterUserId, cancellationToken);
+        return await UserQueries.ListApproversAsync(_db, submitterUserId, cancellationToken);
     }
 
     /// <summary>Refuses a choice of approvers that is empty, names the submitter, or names someone who can't approve.</summary>
@@ -43,7 +43,7 @@ public sealed class ApproverDirectory
             throw new InvalidRequestException("You can't approve your own changes. Choose someone else.");
         }
 
-        var eligible = await UserQueries.CountApproversAsync(db, chosen, cancellationToken);
+        var eligible = await UserQueries.CountApproversAsync(_db, chosen, cancellationToken);
         if (eligible != chosen.Count)
         {
             throw new InvalidRequestException("Some of the people chosen can't approve changes. Choose again.");

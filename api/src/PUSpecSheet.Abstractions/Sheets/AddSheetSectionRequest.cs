@@ -8,8 +8,8 @@ public sealed record AddSheetSectionRequest
 {
     public AddSheetSectionRequest(int templateSectionId, int? parentSheetSectionId)
     {
-        this.TemplateSectionId = templateSectionId;
-        this.ParentSheetSectionId = parentSheetSectionId;
+        TemplateSectionId = templateSectionId;
+        ParentSheetSectionId = parentSheetSectionId;
     }
 
     public int TemplateSectionId { get; init; }

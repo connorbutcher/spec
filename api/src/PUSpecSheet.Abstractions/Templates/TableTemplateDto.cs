@@ -21,18 +21,18 @@ public sealed record TableTemplateDto
         IReadOnlyList<TemplateSectionDto> sections,
         IReadOnlyList<TemplateColumnBlockDto> columnBlocks)
     {
-        this.Id = id;
-        this.SheetTypeId = sheetTypeId;
-        this.Name = name;
-        this.DisplayOrder = displayOrder;
-        this.VersionId = versionId;
-        this.VersionNumber = versionNumber;
-        this.Orientation = orientation;
-        this.StickyColumnCount = stickyColumnCount;
-        this.IsEditable = isEditable;
-        this.Versions = versions;
-        this.Sections = sections;
-        this.ColumnBlocks = columnBlocks;
+        Id = id;
+        SheetTypeId = sheetTypeId;
+        Name = name;
+        DisplayOrder = displayOrder;
+        VersionId = versionId;
+        VersionNumber = versionNumber;
+        Orientation = orientation;
+        StickyColumnCount = stickyColumnCount;
+        IsEditable = isEditable;
+        Versions = versions;
+        Sections = sections;
+        ColumnBlocks = columnBlocks;
     }
 
     public int Id { get; init; }

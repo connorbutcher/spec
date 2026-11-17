@@ -5,7 +5,7 @@ public sealed record AddSheetColumnBlockRequest
 {
     public AddSheetColumnBlockRequest(int templateColumnBlockId)
     {
-        this.TemplateColumnBlockId = templateColumnBlockId;
+        TemplateColumnBlockId = templateColumnBlockId;
     }
 
     public int TemplateColumnBlockId { get; init; }

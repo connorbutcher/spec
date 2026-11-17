@@ -13,13 +13,13 @@ namespace PUSpecSheet.DataAccess.Templates.Cells;
 /// </summary>
 public sealed class TemplateCellLookupKeysService : ITemplateCellLookupKeysService
 {
-    private readonly PuSpecSheetDbContext db;
-    private readonly TableTemplateReader reader;
+    private readonly PuSpecSheetDbContext _db;
+    private readonly TableTemplateReader _reader;
 
     public TemplateCellLookupKeysService(PuSpecSheetDbContext db, TableTemplateReader reader)
     {
-        this.db = db;
-        this.reader = reader;
+        _db = db;
+        _reader = reader;
     }
 
     public async Task<TableTemplateDto> UpdateAsync(
@@ -27,7 +27,7 @@ public sealed class TemplateCellLookupKeysService : ITemplateCellLookupKeysServi
         UpdateTemplateCellLookupKeyRequest request,
         CancellationToken cancellationToken)
     {
-        var cell = await TemplateCellQueries.FindWithTypeForEditAsync(db, cellId, cancellationToken);
+        var cell = await TemplateCellQueries.FindWithTypeForEditAsync(_db, cellId, cancellationToken);
 
         if (cell is null)
         {
@@ -52,7 +52,7 @@ public sealed class TemplateCellLookupKeysService : ITemplateCellLookupKeysServi
 
         cell.LookupKey = key;
 
-        await db.SaveChangesAsync(cancellationToken);
-        return await reader.ReadVersionAsync(cell.TemplateRow.TemplateSection.TableTemplateVersionId, cancellationToken);
+        await _db.SaveChangesAsync(cancellationToken);
+        return await _reader.ReadVersionAsync(cell.TemplateRow.TemplateSection.TableTemplateVersionId, cancellationToken);
     }
 }

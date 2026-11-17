@@ -10,13 +10,13 @@ namespace PUSpecSheet.DataAccess.Sheets.Collaboration.Takeovers;
 /// </summary>
 public sealed class RowTakeoverCloser
 {
-    private readonly IRowCheckouts checkouts;
-    private readonly ISheetLiveNotifier notifier;
+    private readonly IRowCheckouts _checkouts;
+    private readonly ISheetLiveNotifier _notifier;
 
     public RowTakeoverCloser(IRowCheckouts checkouts, ISheetLiveNotifier notifier)
     {
-        this.checkouts = checkouts;
-        this.notifier = notifier;
+        _checkouts = checkouts;
+        _notifier = notifier;
     }
 
     /// <summary>
@@ -33,7 +33,7 @@ public sealed class RowTakeoverCloser
             return await CloseAsync(takeover, obstacle.Value, cancellationToken);
         }
 
-        var moved = await checkouts.TransferAsync(
+        var moved = await _checkouts.TransferAsync(
             takeover.RowId,
             takeover.HolderUserId,
             takeover.RequesterUserId,
@@ -49,7 +49,7 @@ public sealed class RowTakeoverCloser
         // only changes the list of checkouts, which everyone was sent as it moved.
         if (moved == RowTransfer.Draft)
         {
-            await notifier.SheetChangedAsync(takeover.SheetId, SheetChangedNoticeDto.Everything, exceptConnectionId: null, cancellationToken);
+            await _notifier.SheetChangedAsync(takeover.SheetId, SheetChangedNoticeDto.Everything, exceptConnectionId: null, cancellationToken);
         }
 
         return granted;
@@ -59,7 +59,7 @@ public sealed class RowTakeoverCloser
     public async Task<RowTakeoverDto> CloseAsync(RowTakeoverDto takeover, RowTakeoverStatus status, CancellationToken cancellationToken)
     {
         var closed = takeover with { Status = status };
-        await notifier.TakeoverChangedAsync(closed, cancellationToken);
+        await _notifier.TakeoverChangedAsync(closed, cancellationToken);
         return closed;
     }
 
@@ -69,7 +69,7 @@ public sealed class RowTakeoverCloser
     /// </summary>
     public async Task<RowTakeoverStatus?> ObstacleAsync(RowTakeoverDto takeover, CancellationToken cancellationToken)
     {
-        var checkout = await checkouts.FindAsync(takeover.RowId, cancellationToken);
+        var checkout = await _checkouts.FindAsync(takeover.RowId, cancellationToken);
         if (checkout is null || checkout.HolderUserId != takeover.HolderUserId)
         {
             return RowTakeoverStatus.Released;

@@ -17,7 +17,7 @@ public sealed class BuildRecordTemplate : IShowcaseTemplate
     public const string Measurement = "Measurement";
     public const string BuildNote = "Build note";
 
-    private static readonly CellStyle Banner = new() { BackgroundColor = "#e2e8f0", Align = CellTextAlign.Center };
+    private static readonly CellStyle _banner = new() { BackgroundColor = "#e2e8f0", Align = CellTextAlign.Center };
 
     public string SheetTypeName => ShowcasePhases.EngineSpecificationsSheetType;
 
@@ -34,7 +34,7 @@ public sealed class BuildRecordTemplate : IShowcaseTemplate
             header,
             layout.Cell(ShowcaseCellTypeNames.Heading, 1, "Characteristic", rowSpan: 2),
             layout.Cell(ShowcaseCellTypeNames.Heading, 2, "Measured", rowSpan: 2),
-            layout.Cell(ShowcaseCellTypeNames.Heading, 3, "Limits", columnSpan: 2, style: Banner),
+            layout.Cell(ShowcaseCellTypeNames.Heading, 3, "Limits", columnSpan: 2, style: _banner),
             layout.Cell(ShowcaseCellTypeNames.Heading, 5, "Result", rowSpan: 2));
         layout.Row(
             header,

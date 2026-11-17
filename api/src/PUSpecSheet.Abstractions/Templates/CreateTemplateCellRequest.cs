@@ -16,10 +16,10 @@ public sealed record CreateTemplateCellRequest
         [Range(1, 100)] int? column = null,
         int? templateColumnBlockId = null)
     {
-        this.TemplateRowId = templateRowId;
-        this.CellTypeId = cellTypeId;
-        this.Column = column;
-        this.TemplateColumnBlockId = templateColumnBlockId;
+        TemplateRowId = templateRowId;
+        CellTypeId = cellTypeId;
+        Column = column;
+        TemplateColumnBlockId = templateColumnBlockId;
     }
 
     public int TemplateRowId { get; init; }

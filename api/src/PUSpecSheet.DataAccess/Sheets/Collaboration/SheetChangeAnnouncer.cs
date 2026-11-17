@@ -11,20 +11,20 @@ namespace PUSpecSheet.DataAccess.Sheets.Collaboration;
 /// </summary>
 public sealed class SheetChangeAnnouncer
 {
-    private readonly Lock gate = new();
-    private readonly Dictionary<int, IReadOnlyList<string>> lastSignatures = [];
+    private readonly Lock _gate = new();
+    private readonly Dictionary<int, IReadOnlyList<string>> _lastSignatures = [];
 
     /// <summary>
     /// The signature each sheet had when the others were last told about it. Rows are named against this
     /// one, not the last seen, so a change a read took note of without telling anyone is still named.
     /// </summary>
-    private readonly Dictionary<int, IReadOnlyList<string>> lastAnnounced = [];
+    private readonly Dictionary<int, IReadOnlyList<string>> _lastAnnounced = [];
 
-    private readonly ISheetLiveNotifier notifier;
+    private readonly ISheetLiveNotifier _notifier;
 
     public SheetChangeAnnouncer(ISheetLiveNotifier notifier)
     {
-        this.notifier = notifier;
+        _notifier = notifier;
     }
 
     /// <param name="sheet">The live sheet as it stands after the change.</param>
@@ -37,7 +37,7 @@ public sealed class SheetChangeAnnouncer
             return;
         }
 
-        await notifier.SheetChangedAsync(sheet.Id, notice, exceptConnectionId, cancellationToken);
+        await _notifier.SheetChangedAsync(sheet.Id, notice, exceptConnectionId, cancellationToken);
     }
 
     /// <summary>
@@ -51,12 +51,12 @@ public sealed class SheetChangeAnnouncer
         if (sheet.IsLive)
         {
             var signature = SheetLockSignature.Entries(sheet);
-            lock (gate)
+            lock (_gate)
             {
                 Changed(sheet.Id, signature);
 
                 // The first sight of a sheet is what its first readers have; later reads aren't announced.
-                lastAnnounced.TryAdd(sheet.Id, signature);
+                _lastAnnounced.TryAdd(sheet.Id, signature);
             }
         }
     }
@@ -67,17 +67,17 @@ public sealed class SheetChangeAnnouncer
     /// </summary>
     private SheetChangedNoticeDto? Announce(int sheetId, IReadOnlyList<string> signature)
     {
-        lock (gate)
+        lock (_gate)
         {
             if (!Changed(sheetId, signature))
             {
                 return null;
             }
 
-            var rows = lastAnnounced.TryGetValue(sheetId, out var announced)
+            var rows = _lastAnnounced.TryGetValue(sheetId, out var announced)
                 ? SheetLockSignature.ChangedRows(announced, signature)
                 : null;
-            lastAnnounced[sheetId] = signature;
+            _lastAnnounced[sheetId] = signature;
             return rows is null ? SheetChangedNoticeDto.Everything : new SheetChangedNoticeDto(rows);
         }
     }
@@ -88,12 +88,12 @@ public sealed class SheetChangeAnnouncer
     /// </summary>
     private bool Changed(int sheetId, IReadOnlyList<string> signature)
     {
-        if (lastSignatures.TryGetValue(sheetId, out var last) && last.SequenceEqual(signature, StringComparer.Ordinal))
+        if (_lastSignatures.TryGetValue(sheetId, out var last) && last.SequenceEqual(signature, StringComparer.Ordinal))
         {
             return false;
         }
 
-        lastSignatures[sheetId] = signature;
+        _lastSignatures[sheetId] = signature;
         return true;
     }
 }

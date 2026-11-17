@@ -10,8 +10,8 @@ public sealed record PublishedColumnBlockDto
 {
     public PublishedColumnBlockDto(Guid id, string? name)
     {
-        this.Id = id;
-        this.Name = name;
+        Id = id;
+        Name = name;
     }
 
     public Guid Id { get; init; }

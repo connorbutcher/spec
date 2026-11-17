@@ -5,8 +5,8 @@ public sealed record TemplateVersionKey
 {
     public TemplateVersionKey(int tableTemplateId, int versionNumber)
     {
-        this.TableTemplateId = tableTemplateId;
-        this.VersionNumber = versionNumber;
+        TableTemplateId = tableTemplateId;
+        VersionNumber = versionNumber;
     }
 
     public int TableTemplateId { get; init; }

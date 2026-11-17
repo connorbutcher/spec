@@ -8,8 +8,8 @@ public sealed record SheetLinkableColumnDto
 {
     public SheetLinkableColumnDto(int templateCellId, string label)
     {
-        this.TemplateCellId = templateCellId;
-        this.Label = label;
+        TemplateCellId = templateCellId;
+        Label = label;
     }
 
     public int TemplateCellId { get; init; }

@@ -5,20 +5,20 @@ namespace PUSpecSheet.DataAccess.Tests.Sheets.Collaboration.Checkouts;
 
 public sealed class LiveRowCheckoutGuardTests
 {
-    private readonly LiveRowCheckoutTracker tracker = new();
-    private readonly SettableCurrentUser currentUser = new() { UserId = 2 };
-    private readonly LiveRowCheckoutGuard guard;
+    private readonly LiveRowCheckoutTracker _tracker = new();
+    private readonly SettableCurrentUser _currentUser = new() { UserId = 2 };
+    private readonly LiveRowCheckoutGuard _guard;
 
     public LiveRowCheckoutGuardTests()
     {
-        guard = new LiveRowCheckoutGuard(tracker, currentUser);
-        tracker.TryCheckOut("sam", new LiveRowCheckout(1, 10, 1, "Sam"), out _);
+        _guard = new LiveRowCheckoutGuard(_tracker, _currentUser);
+        _tracker.TryCheckOut("sam", new LiveRowCheckout(1, 10, 1, "Sam"), out _);
     }
 
     [Fact]
     public void ARowSomeoneElseIsIn_CannotBeChanged()
     {
-        var refused = Assert.Throws<ConflictException>(() => guard.EnsureNotHeldByOthers(10));
+        var refused = Assert.Throws<ConflictException>(() => _guard.EnsureNotHeldByOthers(10));
 
         Assert.Equal("This row is being edited by Sam.", refused.Message);
     }
@@ -26,9 +26,9 @@ public sealed class LiveRowCheckoutGuardTests
     [Fact]
     public void MyOwnRow_AndAFreeRow_CanBeChanged()
     {
-        guard.EnsureNotHeldByOthers(11);
+        _guard.EnsureNotHeldByOthers(11);
 
-        currentUser.UserId = 1;
-        guard.EnsureNotHeldByOthers(10);
+        _currentUser.UserId = 1;
+        _guard.EnsureNotHeldByOthers(10);
     }
 }

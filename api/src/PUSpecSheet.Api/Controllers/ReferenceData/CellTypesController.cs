@@ -12,11 +12,11 @@ namespace PUSpecSheet.Api.Controllers.ReferenceData;
 [Route("api/cell-types")]
 public sealed class CellTypesController : ControllerBase
 {
-    private readonly ICellTypesService cellTypes;
+    private readonly ICellTypesService _cellTypes;
 
     public CellTypesController(ICellTypesService cellTypes)
     {
-        this.cellTypes = cellTypes;
+        _cellTypes = cellTypes;
     }
 
     /// <summary>List cell types</summary>
@@ -28,7 +28,7 @@ public sealed class CellTypesController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IReadOnlyList<CellTypeDto>>> GetAll(CancellationToken cancellationToken)
     {
-        var result = await cellTypes.GetAllAsync(cancellationToken);
+        var result = await _cellTypes.GetAllAsync(cancellationToken);
         return Ok(result);
     }
 
@@ -46,7 +46,7 @@ public sealed class CellTypesController : ControllerBase
     [Authorize(Policy = PermissionKeys.CellTypesManage)]
     public async Task<ActionResult<CellTypeDto>> Create(SaveCellTypeRequest request, CancellationToken cancellationToken)
     {
-        var result = await cellTypes.CreateAsync(request, cancellationToken);
+        var result = await _cellTypes.CreateAsync(request, cancellationToken);
         return Ok(result);
     }
 
@@ -67,7 +67,7 @@ public sealed class CellTypesController : ControllerBase
         SaveCellTypeRequest request,
         CancellationToken cancellationToken)
     {
-        var result = await cellTypes.UpdateAsync(id, request, cancellationToken);
+        var result = await _cellTypes.UpdateAsync(id, request, cancellationToken);
         return Ok(result);
     }
 
@@ -85,7 +85,7 @@ public sealed class CellTypesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken)
     {
-        await cellTypes.DeleteAsync(id, cancellationToken);
+        await _cellTypes.DeleteAsync(id, cancellationToken);
         return NoContent();
     }
 }

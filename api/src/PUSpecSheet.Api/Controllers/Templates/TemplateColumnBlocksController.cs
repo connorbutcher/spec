@@ -15,11 +15,11 @@ namespace PUSpecSheet.Api.Controllers.Templates;
 [Authorize(Policy = PermissionKeys.TemplatesManage)]
 public sealed class TemplateColumnBlocksController : ControllerBase
 {
-    private readonly ITemplateColumnBlocksService blocks;
+    private readonly ITemplateColumnBlocksService _blocks;
 
     public TemplateColumnBlocksController(ITemplateColumnBlocksService blocks)
     {
-        this.blocks = blocks;
+        _blocks = blocks;
     }
 
     /// <summary>Add a column block</summary>
@@ -35,7 +35,7 @@ public sealed class TemplateColumnBlocksController : ControllerBase
         CreateTemplateColumnBlockRequest request,
         CancellationToken cancellationToken)
     {
-        var result = await blocks.CreateAsync(request, cancellationToken);
+        var result = await _blocks.CreateAsync(request, cancellationToken);
         return Ok(result);
     }
 
@@ -55,7 +55,7 @@ public sealed class TemplateColumnBlocksController : ControllerBase
         UpdateTemplateColumnBlockRequest request,
         CancellationToken cancellationToken)
     {
-        var result = await blocks.UpdateAsync(id, request, cancellationToken);
+        var result = await _blocks.UpdateAsync(id, request, cancellationToken);
         return Ok(result);
     }
 
@@ -70,7 +70,7 @@ public sealed class TemplateColumnBlocksController : ControllerBase
     [HttpPost("{id:int}/move")]
     public async Task<ActionResult<TableTemplateDto>> Move(int id, MoveRequest request, CancellationToken cancellationToken)
     {
-        var result = await blocks.MoveAsync(id, request, cancellationToken);
+        var result = await _blocks.MoveAsync(id, request, cancellationToken);
         return Ok(result);
     }
 
@@ -84,7 +84,7 @@ public sealed class TemplateColumnBlocksController : ControllerBase
     [HttpDelete("{id:int}")]
     public async Task<ActionResult<TableTemplateDto>> Delete(int id, CancellationToken cancellationToken)
     {
-        var result = await blocks.DeleteAsync(id, cancellationToken);
+        var result = await _blocks.DeleteAsync(id, cancellationToken);
         return Ok(result);
     }
 }

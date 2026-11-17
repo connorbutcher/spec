@@ -15,18 +15,18 @@ namespace PUSpecSheet.DataAccess.Sheets.Queries;
 /// </remarks>
 public sealed class RowRevisionScope
 {
-    private readonly IReadOnlyCollection<int>? ids;
+    private readonly IReadOnlyCollection<int>? _ids;
 
-    private readonly IQueryable<int>? query;
+    private readonly IQueryable<int>? _query;
 
-    private RowRevisionScope(IReadOnlyCollection<int>? ids, IQueryable<int>? query)
+    private RowRevisionScope(IReadOnlyCollection<int>? _ids, IQueryable<int>? _query)
     {
-        this.ids = ids;
-        this.query = query;
+        _ids = _ids;
+        _query = _query;
     }
 
     /// <summary>True when there is certainly nothing to read.</summary>
-    public bool IsEmpty => ids is { Count: 0 };
+    public bool IsEmpty => _ids is { Count: 0 };
 
     public static RowRevisionScope Of(IReadOnlyCollection<int> ids)
     {
@@ -42,13 +42,13 @@ public sealed class RowRevisionScope
     public IQueryable<TValue> Apply<TValue>(IQueryable<TValue> values)
         where TValue : class, IDbCellValue
     {
-        if (query is not null)
+        if (_query is not null)
         {
-            var revisionIds = query;
+            var revisionIds = _query;
             return values.Where(value => revisionIds.Contains(value.SheetRowRevisionId));
         }
 
-        var listed = ids!;
+        var listed = _ids!;
         return values.Where(value => listed.Contains(value.SheetRowRevisionId));
     }
 }

@@ -5,10 +5,10 @@ public sealed record PublishedSheetReferenceDto
 {
     public PublishedSheetReferenceDto(Guid sheet, string phase, int sheetType, int? latestVersion)
     {
-        this.Sheet = sheet;
-        this.Phase = phase;
-        this.SheetType = sheetType;
-        this.LatestVersion = latestVersion;
+        Sheet = sheet;
+        Phase = phase;
+        SheetType = sheetType;
+        LatestVersion = latestVersion;
     }
 
     public Guid Sheet { get; init; }

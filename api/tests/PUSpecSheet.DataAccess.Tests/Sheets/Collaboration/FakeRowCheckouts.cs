@@ -9,71 +9,71 @@ namespace PUSpecSheet.DataAccess.Tests.Sheets.Collaboration;
 /// </summary>
 internal sealed class FakeRowCheckouts : IRowCheckouts
 {
-    private readonly Dictionary<int, RowCheckout> checkedOut = [];
-    private readonly Dictionary<int, int> sheetByRow = [];
-    private readonly HashSet<int> liveRows = [];
+    private readonly Dictionary<int, RowCheckout> _checkedOut = [];
+    private readonly Dictionary<int, int> _sheetByRow = [];
+    private readonly HashSet<int> _liveRows = [];
 
     public int? HolderOf(int rowId)
     {
-        return checkedOut.GetValueOrDefault(rowId)?.HolderUserId;
+        return _checkedOut.GetValueOrDefault(rowId)?.HolderUserId;
     }
 
     public void AddRow(int rowId, int sheetId = 1)
     {
-        sheetByRow[rowId] = sheetId;
+        _sheetByRow[rowId] = sheetId;
     }
 
     public void CheckOut(int rowId, int sheetId, int holderUserId)
     {
-        sheetByRow[rowId] = sheetId;
-        checkedOut[rowId] = new RowCheckout(sheetId, holderUserId, hasChanges: false);
-        liveRows.Remove(rowId);
+        _sheetByRow[rowId] = sheetId;
+        _checkedOut[rowId] = new RowCheckout(sheetId, holderUserId, hasChanges: false);
+        _liveRows.Remove(rowId);
     }
 
     /// <summary>The holder is in the row but hasn't saved anything, so it has no draft.</summary>
     public void CheckOutLive(int rowId, int sheetId, int holderUserId)
     {
         CheckOut(rowId, sheetId, holderUserId);
-        liveRows.Add(rowId);
+        _liveRows.Add(rowId);
     }
 
     /// <summary>The holder types something into the row.</summary>
     public void Change(int rowId)
     {
-        checkedOut[rowId] = checkedOut[rowId] with { HasChanges = true };
-        liveRows.Remove(rowId);
+        _checkedOut[rowId] = _checkedOut[rowId] with { HasChanges = true };
+        _liveRows.Remove(rowId);
     }
 
     public void Release(int rowId)
     {
-        checkedOut.Remove(rowId);
-        liveRows.Remove(rowId);
+        _checkedOut.Remove(rowId);
+        _liveRows.Remove(rowId);
     }
 
     public Task<RowCheckout?> FindAsync(int rowId, CancellationToken cancellationToken)
     {
-        return Task.FromResult(checkedOut.GetValueOrDefault(rowId));
+        return Task.FromResult(_checkedOut.GetValueOrDefault(rowId));
     }
 
     public Task<int?> DraftHolderAsync(int rowId, CancellationToken cancellationToken)
     {
-        return Task.FromResult(liveRows.Contains(rowId) ? null : HolderOf(rowId));
+        return Task.FromResult(_liveRows.Contains(rowId) ? null : HolderOf(rowId));
     }
 
     public Task<int?> SheetOfAsync(int rowId, CancellationToken cancellationToken)
     {
-        return Task.FromResult(sheetByRow.TryGetValue(rowId, out var sheetId) ? sheetId : (int?)null);
+        return Task.FromResult(_sheetByRow.TryGetValue(rowId, out var sheetId) ? sheetId : (int?)null);
     }
 
     public Task<RowTransfer> TransferAsync(int rowId, int fromUserId, int toUserId, CancellationToken cancellationToken)
     {
-        if (!checkedOut.TryGetValue(rowId, out var checkout) || checkout.HolderUserId != fromUserId)
+        if (!_checkedOut.TryGetValue(rowId, out var checkout) || checkout.HolderUserId != fromUserId)
         {
             return Task.FromResult(RowTransfer.Nothing);
         }
 
-        checkedOut[rowId] = checkout with { HolderUserId = toUserId };
-        return Task.FromResult(liveRows.Contains(rowId) ? RowTransfer.Live : RowTransfer.Draft);
+        _checkedOut[rowId] = checkout with { HolderUserId = toUserId };
+        return Task.FromResult(_liveRows.Contains(rowId) ? RowTransfer.Live : RowTransfer.Draft);
     }
 
     public Task<IReadOnlyDictionary<int, string>> DisplayNamesAsync(IReadOnlyCollection<int> userIds, CancellationToken cancellationToken)

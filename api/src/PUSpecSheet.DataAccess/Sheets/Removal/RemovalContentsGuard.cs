@@ -14,18 +14,18 @@ namespace PUSpecSheet.DataAccess.Sheets.Removal;
 /// </summary>
 public sealed class RemovalContentsGuard
 {
-    private readonly PuSpecSheetDbContext db;
-    private readonly LiveRowCheckoutTracker liveCheckouts;
-    private readonly ICurrentUser currentUser;
+    private readonly PuSpecSheetDbContext _db;
+    private readonly LiveRowCheckoutTracker _liveCheckouts;
+    private readonly ICurrentUser _currentUser;
 
     public RemovalContentsGuard(
         PuSpecSheetDbContext db,
         LiveRowCheckoutTracker liveCheckouts,
         ICurrentUser currentUser)
     {
-        this.db = db;
-        this.liveCheckouts = liveCheckouts;
-        this.currentUser = currentUser;
+        _db = db;
+        _liveCheckouts = liveCheckouts;
+        _currentUser = currentUser;
     }
 
     /// <summary>Refuses removing the sections given (a section and everything inside it) while they are held.</summary>
@@ -33,9 +33,9 @@ public sealed class RemovalContentsGuard
     public async Task EnsureSectionsFreeAsync(IReadOnlyCollection<int> sectionIds, CancellationToken cancellationToken)
     {
         var holds = new List<ContainedHold>();
-        holds.AddRange(await SheetSectionRevisionQueries.ListHoldsAsync(db, sectionIds, currentUser.UserId, cancellationToken));
-        holds.AddRange(await SheetRowRevisionQueries.ListHoldsInSectionsAsync(db, sectionIds, currentUser.UserId, cancellationToken));
-        holds.AddRange(LiveHolds(await SheetRowQueries.ListIdsInSectionsAsync(db, sectionIds, cancellationToken)));
+        holds.AddRange(await SheetSectionRevisionQueries.ListHoldsAsync(_db, sectionIds, _currentUser.UserId, cancellationToken));
+        holds.AddRange(await SheetRowRevisionQueries.ListHoldsInSectionsAsync(_db, sectionIds, _currentUser.UserId, cancellationToken));
+        holds.AddRange(LiveHolds(await SheetRowQueries.ListIdsInSectionsAsync(_db, sectionIds, cancellationToken)));
         await ThrowIfHeldAsync("this section", holds, cancellationToken);
     }
 
@@ -44,10 +44,10 @@ public sealed class RemovalContentsGuard
     public async Task EnsureTableFreeAsync(int tableId, CancellationToken cancellationToken)
     {
         var holds = new List<ContainedHold>();
-        holds.AddRange(await SheetSectionRevisionQueries.ListHoldsOnTableAsync(db, tableId, currentUser.UserId, cancellationToken));
-        holds.AddRange(await SheetRowRevisionQueries.ListHoldsOnTableAsync(db, tableId, currentUser.UserId, cancellationToken));
-        holds.AddRange(await SheetColumnBlockRevisionQueries.ListHoldsOnTableAsync(db, tableId, currentUser.UserId, cancellationToken));
-        holds.AddRange(LiveHolds(await SheetRowQueries.ListIdsOnTableAsync(db, tableId, cancellationToken)));
+        holds.AddRange(await SheetSectionRevisionQueries.ListHoldsOnTableAsync(_db, tableId, _currentUser.UserId, cancellationToken));
+        holds.AddRange(await SheetRowRevisionQueries.ListHoldsOnTableAsync(_db, tableId, _currentUser.UserId, cancellationToken));
+        holds.AddRange(await SheetColumnBlockRevisionQueries.ListHoldsOnTableAsync(_db, tableId, _currentUser.UserId, cancellationToken));
+        holds.AddRange(LiveHolds(await SheetRowQueries.ListIdsOnTableAsync(_db, tableId, cancellationToken)));
         await ThrowIfHeldAsync("this table", holds, cancellationToken);
     }
 
@@ -55,7 +55,7 @@ public sealed class RemovalContentsGuard
     private List<ContainedHold> LiveHolds(List<int> rowIds)
     {
         return rowIds
-            .Select(liveCheckouts.HolderOf)
+            .Select(_liveCheckouts.HolderOf)
             .OfType<LiveRowCheckout>()
             .Select(holder => new ContainedHold(holder.UserId, awaitingApproval: false))
             .ToList();
@@ -69,8 +69,8 @@ public sealed class RemovalContentsGuard
             return;
         }
 
-        var names = await UserQueries.GetDisplayNamesAsync(db, userIds, cancellationToken);
-        if (HeldContents.RefusalFor(subject, holds, currentUser.UserId, names) is { } refusal)
+        var names = await UserQueries.GetDisplayNamesAsync(_db, userIds, cancellationToken);
+        if (HeldContents.RefusalFor(subject, holds, _currentUser.UserId, names) is { } refusal)
         {
             throw new ConflictException(refusal);
         }

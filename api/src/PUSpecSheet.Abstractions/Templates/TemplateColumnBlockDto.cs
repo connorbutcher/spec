@@ -16,13 +16,13 @@ public sealed record TemplateColumnBlockDto
         int initialInstances,
         int stickyColumnCount)
     {
-        this.Id = id;
-        this.Name = name;
-        this.DisplayOrder = displayOrder;
-        this.MinInstances = minInstances;
-        this.MaxInstances = maxInstances;
-        this.InitialInstances = initialInstances;
-        this.StickyColumnCount = stickyColumnCount;
+        Id = id;
+        Name = name;
+        DisplayOrder = displayOrder;
+        MinInstances = minInstances;
+        MaxInstances = maxInstances;
+        InitialInstances = initialInstances;
+        StickyColumnCount = stickyColumnCount;
     }
 
     public int Id { get; init; }

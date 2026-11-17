@@ -18,16 +18,16 @@ public sealed record PublishedLookupHit
         int? columnBlockId,
         bool isHeader)
     {
-        this.SheetId = sheetId;
-        this.SheetPublicId = sheetPublicId;
-        this.PhaseCode = phaseCode;
-        this.SheetTypeId = sheetTypeId;
-        this.TableId = tableId;
-        this.SectionId = sectionId;
-        this.RowId = rowId;
-        this.CellId = cellId;
-        this.ColumnBlockId = columnBlockId;
-        this.IsHeader = isHeader;
+        SheetId = sheetId;
+        SheetPublicId = sheetPublicId;
+        PhaseCode = phaseCode;
+        SheetTypeId = sheetTypeId;
+        TableId = tableId;
+        SectionId = sectionId;
+        RowId = rowId;
+        CellId = cellId;
+        ColumnBlockId = columnBlockId;
+        IsHeader = isHeader;
     }
 
     public int SheetId { get; init; }

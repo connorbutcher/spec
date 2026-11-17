@@ -11,10 +11,10 @@ public sealed record ResolvedSheetVersion
 {
     public ResolvedSheetVersion(int sheetId, Guid sheetPublicId, int versionNumber, DateTime publishedAtUtc)
     {
-        this.SheetId = sheetId;
-        this.SheetPublicId = sheetPublicId;
-        this.VersionNumber = versionNumber;
-        this.PublishedAtUtc = publishedAtUtc;
+        SheetId = sheetId;
+        SheetPublicId = sheetPublicId;
+        VersionNumber = versionNumber;
+        PublishedAtUtc = publishedAtUtc;
     }
 
     public int SheetId { get; init; }

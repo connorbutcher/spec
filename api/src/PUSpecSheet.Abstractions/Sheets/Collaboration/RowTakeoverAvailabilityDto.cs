@@ -8,8 +8,8 @@ public sealed record RowTakeoverAvailabilityDto
 {
     public RowTakeoverAvailabilityDto(bool isAvailable, string? reason)
     {
-        this.IsAvailable = isAvailable;
-        this.Reason = reason;
+        IsAvailable = isAvailable;
+        Reason = reason;
     }
 
     public bool IsAvailable { get; init; }

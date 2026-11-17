@@ -25,7 +25,7 @@ public sealed class PublishedSchemaTransformer : IOpenApiSchemaTransformer
         "The cell's value: a number, text, `true` or `false`, or a date as `yyyy-MM-dd`. A dropdown gives the "
         + "chosen option's text, or its number for a number dropdown.";
 
-    private static readonly Dictionary<Type, Func<JsonNode>> Examples = new()
+    private static readonly Dictionary<Type, Func<JsonNode>> _examples = new()
     {
         [typeof(PublishedSheetReferenceDto)] = Reference,
         [typeof(PublishedVersionDto)] = Version,
@@ -40,7 +40,7 @@ public sealed class PublishedSchemaTransformer : IOpenApiSchemaTransformer
     public Task TransformAsync(OpenApiSchema schema, OpenApiSchemaTransformerContext context, CancellationToken cancellationToken)
     {
         // Only the type itself gets the example, not a property or list item that happens to be of it.
-        if (context.JsonPropertyInfo is null && Examples.TryGetValue(context.JsonTypeInfo.Type, out var example))
+        if (context.JsonPropertyInfo is null && _examples.TryGetValue(context.JsonTypeInfo.Type, out var example))
         {
             schema.Examples = [example()];
         }

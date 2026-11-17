@@ -10,16 +10,16 @@ namespace PUSpecSheet.DataAccess.Templates;
 /// </summary>
 public sealed class TemplateVersionGuard
 {
-    private readonly PuSpecSheetDbContext db;
+    private readonly PuSpecSheetDbContext _db;
 
     public TemplateVersionGuard(PuSpecSheetDbContext db)
     {
-        this.db = db;
+        _db = db;
     }
 
     public async Task EnsureEditableAsync(int versionId, CancellationToken cancellationToken)
     {
-        var version = await TableTemplateQueries.FindVersionStateAsync(db, versionId, cancellationToken);
+        var version = await TableTemplateQueries.FindVersionStateAsync(_db, versionId, cancellationToken);
 
         if (version is null)
         {
@@ -41,7 +41,7 @@ public sealed class TemplateVersionGuard
 
     public async Task EnsureTemplateUnusedAsync(int templateId, CancellationToken cancellationToken)
     {
-        if (await TableTemplateQueries.IsUsedAsync(db, templateId, cancellationToken))
+        if (await TableTemplateQueries.IsUsedAsync(_db, templateId, cancellationToken))
         {
             throw new ConflictException("Sheets already use this table, so it can't be deleted.");
         }

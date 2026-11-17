@@ -23,18 +23,18 @@ public sealed record SheetDto
         IReadOnlyList<SheetTableDto> tables,
         IReadOnlyList<AvailableTemplateDto> availableTemplates)
     {
-        this.Id = id;
-        this.PublicId = publicId;
-        this.PhaseId = phaseId;
-        this.SheetTypeId = sheetTypeId;
-        this.IsLive = isLive;
-        this.ViewedVersionNumber = viewedVersionNumber;
-        this.ViewedAsOfUtc = viewedAsOfUtc;
-        this.LatestVersionNumber = latestVersionNumber;
-        this.MyDraftCount = myDraftCount;
-        this.Versions = versions;
-        this.Tables = tables;
-        this.AvailableTemplates = availableTemplates;
+        Id = id;
+        PublicId = publicId;
+        PhaseId = phaseId;
+        SheetTypeId = sheetTypeId;
+        IsLive = isLive;
+        ViewedVersionNumber = viewedVersionNumber;
+        ViewedAsOfUtc = viewedAsOfUtc;
+        LatestVersionNumber = latestVersionNumber;
+        MyDraftCount = myDraftCount;
+        Versions = versions;
+        Tables = tables;
+        AvailableTemplates = availableTemplates;
     }
 
     public int Id { get; init; }

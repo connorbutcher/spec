@@ -5,11 +5,11 @@ public sealed record PublishedTableRecord
 {
     public PublishedTableRecord(int id, Guid publicId, int displayOrder, bool isDeleted, string? title)
     {
-        this.Id = id;
-        this.PublicId = publicId;
-        this.DisplayOrder = displayOrder;
-        this.IsDeleted = isDeleted;
-        this.Title = title;
+        Id = id;
+        PublicId = publicId;
+        DisplayOrder = displayOrder;
+        IsDeleted = isDeleted;
+        Title = title;
     }
 
     public int Id { get; init; }

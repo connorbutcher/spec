@@ -12,11 +12,11 @@ namespace PUSpecSheet.Api.Controllers.Templates;
 [Route("api/table-templates")]
 public sealed class TableTemplatesController : ControllerBase
 {
-    private readonly ITableTemplatesService templates;
+    private readonly ITableTemplatesService _templates;
 
     public TableTemplatesController(ITableTemplatesService templates)
     {
-        this.templates = templates;
+        _templates = templates;
     }
 
     /// <summary>List table templates</summary>
@@ -31,7 +31,7 @@ public sealed class TableTemplatesController : ControllerBase
         [FromQuery] int? sheetTypeId,
         CancellationToken cancellationToken)
     {
-        var result = await templates.GetSummariesAsync(sheetTypeId, cancellationToken);
+        var result = await _templates.GetSummariesAsync(sheetTypeId, cancellationToken);
         return Ok(result);
     }
 
@@ -50,7 +50,7 @@ public sealed class TableTemplatesController : ControllerBase
         [FromQuery] int? version,
         CancellationToken cancellationToken)
     {
-        var result = await templates.GetAsync(id, version, cancellationToken);
+        var result = await _templates.GetAsync(id, version, cancellationToken);
         return Ok(result);
     }
 
@@ -65,7 +65,7 @@ public sealed class TableTemplatesController : ControllerBase
     [Authorize(Policy = PermissionKeys.TemplatesManage)]
     public async Task<ActionResult<TableTemplateDto>> CreateVersion(int id, CancellationToken cancellationToken)
     {
-        var result = await templates.CreateVersionAsync(id, cancellationToken);
+        var result = await _templates.CreateVersionAsync(id, cancellationToken);
         return Ok(result);
     }
 
@@ -84,7 +84,7 @@ public sealed class TableTemplatesController : ControllerBase
         CreateTableTemplateRequest request,
         CancellationToken cancellationToken)
     {
-        var result = await templates.CreateAsync(request, cancellationToken);
+        var result = await _templates.CreateAsync(request, cancellationToken);
         return CreatedAtAction(nameof(Get), new { id = result.Id }, result);
     }
 
@@ -103,7 +103,7 @@ public sealed class TableTemplatesController : ControllerBase
         UpdateTableTemplateRequest request,
         CancellationToken cancellationToken)
     {
-        var result = await templates.UpdateAsync(id, request, cancellationToken);
+        var result = await _templates.UpdateAsync(id, request, cancellationToken);
         return Ok(result);
     }
 
@@ -120,7 +120,7 @@ public sealed class TableTemplatesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken)
     {
-        await templates.DeleteAsync(id, cancellationToken);
+        await _templates.DeleteAsync(id, cancellationToken);
         return NoContent();
     }
 }

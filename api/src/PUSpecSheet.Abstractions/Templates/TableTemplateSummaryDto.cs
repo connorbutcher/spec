@@ -11,12 +11,12 @@ public sealed record TableTemplateSummaryDto
         int latestVersionNumber,
         TemplateOrientation orientation)
     {
-        this.Id = id;
-        this.SheetTypeId = sheetTypeId;
-        this.Name = name;
-        this.DisplayOrder = displayOrder;
-        this.LatestVersionNumber = latestVersionNumber;
-        this.Orientation = orientation;
+        Id = id;
+        SheetTypeId = sheetTypeId;
+        Name = name;
+        DisplayOrder = displayOrder;
+        LatestVersionNumber = latestVersionNumber;
+        Orientation = orientation;
     }
 
     public int Id { get; init; }

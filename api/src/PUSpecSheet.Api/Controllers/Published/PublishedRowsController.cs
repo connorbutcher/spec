@@ -18,11 +18,11 @@ namespace PUSpecSheet.Api.Controllers.Published;
 [AllowAnonymous]
 public sealed class PublishedRowsController : ControllerBase
 {
-    private readonly IPublishedRowsService rows;
+    private readonly IPublishedRowsService _rows;
 
     public PublishedRowsController(IPublishedRowsService rows)
     {
-        this.rows = rows;
+        _rows = rows;
     }
 
     /// <summary>Read rows by identifier at a version</summary>
@@ -181,13 +181,13 @@ public sealed class PublishedRowsController : ControllerBase
         PublishedRowsSelection selection,
         CancellationToken cancellationToken)
     {
-        var version = await rows.ResolveAsync(sheetPublicId, point, cancellationToken);
+        var version = await _rows.ResolveAsync(sheetPublicId, point, cancellationToken);
         if (CallerHas(version, point, selection, "rows"))
         {
             return StatusCode(StatusCodes.Status304NotModified);
         }
 
-        var result = await rows.ReadAsync(version, selection, cancellationToken);
+        var result = await _rows.ReadAsync(version, selection, cancellationToken);
         return Ok(result);
     }
 
@@ -199,13 +199,13 @@ public sealed class PublishedRowsController : ControllerBase
         CancellationToken cancellationToken)
     {
         var selection = PublishedRowsSelection.One(rowPublicId, columns);
-        var version = await rows.ResolveAsync(sheetPublicId, point, cancellationToken);
+        var version = await _rows.ResolveAsync(sheetPublicId, point, cancellationToken);
         if (CallerHas(version, point, selection, $"rows/{rowPublicId}"))
         {
             return StatusCode(StatusCodes.Status304NotModified);
         }
 
-        var result = await rows.ReadRowAsync(version, selection, cancellationToken);
+        var result = await _rows.ReadRowAsync(version, selection, cancellationToken);
         return Ok(result);
     }
 

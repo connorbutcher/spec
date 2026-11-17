@@ -5,8 +5,8 @@ public sealed record ApiTagGroup
 {
     public ApiTagGroup(string name, IReadOnlyList<ApiTagDescription> tags)
     {
-        this.Name = name;
-        this.Tags = tags;
+        Name = name;
+        Tags = tags;
     }
 
     public string Name { get; init; }

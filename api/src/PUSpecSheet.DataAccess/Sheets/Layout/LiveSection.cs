@@ -5,10 +5,10 @@ public sealed record LiveSection
 {
     public LiveSection(int id, int templateSectionId, int? parentSheetSectionId, int displayOrder)
     {
-        this.Id = id;
-        this.TemplateSectionId = templateSectionId;
-        this.ParentSheetSectionId = parentSheetSectionId;
-        this.DisplayOrder = displayOrder;
+        Id = id;
+        TemplateSectionId = templateSectionId;
+        ParentSheetSectionId = parentSheetSectionId;
+        DisplayOrder = displayOrder;
     }
 
     public int Id { get; init; }

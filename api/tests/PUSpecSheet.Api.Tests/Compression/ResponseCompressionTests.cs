@@ -7,18 +7,18 @@ namespace PUSpecSheet.Api.Tests.Compression;
 /// <summary>Controller responses are compressed for clients that ask, and the caching headers stay correct.</summary>
 public sealed class ResponseCompressionTests : IAsyncLifetime
 {
-    private Microsoft.AspNetCore.Builder.WebApplication app = null!;
-    private HttpClient client = null!;
+    private Microsoft.AspNetCore.Builder.WebApplication _app = null!;
+    private HttpClient _client = null!;
 
     public async Task InitializeAsync()
     {
-        (app, client) = await CompressionHost.StartAsync();
+        (_app, _client) = await CompressionHost.StartAsync();
     }
 
     public async Task DisposeAsync()
     {
-        client.Dispose();
-        await app.DisposeAsync();
+        _client.Dispose();
+        await _app.DisposeAsync();
     }
 
     [Fact]
@@ -151,7 +151,7 @@ public sealed class ResponseCompressionTests : IAsyncLifetime
             request.Headers.IfNoneMatch.Add(ifNoneMatch);
         }
 
-        var response = await client.SendAsync(request, HttpCompletionOption.ResponseContentRead);
+        var response = await _client.SendAsync(request, HttpCompletionOption.ResponseContentRead);
         await response.Content.LoadIntoBufferAsync();
         return response;
     }

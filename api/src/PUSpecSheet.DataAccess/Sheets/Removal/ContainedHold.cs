@@ -8,8 +8,8 @@ public sealed record ContainedHold
 {
     public ContainedHold(int userId, bool awaitingApproval)
     {
-        this.UserId = userId;
-        this.AwaitingApproval = awaitingApproval;
+        UserId = userId;
+        AwaitingApproval = awaitingApproval;
     }
 
     public int UserId { get; init; }

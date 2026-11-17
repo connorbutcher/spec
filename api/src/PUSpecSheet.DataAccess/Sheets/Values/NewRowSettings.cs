@@ -15,15 +15,15 @@ namespace PUSpecSheet.DataAccess.Sheets.Values;
 /// </summary>
 public sealed class NewRowSettings
 {
-    private readonly PuSpecSheetDbContext db;
-    private readonly ICurrentUser currentUser;
+    private readonly PuSpecSheetDbContext _db;
+    private readonly ICurrentUser _currentUser;
 
     public NewRowSettings(
         PuSpecSheetDbContext db,
         ICurrentUser currentUser)
     {
-        this.db = db;
-        this.currentUser = currentUser;
+        _db = db;
+        _currentUser = currentUser;
     }
 
     /// <param name="tableId">The table the rows were added to.</param>
@@ -56,10 +56,10 @@ public sealed class NewRowSettings
         }
 
         var earlierRevisionIds = earlierByTemplateRow.Values.ToList();
-        var chosen = await RowValueQueries.ListChosenSettingsAsync(db, earlierRevisionIds, cancellationToken);
+        var chosen = await RowValueQueries.ListChosenSettingsAsync(_db, earlierRevisionIds, cancellationToken);
 
         AddInheritedSettings(newCells, shown, templateRowByRow, earlierByTemplateRow, chosen);
-        await db.SaveSheetChangesAsync(cancellationToken);
+        await _db.SaveSheetChangesAsync(cancellationToken);
     }
 
     /// <summary>The same for the rows of a newly added section and of the sub-sections it starts with.</summary>
@@ -77,7 +77,7 @@ public sealed class NewRowSettings
 
     private async Task<List<NewCell>> LoadCellsWithSettingsAsync(IReadOnlyCollection<int> newRowIds, CancellationToken cancellationToken)
     {
-        var rowCells = await SheetCellQueries.ListNewCellsAsync(db, newRowIds, cancellationToken);
+        var rowCells = await SheetCellQueries.ListNewCellsAsync(_db, newRowIds, cancellationToken);
         return rowCells.Where(cell => cell.Kind.HasInstanceSettings()).ToList();
     }
 
@@ -85,14 +85,14 @@ public sealed class NewRowSettings
     private async Task<Dictionary<int, int>> LoadTemplateRowsAsync(int tableId, List<NewCell> newCells, CancellationToken cancellationToken)
     {
         var newRows = newCells.Select(cell => cell.SheetRowId).ToHashSet();
-        var templateRowIds = await SheetRowQueries.ListTemplateRowIdsAsync(db, newRows, cancellationToken);
-        return await SheetRowQueries.GetTemplateRowsOnTableAsync(db, tableId, templateRowIds, cancellationToken);
+        var templateRowIds = await SheetRowQueries.ListTemplateRowIdsAsync(_db, newRows, cancellationToken);
+        return await SheetRowQueries.GetTemplateRowsOnTableAsync(_db, tableId, templateRowIds, cancellationToken);
     }
 
     private async Task<Dictionary<int, RevisionResolution<DbSheetRowRevision>>> ResolveShownAsync(List<int> rowIds, CancellationToken cancellationToken)
     {
-        var me = currentUser.UserId;
-        var revisions = await SheetRowRevisionQueries.ListVisibleAsync(db, rowIds, me, cancellationToken);
+        var me = _currentUser.UserId;
+        var revisions = await SheetRowRevisionQueries.ListVisibleAsync(_db, rowIds, me, cancellationToken);
         return RevisionResolver.Resolve(revisions, revision => revision.SheetRowId, me);
     }
 
@@ -116,7 +116,7 @@ public sealed class NewRowSettings
                 && candidate.SheetColumnBlockId == cell.SheetColumnBlockId);
             if (match is not null)
             {
-                RowValueQueries.AddSettings(db, mine.Id, cell.Id, match.Settings);
+                RowValueQueries.AddSettings(_db, mine.Id, cell.Id, match.Settings);
             }
         }
     }

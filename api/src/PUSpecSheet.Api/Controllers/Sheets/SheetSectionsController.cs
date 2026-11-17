@@ -15,11 +15,11 @@ namespace PUSpecSheet.Api.Controllers.Sheets;
 [Authorize(Policy = PermissionKeys.SheetsEdit)]
 public sealed class SheetSectionsController : ControllerBase
 {
-    private readonly ISheetSectionsService sections;
+    private readonly ISheetSectionsService _sections;
 
     public SheetSectionsController(ISheetSectionsService sections)
     {
-        this.sections = sections;
+        _sections = sections;
     }
 
     /// <summary>Move a section</summary>
@@ -33,7 +33,7 @@ public sealed class SheetSectionsController : ControllerBase
     [HttpPost("{id:int}/move")]
     public async Task<ActionResult<SheetDto>> Move(int id, MoveRequest request, CancellationToken cancellationToken)
     {
-        var result = await sections.MoveAsync(id, request, cancellationToken);
+        var result = await _sections.MoveAsync(id, request, cancellationToken);
         return Ok(result);
     }
 
@@ -48,7 +48,7 @@ public sealed class SheetSectionsController : ControllerBase
     [HttpDelete("{id:int}")]
     public async Task<ActionResult<SheetDto>> Remove(int id, CancellationToken cancellationToken)
     {
-        var result = await sections.RemoveAsync(id, cancellationToken);
+        var result = await _sections.RemoveAsync(id, cancellationToken);
         return Ok(result);
     }
 }

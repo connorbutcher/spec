@@ -18,36 +18,36 @@ namespace PUSpecSheet.Migrator;
 /// </summary>
 internal sealed class SheetMigrator
 {
-    private readonly Func<PuSpecSheetDbContext> createTarget;
-    private readonly LegacySheetReader legacy;
-    private readonly bool commit;
-    private readonly ILogger logger;
+    private readonly Func<PuSpecSheetDbContext> _createTarget;
+    private readonly LegacySheetReader _legacy;
+    private readonly bool _commit;
+    private readonly ILogger _logger;
 
     public SheetMigrator(Func<PuSpecSheetDbContext> createTarget, LegacySheetReader legacy, bool commit, ILogger logger)
     {
-        this.createTarget = createTarget;
-        this.legacy = legacy;
-        this.commit = commit;
-        this.logger = logger;
+        _createTarget = createTarget;
+        _legacy = legacy;
+        _commit = commit;
+        _logger = logger;
     }
 
     public async Task<SheetOutcome> MigrateAsync(LegacySheet legacySheet, CancellationToken cancellationToken)
     {
-        await using var db = createTarget();
+        await using var db = _createTarget();
         if (await db.Sheets.AnyAsync(sheet => sheet.PublicId == legacySheet.PublicId, cancellationToken))
         {
-            logger.Skipped(legacySheet.Name, legacySheet.PublicId);
+            _logger.Skipped(legacySheet.Name, legacySheet.PublicId);
             return SheetOutcome.Skipped;
         }
 
         IReadOnlyList<LegacyCopy> copies;
         try
         {
-            copies = await legacy.LoadCopiesAsync(legacySheet, cancellationToken);
+            copies = await _legacy.LoadCopiesAsync(legacySheet, cancellationToken);
         }
         catch (MigrationException exception)
         {
-            logger.CantMigrate(legacySheet.Name, exception.Message);
+            _logger.CantMigrate(legacySheet.Name, exception.Message);
             return SheetOutcome.Failed;
         }
 
@@ -71,18 +71,18 @@ internal sealed class SheetMigrator
         }
         catch (MigrationException exception)
         {
-            logger.CantMigrate(legacySheet.Name, exception.Message);
+            _logger.CantMigrate(legacySheet.Name, exception.Message);
             return SheetOutcome.Failed;
         }
         catch (DbUpdateException exception)
         {
-            logger.SaveFailed(legacySheet.Name, exception);
+            _logger.SaveFailed(legacySheet.Name, exception);
             return SheetOutcome.Failed;
         }
 
         foreach (var warning in built.Warnings)
         {
-            logger.SheetWarning(legacySheet.Name, warning);
+            _logger.SheetWarning(legacySheet.Name, warning);
         }
 
         var revisions = CountRevisions(built.Sheet);
@@ -96,18 +96,18 @@ internal sealed class SheetMigrator
             if (SheetVerifier.Difference(check.Expected, actual) is { } difference)
             {
                 var which = check.MomentUtc is null ? "the working copy (drafts)" : $"version {check.VersionNumber}";
-                logger.Mismatch(legacySheet.Name, which, difference);
+                _logger.Mismatch(legacySheet.Name, which, difference);
                 matches = false;
             }
         }
 
-        var outcome = !matches ? SheetOutcome.Failed : commit ? SheetOutcome.Migrated : SheetOutcome.Checked;
+        var outcome = !matches ? SheetOutcome.Failed : _commit ? SheetOutcome.Migrated : SheetOutcome.Checked;
         if (outcome == SheetOutcome.Migrated)
         {
             await transaction.CommitAsync(cancellationToken);
         }
 
-        logger.Done(legacySheet.Name, copies.Count, built.Sheet.Versions.Count, revisions, outcome);
+        _logger.Done(legacySheet.Name, copies.Count, built.Sheet.Versions.Count, revisions, outcome);
         return outcome;
     }
 

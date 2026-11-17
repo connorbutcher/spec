@@ -10,8 +10,8 @@ public sealed record CellSettingsRequest
 {
     public CellSettingsRequest(int sheetCellId, CellInstanceSettings? settings)
     {
-        this.SheetCellId = sheetCellId;
-        this.Settings = settings;
+        SheetCellId = sheetCellId;
+        Settings = settings;
     }
 
     public int SheetCellId { get; init; }

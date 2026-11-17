@@ -5,12 +5,12 @@ public sealed record PublishedColumnBlockRecord
 {
     public PublishedColumnBlockRecord(int id, Guid publicId, int tableId, int displayOrder, bool isDeleted, string name)
     {
-        this.Id = id;
-        this.PublicId = publicId;
-        this.TableId = tableId;
-        this.DisplayOrder = displayOrder;
-        this.IsDeleted = isDeleted;
-        this.Name = name;
+        Id = id;
+        PublicId = publicId;
+        TableId = tableId;
+        DisplayOrder = displayOrder;
+        IsDeleted = isDeleted;
+        Name = name;
     }
 
     public int Id { get; init; }

@@ -10,9 +10,9 @@ public sealed record CreateTemplateRowRequest
 {
     public CreateTemplateRowRequest(int templateSectionId, [Range(1, int.MaxValue)] int? position = null, int? copyFromRowId = null)
     {
-        this.TemplateSectionId = templateSectionId;
-        this.Position = position;
-        this.CopyFromRowId = copyFromRowId;
+        TemplateSectionId = templateSectionId;
+        Position = position;
+        CopyFromRowId = copyFromRowId;
     }
 
     public int TemplateSectionId { get; init; }

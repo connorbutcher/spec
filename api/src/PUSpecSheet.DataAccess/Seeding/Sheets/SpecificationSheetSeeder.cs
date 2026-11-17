@@ -15,7 +15,7 @@ public sealed class SpecificationSheetSeeder
     public const string ShortBlockTitle = "Short block";
     public const string HeadTitle = "Cylinder head and valve train";
 
-    private static readonly SpecificationSystem[] ShortBlock =
+    private static readonly SpecificationSystem[] _shortBlock =
     [
         new(
             "Cylinder block",
@@ -37,7 +37,7 @@ public sealed class SpecificationSheetSeeder
             []),
     ];
 
-    private static readonly SpecificationSystem[] Head =
+    private static readonly SpecificationSystem[] _head =
     [
         new(
             "Cylinder head",
@@ -53,54 +53,54 @@ public sealed class SpecificationSheetSeeder
             []),
     ];
 
-    private static readonly SpecificationSystem Lubrication = new(
+    private static readonly SpecificationSystem _lubrication = new(
         "Lubrication",
         [("Oil gallery diameter", 12.000m, 11.900m, 12.100m), ("Oil pump rotor clearance", 0.080m, 0.040m, 0.120m)],
         [],
         [("Oil pump bolt", 8, 22.0m, 0)],
         []);
 
-    private SheetEditor? v6;
+    private SheetEditor? _v6;
 
-    private int v6ShortBlockId;
+    private int _v6ShortBlockId;
 
-    private readonly SheetEditorFactory editors;
-    private readonly ShowcaseUsers users;
+    private readonly SheetEditorFactory _editors;
+    private readonly ShowcaseUsers _users;
 
     public SpecificationSheetSeeder(SheetEditorFactory editors, ShowcaseUsers users)
     {
-        this.editors = editors;
-        this.users = users;
+        _editors = editors;
+        _users = users;
     }
 
     /// <summary>V6, built from version 1 of the template: two versions now, the third from <see cref="IssueV6Async"/>.</summary>
     public async Task SeedV6Async(ShowcaseContext context, CancellationToken cancellationToken)
     {
-        await users.ActAsAsync(ShowcaseUsers.Developer, cancellationToken);
-        var editor = await editors.OpenAsync(context.PhaseIds[ShowcasePhases.V6], ShowcasePhases.SpecificationSheetType, context.CellTypes, cancellationToken);
+        await _users.ActAsAsync(ShowcaseUsers.Developer, cancellationToken);
+        var editor = await _editors.OpenAsync(context.PhaseIds[ShowcasePhases.V6], ShowcasePhases.SpecificationSheetType, context.CellTypes, cancellationToken);
         var templateId = context.TemplateIds[SpecificationTemplate.TemplateName];
 
-        v6ShortBlockId = await AddTableAsync(editor, templateId, ShortBlockTitle, ShortBlock, step: 0, cancellationToken);
-        var headId = await AddTableAsync(editor, templateId, HeadTitle, Head, step: 0, cancellationToken);
+        _v6ShortBlockId = await AddTableAsync(editor, templateId, ShortBlockTitle, _shortBlock, step: 0, cancellationToken);
+        var headId = await AddTableAsync(editor, templateId, HeadTitle, _head, step: 0, cancellationToken);
         await editor.PublishAsync("First issue of the V6 specification", cancellationToken);
 
         // Version 2, by engineer2: wider valve lash after hot testing, every bore verified, lubrication
         // added and the exhaust valve material taken out until it is re-sourced.
-        await users.ActAsAsync(ShowcaseUsers.EngineerTwo, cancellationToken);
+        await _users.ActAsAsync(ShowcaseUsers.EngineerTwo, cancellationToken);
         await editor.RefreshAsync(cancellationToken);
         var valveTrain = editor.Copies(headId, null, SpecificationTemplate.System)[1];
         var lash = editor.Copies(headId, valveTrain.Id, SpecificationTemplate.Dimension)[2];
         await editor.FillAsync(Row(lash, 0), null, null, 0.160m, 0.240m, "Under review");
-        var block = editor.Copies(v6ShortBlockId, null, SpecificationTemplate.System)[0];
-        foreach (var dimension in editor.Copies(v6ShortBlockId, block.Id, SpecificationTemplate.Dimension))
+        var block = editor.Copies(_v6ShortBlockId, null, SpecificationTemplate.System)[0];
+        foreach (var dimension in editor.Copies(_v6ShortBlockId, block.Id, SpecificationTemplate.Dimension))
         {
             await editor.FillAsync(Row(dimension, 0), null, null, null, null, "Released", true);
         }
 
         await editor.RemoveSectionAsync(editor.Copies(headId, valveTrain.Id, SpecificationTemplate.Material)[0], cancellationToken);
-        await AddSystemAsync(editor, v6ShortBlockId, Lubrication, step: 0, cancellationToken);
+        await AddSystemAsync(editor, _v6ShortBlockId, _lubrication, step: 0, cancellationToken);
         await editor.PublishAsync("Valve lash widened after V6 hot tests; lubrication added", cancellationToken);
-        v6 = editor;
+        _v6 = editor;
     }
 
     /// <summary>The A phases, built from version 2 of the template, each a step further on from V6.</summary>
@@ -115,7 +115,7 @@ public sealed class SpecificationSheetSeeder
         // A3: published, then engineer2 starts changing two limits and leaves them locked.
         var a3 = await BuildAsync(context, ShowcasePhases.A3, ShowcaseUsers.Developer, templateId, cancellationToken);
         await a3.PublishAsync("A3 specification", cancellationToken);
-        await users.ActAsAsync(ShowcaseUsers.EngineerTwo, cancellationToken);
+        await _users.ActAsAsync(ShowcaseUsers.EngineerTwo, cancellationToken);
         await a3.RefreshAsync(cancellationToken);
         var shortBlock = a3.Sheet.Tables[0].Id;
         var crank = a3.Copies(shortBlock, null, SpecificationTemplate.System)[1];
@@ -136,7 +136,7 @@ public sealed class SpecificationSheetSeeder
         // signing it off.
         var a5 = await BuildAsync(context, ShowcasePhases.A5, ShowcaseUsers.EngineerThree, templateId, cancellationToken);
         await a5.PublishAsync("A5 specification for review", cancellationToken);
-        await users.ActAsAsync(ShowcaseUsers.EngineerTwo, cancellationToken);
+        await _users.ActAsAsync(ShowcaseUsers.EngineerTwo, cancellationToken);
         await a5.RefreshAsync(cancellationToken);
         foreach (var table in a5.Sheet.Tables)
         {
@@ -160,27 +160,27 @@ public sealed class SpecificationSheetSeeder
     /// </summary>
     public async Task IssueV6Async(string note, CancellationToken cancellationToken)
     {
-        var editor = v6 ?? throw new InvalidOperationException("The V6 specification has to be seeded first.");
-        await users.ActAsAsync(ShowcaseUsers.Developer, cancellationToken);
+        var editor = _v6 ?? throw new InvalidOperationException("The V6 specification has to be seeded first.");
+        await _users.ActAsAsync(ShowcaseUsers.Developer, cancellationToken);
         await editor.RefreshAsync(cancellationToken);
 
-        var release = await editor.AddSectionAsync(v6ShortBlockId, null, SpecificationTemplate.ReleaseNote, cancellationToken);
+        var release = await editor.AddSectionAsync(_v6ShortBlockId, null, SpecificationTemplate.ReleaseNote, cancellationToken);
         await editor.FillAsync(
             Row(release, 0),
             "Valve lash widened to 0.16 to 0.24 mm after hot testing. Lubrication limits added. Exhaust valve material to follow once re-sourced.",
             new DateOnly(2026, 10, 12));
-        var approval = await editor.AddSectionAsync(v6ShortBlockId, null, SpecificationTemplate.Approval, cancellationToken);
+        var approval = await editor.AddSectionAsync(_v6ShortBlockId, null, SpecificationTemplate.Approval, cancellationToken);
         await editor.FillAsync(Row(approval, 0), "Engine Developer", new DateOnly(2026, 10, 14), true);
         await editor.PublishAsync(note, cancellationToken);
     }
 
     private async Task<SheetEditor> BuildAsync(ShowcaseContext context, string phaseCode, string userName, int templateId, CancellationToken cancellationToken)
     {
-        await users.ActAsAsync(userName, cancellationToken);
-        var editor = await editors.OpenAsync(context.PhaseIds[phaseCode], ShowcasePhases.SpecificationSheetType, context.CellTypes, cancellationToken);
+        await _users.ActAsAsync(userName, cancellationToken);
+        var editor = await _editors.OpenAsync(context.PhaseIds[phaseCode], ShowcasePhases.SpecificationSheetType, context.CellTypes, cancellationToken);
         var step = ShowcaseContext.Step(phaseCode);
-        await AddTableAsync(editor, templateId, ShortBlockTitle, [.. ShortBlock, Lubrication], step, cancellationToken);
-        await AddTableAsync(editor, templateId, HeadTitle, Head, step, cancellationToken);
+        await AddTableAsync(editor, templateId, ShortBlockTitle, [.. _shortBlock, _lubrication], step, cancellationToken);
+        await AddTableAsync(editor, templateId, HeadTitle, _head, step, cancellationToken);
         return editor;
     }
 

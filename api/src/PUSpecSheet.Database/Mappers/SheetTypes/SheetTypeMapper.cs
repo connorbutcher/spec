@@ -26,11 +26,11 @@ public static class SheetTypeMapper
             .ToList(),
     };
 
-    private static readonly Func<DbSheetType, SheetTypeDto> Compiled = Projection.Compile();
+    private static readonly Func<DbSheetType, SheetTypeDto> _compiled = Projection.Compile();
 
     /// <summary>Expects <see cref="DbSheetType.Identifiers"/> to be loaded, or to be empty for a new sheet type.</summary>
     public static SheetTypeDto ToDto(this DbSheetType sheetType)
     {
-        return Compiled(sheetType);
+        return _compiled(sheetType);
     }
 }

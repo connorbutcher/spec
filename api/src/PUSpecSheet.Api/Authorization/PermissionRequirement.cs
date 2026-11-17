@@ -7,7 +7,7 @@ public sealed record PermissionRequirement : IAuthorizationRequirement
 {
     public PermissionRequirement(string permission)
     {
-        this.Permission = permission;
+        Permission = permission;
     }
 
     public string Permission { get; init; }

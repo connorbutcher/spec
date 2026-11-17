@@ -22,19 +22,19 @@ public sealed record SheetColumnBlockDto
         bool canRemove,
         SheetChangeDto? lastChange)
     {
-        this.Id = id;
-        this.PublicId = publicId;
-        this.TemplateColumnBlockId = templateColumnBlockId;
-        this.Name = name;
-        this.MinInstances = minInstances;
-        this.MaxInstances = maxInstances;
-        this.InitialInstances = initialInstances;
-        this.StickyColumnCount = stickyColumnCount;
-        this.DisplayOrder = displayOrder;
-        this.Lock = @lock;
-        this.IsPending = isPending;
-        this.CanRemove = canRemove;
-        this.LastChange = lastChange;
+        Id = id;
+        PublicId = publicId;
+        TemplateColumnBlockId = templateColumnBlockId;
+        Name = name;
+        MinInstances = minInstances;
+        MaxInstances = maxInstances;
+        InitialInstances = initialInstances;
+        StickyColumnCount = stickyColumnCount;
+        DisplayOrder = displayOrder;
+        Lock = @lock;
+        IsPending = isPending;
+        CanRemove = canRemove;
+        LastChange = lastChange;
     }
 
     public int Id { get; init; }

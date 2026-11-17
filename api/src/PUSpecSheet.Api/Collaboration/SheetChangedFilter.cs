@@ -21,13 +21,13 @@ public sealed partial class SheetChangedFilter : IAsyncResultFilter
 {
     public const string ConnectionHeader = "X-Sheet-Connection";
 
-    private readonly SheetChangeAnnouncer announcer;
-    private readonly ILogger<SheetChangedFilter> logger;
+    private readonly SheetChangeAnnouncer _announcer;
+    private readonly ILogger<SheetChangedFilter> _logger;
 
     public SheetChangedFilter(SheetChangeAnnouncer announcer, ILogger<SheetChangedFilter> logger)
     {
-        this.announcer = announcer;
-        this.logger = logger;
+        _announcer = announcer;
+        _logger = logger;
     }
 
     public async Task OnResultExecutionAsync(ResultExecutingContext context, ResultExecutionDelegate next)
@@ -44,7 +44,7 @@ public sealed partial class SheetChangedFilter : IAsyncResultFilter
         var request = context.HttpContext.Request;
         if (HttpMethods.IsGet(request.Method))
         {
-            announcer.Observe(sheet);
+            _announcer.Observe(sheet);
             return;
         }
 
@@ -53,11 +53,11 @@ public sealed partial class SheetChangedFilter : IAsyncResultFilter
         {
             var settler = context.HttpContext.RequestServices.GetRequiredService<IRowTakeoverSettler>();
             await settler.CloseBlockedAsync(sheet.Id, CancellationToken.None);
-            await announcer.AnnounceAsync(sheet, request.Headers[ConnectionHeader].FirstOrDefault(), CancellationToken.None);
+            await _announcer.AnnounceAsync(sheet, request.Headers[ConnectionHeader].FirstOrDefault(), CancellationToken.None);
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
-            LogAnnounceFailed(logger, exception, sheet.Id);
+            LogAnnounceFailed(_logger, exception, sheet.Id);
         }
     }
 

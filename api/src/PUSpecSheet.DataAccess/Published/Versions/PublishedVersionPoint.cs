@@ -8,8 +8,8 @@ public sealed record PublishedVersionPoint
 {
     public PublishedVersionPoint(int? versionNumber, DateTime? atUtc)
     {
-        this.VersionNumber = versionNumber;
-        this.AtUtc = atUtc;
+        VersionNumber = versionNumber;
+        AtUtc = atUtc;
     }
 
     public int? VersionNumber { get; init; }

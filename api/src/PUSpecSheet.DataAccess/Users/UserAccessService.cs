@@ -6,29 +6,29 @@ namespace PUSpecSheet.DataAccess.Users;
 
 public sealed class UserAccessService : IUserAccessService
 {
-    private UserAccess? current;
+    private UserAccess? _current;
 
-    private readonly PuSpecSheetDbContext db;
-    private readonly ICurrentUser currentUser;
+    private readonly PuSpecSheetDbContext _db;
+    private readonly ICurrentUser _currentUser;
 
     public UserAccessService(PuSpecSheetDbContext db, ICurrentUser currentUser)
     {
-        this.db = db;
-        this.currentUser = currentUser;
+        _db = db;
+        _currentUser = currentUser;
     }
 
     public async Task<UserAccess> GetCurrentAsync(CancellationToken cancellationToken)
     {
-        if (current is not null)
+        if (_current is not null)
         {
-            return current;
+            return _current;
         }
 
-        var userId = currentUser.UserId;
-        var user = await UserQueries.FindWithAccessAsync(db, userId, cancellationToken);
+        var userId = _currentUser.UserId;
+        var user = await UserQueries.FindWithAccessAsync(_db, userId, cancellationToken);
 
-        current = user is null ? UserAccess.None(userId) : UserAccess.From(user);
-        return current;
+        _current = user is null ? UserAccess.None(userId) : UserAccess.From(user);
+        return _current;
     }
 
     public async Task<CurrentUserDto> GetCurrentUserAsync(CancellationToken cancellationToken)

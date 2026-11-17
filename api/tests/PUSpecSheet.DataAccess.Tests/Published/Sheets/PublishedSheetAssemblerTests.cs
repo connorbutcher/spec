@@ -11,11 +11,11 @@ namespace PUSpecSheet.DataAccess.Tests.Published.Sheets;
 /// </summary>
 public sealed class PublishedSheetAssemblerTests
 {
-    private static readonly ResolvedSheetVersion Version = new(1, Id(1), 3, new DateTime(2026, 9, 30, 14, 0, 0, DateTimeKind.Utc));
+    private static readonly ResolvedSheetVersion _version = new(1, Id(1), 3, new DateTime(2026, 9, 30, 14, 0, 0, DateTimeKind.Utc));
 
     // Table 1 holds a header section 10 and a section 20 with a sub-section 21. Table 2 was removed, along
     // with its section 30. Section 22 was removed from table 1. Table 1 has column blocks 5 then 6.
-    private static readonly PublishedStructure Structure = new(
+    private static readonly PublishedStructure _structure = new(
         [
             new PublishedTableRecord(1, Id(100), 0, false, "Torques"),
             new PublishedTableRecord(2, Id(200), 1, true, "Removed"),
@@ -32,7 +32,7 @@ public sealed class PublishedSheetAssemblerTests
             new PublishedColumnBlockRecord(5, Id(150), 1, 0, false, "First"),
         ]);
 
-    private static readonly PublishedCellRecord[] Cells =
+    private static readonly PublishedCellRecord[] _cells =
     [
         Cell(row: 2, section: 20, rowOrder: 1, cell: 4, column: 1),
         Cell(row: 1, section: 20, rowOrder: 0, cell: 3, column: 1, block: 6),
@@ -44,7 +44,7 @@ public sealed class PublishedSheetAssemblerTests
         Cell(row: 5, section: 30, rowOrder: 0, cell: 8, column: 1),
     ];
 
-    private static readonly Dictionary<int, object> Values = new()
+    private static readonly Dictionary<int, object> _values = new()
     {
         [1] = "M8",
         [3] = 12.5m,
@@ -58,7 +58,7 @@ public sealed class PublishedSheetAssemblerTests
     [Fact]
     public void WholeSheet_ShowsOnlyWhatWasOnTheSheetInDisplayOrder()
     {
-        var sheet = PublishedSheetAssembler.Assemble(Version, Everything(), Structure, Cells, Values);
+        var sheet = PublishedSheetAssembler.Assemble(_version, Everything(), _structure, _cells, _values);
 
         Assert.Equal(3, sheet.Version);
         Assert.Null(sheet.Cells);
@@ -76,7 +76,7 @@ public sealed class PublishedSheetAssemblerTests
     [Fact]
     public void ARowsCells_AreItsOwnThenEachColumnBlocksAndOnlyThoseWithAValue()
     {
-        var sheet = PublishedSheetAssembler.Assemble(Version, Everything(), Structure, Cells, Values);
+        var sheet = PublishedSheetAssembler.Assemble(_version, Everything(), _structure, _cells, _values);
 
         var row = sheet.Tables![0].Sections[1].Rows[0];
 
@@ -88,13 +88,13 @@ public sealed class PublishedSheetAssemblerTests
     [Fact]
     public void Labels_AreLeftOutUnlessAskedFor()
     {
-        var plain = PublishedSheetAssembler.Assemble(Version, Everything(), Structure, Cells, Values);
+        var plain = PublishedSheetAssembler.Assemble(_version, Everything(), _structure, _cells, _values);
         var labelled = PublishedSheetAssembler.Assemble(
-            Version,
+            _version,
             PublishedSheetSelection.Parse(null, null, null, null, PublishedSheetShape.Tree, "labels"),
-            Structure,
-            Cells,
-            Values);
+            _structure,
+            _cells,
+            _values);
 
         Assert.Null(plain.Tables![0].Title);
         Assert.Null(plain.Tables[0].Sections[0].Name);
@@ -108,7 +108,7 @@ public sealed class PublishedSheetAssemblerTests
     {
         var selection = PublishedSheetSelection.Parse(null, null, null, null, PublishedSheetShape.Flat, null);
 
-        var sheet = PublishedSheetAssembler.Assemble(Version, selection, Structure, Cells, Values);
+        var sheet = PublishedSheetAssembler.Assemble(_version, selection, _structure, _cells, _values);
 
         Assert.Null(sheet.Tables);
         Assert.Equal(
@@ -128,9 +128,9 @@ public sealed class PublishedSheetAssemblerTests
             $"{CellId(6)},{CellId(7)},{unknown}",
             PublishedSheetShape.Tree,
             null);
-        var found = Cells.Where(cell => cell.CellId is 6 or 7).ToList();
+        var found = _cells.Where(cell => cell.CellId is 6 or 7).ToList();
 
-        var sheet = PublishedSheetAssembler.Assemble(Version, selection, Structure, found, Values);
+        var sheet = PublishedSheetAssembler.Assemble(_version, selection, _structure, found, _values);
 
         var bolts = Assert.Single(Assert.Single(sheet.Tables!).Sections);
         Assert.Equal(Id(120), bolts.Id);
@@ -144,7 +144,7 @@ public sealed class PublishedSheetAssemblerTests
     {
         var selection = PublishedSheetSelection.Parse(Id(200).ToString(), Id(120).ToString(), null, null, PublishedSheetShape.Tree, null);
 
-        var scope = Structure.ScopeFor(selection);
+        var scope = _structure.ScopeFor(selection);
 
         Assert.Empty(scope.TableIds);
         Assert.Equal([20, 21], scope.SectionIds.Order());

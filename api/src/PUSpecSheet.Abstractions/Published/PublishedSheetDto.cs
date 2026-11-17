@@ -17,12 +17,12 @@ public sealed record PublishedSheetDto
         IReadOnlyDictionary<Guid, object>? cells,
         IReadOnlyList<Guid> missing)
     {
-        this.Sheet = sheet;
-        this.Version = version;
-        this.PublishedAtUtc = publishedAtUtc;
-        this.Tables = tables;
-        this.Cells = cells;
-        this.Missing = missing;
+        Sheet = sheet;
+        Version = version;
+        PublishedAtUtc = publishedAtUtc;
+        Tables = tables;
+        Cells = cells;
+        Missing = missing;
     }
 
     public Guid Sheet { get; init; }

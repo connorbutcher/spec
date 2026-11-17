@@ -5,9 +5,9 @@ public sealed record AvailableTemplateDto
 {
     public AvailableTemplateDto(int id, string name, int latestVersionNumber)
     {
-        this.Id = id;
-        this.Name = name;
-        this.LatestVersionNumber = latestVersionNumber;
+        Id = id;
+        Name = name;
+        LatestVersionNumber = latestVersionNumber;
     }
 
     public int Id { get; init; }

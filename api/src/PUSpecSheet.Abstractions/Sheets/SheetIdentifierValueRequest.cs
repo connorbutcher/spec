@@ -7,8 +7,8 @@ public sealed record SheetIdentifierValueRequest
 {
     public SheetIdentifierValueRequest(int identifierId, [MaxLength(200)] string? value)
     {
-        this.IdentifierId = identifierId;
-        this.Value = value;
+        IdentifierId = identifierId;
+        Value = value;
     }
 
     public int IdentifierId { get; init; }

@@ -11,9 +11,9 @@ public sealed record SheetLiveStateDto
         IReadOnlyList<RowCheckoutDto> checkouts,
         IReadOnlyList<RowTakeoverDto> takeovers)
     {
-        this.Users = users;
-        this.Checkouts = checkouts;
-        this.Takeovers = takeovers;
+        Users = users;
+        Checkouts = checkouts;
+        Takeovers = takeovers;
     }
 
     public IReadOnlyList<SheetPresenceUserDto> Users { get; init; }

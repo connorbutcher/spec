@@ -10,7 +10,7 @@ public sealed class DraftSummariesTests
     private const int Asha = 2;
     private const int Ben = 3;
 
-    private static readonly Dictionary<int, string> Names = new() { [Me] = "Me", [Asha] = "Asha", [Ben] = "Ben" };
+    private static readonly Dictionary<int, string> _names = new() { [Me] = "Me", [Asha] = "Asha", [Ben] = "Ben" };
 
     [Fact]
     public void MyCount_IsOnlyMyDrafts_OfEveryKind()
@@ -36,7 +36,7 @@ public sealed class DraftSummariesTests
             new DbSheetColumnBlockRevision { AuthorUserId = Asha },
         ];
 
-        var others = DraftSummaries.OfOthers(drafts, Me, userId => Names[userId]);
+        var others = DraftSummaries.OfOthers(drafts, Me, userId => _names[userId]);
 
         Assert.Equal([(Asha, "Asha", 2), (Ben, "Ben", 1)], others.Select(summary => (summary.UserId, summary.UserName, summary.DraftCount)));
     }
@@ -46,6 +46,6 @@ public sealed class DraftSummariesTests
     {
         IDbSheetRevision[] drafts = [new DbSheetRowRevision { AuthorUserId = Me }];
 
-        Assert.Empty(DraftSummaries.OfOthers(drafts, Me, userId => Names[userId]));
+        Assert.Empty(DraftSummaries.OfOthers(drafts, Me, userId => _names[userId]));
     }
 }

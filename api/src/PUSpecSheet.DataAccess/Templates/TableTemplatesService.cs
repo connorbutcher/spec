@@ -10,10 +10,10 @@ namespace PUSpecSheet.DataAccess.Templates;
 
 public sealed class TableTemplatesService : ITableTemplatesService
 {
-    private readonly PuSpecSheetDbContext db;
-    private readonly TableTemplateReader reader;
-    private readonly TemplateVersionGuard guard;
-    private readonly ISheetTypeDataService sheetTypes;
+    private readonly PuSpecSheetDbContext _db;
+    private readonly TableTemplateReader _reader;
+    private readonly TemplateVersionGuard _guard;
+    private readonly ISheetTypeDataService _sheetTypes;
 
     public TableTemplatesService(
         PuSpecSheetDbContext db,
@@ -21,22 +21,22 @@ public sealed class TableTemplatesService : ITableTemplatesService
         TemplateVersionGuard guard,
         ISheetTypeDataService sheetTypes)
     {
-        this.db = db;
-        this.reader = reader;
-        this.guard = guard;
-        this.sheetTypes = sheetTypes;
+        _db = db;
+        _reader = reader;
+        _guard = guard;
+        _sheetTypes = sheetTypes;
     }
 
     public async Task<IReadOnlyList<TableTemplateSummaryDto>> GetSummariesAsync(
         int? sheetTypeId,
         CancellationToken cancellationToken)
     {
-        return await TableTemplateQueries.ListSummariesAsync(db, sheetTypeId, cancellationToken);
+        return await TableTemplateQueries.ListSummariesAsync(_db, sheetTypeId, cancellationToken);
     }
 
     public Task<TableTemplateDto> GetAsync(int id, int? versionNumber, CancellationToken cancellationToken)
     {
-        return reader.ReadAsync(id, versionNumber, cancellationToken);
+        return _reader.ReadAsync(id, versionNumber, cancellationToken);
     }
 
     public async Task<TableTemplateDto> CreateAsync(CreateTableTemplateRequest request, CancellationToken cancellationToken)
@@ -45,12 +45,12 @@ public sealed class TableTemplatesService : ITableTemplatesService
         var name = request.Name.Trim();
         await EnsureNameIsFreeAsync(request.SheetTypeId, name, null, cancellationToken);
 
-        var lastOrder = await TableTemplateQueries.GetLastDisplayOrderAsync(db, request.SheetTypeId, cancellationToken);
+        var lastOrder = await TableTemplateQueries.GetLastDisplayOrderAsync(_db, request.SheetTypeId, cancellationToken);
         var template = NewTemplate(request, name, (lastOrder ?? 0) + 1);
-        db.TableTemplates.Add(template);
-        await db.SaveChangesAsync(cancellationToken);
+        _db.TableTemplates.Add(template);
+        await _db.SaveChangesAsync(cancellationToken);
 
-        return await reader.ReadAsync(template.Id, null, cancellationToken);
+        return await _reader.ReadAsync(template.Id, null, cancellationToken);
     }
 
     public async Task<TableTemplateDto> UpdateAsync(
@@ -68,9 +68,9 @@ public sealed class TableTemplatesService : ITableTemplatesService
         var latest = await LatestVersionAsync(id, cancellationToken);
         if (latest.Orientation != request.Orientation)
         {
-            await guard.EnsureEditableAsync(latest.Id, cancellationToken);
+            await _guard.EnsureEditableAsync(latest.Id, cancellationToken);
 
-            var hasColumnBlocks = await TemplateColumnBlockQueries.AnyAsync(db, latest.Id, cancellationToken);
+            var hasColumnBlocks = await TemplateColumnBlockQueries.AnyAsync(_db, latest.Id, cancellationToken);
             if (request.Orientation != TemplateOrientation.Horizontal && hasColumnBlocks)
             {
                 throw new ConflictException("Only horizontal tables have column blocks. Remove the column blocks first.");
@@ -81,12 +81,12 @@ public sealed class TableTemplatesService : ITableTemplatesService
 
         if (latest.StickyColumnCount != request.StickyColumnCount)
         {
-            await guard.EnsureEditableAsync(latest.Id, cancellationToken);
+            await _guard.EnsureEditableAsync(latest.Id, cancellationToken);
             latest.StickyColumnCount = request.StickyColumnCount;
         }
 
-        await db.SaveChangesAsync(cancellationToken);
-        return await reader.ReadAsync(id, null, cancellationToken);
+        await _db.SaveChangesAsync(cancellationToken);
+        return await _reader.ReadAsync(id, null, cancellationToken);
     }
 
     public async Task<TableTemplateDto> CreateVersionAsync(int id, CancellationToken cancellationToken)
@@ -97,32 +97,32 @@ public sealed class TableTemplatesService : ITableTemplatesService
         var copy = TemplateVersionCopier.Copy(
             latest,
             latest.VersionNumber + 1,
-            await TemplateSectionQueries.ListWithRowsAsync(db, latest.Id, cancellationToken),
-            await TemplateColumnBlockQueries.ListAsync(db, latest.Id, cancellationToken));
-        db.TableTemplateVersions.Add(copy);
-        await db.SaveChangesAsync(cancellationToken);
+            await TemplateSectionQueries.ListWithRowsAsync(_db, latest.Id, cancellationToken),
+            await TemplateColumnBlockQueries.ListAsync(_db, latest.Id, cancellationToken));
+        _db.TableTemplateVersions.Add(copy);
+        await _db.SaveChangesAsync(cancellationToken);
 
-        return await reader.ReadAsync(id, null, cancellationToken);
+        return await _reader.ReadAsync(id, null, cancellationToken);
     }
 
     public async Task DeleteAsync(int id, CancellationToken cancellationToken)
     {
         var template = await FindAsync(id, cancellationToken);
-        await guard.EnsureTemplateUnusedAsync(id, cancellationToken);
+        await _guard.EnsureTemplateUnusedAsync(id, cancellationToken);
 
         // Versions, sections, rows and cells go with it through the database's cascading deletes.
-        db.TableTemplates.Remove(template);
-        await db.SaveChangesAsync(cancellationToken);
+        _db.TableTemplates.Remove(template);
+        await _db.SaveChangesAsync(cancellationToken);
 
-        var siblings = await TableTemplateQueries.ListForEditAsync(db, template.SheetTypeId, cancellationToken);
+        var siblings = await TableTemplateQueries.ListForEditAsync(_db, template.SheetTypeId, cancellationToken);
 
         DisplayOrdering.Renumber(siblings, sibling => sibling.DisplayOrder, (sibling, order) => sibling.DisplayOrder = order);
-        await db.SaveChangesAsync(cancellationToken);
+        await _db.SaveChangesAsync(cancellationToken);
     }
 
     private async Task<DbTableTemplate> FindAsync(int id, CancellationToken cancellationToken)
     {
-        var template = await TableTemplateQueries.FindForEditAsync(db, id, cancellationToken);
+        var template = await TableTemplateQueries.FindForEditAsync(_db, id, cancellationToken);
         if (template is null)
         {
             throw new NotFoundException($"Table template {id} was not found.");
@@ -133,12 +133,12 @@ public sealed class TableTemplatesService : ITableTemplatesService
 
     private Task<DbTableTemplateVersion> LatestVersionAsync(int templateId, CancellationToken cancellationToken)
     {
-        return TableTemplateQueries.GetLatestVersionForEditAsync(db, templateId, cancellationToken);
+        return TableTemplateQueries.GetLatestVersionForEditAsync(_db, templateId, cancellationToken);
     }
 
     private async Task EnsureNameIsFreeAsync(int sheetTypeId, string name, int? exceptId, CancellationToken cancellationToken)
     {
-        var taken = await TableTemplateQueries.NameTakenAsync(db, sheetTypeId, name, exceptId, cancellationToken);
+        var taken = await TableTemplateQueries.NameTakenAsync(_db, sheetTypeId, name, exceptId, cancellationToken);
 
         if (taken)
         {
@@ -170,7 +170,7 @@ public sealed class TableTemplatesService : ITableTemplatesService
 
     private async Task EnsureSheetTypeExistsAsync(int sheetTypeId, CancellationToken cancellationToken)
     {
-        var sheetTypeExists = await sheetTypes.ExistsAsync(sheetTypeId, cancellationToken);
+        var sheetTypeExists = await _sheetTypes.ExistsAsync(sheetTypeId, cancellationToken);
         if (!sheetTypeExists)
         {
             throw new InvalidRequestException($"Sheet type {sheetTypeId} doesn't exist.");

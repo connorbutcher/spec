@@ -25,21 +25,21 @@ public sealed record SheetTableDto
         IReadOnlyList<SheetColumnBlockDto> columnBlocks,
         IReadOnlyList<AddableColumnBlockDto> addableColumnBlocks)
     {
-        this.Id = id;
-        this.PublicId = publicId;
-        this.TableTemplateId = tableTemplateId;
-        this.TemplateName = templateName;
-        this.TemplateVersionNumber = templateVersionNumber;
-        this.Orientation = orientation;
-        this.StickyColumnCount = stickyColumnCount;
-        this.Title = title;
-        this.DisplayOrder = displayOrder;
-        this.Lock = @lock;
-        this.IsPending = isPending;
-        this.Sections = sections;
-        this.AddableSections = addableSections;
-        this.ColumnBlocks = columnBlocks;
-        this.AddableColumnBlocks = addableColumnBlocks;
+        Id = id;
+        PublicId = publicId;
+        TableTemplateId = tableTemplateId;
+        TemplateName = templateName;
+        TemplateVersionNumber = templateVersionNumber;
+        Orientation = orientation;
+        StickyColumnCount = stickyColumnCount;
+        Title = title;
+        DisplayOrder = displayOrder;
+        Lock = @lock;
+        IsPending = isPending;
+        Sections = sections;
+        AddableSections = addableSections;
+        ColumnBlocks = columnBlocks;
+        AddableColumnBlocks = addableColumnBlocks;
     }
 
     public int Id { get; init; }

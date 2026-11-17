@@ -5,8 +5,8 @@ public sealed record ApiTagDescription
 {
     public ApiTagDescription(string name, string description)
     {
-        this.Name = name;
-        this.Description = description;
+        Name = name;
+        Description = description;
     }
 
     public string Name { get; init; }

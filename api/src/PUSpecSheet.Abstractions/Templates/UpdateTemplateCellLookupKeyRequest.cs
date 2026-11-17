@@ -9,7 +9,7 @@ public sealed record UpdateTemplateCellLookupKeyRequest
 {
     public UpdateTemplateCellLookupKeyRequest([MaxLength(50)] string? lookupKey)
     {
-        this.LookupKey = lookupKey;
+        LookupKey = lookupKey;
     }
 
     public string? LookupKey { get; init; }

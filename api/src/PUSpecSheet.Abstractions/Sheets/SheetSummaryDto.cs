@@ -15,16 +15,16 @@ public sealed record SheetSummaryDto
         int draftCount,
         int pendingSubmissionCount)
     {
-        this.Id = id;
-        this.PublicId = publicId;
-        this.PhaseId = phaseId;
-        this.SheetTypeId = sheetTypeId;
-        this.Identifiers = identifiers;
-        this.LatestVersionNumber = latestVersionNumber;
-        this.LatestPublishedAtUtc = latestPublishedAtUtc;
-        this.CreatedAtUtc = createdAtUtc;
-        this.DraftCount = draftCount;
-        this.PendingSubmissionCount = pendingSubmissionCount;
+        Id = id;
+        PublicId = publicId;
+        PhaseId = phaseId;
+        SheetTypeId = sheetTypeId;
+        Identifiers = identifiers;
+        LatestVersionNumber = latestVersionNumber;
+        LatestPublishedAtUtc = latestPublishedAtUtc;
+        CreatedAtUtc = createdAtUtc;
+        DraftCount = draftCount;
+        PendingSubmissionCount = pendingSubmissionCount;
     }
 
     public int Id { get; init; }

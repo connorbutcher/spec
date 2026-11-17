@@ -5,8 +5,8 @@ public sealed record SheetTableLinkableRowsDto
 {
     public SheetTableLinkableRowsDto(int sheetTableId, IReadOnlyList<SheetLinkableRowDto> rows)
     {
-        this.SheetTableId = sheetTableId;
-        this.Rows = rows;
+        SheetTableId = sheetTableId;
+        Rows = rows;
     }
 
     public int SheetTableId { get; init; }

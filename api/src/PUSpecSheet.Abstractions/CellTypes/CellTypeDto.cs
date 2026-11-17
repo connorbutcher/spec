@@ -20,15 +20,15 @@ public sealed record CellTypeDto
         IReadOnlyList<CellTypeOptionDto> options,
         int usageCount)
     {
-        this.Id = id;
-        this.Name = name;
-        this.Kind = kind;
-        this.Description = description;
-        this.DisplayOrder = displayOrder;
-        this.Configuration = configuration;
-        this.Style = style;
-        this.Options = options;
-        this.UsageCount = usageCount;
+        Id = id;
+        Name = name;
+        Kind = kind;
+        Description = description;
+        DisplayOrder = displayOrder;
+        Configuration = configuration;
+        Style = style;
+        Options = options;
+        UsageCount = usageCount;
     }
 
     public int Id { get; init; }

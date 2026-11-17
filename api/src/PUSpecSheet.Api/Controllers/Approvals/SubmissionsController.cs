@@ -16,11 +16,11 @@ namespace PUSpecSheet.Api.Controllers.Approvals;
 [Tags(ApiTags.Approvals)]
 public sealed class SubmissionsController : ControllerBase
 {
-    private readonly ISubmissionsService submissions;
+    private readonly ISubmissionsService _submissions;
 
     public SubmissionsController(ISubmissionsService submissions)
     {
-        this.submissions = submissions;
+        _submissions = submissions;
     }
 
     /// <summary>List possible approvers</summary>
@@ -31,7 +31,7 @@ public sealed class SubmissionsController : ControllerBase
     [Authorize(Policy = PermissionKeys.SheetsPublish)]
     public async Task<ActionResult<IReadOnlyList<ApproverDto>>> Approvers(CancellationToken cancellationToken)
     {
-        var result = await submissions.ApproversAsync(cancellationToken);
+        var result = await _submissions.ApproversAsync(cancellationToken);
         return Ok(result);
     }
 
@@ -42,7 +42,7 @@ public sealed class SubmissionsController : ControllerBase
     [HttpGet("api/submissions/awaiting-me")]
     public async Task<ActionResult<IReadOnlyList<SheetSubmissionDto>>> AwaitingMe(CancellationToken cancellationToken)
     {
-        var result = await submissions.AwaitingMyDecisionAsync(cancellationToken);
+        var result = await _submissions.AwaitingMyDecisionAsync(cancellationToken);
         return Ok(result);
     }
 
@@ -53,7 +53,7 @@ public sealed class SubmissionsController : ControllerBase
     [HttpGet("api/submissions/mine")]
     public async Task<ActionResult<IReadOnlyList<SheetSubmissionDto>>> Mine(CancellationToken cancellationToken)
     {
-        var result = await submissions.MineAsync(cancellationToken);
+        var result = await _submissions.MineAsync(cancellationToken);
         return Ok(result);
     }
 
@@ -72,7 +72,7 @@ public sealed class SubmissionsController : ControllerBase
     [Authorize(Policy = PermissionKeys.SheetsApprove)]
     public async Task<ActionResult<SheetSubmissionDto>> Approve(int id, CancellationToken cancellationToken)
     {
-        var result = await submissions.ApproveAsync(id, cancellationToken);
+        var result = await _submissions.ApproveAsync(id, cancellationToken);
         return Ok(result);
     }
 
@@ -93,7 +93,7 @@ public sealed class SubmissionsController : ControllerBase
     [Authorize(Policy = PermissionKeys.SheetsApprove)]
     public async Task<ActionResult<SheetSubmissionDto>> Reject(int id, RejectSubmissionRequest request, CancellationToken cancellationToken)
     {
-        var result = await submissions.RejectAsync(id, request, cancellationToken);
+        var result = await _submissions.RejectAsync(id, request, cancellationToken);
         return Ok(result);
     }
 
@@ -109,7 +109,7 @@ public sealed class SubmissionsController : ControllerBase
     [Authorize(Policy = PermissionKeys.SheetsPublish)]
     public async Task<ActionResult<SheetSubmissionDto>> Withdraw(int id, CancellationToken cancellationToken)
     {
-        var result = await submissions.WithdrawAsync(id, cancellationToken);
+        var result = await _submissions.WithdrawAsync(id, cancellationToken);
         return Ok(result);
     }
 }

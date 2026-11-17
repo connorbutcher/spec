@@ -16,129 +16,129 @@ public sealed class LiveRowCheckoutServiceTests
     private const int Sam = 1;
     private const int Alex = 2;
 
-    private readonly FakeRowCheckouts drafts = new();
-    private readonly RecordingSheetLiveNotifier notifier = new();
-    private readonly SheetPresenceTracker presence = new();
-    private readonly LiveRowCheckoutTracker tracker = new();
-    private readonly RowTakeoverStore takeovers = new();
-    private readonly FakeRemovalInProgressGuard removals = new();
-    private readonly LiveRowCheckoutService service;
+    private readonly FakeRowCheckouts _drafts = new();
+    private readonly RecordingSheetLiveNotifier _notifier = new();
+    private readonly SheetPresenceTracker _presence = new();
+    private readonly LiveRowCheckoutTracker _tracker = new();
+    private readonly RowTakeoverStore _takeovers = new();
+    private readonly FakeRemovalInProgressGuard _removals = new();
+    private readonly LiveRowCheckoutService _service;
 
     public LiveRowCheckoutServiceTests()
     {
-        var settler = new RowTakeoverSettler(takeovers, new RowTakeoverCloser(drafts, notifier), new SettableClock());
-        service = new LiveRowCheckoutService(drafts, presence, tracker, settler, removals, notifier);
+        var settler = new RowTakeoverSettler(_takeovers, new RowTakeoverCloser(_drafts, _notifier), new SettableClock());
+        _service = new LiveRowCheckoutService(_drafts, _presence, _tracker, settler, _removals, _notifier);
 
-        drafts.AddRow(10);
-        drafts.AddRow(11);
-        drafts.AddRow(20, sheetId: 2);
-        presence.Join("sam", new SheetConnection(Sheet, Sam, "Sam"));
-        presence.Join("alex", new SheetConnection(Sheet, Alex, "Alex"));
+        _drafts.AddRow(10);
+        _drafts.AddRow(11);
+        _drafts.AddRow(20, sheetId: 2);
+        _presence.Join("sam", new SheetConnection(Sheet, Sam, "Sam"));
+        _presence.Join("alex", new SheetConnection(Sheet, Alex, "Alex"));
     }
 
     [Fact]
     public async Task ClickingIntoARow_ChecksItOut_AndTellsTheSheet()
     {
-        await service.CheckOutAsync("sam", 10, CancellationToken.None);
+        await _service.CheckOutAsync("sam", 10, CancellationToken.None);
 
-        Assert.Equal(Sam, tracker.HolderOf(10)!.UserId);
-        Assert.Equal(["10:1"], notifier.Checkouts);
+        Assert.Equal(Sam, _tracker.HolderOf(10)!.UserId);
+        Assert.Equal(["10:1"], _notifier.Checkouts);
     }
 
     [Fact]
     public async Task ARowSomeoneElseIsIn_IsRefusedByName()
     {
-        await service.CheckOutAsync("sam", 10, CancellationToken.None);
+        await _service.CheckOutAsync("sam", 10, CancellationToken.None);
 
-        var refused = await Assert.ThrowsAsync<ConflictException>(() => service.CheckOutAsync("alex", 10, CancellationToken.None));
+        var refused = await Assert.ThrowsAsync<ConflictException>(() => _service.CheckOutAsync("alex", 10, CancellationToken.None));
 
         Assert.Equal("This row is being edited by Sam.", refused.Message);
-        Assert.Equal(Sam, tracker.HolderOf(10)!.UserId);
+        Assert.Equal(Sam, _tracker.HolderOf(10)!.UserId);
     }
 
     [Fact]
     public async Task ARowSomeoneElseHasChanged_IsRefused_EvenWhenTheyHaveLeftIt()
     {
-        drafts.CheckOut(10, Sheet, Sam);
+        _drafts.CheckOut(10, Sheet, Sam);
 
-        var refused = await Assert.ThrowsAsync<ConflictException>(() => service.CheckOutAsync("alex", 10, CancellationToken.None));
+        var refused = await Assert.ThrowsAsync<ConflictException>(() => _service.CheckOutAsync("alex", 10, CancellationToken.None));
 
         Assert.Equal("This row is being edited by User 1.", refused.Message);
-        Assert.Null(tracker.HolderOf(10));
+        Assert.Null(_tracker.HolderOf(10));
     }
 
     [Fact]
     public async Task MyOwnChangedRow_CanBeClickedBackInto()
     {
-        drafts.CheckOut(10, Sheet, Sam);
+        _drafts.CheckOut(10, Sheet, Sam);
 
-        await service.CheckOutAsync("sam", 10, CancellationToken.None);
+        await _service.CheckOutAsync("sam", 10, CancellationToken.None);
 
-        Assert.Equal(Sam, tracker.HolderOf(10)!.UserId);
+        Assert.Equal(Sam, _tracker.HolderOf(10)!.UserId);
     }
 
     [Fact]
     public async Task ARowInASectionSomeoneElseIsRemoving_IsRefusedByName()
     {
-        removals.RemoveSectionOf(10, Sam, "Sam");
+        _removals.RemoveSectionOf(10, Sam, "Sam");
 
-        var refused = await Assert.ThrowsAsync<ConflictException>(() => service.CheckOutAsync("alex", 10, CancellationToken.None));
+        var refused = await Assert.ThrowsAsync<ConflictException>(() => _service.CheckOutAsync("alex", 10, CancellationToken.None));
 
         Assert.Equal("Sam is removing the section this is in, so it can't be changed unless they put it back.", refused.Message);
-        Assert.Null(tracker.HolderOf(10));
-        Assert.Empty(notifier.Checkouts);
+        Assert.Null(_tracker.HolderOf(10));
+        Assert.Empty(_notifier.Checkouts);
     }
 
     [Fact]
     public async Task MovingToAnotherRow_FreesTheOneBefore()
     {
-        await service.CheckOutAsync("sam", 10, CancellationToken.None);
-        await service.CheckOutAsync("sam", 11, CancellationToken.None);
+        await _service.CheckOutAsync("sam", 10, CancellationToken.None);
+        await _service.CheckOutAsync("sam", 11, CancellationToken.None);
 
-        Assert.Null(tracker.HolderOf(10));
-        Assert.Equal("11:1", notifier.Checkouts[^1]);
+        Assert.Null(_tracker.HolderOf(10));
+        Assert.Equal("11:1", _notifier.Checkouts[^1]);
     }
 
     [Fact]
     public async Task LeavingARow_FreesIt_AndTellsTheSheet()
     {
-        await service.CheckOutAsync("sam", 10, CancellationToken.None);
+        await _service.CheckOutAsync("sam", 10, CancellationToken.None);
 
-        await service.ReleaseAsync("sam", CancellationToken.None);
+        await _service.ReleaseAsync("sam", CancellationToken.None);
 
-        Assert.Null(tracker.HolderOf(10));
-        Assert.Equal(["10:1", string.Empty], notifier.Checkouts);
+        Assert.Null(_tracker.HolderOf(10));
+        Assert.Equal(["10:1", string.Empty], _notifier.Checkouts);
     }
 
     [Fact]
     public async Task LeavingWithNothingHeld_TellsNobody()
     {
-        await service.ReleaseAsync("sam", CancellationToken.None);
+        await _service.ReleaseAsync("sam", CancellationToken.None);
 
-        Assert.Empty(notifier.Checkouts);
+        Assert.Empty(_notifier.Checkouts);
     }
 
     [Fact]
     public async Task ARowThatCannotBeEntered_SaysWhy()
     {
-        await Assert.ThrowsAsync<NotFoundException>(() => service.CheckOutAsync("sam", 99, CancellationToken.None));
-        await Assert.ThrowsAsync<InvalidRequestException>(() => service.CheckOutAsync("sam", 20, CancellationToken.None));
-        await Assert.ThrowsAsync<InvalidRequestException>(() => service.CheckOutAsync("nobody", 10, CancellationToken.None));
+        await Assert.ThrowsAsync<NotFoundException>(() => _service.CheckOutAsync("sam", 99, CancellationToken.None));
+        await Assert.ThrowsAsync<InvalidRequestException>(() => _service.CheckOutAsync("sam", 20, CancellationToken.None));
+        await Assert.ThrowsAsync<InvalidRequestException>(() => _service.CheckOutAsync("nobody", 10, CancellationToken.None));
     }
 
     [Fact]
     public async Task LeavingARowSomeoneAskedFor_ClosesTheirRequestAsReleased()
     {
         // In these tests a draft stands for the checkout the request was made against.
-        drafts.CheckOut(10, Sheet, Sam);
-        await service.CheckOutAsync("sam", 10, CancellationToken.None);
-        takeovers.TryAdd(new RowTakeoverDto(
+        _drafts.CheckOut(10, Sheet, Sam);
+        await _service.CheckOutAsync("sam", 10, CancellationToken.None);
+        _takeovers.TryAdd(new RowTakeoverDto(
             Guid.NewGuid(), Sheet, 10, Alex, "Alex", Sam, "Sam", DateTime.UtcNow, DateTime.UtcNow.AddMinutes(1), RowTakeoverStatus.Pending));
 
-        drafts.Release(10);
-        await service.ReleaseAsync("sam", CancellationToken.None);
+        _drafts.Release(10);
+        await _service.ReleaseAsync("sam", CancellationToken.None);
 
-        Assert.Equal([RowTakeoverStatus.Released], notifier.Takeovers);
-        Assert.Null(takeovers.ForRow(10));
+        Assert.Equal([RowTakeoverStatus.Released], _notifier.Takeovers);
+        Assert.Null(_takeovers.ForRow(10));
     }
 }

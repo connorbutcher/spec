@@ -7,11 +7,11 @@ public sealed record NewCell
 {
     public NewCell(int id, int sheetRowId, int templateCellId, int? sheetColumnBlockId, CellKind kind)
     {
-        this.Id = id;
-        this.SheetRowId = sheetRowId;
-        this.TemplateCellId = templateCellId;
-        this.SheetColumnBlockId = sheetColumnBlockId;
-        this.Kind = kind;
+        Id = id;
+        SheetRowId = sheetRowId;
+        TemplateCellId = templateCellId;
+        SheetColumnBlockId = sheetColumnBlockId;
+        Kind = kind;
     }
 
     public int Id { get; init; }

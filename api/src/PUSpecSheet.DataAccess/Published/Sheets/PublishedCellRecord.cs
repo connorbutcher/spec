@@ -18,16 +18,16 @@ public sealed record PublishedCellRecord
         int column,
         string? caption)
     {
-        this.RowRevisionId = rowRevisionId;
-        this.RowId = rowId;
-        this.RowPublicId = rowPublicId;
-        this.SectionId = sectionId;
-        this.RowOrder = rowOrder;
-        this.CellId = cellId;
-        this.CellPublicId = cellPublicId;
-        this.ColumnBlockId = columnBlockId;
-        this.Column = column;
-        this.Caption = caption;
+        RowRevisionId = rowRevisionId;
+        RowId = rowId;
+        RowPublicId = rowPublicId;
+        SectionId = sectionId;
+        RowOrder = rowOrder;
+        CellId = cellId;
+        CellPublicId = cellPublicId;
+        ColumnBlockId = columnBlockId;
+        Column = column;
+        Caption = caption;
     }
 
     public int RowRevisionId { get; init; }

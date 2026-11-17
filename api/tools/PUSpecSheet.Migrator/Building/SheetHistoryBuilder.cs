@@ -25,23 +25,23 @@ internal sealed class SheetHistoryBuilder
 {
     private const string Removed = "removed";
 
-    private readonly DbSheet sheet;
-    private readonly DateTime nowUtc;
-    private readonly KeyAssigner assigner = new();
-    private readonly List<string> warnings = [];
-    private readonly List<BuiltVersion> checks = [];
-    private readonly Dictionary<int, ItemTrack<DbSheetTable, DbSheetTableRevision>> tables = [];
-    private readonly Dictionary<int, ItemTrack<DbSheetColumnBlock, DbSheetColumnBlockRevision>> blocks = [];
-    private readonly Dictionary<int, ItemTrack<DbSheetSection, DbSheetSectionRevision>> sections = [];
-    private readonly Dictionary<int, ItemTrack<DbSheetRow, DbSheetRowRevision>> rows = [];
-    private readonly Dictionary<CellKey, DbSheetCell> cells = [];
-    private readonly Dictionary<CellKey, Guid> cellPublicIds = [];
-    private SnapshotKeys previousKeys = new();
+    private readonly DbSheet _sheet;
+    private readonly DateTime _nowUtc;
+    private readonly KeyAssigner _assigner = new();
+    private readonly List<string> _warnings = [];
+    private readonly List<BuiltVersion> _checks = [];
+    private readonly Dictionary<int, ItemTrack<DbSheetTable, DbSheetTableRevision>> _tables = [];
+    private readonly Dictionary<int, ItemTrack<DbSheetColumnBlock, DbSheetColumnBlockRevision>> _blocks = [];
+    private readonly Dictionary<int, ItemTrack<DbSheetSection, DbSheetSectionRevision>> _sections = [];
+    private readonly Dictionary<int, ItemTrack<DbSheetRow, DbSheetRowRevision>> _rows = [];
+    private readonly Dictionary<CellKey, DbSheetCell> _cells = [];
+    private readonly Dictionary<CellKey, Guid> _cellPublicIds = [];
+    private SnapshotKeys _previousKeys = new();
 
     private SheetHistoryBuilder(DbSheet sheet, DateTime nowUtc)
     {
-        this.sheet = sheet;
-        this.nowUtc = nowUtc;
+        _sheet = sheet;
+        _nowUtc = nowUtc;
     }
 
     /// <param name="sheet">The migrated sheet, already saved so that it has its <c>Id</c>. Its tables and versions are added to it.</param>
@@ -51,7 +51,7 @@ internal sealed class SheetHistoryBuilder
     {
         var builder = new SheetHistoryBuilder(sheet, nowUtc);
         builder.BuildAll(copies);
-        return new BuiltSheet(sheet, builder.checks, builder.warnings);
+        return new BuiltSheet(sheet, builder._checks, builder._warnings);
     }
 
     private void BuildAll(IReadOnlyList<LegacyCopy> copies)
@@ -69,7 +69,7 @@ internal sealed class SheetHistoryBuilder
                 // Two versions at one moment can't be told apart "as of" a time, and one older than the version
                 // before it would break the timeline, so the later version moves to just after the earlier one.
                 at = previous.AddTicks(1);
-                warnings.Add(string.Create(
+                _warnings.Add(string.Create(
                     CultureInfo.InvariantCulture,
                     $"Version {copy.VersionNumber} was published at {copy.PublishedAtUtc:O}, not after the version before it; it is moved to {at:O}."));
             }
@@ -80,17 +80,17 @@ internal sealed class SheetHistoryBuilder
                 PublishedAtUtc = at,
                 PublishedByUserId = copy.UserId,
             };
-            sheet.Versions.Add(version);
+            _sheet.Versions.Add(version);
 
             Apply(copy, version, at);
-            checks.Add(new BuiltVersion(copy.VersionNumber, at, copy.Snapshot));
+            _checks.Add(new BuiltVersion(copy.VersionNumber, at, copy.Snapshot));
             last = at;
         }
 
         if (working.Count == 1)
         {
-            Apply(working[0], null, nowUtc);
-            checks.Add(new BuiltVersion(working[0].VersionNumber, null, working[0].Snapshot));
+            Apply(working[0], null, _nowUtc);
+            _checks.Add(new BuiltVersion(working[0].VersionNumber, null, working[0].Snapshot));
         }
 
         KeepPublicIds();
@@ -126,18 +126,18 @@ internal sealed class SheetHistoryBuilder
     private void Apply(LegacyCopy copy, DbSheetVersion? version, DateTime at)
     {
         var snapshot = copy.Snapshot;
-        var keys = assigner.Assign(snapshot);
+        var keys = _assigner.Assign(snapshot);
         var context = new WriteContext(version, at, copy.UserId);
 
         // Orders already published are kept where they still fit, so a moved neighbour doesn't make an item look changed.
-        var tableOrders = KeepOrders(snapshot.Tables, table => table.Id, table => table.DisplayOrder, _ => 0, table => ExistingOrder(tables, keys.Tables[table.Id]));
+        var tableOrders = KeepOrders(snapshot.Tables, table => table.Id, table => table.DisplayOrder, _ => 0, table => ExistingOrder(_tables, keys.Tables[table.Id]));
         var sectionOrders = KeepOrders(
             snapshot.Sections,
             section => section.Id,
             section => section.DisplayOrder,
             section => (section.TableId, section.ParentSectionId),
-            section => ExistingOrder(sections, keys.Sections[section.Id]));
-        var rowOrders = KeepOrders(snapshot.Rows, row => row.Id, row => row.DisplayOrder, row => row.SectionId, row => ExistingOrder(rows, keys.Rows[row.Id]));
+            section => ExistingOrder(_sections, keys.Sections[section.Id]));
+        var rowOrders = KeepOrders(snapshot.Rows, row => row.Id, row => row.DisplayOrder, row => row.SectionId, row => ExistingOrder(_rows, keys.Rows[row.Id]));
 
         foreach (var table in snapshot.Tables)
         {
@@ -163,7 +163,7 @@ internal sealed class SheetHistoryBuilder
 
         if (version is not null)
         {
-            previousKeys = keys;
+            _previousKeys = keys;
         }
     }
 
@@ -200,12 +200,12 @@ internal sealed class SheetHistoryBuilder
     private void ApplyTable(WriteContext context, SnapshotKeys keys, SnapshotTable table)
     {
         var key = keys.Tables[table.Id];
-        if (!tables.TryGetValue(key, out var track))
+        if (!_tables.TryGetValue(key, out var track))
         {
             var identity = new DbSheetTable { TableTemplateVersionId = table.TableTemplateVersionId, CreatedAtUtc = context.At };
-            sheet.Tables.Add(identity);
+            _sheet.Tables.Add(identity);
             track = new ItemTrack<DbSheetTable, DbSheetTableRevision>(identity, null, null);
-            tables[key] = track;
+            _tables[key] = track;
         }
 
         track.PublicId = table.PublicId;
@@ -220,12 +220,12 @@ internal sealed class SheetHistoryBuilder
     {
         var key = keys.ColumnBlocks[block.Id];
         var tableKey = keys.Tables[block.TableId];
-        if (!blocks.TryGetValue(key, out var track))
+        if (!_blocks.TryGetValue(key, out var track))
         {
             var identity = new DbSheetColumnBlock { TemplateColumnBlockId = block.TemplateColumnBlockId, CreatedAtUtc = context.At };
-            tables[tableKey].Identity.ColumnBlocks.Add(identity);
+            _tables[tableKey].Identity.ColumnBlocks.Add(identity);
             track = new ItemTrack<DbSheetColumnBlock, DbSheetColumnBlockRevision>(identity, tableKey, null);
-            blocks[key] = track;
+            _blocks[key] = track;
         }
 
         track.PublicId = block.PublicId;
@@ -237,17 +237,17 @@ internal sealed class SheetHistoryBuilder
         var key = keys.Sections[section.Id];
         var tableKey = keys.Tables[section.TableId];
         int? parentKey = section.ParentSectionId is { } parentId ? keys.Sections[parentId] : null;
-        if (!sections.TryGetValue(key, out var track))
+        if (!_sections.TryGetValue(key, out var track))
         {
             var identity = new DbSheetSection
             {
                 TemplateSectionId = section.TemplateSectionId,
-                ParentSheetSection = parentKey is { } parent ? sections[parent].Identity : null,
+                ParentSheetSection = parentKey is { } parent ? _sections[parent].Identity : null,
                 CreatedAtUtc = context.At,
             };
-            tables[tableKey].Identity.Sections.Add(identity);
+            _tables[tableKey].Identity.Sections.Add(identity);
             track = new ItemTrack<DbSheetSection, DbSheetSectionRevision>(identity, tableKey, parentKey);
-            sections[key] = track;
+            _sections[key] = track;
         }
 
         track.PublicId = section.PublicId;
@@ -258,12 +258,12 @@ internal sealed class SheetHistoryBuilder
     {
         var key = keys.Rows[row.Id];
         var sectionKey = keys.Sections[row.SectionId];
-        if (!rows.TryGetValue(key, out var track))
+        if (!_rows.TryGetValue(key, out var track))
         {
             var identity = new DbSheetRow { TemplateRowId = row.TemplateRowId, CreatedAtUtc = context.At };
-            sections[sectionKey].Identity.Rows.Add(identity);
+            _sections[sectionKey].Identity.Rows.Add(identity);
             track = new ItemTrack<DbSheetRow, DbSheetRowRevision>(identity, null, sectionKey);
-            rows[key] = track;
+            _rows[key] = track;
         }
 
         track.PublicId = row.PublicId;
@@ -297,18 +297,18 @@ internal sealed class SheetHistoryBuilder
     {
         int? blockKey = cell.ColumnBlockId is { } blockId ? keys.ColumnBlocks[blockId] : null;
         var cellKey = new CellKey(rowKey, cell.TemplateCellId, blockKey);
-        if (!cells.TryGetValue(cellKey, out var sheetCell))
+        if (!_cells.TryGetValue(cellKey, out var sheetCell))
         {
             sheetCell = new DbSheetCell
             {
                 TemplateCellId = cell.TemplateCellId,
-                SheetColumnBlock = blockKey is { } block ? blocks[block].Identity : null,
+                SheetColumnBlock = blockKey is { } block ? _blocks[block].Identity : null,
             };
             row.Cells.Add(sheetCell);
-            cells[cellKey] = sheetCell;
+            _cells[cellKey] = sheetCell;
         }
 
-        cellPublicIds[cellKey] = cell.PublicId;
+        _cellPublicIds[cellKey] = cell.PublicId;
         return sheetCell;
     }
 
@@ -323,16 +323,16 @@ internal sealed class SheetHistoryBuilder
         var blocksNow = keys.ColumnBlocks.Values.ToHashSet();
         var rowsNow = keys.Rows.Values.ToHashSet();
 
-        foreach (var key in previousKeys.Tables.Values.Where(key => !tablesNow.Contains(key)))
+        foreach (var key in _previousKeys.Tables.Values.Where(key => !tablesNow.Contains(key)))
         {
-            var track = tables[key];
+            var track = _tables[key];
             var last = track.LastPublished!;
             Write(context, track, Removed, () => new DbSheetTableRevision { Title = last.Title, DisplayOrder = last.DisplayOrder, IsDeleted = true });
         }
 
-        foreach (var key in previousKeys.ColumnBlocks.Values.Where(key => !blocksNow.Contains(key)))
+        foreach (var key in _previousKeys.ColumnBlocks.Values.Where(key => !blocksNow.Contains(key)))
         {
-            var track = blocks[key];
+            var track = _blocks[key];
             if (tablesNow.Contains(track.TableKey!.Value))
             {
                 var last = track.LastPublished!;
@@ -340,9 +340,9 @@ internal sealed class SheetHistoryBuilder
             }
         }
 
-        foreach (var key in previousKeys.Sections.Values.Where(key => !sectionsNow.Contains(key)))
+        foreach (var key in _previousKeys.Sections.Values.Where(key => !sectionsNow.Contains(key)))
         {
-            var track = sections[key];
+            var track = _sections[key];
             var containerKept = track.SectionKey is { } parent ? sectionsNow.Contains(parent) : tablesNow.Contains(track.TableKey!.Value);
             if (containerKept)
             {
@@ -351,9 +351,9 @@ internal sealed class SheetHistoryBuilder
             }
         }
 
-        foreach (var key in previousKeys.Rows.Values.Where(key => !rowsNow.Contains(key)))
+        foreach (var key in _previousKeys.Rows.Values.Where(key => !rowsNow.Contains(key)))
         {
-            var track = rows[key];
+            var track = _rows[key];
             if (sectionsNow.Contains(track.SectionKey!.Value))
             {
                 // A removed row keeps its last values, as the app's removal drafts do.
@@ -384,7 +384,7 @@ internal sealed class SheetHistoryBuilder
         }
 
         var revision = create();
-        revision.SheetId = sheet.Id;
+        revision.SheetId = _sheet.Id;
         revision.RevisionNumber = ++track.RevisionCount;
         revision.AuthorUserId = context.UserId;
         revision.CreatedAtUtc = context.At;
@@ -522,35 +522,35 @@ internal sealed class SheetHistoryBuilder
             used.Add(fresh);
             if (publicId != Guid.Empty)
             {
-                warnings.Add($"The public id {publicId} of a {what} was used more than once; it was given {fresh}.");
+                _warnings.Add($"The public id {publicId} of a {what} was used more than once; it was given {fresh}.");
             }
 
             return fresh;
         }
 
-        foreach (var track in tables.Values)
+        foreach (var track in _tables.Values)
         {
             track.Identity.PublicId = Claim(track.PublicId, "table");
         }
 
-        foreach (var track in blocks.Values)
+        foreach (var track in _blocks.Values)
         {
             track.Identity.PublicId = Claim(track.PublicId, "column block");
         }
 
-        foreach (var track in sections.Values)
+        foreach (var track in _sections.Values)
         {
             track.Identity.PublicId = Claim(track.PublicId, "section");
         }
 
-        foreach (var track in rows.Values)
+        foreach (var track in _rows.Values)
         {
             track.Identity.PublicId = Claim(track.PublicId, "row");
         }
 
-        foreach (var (key, cell) in cells)
+        foreach (var (key, cell) in _cells)
         {
-            cell.PublicId = Claim(cellPublicIds[key], "cell");
+            cell.PublicId = Claim(_cellPublicIds[key], "cell");
         }
     }
 }

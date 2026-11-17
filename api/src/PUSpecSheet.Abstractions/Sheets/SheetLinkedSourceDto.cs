@@ -10,10 +10,10 @@ public sealed record SheetLinkedSourceDto
 {
     public SheetLinkedSourceDto(int sheetTableId, int? templateCellId, int? sheetRowId, IReadOnlyList<string> options)
     {
-        this.SheetTableId = sheetTableId;
-        this.TemplateCellId = templateCellId;
-        this.SheetRowId = sheetRowId;
-        this.Options = options;
+        SheetTableId = sheetTableId;
+        TemplateCellId = templateCellId;
+        SheetRowId = sheetRowId;
+        Options = options;
     }
 
     public int SheetTableId { get; init; }

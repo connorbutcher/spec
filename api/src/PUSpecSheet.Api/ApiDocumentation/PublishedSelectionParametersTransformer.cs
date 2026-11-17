@@ -12,7 +12,7 @@ public sealed class PublishedSelectionParametersTransformer : IOpenApiOperationT
 {
     private const string Combined = " Combined with the other lists; with none of them the whole sheet is returned.";
 
-    private static readonly Dictionary<string, string> Descriptions = new(StringComparer.OrdinalIgnoreCase)
+    private static readonly Dictionary<string, string> _descriptions = new(StringComparer.OrdinalIgnoreCase)
     {
         ["tables"] = "Comma-separated public identifiers of tables to read, each with everything beneath it." + Combined,
         ["sections"] = "Comma-separated public identifiers of sections to read, each with its rows and sub-sections." + Combined,
@@ -33,7 +33,7 @@ public sealed class PublishedSelectionParametersTransformer : IOpenApiOperationT
 
         foreach (var parameter in operation.Parameters?.OfType<OpenApiParameter>() ?? [])
         {
-            if (parameter.In == ParameterLocation.Query && parameter.Name is { } name && Descriptions.TryGetValue(name, out var description))
+            if (parameter.In == ParameterLocation.Query && parameter.Name is { } name && _descriptions.TryGetValue(name, out var description))
             {
                 parameter.Description = description;
             }

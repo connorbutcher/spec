@@ -15,11 +15,11 @@ namespace PUSpecSheet.Api.Controllers.Templates;
 [Authorize(Policy = PermissionKeys.TemplatesManage)]
 public sealed class TemplateRowsController : ControllerBase
 {
-    private readonly ITemplateRowsService rows;
+    private readonly ITemplateRowsService _rows;
 
     public TemplateRowsController(ITemplateRowsService rows)
     {
-        this.rows = rows;
+        _rows = rows;
     }
 
     /// <summary>Add a row</summary>
@@ -34,7 +34,7 @@ public sealed class TemplateRowsController : ControllerBase
         CreateTemplateRowRequest request,
         CancellationToken cancellationToken)
     {
-        var result = await rows.CreateAsync(request, cancellationToken);
+        var result = await _rows.CreateAsync(request, cancellationToken);
         return Ok(result);
     }
 
@@ -49,7 +49,7 @@ public sealed class TemplateRowsController : ControllerBase
     [HttpPost("{id:int}/move")]
     public async Task<ActionResult<TableTemplateDto>> Move(int id, MoveRequest request, CancellationToken cancellationToken)
     {
-        var result = await rows.MoveAsync(id, request, cancellationToken);
+        var result = await _rows.MoveAsync(id, request, cancellationToken);
         return Ok(result);
     }
 
@@ -63,7 +63,7 @@ public sealed class TemplateRowsController : ControllerBase
     [HttpDelete("{id:int}")]
     public async Task<ActionResult<TableTemplateDto>> Delete(int id, CancellationToken cancellationToken)
     {
-        var result = await rows.DeleteAsync(id, cancellationToken);
+        var result = await _rows.DeleteAsync(id, cancellationToken);
         return Ok(result);
     }
 }

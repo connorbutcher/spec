@@ -9,7 +9,7 @@ namespace PUSpecSheet.DataAccess.Tests.Database.Users;
 /// </summary>
 public sealed partial class PermissionSeedTests
 {
-    private static readonly string Script = File.ReadAllText(FindPostDeploymentScript()).ReplaceLineEndings("\n");
+    private static readonly string _script = File.ReadAllText(FindPostDeploymentScript()).ReplaceLineEndings("\n");
 
     [Fact]
     public void EveryPermissionKey_HasARowInThePermissionsTable()
@@ -25,11 +25,11 @@ public sealed partial class PermissionSeedTests
     {
         Assert.Contains(
             $"INSERT INTO [auth].[Users] ([Id], [UserName], [DisplayName], [IsActive], [CreatedAtUtc])\nSELECT {WellKnownUsers.DeveloperId}, N'{WellKnownUsers.DeveloperUserName}'",
-            Script,
+            _script,
             StringComparison.Ordinal);
         Assert.Contains(
             $"INSERT INTO [auth].[UserRoles] ([UserId], [RoleId])\nSELECT {WellKnownUsers.DeveloperId}, {WellKnownRoles.AdministratorId}",
-            Script,
+            _script,
             StringComparison.Ordinal);
     }
 
@@ -38,18 +38,18 @@ public sealed partial class PermissionSeedTests
     {
         Assert.Contains(
             $"INSERT INTO [auth].[Roles] ([Id], [Name], [Description])\nSELECT {WellKnownRoles.AdministratorId}, N'{WellKnownRoles.AdministratorName}'",
-            Script,
+            _script,
             StringComparison.Ordinal);
-        Assert.DoesNotContain("[auth].[RolePermissions]", Script, StringComparison.Ordinal);
+        Assert.DoesNotContain("[auth].[RolePermissions]", _script, StringComparison.Ordinal);
     }
 
     /// <summary>The script's statements for one table, from its IDENTITY_INSERT ON to its OFF.</summary>
     private static string Block(string table)
     {
-        var start = Script.IndexOf($"SET IDENTITY_INSERT [auth].[{table}] ON;", StringComparison.Ordinal);
-        var end = Script.IndexOf($"SET IDENTITY_INSERT [auth].[{table}] OFF;", StringComparison.Ordinal);
+        var start = _script.IndexOf($"SET IDENTITY_INSERT [auth].[{table}] ON;", StringComparison.Ordinal);
+        var end = _script.IndexOf($"SET IDENTITY_INSERT [auth].[{table}] OFF;", StringComparison.Ordinal);
         Assert.True(start >= 0 && end > start, $"The post-deployment script has no {table} block.");
-        return Script[start..end];
+        return _script[start..end];
     }
 
     private static string FindPostDeploymentScript()

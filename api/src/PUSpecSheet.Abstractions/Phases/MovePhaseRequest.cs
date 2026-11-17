@@ -10,8 +10,8 @@ public sealed record MovePhaseRequest
 {
     public MovePhaseRequest(int? parentPhaseId, [Range(1, int.MaxValue)] int position)
     {
-        this.ParentPhaseId = parentPhaseId;
-        this.Position = position;
+        ParentPhaseId = parentPhaseId;
+        Position = position;
     }
 
     public int? ParentPhaseId { get; init; }

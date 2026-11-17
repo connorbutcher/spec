@@ -11,20 +11,20 @@ namespace PUSpecSheet.DataAccess.Tests.Database.Sheets.Values;
 /// </summary>
 public sealed class RowValueCopySqlTests : IDisposable
 {
-    private readonly PuSpecSheetDbContext db = new(
+    private readonly PuSpecSheetDbContext _db = new(
         new DbContextOptionsBuilder<PuSpecSheetDbContext>()
             .UseSqlServer("Server=unused;Database=unused")
             .Options);
 
     public void Dispose()
     {
-        db.Dispose();
+        _db.Dispose();
     }
 
     [Fact]
     public void CopiesEveryValueTable_FromOneRevisionToAnother()
     {
-        var sql = RowValueCopySql.Build(db.Model);
+        var sql = RowValueCopySql.Build(_db.Model);
 
         Assert.Contains(
             "INSERT INTO [cell].[TextValues] ([SheetRowRevisionId], [SheetCellId], [Value]) SELECT {1}, [SheetCellId], [Value] FROM [cell].[TextValues] WHERE [SheetRowRevisionId] = {0};",
@@ -41,6 +41,6 @@ public sealed class RowValueCopySqlTests : IDisposable
     [Fact]
     public void LeavesTheComputedLookupColumnToTheDatabase()
     {
-        Assert.DoesNotContain("LookupValue", RowValueCopySql.Build(db.Model));
+        Assert.DoesNotContain("LookupValue", RowValueCopySql.Build(_db.Model));
     }
 }

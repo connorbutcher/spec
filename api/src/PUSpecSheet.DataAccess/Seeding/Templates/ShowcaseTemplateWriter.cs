@@ -13,26 +13,26 @@ namespace PUSpecSheet.DataAccess.Seeding.Templates;
 /// </summary>
 public sealed class ShowcaseTemplateWriter
 {
-    private readonly PuSpecSheetDbContext db;
-    private readonly ISheetTypeDataService sheetTypes;
+    private readonly PuSpecSheetDbContext _db;
+    private readonly ISheetTypeDataService _sheetTypes;
 
     public ShowcaseTemplateWriter(PuSpecSheetDbContext db, ISheetTypeDataService sheetTypes)
     {
-        this.db = db;
-        this.sheetTypes = sheetTypes;
+        _db = db;
+        _sheetTypes = sheetTypes;
     }
 
     /// <summary>Adds <paramref name="template"/> with its version 1, at the end of its sheet type's list, and returns its id.</summary>
     public async Task<int> CreateAsync(IShowcaseTemplate template, ShowcaseCellTypeCatalog cellTypes, CancellationToken cancellationToken)
     {
-        var sheetTypeId = await sheetTypes.GetIdByNameAsync(template.SheetTypeName, cancellationToken);
-        var order = await TableTemplateQueries.GetLastDisplayOrderAsync(db, sheetTypeId, cancellationToken) ?? 0;
+        var sheetTypeId = await _sheetTypes.GetIdByNameAsync(template.SheetTypeName, cancellationToken);
+        var order = await TableTemplateQueries.GetLastDisplayOrderAsync(_db, sheetTypeId, cancellationToken) ?? 0;
 
         var entity = new DbTableTemplate { SheetTypeId = sheetTypeId, Name = template.Name, DisplayOrder = order + 1 };
         entity.Versions.Add(Lay(template, cellTypes, 1));
-        db.TableTemplates.Add(entity);
-        await db.SaveChangesAsync(cancellationToken);
-        db.ChangeTracker.Clear();
+        _db.TableTemplates.Add(entity);
+        await _db.SaveChangesAsync(cancellationToken);
+        _db.ChangeTracker.Clear();
         return entity.Id;
     }
 
@@ -46,9 +46,9 @@ public sealed class ShowcaseTemplateWriter
     {
         var version = Lay(template, cellTypes, versionNumber);
         version.TableTemplateId = templateId;
-        db.TableTemplateVersions.Add(version);
-        await db.SaveChangesAsync(cancellationToken);
-        db.ChangeTracker.Clear();
+        _db.TableTemplateVersions.Add(version);
+        await _db.SaveChangesAsync(cancellationToken);
+        _db.ChangeTracker.Clear();
     }
 
     private static DbTableTemplateVersion Lay(IShowcaseTemplate template, ShowcaseCellTypeCatalog cellTypes, int versionNumber)

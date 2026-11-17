@@ -11,8 +11,8 @@ namespace PUSpecSheet.DataAccess.Sheets.Linking;
 /// </summary>
 internal sealed class LinkedOptionCollector
 {
-    private readonly Dictionary<(int TableId, int TemplateCellId), List<string>> columns = [];
-    private readonly Dictionary<(int TableId, int RowId), List<string>> rows = [];
+    private readonly Dictionary<(int TableId, int TemplateCellId), List<string>> _columns = [];
+    private readonly Dictionary<(int TableId, int RowId), List<string>> _rows = [];
 
     /// <param name="values">Every cell value and setting the view shows.</param>
     public LinkedOptionCollector(IEnumerable<CellValueBag> values)
@@ -26,11 +26,11 @@ internal sealed class LinkedOptionCollector
 
             if (settings.SourceTemplateCellId is { } templateCellId)
             {
-                columns.TryAdd((settings.SourceSheetTableId!.Value, templateCellId), []);
+                _columns.TryAdd((settings.SourceSheetTableId!.Value, templateCellId), []);
             }
             else
             {
-                rows.TryAdd((settings.SourceSheetTableId!.Value, settings.SourceSheetRowId!.Value), []);
+                _rows.TryAdd((settings.SourceSheetTableId!.Value, settings.SourceSheetRowId!.Value), []);
             }
         }
     }
@@ -38,18 +38,18 @@ internal sealed class LinkedOptionCollector
     /// <summary>Whether anything is linked to this column, so its values are worth turning into text.</summary>
     public bool Wants(int tableId, int templateCellId)
     {
-        return columns.ContainsKey((tableId, templateCellId));
+        return _columns.ContainsKey((tableId, templateCellId));
     }
 
     public bool WantsRow(int tableId, int rowId)
     {
-        return rows.ContainsKey((tableId, rowId));
+        return _rows.ContainsKey((tableId, rowId));
     }
 
     /// <summary>Adds a value of a column. A value the column already has is not repeated.</summary>
     public void Add(int tableId, int templateCellId, string text)
     {
-        if (columns.TryGetValue((tableId, templateCellId), out var known) && !known.Contains(text, StringComparer.Ordinal))
+        if (_columns.TryGetValue((tableId, templateCellId), out var known) && !known.Contains(text, StringComparer.Ordinal))
         {
             known.Add(text);
         }
@@ -58,7 +58,7 @@ internal sealed class LinkedOptionCollector
     /// <summary>Adds a value of a row. A value the row already has is not repeated.</summary>
     public void AddToRow(int tableId, int rowId, string text)
     {
-        if (rows.TryGetValue((tableId, rowId), out var known) && !known.Contains(text, StringComparer.Ordinal))
+        if (_rows.TryGetValue((tableId, rowId), out var known) && !known.Contains(text, StringComparer.Ordinal))
         {
             known.Add(text);
         }
@@ -66,11 +66,11 @@ internal sealed class LinkedOptionCollector
 
     public List<SheetLinkedSourceDto> Build()
     {
-        var ofColumns = columns
+        var ofColumns = _columns
             .OrderBy(entry => entry.Key.TableId)
             .ThenBy(entry => entry.Key.TemplateCellId)
             .Select(entry => new SheetLinkedSourceDto(entry.Key.TableId, entry.Key.TemplateCellId, null, entry.Value));
-        var ofRows = rows
+        var ofRows = _rows
             .OrderBy(entry => entry.Key.TableId)
             .ThenBy(entry => entry.Key.RowId)
             .Select(entry => new SheetLinkedSourceDto(entry.Key.TableId, null, entry.Key.RowId, entry.Value));

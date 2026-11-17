@@ -17,21 +17,21 @@ internal sealed class LegacySheetReader
     /// <summary>The gap left between display orders, as the app leaves them.</summary>
     private const int OrderGap = 1024;
 
-    private readonly SqlConnection connection;
-    private readonly DesignLookup design;
+    private readonly SqlConnection _connection;
+    private readonly DesignLookup _design;
 
     /// <param name="connection">An open connection to the database holding the legacy tables.</param>
     /// <param name="design">The target database's design tables.</param>
     public LegacySheetReader(SqlConnection connection, DesignLookup design)
     {
-        this.connection = connection;
-        this.design = design;
+        _connection = connection;
+        _design = design;
     }
 
     public async Task<IReadOnlyList<LegacySheet>> ListSheetsAsync(CancellationToken cancellationToken)
     {
         var sheets = new List<LegacySheet>();
-        await using var command = new SqlCommand(LegacySql.Sheets, connection);
+        await using var command = new SqlCommand(LegacySql.Sheets, _connection);
         await ReadAllAsync(command, null, reader => sheets.Add(new LegacySheet
         {
             PhaseId = reader.GetInt32("PhaseId"),
@@ -48,7 +48,7 @@ internal sealed class LegacySheetReader
     public async Task<IReadOnlyList<LegacyCopy>> LoadCopiesAsync(LegacySheet sheet, CancellationToken cancellationToken)
     {
         var versions = new List<LegacyCopy>();
-        await using (var command = new SqlCommand(LegacySql.Versions, connection))
+        await using (var command = new SqlCommand(LegacySql.Versions, _connection))
         {
             await ReadAllAsync(command, sheet, reader => versions.Add(new LegacyCopy
             {
@@ -60,7 +60,7 @@ internal sealed class LegacySheetReader
         }
 
         var tables = new List<(int VersionId, int TemplateId, SnapshotTable Table)>();
-        await using (var command = new SqlCommand(LegacySql.Tables, connection))
+        await using (var command = new SqlCommand(LegacySql.Tables, _connection))
         {
             await ReadAllAsync(command, sheet, reader =>
             {
@@ -68,14 +68,14 @@ internal sealed class LegacySheetReader
                 tables.Add((reader.GetInt32("SpecSheetId"), templateId, new SnapshotTable
                 {
                     Id = reader.GetInt32("Id"),
-                    TableTemplateVersionId = design.LatestVersionOf(templateId),
+                    TableTemplateVersionId = _design.LatestVersionOf(templateId),
                     Title = NullableString(reader, "Title"),
                 }));
             }, cancellationToken);
         }
 
         var sections = new List<(int VersionId, SnapshotSection Section)>();
-        await using (var command = new SqlCommand(LegacySql.Groups, connection))
+        await using (var command = new SqlCommand(LegacySql.Groups, _connection))
         {
             await ReadAllAsync(command, sheet, reader => sections.Add((reader.GetInt32("SpecSheetId"), new SnapshotSection
             {
@@ -87,7 +87,7 @@ internal sealed class LegacySheetReader
         }
 
         var rows = new List<(int VersionId, SnapshotRow Row)>();
-        await using (var command = new SqlCommand(LegacySql.Rows, connection))
+        await using (var command = new SqlCommand(LegacySql.Rows, _connection))
         {
             await ReadAllAsync(command, sheet, reader => rows.Add((reader.GetInt32("SpecSheetId"), new SnapshotRow
             {
@@ -100,7 +100,7 @@ internal sealed class LegacySheetReader
         var contents = await ReadContentsAsync(sheet, cancellationToken);
 
         var cells = new List<(int VersionId, SnapshotCell Cell)>();
-        await using (var command = new SqlCommand(LegacySql.Cells, connection))
+        await using (var command = new SqlCommand(LegacySql.Cells, _connection))
         {
             await ReadAllAsync(command, sheet, reader =>
             {
@@ -123,19 +123,19 @@ internal sealed class LegacySheetReader
                     Tables = Ordered(
                         tables.Where(item => item.VersionId == version.Id).ToList(),
                         _ => 0,
-                        item => design.TableOrder(item.TemplateId),
+                        item => _design.TableOrder(item.TemplateId),
                         item => item.Table.Id,
                         (item, order) => item.Table with { DisplayOrder = order }),
                     Sections = Ordered(
                         sections.Where(item => item.VersionId == version.Id).Select(item => item.Section).ToList(),
                         section => (section.TableId, section.ParentSectionId),
-                        section => design.SectionOrder(section.TemplateSectionId),
+                        section => _design.SectionOrder(section.TemplateSectionId),
                         section => section.Id,
                         (section, order) => section with { DisplayOrder = order }),
                     Rows = Ordered(
                         rows.Where(item => item.VersionId == version.Id).Select(item => item.Row).ToList(),
                         row => row.SectionId,
-                        row => design.RowOrder(row.TemplateRowId),
+                        row => _design.RowOrder(row.TemplateRowId),
                         row => row.Id,
                         (row, order) => row with { DisplayOrder = order }),
                     Cells = cells.Where(item => item.VersionId == version.Id).Select(item => item.Cell).ToList(),
@@ -180,32 +180,32 @@ internal sealed class LegacySheetReader
             return cell;
         }
 
-        await using (var command = new SqlCommand(LegacySql.TextValues, connection))
+        await using (var command = new SqlCommand(LegacySql.TextValues, _connection))
         {
             await ReadAllAsync(command, sheet, reader => For(reader).Text = reader.GetString("Value"), cancellationToken);
         }
 
-        await using (var command = new SqlCommand(LegacySql.NumericValues, connection))
+        await using (var command = new SqlCommand(LegacySql.NumericValues, _connection))
         {
             await ReadAllAsync(command, sheet, reader => For(reader).Number = reader.GetDecimal("Value"), cancellationToken);
         }
 
-        await using (var command = new SqlCommand(LegacySql.DateValues, connection))
+        await using (var command = new SqlCommand(LegacySql.DateValues, _connection))
         {
             await ReadAllAsync(command, sheet, reader => For(reader).Date = DateOnly.FromDateTime(reader.GetDateTime("Value")), cancellationToken);
         }
 
-        await using (var command = new SqlCommand(LegacySql.BooleanValues, connection))
+        await using (var command = new SqlCommand(LegacySql.BooleanValues, _connection))
         {
             await ReadAllAsync(command, sheet, reader => For(reader).Boolean = reader.GetBoolean("Value"), cancellationToken);
         }
 
-        await using (var command = new SqlCommand(LegacySql.OptionValues, connection))
+        await using (var command = new SqlCommand(LegacySql.OptionValues, _connection))
         {
             await ReadAllAsync(command, sheet, reader => For(reader).OptionId = reader.GetInt32("CellTypeOptionId"), cancellationToken);
         }
 
-        await using (var command = new SqlCommand(LegacySql.LabelledTextValues, connection))
+        await using (var command = new SqlCommand(LegacySql.LabelledTextValues, _connection))
         {
             await ReadAllAsync(command, sheet, reader => For(reader).LabelledText.Add(new LabelledSlot(
                 reader.GetString("SlotKey"),
@@ -213,7 +213,7 @@ internal sealed class LegacySheetReader
                 reader.GetString("Value"))), cancellationToken);
         }
 
-        await using (var command = new SqlCommand(LegacySql.CellSettings, connection))
+        await using (var command = new SqlCommand(LegacySql.CellSettings, _connection))
         {
             await ReadAllAsync(
                 command,

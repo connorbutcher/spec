@@ -14,11 +14,11 @@ namespace PUSpecSheet.Api.Controllers.Templates;
 [Authorize(Policy = PermissionKeys.TemplatesManage)]
 public sealed class TemplateCellsController : ControllerBase
 {
-    private readonly ITemplateCellsService cells;
+    private readonly ITemplateCellsService _cells;
 
     public TemplateCellsController(ITemplateCellsService cells)
     {
-        this.cells = cells;
+        _cells = cells;
     }
 
     /// <summary>Add a cell</summary>
@@ -36,7 +36,7 @@ public sealed class TemplateCellsController : ControllerBase
         CreateTemplateCellRequest request,
         CancellationToken cancellationToken)
     {
-        var result = await cells.CreateAsync(request, cancellationToken);
+        var result = await _cells.CreateAsync(request, cancellationToken);
         return Ok(result);
     }
 
@@ -55,7 +55,7 @@ public sealed class TemplateCellsController : ControllerBase
         UpdateTemplateCellRequest request,
         CancellationToken cancellationToken)
     {
-        var result = await cells.UpdateAsync(id, request, cancellationToken);
+        var result = await _cells.UpdateAsync(id, request, cancellationToken);
         return Ok(result);
     }
 
@@ -69,7 +69,7 @@ public sealed class TemplateCellsController : ControllerBase
     [HttpDelete("{id:int}")]
     public async Task<ActionResult<TableTemplateDto>> Delete(int id, CancellationToken cancellationToken)
     {
-        var result = await cells.DeleteAsync(id, cancellationToken);
+        var result = await _cells.DeleteAsync(id, cancellationToken);
         return Ok(result);
     }
 }

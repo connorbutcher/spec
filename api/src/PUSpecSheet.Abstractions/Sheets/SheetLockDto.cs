@@ -5,9 +5,9 @@ public sealed record SheetLockDto
 {
     public SheetLockDto(int userId, string userName, bool isMine)
     {
-        this.UserId = userId;
-        this.UserName = userName;
-        this.IsMine = isMine;
+        UserId = userId;
+        UserName = userName;
+        IsMine = isMine;
     }
 
     public int UserId { get; init; }

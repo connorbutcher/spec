@@ -18,19 +18,19 @@ namespace PUSpecSheet.DataAccess.Sheets.Drafts;
 public abstract class DraftGateway<TRevision>
     where TRevision : class, IDbSheetRevision, new()
 {
-    private readonly PuSpecSheetDbContext db;
-    private readonly ICurrentUser currentUser;
+    private readonly PuSpecSheetDbContext _db;
+    private readonly ICurrentUser _currentUser;
 
     protected DraftGateway(
         PuSpecSheetDbContext db,
         ICurrentUser currentUser)
     {
-        this.db = db;
-        this.currentUser = currentUser;
+        _db = db;
+        _currentUser = currentUser;
     }
 
     /// <summary>The database, for the queries a revision type adds.</summary>
-    protected PuSpecSheetDbContext Db => db;
+    protected PuSpecSheetDbContext Db => _db;
 
     /// <summary>Every revision of this type.</summary>
     protected abstract DbSet<TRevision> Revisions { get; }
@@ -99,7 +99,7 @@ public abstract class DraftGateway<TRevision>
         }
 
         Revisions.RemoveRange(unchanged);
-        await db.SaveSheetChangesAsync(cancellationToken);
+        await _db.SaveSheetChangesAsync(cancellationToken);
     }
 
     /// <summary>
@@ -110,7 +110,7 @@ public abstract class DraftGateway<TRevision>
     /// </summary>
     public async Task ReleaseRestoredOrderAsync(IReadOnlyCollection<int> siblingIds, CancellationToken cancellationToken)
     {
-        var me = currentUser.UserId;
+        var me = _currentUser.UserId;
         var states = await LoadManyAsync(siblingIds, cancellationToken);
         var items = states
             .Select(entry =>
@@ -145,7 +145,7 @@ public abstract class DraftGateway<TRevision>
         if (unchanged.Count > 0)
         {
             Revisions.RemoveRange(unchanged);
-            await db.SaveSheetChangesAsync(cancellationToken);
+            await _db.SaveSheetChangesAsync(cancellationToken);
         }
     }
 
@@ -188,7 +188,7 @@ public abstract class DraftGateway<TRevision>
         if (state.Draft is { } existing)
         {
             EnsureNotAwaitingApproval(existing);
-            if (existing.AuthorUserId != currentUser.UserId)
+            if (existing.AuthorUserId != _currentUser.UserId)
             {
                 await ThrowLockedAsync(existing.AuthorUserId, cancellationToken);
             }
@@ -208,7 +208,7 @@ public abstract class DraftGateway<TRevision>
             Status = RevisionStatus.Draft,
             DisplayOrder = current.DisplayOrder,
             IsDeleted = current.IsDeleted,
-            AuthorUserId = currentUser.UserId,
+            AuthorUserId = _currentUser.UserId,
             CreatedAtUtc = now,
             UpdatedAtUtc = now,
         };
@@ -228,7 +228,7 @@ public abstract class DraftGateway<TRevision>
             EnsureNotAwaitingApproval(submitted);
         }
 
-        if (state.Draft is { } draft && draft.AuthorUserId != currentUser.UserId)
+        if (state.Draft is { } draft && draft.AuthorUserId != _currentUser.UserId)
         {
             await ThrowLockedAsync(draft.AuthorUserId, cancellationToken);
         }
@@ -237,7 +237,7 @@ public abstract class DraftGateway<TRevision>
     /// <summary>The viewer's drafts on items that have a published revision to compare them with.</summary>
     private List<(TRevision Draft, TRevision Current)> MyDraftsOnPublishedItems(IEnumerable<DraftState<TRevision>> states)
     {
-        var me = currentUser.UserId;
+        var me = _currentUser.UserId;
         return DraftsOnPublishedItems(states.Where(state => state.Draft?.AuthorUserId == me));
     }
 
@@ -261,7 +261,7 @@ public abstract class DraftGateway<TRevision>
 
     private async Task ThrowLockedAsync(int authorUserId, CancellationToken cancellationToken)
     {
-        var name = await UserQueries.FindDisplayNameAsync(db, authorUserId, cancellationToken) ?? "another user";
+        var name = await UserQueries.FindDisplayNameAsync(_db, authorUserId, cancellationToken) ?? "another user";
         throw new ConflictException($"{Subject} is being edited by {name}.");
     }
 }

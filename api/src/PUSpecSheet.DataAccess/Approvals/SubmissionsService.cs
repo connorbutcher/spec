@@ -10,13 +10,13 @@ namespace PUSpecSheet.DataAccess.Approvals;
 
 public sealed class SubmissionsService : ISubmissionsService
 {
-    private readonly ApproverDirectory approvers;
-    private readonly SheetSubmitter submitter;
-    private readonly SubmissionDecider decider;
-    private readonly SubmissionReader submissionReader;
-    private readonly SheetReader reader;
-    private readonly ISheetLiveNotifier notifier;
-    private readonly ICurrentUser currentUser;
+    private readonly ApproverDirectory _approvers;
+    private readonly SheetSubmitter _submitter;
+    private readonly SubmissionDecider _decider;
+    private readonly SubmissionReader _submissionReader;
+    private readonly SheetReader _reader;
+    private readonly ISheetLiveNotifier _notifier;
+    private readonly ICurrentUser _currentUser;
 
     public SubmissionsService(
         ApproverDirectory approvers,
@@ -27,51 +27,51 @@ public sealed class SubmissionsService : ISubmissionsService
         ISheetLiveNotifier notifier,
         ICurrentUser currentUser)
     {
-        this.approvers = approvers;
-        this.submitter = submitter;
-        this.decider = decider;
-        this.submissionReader = submissionReader;
-        this.reader = reader;
-        this.notifier = notifier;
-        this.currentUser = currentUser;
+        _approvers = approvers;
+        _submitter = submitter;
+        _decider = decider;
+        _submissionReader = submissionReader;
+        _reader = reader;
+        _notifier = notifier;
+        _currentUser = currentUser;
     }
 
     public Task<IReadOnlyList<ApproverDto>> ApproversAsync(CancellationToken cancellationToken)
     {
-        return approvers.ListAsync(currentUser.UserId, cancellationToken);
+        return _approvers.ListAsync(_currentUser.UserId, cancellationToken);
     }
 
     public async Task<SheetDto> SubmitAsync(int sheetId, SubmitSheetRequest request, CancellationToken cancellationToken)
     {
-        await submitter.SubmitAsync(sheetId, request, cancellationToken);
-        return await reader.ReadLiveAsync(sheetId, cancellationToken);
+        await _submitter.SubmitAsync(sheetId, request, cancellationToken);
+        return await _reader.ReadLiveAsync(sheetId, cancellationToken);
     }
 
     public Task<IReadOnlyList<SheetSubmissionDto>> AwaitingMyDecisionAsync(CancellationToken cancellationToken)
     {
-        return submissionReader.AwaitingDecisionOfAsync(currentUser.UserId, cancellationToken);
+        return _submissionReader.AwaitingDecisionOfAsync(_currentUser.UserId, cancellationToken);
     }
 
     public Task<IReadOnlyList<SheetSubmissionDto>> MineAsync(CancellationToken cancellationToken)
     {
-        return submissionReader.SubmittedByAsync(currentUser.UserId, cancellationToken);
+        return _submissionReader.SubmittedByAsync(_currentUser.UserId, cancellationToken);
     }
 
     public async Task<SheetSubmissionDto> ApproveAsync(int submissionId, CancellationToken cancellationToken)
     {
-        var submission = await decider.ApproveAsync(submissionId, cancellationToken);
+        var submission = await _decider.ApproveAsync(submissionId, cancellationToken);
         return await AfterDecisionAsync(submission, cancellationToken);
     }
 
     public async Task<SheetSubmissionDto> RejectAsync(int submissionId, RejectSubmissionRequest request, CancellationToken cancellationToken)
     {
-        var submission = await decider.RejectAsync(submissionId, request.Reason, cancellationToken);
+        var submission = await _decider.RejectAsync(submissionId, request.Reason, cancellationToken);
         return await AfterDecisionAsync(submission, cancellationToken);
     }
 
     public async Task<SheetSubmissionDto> WithdrawAsync(int submissionId, CancellationToken cancellationToken)
     {
-        var submission = await decider.WithdrawAsync(submissionId, cancellationToken);
+        var submission = await _decider.WithdrawAsync(submissionId, cancellationToken);
         return await AfterDecisionAsync(submission, cancellationToken);
     }
 
@@ -83,9 +83,9 @@ public sealed class SubmissionsService : ISubmissionsService
     {
         if (submission.Status != SubmissionStatus.Pending)
         {
-            await notifier.SheetChangedAsync(submission.SheetId, SheetChangedNoticeDto.Everything, exceptConnectionId: null, cancellationToken);
+            await _notifier.SheetChangedAsync(submission.SheetId, SheetChangedNoticeDto.Everything, exceptConnectionId: null, cancellationToken);
         }
 
-        return await submissionReader.GetAsync(submission.Id, cancellationToken);
+        return await _submissionReader.GetAsync(submission.Id, cancellationToken);
     }
 }

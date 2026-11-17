@@ -7,12 +7,12 @@ public sealed record PhaseDto
 {
     public PhaseDto(int id, string code, string? description, int displayOrder, int? parentPhaseId, IReadOnlyList<int> sheetTypeIds)
     {
-        this.Id = id;
-        this.Code = code;
-        this.Description = description;
-        this.DisplayOrder = displayOrder;
-        this.ParentPhaseId = parentPhaseId;
-        this.SheetTypeIds = sheetTypeIds;
+        Id = id;
+        Code = code;
+        Description = description;
+        DisplayOrder = displayOrder;
+        ParentPhaseId = parentPhaseId;
+        SheetTypeIds = sheetTypeIds;
     }
 
     public int Id { get; init; }

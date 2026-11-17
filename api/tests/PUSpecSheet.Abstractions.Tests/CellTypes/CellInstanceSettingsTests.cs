@@ -7,7 +7,7 @@ namespace PUSpecSheet.Abstractions.Tests.CellTypes;
 /// <summary>The settings chosen for a cell on the sheet are stored and sent as JSON named by cell kind.</summary>
 public sealed class CellInstanceSettingsTests
 {
-    private static readonly JsonSerializerOptions Options = new(JsonSerializerDefaults.Web)
+    private static readonly JsonSerializerOptions _options = new(JsonSerializerDefaults.Web)
     {
         AllowOutOfOrderMetadataProperties = true,
     };
@@ -17,7 +17,7 @@ public sealed class CellInstanceSettingsTests
     {
         CellInstanceSettings settings = new LinkedDropdownInstanceSettings { SourceSheetTableId = 4, SourceTemplateCellId = 15 };
 
-        var json = JsonSerializer.Serialize(settings, Options);
+        var json = JsonSerializer.Serialize(settings, _options);
 
         Assert.Equal("""{"kind":"LinkedDropdown","sourceSheetTableId":4,"sourceTemplateCellId":15,"sourceSheetRowId":null}""", json);
     }
@@ -27,7 +27,7 @@ public sealed class CellInstanceSettingsTests
     {
         var settings = JsonSerializer.Deserialize<CellInstanceSettings>(
             """{"sourceSheetTableId":4,"kind":"LinkedDropdown","sourceTemplateCellId":15}""",
-            Options);
+            _options);
 
         Assert.Equal(new LinkedDropdownInstanceSettings { SourceSheetTableId = 4, SourceTemplateCellId = 15 }, settings);
     }
@@ -47,7 +47,7 @@ public sealed class CellInstanceSettingsTests
     {
         var settings = JsonSerializer.Deserialize<CellInstanceSettings>(
             """{"kind":"LinkedDropdown","sourceSheetTableId":4,"sourceTemplateCellId":15,"includeRowValues":true}""",
-            Options);
+            _options);
 
         Assert.Equal(new LinkedDropdownInstanceSettings { SourceSheetTableId = 4, SourceTemplateCellId = 15 }, settings);
     }
@@ -73,7 +73,7 @@ public sealed class CellInstanceSettingsTests
                 Assert.True(empty.IsEmpty);
 
                 // It must also be registered on CellInstanceSettings, or it couldn't be stored.
-                Assert.Contains($"\"kind\":\"{kind}\"", JsonSerializer.Serialize(empty, Options));
+                Assert.Contains($"\"kind\":\"{kind}\"", JsonSerializer.Serialize(empty, _options));
             }
         }
     }

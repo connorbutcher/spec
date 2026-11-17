@@ -10,9 +10,9 @@ public sealed record ShowcaseContext
         IReadOnlyDictionary<string, int> phaseIds,
         IReadOnlyDictionary<string, int> templateIds)
     {
-        this.CellTypes = cellTypes;
-        this.PhaseIds = phaseIds;
-        this.TemplateIds = templateIds;
+        CellTypes = cellTypes;
+        PhaseIds = phaseIds;
+        TemplateIds = templateIds;
     }
 
     public ShowcaseCellTypeCatalog CellTypes { get; init; }

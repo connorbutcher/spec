@@ -18,12 +18,12 @@ internal sealed record SheetSnapshot
     public IReadOnlyList<SnapshotCell> Cells { get; init; } = [];
 
     // Built on first use. A snapshot isn't changed once made, so it never goes stale.
-    private ILookup<int, SnapshotCell>? cellsByRow;
+    private ILookup<int, SnapshotCell>? _cellsByRow;
 
     /// <summary>The cells of one row.</summary>
     public IEnumerable<SnapshotCell> CellsOf(int rowId)
     {
-        cellsByRow ??= Cells.ToLookup(cell => cell.RowId);
-        return cellsByRow[rowId];
+        _cellsByRow ??= Cells.ToLookup(cell => cell.RowId);
+        return _cellsByRow[rowId];
     }
 }

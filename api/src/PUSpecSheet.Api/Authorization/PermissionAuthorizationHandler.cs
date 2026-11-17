@@ -10,19 +10,19 @@ namespace PUSpecSheet.Api.Authorization;
 public sealed class PermissionAuthorizationHandler
     : AuthorizationHandler<PermissionRequirement>
 {
-    private readonly IUserAccessService userAccess;
-    private readonly IHttpContextAccessor httpContext;
+    private readonly IUserAccessService _userAccess;
+    private readonly IHttpContextAccessor _httpContext;
 
     public PermissionAuthorizationHandler(IUserAccessService userAccess, IHttpContextAccessor httpContext)
     {
-        this.userAccess = userAccess;
-        this.httpContext = httpContext;
+        _userAccess = userAccess;
+        _httpContext = httpContext;
     }
 
     protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, PermissionRequirement requirement)
     {
-        var cancellationToken = httpContext.HttpContext?.RequestAborted ?? CancellationToken.None;
-        var access = await userAccess.GetCurrentAsync(cancellationToken);
+        var cancellationToken = _httpContext.HttpContext?.RequestAborted ?? CancellationToken.None;
+        var access = await _userAccess.GetCurrentAsync(cancellationToken);
         if (access.Has(requirement.Permission))
         {
             context.Succeed(requirement);

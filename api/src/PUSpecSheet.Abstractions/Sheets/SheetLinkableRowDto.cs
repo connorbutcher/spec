@@ -8,8 +8,8 @@ public sealed record SheetLinkableRowDto
 {
     public SheetLinkableRowDto(int sheetRowId, string label)
     {
-        this.SheetRowId = sheetRowId;
-        this.Label = label;
+        SheetRowId = sheetRowId;
+        Label = label;
     }
 
     public int SheetRowId { get; init; }

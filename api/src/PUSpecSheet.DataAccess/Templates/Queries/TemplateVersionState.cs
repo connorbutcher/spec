@@ -5,9 +5,9 @@ public sealed record TemplateVersionState
 {
     public TemplateVersionState(int versionNumber, int latestNumber, bool isInUse)
     {
-        this.VersionNumber = versionNumber;
-        this.LatestNumber = latestNumber;
-        this.IsInUse = isInUse;
+        VersionNumber = versionNumber;
+        LatestNumber = latestNumber;
+        IsInUse = isInUse;
     }
 
     public int VersionNumber { get; init; }

@@ -5,7 +5,7 @@ namespace PUSpecSheet.DataAccess.Tests.Sheets.Collaboration.Takeovers;
 
 public sealed class RowTakeoverStoreTests
 {
-    private static readonly DateTime Asked = new(2026, 10, 7, 12, 0, 0, DateTimeKind.Utc);
+    private static readonly DateTime _asked = new(2026, 10, 7, 12, 0, 0, DateTimeKind.Utc);
 
     [Fact]
     public void ARow_HasOneRequestWaitingAtATime()
@@ -35,8 +35,8 @@ public sealed class RowTakeoverStoreTests
         var store = new RowTakeoverStore();
         store.TryAdd(Takeover(rowId: 10, requester: 2));
 
-        Assert.Empty(store.Due(Asked.AddSeconds(59)));
-        Assert.Single(store.Due(Asked.AddSeconds(60)));
+        Assert.Empty(store.Due(_asked.AddSeconds(59)));
+        Assert.Single(store.Due(_asked.AddSeconds(60)));
     }
 
     [Fact]
@@ -61,8 +61,8 @@ public sealed class RowTakeoverStoreTests
             "Requester",
             holder,
             "Holder",
-            Asked,
-            Asked.AddSeconds(60),
+            _asked,
+            _asked.AddSeconds(60),
             RowTakeoverStatus.Pending);
     }
 }

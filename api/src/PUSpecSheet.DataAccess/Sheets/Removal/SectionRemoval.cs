@@ -5,9 +5,9 @@ public sealed record SectionRemoval
 {
     public SectionRemoval(int sheetSectionId, int authorUserId, bool awaitingApproval)
     {
-        this.SheetSectionId = sheetSectionId;
-        this.AuthorUserId = authorUserId;
-        this.AwaitingApproval = awaitingApproval;
+        SheetSectionId = sheetSectionId;
+        AuthorUserId = authorUserId;
+        AwaitingApproval = awaitingApproval;
     }
 
     public int SheetSectionId { get; init; }

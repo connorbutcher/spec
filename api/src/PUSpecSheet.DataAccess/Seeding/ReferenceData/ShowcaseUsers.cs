@@ -16,32 +16,32 @@ public sealed class ShowcaseUsers
     public const string EngineerTwo = "engineer2";
     public const string EngineerThree = "engineer3";
 
-    private Dictionary<string, int>? ids;
+    private Dictionary<string, int>? _ids;
 
-    private readonly PuSpecSheetDbContext db;
-    private readonly BackgroundUser backgroundUser;
+    private readonly PuSpecSheetDbContext _db;
+    private readonly BackgroundUser _backgroundUser;
 
     public ShowcaseUsers(PuSpecSheetDbContext db, BackgroundUser backgroundUser)
     {
-        this.db = db;
-        this.backgroundUser = backgroundUser;
+        _db = db;
+        _backgroundUser = backgroundUser;
     }
 
     /// <summary>Makes every change from here on as <paramref name="userName"/>.</summary>
     public async Task ActAsAsync(string userName, CancellationToken cancellationToken)
     {
-        if (ids is null)
+        if (_ids is null)
         {
             string[] userNames = [Developer, EngineerTwo, EngineerThree];
-            ids = await UserQueries.GetIdsByUserNameAsync(db, userNames, cancellationToken);
+            _ids = await UserQueries.GetIdsByUserNameAsync(_db, userNames, cancellationToken);
         }
 
-        backgroundUser.UserId = ids.TryGetValue(userName, out var id) ? id : WellKnownUsers.DeveloperId;
+        _backgroundUser.UserId = _ids.TryGetValue(userName, out var id) ? id : WellKnownUsers.DeveloperId;
     }
 
     /// <summary>Goes back to the developer user, as start-up work normally runs.</summary>
     public void Reset()
     {
-        backgroundUser.UserId = null;
+        _backgroundUser.UserId = null;
     }
 }

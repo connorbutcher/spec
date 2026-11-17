@@ -16,11 +16,11 @@ namespace PUSpecSheet.Api.Controllers.Sheets;
 [Authorize(Policy = PermissionKeys.SheetsEdit)]
 public sealed class RowTakeoversController : ControllerBase
 {
-    private readonly IRowTakeoversService takeovers;
+    private readonly IRowTakeoversService _takeovers;
 
     public RowTakeoversController(IRowTakeoversService takeovers)
     {
-        this.takeovers = takeovers;
+        _takeovers = takeovers;
     }
 
     /// <summary>Check whether a row can be taken over</summary>
@@ -35,7 +35,7 @@ public sealed class RowTakeoversController : ControllerBase
     [HttpGet("api/sheet-rows/{rowId:int}/takeover-availability")]
     public async Task<ActionResult<RowTakeoverAvailabilityDto>> GetAvailability(int rowId, CancellationToken cancellationToken)
     {
-        var result = await takeovers.GetAvailabilityAsync(rowId, cancellationToken);
+        var result = await _takeovers.GetAvailabilityAsync(rowId, cancellationToken);
         return Ok(result);
     }
 
@@ -56,7 +56,7 @@ public sealed class RowTakeoversController : ControllerBase
     [HttpPost("api/sheet-rows/{rowId:int}/takeover-requests")]
     public async Task<ActionResult<RowTakeoverDto>> Ask(int rowId, CancellationToken cancellationToken)
     {
-        var result = await takeovers.RequestAsync(rowId, cancellationToken);
+        var result = await _takeovers.RequestAsync(rowId, cancellationToken);
         return Ok(result);
     }
 
@@ -73,7 +73,7 @@ public sealed class RowTakeoversController : ControllerBase
     [HttpPost("api/row-takeovers/{id:guid}/approve")]
     public async Task<ActionResult<RowTakeoverDto>> Approve(Guid id, CancellationToken cancellationToken)
     {
-        var result = await takeovers.ApproveAsync(id, cancellationToken);
+        var result = await _takeovers.ApproveAsync(id, cancellationToken);
         return Ok(result);
     }
 
@@ -88,7 +88,7 @@ public sealed class RowTakeoversController : ControllerBase
     [HttpPost("api/row-takeovers/{id:guid}/deny")]
     public async Task<ActionResult<RowTakeoverDto>> Deny(Guid id, CancellationToken cancellationToken)
     {
-        var result = await takeovers.DenyAsync(id, cancellationToken);
+        var result = await _takeovers.DenyAsync(id, cancellationToken);
         return Ok(result);
     }
 
@@ -103,7 +103,7 @@ public sealed class RowTakeoversController : ControllerBase
     [HttpDelete("api/row-takeovers/{id:guid}")]
     public async Task<ActionResult<RowTakeoverDto>> Cancel(Guid id, CancellationToken cancellationToken)
     {
-        var result = await takeovers.CancelAsync(id, cancellationToken);
+        var result = await _takeovers.CancelAsync(id, cancellationToken);
         return Ok(result);
     }
 }

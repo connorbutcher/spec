@@ -14,11 +14,11 @@ namespace PUSpecSheet.Api.Controllers.Templates;
 [Authorize(Policy = PermissionKeys.TemplatesManage)]
 public sealed class TemplateCellLookupKeysController : ControllerBase
 {
-    private readonly ITemplateCellLookupKeysService lookupKeys;
+    private readonly ITemplateCellLookupKeysService _lookupKeys;
 
     public TemplateCellLookupKeysController(ITemplateCellLookupKeysService lookupKeys)
     {
-        this.lookupKeys = lookupKeys;
+        _lookupKeys = lookupKeys;
     }
 
     /// <summary>Set a cell's lookup key</summary>
@@ -43,7 +43,7 @@ public sealed class TemplateCellLookupKeysController : ControllerBase
         UpdateTemplateCellLookupKeyRequest request,
         CancellationToken cancellationToken)
     {
-        var result = await lookupKeys.UpdateAsync(id, request, cancellationToken);
+        var result = await _lookupKeys.UpdateAsync(id, request, cancellationToken);
         return Ok(result);
     }
 }

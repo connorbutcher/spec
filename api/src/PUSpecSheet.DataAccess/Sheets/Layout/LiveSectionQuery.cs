@@ -8,13 +8,13 @@ namespace PUSpecSheet.DataAccess.Sheets.Layout;
 /// <summary>Answers questions about a table's sections as the current user sees them.</summary>
 public sealed class LiveSectionQuery
 {
-    private readonly PuSpecSheetDbContext db;
-    private readonly ICurrentUser currentUser;
+    private readonly PuSpecSheetDbContext _db;
+    private readonly ICurrentUser _currentUser;
 
     public LiveSectionQuery(PuSpecSheetDbContext db, ICurrentUser currentUser)
     {
-        this.db = db;
-        this.currentUser = currentUser;
+        _db = db;
+        _currentUser = currentUser;
     }
 
     /// <summary>
@@ -23,10 +23,10 @@ public sealed class LiveSectionQuery
     /// </summary>
     public async Task<IReadOnlyList<LiveSection>> VisibleAsync(int tableId, CancellationToken cancellationToken)
     {
-        var me = currentUser.UserId;
-        var sections = await SheetSectionQueries.ListPlacesOnTableAsync(db, tableId, cancellationToken);
+        var me = _currentUser.UserId;
+        var sections = await SheetSectionQueries.ListPlacesOnTableAsync(_db, tableId, cancellationToken);
 
-        var visible = await SheetSectionRevisionQueries.ListVisibleOnTableAsync(db, tableId, me, cancellationToken);
+        var visible = await SheetSectionRevisionQueries.ListVisibleOnTableAsync(_db, tableId, me, cancellationToken);
         var resolved = RevisionResolver.Resolve(visible, revision => revision.SheetSectionId, me);
 
         var own = sections
@@ -54,7 +54,7 @@ public sealed class LiveSectionQuery
     /// <summary>The ids of a section and everything inside it, whether or not anyone can currently see them.</summary>
     public async Task<IReadOnlyCollection<int>> SubtreeIdsAsync(int tableId, int rootSectionId, CancellationToken cancellationToken)
     {
-        var parents = await SheetSectionQueries.GetParentsOnTableAsync(db, tableId, cancellationToken);
+        var parents = await SheetSectionQueries.GetParentsOnTableAsync(_db, tableId, cancellationToken);
 
         var ids = new HashSet<int> { rootSectionId };
         var added = true;

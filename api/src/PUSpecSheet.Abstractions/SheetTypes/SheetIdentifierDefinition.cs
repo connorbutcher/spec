@@ -5,11 +5,11 @@ public sealed record SheetIdentifierDefinition
 {
     public SheetIdentifierDefinition(int id, string name, SheetIdentifierKind kind, bool isRequired, IReadOnlyList<string> options)
     {
-        this.Id = id;
-        this.Name = name;
-        this.Kind = kind;
-        this.IsRequired = isRequired;
-        this.Options = options;
+        Id = id;
+        Name = name;
+        Kind = kind;
+        IsRequired = isRequired;
+        Options = options;
     }
 
     public int Id { get; init; }

@@ -5,10 +5,10 @@ public sealed record LiveRowCheckout
 {
     public LiveRowCheckout(int sheetId, int rowId, int userId, string displayName)
     {
-        this.SheetId = sheetId;
-        this.RowId = rowId;
-        this.UserId = userId;
-        this.DisplayName = displayName;
+        SheetId = sheetId;
+        RowId = rowId;
+        UserId = userId;
+        DisplayName = displayName;
     }
 
     public int SheetId { get; init; }

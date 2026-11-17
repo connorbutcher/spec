@@ -6,18 +6,18 @@ namespace PUSpecSheet.DataAccess.Tests.Sheets.Layout;
 public sealed class OrderGapsTests
 {
     // Three siblings published at 1024, 2048 and 3072. The item being moved is the middle one, 2048.
-    private static readonly int[] OthersWithoutMiddle = [1024, 3072];
+    private static readonly int[] _othersWithoutMiddle = [1024, 3072];
 
     [Fact]
     public void MovingAnItemToWhereItAlreadyIs_KeepsItsPublishedOrder()
     {
-        Assert.Equal(2048, OrderGaps.PlaceAt(OthersWithoutMiddle, position: 2, publishedOrder: 2048));
+        Assert.Equal(2048, OrderGaps.PlaceAt(_othersWithoutMiddle, position: 2, publishedOrder: 2048));
     }
 
     [Fact]
     public void MovingAnItemAway_GivesItANewOrder()
     {
-        var order = OrderGaps.PlaceAt(OthersWithoutMiddle, position: 3, publishedOrder: 2048);
+        var order = OrderGaps.PlaceAt(_othersWithoutMiddle, position: 3, publishedOrder: 2048);
 
         Assert.True(order > 3072);
         Assert.NotEqual(2048, order);
@@ -27,8 +27,8 @@ public sealed class OrderGapsTests
     public void MovingAnItemAwayAndBack_ReturnsToThePublishedOrder()
     {
         // Down to last: a new order past the others. Back to second: its published order again.
-        var away = OrderGaps.PlaceAt(OthersWithoutMiddle, position: 3, publishedOrder: 2048);
-        var back = OrderGaps.PlaceAt(OthersWithoutMiddle, position: 2, publishedOrder: 2048);
+        var away = OrderGaps.PlaceAt(_othersWithoutMiddle, position: 3, publishedOrder: 2048);
+        var back = OrderGaps.PlaceAt(_othersWithoutMiddle, position: 2, publishedOrder: 2048);
 
         Assert.NotEqual(away, back);
         Assert.Equal(2048, back);
@@ -37,7 +37,7 @@ public sealed class OrderGapsTests
     [Fact]
     public void WithNoPublishedOrder_ItPlacesBetweenNeighboursAsBefore()
     {
-        Assert.Equal(2048, OrderGaps.PlaceAt(OthersWithoutMiddle, position: 2, publishedOrder: null));
+        Assert.Equal(2048, OrderGaps.PlaceAt(_othersWithoutMiddle, position: 2, publishedOrder: null));
     }
 
     [Fact]

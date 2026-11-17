@@ -13,7 +13,7 @@ namespace PUSpecSheet.DataAccess.Seeding.Sheets;
 /// </summary>
 public sealed class PfkSheetSeeder
 {
-    private static readonly (string Id, string Description, DateOnly CalibratedUntil, bool InService)[] Gauges =
+    private static readonly (string Id, string Description, DateOnly CalibratedUntil, bool InService)[] _gauges =
     [
         ("G-101", "Air bore gauge, 82 mm", new DateOnly(2027, 3, 31), true),
         ("G-114", "Outside micrometer, 50 to 75 mm", new DateOnly(2027, 1, 15), true),
@@ -21,7 +21,7 @@ public sealed class PfkSheetSeeder
         ("G-131", "Roundness tester", new DateOnly(2026, 11, 20), false),
     ];
 
-    private static readonly PfkOperation[] Operations =
+    private static readonly PfkOperation[] _operations =
     [
         new(
             "OP10 Rough and finish bore cylinders",
@@ -38,33 +38,33 @@ public sealed class PfkSheetSeeder
             ]),
     ];
 
-    private static readonly PfkOperation Torque = new(
+    private static readonly PfkOperation _torque = new(
         "OP30 Fit and torque main bearing caps",
         [
             ("PFK-301", "Cap seating gap", "SC", 0.000m, 0.030m, 10, "G-114", "Pass", null),
             ("PFK-302", "Crankshaft end float", "CC", 0.080m, 0.250m, 1, "G-120", "N/A", "Strip and rebuild; replace the thrust washers."),
         ]);
 
-    private readonly SheetEditorFactory editors;
-    private readonly ShowcaseUsers users;
+    private readonly SheetEditorFactory _editors;
+    private readonly ShowcaseUsers _users;
 
     public PfkSheetSeeder(SheetEditorFactory editors, ShowcaseUsers users)
     {
-        this.editors = editors;
-        this.users = users;
+        _editors = editors;
+        _users = users;
     }
 
     /// <summary>V6, built from version 1 of the register.</summary>
     public async Task SeedV6Async(ShowcaseContext context, CancellationToken cancellationToken)
     {
-        var editor = await BuildAsync(context, ShowcasePhases.V6, ShowcaseUsers.Developer, Operations, cancellationToken);
+        var editor = await BuildAsync(context, ShowcasePhases.V6, ShowcaseUsers.Developer, _operations, cancellationToken);
         await editor.PublishAsync("PFK register for V6", cancellationToken);
 
         // Version 2, by engineer3: the torque operation and the week 41 audit dates.
-        await users.ActAsAsync(ShowcaseUsers.EngineerThree, cancellationToken);
+        await _users.ActAsAsync(ShowcaseUsers.EngineerThree, cancellationToken);
         await editor.RefreshAsync(cancellationToken);
         var register = Register(editor);
-        await AddOperationAsync(editor, register, Torque, step: 0, cancellationToken);
+        await AddOperationAsync(editor, register, _torque, step: 0, cancellationToken);
         foreach (var operation in editor.Copies(register, null, PfkRegisterTemplate.Operation))
         {
             foreach (var feature in editor.Copies(register, operation.Id, PfkRegisterTemplate.Feature))
@@ -76,7 +76,7 @@ public sealed class PfkSheetSeeder
         await editor.PublishAsync("OP30 added; audit dates from week 41", cancellationToken);
 
         // engineer2 starts the deck height re-check and leaves it unpublished, locking the row.
-        await users.ActAsAsync(ShowcaseUsers.EngineerTwo, cancellationToken);
+        await _users.ActAsAsync(ShowcaseUsers.EngineerTwo, cancellationToken);
         await editor.RefreshAsync(cancellationToken);
         var lineBore = editor.Copies(register, null, PfkRegisterTemplate.Operation)[1];
         var deck = editor.Copies(register, lineBore.Id, PfkRegisterTemplate.Feature)[1];
@@ -86,7 +86,7 @@ public sealed class PfkSheetSeeder
     /// <summary>The A phases, built from version 2 of the register.</summary>
     public async Task SeedPhasesAsync(ShowcaseContext context, CancellationToken cancellationToken)
     {
-        PfkOperation[] all = [.. Operations, Torque];
+        PfkOperation[] all = [.. _operations, _torque];
 
         var a2 = await BuildAsync(context, ShowcasePhases.A2, ShowcaseUsers.EngineerThree, all, cancellationToken);
         await AddNoteAsync(a2, "Bores now finished on the new honing cell; frequencies kept as V6 until capability is shown.", cancellationToken);
@@ -108,7 +108,7 @@ public sealed class PfkSheetSeeder
         // A5: engineer2 builds it, then the developer extends a gauge's calibration in a second version.
         var a5 = await BuildAsync(context, ShowcasePhases.A5, ShowcaseUsers.EngineerTwo, all, cancellationToken);
         await a5.PublishAsync("PFK register for A5", cancellationToken);
-        await users.ActAsAsync(ShowcaseUsers.Developer, cancellationToken);
+        await _users.ActAsAsync(ShowcaseUsers.Developer, cancellationToken);
         await a5.RefreshAsync(cancellationToken);
         var gauges = GaugeTable(a5);
         var roundness = a5.Copies(gauges, null, GaugeTemplate.Gauge)[3];
@@ -123,12 +123,12 @@ public sealed class PfkSheetSeeder
         PfkOperation[] operations,
         CancellationToken cancellationToken)
     {
-        await users.ActAsAsync(userName, cancellationToken);
-        var editor = await editors.OpenAsync(context.PhaseIds[phaseCode], ShowcasePhases.PfksSheetType, context.CellTypes, cancellationToken);
+        await _users.ActAsAsync(userName, cancellationToken);
+        var editor = await _editors.OpenAsync(context.PhaseIds[phaseCode], ShowcasePhases.PfksSheetType, context.CellTypes, cancellationToken);
         var step = ShowcaseContext.Step(phaseCode);
 
         var gauges = await editor.AddTableAsync(context.TemplateIds[GaugeTemplate.TemplateName], "Gauges", cancellationToken);
-        foreach (var (id, description, calibratedUntil, inService) in Gauges)
+        foreach (var (id, description, calibratedUntil, inService) in _gauges)
         {
             var gauge = await editor.AddSectionAsync(gauges, null, GaugeTemplate.Gauge, cancellationToken);
             await editor.FillAsync(Row(gauge), id, description, calibratedUntil.AddDays(step * 7), inService);

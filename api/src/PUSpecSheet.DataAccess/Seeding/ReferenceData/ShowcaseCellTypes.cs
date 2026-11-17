@@ -13,32 +13,32 @@ namespace PUSpecSheet.DataAccess.Seeding.ReferenceData;
 /// </summary>
 public sealed class ShowcaseCellTypes
 {
-    private static readonly CellStyle Right = new() { Align = CellTextAlign.Right };
+    private static readonly CellStyle _right = new() { Align = CellTextAlign.Right };
 
-    private static readonly CellStyle Centre = new() { Align = CellTextAlign.Center };
+    private static readonly CellStyle _centre = new() { Align = CellTextAlign.Center };
 
-    private static readonly (string Name, CellKind Kind, string? Description, CellConfiguration Configuration, CellStyle Style, string[] Options)[] Definitions =
+    private static readonly (string Name, CellKind Kind, string? Description, CellConfiguration Configuration, CellStyle Style, string[] Options)[] _definitions =
     [
         (ShowcaseCellTypeNames.Heading, CellKind.Heading, "Fixed text such as a column header.", new HeadingCellConfiguration(), new CellStyle { Bold = true }, []),
         (ShowcaseCellTypeNames.Text, CellKind.Text, null, new TextCellConfiguration { MaxLength = 200 }, new CellStyle(), []),
-        (ShowcaseCellTypeNames.Number, CellKind.Number, null, new NumberCellConfiguration { DecimalPlaces = 2 }, Right, []),
+        (ShowcaseCellTypeNames.Number, CellKind.Number, null, new NumberCellConfiguration { DecimalPlaces = 2 }, _right, []),
         (ShowcaseCellTypeNames.Date, CellKind.Date, null, new DateCellConfiguration(), new CellStyle(), []),
-        (ShowcaseCellTypeNames.Checkbox, CellKind.Checkbox, null, new CheckboxCellConfiguration(), Centre, []),
-        (ShowcaseCellTypeNames.PassFail, CellKind.TextDropdown, null, new TextDropdownCellConfiguration(), Centre, ["Pass", "Fail", "N/A"]),
+        (ShowcaseCellTypeNames.Checkbox, CellKind.Checkbox, null, new CheckboxCellConfiguration(), _centre, []),
+        (ShowcaseCellTypeNames.PassFail, CellKind.TextDropdown, null, new TextDropdownCellConfiguration(), _centre, ["Pass", "Fail", "N/A"]),
         (ShowcaseCellTypeNames.Group, CellKind.Group, "A caption that groups the cells around it.", new GroupCellConfiguration(), new CellStyle { Bold = true, BackgroundColor = "#f1f5f9" }, []),
         (
             ShowcaseCellTypeNames.Measurement,
             CellKind.Number,
             "A measured dimension to the micron.",
             new NumberCellConfiguration { DecimalPlaces = 3, MinValue = 0, Unit = "mm" },
-            Right,
+            _right,
             []),
         (
             ShowcaseCellTypeNames.Torque,
             CellKind.Number,
             "A tightening torque.",
             new NumberCellConfiguration { DecimalPlaces = 1, MinValue = 0, MaxValue = 500, Unit = "Nm" },
-            Right,
+            _right,
             []),
         (
             ShowcaseCellTypeNames.Notes,
@@ -59,7 +59,7 @@ public sealed class ShowcaseCellTypes
             CellKind.TextDropdown,
             "Where a limit is in its release.",
             new TextDropdownCellConfiguration(),
-            Centre,
+            _centre,
             ["Released", "Provisional", "Under review", "Superseded"]),
         (
             ShowcaseCellTypeNames.FeatureClass,
@@ -73,14 +73,14 @@ public sealed class ShowcaseCellTypes
             CellKind.NumberDropdown,
             "A metric thread's nominal diameter.",
             new NumberDropdownCellConfiguration { DecimalPlaces = 0, Unit = "mm" },
-            Right,
+            _right,
             ["6", "8", "10", "12", "14"]),
         (
             ShowcaseCellTypeNames.SampleFrequency,
             CellKind.NumberDropdown,
             "Checked once in this many parts.",
             new NumberDropdownCellConfiguration { DecimalPlaces = 0, Unit = "pcs" },
-            Right,
+            _right,
             ["1", "5", "10", "25", "50", "100"]),
         (
             ShowcaseCellTypeNames.Linked,
@@ -103,20 +103,20 @@ public sealed class ShowcaseCellTypes
             []),
     ];
 
-    private readonly ICellTypeDataService cellTypeData;
+    private readonly ICellTypeDataService _cellTypeData;
 
     public ShowcaseCellTypes(ICellTypeDataService cellTypeData)
     {
-        this.cellTypeData = cellTypeData;
+        _cellTypeData = cellTypeData;
     }
 
     public async Task<ShowcaseCellTypeCatalog> EnsureAsync(CancellationToken cancellationToken)
     {
-        var names = Definitions.Select(definition => definition.Name).ToList();
-        var existing = await cellTypeData.ListNamesInUseAsync(names, cancellationToken);
-        var order = await cellTypeData.GetLastDisplayOrderAsync(cancellationToken) ?? 0;
+        var names = _definitions.Select(definition => definition.Name).ToList();
+        var existing = await _cellTypeData.ListNamesInUseAsync(names, cancellationToken);
+        var order = await _cellTypeData.GetLastDisplayOrderAsync(cancellationToken) ?? 0;
 
-        foreach (var definition in Definitions.Where(definition => !existing.Contains(definition.Name, StringComparer.OrdinalIgnoreCase)))
+        foreach (var definition in _definitions.Where(definition => !existing.Contains(definition.Name, StringComparer.OrdinalIgnoreCase)))
         {
             var cellType = new DbCellType
             {
@@ -132,12 +132,12 @@ public sealed class ShowcaseCellTypes
                 cellType.Options.Add(new DbCellTypeOption { Value = definition.Options[index], DisplayOrder = index + 1 });
             }
 
-            cellTypeData.Add(cellType);
+            _cellTypeData.Add(cellType);
         }
 
-        await cellTypeData.SaveAsync(cancellationToken);
+        await _cellTypeData.SaveAsync(cancellationToken);
 
-        var cellTypes = await cellTypeData.ListByNamesAsync(names, cancellationToken);
+        var cellTypes = await _cellTypeData.ListByNamesAsync(names, cancellationToken);
         return new ShowcaseCellTypeCatalog(cellTypes);
     }
 }

@@ -7,7 +7,7 @@ public sealed record RejectSubmissionRequest
 {
     public RejectSubmissionRequest([Required, StringLength(1000, MinimumLength = 1)] string reason)
     {
-        this.Reason = reason;
+        Reason = reason;
     }
 
     public string Reason { get; init; }

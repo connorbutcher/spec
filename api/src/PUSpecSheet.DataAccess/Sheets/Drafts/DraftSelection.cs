@@ -10,15 +10,15 @@ namespace PUSpecSheet.DataAccess.Sheets.Drafts;
 /// </summary>
 public sealed class DraftSelection
 {
-    private readonly PublishScope scope;
-    private readonly int publisherUserId;
-    private readonly int? submissionId;
+    private readonly PublishScope _scope;
+    private readonly int _publisherUserId;
+    private readonly int? _submissionId;
 
     private DraftSelection(PublishScope scope, int publisherUserId, int? submissionId)
     {
-        this.scope = scope;
-        this.publisherUserId = publisherUserId;
-        this.submissionId = submissionId;
+        _scope = scope;
+        _publisherUserId = publisherUserId;
+        _submissionId = submissionId;
     }
 
     /// <summary>The drafts in a publish scope (the publisher's own or everyone's) that aren't already waiting for approval.</summary>
@@ -36,8 +36,8 @@ public sealed class DraftSelection
     public IQueryable<TRevision> Apply<TRevision>(IQueryable<TRevision> revisions)
         where TRevision : class, IDbSheetRevision
     {
-        return submissionId is { } id
+        return _submissionId is { } id
             ? revisions.InSubmission(id)
-            : revisions.DraftsIn(scope, publisherUserId);
+            : revisions.DraftsIn(_scope, _publisherUserId);
     }
 }

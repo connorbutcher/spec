@@ -23,21 +23,21 @@ public sealed record SheetSubmissionDto
         SubmissionChangeCountsDto changes,
         IReadOnlyList<SubmissionApproverDto> approvers)
     {
-        this.Id = id;
-        this.SheetId = sheetId;
-        this.PhaseId = phaseId;
-        this.PhaseCode = phaseCode;
-        this.SheetTypeId = sheetTypeId;
-        this.SheetTypeName = sheetTypeName;
-        this.Note = note;
-        this.SubmittedByUserId = submittedByUserId;
-        this.SubmittedByName = submittedByName;
-        this.SubmittedAtUtc = submittedAtUtc;
-        this.Status = status;
-        this.DecidedAtUtc = decidedAtUtc;
-        this.VersionNumber = versionNumber;
-        this.Changes = changes;
-        this.Approvers = approvers;
+        Id = id;
+        SheetId = sheetId;
+        PhaseId = phaseId;
+        PhaseCode = phaseCode;
+        SheetTypeId = sheetTypeId;
+        SheetTypeName = sheetTypeName;
+        Note = note;
+        SubmittedByUserId = submittedByUserId;
+        SubmittedByName = submittedByName;
+        SubmittedAtUtc = submittedAtUtc;
+        Status = status;
+        DecidedAtUtc = decidedAtUtc;
+        VersionNumber = versionNumber;
+        Changes = changes;
+        Approvers = approvers;
     }
 
     public int Id { get; init; }

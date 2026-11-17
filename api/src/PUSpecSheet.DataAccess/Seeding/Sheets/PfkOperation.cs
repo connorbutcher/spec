@@ -7,8 +7,8 @@ public sealed record PfkOperation
         string name,
         (string Number, string Feature, string Class, decimal Lower, decimal Upper, int Every, string Gauge, string Result, string? ReactionPlan)[] features)
     {
-        this.Name = name;
-        this.Features = features;
+        Name = name;
+        Features = features;
     }
 
     public string Name { get; init; }

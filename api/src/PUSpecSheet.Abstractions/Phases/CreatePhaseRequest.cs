@@ -14,10 +14,10 @@ public sealed record CreatePhaseRequest
         int? parentPhaseId,
         IReadOnlyList<int>? sheetTypeIds)
     {
-        this.Code = code;
-        this.Description = description;
-        this.ParentPhaseId = parentPhaseId;
-        this.SheetTypeIds = sheetTypeIds;
+        Code = code;
+        Description = description;
+        ParentPhaseId = parentPhaseId;
+        SheetTypeIds = sheetTypeIds;
     }
 
     public string Code { get; init; }

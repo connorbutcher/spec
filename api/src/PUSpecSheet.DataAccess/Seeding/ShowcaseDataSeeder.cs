@@ -28,16 +28,16 @@ public sealed partial class ShowcaseDataSeeder
     /// <summary>The note on the showcase's last publish, which marks it as built.</summary>
     public const string CompletedNote = "Issued for V6 build sign-off";
 
-    private readonly PuSpecSheetDbContext db;
-    private readonly ShowcaseCellTypes cellTypes;
-    private readonly ShowcasePhases phases;
-    private readonly ShowcaseTemplateWriter templates;
-    private readonly SpecificationSheetSeeder specification;
-    private readonly PfkSheetSeeder pfks;
-    private readonly PartsSheetSeeder parts;
-    private readonly EngineSpecificationSheetSeeder engineSpecifications;
-    private readonly ShowcaseUsers users;
-    private readonly ILogger<ShowcaseDataSeeder> logger;
+    private readonly PuSpecSheetDbContext _db;
+    private readonly ShowcaseCellTypes _cellTypes;
+    private readonly ShowcasePhases _phases;
+    private readonly ShowcaseTemplateWriter _templates;
+    private readonly SpecificationSheetSeeder _specification;
+    private readonly PfkSheetSeeder _pfks;
+    private readonly PartsSheetSeeder _parts;
+    private readonly EngineSpecificationSheetSeeder _engineSpecifications;
+    private readonly ShowcaseUsers _users;
+    private readonly ILogger<ShowcaseDataSeeder> _logger;
 
     public ShowcaseDataSeeder(
         PuSpecSheetDbContext db,
@@ -51,46 +51,46 @@ public sealed partial class ShowcaseDataSeeder
         ShowcaseUsers users,
         ILogger<ShowcaseDataSeeder> logger)
     {
-        this.db = db;
-        this.cellTypes = cellTypes;
-        this.phases = phases;
-        this.templates = templates;
-        this.specification = specification;
-        this.pfks = pfks;
-        this.parts = parts;
-        this.engineSpecifications = engineSpecifications;
-        this.users = users;
-        this.logger = logger;
+        _db = db;
+        _cellTypes = cellTypes;
+        _phases = phases;
+        _templates = templates;
+        _specification = specification;
+        _pfks = pfks;
+        _parts = parts;
+        _engineSpecifications = engineSpecifications;
+        _users = users;
+        _logger = logger;
     }
 
     public async Task SeedAsync(bool rebuild, CancellationToken cancellationToken = default)
     {
         try
         {
-            if (!rebuild && await SheetQueries.AnyVersionWithNoteAsync(db, CompletedNote, cancellationToken))
+            if (!rebuild && await SheetQueries.AnyVersionWithNoteAsync(_db, CompletedNote, cancellationToken))
             {
                 return;
             }
 
-            LogBuilding(logger);
-            await SampleDataQueries.ClearAsync(db, cancellationToken);
+            LogBuilding(_logger);
+            await SampleDataQueries.ClearAsync(_db, cancellationToken);
             await BuildAsync(cancellationToken);
-            LogBuilt(logger);
+            LogBuilt(_logger);
         }
         catch (Exception exception)
         {
-            LogFailed(logger, exception);
+            LogFailed(_logger, exception);
         }
         finally
         {
-            users.Reset();
+            _users.Reset();
         }
     }
 
     private async Task BuildAsync(CancellationToken cancellationToken)
     {
-        var catalog = await cellTypes.EnsureAsync(cancellationToken);
-        var phaseIds = await phases.EnsureAsync(cancellationToken);
+        var catalog = await _cellTypes.EnsureAsync(cancellationToken);
+        var phaseIds = await _phases.EnsureAsync(cancellationToken);
 
         var specificationTemplate = new SpecificationTemplate();
         var gaugeTemplate = new GaugeTemplate();
@@ -101,32 +101,32 @@ public sealed partial class ShowcaseDataSeeder
         IShowcaseTemplate[] all = [specificationTemplate, gaugeTemplate, registerTemplate, partsTemplate, buildRecordTemplate];
         foreach (var template in all)
         {
-            templateIds[template.Name] = await templates.CreateAsync(template, catalog, cancellationToken);
+            templateIds[template.Name] = await _templates.CreateAsync(template, catalog, cancellationToken);
         }
 
         var context = new ShowcaseContext(catalog, phaseIds, templateIds);
 
         // V6 is built from version 1 of each template.
-        await specification.SeedV6Async(context, cancellationToken);
-        await pfks.SeedV6Async(context, cancellationToken);
-        await parts.SeedV6Async(context, cancellationToken);
+        await _specification.SeedV6Async(context, cancellationToken);
+        await _pfks.SeedV6Async(context, cancellationToken);
+        await _parts.SeedV6Async(context, cancellationToken);
 
         // V6's Engine Specifications: several sheets of the one type, one per engine serial number.
-        await engineSpecifications.SeedV6Async(context, cancellationToken);
+        await _engineSpecifications.SeedV6Async(context, cancellationToken);
 
         // Version 2 of three of them, which the A phases are built from.
-        await templates.AddVersionAsync(templateIds[specificationTemplate.Name], specificationTemplate, catalog, 2, cancellationToken);
-        await templates.AddVersionAsync(templateIds[registerTemplate.Name], registerTemplate, catalog, 2, cancellationToken);
-        await templates.AddVersionAsync(templateIds[partsTemplate.Name], partsTemplate, catalog, 2, cancellationToken);
-        await specification.SeedPhasesAsync(context, cancellationToken);
-        await pfks.SeedPhasesAsync(context, cancellationToken);
-        await parts.SeedPhasesAsync(context, cancellationToken);
+        await _templates.AddVersionAsync(templateIds[specificationTemplate.Name], specificationTemplate, catalog, 2, cancellationToken);
+        await _templates.AddVersionAsync(templateIds[registerTemplate.Name], registerTemplate, catalog, 2, cancellationToken);
+        await _templates.AddVersionAsync(templateIds[partsTemplate.Name], partsTemplate, catalog, 2, cancellationToken);
+        await _specification.SeedPhasesAsync(context, cancellationToken);
+        await _pfks.SeedPhasesAsync(context, cancellationToken);
+        await _parts.SeedPhasesAsync(context, cancellationToken);
 
         // A third register version, still open in the template designer: no sheet uses it.
-        await templates.AddVersionAsync(templateIds[registerTemplate.Name], registerTemplate, catalog, 3, cancellationToken);
+        await _templates.AddVersionAsync(templateIds[registerTemplate.Name], registerTemplate, catalog, 3, cancellationToken);
 
         // Last, so the note is only there once everything else is.
-        await specification.IssueV6Async(CompletedNote, cancellationToken);
+        await _specification.IssueV6Async(CompletedNote, cancellationToken);
     }
 
     [LoggerMessage(Level = LogLevel.Warning, Message = "Clearing the sheets and templates and building the showcase sample data.")]

@@ -13,7 +13,7 @@ public sealed class ProblemResponseDescriptionsTransformer : IOpenApiOperationTr
 {
     public const string ContentType = "application/problem+json";
 
-    private static readonly Dictionary<int, string> Defaults = new()
+    private static readonly Dictionary<int, string> _defaults = new()
     {
         [StatusCodes.Status400BadRequest] = "The request isn't valid. `detail` or `errors` says why.",
         [StatusCodes.Status403Forbidden] = "The current user lacks the permission this needs. `detail` names it.",
@@ -25,7 +25,7 @@ public sealed class ProblemResponseDescriptionsTransformer : IOpenApiOperationTr
 
     public Task TransformAsync(OpenApiOperation operation, OpenApiOperationTransformerContext context, CancellationToken cancellationToken)
     {
-        foreach (var (status, text) in Defaults)
+        foreach (var (status, text) in _defaults)
         {
             var key = status.ToString(CultureInfo.InvariantCulture);
             if (operation.Responses is null || !operation.Responses.TryGetValue(key, out var response))

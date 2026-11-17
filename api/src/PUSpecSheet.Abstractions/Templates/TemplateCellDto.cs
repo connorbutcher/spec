@@ -24,17 +24,17 @@ public sealed record TemplateCellDto
         int? columnBlockId = null,
         string? lookupKey = null)
     {
-        this.Id = id;
-        this.CellTypeId = cellTypeId;
-        this.Column = column;
-        this.RowSpan = rowSpan;
-        this.ColumnSpan = columnSpan;
-        this.Caption = caption;
-        this.IsRequired = isRequired;
-        this.ConfigurationOverride = configurationOverride;
-        this.StyleOverride = styleOverride;
-        this.ColumnBlockId = columnBlockId;
-        this.LookupKey = lookupKey;
+        Id = id;
+        CellTypeId = cellTypeId;
+        Column = column;
+        RowSpan = rowSpan;
+        ColumnSpan = columnSpan;
+        Caption = caption;
+        IsRequired = isRequired;
+        ConfigurationOverride = configurationOverride;
+        StyleOverride = styleOverride;
+        ColumnBlockId = columnBlockId;
+        LookupKey = lookupKey;
     }
 
     public int Id { get; init; }

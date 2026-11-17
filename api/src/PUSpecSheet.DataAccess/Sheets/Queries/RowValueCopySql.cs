@@ -14,7 +14,7 @@ namespace PUSpecSheet.DataAccess.Sheets.Queries;
 public static class RowValueCopySql
 {
     /// <summary>The value tables, in the order they are copied.</summary>
-    private static readonly Type[] ValueTypes =
+    private static readonly Type[] _valueTypes =
     [
         typeof(DbTextValue),
         typeof(DbNumericValue),
@@ -29,7 +29,7 @@ public static class RowValueCopySql
     public static string Build(IModel model)
     {
         var sql = new StringBuilder();
-        foreach (var type in ValueTypes)
+        foreach (var type in _valueTypes)
         {
             var entity = model.FindEntityType(type)
                 ?? throw new InvalidOperationException($"{type.Name} is not in the model.");

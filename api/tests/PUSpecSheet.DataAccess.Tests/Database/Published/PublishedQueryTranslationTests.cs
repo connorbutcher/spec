@@ -12,26 +12,26 @@ namespace PUSpecSheet.DataAccess.Tests.Database.Published;
 /// </summary>
 public sealed class PublishedQueryTranslationTests : IDisposable
 {
-    private static readonly ResolvedSheetVersion Version = new(
+    private static readonly ResolvedSheetVersion _version = new(
         7,
         Guid.Parse("6f1c0000-0000-0000-0000-000000000001"),
         3,
         new DateTime(2026, 9, 30, 14, 2, 11, DateTimeKind.Utc));
 
-    private readonly PuSpecSheetDbContext db = new(
+    private readonly PuSpecSheetDbContext _db = new(
         new DbContextOptionsBuilder<PuSpecSheetDbContext>()
             .UseSqlServer("Server=unused;Database=unused")
             .Options);
 
     public void Dispose()
     {
-        db.Dispose();
+        _db.Dispose();
     }
 
     [Fact]
     public void ResolvingAMoment_TakesTheNewestVersionAtOrBeforeIt()
     {
-        var sql = PublishedSheetQueries.QueryVersions(db, Version.SheetPublicId, PublishedVersionPoint.At(Version.PublishedAtUtc))
+        var sql = PublishedSheetQueries.QueryVersions(_db, _version.SheetPublicId, PublishedVersionPoint.At(_version.PublishedAtUtc))
             .Take(1)
             .ToQueryString();
 
@@ -43,9 +43,9 @@ public sealed class PublishedQueryTranslationTests : IDisposable
     [Fact]
     public void Structure_ReadsOnlyPlacementColumnsAtTheVersion()
     {
-        var tables = PublishedStructureQueries.Tables(db, Version).ToQueryString();
-        var sections = PublishedStructureQueries.Sections(db, Version).ToQueryString();
-        var blocks = PublishedStructureQueries.ColumnBlocks(db, Version).ToQueryString();
+        var tables = PublishedStructureQueries.Tables(_db, _version).ToQueryString();
+        var sections = PublishedStructureQueries.Sections(_db, _version).ToQueryString();
+        var blocks = PublishedStructureQueries.ColumnBlocks(_db, _version).ToQueryString();
 
         foreach (var sql in new[] { tables, sections, blocks })
         {
@@ -59,7 +59,7 @@ public sealed class PublishedQueryTranslationTests : IDisposable
     [Fact]
     public void WholeSheetCells_JoinEachCellToItsRowRevisionAtTheVersion()
     {
-        var sql = PublishedCellQueries.Query(db, Version, null, false)!.ToQueryString();
+        var sql = PublishedCellQueries.Query(_db, _version, null, false)!.ToQueryString();
 
         Assert.Contains("[SheetRowRevisions]", sql);
         Assert.Contains("[IsDeleted] = CAST(0 AS bit)", sql);
@@ -71,7 +71,7 @@ public sealed class PublishedQueryTranslationTests : IDisposable
     [Fact]
     public void Captions_AreOnlyReadWhenAskedFor()
     {
-        var sql = PublishedCellQueries.Query(db, Version, null, true)!.ToQueryString();
+        var sql = PublishedCellQueries.Query(_db, _version, null, true)!.ToQueryString();
 
         Assert.Contains("[Caption]", sql);
     }
@@ -81,7 +81,7 @@ public sealed class PublishedQueryTranslationTests : IDisposable
     {
         var scope = new PublishedSelectionScope([], [], [], [Guid.NewGuid(), Guid.NewGuid()]);
 
-        var sql = PublishedCellQueries.Query(db, Version, scope, false)!.ToQueryString();
+        var sql = PublishedCellQueries.Query(_db, _version, scope, false)!.ToQueryString();
 
         Assert.Contains("[s].[PublicId] IN", sql);
         Assert.DoesNotContain(" OR ", sql[sql.LastIndexOf("WHERE", StringComparison.Ordinal)..]);
@@ -92,7 +92,7 @@ public sealed class PublishedQueryTranslationTests : IDisposable
     {
         var scope = new PublishedSelectionScope([4, 5], [9, 10], [Guid.NewGuid(), Guid.NewGuid()], [Guid.NewGuid(), Guid.NewGuid()]);
 
-        var sql = PublishedCellQueries.Query(db, Version, scope, false)!.ToQueryString();
+        var sql = PublishedCellQueries.Query(_db, _version, scope, false)!.ToQueryString();
 
         Assert.Contains("[SheetTableId] IN", sql);
         Assert.Contains("[SheetSectionId] IN", sql);
@@ -104,15 +104,15 @@ public sealed class PublishedQueryTranslationTests : IDisposable
     {
         var scope = new PublishedSelectionScope([], [], [], []);
 
-        Assert.Null(PublishedCellQueries.Query(db, Version, scope, false));
+        Assert.Null(PublishedCellQueries.Query(_db, _version, scope, false));
     }
 
     [Fact]
     public void WholeSheetValues_AreFoundThroughTheSheetsRevisionsAtTheVersion_WithNoListOfIds()
     {
-        var revisions = PublishedValueQueries.RevisionsOf(db, [11, 12, 13], Version);
+        var revisions = PublishedValueQueries.RevisionsOf(_db, [11, 12, 13], _version);
 
-        var sql = PublishedValueQueries.Scope(db.NumericValues, revisions, null)
+        var sql = PublishedValueQueries.Scope(_db.NumericValues, revisions, null)
             .Select(value => new { value.SheetCellId, value.Value })
             .ToQueryString();
 
@@ -128,9 +128,9 @@ public sealed class PublishedQueryTranslationTests : IDisposable
     [Fact]
     public void SelectedValues_AreFoundByRevisionAndCellWithNoJoins()
     {
-        var revisions = PublishedValueQueries.RevisionsOf(db, [11, 12, 12], null);
+        var revisions = PublishedValueQueries.RevisionsOf(_db, [11, 12, 12], null);
 
-        var sql = PublishedValueQueries.Scope(db.TextValues, revisions, [101, 102])
+        var sql = PublishedValueQueries.Scope(_db.TextValues, revisions, [101, 102])
             .Select(value => new { value.SheetCellId, value.Value })
             .ToQueryString();
 
@@ -142,7 +142,7 @@ public sealed class PublishedQueryTranslationTests : IDisposable
     [Fact]
     public void OptionValues_BringTheOptionTextAndItsKind()
     {
-        var sql = PublishedValueQueries.Scope(db.OptionValues, PublishedValueQueries.RevisionsOf(db, [11], null), [101])
+        var sql = PublishedValueQueries.Scope(_db.OptionValues, PublishedValueQueries.RevisionsOf(_db, [11], null), [101])
             .Select(value => new { value.SheetCellId, value.CellTypeOption.Value, value.CellTypeOption.CellType.Kind })
             .ToQueryString();
 

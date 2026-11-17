@@ -15,14 +15,14 @@ internal sealed class LegacySheetFactory
     public const int TemplateCellId = 40;
     public const int UserId = 5;
 
-    private int nextId = 1000;
+    private int _nextId = 1000;
 
     /// <summary>A copy whose section has a row for each text, in order. A null text is a row with an empty cell.</summary>
     public LegacyCopy Copy(int versionNumber, DateTime? publishedAtUtc, params string?[] texts)
     {
         var table = new SnapshotTable
         {
-            Id = nextId++,
+            Id = _nextId++,
             PublicId = Guid.NewGuid(),
             TableTemplateVersionId = TemplateVersionId,
             Title = "Engine",
@@ -30,7 +30,7 @@ internal sealed class LegacySheetFactory
         };
         var section = new SnapshotSection
         {
-            Id = nextId++,
+            Id = _nextId++,
             PublicId = Guid.NewGuid(),
             TableId = table.Id,
             TemplateSectionId = TemplateSectionId,
@@ -43,7 +43,7 @@ internal sealed class LegacySheetFactory
         {
             var row = new SnapshotRow
             {
-                Id = nextId++,
+                Id = _nextId++,
                 PublicId = Guid.NewGuid(),
                 SectionId = section.Id,
                 TemplateRowId = TemplateRowId,
@@ -52,7 +52,7 @@ internal sealed class LegacySheetFactory
             rows.Add(row);
             cells.Add(new SnapshotCell
             {
-                Id = nextId++,
+                Id = _nextId++,
                 PublicId = Guid.NewGuid(),
                 RowId = row.Id,
                 TemplateCellId = TemplateCellId,
@@ -62,7 +62,7 @@ internal sealed class LegacySheetFactory
 
         return new LegacyCopy
         {
-            Id = nextId++,
+            Id = _nextId++,
             VersionNumber = versionNumber,
             PublishedAtUtc = publishedAtUtc,
             UserId = UserId,

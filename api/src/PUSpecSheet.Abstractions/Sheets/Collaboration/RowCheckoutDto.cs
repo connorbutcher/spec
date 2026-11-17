@@ -9,9 +9,9 @@ public sealed record RowCheckoutDto
 {
     public RowCheckoutDto(int rowId, int userId, string userName)
     {
-        this.RowId = rowId;
-        this.UserId = userId;
-        this.UserName = userName;
+        RowId = rowId;
+        UserId = userId;
+        UserName = userName;
     }
 
     public int RowId { get; init; }

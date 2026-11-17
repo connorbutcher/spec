@@ -16,7 +16,7 @@ namespace PUSpecSheet.Api.Tests.Authorization;
 /// </summary>
 public sealed class EndpointPermissionTests
 {
-    private static readonly List<(Type Controller, MethodInfo Action)> Actions = typeof(PhasesController).Assembly
+    private static readonly List<(Type Controller, MethodInfo Action)> _actions = typeof(PhasesController).Assembly
         .GetTypes()
         .Where(type => type.IsSubclassOf(typeof(ControllerBase)) && !type.IsAbstract)
         .SelectMany(controller => controller
@@ -28,7 +28,7 @@ public sealed class EndpointPermissionTests
     [Fact]
     public void EveryActionThatChangesSomething_AsksForAPermission()
     {
-        var unprotected = Actions
+        var unprotected = _actions
             .Where(entry => !IsOpen(entry.Controller) && !IsRead(entry.Action) && PolicyOf(entry.Controller, entry.Action) is null)
             .Select(entry => $"{entry.Controller.Name}.{entry.Action.Name}")
             .ToList();
@@ -39,7 +39,7 @@ public sealed class EndpointPermissionTests
     [Fact]
     public void EveryPolicyAsked_IsAPermissionKey()
     {
-        var policies = Actions
+        var policies = _actions
             .Select(entry => PolicyOf(entry.Controller, entry.Action))
             .OfType<string>()
             .Distinct()
@@ -52,7 +52,7 @@ public sealed class EndpointPermissionTests
     [Fact]
     public void EveryPermissionKey_GuardsAtLeastOneAction()
     {
-        var used = Actions.Select(entry => PolicyOf(entry.Controller, entry.Action)).OfType<string>().ToHashSet();
+        var used = _actions.Select(entry => PolicyOf(entry.Controller, entry.Action)).OfType<string>().ToHashSet();
 
         Assert.Equal(PermissionKeys.All.Order(), used.Order());
     }
@@ -60,7 +60,7 @@ public sealed class EndpointPermissionTests
     [Fact]
     public void OnlyThePublishedApi_IsOpenWithoutSigningIn_AndItOnlyReads()
     {
-        var open = Actions.Where(entry => IsOpen(entry.Controller)).ToList();
+        var open = _actions.Where(entry => IsOpen(entry.Controller)).ToList();
 
         Assert.NotEmpty(open);
         Assert.All(open, entry =>

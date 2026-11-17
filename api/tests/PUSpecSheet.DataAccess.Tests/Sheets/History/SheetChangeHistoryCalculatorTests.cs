@@ -15,10 +15,10 @@ public sealed class SheetChangeHistoryCalculatorTests
     private const int Section = 100;
     private const int ParentSection = 200;
 
-    private static readonly Dictionary<int, int> VersionNumbers = new() { [10] = 1, [20] = 2, [30] = 3 };
-    private static readonly Dictionary<int, int?> SectionParents = new() { [Section] = ParentSection, [ParentSection] = null };
+    private static readonly Dictionary<int, int> _versionNumbers = new() { [10] = 1, [20] = 2, [30] = 3 };
+    private static readonly Dictionary<int, int?> _sectionParents = new() { [Section] = ParentSection, [ParentSection] = null };
 
-    private int nextRevisionId = 1;
+    private int _nextRevisionId = 1;
 
     [Fact]
     public void ACell_LastChangedInTheVersionItsValueLastDiffered()
@@ -89,7 +89,7 @@ public sealed class SheetChangeHistoryCalculatorTests
         var rowAddedToParent = Row(9, revisionNumber: 1, version: 3);
         var subSection = new DbSheetSectionRevision
         {
-            Id = nextRevisionId++,
+            Id = _nextRevisionId++,
             SheetSectionId = Section,
             Status = RevisionStatus.Published,
             SheetVersionId = 20,
@@ -144,16 +144,16 @@ public sealed class SheetChangeHistoryCalculatorTests
             sections ?? [],
             columnBlocks ?? [],
             values ?? [],
-            VersionNumbers,
+            _versionNumbers,
             rowSections ?? rows.Select(row => row.SheetRowId).Distinct().ToDictionary(id => id, _ => Section),
-            SectionParents);
+            _sectionParents);
     }
 
     private DbSheetRowRevision Row(int rowId, int revisionNumber, int version, int displayOrder = 1024)
     {
         return new DbSheetRowRevision
         {
-            Id = nextRevisionId++,
+            Id = _nextRevisionId++,
             SheetRowId = rowId,
             RevisionNumber = revisionNumber,
             Status = RevisionStatus.Published,
@@ -168,7 +168,7 @@ public sealed class SheetChangeHistoryCalculatorTests
     {
         return new DbSheetColumnBlockRevision
         {
-            Id = nextRevisionId++,
+            Id = _nextRevisionId++,
             SheetColumnBlockId = blockId,
             Status = RevisionStatus.Published,
             SheetVersionId = version * 10,

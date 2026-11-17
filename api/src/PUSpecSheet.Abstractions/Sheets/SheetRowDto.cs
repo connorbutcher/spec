@@ -18,15 +18,15 @@ public sealed record SheetRowDto
         IReadOnlyList<SheetCellDto> cells,
         SheetChangeDto? lastChange)
     {
-        this.Id = id;
-        this.PublicId = publicId;
-        this.TemplateRowId = templateRowId;
-        this.DisplayOrder = displayOrder;
-        this.Lock = @lock;
-        this.IsPending = isPending;
-        this.CanRemove = canRemove;
-        this.Cells = cells;
-        this.LastChange = lastChange;
+        Id = id;
+        PublicId = publicId;
+        TemplateRowId = templateRowId;
+        DisplayOrder = displayOrder;
+        Lock = @lock;
+        IsPending = isPending;
+        CanRemove = canRemove;
+        Cells = cells;
+        LastChange = lastChange;
     }
 
     public int Id { get; init; }

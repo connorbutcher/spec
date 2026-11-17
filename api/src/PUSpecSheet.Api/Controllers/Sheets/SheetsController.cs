@@ -20,11 +20,11 @@ namespace PUSpecSheet.Api.Controllers.Sheets;
 [Tags(ApiTags.Sheets)]
 public sealed class SheetsController : ControllerBase
 {
-    private readonly ISheetsService sheets;
+    private readonly ISheetsService _sheets;
 
     public SheetsController(ISheetsService sheets)
     {
-        this.sheets = sheets;
+        _sheets = sheets;
     }
 
     /// <summary>Open a phase's sheet of a type</summary>
@@ -42,7 +42,7 @@ public sealed class SheetsController : ControllerBase
     [HttpGet("api/phases/{phaseId:int}/sheets/{sheetTypeId:int}")]
     public async Task<ActionResult<SheetDto>> Open(int phaseId, int sheetTypeId, CancellationToken cancellationToken)
     {
-        var result = await sheets.OpenAsync(phaseId, sheetTypeId, cancellationToken);
+        var result = await _sheets.OpenAsync(phaseId, sheetTypeId, cancellationToken);
         return Ok(result);
     }
 
@@ -60,7 +60,7 @@ public sealed class SheetsController : ControllerBase
     [HttpGet("api/phases/{phaseId:int}/sheets")]
     public async Task<ActionResult<IReadOnlyList<SheetSummaryDto>>> List(int phaseId, CancellationToken cancellationToken)
     {
-        var result = await sheets.ListAsync(phaseId, cancellationToken);
+        var result = await _sheets.ListAsync(phaseId, cancellationToken);
         return Ok(result);
     }
 
@@ -82,7 +82,7 @@ public sealed class SheetsController : ControllerBase
     [Authorize(Policy = PermissionKeys.SheetsEdit)]
     public async Task<ActionResult<SheetSummaryDto>> Create(int phaseId, CreateSheetRequest request, CancellationToken cancellationToken)
     {
-        var result = await sheets.CreateAsync(phaseId, request, cancellationToken);
+        var result = await _sheets.CreateAsync(phaseId, request, cancellationToken);
         return Ok(result);
     }
 
@@ -98,7 +98,7 @@ public sealed class SheetsController : ControllerBase
     [HttpGet("api/sheets/{id:int}")]
     public async Task<ActionResult<SheetDto>> Get(int id, CancellationToken cancellationToken)
     {
-        var result = await sheets.GetAsync(id, SheetViewPoint.Live, cancellationToken);
+        var result = await _sheets.GetAsync(id, SheetViewPoint.Live, cancellationToken);
         return Ok(result);
     }
 
@@ -114,7 +114,7 @@ public sealed class SheetsController : ControllerBase
     [HttpGet("api/sheets/{id:int}/versions/{version:int}")]
     public async Task<ActionResult<SheetDto>> GetVersion(int id, int version, CancellationToken cancellationToken)
     {
-        var result = await sheets.GetAsync(id, SheetViewPoint.AtVersion(version), cancellationToken);
+        var result = await _sheets.GetAsync(id, SheetViewPoint.AtVersion(version), cancellationToken);
         return Ok(result);
     }
 
@@ -132,7 +132,7 @@ public sealed class SheetsController : ControllerBase
     [HttpGet("api/sheets/{id:int}/versions/at/{instant}")]
     public async Task<ActionResult<SheetDto>> GetAtMoment(int id, string instant, CancellationToken cancellationToken)
     {
-        var result = await sheets.GetAsync(id, SheetViewPoint.AsOf(PublishedMoment.ParseUtc(instant)), cancellationToken);
+        var result = await _sheets.GetAsync(id, SheetViewPoint.AsOf(PublishedMoment.ParseUtc(instant)), cancellationToken);
         return Ok(result);
     }
 
@@ -150,7 +150,7 @@ public sealed class SheetsController : ControllerBase
     [HttpGet("api/submissions/{submissionId:int}/sheet")]
     public async Task<ActionResult<SheetDto>> GetForReview(int submissionId, CancellationToken cancellationToken)
     {
-        var result = await sheets.GetForReviewAsync(submissionId, cancellationToken);
+        var result = await _sheets.GetForReviewAsync(submissionId, cancellationToken);
         return Ok(result);
     }
 
@@ -173,7 +173,7 @@ public sealed class SheetsController : ControllerBase
         [FromQuery, MinLength(1), MaxLength(500)] int[] ids,
         CancellationToken cancellationToken)
     {
-        var result = await sheets.GetRowsAsync(id, ids, cancellationToken);
+        var result = await _sheets.GetRowsAsync(id, ids, cancellationToken);
         return Ok(result);
     }
 
@@ -189,7 +189,7 @@ public sealed class SheetsController : ControllerBase
     [Authorize(Policy = PermissionKeys.SheetsEdit)]
     public async Task<ActionResult<SheetDto>> AddTable(int id, AddSheetTableRequest request, CancellationToken cancellationToken)
     {
-        var result = await sheets.AddTableAsync(id, request, cancellationToken);
+        var result = await _sheets.AddTableAsync(id, request, cancellationToken);
         return Ok(result);
     }
 
@@ -213,7 +213,7 @@ public sealed class SheetsController : ControllerBase
     [Authorize(Policy = PermissionKeys.SheetsPublish)]
     public async Task<ActionResult<SheetDto>> Submit(int id, SubmitSheetRequest request, CancellationToken cancellationToken)
     {
-        var result = await sheets.SubmitAsync(id, request, cancellationToken);
+        var result = await _sheets.SubmitAsync(id, request, cancellationToken);
         return Ok(result);
     }
 }

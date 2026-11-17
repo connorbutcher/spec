@@ -5,10 +5,10 @@ public sealed record SubmissionChangeCountsDto
 {
     public SubmissionChangeCountsDto(int tables, int sections, int rows, int columnBlocks)
     {
-        this.Tables = tables;
-        this.Sections = sections;
-        this.Rows = rows;
-        this.ColumnBlocks = columnBlocks;
+        Tables = tables;
+        Sections = sections;
+        Rows = rows;
+        ColumnBlocks = columnBlocks;
     }
 
     public int Tables { get; init; }

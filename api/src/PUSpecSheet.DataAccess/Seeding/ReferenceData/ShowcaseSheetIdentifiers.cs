@@ -20,36 +20,36 @@ public sealed class ShowcaseSheetIdentifiers
     public const string HighOutputConfiguration = "High output";
     public const string HybridConfiguration = "Hybrid";
 
-    private static readonly SaveSheetTypeIdentifierRequest[] Definitions =
+    private static readonly SaveSheetTypeIdentifierRequest[] _definitions =
     [
         new(SerialNumber, SheetIdentifierKind.Text, true, null),
         new(BuildDate, SheetIdentifierKind.Date, false, null),
         new(Configuration, SheetIdentifierKind.Option, false, [BaseConfiguration, HighOutputConfiguration, HybridConfiguration]),
     ];
 
-    private readonly PuSpecSheetDbContext db;
-    private readonly ISheetTypesService sheetTypes;
-    private readonly ISheetTypeDataService sheetTypeData;
+    private readonly PuSpecSheetDbContext _db;
+    private readonly ISheetTypesService _sheetTypes;
+    private readonly ISheetTypeDataService _sheetTypeData;
 
     public ShowcaseSheetIdentifiers(PuSpecSheetDbContext db, ISheetTypesService sheetTypes, ISheetTypeDataService sheetTypeData)
     {
-        this.db = db;
-        this.sheetTypes = sheetTypes;
-        this.sheetTypeData = sheetTypeData;
+        _db = db;
+        _sheetTypes = sheetTypes;
+        _sheetTypeData = sheetTypeData;
     }
 
     /// <summary>Gives the Engine Specifications sheet type its identifiers and returns their ids by name.</summary>
     public async Task<IReadOnlyDictionary<string, int>> EnsureAsync(CancellationToken cancellationToken)
     {
-        var sheetTypeId = await sheetTypeData.GetIdByNameAsync(ShowcasePhases.EngineSpecificationsSheetType, cancellationToken);
-        var sheetType = await sheetTypeData.FindAsync(sheetTypeId, cancellationToken)
+        var sheetTypeId = await _sheetTypeData.GetIdByNameAsync(ShowcasePhases.EngineSpecificationsSheetType, cancellationToken);
+        var sheetType = await _sheetTypeData.FindAsync(sheetTypeId, cancellationToken)
             ?? throw new InvalidOperationException($"The {ShowcasePhases.EngineSpecificationsSheetType} sheet type was not found.");
 
-        foreach (var definition in Definitions)
+        foreach (var definition in _definitions)
         {
             if (sheetType.Identifiers.All(identifier => !string.Equals(identifier.Name, definition.Name, StringComparison.OrdinalIgnoreCase)))
             {
-                sheetType = await sheetTypes.AddIdentifierAsync(sheetTypeId, definition, cancellationToken);
+                sheetType = await _sheetTypes.AddIdentifierAsync(sheetTypeId, definition, cancellationToken);
             }
         }
 

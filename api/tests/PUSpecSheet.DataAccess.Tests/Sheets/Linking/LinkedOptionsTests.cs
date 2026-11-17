@@ -10,7 +10,7 @@ namespace PUSpecSheet.DataAccess.Tests.Sheets.Linking;
 /// <summary>The choices a linked dropdown offers are the values of the column it is pointed at.</summary>
 public sealed class LinkedOptionsTests
 {
-    private static readonly CellValueBag LinkedToPartNumbers = new()
+    private static readonly CellValueBag _linkedToPartNumbers = new()
     {
         Settings = new LinkedDropdownInstanceSettings { SourceSheetTableId = 2, SourceTemplateCellId = 15 },
     };
@@ -18,7 +18,7 @@ public sealed class LinkedOptionsTests
     [Fact]
     public void OnlyColumnsSomethingIsLinkedTo_AreGathered()
     {
-        var collector = new LinkedOptionCollector([LinkedToPartNumbers, new CellValueBag { Text = "no settings" }]);
+        var collector = new LinkedOptionCollector([_linkedToPartNumbers, new CellValueBag { Text = "no settings" }]);
 
         Assert.True(collector.Wants(2, 15));
         Assert.False(collector.Wants(2, 16));
@@ -31,7 +31,7 @@ public sealed class LinkedOptionsTests
     [Fact]
     public void Choices_KeepTheOrderTheyAreMetIn_WithRepeatsLeftOut()
     {
-        var collector = new LinkedOptionCollector([LinkedToPartNumbers]);
+        var collector = new LinkedOptionCollector([_linkedToPartNumbers]);
 
         collector.Add(2, 15, "P-1002");
         collector.Add(2, 15, "P-1001");
@@ -47,7 +47,7 @@ public sealed class LinkedOptionsTests
         {
             Settings = new LinkedDropdownInstanceSettings { SourceSheetTableId = 2, SourceSheetRowId = 70 },
         };
-        var collector = new LinkedOptionCollector([LinkedToPartNumbers, linkedToRow]);
+        var collector = new LinkedOptionCollector([_linkedToPartNumbers, linkedToRow]);
 
         Assert.True(collector.WantsRow(2, 70));
         Assert.False(collector.WantsRow(2, 71));
@@ -76,7 +76,7 @@ public sealed class LinkedOptionsTests
     [Fact]
     public void AColumnWithNoValuesYet_IsStillListed_WithNoChoices()
     {
-        var collector = new LinkedOptionCollector([LinkedToPartNumbers]);
+        var collector = new LinkedOptionCollector([_linkedToPartNumbers]);
 
         Assert.Empty(collector.Build().Single().Options);
     }

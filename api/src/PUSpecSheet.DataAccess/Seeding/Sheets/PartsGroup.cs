@@ -11,8 +11,8 @@ public sealed record PartsGroup
         string name,
         (string Kind, string Characteristic, string Reference, decimal Base, decimal Step, decimal Spread)[] rows)
     {
-        this.Name = name;
-        this.Rows = rows;
+        Name = name;
+        Rows = rows;
     }
 
     public string Name { get; init; }

@@ -5,11 +5,11 @@ public sealed record SheetVersionSummaryDto
 {
     public SheetVersionSummaryDto(int versionNumber, DateTime publishedAtUtc, int publishedByUserId, string publishedByName, string? note)
     {
-        this.VersionNumber = versionNumber;
-        this.PublishedAtUtc = publishedAtUtc;
-        this.PublishedByUserId = publishedByUserId;
-        this.PublishedByName = publishedByName;
-        this.Note = note;
+        VersionNumber = versionNumber;
+        PublishedAtUtc = publishedAtUtc;
+        PublishedByUserId = publishedByUserId;
+        PublishedByName = publishedByName;
+        Note = note;
     }
 
     public int VersionNumber { get; init; }

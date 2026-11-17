@@ -11,8 +11,8 @@ public sealed record UpdateTemplateCellOverridesRequest
 {
     public UpdateTemplateCellOverridesRequest(CellConfiguration? configurationOverride, CellStyle? styleOverride)
     {
-        this.ConfigurationOverride = configurationOverride;
-        this.StyleOverride = styleOverride;
+        ConfigurationOverride = configurationOverride;
+        StyleOverride = styleOverride;
     }
 
     public CellConfiguration? ConfigurationOverride { get; init; }

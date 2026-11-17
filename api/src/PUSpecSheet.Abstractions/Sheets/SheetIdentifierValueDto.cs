@@ -5,8 +5,8 @@ public sealed record SheetIdentifierValueDto
 {
     public SheetIdentifierValueDto(int identifierId, string value)
     {
-        this.IdentifierId = identifierId;
-        this.Value = value;
+        IdentifierId = identifierId;
+        Value = value;
     }
 
     public int IdentifierId { get; init; }

@@ -12,12 +12,12 @@ public sealed record UpdateTemplateCellRequest
         [MaxLength(200)] string? caption,
         bool isRequired)
     {
-        this.CellTypeId = cellTypeId;
-        this.Column = column;
-        this.RowSpan = rowSpan;
-        this.ColumnSpan = columnSpan;
-        this.Caption = caption;
-        this.IsRequired = isRequired;
+        CellTypeId = cellTypeId;
+        Column = column;
+        RowSpan = rowSpan;
+        ColumnSpan = columnSpan;
+        Caption = caption;
+        IsRequired = isRequired;
     }
 
     public int CellTypeId { get; init; }

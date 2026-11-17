@@ -4,9 +4,9 @@ public sealed record SheetTypeDto
 {
     public SheetTypeDto(int id, string name, int displayOrder)
     {
-        this.Id = id;
-        this.Name = name;
-        this.DisplayOrder = displayOrder;
+        Id = id;
+        Name = name;
+        DisplayOrder = displayOrder;
     }
 
     public int Id { get; init; }

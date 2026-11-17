@@ -10,7 +10,7 @@ namespace PUSpecSheet.Database.Seeding;
 /// </summary>
 public static class DevelopmentUserSeeder
 {
-    private static readonly (string UserName, string DisplayName)[] Users =
+    private static readonly (string UserName, string DisplayName)[] _users =
     [
         ("engineer2", "Engineer Two"),
         ("engineer3", "Engineer Three"),
@@ -18,13 +18,13 @@ public static class DevelopmentUserSeeder
 
     public static async Task SeedAsync(PuSpecSheetDbContext db, CancellationToken cancellationToken = default)
     {
-        var userNames = Users.Select(user => user.UserName).ToList();
+        var userNames = _users.Select(user => user.UserName).ToList();
         var existing = await db.Users
             .Where(user => userNames.Contains(user.UserName))
             .Select(user => user.UserName)
             .ToListAsync(cancellationToken);
 
-        foreach (var (userName, displayName) in Users.Where(user => !existing.Contains(user.UserName, StringComparer.OrdinalIgnoreCase)))
+        foreach (var (userName, displayName) in _users.Where(user => !existing.Contains(user.UserName, StringComparer.OrdinalIgnoreCase)))
         {
             var user = new DbUser { UserName = userName, DisplayName = displayName, CreatedAtUtc = DateTime.UtcNow };
             user.Roles.Add(new DbUserRole { RoleId = WellKnownRoles.AdministratorId });

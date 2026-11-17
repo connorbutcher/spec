@@ -19,12 +19,12 @@ public sealed record SaveCellTypeRequest
         CellStyle? style,
         IReadOnlyList<string>? options)
     {
-        this.Name = name;
-        this.Kind = kind;
-        this.Description = description;
-        this.Configuration = configuration;
-        this.Style = style;
-        this.Options = options;
+        Name = name;
+        Kind = kind;
+        Description = description;
+        Configuration = configuration;
+        Style = style;
+        Options = options;
     }
 
     public string Name { get; init; }

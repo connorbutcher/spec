@@ -14,18 +14,18 @@ public sealed class SheetCellFiller : ISheetCellFiller
 {
     private const int LockTimeoutMilliseconds = 15000;
 
-    private readonly PuSpecSheetDbContext db;
+    private readonly PuSpecSheetDbContext _db;
 
     public SheetCellFiller(PuSpecSheetDbContext db)
     {
-        this.db = db;
+        _db = db;
     }
 
     public async Task FillAsync(int tableId, CancellationToken cancellationToken)
     {
-        var ownsTransaction = db.Database.CurrentTransaction is null;
+        var ownsTransaction = _db.Database.CurrentTransaction is null;
         var transaction = ownsTransaction
-            ? await db.Database.BeginTransactionAsync(cancellationToken)
+            ? await _db.Database.BeginTransactionAsync(cancellationToken)
             : null;
 
         try
@@ -51,13 +51,13 @@ public sealed class SheetCellFiller : ISheetCellFiller
         var missing = await PlanMissingCellsAsync(tableId, cancellationToken);
         if (missing.Count > 0)
         {
-            db.SheetCells.AddRange(missing.Select(cell => new DbSheetCell
+            _db.SheetCells.AddRange(missing.Select(cell => new DbSheetCell
             {
                 SheetRowId = cell.SheetRowId,
                 TemplateCellId = cell.TemplateCellId,
                 SheetColumnBlockId = cell.SheetColumnBlockId,
             }));
-            await db.SaveSheetChangesAsync(cancellationToken);
+            await _db.SaveSheetChangesAsync(cancellationToken);
         }
     }
 
@@ -65,27 +65,27 @@ public sealed class SheetCellFiller : ISheetCellFiller
         int tableId,
         CancellationToken cancellationToken)
     {
-        var versionId = await db.SheetTables
+        var versionId = await _db.SheetTables
             .Where(table => table.Id == tableId)
             .Select(table => table.TableTemplateVersionId)
             .SingleAsync(cancellationToken);
 
-        var rows = await db.SheetRows
+        var rows = await _db.SheetRows
             .AsNoTracking()
             .Where(row => row.SheetSection.SheetTableId == tableId)
             .Select(row => new { row.Id, row.TemplateRowId })
             .ToListAsync(cancellationToken);
-        var templateCells = await db.TemplateCells
+        var templateCells = await _db.TemplateCells
             .AsNoTracking()
             .Where(cell => cell.TemplateRow.TemplateSection.TableTemplateVersionId == versionId)
             .Select(cell => new { cell.Id, cell.TemplateRowId, cell.TemplateColumnBlockId })
             .ToListAsync(cancellationToken);
-        var blocks = await db.SheetColumnBlocks
+        var blocks = await _db.SheetColumnBlocks
             .AsNoTracking()
             .Where(block => block.SheetTableId == tableId)
             .Select(block => new { block.Id, block.TemplateColumnBlockId })
             .ToListAsync(cancellationToken);
-        var existing = await db.SheetCells
+        var existing = await _db.SheetCells
             .AsNoTracking()
             .Where(cell => cell.SheetRow.SheetSection.SheetTableId == tableId)
             .Select(cell => new { cell.SheetRowId, cell.TemplateCellId, cell.SheetColumnBlockId })
@@ -102,7 +102,7 @@ public sealed class SheetCellFiller : ISheetCellFiller
     private async Task TakeTableLockAsync(int tableId, CancellationToken cancellationToken)
     {
         var resource = $"SheetCells:{tableId}";
-        await db.Database.ExecuteSqlAsync(
+        await _db.Database.ExecuteSqlAsync(
             $"""
             DECLARE @result int;
             EXEC @result = sp_getapplock

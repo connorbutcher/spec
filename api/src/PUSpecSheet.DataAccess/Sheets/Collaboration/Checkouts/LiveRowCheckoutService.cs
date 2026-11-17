@@ -7,12 +7,12 @@ namespace PUSpecSheet.DataAccess.Sheets.Collaboration.Checkouts;
 
 public sealed class LiveRowCheckoutService : ILiveRowCheckoutService
 {
-    private readonly IRowCheckouts checkouts;
-    private readonly SheetPresenceTracker presence;
-    private readonly LiveRowCheckoutTracker tracker;
-    private readonly IRowTakeoverSettler takeovers;
-    private readonly IRemovalInProgressGuard removals;
-    private readonly ISheetLiveNotifier notifier;
+    private readonly IRowCheckouts _checkouts;
+    private readonly SheetPresenceTracker _presence;
+    private readonly LiveRowCheckoutTracker _tracker;
+    private readonly IRowTakeoverSettler _takeovers;
+    private readonly IRemovalInProgressGuard _removals;
+    private readonly ISheetLiveNotifier _notifier;
 
     public LiveRowCheckoutService(
         IRowCheckouts checkouts,
@@ -22,20 +22,20 @@ public sealed class LiveRowCheckoutService : ILiveRowCheckoutService
         IRemovalInProgressGuard removals,
         ISheetLiveNotifier notifier)
     {
-        this.checkouts = checkouts;
-        this.presence = presence;
-        this.tracker = tracker;
-        this.takeovers = takeovers;
-        this.removals = removals;
-        this.notifier = notifier;
+        _checkouts = checkouts;
+        _presence = presence;
+        _tracker = tracker;
+        _takeovers = takeovers;
+        _removals = removals;
+        _notifier = notifier;
     }
 
     public async Task CheckOutAsync(string connectionId, int rowId, CancellationToken cancellationToken)
     {
-        var connection = presence.Find(connectionId)
+        var connection = _presence.Find(connectionId)
             ?? throw new InvalidRequestException("Open a sheet before checking out a row.");
 
-        var sheetId = await checkouts.SheetOfAsync(rowId, cancellationToken)
+        var sheetId = await _checkouts.SheetOfAsync(rowId, cancellationToken)
             ?? throw new NotFoundException($"Row {rowId} was not found.");
         if (sheetId != connection.SheetId)
         {
@@ -44,16 +44,16 @@ public sealed class LiveRowCheckoutService : ILiveRowCheckoutService
 
         // A row someone else has changed is theirs already, whether or not they are still in it. Only who
         // holds the draft matters here, not whether it differs from what is published.
-        if (await checkouts.DraftHolderAsync(rowId, cancellationToken) is { } holderUserId && holderUserId != connection.UserId)
+        if (await _checkouts.DraftHolderAsync(rowId, cancellationToken) is { } holderUserId && holderUserId != connection.UserId)
         {
-            var names = await checkouts.DisplayNamesAsync([holderUserId], cancellationToken);
+            var names = await _checkouts.DisplayNamesAsync([holderUserId], cancellationToken);
             throw Held(names.GetValueOrDefault(holderUserId, "another user"));
         }
 
-        await removals.EnsureRowNotBeingRemovedAsync(rowId, connection.UserId, cancellationToken);
+        await _removals.EnsureRowNotBeingRemovedAsync(rowId, connection.UserId, cancellationToken);
 
         var wanted = new LiveRowCheckout(sheetId, rowId, connection.UserId, connection.DisplayName);
-        if (!tracker.TryCheckOut(connectionId, wanted, out var heldBy))
+        if (!_tracker.TryCheckOut(connectionId, wanted, out var heldBy))
         {
             throw Held(heldBy!.DisplayName);
         }
@@ -63,7 +63,7 @@ public sealed class LiveRowCheckoutService : ILiveRowCheckoutService
 
     public async Task ReleaseAsync(string connectionId, CancellationToken cancellationToken)
     {
-        var released = tracker.Release(connectionId);
+        var released = _tracker.Release(connectionId);
         if (released is not null)
         {
             await AnnounceAsync(released.SheetId, cancellationToken);
@@ -76,8 +76,8 @@ public sealed class LiveRowCheckoutService : ILiveRowCheckoutService
     /// </summary>
     private async Task AnnounceAsync(int sheetId, CancellationToken cancellationToken)
     {
-        await notifier.CheckoutsChangedAsync(sheetId, tracker.OnSheet(sheetId), cancellationToken);
-        await takeovers.CloseBlockedAsync(sheetId, cancellationToken);
+        await _notifier.CheckoutsChangedAsync(sheetId, _tracker.OnSheet(sheetId), cancellationToken);
+        await _takeovers.CloseBlockedAsync(sheetId, cancellationToken);
     }
 
     private static ConflictException Held(string holderName)

@@ -10,12 +10,12 @@ public sealed record SheetCellDto
 {
     public SheetCellDto(int id, Guid publicId, int templateCellId, object? value, int? sheetColumnBlockId, SheetChangeDto? lastChange)
     {
-        this.Id = id;
-        this.PublicId = publicId;
-        this.TemplateCellId = templateCellId;
-        this.Value = value;
-        this.SheetColumnBlockId = sheetColumnBlockId;
-        this.LastChange = lastChange;
+        Id = id;
+        PublicId = publicId;
+        TemplateCellId = templateCellId;
+        Value = value;
+        SheetColumnBlockId = sheetColumnBlockId;
+        LastChange = lastChange;
     }
 
     /// <summary>The cell's id.</summary>

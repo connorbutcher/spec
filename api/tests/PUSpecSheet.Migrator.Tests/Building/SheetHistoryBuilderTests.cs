@@ -7,22 +7,22 @@ namespace PUSpecSheet.Migrator.Tests.Building;
 
 public sealed class SheetHistoryBuilderTests
 {
-    private static readonly DateTime Monday = new(2026, 3, 2, 9, 0, 0, DateTimeKind.Utc);
-    private static readonly DateTime Tuesday = Monday.AddDays(1);
-    private static readonly DateTime Wednesday = Monday.AddDays(2);
-    private static readonly DateTime Now = Monday.AddDays(30);
+    private static readonly DateTime _monday = new(2026, 3, 2, 9, 0, 0, DateTimeKind.Utc);
+    private static readonly DateTime _tuesday = _monday.AddDays(1);
+    private static readonly DateTime _wednesday = _monday.AddDays(2);
+    private static readonly DateTime _now = _monday.AddDays(30);
 
-    private readonly LegacySheetFactory legacy = new();
+    private readonly LegacySheetFactory _legacy = new();
 
     [Fact]
     public void EachCopy_BecomesAVersion()
     {
         var built = Build(
-            legacy.Copy(1, Monday, "a"),
-            legacy.Copy(2, Tuesday, "a"));
+            _legacy.Copy(1, _monday, "a"),
+            _legacy.Copy(2, _tuesday, "a"));
 
         int[] numbers = [1, 2];
-        DateTime[] times = [Monday, Tuesday];
+        DateTime[] times = [_monday, _tuesday];
         Assert.Equal(numbers, built.Sheet.Versions.Select(version => version.VersionNumber));
         Assert.Equal(times, built.Sheet.Versions.Select(version => version.PublishedAtUtc));
         Assert.All(built.Sheet.Versions, version => Assert.Equal(LegacySheetFactory.UserId, version.PublishedByUserId));
@@ -32,13 +32,13 @@ public sealed class SheetHistoryBuilderTests
     public void AnUnchangedRow_HasOneRevisionForEveryVersion()
     {
         var built = Build(
-            legacy.Copy(1, Monday, "a"),
-            legacy.Copy(2, Tuesday, "a"),
-            legacy.Copy(3, Wednesday, "a"));
+            _legacy.Copy(1, _monday, "a"),
+            _legacy.Copy(2, _tuesday, "a"),
+            _legacy.Copy(3, _wednesday, "a"));
 
         var row = Assert.Single(Rows(built));
         var revision = Assert.Single(row.Revisions);
-        Assert.Equal(Monday, revision.PublishedAtUtc);
+        Assert.Equal(_monday, revision.PublishedAtUtc);
         Assert.Null(revision.SupersededAtUtc);
         Assert.Equal("a", Assert.Single(revision.TextValues).Value);
     }
@@ -47,14 +47,14 @@ public sealed class SheetHistoryBuilderTests
     public void AChangedRow_GetsARevisionThatReplacesTheLastAtTheSameMoment()
     {
         var built = Build(
-            legacy.Copy(1, Monday, "a"),
-            legacy.Copy(2, Tuesday, "b"));
+            _legacy.Copy(1, _monday, "a"),
+            _legacy.Copy(2, _tuesday, "b"));
 
         var row = Assert.Single(Rows(built));
         var revisions = row.Revisions.OrderBy(revision => revision.RevisionNumber).ToList();
         Assert.Equal(2, revisions.Count);
-        Assert.Equal(Tuesday, revisions[0].SupersededAtUtc);
-        Assert.Equal(Tuesday, revisions[1].PublishedAtUtc);
+        Assert.Equal(_tuesday, revisions[0].SupersededAtUtc);
+        Assert.Equal(_tuesday, revisions[1].PublishedAtUtc);
         Assert.Null(revisions[1].SupersededAtUtc);
         Assert.Equal(2, revisions[1].SheetVersion!.VersionNumber);
         Assert.Equal("b", Assert.Single(revisions[1].TextValues).Value);
@@ -64,8 +64,8 @@ public sealed class SheetHistoryBuilderTests
     public void ARowAddedInTheMiddle_LeavesTheRowsAroundItAlone()
     {
         var built = Build(
-            legacy.Copy(1, Monday, "a", "c"),
-            legacy.Copy(2, Tuesday, "a", "b", "c"));
+            _legacy.Copy(1, _monday, "a", "c"),
+            _legacy.Copy(2, _tuesday, "a", "b", "c"));
 
         var rows = Rows(built);
         Assert.Equal(3, rows.Count);
@@ -81,13 +81,13 @@ public sealed class SheetHistoryBuilderTests
     public void ARowMissingFromACopy_IsRemovedKeepingItsValues()
     {
         var built = Build(
-            legacy.Copy(1, Monday, "a", "b"),
-            legacy.Copy(2, Tuesday, "a"));
+            _legacy.Copy(1, _monday, "a", "b"),
+            _legacy.Copy(2, _tuesday, "a"));
 
         var removed = Rows(built)
             .SelectMany(row => row.Revisions)
             .Single(revision => revision.IsDeleted);
-        Assert.Equal(Tuesday, removed.PublishedAtUtc);
+        Assert.Equal(_tuesday, removed.PublishedAtUtc);
         Assert.Equal("b", Assert.Single(removed.TextValues).Value);
     }
 
@@ -95,8 +95,8 @@ public sealed class SheetHistoryBuilderTests
     public void TheWorkingCopy_BecomesDraftsOfWhatChanged()
     {
         var built = Build(
-            legacy.Copy(1, Monday, "a", "b"),
-            legacy.Copy(2, null, "a", "B"));
+            _legacy.Copy(1, _monday, "a", "b"),
+            _legacy.Copy(2, null, "a", "B"));
 
         Assert.Single(built.Sheet.Versions);
         var drafts = Rows(built)
@@ -107,7 +107,7 @@ public sealed class SheetHistoryBuilderTests
         Assert.Equal("B", Assert.Single(draft.TextValues).Value);
         Assert.Null(draft.PublishedAtUtc);
         Assert.Null(draft.SheetVersion);
-        Assert.Equal(Now, draft.CreatedAtUtc);
+        Assert.Equal(_now, draft.CreatedAtUtc);
         Assert.Null(built.Checks[^1].MomentUtc);
     }
 
@@ -115,8 +115,8 @@ public sealed class SheetHistoryBuilderTests
     public void VersionsPublishedAtTheSameMoment_AreMovedApart()
     {
         var built = Build(
-            legacy.Copy(1, Monday, "a"),
-            legacy.Copy(2, Monday, "b"));
+            _legacy.Copy(1, _monday, "a"),
+            _legacy.Copy(2, _monday, "b"));
 
         var times = built.Sheet.Versions.Select(version => version.PublishedAtUtc).ToList();
         Assert.True(times[1] > times[0]);
@@ -126,8 +126,8 @@ public sealed class SheetHistoryBuilderTests
     [Fact]
     public void TheItems_KeepThePublicIdsOfTheirLatestCopy()
     {
-        var first = legacy.Copy(1, Monday, "a");
-        var second = legacy.Copy(2, Tuesday, "a");
+        var first = _legacy.Copy(1, _monday, "a");
+        var second = _legacy.Copy(2, _tuesday, "a");
 
         var built = Build(first, second);
 
@@ -139,21 +139,21 @@ public sealed class SheetHistoryBuilderTests
     public void TwoWorkingCopies_CantBeMigrated()
     {
         Assert.Throws<MigrationException>(() => Build(
-            legacy.Copy(1, null, "a"),
-            legacy.Copy(2, null, "b")));
+            _legacy.Copy(1, null, "a"),
+            _legacy.Copy(2, null, "b")));
     }
 
     [Fact]
     public void AnUnpublishedCopyOlderThanAPublishedOne_CantBeMigrated()
     {
         Assert.Throws<MigrationException>(() => Build(
-            legacy.Copy(1, null, "a"),
-            legacy.Copy(2, Monday, "b")));
+            _legacy.Copy(1, null, "a"),
+            _legacy.Copy(2, _monday, "b")));
     }
 
     private static BuiltSheet Build(params LegacyCopy[] copies)
     {
-        return SheetHistoryBuilder.Build(new DbSheet { Id = 7 }, copies, Now);
+        return SheetHistoryBuilder.Build(new DbSheet { Id = 7 }, copies, _now);
     }
 
     private static List<DbSheetRow> Rows(BuiltSheet built)

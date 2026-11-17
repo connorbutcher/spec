@@ -14,11 +14,11 @@ namespace PUSpecSheet.DataAccess.Approvals;
 /// </summary>
 public sealed class SheetSubmitter
 {
-    private readonly PuSpecSheetDbContext db;
-    private readonly SheetPublisher publisher;
-    private readonly ApproverDirectory approvers;
-    private readonly ICurrentUser currentUser;
-    private readonly TimeProvider clock;
+    private readonly PuSpecSheetDbContext _db;
+    private readonly SheetPublisher _publisher;
+    private readonly ApproverDirectory _approvers;
+    private readonly ICurrentUser _currentUser;
+    private readonly TimeProvider _clock;
 
     public SheetSubmitter(
         PuSpecSheetDbContext db,
@@ -27,26 +27,26 @@ public sealed class SheetSubmitter
         ICurrentUser currentUser,
         TimeProvider clock)
     {
-        this.db = db;
-        this.publisher = publisher;
-        this.approvers = approvers;
-        this.currentUser = currentUser;
-        this.clock = clock;
+        _db = db;
+        _publisher = publisher;
+        _approvers = approvers;
+        _currentUser = currentUser;
+        _clock = clock;
     }
 
     /// <returns>The new submission's id.</returns>
     public async Task<int> SubmitAsync(int sheetId, SubmitSheetRequest request, CancellationToken cancellationToken)
     {
-        var me = currentUser.UserId;
-        var approverIds = await approvers.EnsureEligibleAsync(request.ApproverUserIds, me, cancellationToken);
-        var drafts = await publisher.PrepareAsync(sheetId, request.Scope, cancellationToken);
+        var me = _currentUser.UserId;
+        var approverIds = await _approvers.EnsureEligibleAsync(request.ApproverUserIds, me, cancellationToken);
+        var drafts = await _publisher.PrepareAsync(sheetId, request.Scope, cancellationToken);
 
         var submission = new DbSheetSubmission
         {
             SheetId = sheetId,
             Note = string.IsNullOrWhiteSpace(request.Note) ? null : request.Note.Trim(),
             SubmittedByUserId = me,
-            SubmittedAtUtc = clock.GetUtcNow().UtcDateTime,
+            SubmittedAtUtc = _clock.GetUtcNow().UtcDateTime,
             Status = SubmissionStatus.Pending,
         };
         foreach (var approverId in approverIds)
@@ -54,9 +54,9 @@ public sealed class SheetSubmitter
             submission.Approvers.Add(new DbSheetSubmissionApprover { UserId = approverId, Decision = ApprovalDecision.Pending });
         }
 
-        await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
-        db.SheetSubmissions.Add(submission);
-        await db.SaveSheetChangesAsync(cancellationToken);
+        await using var transaction = await _db.Database.BeginTransactionAsync(cancellationToken);
+        _db.SheetSubmissions.Add(submission);
+        await _db.SaveSheetChangesAsync(cancellationToken);
 
         // The drafts' row versions make this fail, as a conflict, if an author saves into one at the same moment.
         foreach (var draft in drafts.All)
@@ -64,7 +64,7 @@ public sealed class SheetSubmitter
             draft.SheetSubmissionId = submission.Id;
         }
 
-        await db.SaveSheetChangesAsync(cancellationToken);
+        await _db.SaveSheetChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
         return submission.Id;
     }

@@ -14,12 +14,12 @@ public sealed record CurrentUserDto
         IReadOnlyList<string> roles,
         IReadOnlyList<string> permissions)
     {
-        this.Id = id;
-        this.UserName = userName;
-        this.DisplayName = displayName;
-        this.IsAdministrator = isAdministrator;
-        this.Roles = roles;
-        this.Permissions = permissions;
+        Id = id;
+        UserName = userName;
+        DisplayName = displayName;
+        IsAdministrator = isAdministrator;
+        Roles = roles;
+        Permissions = permissions;
     }
 
     public int Id { get; init; }

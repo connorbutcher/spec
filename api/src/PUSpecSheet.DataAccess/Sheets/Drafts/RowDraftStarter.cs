@@ -14,11 +14,11 @@ namespace PUSpecSheet.DataAccess.Sheets.Drafts;
 /// </summary>
 public sealed class RowDraftStarter
 {
-    private readonly PuSpecSheetDbContext db;
-    private readonly RowDrafts drafts;
-    private readonly LiveRowCheckoutGuard liveCheckouts;
-    private readonly IRemovalInProgressGuard removals;
-    private readonly ICurrentUser currentUser;
+    private readonly PuSpecSheetDbContext _db;
+    private readonly RowDrafts _drafts;
+    private readonly LiveRowCheckoutGuard _liveCheckouts;
+    private readonly IRemovalInProgressGuard _removals;
+    private readonly ICurrentUser _currentUser;
 
     public RowDraftStarter(
         PuSpecSheetDbContext db,
@@ -27,11 +27,11 @@ public sealed class RowDraftStarter
         IRemovalInProgressGuard removals,
         ICurrentUser currentUser)
     {
-        this.db = db;
-        this.drafts = drafts;
-        this.liveCheckouts = liveCheckouts;
-        this.removals = removals;
-        this.currentUser = currentUser;
+        _db = db;
+        _drafts = drafts;
+        _liveCheckouts = liveCheckouts;
+        _removals = removals;
+        _currentUser = currentUser;
     }
 
     /// <summary>
@@ -41,26 +41,26 @@ public sealed class RowDraftStarter
     public async Task<DbSheetRowRevision> StartAsync(int rowId, CancellationToken cancellationToken)
     {
         // Someone who has only clicked into the row holds it too, though they have no draft yet.
-        liveCheckouts.EnsureNotHeldByOthers(rowId);
+        _liveCheckouts.EnsureNotHeldByOthers(rowId);
 
-        var state = await drafts.LoadAsync(rowId, cancellationToken);
+        var state = await _drafts.LoadAsync(rowId, cancellationToken);
         if (state.Draft is null)
         {
             // Holding a draft already means nobody could have started removing around it since, so only
             // a new draft needs the check, and saves into an open one cost nothing extra.
-            await removals.EnsureRowNotBeingRemovedAsync(rowId, currentUser.UserId, cancellationToken);
+            await _removals.EnsureRowNotBeingRemovedAsync(rowId, _currentUser.UserId, cancellationToken);
         }
 
-        var (draft, created) = await drafts.EnsureMineAsync(rowId, state, cancellationToken);
+        var (draft, created) = await _drafts.EnsureMineAsync(rowId, state, cancellationToken);
         if (!created)
         {
             return draft;
         }
 
-        await db.SaveSheetChangesAsync(cancellationToken);
+        await _db.SaveSheetChangesAsync(cancellationToken);
         if (state.Current is { } current)
         {
-            await RowValueQueries.CopyAsync(db, current.Id, draft.Id, cancellationToken);
+            await RowValueQueries.CopyAsync(_db, current.Id, draft.Id, cancellationToken);
         }
 
         return draft;

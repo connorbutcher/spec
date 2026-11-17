@@ -12,11 +12,11 @@ namespace PUSpecSheet.Api.Controllers.ReferenceData;
 [Route("api/sheet-types")]
 public sealed class SheetTypesController : ControllerBase
 {
-    private readonly ISheetTypesService sheetTypes;
+    private readonly ISheetTypesService _sheetTypes;
 
     public SheetTypesController(ISheetTypesService sheetTypes)
     {
-        this.sheetTypes = sheetTypes;
+        _sheetTypes = sheetTypes;
     }
 
     /// <summary>List sheet types</summary>
@@ -28,7 +28,7 @@ public sealed class SheetTypesController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IReadOnlyList<SheetTypeDto>>> GetAll(CancellationToken cancellationToken)
     {
-        var result = await sheetTypes.GetAllAsync(cancellationToken);
+        var result = await _sheetTypes.GetAllAsync(cancellationToken);
         return Ok(result);
     }
 
@@ -46,7 +46,7 @@ public sealed class SheetTypesController : ControllerBase
     [Authorize(Policy = PermissionKeys.SheetTypesManage)]
     public async Task<ActionResult<SheetTypeDto>> Create(CreateSheetTypeRequest request, CancellationToken cancellationToken)
     {
-        var result = await sheetTypes.CreateAsync(request, cancellationToken);
+        var result = await _sheetTypes.CreateAsync(request, cancellationToken);
         return Ok(result);
     }
 
@@ -68,7 +68,7 @@ public sealed class SheetTypesController : ControllerBase
     [Authorize(Policy = PermissionKeys.SheetTypesManage)]
     public async Task<ActionResult<SheetTypeDto>> AddIdentifier(int id, SaveSheetTypeIdentifierRequest request, CancellationToken cancellationToken)
     {
-        var result = await sheetTypes.AddIdentifierAsync(id, request, cancellationToken);
+        var result = await _sheetTypes.AddIdentifierAsync(id, request, cancellationToken);
         return Ok(result);
     }
 
@@ -89,7 +89,7 @@ public sealed class SheetTypesController : ControllerBase
     [Authorize(Policy = PermissionKeys.SheetTypesManage)]
     public async Task<ActionResult<SheetTypeDto>> UpdateIdentifier(int id, int identifierId, SaveSheetTypeIdentifierRequest request, CancellationToken cancellationToken)
     {
-        var result = await sheetTypes.UpdateIdentifierAsync(id, identifierId, request, cancellationToken);
+        var result = await _sheetTypes.UpdateIdentifierAsync(id, identifierId, request, cancellationToken);
         return Ok(result);
     }
 
@@ -107,7 +107,7 @@ public sealed class SheetTypesController : ControllerBase
     [Authorize(Policy = PermissionKeys.SheetTypesManage)]
     public async Task<ActionResult<SheetTypeDto>> DeleteIdentifier(int id, int identifierId, CancellationToken cancellationToken)
     {
-        var result = await sheetTypes.DeleteIdentifierAsync(id, identifierId, cancellationToken);
+        var result = await _sheetTypes.DeleteIdentifierAsync(id, identifierId, cancellationToken);
         return Ok(result);
     }
 }

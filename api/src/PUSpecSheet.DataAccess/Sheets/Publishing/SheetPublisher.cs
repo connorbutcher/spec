@@ -28,11 +28,11 @@ namespace PUSpecSheet.DataAccess.Sheets.Publishing;
 /// </summary>
 public sealed class SheetPublisher
 {
-    private readonly PuSpecSheetDbContext db;
-    private readonly SheetDraftSetLoader draftLoader;
-    private readonly DraftSweeper sweeper;
-    private readonly ICurrentUser currentUser;
-    private readonly TimeProvider clock;
+    private readonly PuSpecSheetDbContext _db;
+    private readonly SheetDraftSetLoader _draftLoader;
+    private readonly DraftSweeper _sweeper;
+    private readonly ICurrentUser _currentUser;
+    private readonly TimeProvider _clock;
 
     public SheetPublisher(
         PuSpecSheetDbContext db,
@@ -41,11 +41,11 @@ public sealed class SheetPublisher
         ICurrentUser currentUser,
         TimeProvider clock)
     {
-        this.db = db;
-        this.draftLoader = draftLoader;
-        this.sweeper = sweeper;
-        this.currentUser = currentUser;
-        this.clock = clock;
+        _db = db;
+        _draftLoader = draftLoader;
+        _sweeper = sweeper;
+        _currentUser = currentUser;
+        _clock = clock;
     }
 
     /// <summary>Publishes straight away, without approval. Only start-up seeding does this.</summary>
@@ -56,8 +56,8 @@ public sealed class SheetPublisher
     {
         var drafts = await PrepareAsync(sheetId, scope, cancellationToken);
         var sheet = await FindSheetAsync(sheetId, cancellationToken);
-        await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
-        await PublishDraftsAsync(sheet, drafts, note, currentUser.UserId, cancellationToken);
+        await using var transaction = await _db.Database.BeginTransactionAsync(cancellationToken);
+        await PublishDraftsAsync(sheet, drafts, note, _currentUser.UserId, cancellationToken);
         await transaction.CommitAsync(cancellationToken);
     }
 
@@ -69,13 +69,13 @@ public sealed class SheetPublisher
     /// <exception cref="InvalidRequestException">There is nothing to publish, or a required cell is empty.</exception>
     public async Task<SheetDraftSet> PrepareAsync(int sheetId, PublishScope scope, CancellationToken cancellationToken)
     {
-        if (!await SheetQueries.ExistsAsync(db, sheetId, cancellationToken))
+        if (!await SheetQueries.ExistsAsync(_db, sheetId, cancellationToken))
         {
             throw new NotFoundException($"Sheet {sheetId} was not found.");
         }
 
-        await sweeper.SweepAsync(sheetId, scope, cancellationToken);
-        var drafts = await draftLoader.LoadAsync(sheetId, DraftSelection.InScope(scope, currentUser.UserId), cancellationToken);
+        await _sweeper.SweepAsync(sheetId, scope, cancellationToken);
+        var drafts = await _draftLoader.LoadAsync(sheetId, DraftSelection.InScope(scope, _currentUser.UserId), cancellationToken);
         if (drafts.Count == 0)
         {
             throw new InvalidRequestException(scope == PublishScope.All ? "There are no changes to publish." : "You have no changes to publish.");
@@ -94,18 +94,18 @@ public sealed class SheetPublisher
     public async Task<DbSheetVersion> PublishSubmissionAsync(DbSheetSubmission submission, CancellationToken cancellationToken)
     {
         var sheet = await FindSheetAsync(submission.SheetId, cancellationToken);
-        var drafts = await draftLoader.LoadAsync(sheet.Id, DraftSelection.InSubmission(submission.Id), cancellationToken);
-        await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
+        var drafts = await _draftLoader.LoadAsync(sheet.Id, DraftSelection.InSubmission(submission.Id), cancellationToken);
+        await using var transaction = await _db.Database.BeginTransactionAsync(cancellationToken);
         var version = await PublishDraftsAsync(sheet, drafts, submission.Note, submission.SubmittedByUserId, cancellationToken);
         submission.SheetVersionId = version.Id;
-        await db.SaveSheetChangesAsync(cancellationToken);
+        await _db.SaveSheetChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
         return version;
     }
 
     private async Task<DbSheet> FindSheetAsync(int sheetId, CancellationToken cancellationToken)
     {
-        return await SheetQueries.FindForEditAsync(db, sheetId, cancellationToken)
+        return await SheetQueries.FindForEditAsync(_db, sheetId, cancellationToken)
             ?? throw new NotFoundException($"Sheet {sheetId} was not found.");
     }
 
@@ -117,15 +117,15 @@ public sealed class SheetPublisher
         int publishedByUserId,
         CancellationToken cancellationToken)
     {
-        var now = clock.GetUtcNow().UtcDateTime;
-        var lastVersion = await SheetQueries.GetLastVersionNumberAsync(db, sheet.Id, cancellationToken);
+        var now = _clock.GetUtcNow().UtcDateTime;
+        var lastVersion = await SheetQueries.GetLastVersionNumberAsync(_db, sheet.Id, cancellationToken);
         var version = AddNextVersion(sheet, note, now, publishedByUserId, lastVersion);
 
         // The replaced revisions close their range at the moment the new ones open, before the drafts are
         // published, so the "one current revision per item" index never sees two at once. If the version
         // save below fails, the transaction undoes them.
         await SupersedeReplacedAsync(drafts, now, cancellationToken);
-        await db.SaveSheetChangesAsync(cancellationToken);
+        await _db.SaveSheetChangesAsync(cancellationToken);
 
         foreach (var draft in drafts.All)
         {
@@ -134,7 +134,7 @@ public sealed class SheetPublisher
             draft.SheetVersionId = version.Id;
         }
 
-        await db.SaveSheetChangesAsync(cancellationToken);
+        await _db.SaveSheetChangesAsync(cancellationToken);
         return version;
     }
 
@@ -149,11 +149,11 @@ public sealed class SheetPublisher
             PublishedByUserId = publishedByUserId,
             Note = string.IsNullOrWhiteSpace(note) ? null : note.Trim(),
         };
-        db.SheetVersions.Add(version);
+        _db.SheetVersions.Add(version);
 
         // Two people publishing at once would both claim the next number; the sheet's row version makes
         // the second one fail instead. Touching the sheet is what makes the check happen.
-        db.MarkModified(sheet);
+        _db.MarkModified(sheet);
         return version;
     }
 
@@ -165,10 +165,10 @@ public sealed class SheetPublisher
         var sectionIds = drafts.Sections.Select(draft => draft.SheetSectionId).ToList();
         var rowIds = drafts.Rows.Select(draft => draft.SheetRowId).ToList();
         var columnBlockIds = drafts.ColumnBlocks.Select(draft => draft.SheetColumnBlockId).ToList();
-        await db.SheetTableRevisions.Where(revision => tableIds.Contains(revision.SheetTableId)).SupersedeCurrentAsync(now, cancellationToken);
-        await db.SheetSectionRevisions.Where(revision => sectionIds.Contains(revision.SheetSectionId)).SupersedeCurrentAsync(now, cancellationToken);
-        await db.SheetRowRevisions.Where(revision => rowIds.Contains(revision.SheetRowId)).SupersedeCurrentAsync(now, cancellationToken);
-        await db.SheetColumnBlockRevisions.Where(revision => columnBlockIds.Contains(revision.SheetColumnBlockId)).SupersedeCurrentAsync(now, cancellationToken);
+        await _db.SheetTableRevisions.Where(revision => tableIds.Contains(revision.SheetTableId)).SupersedeCurrentAsync(now, cancellationToken);
+        await _db.SheetSectionRevisions.Where(revision => sectionIds.Contains(revision.SheetSectionId)).SupersedeCurrentAsync(now, cancellationToken);
+        await _db.SheetRowRevisions.Where(revision => rowIds.Contains(revision.SheetRowId)).SupersedeCurrentAsync(now, cancellationToken);
+        await _db.SheetColumnBlockRevisions.Where(revision => columnBlockIds.Contains(revision.SheetColumnBlockId)).SupersedeCurrentAsync(now, cancellationToken);
     }
 
     private async Task EnsureRequiredCellsFilledAsync(IReadOnlyList<DbSheetRowRevision> rowDrafts, CancellationToken cancellationToken)
@@ -190,14 +190,14 @@ public sealed class SheetPublisher
     private async Task<List<int>> RowsWithEmptyRequiredCellsAsync(List<DbSheetRowRevision> live, CancellationToken cancellationToken)
     {
         var rowIds = live.Select(draft => draft.SheetRowId).ToList();
-        var required = await SheetCellQueries.ListRequiredAsync(db, rowIds, cancellationToken);
+        var required = await SheetCellQueries.ListRequiredAsync(_db, rowIds, cancellationToken);
         var toFill = required.Where(cell => cell.Kind.StoresValue() && cell.Kind != CellKind.Checkbox).ToList();
         if (toFill.Count == 0)
         {
             return [];
         }
 
-        var held = await RowValueQueries.LoadAsync(db, live.Select(draft => draft.Id).ToList(), cancellationToken);
+        var held = await RowValueQueries.LoadAsync(_db, live.Select(draft => draft.Id).ToList(), cancellationToken);
         var revisionByRow = live.ToDictionary(draft => draft.SheetRowId, draft => draft.Id);
         return toFill
             .Where(cell => !(held.GetValueOrDefault(revisionByRow[cell.SheetRowId])?.GetValueOrDefault(cell.Id)?.HasValue ?? false))
@@ -209,7 +209,7 @@ public sealed class SheetPublisher
     {
         var empty = emptyRowIds.Count;
         var stillEmpty = $"{empty} required {(empty == 1 ? "cell is" : "cells are")} still empty";
-        var me = currentUser.UserId;
+        var me = _currentUser.UserId;
         var authorByRow = live.ToDictionary(draft => draft.SheetRowId, draft => draft.AuthorUserId);
         var otherAuthorIds = emptyRowIds.Select(rowId => authorByRow[rowId]).Where(author => author != me).Distinct().ToList();
         if (otherAuthorIds.Count == 0)
@@ -218,7 +218,7 @@ public sealed class SheetPublisher
         }
 
         // The publisher can't fill in or remove someone else's rows, so the way out is different.
-        var names = await UserQueries.GetSortedDisplayNamesAsync(db, otherAuthorIds, cancellationToken);
+        var names = await UserQueries.GetSortedDisplayNamesAsync(_db, otherAuthorIds, cancellationToken);
         throw new InvalidRequestException(
             $"{stillEmpty}, in rows being edited by {string.Join(", ", names)}. Publish only your own changes, or ask them to fill those in first.");
     }

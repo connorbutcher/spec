@@ -27,7 +27,7 @@ public sealed class PartsMatrixTemplate : IShowcaseTemplate
     public const string FirstArticle = "First article";
     public const string Fastener = "Fastener";
 
-    private static readonly CellStyle Banner = new() { BackgroundColor = "#e2e8f0", Align = CellTextAlign.Center };
+    private static readonly CellStyle _banner = new() { BackgroundColor = "#e2e8f0", Align = CellTextAlign.Center };
 
     public string SheetTypeName => ShowcasePhases.PartsSheetType;
 
@@ -47,7 +47,7 @@ public sealed class PartsMatrixTemplate : IShowcaseTemplate
             header,
             layout.Cell(ShowcaseCellTypeNames.Heading, 1, "Characteristic", rowSpan: 3),
             layout.Cell(ShowcaseCellTypeNames.Heading, 2, "Drawing ref.", rowSpan: 3),
-            layout.Cell(ShowcaseCellTypeNames.Heading, 1, "Baseline", rowSpan: 2, block: baseline, style: Banner),
+            layout.Cell(ShowcaseCellTypeNames.Heading, 1, "Baseline", rowSpan: 2, block: baseline, style: _banner),
             layout.Cell(
                 ShowcaseCellTypeNames.PartNumbers,
                 1,

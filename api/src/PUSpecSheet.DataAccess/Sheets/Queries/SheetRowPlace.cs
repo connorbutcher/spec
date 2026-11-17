@@ -5,8 +5,8 @@ public sealed record SheetRowPlace
 {
     public SheetRowPlace(int sheetSectionId, int sheetTableId)
     {
-        this.SheetSectionId = sheetSectionId;
-        this.SheetTableId = sheetTableId;
+        SheetSectionId = sheetSectionId;
+        SheetTableId = sheetTableId;
     }
 
     public int SheetSectionId { get; init; }

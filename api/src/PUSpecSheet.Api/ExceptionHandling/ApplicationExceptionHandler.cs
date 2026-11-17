@@ -10,11 +10,11 @@ namespace PUSpecSheet.Api.ExceptionHandling;
 /// </summary>
 public sealed class ApplicationExceptionHandler : IExceptionHandler
 {
-    private readonly IProblemDetailsService problemDetails;
+    private readonly IProblemDetailsService _problemDetails;
 
     public ApplicationExceptionHandler(IProblemDetailsService problemDetails)
     {
-        this.problemDetails = problemDetails;
+        _problemDetails = problemDetails;
     }
 
     public async ValueTask<bool> TryHandleAsync(
@@ -29,7 +29,7 @@ public sealed class ApplicationExceptionHandler : IExceptionHandler
         }
 
         httpContext.Response.StatusCode = status.Value;
-        return await problemDetails.TryWriteAsync(new ProblemDetailsContext
+        return await _problemDetails.TryWriteAsync(new ProblemDetailsContext
         {
             HttpContext = httpContext,
             Exception = exception,

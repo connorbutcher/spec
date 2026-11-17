@@ -5,8 +5,8 @@ public sealed record SheetIdentifierValue
 {
     public SheetIdentifierValue(SheetIdentifierDefinition definition, string value)
     {
-        this.Definition = definition;
-        this.Value = value;
+        Definition = definition;
+        Value = value;
     }
 
     public SheetIdentifierDefinition Definition { get; init; }

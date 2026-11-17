@@ -14,11 +14,11 @@ namespace PUSpecSheet.Api.Controllers.Templates;
 [Authorize(Policy = PermissionKeys.TemplatesManage)]
 public sealed class TemplateCellOverridesController : ControllerBase
 {
-    private readonly ITemplateCellOverridesService overrides;
+    private readonly ITemplateCellOverridesService _overrides;
 
     public TemplateCellOverridesController(ITemplateCellOverridesService overrides)
     {
-        this.overrides = overrides;
+        _overrides = overrides;
     }
 
     /// <summary>Set a cell's overrides</summary>
@@ -38,7 +38,7 @@ public sealed class TemplateCellOverridesController : ControllerBase
         UpdateTemplateCellOverridesRequest request,
         CancellationToken cancellationToken)
     {
-        var result = await overrides.UpdateAsync(id, request, cancellationToken);
+        var result = await _overrides.UpdateAsync(id, request, cancellationToken);
         return Ok(result);
     }
 }

@@ -17,13 +17,13 @@ public sealed record PublishedSheetRowDto
         IReadOnlyList<object?> values,
         IReadOnlyDictionary<string, IReadOnlyList<object?>>? columns)
     {
-        this.Sheet = sheet;
-        this.Version = version;
-        this.PublishedAtUtc = publishedAtUtc;
-        this.Row = row;
-        this.Section = section;
-        this.Values = values;
-        this.Columns = columns;
+        Sheet = sheet;
+        Version = version;
+        PublishedAtUtc = publishedAtUtc;
+        Row = row;
+        Section = section;
+        Values = values;
+        Columns = columns;
     }
 
     public Guid Sheet { get; init; }

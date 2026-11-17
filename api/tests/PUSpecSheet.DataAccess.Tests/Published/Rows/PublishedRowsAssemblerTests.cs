@@ -14,11 +14,11 @@ namespace PUSpecSheet.DataAccess.Tests.Published.Rows;
 /// </summary>
 public sealed class PublishedRowsAssemblerTests
 {
-    private static readonly ResolvedSheetVersion Version = new(1, Id(1), 2, new DateTime(2026, 10, 4, 18, 0, 0, DateTimeKind.Utc));
+    private static readonly ResolvedSheetVersion _version = new(1, Id(1), 2, new DateTime(2026, 10, 4, 18, 0, 0, DateTimeKind.Utc));
 
     // Table 1 is horizontal: a header (10) and a "Limits" section (20), with part blocks 5, 6 and 8.
     // Block 7 was removed. Table 2 is vertical: a header (40) and a "Limits" section (50).
-    private static readonly PublishedStructure Structure = new(
+    private static readonly PublishedStructure _structure = new(
         [
             new PublishedTableRecord(1, Id(100), 0, false, "Piston parts"),
             new PublishedTableRecord(2, Id(200), 1, false, "Pressures"),
@@ -36,7 +36,7 @@ public sealed class PublishedRowsAssemblerTests
             new PublishedColumnBlockRecord(8, Id(208), 1, 3, false, "Part"),
         ]);
 
-    private static readonly PublishedLookupCellRecord[] Cells =
+    private static readonly PublishedLookupCellRecord[] _cells =
     [
         Cell(row: 1, section: 10, cell: 1, column: 1, kind: CellKind.Heading, header: true),
         Cell(row: 1, section: 10, cell: 2, column: 1, block: 5, header: true),
@@ -57,7 +57,7 @@ public sealed class PublishedRowsAssemblerTests
         Cell(row: 10, section: 50, cell: 33, column: 3, kind: CellKind.Number),
     ];
 
-    private static readonly Dictionary<int, object> Values = new()
+    private static readonly Dictionary<int, object> _values = new()
     {
         [2] = "P-1002",
         [3] = "P-1003",
@@ -112,9 +112,9 @@ public sealed class PublishedRowsAssemblerTests
     public void NamedRows_AreTheOnlyOnesReturnedAndUnknownOnesAreListed()
     {
         var selection = PublishedRowsSelection.Parse($"{RowId(10)},{Id(999)}", null);
-        var cells = Cells.Where(cell => cell.RowId == 10).ToList();
+        var cells = _cells.Where(cell => cell.RowId == 10).ToList();
 
-        var rows = PublishedRowsAssembler.Assemble(Version, selection, Structure, cells, [], Values);
+        var rows = PublishedRowsAssembler.Assemble(_version, selection, _structure, cells, [], _values);
 
         Assert.Equal([RowId(10)], rows.Rows.Keys);
         Assert.Equal([Id(999)], rows.Missing);
@@ -144,7 +144,7 @@ public sealed class PublishedRowsAssemblerTests
 
     private static PublishedRowsDto Assemble(PublishedRowsSelection selection)
     {
-        return PublishedRowsAssembler.Assemble(Version, selection, Structure, Cells, Cells, Values);
+        return PublishedRowsAssembler.Assemble(_version, selection, _structure, _cells, _cells, _values);
     }
 
     private static PublishedLookupCellRecord Cell(

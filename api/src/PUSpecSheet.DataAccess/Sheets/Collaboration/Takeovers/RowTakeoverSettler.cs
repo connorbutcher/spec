@@ -4,24 +4,24 @@ namespace PUSpecSheet.DataAccess.Sheets.Collaboration.Takeovers;
 
 public sealed class RowTakeoverSettler : IRowTakeoverSettler
 {
-    private readonly RowTakeoverStore store;
-    private readonly RowTakeoverCloser closer;
-    private readonly TimeProvider clock;
+    private readonly RowTakeoverStore _store;
+    private readonly RowTakeoverCloser _closer;
+    private readonly TimeProvider _clock;
 
     public RowTakeoverSettler(RowTakeoverStore store, RowTakeoverCloser closer, TimeProvider clock)
     {
-        this.store = store;
-        this.closer = closer;
-        this.clock = clock;
+        _store = store;
+        _closer = closer;
+        _clock = clock;
     }
 
     public async Task GrantOverdueAsync(CancellationToken cancellationToken)
     {
-        foreach (var takeover in store.Due(clock.GetUtcNow().UtcDateTime))
+        foreach (var takeover in _store.Due(_clock.GetUtcNow().UtcDateTime))
         {
-            if (store.TryRemove(takeover))
+            if (_store.TryRemove(takeover))
             {
-                await closer.GrantAsync(takeover, RowTakeoverStatus.GrantedOnTimeout, cancellationToken);
+                await _closer.GrantAsync(takeover, RowTakeoverStatus.GrantedOnTimeout, cancellationToken);
             }
         }
     }
@@ -29,12 +29,12 @@ public sealed class RowTakeoverSettler : IRowTakeoverSettler
     public async Task CloseBlockedAsync(int sheetId, CancellationToken cancellationToken)
     {
         // Nearly always empty, and then this costs no query. When not, it is a request or two.
-        foreach (var takeover in store.OnSheet(sheetId))
+        foreach (var takeover in _store.OnSheet(sheetId))
         {
-            var obstacle = await closer.ObstacleAsync(takeover, cancellationToken);
-            if (obstacle is not null && store.TryRemove(takeover))
+            var obstacle = await _closer.ObstacleAsync(takeover, cancellationToken);
+            if (obstacle is not null && _store.TryRemove(takeover))
             {
-                await closer.CloseAsync(takeover, obstacle.Value, cancellationToken);
+                await _closer.CloseAsync(takeover, obstacle.Value, cancellationToken);
             }
         }
     }

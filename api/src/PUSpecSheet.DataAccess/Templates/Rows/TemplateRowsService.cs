@@ -10,10 +10,10 @@ namespace PUSpecSheet.DataAccess.Templates.Rows;
 
 public sealed class TemplateRowsService : ITemplateRowsService
 {
-    private readonly PuSpecSheetDbContext db;
-    private readonly TableTemplateReader reader;
-    private readonly TemplateVersionGuard guard;
-    private readonly ICellTypeDataService cellTypes;
+    private readonly PuSpecSheetDbContext _db;
+    private readonly TableTemplateReader _reader;
+    private readonly TemplateVersionGuard _guard;
+    private readonly ICellTypeDataService _cellTypes;
 
     public TemplateRowsService(
         PuSpecSheetDbContext db,
@@ -21,23 +21,23 @@ public sealed class TemplateRowsService : ITemplateRowsService
         TemplateVersionGuard guard,
         ICellTypeDataService cellTypes)
     {
-        this.db = db;
-        this.reader = reader;
-        this.guard = guard;
-        this.cellTypes = cellTypes;
+        _db = db;
+        _reader = reader;
+        _guard = guard;
+        _cellTypes = cellTypes;
     }
 
     public async Task<TableTemplateDto> CreateAsync(CreateTemplateRowRequest request, CancellationToken cancellationToken)
     {
-        var versionId = await TemplateSectionQueries.FindVersionIdAsync(db, request.TemplateSectionId, cancellationToken)
+        var versionId = await TemplateSectionQueries.FindVersionIdAsync(_db, request.TemplateSectionId, cancellationToken)
             ?? throw new NotFoundException($"Section {request.TemplateSectionId} was not found.");
-        await guard.EnsureEditableAsync(versionId, cancellationToken);
+        await _guard.EnsureEditableAsync(versionId, cancellationToken);
 
-        var sectionRows = await TemplateRowQueries.ListInSectionWithCellsForEditAsync(db, request.TemplateSectionId, cancellationToken);
+        var sectionRows = await TemplateRowQueries.ListInSectionWithCellsForEditAsync(_db, request.TemplateSectionId, cancellationToken);
         var source = CopySource(sectionRows, request.CopyFromRowId);
         var insertIndex = Math.Clamp((request.Position ?? sectionRows.Count + 1) - 1, 0, sectionRows.Count);
-        var defaultCellTypeId = await cellTypes.GetDefaultIdAsync(cancellationToken);
-        var columnBlockIds = await TemplateColumnBlockQueries.ListIdsAsync(db, versionId, cancellationToken);
+        var defaultCellTypeId = await _cellTypes.GetDefaultIdAsync(cancellationToken);
+        var columnBlockIds = await TemplateColumnBlockQueries.ListIdsAsync(_db, versionId, cancellationToken);
 
         var row = new DbTemplateRow
         {
@@ -48,10 +48,10 @@ public sealed class TemplateRowsService : ITemplateRowsService
         sectionRows.Insert(insertIndex, row);
         DisplayOrdering.RenumberAsListed(sectionRows, SetOrder);
 
-        db.TemplateRows.Add(row);
-        await db.SaveChangesAsync(cancellationToken);
+        _db.TemplateRows.Add(row);
+        await _db.SaveChangesAsync(cancellationToken);
 
-        return await reader.ReadVersionAsync(versionId, cancellationToken);
+        return await _reader.ReadVersionAsync(versionId, cancellationToken);
     }
 
     public async Task<TableTemplateDto> MoveAsync(int id, MoveRequest request, CancellationToken cancellationToken)
@@ -60,9 +60,9 @@ public sealed class TemplateRowsService : ITemplateRowsService
         var siblings = await LoadSiblingsAsync(row, cancellationToken);
 
         DisplayOrdering.Move(siblings, row, request.DisplayOrder, sibling => sibling.DisplayOrder, SetOrder);
-        await db.SaveChangesAsync(cancellationToken);
+        await _db.SaveChangesAsync(cancellationToken);
 
-        return await reader.ReadVersionAsync(row.TemplateSection.TableTemplateVersionId, cancellationToken);
+        return await _reader.ReadVersionAsync(row.TemplateSection.TableTemplateVersionId, cancellationToken);
     }
 
     public async Task<TableTemplateDto> DeleteAsync(int id, CancellationToken cancellationToken)
@@ -70,11 +70,11 @@ public sealed class TemplateRowsService : ITemplateRowsService
         var row = await FindEditableAsync(id, cancellationToken);
         var siblings = await LoadSiblingsAsync(row, cancellationToken);
 
-        db.TemplateRows.Remove(row);
+        _db.TemplateRows.Remove(row);
         DisplayOrdering.Renumber(siblings.Where(sibling => sibling.Id != id), sibling => sibling.DisplayOrder, SetOrder);
-        await db.SaveChangesAsync(cancellationToken);
+        await _db.SaveChangesAsync(cancellationToken);
 
-        return await reader.ReadVersionAsync(row.TemplateSection.TableTemplateVersionId, cancellationToken);
+        return await _reader.ReadVersionAsync(row.TemplateSection.TableTemplateVersionId, cancellationToken);
     }
 
     private static void SetOrder(DbTemplateRow row, int order)
@@ -84,20 +84,20 @@ public sealed class TemplateRowsService : ITemplateRowsService
 
     private async Task<DbTemplateRow> FindEditableAsync(int id, CancellationToken cancellationToken)
     {
-        var row = await TemplateRowQueries.FindForEditAsync(db, id, cancellationToken);
+        var row = await TemplateRowQueries.FindForEditAsync(_db, id, cancellationToken);
 
         if (row is null)
         {
             throw new NotFoundException($"Row {id} was not found.");
         }
 
-        await guard.EnsureEditableAsync(row.TemplateSection.TableTemplateVersionId, cancellationToken);
+        await _guard.EnsureEditableAsync(row.TemplateSection.TableTemplateVersionId, cancellationToken);
         return row;
     }
 
     private Task<List<DbTemplateRow>> LoadSiblingsAsync(DbTemplateRow row, CancellationToken cancellationToken)
     {
-        return TemplateRowQueries.ListInSectionForEditAsync(db, row.TemplateSectionId, cancellationToken);
+        return TemplateRowQueries.ListInSectionForEditAsync(_db, row.TemplateSectionId, cancellationToken);
     }
 
     /// <summary>The row a new row copies its cells from: the one asked for, or the section's last.</summary>

@@ -5,9 +5,9 @@ public sealed record PublishedVersionDto
 {
     public PublishedVersionDto(int version, DateTime publishedAtUtc, string? note)
     {
-        this.Version = version;
-        this.PublishedAtUtc = publishedAtUtc;
-        this.Note = note;
+        Version = version;
+        PublishedAtUtc = publishedAtUtc;
+        Note = note;
     }
 
     public int Version { get; init; }

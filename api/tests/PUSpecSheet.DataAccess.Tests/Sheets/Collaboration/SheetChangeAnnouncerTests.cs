@@ -9,66 +9,66 @@ public sealed class SheetChangeAnnouncerTests
 {
     private const int SheetId = 1;
 
-    private readonly RecordingSheetLiveNotifier notifier = new();
-    private readonly SheetChangeAnnouncer announcer;
+    private readonly RecordingSheetLiveNotifier _notifier = new();
+    private readonly SheetChangeAnnouncer _announcer;
 
     public SheetChangeAnnouncerTests()
     {
-        announcer = new SheetChangeAnnouncer(notifier);
+        _announcer = new SheetChangeAnnouncer(_notifier);
     }
 
     [Fact]
     public async Task AChangeOthersCanSee_IsAnnouncedOnce()
     {
-        await announcer.AnnounceAsync(Sheet(latestVersion: 3), null, CancellationToken.None);
-        await announcer.AnnounceAsync(Sheet(latestVersion: 3), null, CancellationToken.None);
-        await announcer.AnnounceAsync(Sheet(latestVersion: 4), null, CancellationToken.None);
+        await _announcer.AnnounceAsync(Sheet(latestVersion: 3), null, CancellationToken.None);
+        await _announcer.AnnounceAsync(Sheet(latestVersion: 3), null, CancellationToken.None);
+        await _announcer.AnnounceAsync(Sheet(latestVersion: 4), null, CancellationToken.None);
 
-        Assert.Equal([SheetId, SheetId], notifier.ChangedSheets);
+        Assert.Equal([SheetId, SheetId], _notifier.ChangedSheets);
     }
 
     [Fact]
     public async Task AReadIsNeverAnnounced_ButIsRemembered()
     {
-        await announcer.AnnounceAsync(Sheet(latestVersion: 3), null, CancellationToken.None);
+        await _announcer.AnnounceAsync(Sheet(latestVersion: 3), null, CancellationToken.None);
 
         // A read can find the sheet different (it drops the reader's no-op drafts) without telling anyone...
-        announcer.Observe(Sheet(latestVersion: 4));
-        Assert.Single(notifier.ChangedSheets);
+        _announcer.Observe(Sheet(latestVersion: 4));
+        Assert.Single(_notifier.ChangedSheets);
 
         // ...so a change back to what was last announced still counts as a change.
-        await announcer.AnnounceAsync(Sheet(latestVersion: 3), null, CancellationToken.None);
-        Assert.Equal(2, notifier.ChangedSheets.Count);
+        await _announcer.AnnounceAsync(Sheet(latestVersion: 3), null, CancellationToken.None);
+        Assert.Equal(2, _notifier.ChangedSheets.Count);
     }
 
     [Fact]
     public async Task APastView_IsNeverAnnounced()
     {
-        await announcer.AnnounceAsync(Sheet(latestVersion: 3, isLive: false), null, CancellationToken.None);
+        await _announcer.AnnounceAsync(Sheet(latestVersion: 3, isLive: false), null, CancellationToken.None);
 
-        Assert.Empty(notifier.ChangedSheets);
+        Assert.Empty(_notifier.ChangedSheets);
     }
 
     [Fact]
     public async Task RowsChangingHands_AreNamed_AndAVersionMeansEverything()
     {
-        await announcer.AnnounceAsync(Sheet(latestVersion: 3), null, CancellationToken.None);
-        await announcer.AnnounceAsync(Sheet(latestVersion: 3, lockedRow: 10), null, CancellationToken.None);
-        await announcer.AnnounceAsync(Sheet(latestVersion: 4), null, CancellationToken.None);
+        await _announcer.AnnounceAsync(Sheet(latestVersion: 3), null, CancellationToken.None);
+        await _announcer.AnnounceAsync(Sheet(latestVersion: 3, lockedRow: 10), null, CancellationToken.None);
+        await _announcer.AnnounceAsync(Sheet(latestVersion: 4), null, CancellationToken.None);
 
-        Assert.Equal(["*", "10", "*"], notifier.Notices);
+        Assert.Equal(["*", "10", "*"], _notifier.Notices);
     }
 
     [Fact]
     public async Task ARowAReadTookNoteOf_IsStillNamedInTheNextAnnouncement()
     {
-        await announcer.AnnounceAsync(Sheet(latestVersion: 3, lockedRow: 10), null, CancellationToken.None);
+        await _announcer.AnnounceAsync(Sheet(latestVersion: 3, lockedRow: 10), null, CancellationToken.None);
 
         // A read dropped row 10's draft without telling anyone; then someone takes row 11.
-        announcer.Observe(Sheet(latestVersion: 3));
-        await announcer.AnnounceAsync(Sheet(latestVersion: 3, lockedRow: 11), null, CancellationToken.None);
+        _announcer.Observe(Sheet(latestVersion: 3));
+        await _announcer.AnnounceAsync(Sheet(latestVersion: 3, lockedRow: 11), null, CancellationToken.None);
 
-        Assert.Equal(["*", "10,11"], notifier.Notices);
+        Assert.Equal(["*", "10,11"], _notifier.Notices);
     }
 
     private static SheetDto Sheet(int latestVersion, bool isLive = true, int? lockedRow = null)

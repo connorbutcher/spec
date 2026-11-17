@@ -5,11 +5,11 @@ public sealed record SubmissionApproverDto
 {
     public SubmissionApproverDto(int userId, string userName, ApprovalDecision decision, DateTime? decidedAtUtc, string? reason)
     {
-        this.UserId = userId;
-        this.UserName = userName;
-        this.Decision = decision;
-        this.DecidedAtUtc = decidedAtUtc;
-        this.Reason = reason;
+        UserId = userId;
+        UserName = userName;
+        Decision = decision;
+        DecidedAtUtc = decidedAtUtc;
+        Reason = reason;
     }
 
     public int UserId { get; init; }

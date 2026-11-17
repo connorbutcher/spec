@@ -8,9 +8,9 @@ public sealed record SheetPresenceUserDto
 {
     public SheetPresenceUserDto(int userId, string displayName, int connectionCount)
     {
-        this.UserId = userId;
-        this.DisplayName = displayName;
-        this.ConnectionCount = connectionCount;
+        UserId = userId;
+        DisplayName = displayName;
+        ConnectionCount = connectionCount;
     }
 
     public int UserId { get; init; }

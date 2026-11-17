@@ -9,10 +9,10 @@ namespace PUSpecSheet.DataAccess.Templates.Cells;
 
 public sealed class TemplateCellsService : ITemplateCellsService
 {
-    private readonly PuSpecSheetDbContext db;
-    private readonly TableTemplateReader reader;
-    private readonly TemplateVersionGuard guard;
-    private readonly ICellTypeDataService cellTypes;
+    private readonly PuSpecSheetDbContext _db;
+    private readonly TableTemplateReader _reader;
+    private readonly TemplateVersionGuard _guard;
+    private readonly ICellTypeDataService _cellTypes;
 
     public TemplateCellsService(
         PuSpecSheetDbContext db,
@@ -20,26 +20,26 @@ public sealed class TemplateCellsService : ITemplateCellsService
         TemplateVersionGuard guard,
         ICellTypeDataService cellTypes)
     {
-        this.db = db;
-        this.reader = reader;
-        this.guard = guard;
-        this.cellTypes = cellTypes;
+        _db = db;
+        _reader = reader;
+        _guard = guard;
+        _cellTypes = cellTypes;
     }
 
     public async Task<TableTemplateDto> CreateAsync(CreateTemplateCellRequest request, CancellationToken cancellationToken)
     {
         var row = await LoadTargetAsync(request, cancellationToken);
-        await guard.EnsureEditableAsync(row.TableTemplateVersionId, cancellationToken);
+        await _guard.EnsureEditableAsync(row.TableTemplateVersionId, cancellationToken);
 
         if (request.TemplateColumnBlockId is int blockId)
         {
             await EnsureBlockInVersionAsync(blockId, row.TableTemplateVersionId, cancellationToken);
         }
 
-        var cellTypeId = request.CellTypeId ?? await cellTypes.GetDefaultIdAsync(cancellationToken);
+        var cellTypeId = request.CellTypeId ?? await _cellTypes.GetDefaultIdAsync(cancellationToken);
         await EnsureCellTypeExistsAsync(cellTypeId, cancellationToken);
 
-        await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
+        await using var transaction = await _db.Database.BeginTransactionAsync(cancellationToken);
 
         var column = request.Column ?? row.NextColumn;
         if (request.Column is not null)
@@ -47,7 +47,7 @@ public sealed class TemplateCellsService : ITemplateCellsService
             await MakeRoomAsync(request, column, cancellationToken);
         }
 
-        db.TemplateCells.Add(new DbTemplateCell
+        _db.TemplateCells.Add(new DbTemplateCell
         {
             TemplateRowId = request.TemplateRowId,
             TemplateColumnBlockId = request.TemplateColumnBlockId,
@@ -55,10 +55,10 @@ public sealed class TemplateCellsService : ITemplateCellsService
             CellTypeId = cellTypeId,
         });
 
-        await db.SaveChangesAsync(cancellationToken);
+        await _db.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
 
-        return await reader.ReadVersionAsync(row.TableTemplateVersionId, cancellationToken);
+        return await _reader.ReadVersionAsync(row.TableTemplateVersionId, cancellationToken);
     }
 
     public async Task<TableTemplateDto> UpdateAsync(
@@ -69,7 +69,7 @@ public sealed class TemplateCellsService : ITemplateCellsService
         var cell = await FindEditableAsync(id, cancellationToken);
         await EnsureCellTypeExistsAsync(request.CellTypeId, cancellationToken);
 
-        var columnTaken = await TemplateCellQueries.ColumnTakenAsync(db, cell.TemplateRowId, cell.TemplateColumnBlockId, request.Column, id, cancellationToken);
+        var columnTaken = await TemplateCellQueries.ColumnTakenAsync(_db, cell.TemplateRowId, cell.TemplateColumnBlockId, request.Column, id, cancellationToken);
 
         if (columnTaken)
         {
@@ -84,36 +84,36 @@ public sealed class TemplateCellsService : ITemplateCellsService
         cell.Caption = string.IsNullOrWhiteSpace(request.Caption) ? null : request.Caption.Trim();
         cell.IsRequired = request.IsRequired;
 
-        await db.SaveChangesAsync(cancellationToken);
-        return await reader.ReadVersionAsync(cell.TemplateRow.TemplateSection.TableTemplateVersionId, cancellationToken);
+        await _db.SaveChangesAsync(cancellationToken);
+        return await _reader.ReadVersionAsync(cell.TemplateRow.TemplateSection.TableTemplateVersionId, cancellationToken);
     }
 
     public async Task<TableTemplateDto> DeleteAsync(int id, CancellationToken cancellationToken)
     {
         var cell = await FindEditableAsync(id, cancellationToken);
 
-        db.TemplateCells.Remove(cell);
-        await db.SaveChangesAsync(cancellationToken);
+        _db.TemplateCells.Remove(cell);
+        await _db.SaveChangesAsync(cancellationToken);
 
-        return await reader.ReadVersionAsync(cell.TemplateRow.TemplateSection.TableTemplateVersionId, cancellationToken);
+        return await _reader.ReadVersionAsync(cell.TemplateRow.TemplateSection.TableTemplateVersionId, cancellationToken);
     }
 
     private async Task<DbTemplateCell> FindEditableAsync(int id, CancellationToken cancellationToken)
     {
-        var cell = await TemplateCellQueries.FindForEditAsync(db, id, cancellationToken);
+        var cell = await TemplateCellQueries.FindForEditAsync(_db, id, cancellationToken);
 
         if (cell is null)
         {
             throw new NotFoundException($"Cell {id} was not found.");
         }
 
-        await guard.EnsureEditableAsync(cell.TemplateRow.TemplateSection.TableTemplateVersionId, cancellationToken);
+        await _guard.EnsureEditableAsync(cell.TemplateRow.TemplateSection.TableTemplateVersionId, cancellationToken);
         return cell;
     }
 
     private async Task EnsureBlockInVersionAsync(int blockId, int versionId, CancellationToken cancellationToken)
     {
-        var exists = await TemplateColumnBlockQueries.IsInVersionAsync(db, blockId, versionId, cancellationToken);
+        var exists = await TemplateColumnBlockQueries.IsInVersionAsync(_db, blockId, versionId, cancellationToken);
         if (!exists)
         {
             throw new InvalidRequestException($"Column block {blockId} isn't part of this table version.");
@@ -122,7 +122,7 @@ public sealed class TemplateCellsService : ITemplateCellsService
 
     private async Task EnsureCellTypeExistsAsync(int cellTypeId, CancellationToken cancellationToken)
     {
-        var exists = await cellTypes.ExistsAsync(cellTypeId, cancellationToken);
+        var exists = await _cellTypes.ExistsAsync(cellTypeId, cancellationToken);
         if (!exists)
         {
             throw new InvalidRequestException($"Cell type {cellTypeId} doesn't exist.");
@@ -131,13 +131,13 @@ public sealed class TemplateCellsService : ITemplateCellsService
 
     private async Task<TemplateCellTarget> LoadTargetAsync(CreateTemplateCellRequest request, CancellationToken cancellationToken)
     {
-        return await TemplateRowQueries.FindCellTargetAsync(db, request.TemplateRowId, request.TemplateColumnBlockId, cancellationToken)
+        return await TemplateRowQueries.FindCellTargetAsync(_db, request.TemplateRowId, request.TemplateColumnBlockId, cancellationToken)
             ?? throw new NotFoundException($"Row {request.TemplateRowId} was not found.");
     }
 
     /// <summary>Moves the cells from this column on one to the right.</summary>
     private Task MakeRoomAsync(CreateTemplateCellRequest request, int column, CancellationToken cancellationToken)
     {
-        return TemplateCellQueries.ShiftRightAsync(db, request.TemplateRowId, request.TemplateColumnBlockId, column, cancellationToken);
+        return TemplateCellQueries.ShiftRightAsync(_db, request.TemplateRowId, request.TemplateColumnBlockId, column, cancellationToken);
     }
 }

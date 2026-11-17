@@ -5,8 +5,8 @@ public sealed record ApproverDto
 {
     public ApproverDto(int userId, string userName)
     {
-        this.UserId = userId;
-        this.UserName = userName;
+        UserId = userId;
+        UserName = userName;
     }
 
     public int UserId { get; init; }

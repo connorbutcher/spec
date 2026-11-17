@@ -13,11 +13,11 @@ namespace PUSpecSheet.Api.Controllers.ReferenceData;
 [Route("api/phases")]
 public sealed class PhasesController : ControllerBase
 {
-    private readonly IPhasesService phases;
+    private readonly IPhasesService _phases;
 
     public PhasesController(IPhasesService phases)
     {
-        this.phases = phases;
+        _phases = phases;
     }
 
     /// <summary>List phases</summary>
@@ -29,7 +29,7 @@ public sealed class PhasesController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IReadOnlyList<PhaseDto>>> GetAll(CancellationToken cancellationToken)
     {
-        var result = await phases.GetAllAsync(cancellationToken);
+        var result = await _phases.GetAllAsync(cancellationToken);
         return Ok(result);
     }
 
@@ -50,7 +50,7 @@ public sealed class PhasesController : ControllerBase
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound, ProblemResponseDescriptionsTransformer.ContentType)]
     public async Task<ActionResult<PhaseDto>> Create(CreatePhaseRequest request, CancellationToken cancellationToken)
     {
-        var result = await phases.CreateAsync(request, cancellationToken);
+        var result = await _phases.CreateAsync(request, cancellationToken);
         return Ok(result);
     }
 
@@ -72,7 +72,7 @@ public sealed class PhasesController : ControllerBase
     [Authorize(Policy = PermissionKeys.PhasesManage)]
     public async Task<ActionResult<IReadOnlyList<PhaseDto>>> Move(int id, MovePhaseRequest request, CancellationToken cancellationToken)
     {
-        var result = await phases.MoveAsync(id, request, cancellationToken);
+        var result = await _phases.MoveAsync(id, request, cancellationToken);
         return Ok(result);
     }
 
@@ -96,7 +96,7 @@ public sealed class PhasesController : ControllerBase
         SetPhaseSheetTypesRequest request,
         CancellationToken cancellationToken)
     {
-        var result = await phases.SetSheetTypesAsync(id, request, cancellationToken);
+        var result = await _phases.SetSheetTypesAsync(id, request, cancellationToken);
         return Ok(result);
     }
 }

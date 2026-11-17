@@ -28,16 +28,16 @@ public sealed record PublishedLookupMatchDto
         IReadOnlyList<string> headings,
         IReadOnlyDictionary<Guid, PublishedRowValuesDto> rows)
     {
-        this.Sheet = sheet;
-        this.Phase = phase;
-        this.SheetType = sheetType;
-        this.Version = version;
-        this.PublishedAtUtc = publishedAtUtc;
-        this.Table = table;
-        this.Title = title;
-        this.Column = column;
-        this.Headings = headings;
-        this.Rows = rows;
+        Sheet = sheet;
+        Phase = phase;
+        SheetType = sheetType;
+        Version = version;
+        PublishedAtUtc = publishedAtUtc;
+        Table = table;
+        Title = title;
+        Column = column;
+        Headings = headings;
+        Rows = rows;
     }
 
     public Guid Sheet { get; init; }

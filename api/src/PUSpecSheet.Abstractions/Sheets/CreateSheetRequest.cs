@@ -11,9 +11,9 @@ public sealed record CreateSheetRequest
 {
     public CreateSheetRequest(int sheetTypeId, [Required, MaxLength(20)] IReadOnlyList<SheetIdentifierValueRequest> identifiers, int? copyFromSheetId)
     {
-        this.SheetTypeId = sheetTypeId;
-        this.Identifiers = identifiers;
-        this.CopyFromSheetId = copyFromSheetId;
+        SheetTypeId = sheetTypeId;
+        Identifiers = identifiers;
+        CopyFromSheetId = copyFromSheetId;
     }
 
     public int SheetTypeId { get; init; }

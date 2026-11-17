@@ -10,12 +10,12 @@ namespace PUSpecSheet.DataAccess.Sheets.Collaboration.Presence;
 
 public sealed class SheetPresenceService : ISheetPresenceService
 {
-    private readonly PuSpecSheetDbContext db;
-    private readonly SheetPresenceTracker tracker;
-    private readonly RowTakeoverStore takeovers;
-    private readonly LiveRowCheckoutTracker checkouts;
-    private readonly ILiveRowCheckoutService rowCheckouts;
-    private readonly ISheetLiveNotifier notifier;
+    private readonly PuSpecSheetDbContext _db;
+    private readonly SheetPresenceTracker _tracker;
+    private readonly RowTakeoverStore _takeovers;
+    private readonly LiveRowCheckoutTracker _checkouts;
+    private readonly ILiveRowCheckoutService _rowCheckouts;
+    private readonly ISheetLiveNotifier _notifier;
 
     public SheetPresenceService(
         PuSpecSheetDbContext db,
@@ -25,40 +25,40 @@ public sealed class SheetPresenceService : ISheetPresenceService
         ILiveRowCheckoutService rowCheckouts,
         ISheetLiveNotifier notifier)
     {
-        this.db = db;
-        this.tracker = tracker;
-        this.takeovers = takeovers;
-        this.checkouts = checkouts;
-        this.rowCheckouts = rowCheckouts;
-        this.notifier = notifier;
+        _db = db;
+        _tracker = tracker;
+        _takeovers = takeovers;
+        _checkouts = checkouts;
+        _rowCheckouts = rowCheckouts;
+        _notifier = notifier;
     }
 
     public async Task<SheetLiveStateDto> JoinAsync(string connectionId, int sheetId, int userId, CancellationToken cancellationToken)
     {
-        if (!await SheetQueries.ExistsAsync(db, sheetId, cancellationToken))
+        if (!await SheetQueries.ExistsAsync(_db, sheetId, cancellationToken))
         {
             throw new NotFoundException($"Sheet {sheetId} was not found.");
         }
 
-        var displayName = await UserQueries.FindActiveDisplayNameAsync(db, userId, cancellationToken)
+        var displayName = await UserQueries.FindActiveDisplayNameAsync(_db, userId, cancellationToken)
             ?? throw new NotFoundException($"User {userId} was not found.");
 
-        tracker.Join(connectionId, new SheetConnection(sheetId, userId, displayName));
-        var users = tracker.UsersOn(sheetId);
-        await notifier.PresenceChangedAsync(sheetId, users, cancellationToken);
+        _tracker.Join(connectionId, new SheetConnection(sheetId, userId, displayName));
+        var users = _tracker.UsersOn(sheetId);
+        await _notifier.PresenceChangedAsync(sheetId, users, cancellationToken);
 
-        return new SheetLiveStateDto(users, checkouts.OnSheet(sheetId), takeovers.Involving(sheetId, userId));
+        return new SheetLiveStateDto(users, _checkouts.OnSheet(sheetId), _takeovers.Involving(sheetId, userId));
     }
 
     public async Task<SheetConnection?> LeaveAsync(string connectionId, CancellationToken cancellationToken)
     {
         // A tab that has gone is no longer in any row.
-        await rowCheckouts.ReleaseAsync(connectionId, cancellationToken);
+        await _rowCheckouts.ReleaseAsync(connectionId, cancellationToken);
 
-        var left = tracker.Leave(connectionId);
+        var left = _tracker.Leave(connectionId);
         if (left is not null)
         {
-            await notifier.PresenceChangedAsync(left.SheetId, tracker.UsersOn(left.SheetId), cancellationToken);
+            await _notifier.PresenceChangedAsync(left.SheetId, _tracker.UsersOn(left.SheetId), cancellationToken);
         }
 
         return left;

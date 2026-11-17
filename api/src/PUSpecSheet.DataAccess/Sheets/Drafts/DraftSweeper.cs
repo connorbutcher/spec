@@ -13,12 +13,12 @@ namespace PUSpecSheet.DataAccess.Sheets.Drafts;
 /// </summary>
 public sealed class DraftSweeper
 {
-    private readonly ICurrentUser currentUser;
-    private readonly PuSpecSheetDbContext db;
-    private readonly TableDrafts tables;
-    private readonly SectionDrafts sections;
-    private readonly RowDrafts rows;
-    private readonly ColumnBlockDrafts columnBlocks;
+    private readonly ICurrentUser _currentUser;
+    private readonly PuSpecSheetDbContext _db;
+    private readonly TableDrafts _tables;
+    private readonly SectionDrafts _sections;
+    private readonly RowDrafts _rows;
+    private readonly ColumnBlockDrafts _columnBlocks;
 
     public DraftSweeper(
         PuSpecSheetDbContext db,
@@ -28,12 +28,12 @@ public sealed class DraftSweeper
         RowDrafts rows,
         ColumnBlockDrafts columnBlocks)
     {
-        this.currentUser = currentUser;
-        this.db = db;
-        this.tables = tables;
-        this.sections = sections;
-        this.rows = rows;
-        this.columnBlocks = columnBlocks;
+        _currentUser = currentUser;
+        _db = db;
+        _tables = tables;
+        _sections = sections;
+        _rows = rows;
+        _columnBlocks = columnBlocks;
     }
 
     public Task SweepAsync(int sheetId, CancellationToken cancellationToken)
@@ -43,19 +43,19 @@ public sealed class DraftSweeper
 
     public async Task SweepAsync(int sheetId, PublishScope scope, CancellationToken cancellationToken)
     {
-        var me = currentUser.UserId;
+        var me = _currentUser.UserId;
         var everyone = scope == PublishScope.All;
 
-        var rowIds = await db.SheetRowRevisions.ListItemIdsWithRevisableDraftsAsync(sheetId, scope, me, revision => revision.SheetRowId, cancellationToken);
-        await rows.ReleaseUnchangedAsync(rowIds, everyone, cancellationToken);
+        var rowIds = await _db.SheetRowRevisions.ListItemIdsWithRevisableDraftsAsync(sheetId, scope, me, revision => revision.SheetRowId, cancellationToken);
+        await _rows.ReleaseUnchangedAsync(rowIds, everyone, cancellationToken);
 
-        var sectionIds = await db.SheetSectionRevisions.ListItemIdsWithRevisableDraftsAsync(sheetId, scope, me, revision => revision.SheetSectionId, cancellationToken);
-        await sections.ReleaseUnchangedAsync(sectionIds, everyone, cancellationToken);
+        var sectionIds = await _db.SheetSectionRevisions.ListItemIdsWithRevisableDraftsAsync(sheetId, scope, me, revision => revision.SheetSectionId, cancellationToken);
+        await _sections.ReleaseUnchangedAsync(sectionIds, everyone, cancellationToken);
 
-        var tableIds = await db.SheetTableRevisions.ListItemIdsWithRevisableDraftsAsync(sheetId, scope, me, revision => revision.SheetTableId, cancellationToken);
-        await tables.ReleaseUnchangedAsync(tableIds, everyone, cancellationToken);
+        var tableIds = await _db.SheetTableRevisions.ListItemIdsWithRevisableDraftsAsync(sheetId, scope, me, revision => revision.SheetTableId, cancellationToken);
+        await _tables.ReleaseUnchangedAsync(tableIds, everyone, cancellationToken);
 
-        var columnBlockIds = await db.SheetColumnBlockRevisions.ListItemIdsWithRevisableDraftsAsync(sheetId, scope, me, revision => revision.SheetColumnBlockId, cancellationToken);
-        await columnBlocks.ReleaseUnchangedAsync(columnBlockIds, everyone, cancellationToken);
+        var columnBlockIds = await _db.SheetColumnBlockRevisions.ListItemIdsWithRevisableDraftsAsync(sheetId, scope, me, revision => revision.SheetColumnBlockId, cancellationToken);
+        await _columnBlocks.ReleaseUnchangedAsync(columnBlockIds, everyone, cancellationToken);
     }
 }

@@ -7,7 +7,7 @@ public sealed record SaveRowValuesRequest
 {
     public SaveRowValuesRequest([MinLength(1)] IReadOnlyList<CellValueRequest> values)
     {
-        this.Values = values;
+        Values = values;
     }
 
     public IReadOnlyList<CellValueRequest> Values { get; init; }

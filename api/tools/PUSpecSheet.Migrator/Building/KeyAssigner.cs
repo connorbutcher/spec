@@ -12,9 +12,9 @@ namespace PUSpecSheet.Migrator.Building;
 /// </summary>
 internal sealed class KeyAssigner
 {
-    private int nextKey = 1;
-    private SheetSnapshot previous = new();
-    private SnapshotKeys previousKeys = new();
+    private int _nextKey = 1;
+    private SheetSnapshot _previous = new();
+    private SnapshotKeys _previousKeys = new();
 
     public SnapshotKeys Assign(SheetSnapshot current)
     {
@@ -32,8 +32,8 @@ internal sealed class KeyAssigner
             AssignRows(current, keys, section);
         }
 
-        previous = current;
-        previousKeys = keys;
+        _previous = current;
+        _previousKeys = keys;
         return keys;
     }
 
@@ -56,7 +56,7 @@ internal sealed class KeyAssigner
     {
         foreach (var group in current.Tables.GroupBy(table => table.TableTemplateVersionId))
         {
-            var before = previous.Tables
+            var before = _previous.Tables
                 .Where(table => table.TableTemplateVersionId == group.Key)
                 .OrderBy(table => table.DisplayOrder)
                 .ThenBy(table => table.Id)
@@ -64,7 +64,7 @@ internal sealed class KeyAssigner
             var now = group.OrderBy(table => table.DisplayOrder).ThenBy(table => table.Id).ToList();
 
             Pair(
-                before.Select(table => (previousKeys.Tables[table.Id], table.Title ?? string.Empty)).ToList(),
+                before.Select(table => (_previousKeys.Tables[table.Id], table.Title ?? string.Empty)).ToList(),
                 now.Select(table => (table.Id, table.Title ?? string.Empty)).ToList(),
                 keys.Tables);
         }
@@ -75,15 +75,15 @@ internal sealed class KeyAssigner
         var tableKey = keys.Tables[table.Id];
         foreach (var group in current.ColumnBlocks.Where(block => block.TableId == table.Id).GroupBy(block => block.TemplateColumnBlockId))
         {
-            var before = previous.ColumnBlocks
-                .Where(block => block.TemplateColumnBlockId == group.Key && previousKeys.Tables.GetValueOrDefault(block.TableId) == tableKey)
+            var before = _previous.ColumnBlocks
+                .Where(block => block.TemplateColumnBlockId == group.Key && _previousKeys.Tables.GetValueOrDefault(block.TableId) == tableKey)
                 .OrderBy(block => block.DisplayOrder)
                 .ThenBy(block => block.Id)
                 .ToList();
             var now = group.OrderBy(block => block.DisplayOrder).ThenBy(block => block.Id).ToList();
 
             Pair(
-                before.Select(block => (previousKeys.ColumnBlocks[block.Id], string.Empty)).ToList(),
+                before.Select(block => (_previousKeys.ColumnBlocks[block.Id], string.Empty)).ToList(),
                 now.Select(block => (block.Id, string.Empty)).ToList(),
                 keys.ColumnBlocks);
         }
@@ -99,9 +99,9 @@ internal sealed class KeyAssigner
 
         foreach (var group in children.GroupBy(section => section.TemplateSectionId))
         {
-            var before = previous.Sections
+            var before = _previous.Sections
                 .Where(section => section.TemplateSectionId == group.Key
-                    && previousKeys.Tables.GetValueOrDefault(section.TableId) == tableKey
+                    && _previousKeys.Tables.GetValueOrDefault(section.TableId) == tableKey
                     && ParentKeyBefore(section) == parentKey)
                 .OrderBy(section => section.DisplayOrder)
                 .ThenBy(section => section.Id)
@@ -109,7 +109,7 @@ internal sealed class KeyAssigner
             var now = group.OrderBy(section => section.DisplayOrder).ThenBy(section => section.Id).ToList();
 
             Pair(
-                before.Select(section => (previousKeys.Sections[section.Id], string.Empty)).ToList(),
+                before.Select(section => (_previousKeys.Sections[section.Id], string.Empty)).ToList(),
                 now.Select(section => (section.Id, string.Empty)).ToList(),
                 keys.Sections);
         }
@@ -125,15 +125,15 @@ internal sealed class KeyAssigner
         var sectionKey = keys.Sections[section.Id];
         foreach (var group in current.Rows.Where(row => row.SectionId == section.Id).GroupBy(row => row.TemplateRowId))
         {
-            var before = previous.Rows
-                .Where(row => row.TemplateRowId == group.Key && previousKeys.Sections.GetValueOrDefault(row.SectionId) == sectionKey)
+            var before = _previous.Rows
+                .Where(row => row.TemplateRowId == group.Key && _previousKeys.Sections.GetValueOrDefault(row.SectionId) == sectionKey)
                 .OrderBy(row => row.DisplayOrder)
                 .ThenBy(row => row.Id)
                 .ToList();
             var now = group.OrderBy(row => row.DisplayOrder).ThenBy(row => row.Id).ToList();
 
             Pair(
-                before.Select(row => (previousKeys.Rows[row.Id], RowSignature(previous, previousKeys, row.Id))).ToList(),
+                before.Select(row => (_previousKeys.Rows[row.Id], RowSignature(_previous, _previousKeys, row.Id))).ToList(),
                 now.Select(row => (row.Id, RowSignature(current, keys, row.Id))).ToList(),
                 keys.Rows);
         }
@@ -141,7 +141,7 @@ internal sealed class KeyAssigner
 
     private int? ParentKeyBefore(SnapshotSection section)
     {
-        return section.ParentSectionId is { } parentId ? previousKeys.Sections[parentId] : null;
+        return section.ParentSectionId is { } parentId ? _previousKeys.Sections[parentId] : null;
     }
 
     /// <summary>Gives each current item its partner's key, or a new one.</summary>
@@ -153,7 +153,7 @@ internal sealed class KeyAssigner
 
         for (var index = 0; index < now.Count; index++)
         {
-            keys[now[index].Id] = partners[index] >= 0 ? before[partners[index]].Key : nextKey++;
+            keys[now[index].Id] = partners[index] >= 0 ? before[partners[index]].Key : _nextKey++;
         }
     }
 }

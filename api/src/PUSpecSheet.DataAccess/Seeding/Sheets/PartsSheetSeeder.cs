@@ -20,9 +20,9 @@ public sealed class PartsSheetSeeder
     /// <summary>The part whose numbers are the same on both hands.</summary>
     private const int SymmetricPart = 2;
 
-    private static readonly string[] Materials = ["EN AC-42100 T6", "42CrMo4 QT", "38MnVS6 forged", "EN AC-42100 T6", "42CrMo4 QT"];
+    private static readonly string[] _materials = ["EN AC-42100 T6", "42CrMo4 QT", "38MnVS6 forged", "EN AC-42100 T6", "42CrMo4 QT"];
 
-    private static readonly PartsGroup[] Groups =
+    private static readonly PartsGroup[] _groups =
     [
         new(
             "Piston",
@@ -51,13 +51,13 @@ public sealed class PartsSheetSeeder
             ]),
     ];
 
-    private readonly SheetEditorFactory editors;
-    private readonly ShowcaseUsers users;
+    private readonly SheetEditorFactory _editors;
+    private readonly ShowcaseUsers _users;
 
     public PartsSheetSeeder(SheetEditorFactory editors, ShowcaseUsers users)
     {
-        this.editors = editors;
-        this.users = users;
+        _editors = editors;
+        _users = users;
     }
 
     /// <summary>V6, built from version 1 of the template, which has no fastener rows.</summary>
@@ -67,14 +67,14 @@ public sealed class PartsSheetSeeder
         await editor.PublishAsync("First parts matrix for V6", cancellationToken);
 
         // Version 2, by engineer2: a fourth part, which gets its cells in every existing row.
-        await users.ActAsAsync(ShowcaseUsers.EngineerTwo, cancellationToken);
+        await _users.ActAsAsync(ShowcaseUsers.EngineerTwo, cancellationToken);
         await editor.RefreshAsync(cancellationToken);
         await editor.AddColumnBlockAsync(table, PartsMatrixTemplate.Part, cancellationToken);
         await FillPartsAsync(editor, table, step: 0, from: StartingParts, cancellationToken);
         await editor.PublishAsync("Added PU-1004-A, the lightweight piston", cancellationToken);
 
         // Version 3, by engineer3: the skirt diameter tightened on every part.
-        await users.ActAsAsync(ShowcaseUsers.EngineerThree, cancellationToken);
+        await _users.ActAsAsync(ShowcaseUsers.EngineerThree, cancellationToken);
         await editor.RefreshAsync(cancellationToken);
         var skirt = Rows(editor, table, PartsMatrixTemplate.Dimension).First();
         var requests = new List<CellValueRequest>();
@@ -114,12 +114,12 @@ public sealed class PartsSheetSeeder
 
     private async Task<(SheetEditor Editor, int Table)> BuildAsync(ShowcaseContext context, string phaseCode, string userName, CancellationToken cancellationToken)
     {
-        await users.ActAsAsync(userName, cancellationToken);
-        var editor = await editors.OpenAsync(context.PhaseIds[phaseCode], ShowcasePhases.PartsSheetType, context.CellTypes, cancellationToken);
+        await _users.ActAsAsync(userName, cancellationToken);
+        var editor = await _editors.OpenAsync(context.PhaseIds[phaseCode], ShowcasePhases.PartsSheetType, context.CellTypes, cancellationToken);
         var step = ShowcaseContext.Step(phaseCode);
         var table = await editor.AddTableAsync(context.TemplateIds[PartsMatrixTemplate.TemplateName], "Piston and connecting rod parts", cancellationToken);
 
-        foreach (var group in Groups)
+        foreach (var group in _groups)
         {
             var section = await editor.AddSectionAsync(table, null, PartsMatrixTemplate.Group, cancellationToken);
             await editor.FillAsync(Row(section), group.Name);
@@ -148,7 +148,7 @@ public sealed class PartsSheetSeeder
         for (var part = from; part < parts.Count; part++)
         {
             numbers.AddRange(editor.Values(header[0], parts[part].Id, await PartNumbersAsync(editor, header[0], parts[part].Id, part, step, cancellationToken)));
-            materials.AddRange(editor.Values(header[1], parts[part].Id, Materials[part % Materials.Length]));
+            materials.AddRange(editor.Values(header[1], parts[part].Id, _materials[part % _materials.Length]));
         }
 
         await editor.SaveAsync(header[0], numbers, cancellationToken);
@@ -156,7 +156,7 @@ public sealed class PartsSheetSeeder
 
         foreach (var group in editor.Copies(table, null, PartsMatrixTemplate.Group))
         {
-            var spec = Groups.Single(candidate => candidate.Name == Row(group).Cells.Select(cell => cell.Value as string).First(text => text is not null));
+            var spec = _groups.Single(candidate => candidate.Name == Row(group).Cells.Select(cell => cell.Value as string).First(text => text is not null));
             foreach (var (kind, characteristic, _, baseValue, change, spread) in spec.Rows)
             {
                 var copies = editor.Copies(table, group.Id, kind);

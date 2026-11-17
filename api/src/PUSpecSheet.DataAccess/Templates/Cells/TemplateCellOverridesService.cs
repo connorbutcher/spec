@@ -12,18 +12,18 @@ namespace PUSpecSheet.DataAccess.Templates.Cells;
 /// <summary>Saves the configuration and style a template cell changes from its cell type's defaults.</summary>
 public sealed class TemplateCellOverridesService : ITemplateCellOverridesService
 {
-    private readonly PuSpecSheetDbContext db;
-    private readonly TableTemplateReader reader;
-    private readonly TemplateVersionGuard guard;
+    private readonly PuSpecSheetDbContext _db;
+    private readonly TableTemplateReader _reader;
+    private readonly TemplateVersionGuard _guard;
 
     public TemplateCellOverridesService(
         PuSpecSheetDbContext db,
         TableTemplateReader reader,
         TemplateVersionGuard guard)
     {
-        this.db = db;
-        this.reader = reader;
-        this.guard = guard;
+        _db = db;
+        _reader = reader;
+        _guard = guard;
     }
 
     public async Task<TableTemplateDto> UpdateAsync(
@@ -31,7 +31,7 @@ public sealed class TemplateCellOverridesService : ITemplateCellOverridesService
         UpdateTemplateCellOverridesRequest request,
         CancellationToken cancellationToken)
     {
-        var cell = await TemplateCellQueries.FindWithTypeForEditAsync(db, cellId, cancellationToken);
+        var cell = await TemplateCellQueries.FindWithTypeForEditAsync(_db, cellId, cancellationToken);
 
         if (cell is null)
         {
@@ -39,13 +39,13 @@ public sealed class TemplateCellOverridesService : ITemplateCellOverridesService
         }
 
         var versionId = cell.TemplateRow.TemplateSection.TableTemplateVersionId;
-        await guard.EnsureEditableAsync(versionId, cancellationToken);
+        await _guard.EnsureEditableAsync(versionId, cancellationToken);
 
         cell.ConfigurationOverride = CleanConfiguration(cell.CellType.Kind, request.ConfigurationOverride);
         cell.StyleOverride = CleanStyle(request.StyleOverride);
 
-        await db.SaveChangesAsync(cancellationToken);
-        return await reader.ReadVersionAsync(versionId, cancellationToken);
+        await _db.SaveChangesAsync(cancellationToken);
+        return await _reader.ReadVersionAsync(versionId, cancellationToken);
     }
 
     private static CellConfiguration? CleanConfiguration(

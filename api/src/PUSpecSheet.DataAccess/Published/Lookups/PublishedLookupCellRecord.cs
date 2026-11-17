@@ -23,19 +23,19 @@ public sealed record PublishedLookupCellRecord
         string? lookupKey,
         bool isHeader)
     {
-        this.RowRevisionId = rowRevisionId;
-        this.RowId = rowId;
-        this.RowPublicId = rowPublicId;
-        this.SectionId = sectionId;
-        this.RowOrder = rowOrder;
-        this.CellId = cellId;
-        this.CellPublicId = cellPublicId;
-        this.ColumnBlockId = columnBlockId;
-        this.Column = column;
-        this.Kind = kind;
-        this.Caption = caption;
-        this.LookupKey = lookupKey;
-        this.IsHeader = isHeader;
+        RowRevisionId = rowRevisionId;
+        RowId = rowId;
+        RowPublicId = rowPublicId;
+        SectionId = sectionId;
+        RowOrder = rowOrder;
+        CellId = cellId;
+        CellPublicId = cellPublicId;
+        ColumnBlockId = columnBlockId;
+        Column = column;
+        Kind = kind;
+        Caption = caption;
+        LookupKey = lookupKey;
+        IsHeader = isHeader;
     }
 
     public int RowRevisionId { get; init; }

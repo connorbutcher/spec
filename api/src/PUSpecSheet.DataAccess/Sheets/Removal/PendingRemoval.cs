@@ -5,9 +5,9 @@ public sealed record PendingRemoval
 {
     public PendingRemoval(RemovedContainer container, int authorUserId, bool awaitingApproval)
     {
-        this.Container = container;
-        this.AuthorUserId = authorUserId;
-        this.AwaitingApproval = awaitingApproval;
+        Container = container;
+        AuthorUserId = authorUserId;
+        AwaitingApproval = awaitingApproval;
     }
 
     public RemovedContainer Container { get; init; }

@@ -7,9 +7,9 @@ public sealed record RequiredCell
 {
     public RequiredCell(int id, int sheetRowId, CellKind kind)
     {
-        this.Id = id;
-        this.SheetRowId = sheetRowId;
-        this.Kind = kind;
+        Id = id;
+        SheetRowId = sheetRowId;
+        Kind = kind;
     }
 
     public int Id { get; init; }

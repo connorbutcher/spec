@@ -8,13 +8,13 @@ public sealed record SheetTypeIdentifierDto
 {
     public SheetTypeIdentifierDto(int id, string key, string name, SheetIdentifierKind kind, bool isRequired, int displayOrder, IReadOnlyList<string> options)
     {
-        this.Id = id;
-        this.Key = key;
-        this.Name = name;
-        this.Kind = kind;
-        this.IsRequired = isRequired;
-        this.DisplayOrder = displayOrder;
-        this.Options = options;
+        Id = id;
+        Key = key;
+        Name = name;
+        Kind = kind;
+        IsRequired = isRequired;
+        DisplayOrder = displayOrder;
+        Options = options;
     }
 
     public int Id { get; init; }

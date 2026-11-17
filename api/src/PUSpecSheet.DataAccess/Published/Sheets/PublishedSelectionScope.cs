@@ -12,10 +12,10 @@ public sealed record PublishedSelectionScope
         IReadOnlyList<Guid> rowPublicIds,
         IReadOnlyList<Guid> cellPublicIds)
     {
-        this.TableIds = tableIds;
-        this.SectionIds = sectionIds;
-        this.RowPublicIds = rowPublicIds;
-        this.CellPublicIds = cellPublicIds;
+        TableIds = tableIds;
+        SectionIds = sectionIds;
+        RowPublicIds = rowPublicIds;
+        CellPublicIds = cellPublicIds;
     }
 
     public IReadOnlyList<int> TableIds { get; init; }

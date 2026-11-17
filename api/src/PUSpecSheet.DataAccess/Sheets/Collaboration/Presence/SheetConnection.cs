@@ -5,9 +5,9 @@ public sealed record SheetConnection
 {
     public SheetConnection(int sheetId, int userId, string displayName)
     {
-        this.SheetId = sheetId;
-        this.UserId = userId;
-        this.DisplayName = displayName;
+        SheetId = sheetId;
+        UserId = userId;
+        DisplayName = displayName;
     }
 
     public int SheetId { get; init; }

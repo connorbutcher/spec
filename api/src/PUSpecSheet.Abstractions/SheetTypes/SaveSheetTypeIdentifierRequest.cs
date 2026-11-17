@@ -14,10 +14,10 @@ public sealed record SaveSheetTypeIdentifierRequest
         bool isRequired,
         [MaxLength(100)] IReadOnlyList<string>? options)
     {
-        this.Name = name;
-        this.Kind = kind;
-        this.IsRequired = isRequired;
-        this.Options = options;
+        Name = name;
+        Kind = kind;
+        IsRequired = isRequired;
+        Options = options;
     }
 
     public string Name { get; init; }

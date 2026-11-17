@@ -19,11 +19,11 @@ namespace PUSpecSheet.Api.Controllers.Published;
 [AllowAnonymous]
 public sealed class PublishedLookupController : ControllerBase
 {
-    private readonly IPublishedLookupService lookup;
+    private readonly IPublishedLookupService _lookup;
 
     public PublishedLookupController(IPublishedLookupService lookup)
     {
-        this.lookup = lookup;
+        _lookup = lookup;
     }
 
     /// <summary>Look a value up on every sheet</summary>
@@ -128,7 +128,7 @@ public sealed class PublishedLookupController : ControllerBase
         PublishedVersionPoint point,
         CancellationToken cancellationToken)
     {
-        var resolution = await lookup.ResolveAsync(criteria, sheetPublicId, point, cancellationToken);
+        var resolution = await _lookup.ResolveAsync(criteria, sheetPublicId, point, cancellationToken);
         var etag = new EntityTagHeaderValue($"\"{resolution.Key}\"");
 
         // A lookup key can be given to a cell or taken away at any time, so even an answer for a fixed
@@ -140,7 +140,7 @@ public sealed class PublishedLookupController : ControllerBase
             return StatusCode(StatusCodes.Status304NotModified);
         }
 
-        var result = await lookup.ReadAsync(resolution, cancellationToken);
+        var result = await _lookup.ReadAsync(resolution, cancellationToken);
         return Ok(result);
     }
 }

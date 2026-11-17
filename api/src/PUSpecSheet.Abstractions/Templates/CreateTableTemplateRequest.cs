@@ -7,9 +7,9 @@ public sealed record CreateTableTemplateRequest
 {
     public CreateTableTemplateRequest(int sheetTypeId, [Required, MaxLength(100)] string name, TemplateOrientation orientation)
     {
-        this.SheetTypeId = sheetTypeId;
-        this.Name = name;
-        this.Orientation = orientation;
+        SheetTypeId = sheetTypeId;
+        Name = name;
+        Orientation = orientation;
     }
 
     public int SheetTypeId { get; init; }

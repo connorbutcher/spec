@@ -14,11 +14,11 @@ public sealed record PublishedRowsDto
         IReadOnlyDictionary<Guid, PublishedRowValuesDto> rows,
         IReadOnlyList<Guid> missing)
     {
-        this.Sheet = sheet;
-        this.Version = version;
-        this.PublishedAtUtc = publishedAtUtc;
-        this.Rows = rows;
-        this.Missing = missing;
+        Sheet = sheet;
+        Version = version;
+        PublishedAtUtc = publishedAtUtc;
+        Rows = rows;
+        Missing = missing;
     }
 
     public Guid Sheet { get; init; }

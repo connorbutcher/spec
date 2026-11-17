@@ -27,7 +27,7 @@ public sealed class DeveloperAuthenticationHandler
 
     public const string UserQuery = "developerUser";
 
-    private readonly PuSpecSheetDbContext db;
+    private readonly PuSpecSheetDbContext _db;
 
     public DeveloperAuthenticationHandler(
         IOptionsMonitor<DeveloperAuthenticationOptions> options,
@@ -36,7 +36,7 @@ public sealed class DeveloperAuthenticationHandler
         PuSpecSheetDbContext db)
         : base(options, logger, encoder)
     {
-        this.db = db;
+        _db = db;
     }
 
     protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
@@ -63,7 +63,7 @@ public sealed class DeveloperAuthenticationHandler
             return WellKnownUsers.DeveloperId;
         }
 
-        return await db.Users
+        return await _db.Users
             .Where(user => user.UserName == userName && user.IsActive)
             .Select(user => (int?)user.Id)
             .SingleOrDefaultAsync(Context.RequestAborted);

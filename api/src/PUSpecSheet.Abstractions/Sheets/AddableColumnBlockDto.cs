@@ -8,12 +8,12 @@ public sealed record AddableColumnBlockDto
 {
     public AddableColumnBlockDto(int templateColumnBlockId, string name, int count, int minInstances, int? maxInstances, bool canAdd)
     {
-        this.TemplateColumnBlockId = templateColumnBlockId;
-        this.Name = name;
-        this.Count = count;
-        this.MinInstances = minInstances;
-        this.MaxInstances = maxInstances;
-        this.CanAdd = canAdd;
+        TemplateColumnBlockId = templateColumnBlockId;
+        Name = name;
+        Count = count;
+        MinInstances = minInstances;
+        MaxInstances = maxInstances;
+        CanAdd = canAdd;
     }
 
     public int TemplateColumnBlockId { get; init; }

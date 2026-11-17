@@ -19,41 +19,41 @@ namespace PUSpecSheet.DataAccess.Sheets.Reading;
 /// </summary>
 public sealed class SheetSnapshotLoader
 {
-    private readonly PuSpecSheetDbContext db;
-    private readonly SheetChangeHistoryLoader changeLoader;
-    private readonly ICellTypeDataService cellTypes;
+    private readonly PuSpecSheetDbContext _db;
+    private readonly SheetChangeHistoryLoader _changeLoader;
+    private readonly ICellTypeDataService _cellTypes;
 
     public SheetSnapshotLoader(
         PuSpecSheetDbContext db,
         SheetChangeHistoryLoader changeLoader,
         ICellTypeDataService cellTypes)
     {
-        this.db = db;
-        this.changeLoader = changeLoader;
-        this.cellTypes = cellTypes;
+        _db = db;
+        _changeLoader = changeLoader;
+        _cellTypes = cellTypes;
     }
 
     public async Task<SheetSnapshot> LoadAsync(int sheetId, SheetViewPoint view, int currentUserId, CancellationToken cancellationToken)
     {
-        var found = await SheetQueries.FindWithIdentifiersAsync(db, sheetId, cancellationToken)
+        var found = await SheetQueries.FindWithIdentifiersAsync(_db, sheetId, cancellationToken)
             ?? throw new NotFoundException($"Sheet {sheetId} was not found.");
-        var versions = await SheetQueries.ListVersionsAsync(db, sheetId, cancellationToken);
+        var versions = await SheetQueries.ListVersionsAsync(_db, sheetId, cancellationToken);
         var (moment, versionNumber) = ResolveMoment(view, versions);
-        var tables = await SheetTableQueries.ListOnSheetAsync(db, sheetId, cancellationToken);
-        var sections = await SheetSectionQueries.ListOnSheetAsync(db, sheetId, cancellationToken);
-        var rows = await SheetRowQueries.ListOnSheetAsync(db, sheetId, cancellationToken);
-        var columnBlocks = await SheetColumnBlockQueries.ListOnSheetAsync(db, sheetId, cancellationToken);
+        var tables = await SheetTableQueries.ListOnSheetAsync(_db, sheetId, cancellationToken);
+        var sections = await SheetSectionQueries.ListOnSheetAsync(_db, sheetId, cancellationToken);
+        var rows = await SheetRowQueries.ListOnSheetAsync(_db, sheetId, cancellationToken);
+        var columnBlocks = await SheetColumnBlockQueries.ListOnSheetAsync(_db, sheetId, cancellationToken);
 
-        var tableRevisions = Resolve(await db.SheetTableRevisions.ListInViewAsync(sheetId, moment, cancellationToken), revision => revision.SheetTableId, view, currentUserId);
-        var sectionRevisions = Resolve(await db.SheetSectionRevisions.ListInViewAsync(sheetId, moment, cancellationToken), revision => revision.SheetSectionId, view, currentUserId);
-        var rowRevisions = Resolve(await db.SheetRowRevisions.ListInViewAsync(sheetId, moment, cancellationToken), revision => revision.SheetRowId, view, currentUserId);
-        var columnBlockRevisions = Resolve(await db.SheetColumnBlockRevisions.ListInViewAsync(sheetId, moment, cancellationToken), revision => revision.SheetColumnBlockId, view, currentUserId);
+        var tableRevisions = Resolve(await _db.SheetTableRevisions.ListInViewAsync(sheetId, moment, cancellationToken), revision => revision.SheetTableId, view, currentUserId);
+        var sectionRevisions = Resolve(await _db.SheetSectionRevisions.ListInViewAsync(sheetId, moment, cancellationToken), revision => revision.SheetSectionId, view, currentUserId);
+        var rowRevisions = Resolve(await _db.SheetRowRevisions.ListInViewAsync(sheetId, moment, cancellationToken), revision => revision.SheetRowId, view, currentUserId);
+        var columnBlockRevisions = Resolve(await _db.SheetColumnBlockRevisions.ListInViewAsync(sheetId, moment, cancellationToken), revision => revision.SheetColumnBlockId, view, currentUserId);
         var shownValues = await LoadShownValuesAsync(sheetId, rowRevisions, moment, cancellationToken);
 
         var versionIds = tables.Select(table => table.TableTemplateVersionId).Distinct().ToList();
-        var templateRows = await TemplateRowQueries.ListWithCellsInVersionsAsync(db, versionIds, cancellationToken);
+        var templateRows = await TemplateRowQueries.ListWithCellsInVersionsAsync(_db, versionIds, cancellationToken);
         await AttachTemplateCellsAsync(rows, templateRows, cancellationToken);
-        var availableTemplates = await TableTemplateQueries.ListForSheetTypeAsync(db, found.SheetTypeId, cancellationToken);
+        var availableTemplates = await TableTemplateQueries.ListForSheetTypeAsync(_db, found.SheetTypeId, cancellationToken);
 
         var snapshot = new SheetSnapshot
         {
@@ -71,18 +71,18 @@ public sealed class SheetSnapshotLoader
             RowRevisions = rowRevisions,
             ColumnBlockRevisions = columnBlockRevisions,
             Values = shownValues,
-            TemplateSections = await TemplateSectionQueries.ListInVersionsAsync(db, versionIds, cancellationToken),
-            TemplateColumnBlocks = await TemplateColumnBlockQueries.ListInVersionsAsync(db, versionIds, cancellationToken),
+            TemplateSections = await TemplateSectionQueries.ListInVersionsAsync(_db, versionIds, cancellationToken),
+            TemplateColumnBlocks = await TemplateColumnBlockQueries.ListInVersionsAsync(_db, versionIds, cancellationToken),
             TemplateRows = templateRows,
-            CellTypes = await cellTypes.ListByIdAsync(cancellationToken),
+            CellTypes = await _cellTypes.ListByIdAsync(cancellationToken),
             AvailableTemplates = availableTemplates,
             LatestTemplateVersions = await TableTemplateQueries.GetLatestVersionNumbersAsync(
-                db,
+                _db,
                 availableTemplates.Select(template => template.Id).ToList(),
                 cancellationToken),
-            UserNames = await UserQueries.GetAllDisplayNamesAsync(db, cancellationToken),
+            UserNames = await UserQueries.GetAllDisplayNamesAsync(_db, cancellationToken),
         };
-        return snapshot with { Changes = await changeLoader.LoadAsync(snapshot, moment, cancellationToken) };
+        return snapshot with { Changes = await _changeLoader.LoadAsync(snapshot, moment, cancellationToken) };
     }
 
     private static (DateTime? Moment, int? VersionNumber) ResolveMoment(SheetViewPoint view, IReadOnlyList<DbSheetVersion> versions)
@@ -126,7 +126,7 @@ public sealed class SheetSnapshotLoader
             .ToList();
         if (missingIds.Count > 0)
         {
-            foreach (var templateCell in await TemplateCellQueries.ListAsync(db, missingIds, cancellationToken))
+            foreach (var templateCell in await TemplateCellQueries.ListAsync(_db, missingIds, cancellationToken))
             {
                 templateCells[templateCell.Id] = templateCell;
             }
@@ -158,7 +158,7 @@ public sealed class SheetSnapshotLoader
             return [];
         }
 
-        var loaded = await RowValueQueries.LoadInViewAsync(db, sheetId, moment, cancellationToken);
+        var loaded = await RowValueQueries.LoadInViewAsync(_db, sheetId, moment, cancellationToken);
         foreach (var revisionId in loaded.Keys.Where(revisionId => !shownRowRevisionIds.Contains(revisionId)).ToList())
         {
             loaded.Remove(revisionId);

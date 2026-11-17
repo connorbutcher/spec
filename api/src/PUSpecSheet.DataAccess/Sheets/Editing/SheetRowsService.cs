@@ -19,15 +19,15 @@ namespace PUSpecSheet.DataAccess.Sheets.Editing;
 
 public sealed class SheetRowsService : ISheetRowsService
 {
-    private readonly PuSpecSheetDbContext db;
-    private readonly RowDrafts drafts;
-    private readonly LiveRowCheckoutGuard liveCheckouts;
-    private readonly RowDraftStarter draftStarter;
-    private readonly LinkedDropdownValueRule linkedValues;
-    private readonly SheetReader reader;
-    private readonly IRemovalInProgressGuard removals;
-    private readonly ICurrentUser currentUser;
-    private readonly ISheetCellSettingsService cellSettings;
+    private readonly PuSpecSheetDbContext _db;
+    private readonly RowDrafts _drafts;
+    private readonly LiveRowCheckoutGuard _liveCheckouts;
+    private readonly RowDraftStarter _draftStarter;
+    private readonly LinkedDropdownValueRule _linkedValues;
+    private readonly SheetReader _reader;
+    private readonly IRemovalInProgressGuard _removals;
+    private readonly ICurrentUser _currentUser;
+    private readonly ISheetCellSettingsService _cellSettings;
 
     public SheetRowsService(
         PuSpecSheetDbContext db,
@@ -40,15 +40,15 @@ public sealed class SheetRowsService : ISheetRowsService
         ICurrentUser currentUser,
         ISheetCellSettingsService cellSettings)
     {
-        this.db = db;
-        this.drafts = drafts;
-        this.liveCheckouts = liveCheckouts;
-        this.draftStarter = draftStarter;
-        this.linkedValues = linkedValues;
-        this.reader = reader;
-        this.removals = removals;
-        this.currentUser = currentUser;
-        this.cellSettings = cellSettings;
+        _db = db;
+        _drafts = drafts;
+        _liveCheckouts = liveCheckouts;
+        _draftStarter = draftStarter;
+        _linkedValues = linkedValues;
+        _reader = reader;
+        _removals = removals;
+        _currentUser = currentUser;
+        _cellSettings = cellSettings;
     }
 
     public async Task<SheetDto> SaveValuesAsync(int rowId, SaveRowValuesRequest request, CancellationToken cancellationToken)
@@ -58,23 +58,23 @@ public sealed class SheetRowsService : ISheetRowsService
         // Check every value before locking the row or changing anything.
         var cellsById = row.Cells.ToDictionary(cell => cell.Id);
         var changes = ReadValues(request, cellsById);
-        await linkedValues.EnsureChoicesAsync(row.SheetSection.SheetTable.SheetId, cellsById, changes, cancellationToken);
+        await _linkedValues.EnsureChoicesAsync(row.SheetSection.SheetTable.SheetId, cellsById, changes, cancellationToken);
 
-        await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
-        var draft = await draftStarter.StartAsync(rowId, cancellationToken);
+        await using var transaction = await _db.Database.BeginTransactionAsync(cancellationToken);
+        var draft = await _draftStarter.StartAsync(rowId, cancellationToken);
         foreach (var change in changes)
         {
             change.Value.Text = change.Value.Text?.Trim();
             change.Value.Slots = SlotValues.Clean(change.Value.Slots);
         }
 
-        await RowValueQueries.SetManyAsync(db, draft.Id, changes, cancellationToken);
-        await db.SaveSheetChangesAsync(cancellationToken);
+        await RowValueQueries.SetManyAsync(_db, draft.Id, changes, cancellationToken);
+        await _db.SaveSheetChangesAsync(cancellationToken);
 
         // Values put back to what is published leave nothing to publish, so the row is released.
-        await drafts.ReleaseIfUnchangedAsync(rowId, cancellationToken);
+        await _drafts.ReleaseIfUnchangedAsync(rowId, cancellationToken);
         await transaction.CommitAsync(cancellationToken);
-        return await reader.ReadLiveAsync(row.SheetSection.SheetTable.SheetId, cancellationToken);
+        return await _reader.ReadLiveAsync(row.SheetSection.SheetTable.SheetId, cancellationToken);
     }
 
     public async Task<SheetDto> MoveAsync(int rowId, MoveRequest request, CancellationToken cancellationToken)
@@ -83,25 +83,25 @@ public sealed class SheetRowsService : ISheetRowsService
         var sheetId = await SheetIdOfAsync(rowId, cancellationToken);
 
         var siblingOrders = await VisibleRowOrdersAsync(sectionId, rowId, cancellationToken);
-        var published = (await drafts.LoadAsync(rowId, cancellationToken)).Current?.DisplayOrder;
+        var published = (await _drafts.LoadAsync(rowId, cancellationToken)).Current?.DisplayOrder;
         var order = OrderGaps.PlaceAt(siblingOrders, request.DisplayOrder, published);
 
-        await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
-        var draft = await draftStarter.StartAsync(rowId, cancellationToken);
+        await using var transaction = await _db.Database.BeginTransactionAsync(cancellationToken);
+        var draft = await _draftStarter.StartAsync(rowId, cancellationToken);
         draft.DisplayOrder = order;
-        await db.SaveSheetChangesAsync(cancellationToken);
-        await drafts.ReleaseIfUnchangedAsync(rowId, cancellationToken);
-        await drafts.ReleaseRestoredOrderAsync(
-            await SheetRowQueries.ListIdsInSectionAsync(db, sectionId, cancellationToken),
+        await _db.SaveSheetChangesAsync(cancellationToken);
+        await _drafts.ReleaseIfUnchangedAsync(rowId, cancellationToken);
+        await _drafts.ReleaseRestoredOrderAsync(
+            await SheetRowQueries.ListIdsInSectionAsync(_db, sectionId, cancellationToken),
             cancellationToken);
         await transaction.CommitAsync(cancellationToken);
 
-        return await reader.ReadLiveAsync(sheetId, cancellationToken);
+        return await _reader.ReadLiveAsync(sheetId, cancellationToken);
     }
 
     public async Task<SheetDto> RemoveAsync(int rowId, CancellationToken cancellationToken)
     {
-        var row = await SheetRowQueries.FindWithSectionAsync(db, rowId, cancellationToken)
+        var row = await SheetRowQueries.FindWithSectionAsync(_db, rowId, cancellationToken)
             ?? throw new NotFoundException($"Row {rowId} was not found.");
         if (row.SheetSection.TemplateSection.Role == SectionRole.Header)
         {
@@ -109,48 +109,48 @@ public sealed class SheetRowsService : ISheetRowsService
         }
 
         var sheetId = row.SheetSection.SheetTable.SheetId;
-        liveCheckouts.EnsureNotHeldByOthers(rowId);
-        var state = await drafts.LoadAsync(rowId, cancellationToken);
-        await drafts.EnsureNotLockedByOthersAsync(state, cancellationToken);
-        await removals.EnsurePlaceNotBeingRemovedAsync(row.SheetSection.SheetTableId, row.SheetSectionId, currentUser.UserId, cancellationToken);
+        _liveCheckouts.EnsureNotHeldByOthers(rowId);
+        var state = await _drafts.LoadAsync(rowId, cancellationToken);
+        await _drafts.EnsureNotLockedByOthersAsync(state, cancellationToken);
+        await _removals.EnsurePlaceNotBeingRemovedAsync(row.SheetSection.SheetTableId, row.SheetSectionId, _currentUser.UserId, cancellationToken);
 
         if (state.IsNew)
         {
             // Only its author ever saw it, so there's no history to keep.
-            await SheetRowQueries.DeleteAsync(db, rowId, cancellationToken);
+            await SheetRowQueries.DeleteAsync(_db, rowId, cancellationToken);
         }
         else
         {
-            var (draft, _) = await drafts.EnsureMineAsync(rowId, state, cancellationToken);
+            var (draft, _) = await _drafts.EnsureMineAsync(rowId, state, cancellationToken);
             draft.IsDeleted = true;
-            await db.SaveSheetChangesAsync(cancellationToken);
+            await _db.SaveSheetChangesAsync(cancellationToken);
         }
 
-        return await reader.ReadLiveAsync(sheetId, cancellationToken);
+        return await _reader.ReadLiveAsync(sheetId, cancellationToken);
     }
 
     public Task<SheetDto> SaveCellSettingsAsync(int rowId, SaveRowCellSettingsRequest request, CancellationToken cancellationToken)
     {
-        return cellSettings.SaveAsync(rowId, request, cancellationToken);
+        return _cellSettings.SaveAsync(rowId, request, cancellationToken);
     }
 
     private async Task<int> SheetIdOfAsync(int rowId, CancellationToken cancellationToken)
     {
-        return await SheetRowQueries.FindSheetIdAsync(db, rowId, cancellationToken)
+        return await SheetRowQueries.FindSheetIdAsync(_db, rowId, cancellationToken)
             ?? throw new NotFoundException($"Row {rowId} was not found.");
     }
 
     private async Task<int> SectionIdOfAsync(int rowId, CancellationToken cancellationToken)
     {
-        return await SheetRowQueries.FindSectionIdAsync(db, rowId, cancellationToken)
+        return await SheetRowQueries.FindSectionIdAsync(_db, rowId, cancellationToken)
             ?? throw new NotFoundException($"Row {rowId} was not found.");
     }
 
     /// <summary>The display orders of the section's rows the user can see, ascending, optionally leaving one out.</summary>
     private async Task<IReadOnlyList<int>> VisibleRowOrdersAsync(int sectionId, int? excludingRowId, CancellationToken cancellationToken)
     {
-        var me = currentUser.UserId;
-        var revisions = await SheetRowRevisionQueries.ListVisibleInSectionAsync(db, sectionId, me, cancellationToken);
+        var me = _currentUser.UserId;
+        var revisions = await SheetRowRevisionQueries.ListVisibleInSectionAsync(_db, sectionId, me, cancellationToken);
 
         return RevisionResolver.Resolve(revisions, revision => revision.SheetRowId, me)
             .Where(entry => entry.Key != excludingRowId && RevisionResolver.IsVisible(entry.Value))
@@ -182,7 +182,7 @@ public sealed class SheetRowsService : ISheetRowsService
 
     private async Task<DbSheetRow> LoadRowWithCellTypesAsync(int rowId, CancellationToken cancellationToken)
     {
-        return await SheetRowQueries.FindWithCellTypesAsync(db, rowId, withOptions: true, cancellationToken)
+        return await SheetRowQueries.FindWithCellTypesAsync(_db, rowId, withOptions: true, cancellationToken)
             ?? throw new NotFoundException($"Row {rowId} was not found.");
     }
 }

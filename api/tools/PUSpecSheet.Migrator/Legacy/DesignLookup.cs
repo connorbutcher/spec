@@ -10,10 +10,10 @@ namespace PUSpecSheet.Migrator.Legacy;
 /// </summary>
 internal sealed class DesignLookup
 {
-    private readonly Dictionary<int, int> latestVersions;
-    private readonly Dictionary<int, int> tableOrders;
-    private readonly Dictionary<int, int> sectionOrders;
-    private readonly Dictionary<int, int> rowOrders;
+    private readonly Dictionary<int, int> _latestVersions;
+    private readonly Dictionary<int, int> _tableOrders;
+    private readonly Dictionary<int, int> _sectionOrders;
+    private readonly Dictionary<int, int> _rowOrders;
 
     private DesignLookup(
         Dictionary<int, int> latestVersions,
@@ -21,10 +21,10 @@ internal sealed class DesignLookup
         Dictionary<int, int> sectionOrders,
         Dictionary<int, int> rowOrders)
     {
-        this.latestVersions = latestVersions;
-        this.tableOrders = tableOrders;
-        this.sectionOrders = sectionOrders;
-        this.rowOrders = rowOrders;
+        _latestVersions = latestVersions;
+        _tableOrders = tableOrders;
+        _sectionOrders = sectionOrders;
+        _rowOrders = rowOrders;
     }
 
     public static async Task<DesignLookup> LoadAsync(PuSpecSheetDbContext db, CancellationToken cancellationToken)
@@ -49,23 +49,23 @@ internal sealed class DesignLookup
     /// <exception cref="MigrationException">The table template has no versions.</exception>
     public int LatestVersionOf(int tableTemplateId)
     {
-        return latestVersions.TryGetValue(tableTemplateId, out var versionId)
+        return _latestVersions.TryGetValue(tableTemplateId, out var versionId)
             ? versionId
             : throw new MigrationException($"Table template {tableTemplateId} has no versions in the target database.");
     }
 
     public int TableOrder(int tableTemplateId)
     {
-        return tableOrders.GetValueOrDefault(tableTemplateId);
+        return _tableOrders.GetValueOrDefault(tableTemplateId);
     }
 
     public int SectionOrder(int templateSectionId)
     {
-        return sectionOrders.GetValueOrDefault(templateSectionId);
+        return _sectionOrders.GetValueOrDefault(templateSectionId);
     }
 
     public int RowOrder(int templateRowId)
     {
-        return rowOrders.GetValueOrDefault(templateRowId);
+        return _rowOrders.GetValueOrDefault(templateRowId);
     }
 }

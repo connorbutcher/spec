@@ -26,22 +26,22 @@ public sealed record SheetSectionDto
         IReadOnlyList<AddableSectionDto> addableSections,
         SheetChangeDto? lastChange)
     {
-        this.Id = id;
-        this.PublicId = publicId;
-        this.TemplateSectionId = templateSectionId;
-        this.Name = name;
-        this.Role = role;
-        this.MinInstances = minInstances;
-        this.MaxInstances = maxInstances;
-        this.InitialInstances = initialInstances;
-        this.DisplayOrder = displayOrder;
-        this.Lock = @lock;
-        this.IsPending = isPending;
-        this.CanRemove = canRemove;
-        this.Rows = rows;
-        this.Sections = sections;
-        this.AddableSections = addableSections;
-        this.LastChange = lastChange;
+        Id = id;
+        PublicId = publicId;
+        TemplateSectionId = templateSectionId;
+        Name = name;
+        Role = role;
+        MinInstances = minInstances;
+        MaxInstances = maxInstances;
+        InitialInstances = initialInstances;
+        DisplayOrder = displayOrder;
+        Lock = @lock;
+        IsPending = isPending;
+        CanRemove = canRemove;
+        Rows = rows;
+        Sections = sections;
+        AddableSections = addableSections;
+        LastChange = lastChange;
     }
 
     public int Id { get; init; }

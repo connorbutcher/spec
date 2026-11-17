@@ -5,7 +5,7 @@ public sealed record AddSheetTableRequest
 {
     public AddSheetTableRequest(int tableTemplateId)
     {
-        this.TableTemplateId = tableTemplateId;
+        TableTemplateId = tableTemplateId;
     }
 
     public int TableTemplateId { get; init; }

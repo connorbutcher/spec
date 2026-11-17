@@ -12,10 +12,10 @@ public sealed record PublishedCellDto
 {
     public PublishedCellDto(Guid id, object value, Guid? column, string? caption)
     {
-        this.Id = id;
-        this.Value = value;
-        this.Column = column;
-        this.Caption = caption;
+        Id = id;
+        Value = value;
+        Column = column;
+        Caption = caption;
     }
 
     public Guid Id { get; init; }

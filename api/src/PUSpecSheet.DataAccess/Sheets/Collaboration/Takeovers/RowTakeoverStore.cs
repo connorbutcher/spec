@@ -10,12 +10,12 @@ namespace PUSpecSheet.DataAccess.Sheets.Collaboration.Takeovers;
 /// </summary>
 public sealed class RowTakeoverStore
 {
-    private readonly ConcurrentDictionary<int, RowTakeoverDto> pendingByRow = new();
+    private readonly ConcurrentDictionary<int, RowTakeoverDto> _pendingByRow = new();
 
     /// <summary>Adds a request. False when the row already has one waiting.</summary>
     public bool TryAdd(RowTakeoverDto takeover)
     {
-        return pendingByRow.TryAdd(takeover.RowId, takeover);
+        return _pendingByRow.TryAdd(takeover.RowId, takeover);
     }
 
     /// <summary>
@@ -24,28 +24,28 @@ public sealed class RowTakeoverStore
     /// </summary>
     public bool TryRemove(RowTakeoverDto takeover)
     {
-        return pendingByRow.TryRemove(new KeyValuePair<int, RowTakeoverDto>(takeover.RowId, takeover));
+        return _pendingByRow.TryRemove(new KeyValuePair<int, RowTakeoverDto>(takeover.RowId, takeover));
     }
 
     public RowTakeoverDto? ForRow(int rowId)
     {
-        return pendingByRow.GetValueOrDefault(rowId);
+        return _pendingByRow.GetValueOrDefault(rowId);
     }
 
     public RowTakeoverDto? Find(Guid id)
     {
-        return pendingByRow.Values.FirstOrDefault(takeover => takeover.Id == id);
+        return _pendingByRow.Values.FirstOrDefault(takeover => takeover.Id == id);
     }
 
     public IReadOnlyList<RowTakeoverDto> OnSheet(int sheetId)
     {
-        return pendingByRow.Values.Where(takeover => takeover.SheetId == sheetId).ToList();
+        return _pendingByRow.Values.Where(takeover => takeover.SheetId == sheetId).ToList();
     }
 
     /// <summary>The requests on a sheet that a user made or has to answer, oldest first.</summary>
     public IReadOnlyList<RowTakeoverDto> Involving(int sheetId, int userId)
     {
-        return pendingByRow.Values
+        return _pendingByRow.Values
             .Where(takeover => takeover.SheetId == sheetId
                 && (takeover.RequesterUserId == userId || takeover.HolderUserId == userId))
             .OrderBy(takeover => takeover.RequestedAtUtc)
@@ -55,6 +55,6 @@ public sealed class RowTakeoverStore
     /// <summary>The requests whose time to answer has run out.</summary>
     public IReadOnlyList<RowTakeoverDto> Due(DateTime nowUtc)
     {
-        return pendingByRow.Values.Where(takeover => takeover.ExpiresAtUtc <= nowUtc).ToList();
+        return _pendingByRow.Values.Where(takeover => takeover.ExpiresAtUtc <= nowUtc).ToList();
     }
 }
