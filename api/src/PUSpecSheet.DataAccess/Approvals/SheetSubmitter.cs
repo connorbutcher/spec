@@ -7,11 +7,8 @@ using PUSpecSheet.Database.Models.Approvals;
 
 namespace PUSpecSheet.DataAccess.Approvals;
 
-/// <summary>
-/// Submits drafts for publishing. The drafts a publish would take are checked as a publish checks them,
-/// then tagged with a new pending submission: they stay drafts, so no published view shows them, and stay
-/// locked to their authors, who can't change them until the submission is decided.
-/// </summary>
+// Submitted drafts stay drafts, so no published view shows them, and stay locked to their authors until the
+// submission is decided.
 public sealed class SheetSubmitter
 {
     private readonly PuSpecSheetDbContext _db;
@@ -34,7 +31,6 @@ public sealed class SheetSubmitter
         _clock = clock;
     }
 
-    /// <returns>The new submission's id.</returns>
     public async Task<int> SubmitAsync(int sheetId, SubmitSheetRequest request, CancellationToken cancellationToken)
     {
         var me = _currentUser.UserId;

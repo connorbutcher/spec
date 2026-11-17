@@ -110,6 +110,7 @@ public static class DataAccessServiceCollectionExtensions
 
     private static void AddApprovals(IServiceCollection services)
     {
+        services.AddScoped<ISubmissionDataService, SubmissionDataService>();
         services.AddScoped<ApproverDirectory>();
         services.AddScoped<SheetSubmitter>();
         services.AddScoped<SubmissionDecider>();

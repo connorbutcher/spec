@@ -1,14 +1,10 @@
 using PUSpecSheet.Abstractions.Approvals;
-using PUSpecSheet.Abstractions.Users;
 using PUSpecSheet.DataAccess.Common;
 using PUSpecSheet.DataAccess.Users;
 
 namespace PUSpecSheet.DataAccess.Approvals;
 
-/// <summary>
-/// Who can approve submissions: active users holding <see cref="PermissionKeys.SheetsApprove"/>, which every
-/// administrator does. Nobody approves their own submission, so the submitter is never offered.
-/// </summary>
+// Nobody approves their own submission, so the submitter is never offered.
 public sealed class ApproverDirectory
 {
     private readonly IUserDataService _userData;
@@ -18,14 +14,11 @@ public sealed class ApproverDirectory
         _userData = userData;
     }
 
-    /// <summary>Everyone but <paramref name="submitterUserId"/> who could approve, by name.</summary>
     public async Task<IReadOnlyList<Approver>> ListAsync(int submitterUserId, CancellationToken cancellationToken)
     {
         return await _userData.ListApproversAsync(submitterUserId, cancellationToken);
     }
 
-    /// <summary>Refuses a choice of approvers that is empty, names the submitter, or names someone who can't approve.</summary>
-    /// <exception cref="InvalidRequestException">The choice can't be used.</exception>
     public async Task<IReadOnlyList<int>> EnsureEligibleAsync(
         IReadOnlyCollection<int> userIds,
         int submitterUserId,

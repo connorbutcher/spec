@@ -3,30 +3,31 @@ using PUSpecSheet.Abstractions.Approvals;
 using PUSpecSheet.Database;
 using PUSpecSheet.Database.Models.Approvals;
 
-namespace PUSpecSheet.DataAccess.Approvals.Queries;
+namespace PUSpecSheet.DataAccess.Approvals;
 
-/// <summary>
-/// Publishes waiting for approval. Lists come read only with what a submission shows: its sheet's phase and
-/// sheet type, who submitted it, the version it became and each approver.
-/// </summary>
-public static class SheetSubmissionQueries
+public sealed class SubmissionDataService : ISubmissionDataService
 {
-    /// <summary>The pending submissions waiting for the user's decision, oldest first.</summary>
-    public static Task<List<DbSheetSubmission>> ListAwaitingDecisionOfAsync(PuSpecSheetDbContext db, int userId, CancellationToken cancellationToken)
+    private readonly PuSpecSheetDbContext _db;
+
+    public SubmissionDataService(PuSpecSheetDbContext db)
+    {
+        _db = db;
+    }
+
+    public Task<List<DbSheetSubmission>> ListAwaitingDecisionOfAsync(int userId, CancellationToken cancellationToken)
     {
         return ListAsync(
-            db.SheetSubmissions
+            _db.SheetSubmissions
                 .Where(submission => submission.Status == SubmissionStatus.Pending
                     && submission.Approvers.Any(approver => approver.UserId == userId && approver.Decision == ApprovalDecision.Pending))
                 .OrderBy(submission => submission.SubmittedAtUtc),
             cancellationToken);
     }
 
-    /// <summary>The user's submissions that are pending or were decided since the moment, newest first, at most 50.</summary>
-    public static Task<List<DbSheetSubmission>> ListSubmittedByAsync(PuSpecSheetDbContext db, int userId, DateTime decidedSince, CancellationToken cancellationToken)
+    public Task<List<DbSheetSubmission>> ListSubmittedByAsync(int userId, DateTime decidedSince, CancellationToken cancellationToken)
     {
         return ListAsync(
-            db.SheetSubmissions
+            _db.SheetSubmissions
                 .Where(submission => submission.SubmittedByUserId == userId
                     && (submission.Status == SubmissionStatus.Pending || submission.DecidedAtUtc >= decidedSince))
                 .OrderByDescending(submission => submission.SubmittedAtUtc)
@@ -34,25 +35,22 @@ public static class SheetSubmissionQueries
             cancellationToken);
     }
 
-    /// <summary>The submission with everything a list shows, read only; empty when there is no such submission.</summary>
-    public static Task<List<DbSheetSubmission>> ListByIdAsync(PuSpecSheetDbContext db, int id, CancellationToken cancellationToken)
+    public Task<List<DbSheetSubmission>> ListByIdAsync(int id, CancellationToken cancellationToken)
     {
-        return ListAsync(db.SheetSubmissions.Where(submission => submission.Id == id), cancellationToken);
+        return ListAsync(_db.SheetSubmissions.Where(submission => submission.Id == id), cancellationToken);
     }
 
-    /// <summary>The sheet a submission is on; null when there is no such submission.</summary>
-    public static async Task<int?> FindSheetIdAsync(PuSpecSheetDbContext db, int id, CancellationToken cancellationToken)
+    public async Task<int?> FindSheetIdAsync(int id, CancellationToken cancellationToken)
     {
-        return await db.SheetSubmissions
+        return await _db.SheetSubmissions
             .Where(candidate => candidate.Id == id)
             .Select(candidate => (int?)candidate.SheetId)
             .SingleOrDefaultAsync(cancellationToken);
     }
 
-    /// <summary>Whether the user may review the submission on the sheet; null when the sheet has no such submission.</summary>
-    public static async Task<SubmissionReviewAccess?> FindReviewAccessAsync(PuSpecSheetDbContext db, int sheetId, int id, int userId, CancellationToken cancellationToken)
+    public async Task<SubmissionReviewAccess?> FindReviewAccessAsync(int sheetId, int id, int userId, CancellationToken cancellationToken)
     {
-        return await db.SheetSubmissions
+        return await _db.SheetSubmissions
             .AsNoTracking()
             .Where(candidate => candidate.Id == id && candidate.SheetId == sheetId)
             .Select(candidate => new SubmissionReviewAccess
@@ -64,10 +62,9 @@ public static class SheetSubmissionQueries
             .SingleOrDefaultAsync(cancellationToken);
     }
 
-    /// <summary>The submission with its approvers, tracked for deciding; null when there is no such submission.</summary>
-    public static async Task<DbSheetSubmission?> FindWithApproversForEditAsync(PuSpecSheetDbContext db, int id, CancellationToken cancellationToken)
+    public async Task<DbSheetSubmission?> FindWithApproversForEditAsync(int id, CancellationToken cancellationToken)
     {
-        return await db.SheetSubmissions
+        return await _db.SheetSubmissions
             .Include(candidate => candidate.Approvers)
             .SingleOrDefaultAsync(candidate => candidate.Id == id, cancellationToken);
     }

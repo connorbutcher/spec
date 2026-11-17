@@ -3,7 +3,6 @@ using PUSpecSheet.Database;
 
 namespace PUSpecSheet.DataAccess.Approvals;
 
-/// <summary>Hands a submission's drafts back to their authors, as open drafts they can change and submit again.</summary>
 internal static class SubmittedDrafts
 {
     public static async Task ReleaseAsync(PuSpecSheetDbContext db, int sheetId, int submissionId, CancellationToken cancellationToken)

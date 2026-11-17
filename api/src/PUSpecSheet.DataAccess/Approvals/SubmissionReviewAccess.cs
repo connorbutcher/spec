@@ -1,8 +1,7 @@
 using PUSpecSheet.Abstractions.Approvals;
 
-namespace PUSpecSheet.DataAccess.Approvals.Queries;
+namespace PUSpecSheet.DataAccess.Approvals;
 
-/// <summary>What decides whether someone may review a submission: its state, its submitter, and whether they were asked to approve it.</summary>
 public sealed record SubmissionReviewAccess
 {
     public required SubmissionStatus Status { get; init; }

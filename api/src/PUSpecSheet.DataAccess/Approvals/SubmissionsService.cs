@@ -75,10 +75,7 @@ public sealed class SubmissionsService : ISubmissionsService
         return await AfterDecisionAsync(submission, cancellationToken);
     }
 
-    /// <summary>
-    /// Once a submission is decided, its locks have changed (released to their authors, or published), so
-    /// everyone with the sheet open reads it again. A single approval among several changes nothing they see.
-    /// </summary>
+    // Once decided, the submission's locks have changed, so everyone with the sheet open reads it again.
     private async Task<SheetSubmission> AfterDecisionAsync(DbSheetSubmission submission, CancellationToken cancellationToken)
     {
         if (submission.Status != SubmissionStatus.Pending)

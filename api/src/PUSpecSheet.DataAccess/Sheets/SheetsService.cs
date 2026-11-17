@@ -1,7 +1,6 @@
 using PUSpecSheet.Abstractions.Approvals;
 using PUSpecSheet.Abstractions.Sheets;
 using PUSpecSheet.DataAccess.Approvals;
-using PUSpecSheet.DataAccess.Approvals.Queries;
 using PUSpecSheet.DataAccess.Common;
 using PUSpecSheet.DataAccess.Phases;
 using PUSpecSheet.DataAccess.Sheets.Catalog;
@@ -27,6 +26,7 @@ public sealed class SheetsService : ISheetsService
     private readonly ISubmissionsService _submissionsService;
     private readonly SheetCreator _creator;
     private readonly IPhaseDataService _phases;
+    private readonly ISubmissionDataService _submissionData;
 
     public SheetsService(
         PuSpecSheetDbContext db,
@@ -38,7 +38,8 @@ public sealed class SheetsService : ISheetsService
         ISheetTablesService tables,
         ISubmissionsService submissionsService,
         SheetCreator creator,
-        IPhaseDataService phases)
+        IPhaseDataService phases,
+        ISubmissionDataService submissionData)
     {
         _db = db;
         _reader = reader;
@@ -50,6 +51,7 @@ public sealed class SheetsService : ISheetsService
         _submissionsService = submissionsService;
         _creator = creator;
         _phases = phases;
+        _submissionData = submissionData;
     }
 
     public async Task<Sheet> OpenAsync(int phaseId, int sheetTypeId, CancellationToken cancellationToken)
@@ -81,7 +83,7 @@ public sealed class SheetsService : ISheetsService
 
     public async Task<Sheet> GetForReviewAsync(int submissionId, CancellationToken cancellationToken)
     {
-        var sheetId = await SheetSubmissionQueries.FindSheetIdAsync(_db, submissionId, cancellationToken)
+        var sheetId = await _submissionData.FindSheetIdAsync(submissionId, cancellationToken)
             ?? throw new NotFoundException($"Submission {submissionId} was not found.");
         return await GetAsync(sheetId, SheetViewPoint.Reviewing(submissionId), cancellationToken);
     }

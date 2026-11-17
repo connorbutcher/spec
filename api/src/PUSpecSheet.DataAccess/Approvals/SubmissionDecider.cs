@@ -1,5 +1,4 @@
 using PUSpecSheet.Abstractions.Approvals;
-using PUSpecSheet.DataAccess.Approvals.Queries;
 using PUSpecSheet.DataAccess.Common;
 using PUSpecSheet.DataAccess.Sheets.Publishing;
 using PUSpecSheet.DataAccess.Users;
@@ -8,36 +7,29 @@ using PUSpecSheet.Database.Models.Approvals;
 
 namespace PUSpecSheet.DataAccess.Approvals;
 
-/// <summary>
-/// Records approvers' decisions on a pending submission. Every chosen approver has to approve; the last
-/// approval publishes the drafts as the sheet's next version. A single rejection, which must say why,
-/// rejects it at once; the submitter can also withdraw it while it waits. Either way the drafts go back to
-/// their authors as open drafts, locks and all, so nothing is lost and they can change it and submit again.
-/// <para>
-/// Every decision touches the submission, whose row version then makes two decisions at the same moment
-/// fail rather than both miss that the other was the last one needed.
-/// </para>
-/// </summary>
+// The last approval publishes. A single rejection, which must say why, rejects the whole submission at once.
 public sealed class SubmissionDecider
 {
     private readonly PuSpecSheetDbContext _db;
     private readonly SheetPublisher _publisher;
     private readonly ICurrentUser _currentUser;
     private readonly TimeProvider _clock;
+    private readonly ISubmissionDataService _submissionData;
 
     public SubmissionDecider(
         PuSpecSheetDbContext db,
         SheetPublisher publisher,
         ICurrentUser currentUser,
-        TimeProvider clock)
+        TimeProvider clock,
+        ISubmissionDataService submissionData)
     {
         _db = db;
         _publisher = publisher;
         _currentUser = currentUser;
         _clock = clock;
+        _submissionData = submissionData;
     }
 
-    /// <returns>The submission as it now stands.</returns>
     public async Task<DbSheetSubmission> ApproveAsync(int submissionId, CancellationToken cancellationToken)
     {
         var submission = await LoadPendingAsync(submissionId, cancellationToken);
@@ -90,7 +82,6 @@ public sealed class SubmissionDecider
         return submission;
     }
 
-    /// <summary>Ends the submission without publishing and hands its drafts back to their authors.</summary>
     private async Task CloseAsync(DbSheetSubmission submission, SubmissionStatus status, DateTime now, CancellationToken cancellationToken)
     {
         submission.Status = status;
@@ -103,7 +94,7 @@ public sealed class SubmissionDecider
 
     private async Task<DbSheetSubmission> LoadPendingAsync(int submissionId, CancellationToken cancellationToken)
     {
-        var submission = await SheetSubmissionQueries.FindWithApproversForEditAsync(_db, submissionId, cancellationToken)
+        var submission = await _submissionData.FindWithApproversForEditAsync(submissionId, cancellationToken)
             ?? throw new NotFoundException($"Submission {submissionId} was not found.");
         if (submission.Status != SubmissionStatus.Pending)
         {
