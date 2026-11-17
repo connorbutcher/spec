@@ -181,6 +181,11 @@ internal class SpecSheetDataAccessService : ISpecSheetDataAccessService
             return (null, []);
         }
 
+        if (_editSwitch.IsOnRevisions(typeId))
+        {
+            return await ReadCellsFromRevisionsAsync(latestSpecSheetId, referenceIds, cancellationToken);
+        }
+
         var specSheet = await _dbContext.SpecSheets
             .Where(x => x.Id == latestSpecSheetId)
             .Include(x => x.CreatedByUser)
@@ -226,6 +231,11 @@ internal class SpecSheetDataAccessService : ISpecSheetDataAccessService
         if (referenceIds.Count == 0)
         {
             return (null, []);
+        }
+
+        if (await _editSwitch.IsOnRevisionsAsync(puSpecSheetId, cancellationToken))
+        {
+            return await ReadCellsFromRevisionsAsync(puSpecSheetId, referenceIds, cancellationToken);
         }
 
         var specSheet = await _dbContext.SpecSheets
@@ -1145,6 +1155,24 @@ internal class SpecSheetDataAccessService : ISpecSheetDataAccessService
         await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
         await _submissions.SubmitAsync(sheetId, publishingUserId, publishSpecSheetRequest.ChangeLog, publishSpecSheetRequest.Approvers.Select(a => a.Id), cancellationToken);
         await transaction.CommitAsync(cancellationToken);
+    }
+
+    // A sheet type edited on the revisions has nothing in its copies' tables, so its cells come from the whole sheet,
+    // read as any other read is. The sheet is returned without its tables, as from its SpecSheets row.
+    private async Task<(SpecSheet? SpecSheet, IReadOnlyList<SpecSheetTableCell> Cells)> ReadCellsFromRevisionsAsync(
+        int specSheetId,
+        IReadOnlyCollection<Guid> referenceIds,
+        CancellationToken cancellationToken)
+    {
+        var specSheet = await GetSpecSheetByIdAsync(specSheetId, cancellationToken, false);
+        var cells = specSheet.Tables
+            .SelectMany(table => table.Groups)
+            .SelectMany(group => group.Rows)
+            .SelectMany(row => row.Cells)
+            .Where(cell => referenceIds.Contains(cell.ReferenceId))
+            .ToList();
+
+        return (specSheet with { Tables = [] }, cells);
     }
 
     #endregion Drafts On The Revisions

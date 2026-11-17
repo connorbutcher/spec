@@ -14,7 +14,8 @@ namespace PUSpecSheet.Api.DAL.DataAccess.SpecSheets.Edits;
 
 /// <summary>
 /// Creates a draft for a sheet type edited on the revisions. The SpecSheets row is the draft's header, and the sheet's
-/// drafts are made to show the sheet copied from, or nothing, with the property values given, as a new copy did.
+/// drafts are made to show the sheet copied from, or nothing, with the property values given, as a new copy did. The
+/// property values are kept on the header too, where the lists of spec sheets read them; they aren't changed afterwards.
 /// </summary>
 internal class SheetDraftCreator
 {
@@ -58,7 +59,14 @@ internal class SheetDraftCreator
             CreatedByUserId = creatingUser.Id,
             CreatedDateTime = DateTime.UtcNow,
             IsPublished = false,
-            HasBeenMigrated = false
+            HasBeenMigrated = false,
+            PropertyValues = [.. request.PropertyValues.Select(pv => new DbSpecSheetPropertyValue
+            {
+                Id = 0,
+                SpecSheetId = 0,
+                SpecSheetTypePropertyId = pv.SpecSheetTypePropertyId,
+                PropertyValue = pv.PropertyValue?.ToString()
+            })]
         };
 
         await _dbContext.SpecSheets.AddAsync(header, cancellationToken);

@@ -22,7 +22,7 @@ The legacy codebase is the base. The rewrite's features (revision model, drafts,
 | 3 | Revision tables beside the copy tables | Done | `7b2ddcf` |
 | 4 | Migrator (copies to revisions), re-runnable | Done | `1057cda`, `4f58572` |
 | 5 | Reads from revisions behind a switch | Done | `03a8f75`, `8eecb3b`, `2cd0f95` |
-| 6 | Per-sheet-type cutover of editing onto drafts and revisions | **In progress**: slices 1 to 5 of 6 | `5cf6c7d`, `897e675`, `3b1f744`, `2ca60b3` |
+| 6 | Per-sheet-type cutover of editing onto drafts and revisions | Slices 1 to 6 done; scratch databases only until checked end to end | `5cf6c7d`, `897e675`, `3b1f744`, `2ca60b3`, `497f721` |
 | 7 | Port remaining features (published API, lookups, presence). Templates stay as they are | Not started | |
 | 8 | Retire the legacy copy code | Not started | |
 
@@ -76,7 +76,7 @@ The legacy codebase is the base. The rewrite's features (revision model, drafts,
 | 3 | Groups and tables, with their widgets, notes and configuration overrides. Every edit the screens send is now applied to the drafts. Widgets and notes are kept inside their table's or group's revision, so the draft read numbers them within the sheet in the order of their tables' and groups' ids, and `DraftItemNumbers` finds them again from those numbers. Deleting a group removes the groups linked to it. | Done |
 | 4 | Create a draft (empty, or copied from another sheet) with its properties; delete a draft (drop its draft revisions and what was added in it). `SheetDraftCreator` makes the sheet (if it has none) and the header, `SheetDraftCopier` makes the drafts show the sheet copied from, matching items by ReferenceID and changing only what differs, and `SheetPropertyDrafts` sets the property values. `SheetDraftDeleter` drops the drafts when the header is deleted; a draft awaiting approval, or a published version, can't be deleted. | Done |
 | 5 | Publish: without approval (the drafts become a version), and with approval (submission, approvers, emails, approve, reject, reassign). `SheetDraftPublisher` makes the next version, replaces each item's published revision with its draft at the version's moment (whole seconds) and marks the header published. The workflow steps on the header still drive the screens, so their ids don't change; `SheetSubmissions` keeps a submission in step with them (submitted with its approvers, each decision, reassignments) and tags the drafts while it is pending. Approval publishes the drafts and names the version on the submission; rejection hands the drafts back. A published version of a listed type is always read from the revisions, whatever `SheetReads:Source` says. | Done |
-| 6 | Version lists and property summaries from the revisions for listed types. | |
+| 6 | Version lists and property summaries for listed types. The lists already read the SpecSheets headers, which listed types keep; a new draft's property values are written to its header too (they never change afterwards). The analytics dataset's cells come from the whole sheet read for a listed type. | Done |
 
 **Order of sheet types.** First a test type made on a scratch copy. Then the types without an approval workflow, fewest sheets first. Then the approval types, once slice 5 has run on one of them. The busiest types last. Linked cells and tables read other sheets through `GetSpecSheetByIdAsync`, so a type can move before or after the types it links to.
 
