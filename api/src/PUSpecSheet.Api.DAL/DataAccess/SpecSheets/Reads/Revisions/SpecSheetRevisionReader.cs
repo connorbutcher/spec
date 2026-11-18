@@ -19,10 +19,10 @@ namespace PUSpecSheet.Api.DAL.DataAccess.SpecSheets.Reads.Revisions;
 /// <remarks>
 /// The sheet is read in one split query, like a copy: filtered includes bring back only the tables, groups and rows
 /// shown at the version's moment and the revisions that show them, the values of those row revisions alone, and each
-/// cell with its template cell, type and configuration. Tables, groups, rows and cells have the ids of their spec
-/// items; widgets, notes and workflow step actors, which the revisions keep inside their items, are numbered from 1
-/// within the sheet, in the order of their tables' and groups' ids (<see cref="Processors.Drafts.Base.DraftItemNumbers"/> finds them again for
-/// an edit). An item's creator is who wrote the revision shown, as the revisions don't keep it per item.
+/// cell with its template cell, type and configuration; and the widget and note rows of those table and group
+/// revisions with their items. Tables, groups, rows, cells, widgets and notes have the ids of their spec items;
+/// workflow step actors, which the revisions don't keep as items, are numbered from 1 within the sheet. An item's
+/// creator is who wrote the revision shown, as the revisions don't keep it per item, except a note's.
 /// </remarks>
 internal class SpecSheetRevisionReader
 {
@@ -66,7 +66,7 @@ internal class SpecSheetRevisionReader
         var createdByUserId = version.SourceCreatedByUserId ?? version.PublishedByUserId;
         var users = await ReadUsersAsync(NoteAuthorIds(sheet).Append(createdByUserId).Append(version.PublishedByUserId), cancellationToken);
 
-        var ids = new RevisionItemNumbering();
+        var actorIds = new RevisionItemNumbering();
         var dbSpecSheet = new DbSpecSheet
         {
             Id = specSheetId,
@@ -84,9 +84,9 @@ internal class SpecSheetRevisionReader
             PublishedByUser = users.GetValueOrDefault(version.PublishedByUserId),
             SpecSheetPhase = sheet.SpecSheetPhase,
             SpecSheetType = sheet.SpecSheetType,
-            Tables = SpecSheetRevisionMapper.MapTables(sheet, specSheetId, ids, users),
+            Tables = SpecSheetRevisionMapper.MapTables(sheet, specSheetId, users),
             PropertyValues = SpecSheetRevisionMapper.MapProperties(sheet, specSheetId),
-            WorkflowSteps = [.. submissions.Select(submission => SpecSheetRevisionMapper.MapSubmission(submission, specSheetId, ids))],
+            WorkflowSteps = [.. submissions.Select(submission => SpecSheetRevisionMapper.MapSubmission(submission, specSheetId, actorIds))],
             ExternalReferences = SpecSheetRevisionMapper.MapExternalReferences(sheet, specSheetId)
         };
 
@@ -118,7 +118,7 @@ internal class SpecSheetRevisionReader
         {
             SpecSheetPhase = sheet.SpecSheetPhase,
             SpecSheetType = sheet.SpecSheetType,
-            Tables = SpecSheetRevisionMapper.MapTables(sheet, specSheetId, new RevisionItemNumbering(), users),
+            Tables = SpecSheetRevisionMapper.MapTables(sheet, specSheetId, users),
             PropertyValues = SpecSheetRevisionMapper.MapProperties(sheet, specSheetId),
             ExternalReferences = SpecSheetRevisionMapper.MapExternalReferences(sheet, specSheetId)
         };
@@ -204,6 +204,20 @@ internal class SpecSheetRevisionReader
                             .ThenInclude(c => c.TableCellTemplate)
                                 .ThenInclude(tc => tc!.CellConfiguration)
 
+            .Include(s => s.Tables)
+                .ThenInclude(t => t.Revisions)
+                    .ThenInclude(r => r.WidgetValues)
+                        .ThenInclude(v => v.SheetTableWidget)
+            .Include(s => s.Tables)
+                .ThenInclude(t => t.Revisions)
+                    .ThenInclude(r => r.NoteValues)
+                        .ThenInclude(v => v.SheetTableNote)
+            .Include(s => s.Tables)
+                .ThenInclude(t => t.Groups)
+                    .ThenInclude(g => g.Revisions)
+                        .ThenInclude(r => r.WidgetValues)
+                            .ThenInclude(v => v.SheetTableGroupWidget)
+
             .Include(s => s.Properties.Where(p => p.Revisions.Any(r => !r.IsDeleted
                     && ((withDrafts && r.Status == RevisionStatus.Draft)
                         || (r.Status == RevisionStatus.Published
@@ -258,7 +272,7 @@ internal class SpecSheetRevisionReader
     {
         return sheet.Tables
             .SelectMany(table => table.Revisions)
-            .SelectMany(revision => revision.Notes ?? [])
-            .Select(note => note.CreatedByUserId);
+            .SelectMany(revision => revision.NoteValues)
+            .Select(note => note.SheetTableNote!.CreatedByUserId);
     }
 }

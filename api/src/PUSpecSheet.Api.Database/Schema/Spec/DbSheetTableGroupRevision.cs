@@ -1,5 +1,4 @@
-﻿using PUSpecSheet.Abstractions.Domain.Sheets;
-using PUSpecSheet.Abstractions.Types;
+﻿using PUSpecSheet.Abstractions.Types;
 using PUSpecSheet.Api.Database.Schema.Access;
 
 namespace PUSpecSheet.Api.Database.Schema.Spec;
@@ -23,8 +22,6 @@ public record DbSheetTableGroupRevision : IDbSheetRevision
 
     public required Guid? LinkedSheetTableGroupReferenceId { get; set; }
 
-    public required ICollection<SheetWidgetValue>? WidgetValues { get; set; }
-
     public required bool IsDeleted { get; set; }
 
     public required int CreatedByUserId { get; init; }
@@ -46,4 +43,6 @@ public record DbSheetTableGroupRevision : IDbSheetRevision
     public virtual DbUser? CreatedByUser { get; init; }
 
     public virtual DbSheetVersion? SheetVersion { get; set; }
+
+    public virtual ICollection<DbSheetTableGroupWidgetValue> WidgetValues { get; init; } = [];
 }

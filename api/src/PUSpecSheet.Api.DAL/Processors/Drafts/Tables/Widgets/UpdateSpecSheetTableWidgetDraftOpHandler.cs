@@ -20,10 +20,12 @@ internal class UpdateSpecSheetTableWidgetDraftOpHandler : DraftOperationHandlerB
             return;
         }
 
-        var widget = await Numbers.FindTableWidgetAsync(operation.Id, ct);
-        var draft = await Tables.GetShownAsync(widget.ItemId, ct);
+        var tableId = await Owners.TableOfWidgetAsync(operation.Id, ct);
+        var draft = await Tables.GetShownAsync(tableId, ct);
 
-        draft.WidgetValues = DraftWidgetValues.SetAt(draft.WidgetValues, widget.Index, operation.WidgetValue.Value);
+        var value = (await Tables.LoadWidgetValuesAsync(draft, ct)).FirstOrDefault(v => v.SheetTableWidgetId == operation.Id)
+            ?? throw new InvalidOperationException($"SheetTableWidget with Id {operation.Id} has no value in the draft of SheetTable with Id {tableId}.");
+        value.Value = operation.WidgetValue.Value;
     }
 
     public (int TempId, int RealId)? GetGeneratedId(UpdateSpecSheetTableWidgetOp operation)

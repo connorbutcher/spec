@@ -54,6 +54,25 @@ internal class GroupDrafts
     }
 
     /// <summary>
+    /// The widget values of a group's draft, loaded if the draft is one already saved.
+    /// </summary>
+    public async Task<ICollection<DbSheetTableGroupWidgetValue>> LoadWidgetValuesAsync(DbSheetTableGroupRevision draft, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(draft, nameof(draft));
+
+        if (draft.Id != 0)
+        {
+            var widgetValues = _dbContext.Entry(draft).Collection(r => r.WidgetValues);
+            if (!widgetValues.IsLoaded)
+            {
+                await widgetValues.LoadAsync(ct);
+            }
+        }
+
+        return draft.WidgetValues;
+    }
+
+    /// <summary>
     /// Adds the first revision of a group added in the draft.
     /// </summary>
     public DbSheetTableGroupRevision StartNew(DbSheetTableGroup group, int displayOrder, Guid? linkedGroupReferenceId)
@@ -99,7 +118,15 @@ internal class GroupDrafts
         }
 
         var started = NewDraft(published.SheetTableGroupId, published.RevisionNumber + 1, published.DisplayOrder, published.LinkedSheetTableGroupReferenceId);
-        started.WidgetValues = published.WidgetValues is null ? null : [.. published.WidgetValues];
+
+        var widgetValues = await _dbContext.SheetTableGroupWidgetValues
+            .AsNoTracking()
+            .Where(v => v.SheetTableGroupRevisionId == published.Id)
+            .ToListAsync(ct);
+        foreach (var value in widgetValues)
+        {
+            started.WidgetValues.Add(value with { SheetTableGroupRevisionId = 0 });
+        }
 
         _dbContext.SheetTableGroupRevisions.Add(started);
         return started;
@@ -117,7 +144,6 @@ internal class GroupDrafts
             Status = RevisionStatus.Draft,
             DisplayOrder = displayOrder,
             LinkedSheetTableGroupReferenceId = linkedGroupReferenceId,
-            WidgetValues = null,
             IsDeleted = false,
             CreatedByUserId = _user.Id,
             CreatedDateTime = now,

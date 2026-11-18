@@ -20,17 +20,12 @@ internal class UpdateSpecSheetTableNoteDraftOpHandler : DraftOperationHandlerBas
             return;
         }
 
-        var note = await Numbers.FindNoteAsync(operation.Id, ct);
-        var draft = await Tables.GetShownAsync(note.ItemId, ct);
+        var tableId = await Owners.TableOfNoteAsync(operation.Id, ct);
+        var draft = await Tables.GetShownAsync(tableId, ct);
 
-        var notes = (draft.Notes ?? []).ToList();
-        if (note.Index >= notes.Count)
-        {
-            throw new InvalidOperationException($"SheetTable with Id {note.ItemId} holds no note at position {note.Index + 1}.");
-        }
-
-        notes[note.Index] = notes[note.Index] with { IsObsolete = operation.IsObsolete.Value };
-        draft.Notes = notes;
+        var note = (await Tables.LoadNoteValuesAsync(draft, ct)).FirstOrDefault(v => v.SheetTableNoteId == operation.Id)
+            ?? throw new InvalidOperationException($"SheetTableNote with Id {operation.Id} isn't in the draft of SheetTable with Id {tableId}.");
+        note.IsObsolete = operation.IsObsolete.Value;
     }
 
     public (int TempId, int RealId)? GetGeneratedId(UpdateSpecSheetTableNoteOp operation)

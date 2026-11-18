@@ -142,8 +142,38 @@ public sealed class SheetHistoryBuilderTests
         var table = Assert.Single(built.Sheet.Tables);
         Assert.Equal(2, table.Revisions.Count);
         var current = table.Revisions.Single(revision => revision.SupersededDateTime is null);
-        var widget = Assert.IsType<PartPairWidgetValue>(Assert.Single(current.WidgetValues!).Value);
+        var widget = Assert.IsType<PartPairWidgetValue>(Assert.Single(current.WidgetValues).Value);
         Assert.Equal("2", widget.TopValue);
+    }
+
+    [Fact]
+    public void AWidget_IsOneItemWithAValueInEachRevision()
+    {
+        var built = Build(
+            _legacy.Copy(_monday, snapshot => WithWidget(snapshot, "1"), "a"),
+            _legacy.Copy(_tuesday, snapshot => WithWidget(snapshot, "2"), "a"));
+
+        var table = Assert.Single(built.Sheet.Tables);
+        var widget = Assert.Single(table.Widgets);
+        Assert.Equal(4, widget.TableTemplateWidgetId);
+        Assert.All(table.Revisions, revision => Assert.Same(widget, Assert.Single(revision.WidgetValues).SheetTableWidget));
+    }
+
+    [Fact]
+    public void ANoteThatTurnsObsolete_IsOneItemWhoseRowChanges()
+    {
+        var built = Build(
+            _legacy.Copy(_monday, snapshot => WithNotes(snapshot, obsolete: false), "a"),
+            _legacy.Copy(_tuesday, snapshot => WithNotes(snapshot, obsolete: true), "a"));
+
+        var table = Assert.Single(built.Sheet.Tables);
+        var note = Assert.Single(table.Notes);
+        Assert.Equal(7, note.CreatedByUserId);
+        var first = table.Revisions.Single(revision => revision.SupersededDateTime is not null);
+        var current = table.Revisions.Single(revision => revision.SupersededDateTime is null);
+        Assert.False(Assert.Single(first.NoteValues).IsObsolete);
+        Assert.Same(note, Assert.Single(current.NoteValues).SheetTableNote);
+        Assert.True(Assert.Single(current.NoteValues).IsObsolete);
     }
 
     [Fact]
@@ -298,6 +328,22 @@ public sealed class SheetHistoryBuilderTests
         Assert.Equal(_legacy.ReferenceOf("table"), Assert.Single(built.Sheet.Tables).ReferenceId);
         Assert.Equal(_legacy.ReferenceOf("group"), Assert.Single(Assert.Single(built.Sheet.Tables).Groups).ReferenceId);
         Assert.Equal(_legacy.ReferenceOf("cell a"), Assert.Single(Assert.Single(Rows(built)).Cells).ReferenceId);
+    }
+
+    private static SheetSnapshot WithNotes(SheetSnapshot snapshot, bool obsolete)
+    {
+        SheetTableNote[] notes =
+        [
+            new SheetTableNote
+            {
+                Note = "Check the torque",
+                SourceSystem = "PU",
+                IsObsolete = obsolete,
+                CreatedByUserId = 7,
+                CreatedDateTime = new DateTime(2024, 1, 2, 3, 4, 5, DateTimeKind.Utc)
+            }
+        ];
+        return snapshot with { Tables = [snapshot.Tables[0] with { Notes = notes }] };
     }
 
     private static SheetSnapshot WithWidget(SheetSnapshot snapshot, string value)

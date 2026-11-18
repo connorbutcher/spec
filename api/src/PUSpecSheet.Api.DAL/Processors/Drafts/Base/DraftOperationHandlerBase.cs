@@ -7,8 +7,7 @@ namespace PUSpecSheet.Api.DAL.Processors.Drafts.Base;
 
 /// <summary>
 /// The base of the handlers that apply an operation to a sheet's drafts in the revisions, rather than to its copy. The ids
-/// in the operations are those the draft is read with: its items' own, a value's is its cell's, and widgets and notes
-/// are numbered within the sheet (see <see cref="DraftItemNumbers"/>).
+/// in the operations are those the draft is read with: its items' own, and a value's is its cell's.
 /// </summary>
 internal abstract class DraftOperationHandlerBase : OperationHandlerBase
 {
@@ -20,7 +19,7 @@ internal abstract class DraftOperationHandlerBase : OperationHandlerBase
         Groups = new GroupDrafts(dbContext, user, sheetId);
         Rows = new RowDrafts(dbContext, user, sheetId);
         Values = new RowDraftValues(dbContext);
-        Numbers = new DraftItemNumbers(dbContext, sheetId);
+        Owners = new DraftItemOwners(dbContext, sheetId);
     }
 
     protected int SheetId { get; }
@@ -33,7 +32,7 @@ internal abstract class DraftOperationHandlerBase : OperationHandlerBase
 
     protected RowDraftValues Values { get; }
 
-    protected DraftItemNumbers Numbers { get; }
+    protected DraftItemOwners Owners { get; }
 
     protected async Task EnsureTableOnSheetAsync(int tableId, CancellationToken ct)
     {

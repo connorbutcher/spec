@@ -1,5 +1,4 @@
 ﻿using PUSpecSheet.Abstractions.Domain.Properties.Table;
-using PUSpecSheet.Abstractions.Domain.Sheets;
 using PUSpecSheet.Abstractions.Types;
 using PUSpecSheet.Api.Database.Schema.Access;
 
@@ -26,10 +25,6 @@ public record DbSheetTableRevision : IDbSheetRevision
 
     public required ITableProperties? ConfigurationOverride { get; set; }
 
-    public required ICollection<SheetWidgetValue>? WidgetValues { get; set; }
-
-    public required ICollection<SheetTableNote>? Notes { get; set; }
-
     public required bool IsDeleted { get; set; }
 
     public required int CreatedByUserId { get; init; }
@@ -51,4 +46,8 @@ public record DbSheetTableRevision : IDbSheetRevision
     public virtual DbUser? CreatedByUser { get; init; }
 
     public virtual DbSheetVersion? SheetVersion { get; set; }
+
+    public virtual ICollection<DbSheetTableWidgetValue> WidgetValues { get; init; } = [];
+
+    public virtual ICollection<DbSheetTableNoteValue> NoteValues { get; init; } = [];
 }

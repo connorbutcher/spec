@@ -20,10 +20,12 @@ internal class UpdateSpecSheetTableGroupWidgetDraftOpHandler : DraftOperationHan
             return;
         }
 
-        var widget = await Numbers.FindGroupWidgetAsync(operation.Id, ct);
-        var draft = await Groups.GetShownAsync(widget.ItemId, ct);
+        var groupId = await Owners.GroupOfWidgetAsync(operation.Id, ct);
+        var draft = await Groups.GetShownAsync(groupId, ct);
 
-        draft.WidgetValues = DraftWidgetValues.SetAt(draft.WidgetValues, widget.Index, operation.WidgetValue.Value);
+        var value = (await Groups.LoadWidgetValuesAsync(draft, ct)).FirstOrDefault(v => v.SheetTableGroupWidgetId == operation.Id)
+            ?? throw new InvalidOperationException($"SheetTableGroupWidget with Id {operation.Id} has no value in the draft of SheetTableGroup with Id {groupId}.");
+        value.Value = operation.WidgetValue.Value;
     }
 
     public (int TempId, int RealId)? GetGeneratedId(UpdateSpecSheetTableGroupWidgetOp operation)

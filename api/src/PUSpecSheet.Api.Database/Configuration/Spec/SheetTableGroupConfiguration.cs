@@ -47,5 +47,10 @@ internal class SheetTableGroupConfiguration : IEntityTypeConfiguration<DbSheetTa
             .WithOne()
             .HasForeignKey(x => x.SheetTableGroupId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasMany(x => x.Widgets)
+            .WithOne()
+            .HasForeignKey(x => x.SheetTableGroupId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

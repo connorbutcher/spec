@@ -1,5 +1,4 @@
 ﻿using System.Text.Json;
-using PUSpecSheet.Abstractions.Domain.Sheets;
 using PUSpecSheet.Abstractions.Domain.SpecSheets;
 
 namespace PUSpecSheet.Api.DAL.DataAccess.SpecSheets.Edits;
@@ -34,32 +33,28 @@ internal static class SheetCopySignatures
         return Json(new object?[] { row.RowNumber, cells });
     }
 
-    public static ICollection<SheetWidgetValue>? WidgetValuesOf(SpecSheetTable table)
+    private static IEnumerable<object?> WidgetValuesOf(SpecSheetTable table)
     {
-        return table.Widgets.Count == 0
-            ? null
-            : [.. table.Widgets.Select(widget => new SheetWidgetValue { TemplateWidgetId = widget.TableTemplateWidgetId, Value = widget.Value.Value })];
+        return table.Widgets
+            .OrderBy(widget => widget.TableTemplateWidgetId)
+            .Select(widget => new object?[] { widget.TableTemplateWidgetId, widget.Value.Value });
     }
 
-    public static ICollection<SheetWidgetValue>? WidgetValuesOf(SpecSheetTableGroup group)
+    private static IEnumerable<object?> WidgetValuesOf(SpecSheetTableGroup group)
     {
-        return group.Widgets.Count == 0
-            ? null
-            : [.. group.Widgets.Select(widget => new SheetWidgetValue { TemplateWidgetId = widget.TableGroupTemplateWidgetId, Value = widget.Value.Value })];
+        return group.Widgets
+            .OrderBy(widget => widget.TableGroupTemplateWidgetId)
+            .Select(widget => new object?[] { widget.TableGroupTemplateWidgetId, widget.Value.Value });
     }
 
-    public static ICollection<SheetTableNote>? NotesOf(SpecSheetTable table)
+    private static IEnumerable<object?> NotesOf(SpecSheetTable table)
     {
-        return table.Notes.Count == 0
-            ? null
-            : [.. table.Notes.Select(note => new SheetTableNote
-            {
-                Note = note.Note,
-                SourceSystem = note.SourceSystem,
-                IsObsolete = note.IsObsolete,
-                CreatedByUserId = note.CreatedByUserId,
-                CreatedDateTime = note.CreatedDateTime
-            })];
+        return table.Notes
+            .OrderBy(note => note.CreatedDateTime)
+            .ThenBy(note => note.CreatedByUserId)
+            .ThenBy(note => note.SourceSystem, StringComparer.Ordinal)
+            .ThenBy(note => note.Note, StringComparer.Ordinal)
+            .Select(note => new object?[] { note.Note, note.SourceSystem, note.IsObsolete, note.CreatedByUserId, note.CreatedDateTime });
     }
 
     private static string Json(object? value)

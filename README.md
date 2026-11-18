@@ -67,7 +67,7 @@ To move over:
 
 What is left out of the comparison, because it differs by design:
 
-- Ids of tables, groups, rows and cells (the revisions' items have their own), and of widgets, notes and workflow step actors, which the revisions number from 1 within the sheet. Items are matched by ReferenceID.
+- Ids of tables, groups, rows and cells (the revisions' items have their own), and of workflow step actors, which the revisions number from 1 within the sheet. Widgets and notes have their items' ids too. Items are matched by ReferenceID.
 - Who created and last changed each table, group, row and cell, which the copies keep per item. From the revisions they are who wrote the revision shown, and when it replaced the one before.
 
 What can differ and will show up if it does: a cell's own `RowNumber`, type or configuration where it isn't its row's or its template cell's (the migrator warns about these), a version's workflow steps where a copy's steps started before the version before it was published, an approver's decided time where the copy had none, and a group linked to a deleted group.

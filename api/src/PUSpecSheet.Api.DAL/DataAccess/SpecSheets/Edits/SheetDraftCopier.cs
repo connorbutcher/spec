@@ -21,6 +21,7 @@ internal class SheetDraftCopier
     private readonly GroupDrafts _groups;
     private readonly RowDrafts _rows;
     private readonly RowDraftValues _values;
+    private readonly SheetDraftItems _items;
     private readonly Dictionary<int, Dictionary<int, int>> _templateCellIds = [];
 
     public SheetDraftCopier(PUSpecSheetDbContext dbContext, User user, int sheetId)
@@ -34,6 +35,7 @@ internal class SheetDraftCopier
         _groups = new GroupDrafts(dbContext, user, sheetId);
         _rows = new RowDrafts(dbContext, user, sheetId);
         _values = new RowDraftValues(dbContext);
+        _items = new SheetDraftItems(dbContext, _tables, _groups);
     }
 
     /// <param name="target">The sheet as its drafts show it now, read from the revisions.</param>
@@ -70,8 +72,7 @@ internal class SheetDraftCopier
             draft.Title = source.Title;
             draft.DisplayOrder = source.DisplayOrder;
             draft.ConfigurationOverride = source.ConfigurationOverride;
-            draft.WidgetValues = SheetCopySignatures.WidgetValuesOf(source);
-            draft.Notes = SheetCopySignatures.NotesOf(source);
+            await _items.SetTableItemsAsync(draft, null, source, ct);
         }
 
         var targetLinks = LinkedReferenceIds(target);
@@ -103,7 +104,7 @@ internal class SheetDraftCopier
             var draft = await _groups.GetShownAsync(target.Id, ct);
             draft.DisplayOrder = source.Order;
             draft.LinkedSheetTableGroupReferenceId = sourceLink;
-            draft.WidgetValues = SheetCopySignatures.WidgetValuesOf(source);
+            await _items.SetGroupItemsAsync(draft, null, source, ct);
         }
 
         var targetRows = target.Rows.ToDictionary(row => row.ReferenceId);
@@ -169,8 +170,7 @@ internal class SheetDraftCopier
         };
 
         var draft = _tables.StartNew(newTable, source.Title, source.DisplayOrder, source.ConfigurationOverride);
-        draft.WidgetValues = SheetCopySignatures.WidgetValuesOf(source);
-        draft.Notes = SheetCopySignatures.NotesOf(source);
+        await _items.SetTableItemsAsync(draft, newTable, source, ct);
 
         var links = LinkedReferenceIds(source);
         foreach (var sourceGroup in source.Groups)
@@ -193,7 +193,7 @@ internal class SheetDraftCopier
         };
 
         var draft = _groups.StartNew(newGroup, source.Order, linkedReferenceId);
-        draft.WidgetValues = SheetCopySignatures.WidgetValuesOf(source);
+        await _items.SetGroupItemsAsync(draft, newGroup, source, ct);
 
         foreach (var sourceRow in source.Rows)
         {

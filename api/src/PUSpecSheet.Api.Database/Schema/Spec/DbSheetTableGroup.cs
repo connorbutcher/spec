@@ -22,4 +22,6 @@ public record DbSheetTableGroup
     public virtual ICollection<DbSheetTableGroupRevision> Revisions { get; init; } = [];
 
     public virtual ICollection<DbSheetTableRow> Rows { get; init; } = [];
+
+    public virtual ICollection<DbSheetTableGroupWidget> Widgets { get; init; } = [];
 }

@@ -2,7 +2,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using PUSpecSheet.Abstractions.Domain.Properties.Table;
-using PUSpecSheet.Abstractions.Domain.Sheets;
 using PUSpecSheet.Api.Database.Schema.Approval;
 using PUSpecSheet.Api.Database.Schema.Spec;
 using PUSpecSheet.Api.Database.Serialization;
@@ -46,18 +45,6 @@ internal class SheetTableRevisionConfiguration : IEntityTypeConfiguration<DbShee
             .HasConversion(
                 v => JsonSerializer.Serialize(v, JsonSerializerSettings.SerializerSettings),
                 v => JsonSerializer.Deserialize<ITableProperties>(v, JsonSerializerSettings.DeserializerSettings));
-
-        builder.Property(x => x.WidgetValues)
-            .HasColumnType("nvarchar(max)")
-            .HasConversion(
-                v => JsonSerializer.Serialize(v, JsonSerializerSettings.SerializerSettings),
-                v => JsonSerializer.Deserialize<ICollection<SheetWidgetValue>>(v, JsonSerializerSettings.DeserializerSettings));
-
-        builder.Property(x => x.Notes)
-            .HasColumnType("nvarchar(max)")
-            .HasConversion(
-                v => JsonSerializer.Serialize(v, JsonSerializerSettings.SerializerSettings),
-                v => JsonSerializer.Deserialize<ICollection<SheetTableNote>>(v, JsonSerializerSettings.DeserializerSettings));
 
         builder.Property(x => x.IsDeleted)
             .HasColumnType("bit");
@@ -110,5 +97,15 @@ internal class SheetTableRevisionConfiguration : IEntityTypeConfiguration<DbShee
             .WithMany()
             .HasForeignKey(x => x.SheetSubmissionId)
             .OnDelete(DeleteBehavior.NoAction);
+
+        builder.HasMany(x => x.WidgetValues)
+            .WithOne()
+            .HasForeignKey(x => x.SheetTableRevisionId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasMany(x => x.NoteValues)
+            .WithOne()
+            .HasForeignKey(x => x.SheetTableRevisionId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

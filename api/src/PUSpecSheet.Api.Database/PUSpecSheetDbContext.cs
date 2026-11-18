@@ -152,7 +152,19 @@ public class PUSpecSheetDbContext : DbContext
 
     public required DbSet<DbSheetTableRevision> SheetTableRevisions { get; set; }
 
+    public required DbSet<DbSheetTableWidget> SheetTableWidgets { get; set; }
+
+    public required DbSet<DbSheetTableWidgetValue> SheetTableWidgetValues { get; set; }
+
+    public required DbSet<DbSheetTableNote> SheetTableNotes { get; set; }
+
+    public required DbSet<DbSheetTableNoteValue> SheetTableNoteValues { get; set; }
+
     public required DbSet<DbSheetTableGroup> SheetTableGroups { get; set; }
+
+    public required DbSet<DbSheetTableGroupWidget> SheetTableGroupWidgets { get; set; }
+
+    public required DbSet<DbSheetTableGroupWidgetValue> SheetTableGroupWidgetValues { get; set; }
 
     public required DbSet<DbSheetTableGroupRevision> SheetTableGroupRevisions { get; set; }
 
@@ -253,6 +265,12 @@ public class PUSpecSheetDbContext : DbContext
         modelBuilder.ApplyConfiguration(new SheetTableRevisionConfiguration());
         modelBuilder.ApplyConfiguration(new SheetTableGroupConfiguration());
         modelBuilder.ApplyConfiguration(new SheetTableGroupRevisionConfiguration());
+        modelBuilder.ApplyConfiguration(new SheetTableWidgetConfiguration());
+        modelBuilder.ApplyConfiguration(new SheetTableWidgetValueConfiguration());
+        modelBuilder.ApplyConfiguration(new SheetTableNoteConfiguration());
+        modelBuilder.ApplyConfiguration(new SheetTableNoteValueConfiguration());
+        modelBuilder.ApplyConfiguration(new SheetTableGroupWidgetConfiguration());
+        modelBuilder.ApplyConfiguration(new SheetTableGroupWidgetValueConfiguration());
         modelBuilder.ApplyConfiguration(new SheetTableRowConfiguration());
         modelBuilder.ApplyConfiguration(new SheetTableRowRevisionConfiguration());
         modelBuilder.ApplyConfiguration(new SheetTableCellConfiguration());

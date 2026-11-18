@@ -108,7 +108,7 @@ The `ModelType` of the dropdown and lookup cell types (text and numeric dropdown
 
 ### The legacy schema
 
-The 19 tables of the sheet copies are in `legacy`, because the revisions replace them: `SpecSheets`, `SpecSheetTables`, `SpecSheetTableGroups`, `SpecSheetTableRows`, `SpecSheetTableCells`, `SpecSheetTableWidgets`, `SpecSheetTableGroupWidgets`, `SpecSheetTableNotes`, `SpecSheetLinkedTables` and `SpecSheetPropertyValues` (formerly `dbo`), `TextValues`, `NumericValues`, `PairValues`, `LinkedSpecSheetValues`, `TableWidgetValues` and `TableGroupWidgetValues` (formerly `values`), `SpecSheetExternalReferences` (formerly `references`), and `WorkflowSteps` and `WorkflowStepActors` (formerly `workflow`). Widgets and notes have no tables of their own in the revisions: a table or group revision holds them as JSON. Users, permissions, types, phases, templates and cell configurations aren't replaced, so they stay in `access`, `types`, `template` and `configuration`.
+The 19 tables of the sheet copies are in `legacy`, because the revisions replace them: `SpecSheets`, `SpecSheetTables`, `SpecSheetTableGroups`, `SpecSheetTableRows`, `SpecSheetTableCells`, `SpecSheetTableWidgets`, `SpecSheetTableGroupWidgets`, `SpecSheetTableNotes`, `SpecSheetLinkedTables` and `SpecSheetPropertyValues` (formerly `dbo`), `TextValues`, `NumericValues`, `PairValues`, `LinkedSpecSheetValues`, `TableWidgetValues` and `TableGroupWidgetValues` (formerly `values`), `SpecSheetExternalReferences` (formerly `references`), and `WorkflowSteps` and `WorkflowStepActors` (formerly `workflow`). Users, permissions, types, phases, templates and cell configurations aren't replaced, so they stay in `access`, `types`, `template` and `configuration`.
 
 The moves are in `PUSpecSheet.Database.refactorlog`, which both projects use. When `deploy.ps1` meets a database that still has the copies in their old schemas, SqlPackage moves them with `ALTER SCHEMA TRANSFER`, rows, keys and identity values included, rather than creating empty tables in `legacy`, and records the moves in `dbo.__RefactorLog` so it doesn't try them again. A database already using `legacy` (the legacy database itself, going by the dump) is left as it is. Run `compare.ps1` first to see what it will do. The old schemas are left behind, empty.
 
@@ -124,12 +124,14 @@ A sheet (`spec.Sheets`) is one per phase and sheet type. Its tables, groups, row
 
 | Item | Revisions hold |
 | --- | --- |
-| `SheetTables` (a `template.TableTemplates` table) | Title, display order, configuration override, widget values and notes (JSON) |
-| `SheetTableGroups` (a `template.TableGroupTemplates` group) | Display order (the copies' `Order`), the linked (parent) group's ReferenceID, widget values (JSON) |
+| `SheetTables` (a `template.TableTemplates` table) | Title, display order, configuration override |
+| `SheetTableGroups` (a `template.TableGroupTemplates` group) | Display order (the copies' `Order`), the linked (parent) group's ReferenceID |
 | `SheetTableRows` (a `template.TableRowTemplates` row) | Display order (the copies' `RowNumber`, by which a nested group's rows are matched with its parent's), and its cells' values in `cell.*` |
 | `SheetProperties` (a `types.SpecSheetTypeProperties` property) | The value |
 | `SheetLinkedTables` (another sheet's table, by ReferenceID) | Display order |
 | `SheetExternalReferences` | Everything, published only: references belong to versions |
+
+A table's widgets (`SheetTableWidgets`, one per `template.TableTemplateWidgets` widget) and notes (`SheetTableNotes`, with their writer, time and source system), and a group's widgets (`SheetTableGroupWidgets`), are items with no revisions of their own, like cells. What a revision holds of them is a row in `SheetTableWidgetValues`, `SheetTableNoteValues` or `SheetTableGroupWidgetValues`, keyed by the revision and the item: the widget's value (JSON, which may be empty), or the note's text and whether it is obsolete. A revision has a widget or note if it has its row, so a draft is started by copying the published revision's rows.
 
 A row's cells (`SheetTableCells`, one per `template.TableCellTemplates` cell) have no revisions of their own; their values (`cell.TextValues`, `NumericValues`, `PairValues`, `LinkedSheetValues`) and any configuration override (`cell.CellConfigurationOverrides`) are keyed by the row revision and the cell.
 

@@ -1,5 +1,4 @@
 ﻿using PUSpecSheet.Abstractions.Domain.Properties.Table;
-using PUSpecSheet.Abstractions.Domain.Sheets;
 using PUSpecSheet.Api.Database.Schema.Cell;
 using PUSpecSheet.Api.Database.Schema.Spec;
 using PUSpecSheet.Migrator.Snapshots;
@@ -25,8 +24,8 @@ internal sealed class RevisionFactory
         string title,
         int displayOrder,
         ITableProperties? configurationOverride,
-        ICollection<SheetWidgetValue>? widgetValues,
-        ICollection<SheetTableNote>? notes,
+        IEnumerable<DbSheetTableWidgetValue> widgetValues,
+        IEnumerable<DbSheetTableNoteValue> noteValues,
         bool isDeleted)
     {
         return new DbSheetTableRevision
@@ -39,8 +38,8 @@ internal sealed class RevisionFactory
             Title = title,
             DisplayOrder = displayOrder,
             ConfigurationOverride = configurationOverride,
-            WidgetValues = widgetValues,
-            Notes = notes,
+            WidgetValues = [.. widgetValues],
+            NoteValues = [.. noteValues],
             IsDeleted = isDeleted,
             CreatedByUserId = context.UserId,
             CreatedDateTime = context.At,
@@ -58,7 +57,7 @@ internal sealed class RevisionFactory
         int revisionNumber,
         int displayOrder,
         Guid? linkedGroupReferenceId,
-        ICollection<SheetWidgetValue>? widgetValues,
+        IEnumerable<DbSheetTableGroupWidgetValue> widgetValues,
         bool isDeleted)
     {
         return new DbSheetTableGroupRevision
@@ -70,7 +69,7 @@ internal sealed class RevisionFactory
             Status = context.Status,
             DisplayOrder = displayOrder,
             LinkedSheetTableGroupReferenceId = linkedGroupReferenceId,
-            WidgetValues = widgetValues,
+            WidgetValues = [.. widgetValues],
             IsDeleted = isDeleted,
             CreatedByUserId = context.UserId,
             CreatedDateTime = context.At,

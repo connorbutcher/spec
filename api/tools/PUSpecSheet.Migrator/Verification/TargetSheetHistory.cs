@@ -25,9 +25,11 @@ internal sealed class TargetSheetHistory
         bool IsDeleted,
         TData Data);
 
-    private sealed record TableData(string Title, int DisplayOrder, ITableProperties? ConfigurationOverride, IEnumerable<SheetWidgetValue>? WidgetValues, IEnumerable<SheetTableNote>? Notes);
+    private sealed record TableData(string Title, int DisplayOrder, ITableProperties? ConfigurationOverride);
 
-    private sealed record GroupData(int DisplayOrder, IEnumerable<SheetWidgetValue>? WidgetValues, Guid? LinkedGroupReferenceId);
+    private sealed record GroupData(int DisplayOrder, Guid? LinkedGroupReferenceId);
+
+    private sealed record NoteOf(int ItemId, SheetTableNote Note);
 
     // A group or row item's parent is its table or group; a table has none, and keeps the sheet's id there.
     private sealed record ItemOf(int Id, Guid ReferenceId, int ParentId, int TemplateId);
@@ -49,6 +51,9 @@ internal sealed class TargetSheetHistory
     private Dictionary<int, SnapshotLinkedTable> _links = [];
     private List<CellItem> _cells = [];
     private Dictionary<int, Dictionary<int, CellContentParts>> _contentsByRowRevision = [];
+    private Dictionary<int, List<SheetWidgetValue>> _tableWidgetsByRevision = [];
+    private Dictionary<int, List<SheetWidgetValue>> _groupWidgetsByRevision = [];
+    private Dictionary<int, List<NoteOf>> _notesByRevision = [];
 
     private TargetSheetHistory()
     {
@@ -71,7 +76,7 @@ internal sealed class TargetSheetHistory
                     revision.PublishedDateTime,
                     revision.SupersededDateTime,
                     revision.IsDeleted,
-                    new TableData(revision.Title, revision.DisplayOrder, revision.ConfigurationOverride, revision.WidgetValues, revision.Notes)))
+                    new TableData(revision.Title, revision.DisplayOrder, revision.ConfigurationOverride)))
                 .ToListAsync(cancellationToken),
             _groupRevisions = await db.SheetTableGroupRevisions.AsNoTracking()
                 .Where(revision => revision.SheetId == sheetId)
@@ -82,7 +87,7 @@ internal sealed class TargetSheetHistory
                     revision.PublishedDateTime,
                     revision.SupersededDateTime,
                     revision.IsDeleted,
-                    new GroupData(revision.DisplayOrder, revision.WidgetValues, revision.LinkedSheetTableGroupReferenceId)))
+                    new GroupData(revision.DisplayOrder, revision.LinkedSheetTableGroupReferenceId)))
                 .ToListAsync(cancellationToken),
             _rowRevisions = await db.SheetTableRowRevisions.AsNoTracking()
                 .Where(revision => revision.SheetId == sheetId)
@@ -147,7 +152,10 @@ internal sealed class TargetSheetHistory
                     },
                     cancellationToken),
             _externalReferenceRevisions = await ReadExternalReferencesAsync(db, sheetId, cancellationToken),
-            _contentsByRowRevision = await ReadContentsAsync(db, sheetId, cancellationToken)
+            _contentsByRowRevision = await ReadContentsAsync(db, sheetId, cancellationToken),
+            _tableWidgetsByRevision = await ReadTableWidgetsAsync(db, sheetId, cancellationToken),
+            _groupWidgetsByRevision = await ReadGroupWidgetsAsync(db, sheetId, cancellationToken),
+            _notesByRevision = await ReadNotesAsync(db, sheetId, cancellationToken)
         };
     }
 
@@ -171,8 +179,8 @@ internal sealed class TargetSheetHistory
                 Title = table.Data.Title,
                 DisplayOrder = table.Data.DisplayOrder,
                 ConfigurationOverride = table.Data.ConfigurationOverride,
-                WidgetValues = table.Data.WidgetValues?.ToList() ?? [],
-                Notes = table.Data.Notes?.ToList() ?? []
+                WidgetValues = _tableWidgetsByRevision.GetValueOrDefault(table.Id) ?? [],
+                Notes = (_notesByRevision.GetValueOrDefault(table.Id) ?? []).Select(note => note.Note).ToList()
             })
             .ToList();
         var tableIds = tables.Select(table => table.Id).ToHashSet();
@@ -186,7 +194,7 @@ internal sealed class TargetSheetHistory
                 TableId = _groups[group.ItemId].ParentId,
                 TableGroupTemplateId = _groups[group.ItemId].TemplateId,
                 DisplayOrder = group.Data.DisplayOrder,
-                WidgetValues = group.Data.WidgetValues?.ToList() ?? [],
+                WidgetValues = _groupWidgetsByRevision.GetValueOrDefault(group.Id) ?? [],
                 LinkedGroupReferenceId = group.Data.LinkedGroupReferenceId
             })
             .ToList();
@@ -264,6 +272,70 @@ internal sealed class TargetSheetHistory
 
         return revision.Status == RevisionStatus.Draft
             || (revision.Status == RevisionStatus.Published && revision.SupersededDateTime is null);
+    }
+
+    // The widgets of every table revision of the sheet, by revision.
+    private static async Task<Dictionary<int, List<SheetWidgetValue>>> ReadTableWidgetsAsync(PUSpecSheetDbContext db, int sheetId, CancellationToken cancellationToken)
+    {
+        var rows = await db.SheetTableWidgetValues.AsNoTracking()
+            .Where(value => db.SheetTableRevisions.Any(revision => revision.Id == value.SheetTableRevisionId && revision.SheetId == sheetId))
+            .Select(value => new { value.SheetTableRevisionId, value.SheetTableWidget!.TableTemplateWidgetId, value.Value })
+            .ToListAsync(cancellationToken);
+
+        return rows
+            .GroupBy(row => row.SheetTableRevisionId)
+            .ToDictionary(
+                revision => revision.Key,
+                revision => revision.Select(row => new SheetWidgetValue { TemplateWidgetId = row.TableTemplateWidgetId, Value = row.Value }).ToList());
+    }
+
+    private static async Task<Dictionary<int, List<SheetWidgetValue>>> ReadGroupWidgetsAsync(PUSpecSheetDbContext db, int sheetId, CancellationToken cancellationToken)
+    {
+        var rows = await db.SheetTableGroupWidgetValues.AsNoTracking()
+            .Where(value => db.SheetTableGroupRevisions.Any(revision => revision.Id == value.SheetTableGroupRevisionId && revision.SheetId == sheetId))
+            .Select(value => new { value.SheetTableGroupRevisionId, value.SheetTableGroupWidget!.TableGroupTemplateWidgetId, value.Value })
+            .ToListAsync(cancellationToken);
+
+        return rows
+            .GroupBy(row => row.SheetTableGroupRevisionId)
+            .ToDictionary(
+                revision => revision.Key,
+                revision => revision.Select(row => new SheetWidgetValue { TemplateWidgetId = row.TableGroupTemplateWidgetId, Value = row.Value }).ToList());
+    }
+
+    // The notes of every table revision of the sheet, by revision, oldest first as the copies read them.
+    private static async Task<Dictionary<int, List<NoteOf>>> ReadNotesAsync(PUSpecSheetDbContext db, int sheetId, CancellationToken cancellationToken)
+    {
+        var rows = await db.SheetTableNoteValues.AsNoTracking()
+            .Where(value => db.SheetTableRevisions.Any(revision => revision.Id == value.SheetTableRevisionId && revision.SheetId == sheetId))
+            .Select(value => new
+            {
+                value.SheetTableRevisionId,
+                value.SheetTableNoteId,
+                value.Note,
+                value.IsObsolete,
+                value.SheetTableNote!.SourceSystem,
+                value.SheetTableNote.CreatedByUserId,
+                value.SheetTableNote.CreatedDateTime
+            })
+            .ToListAsync(cancellationToken);
+
+        return rows
+            .GroupBy(row => row.SheetTableRevisionId)
+            .ToDictionary(
+                revision => revision.Key,
+                revision => revision
+                    .OrderBy(row => row.CreatedDateTime)
+                    .ThenBy(row => row.SheetTableNoteId)
+                    .Select(row => new NoteOf(row.SheetTableNoteId, new SheetTableNote
+                    {
+                        Note = row.Note,
+                        SourceSystem = row.SourceSystem,
+                        IsObsolete = row.IsObsolete,
+                        CreatedByUserId = row.CreatedByUserId,
+                        CreatedDateTime = row.CreatedDateTime
+                    }))
+                    .ToList());
     }
 
     // External references have no drafts: as of a moment is the revision published at or before it and not yet replaced.

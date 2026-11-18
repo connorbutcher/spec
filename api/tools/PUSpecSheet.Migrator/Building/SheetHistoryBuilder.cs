@@ -1,4 +1,5 @@
 ﻿using System.Globalization;
+using PUSpecSheet.Abstractions.Domain.Sheets;
 using PUSpecSheet.Api.Database.Schema.Spec;
 using PUSpecSheet.Migrator.Legacy;
 using PUSpecSheet.Migrator.Snapshots;
@@ -32,6 +33,9 @@ internal sealed class SheetHistoryBuilder
     private readonly Dictionary<Guid, ItemTrack<DbSheetLinkedTable, DbSheetLinkedTableRevision>> _linkedTables = [];
     private readonly Dictionary<Guid, ExternalReferenceTrack> _references = [];
     private readonly Dictionary<CellKey, DbSheetTableCell> _cells = [];
+    private readonly Dictionary<(int TableKey, int TemplateWidgetId), DbSheetTableWidget> _tableWidgets = [];
+    private readonly Dictionary<(int GroupKey, int TemplateWidgetId), DbSheetTableGroupWidget> _groupWidgets = [];
+    private readonly Dictionary<NoteKey, DbSheetTableNote> _notes = [];
     private SnapshotKeys _previousKeys = new();
     private HashSet<int> _previousProperties = [];
     private HashSet<Guid> _previousLinkedTables = [];
@@ -173,8 +177,6 @@ internal sealed class SheetHistoryBuilder
             _tables[key] = track;
         }
 
-        var widgetValues = ListOrNull(table.WidgetValues);
-        var notes = ListOrNull(table.Notes);
         var state = $"{table.DisplayOrder}|{table.Title}|{SnapshotJson.Of(table.ConfigurationOverride)}|{SnapshotJson.Of(table.WidgetValues)}|{SnapshotJson.Of(table.Notes)}";
         Write(context, track, state, revisionNumber => _revisions.TableRevision(
             context,
@@ -182,8 +184,8 @@ internal sealed class SheetHistoryBuilder
             table.Title,
             table.DisplayOrder,
             table.ConfigurationOverride,
-            widgetValues,
-            notes,
+            TableWidgetRows(context, key, table.WidgetValues),
+            NoteRows(context, key, table.Notes),
             isDeleted: false));
     }
 
@@ -206,15 +208,124 @@ internal sealed class SheetHistoryBuilder
             _groups[key] = track;
         }
 
-        var widgetValues = ListOrNull(group.WidgetValues);
         var state = $"{group.DisplayOrder}|{SnapshotJson.Of(group.WidgetValues)}|{group.LinkedGroupReferenceId}";
         Write(context, track, state, revisionNumber => _revisions.GroupRevision(
             context,
             revisionNumber,
             group.DisplayOrder,
             group.LinkedGroupReferenceId,
-            widgetValues,
+            GroupWidgetRows(context, key, group.WidgetValues),
             isDeleted: false));
+    }
+
+    // The rows that give a table revision its widgets: each is a new row for the widget's item, which the table has
+    // from the first copy that has the widget.
+    private List<DbSheetTableWidgetValue> TableWidgetRows(WriteContext context, int tableKey, IReadOnlyList<SheetWidgetValue> widgets)
+    {
+        var rows = new List<DbSheetTableWidgetValue>();
+        foreach (var widget in widgets)
+        {
+            var itemKey = (tableKey, widget.TemplateWidgetId);
+            if (!_tableWidgets.TryGetValue(itemKey, out var item))
+            {
+                item = new DbSheetTableWidget
+                {
+                    Id = 0,
+                    SheetTableId = 0,
+                    TableTemplateWidgetId = widget.TemplateWidgetId,
+                    CreatedDateTime = context.At
+                };
+                _tables[tableKey].Item.Widgets.Add(item);
+                _tableWidgets[itemKey] = item;
+            }
+
+            rows.Add(new DbSheetTableWidgetValue
+            {
+                SheetTableRevisionId = 0,
+                SheetTableWidgetId = 0,
+                Value = widget.Value,
+                SheetTableWidget = item
+            });
+        }
+
+        return rows;
+    }
+
+    private List<DbSheetTableGroupWidgetValue> GroupWidgetRows(WriteContext context, int groupKey, IReadOnlyList<SheetWidgetValue> widgets)
+    {
+        var rows = new List<DbSheetTableGroupWidgetValue>();
+        foreach (var widget in widgets)
+        {
+            var itemKey = (groupKey, widget.TemplateWidgetId);
+            if (!_groupWidgets.TryGetValue(itemKey, out var item))
+            {
+                item = new DbSheetTableGroupWidget
+                {
+                    Id = 0,
+                    SheetTableGroupId = 0,
+                    TableGroupTemplateWidgetId = widget.TemplateWidgetId,
+                    CreatedDateTime = context.At
+                };
+                _groups[groupKey].Item.Widgets.Add(item);
+                _groupWidgets[itemKey] = item;
+            }
+
+            rows.Add(new DbSheetTableGroupWidgetValue
+            {
+                SheetTableGroupRevisionId = 0,
+                SheetTableGroupWidgetId = 0,
+                Value = widget.Value,
+                SheetTableGroupWidget = item
+            });
+        }
+
+        return rows;
+    }
+
+    // A note is its item from when it was written; the copies repeat it, with whether it is obsolete as it was then.
+    private List<DbSheetTableNoteValue> NoteRows(WriteContext context, int tableKey, IReadOnlyList<SheetTableNote> notes)
+    {
+        var rows = new List<DbSheetTableNoteValue>();
+        var seen = new Dictionary<(int UserId, DateTime CreatedDateTime, string SourceSystem), int>();
+        foreach (var note in notes)
+        {
+            var identity = (note.CreatedByUserId, note.CreatedDateTime, note.SourceSystem);
+            var ordinal = seen.GetValueOrDefault(identity);
+            seen[identity] = ordinal + 1;
+
+            var itemKey = new NoteKey
+            {
+                TableKey = tableKey,
+                CreatedByUserId = note.CreatedByUserId,
+                CreatedDateTime = note.CreatedDateTime,
+                SourceSystem = note.SourceSystem,
+                Ordinal = ordinal
+            };
+            if (!_notes.TryGetValue(itemKey, out var item))
+            {
+                item = new DbSheetTableNote
+                {
+                    Id = 0,
+                    SheetTableId = 0,
+                    SourceSystem = note.SourceSystem,
+                    CreatedByUserId = note.CreatedByUserId,
+                    CreatedDateTime = note.CreatedDateTime
+                };
+                _tables[tableKey].Item.Notes.Add(item);
+                _notes[itemKey] = item;
+            }
+
+            rows.Add(new DbSheetTableNoteValue
+            {
+                SheetTableRevisionId = 0,
+                SheetTableNoteId = 0,
+                Note = note.Note,
+                IsObsolete = note.IsObsolete,
+                SheetTableNote = item
+            });
+        }
+
+        return rows;
     }
 
     private void ApplyRow(WriteContext context, SheetSnapshot snapshot, SnapshotKeys keys, SnapshotRow row)
@@ -305,8 +416,8 @@ internal sealed class SheetHistoryBuilder
                 last.Title,
                 last.DisplayOrder,
                 last.ConfigurationOverride,
-                last.WidgetValues,
-                last.Notes,
+                last.WidgetValues.Select(value => value with { SheetTableRevisionId = 0 }),
+                last.NoteValues.Select(value => value with { SheetTableRevisionId = 0 }),
                 isDeleted: true));
         }
 
@@ -321,7 +432,7 @@ internal sealed class SheetHistoryBuilder
                     revisionNumber,
                     last.DisplayOrder,
                     last.LinkedSheetTableGroupReferenceId,
-                    last.WidgetValues,
+                    last.WidgetValues.Select(value => value with { SheetTableGroupRevisionId = 0 }),
                     isDeleted: true));
             }
         }
@@ -569,10 +680,5 @@ internal sealed class SheetHistoryBuilder
         _claimedReferenceIds.Add(fresh);
         _warnings.Add($"The ReferenceID {referenceId} of a {what} was used by another item of the sheet; it was given {fresh}.");
         return fresh;
-    }
-
-    private static List<T>? ListOrNull<T>(IReadOnlyList<T> values)
-    {
-        return values.Count == 0 ? null : [.. values];
     }
 }

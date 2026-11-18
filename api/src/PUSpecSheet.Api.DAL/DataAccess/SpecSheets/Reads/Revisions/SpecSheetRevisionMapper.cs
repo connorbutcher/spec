@@ -1,5 +1,4 @@
-﻿using PUSpecSheet.Abstractions.Domain.Sheets;
-using PUSpecSheet.Abstractions.Types;
+﻿using PUSpecSheet.Abstractions.Types;
 using PUSpecSheet.Api.Database.Schema.Access;
 using PUSpecSheet.Api.Database.Schema.Approval;
 using PUSpecSheet.Api.Database.Schema.References;
@@ -12,9 +11,9 @@ namespace PUSpecSheet.Api.DAL.DataAccess.SpecSheets.Reads.Revisions;
 
 /// <summary>
 /// Maps what the revisions show of a sheet to the records a copy of the sheet is read into, so that what is read from
-/// either is mapped to the domain the same way. Tables, groups, rows and cells have the ids of their spec items;
-/// widgets, notes and workflow step actors, which the revisions keep inside their items, are numbered from 1 within
-/// the sheet. An item's creator is who wrote the revision shown.
+/// either is mapped to the domain the same way. Tables, groups, rows, cells, widgets and notes have the ids of their
+/// spec items; workflow step actors, which the revisions don't keep as items, are numbered from 1 within the sheet. An
+/// item's creator is who wrote the revision shown, except a note's, which the note keeps.
 /// </summary>
 internal static class SpecSheetRevisionMapper
 {
@@ -28,12 +27,12 @@ internal static class SpecSheetRevisionMapper
         return revision.RevisionNumber > 1 ? revision.PublishedDateTime ?? revision.LastModifiedDateTime : null;
     }
 
-    public static List<DbSpecSheetTable> MapTables(DbSheet sheet, int specSheetId, RevisionItemNumbering ids, Dictionary<int, DbUser> users)
+    public static List<DbSpecSheetTable> MapTables(DbSheet sheet, int specSheetId, Dictionary<int, DbUser> users)
     {
         return [.. sheet.Tables
             .Where(table => table.Revisions.IsShown())
             .OrderBy(table => table.Id)
-            .Select(table => MapTable(table, specSheetId, ids, users))
+            .Select(table => MapTable(table, specSheetId, users))
             .OrderBy(table => table.DisplayOrder)];
     }
 
@@ -51,7 +50,7 @@ internal static class SpecSheetRevisionMapper
             .Select(reference => MapExternalReference(reference, specSheetId))];
     }
 
-    private static DbSpecSheetTable MapTable(DbSheetTable table, int specSheetId, RevisionItemNumbering ids, Dictionary<int, DbUser> users)
+    private static DbSpecSheetTable MapTable(DbSheetTable table, int specSheetId, Dictionary<int, DbUser> users)
     {
         var revision = table.Revisions.Shown();
 
@@ -75,40 +74,41 @@ internal static class SpecSheetRevisionMapper
             LastModifiedByUserId = LastModifiedByUserId(revision),
             LastModifiedDateTime = LastModifiedDateTime(revision),
             ConfigurationOverride = revision.ConfigurationOverride,
-            Groups = [.. table.Groups.Where(group => group.Revisions.IsShown()).OrderBy(group => group.Id).Select(group => MapGroup(group, groupIdsByReference, ids))],
-            Widgets = [.. (revision.WidgetValues ?? []).Select(widget => MapTableWidget(widget, table.Id, ids))],
-            Notes = [.. (revision.Notes ?? []).Select(note => MapNote(note, table.Id, ids, users))]
+            Groups = [.. table.Groups.Where(group => group.Revisions.IsShown()).OrderBy(group => group.Id).Select(group => MapGroup(group, groupIdsByReference))],
+            Widgets = [.. revision.WidgetValues.OrderBy(widget => widget.SheetTableWidgetId).Select(widget => MapTableWidget(widget, table.Id))],
+            Notes = [.. revision.NoteValues.OrderBy(note => note.SheetTableNoteId).Select(note => MapNote(note, table.Id, users))]
         };
     }
 
-    private static DbSpecSheetTableWidget MapTableWidget(SheetWidgetValue widget, int tableId, RevisionItemNumbering ids)
+    private static DbSpecSheetTableWidget MapTableWidget(DbSheetTableWidgetValue value, int tableId)
     {
-        var widgetId = ids.Next("table widget");
+        var widget = value.SheetTableWidget!;
         return new DbSpecSheetTableWidget
         {
-            Id = widgetId,
+            Id = widget.Id,
             SpecSheetTableId = tableId,
-            TableTemplateWidgetId = widget.TemplateWidgetId,
-            Value = new DbTableWidgetValue { Id = widgetId, SpecSheetTableWidgetId = widgetId, Value = widget.Value }
+            TableTemplateWidgetId = widget.TableTemplateWidgetId,
+            Value = new DbTableWidgetValue { Id = widget.Id, SpecSheetTableWidgetId = widget.Id, Value = value.Value }
         };
     }
 
-    private static DbSpecSheetTableNote MapNote(SheetTableNote note, int tableId, RevisionItemNumbering ids, Dictionary<int, DbUser> users)
+    private static DbSpecSheetTableNote MapNote(DbSheetTableNoteValue value, int tableId, Dictionary<int, DbUser> users)
     {
+        var note = value.SheetTableNote!;
         return new DbSpecSheetTableNote
         {
-            Id = ids.Next("note"),
+            Id = note.Id,
             SpecSheetTableId = tableId,
-            Note = note.Note,
+            Note = value.Note,
             SourceSystem = note.SourceSystem,
-            IsObsolete = note.IsObsolete,
+            IsObsolete = value.IsObsolete,
             CreatedByUserId = note.CreatedByUserId,
             CreatedDateTime = note.CreatedDateTime,
             CreatedByUser = users.GetValueOrDefault(note.CreatedByUserId)
         };
     }
 
-    private static DbSpecSheetTableGroup MapGroup(DbSheetTableGroup group, Dictionary<Guid, int> groupIdsByReference, RevisionItemNumbering ids)
+    private static DbSpecSheetTableGroup MapGroup(DbSheetTableGroup group, Dictionary<Guid, int> groupIdsByReference)
     {
         var revision = group.Revisions.Shown();
         int? linkedGroupId = revision.LinkedSheetTableGroupReferenceId is { } linkedReference
@@ -126,7 +126,7 @@ internal static class SpecSheetRevisionMapper
             ReferenceId = group.ReferenceId,
             IsDeleted = false,
             Rows = [.. group.Rows.Where(row => row.Revisions.IsShown()).Select(MapRow).OrderBy(row => row.RowNumber)],
-            Widgets = [.. (revision.WidgetValues ?? []).Select(widget => MapGroupWidget(widget, group.Id, ids))],
+            Widgets = [.. revision.WidgetValues.OrderBy(widget => widget.SheetTableGroupWidgetId).Select(widget => MapGroupWidget(widget, group.Id))],
             CreatedByUserId = revision.CreatedByUserId,
             CreatedDateTime = group.CreatedDateTime,
             LastModifiedByUserId = LastModifiedByUserId(revision),
@@ -134,15 +134,15 @@ internal static class SpecSheetRevisionMapper
         };
     }
 
-    private static DbSpecSheetTableGroupWidget MapGroupWidget(SheetWidgetValue widget, int groupId, RevisionItemNumbering ids)
+    private static DbSpecSheetTableGroupWidget MapGroupWidget(DbSheetTableGroupWidgetValue value, int groupId)
     {
-        var widgetId = ids.Next("group widget");
+        var widget = value.SheetTableGroupWidget!;
         return new DbSpecSheetTableGroupWidget
         {
-            Id = widgetId,
+            Id = widget.Id,
             SpecSheetTableGroupId = groupId,
-            TableGroupTemplateWidgetId = widget.TemplateWidgetId,
-            Value = new DbTableGroupWidgetValue { Id = widgetId, SpecSheetTableGroupWidgetId = widgetId, Value = widget.Value }
+            TableGroupTemplateWidgetId = widget.TableGroupTemplateWidgetId,
+            Value = new DbTableGroupWidgetValue { Id = widget.Id, SpecSheetTableGroupWidgetId = widget.Id, Value = value.Value }
         };
     }
 

@@ -1,7 +1,7 @@
 ﻿namespace PUSpecSheet.Api.DAL.DataAccess.SpecSheets.Reads;
 
 /// <summary>
-/// Ids for what the revisions keep inside their items (widgets, notes and workflow step actors), numbered from 1 within
+/// Ids for what the revisions have no items for (workflow step actors), numbered from 1 within
 /// the sheet for each kind.
 /// </summary>
 internal class RevisionItemNumbering

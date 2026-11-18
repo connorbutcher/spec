@@ -55,6 +55,44 @@ internal class TableDrafts
     }
 
     /// <summary>
+    /// The widget values of a table's draft, loaded if the draft is one already saved.
+    /// </summary>
+    public async Task<ICollection<DbSheetTableWidgetValue>> LoadWidgetValuesAsync(DbSheetTableRevision draft, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(draft, nameof(draft));
+
+        if (draft.Id != 0)
+        {
+            var widgetValues = _dbContext.Entry(draft).Collection(r => r.WidgetValues);
+            if (!widgetValues.IsLoaded)
+            {
+                await widgetValues.LoadAsync(ct);
+            }
+        }
+
+        return draft.WidgetValues;
+    }
+
+    /// <summary>
+    /// The note values of a table's draft, loaded if the draft is one already saved.
+    /// </summary>
+    public async Task<ICollection<DbSheetTableNoteValue>> LoadNoteValuesAsync(DbSheetTableRevision draft, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(draft, nameof(draft));
+
+        if (draft.Id != 0)
+        {
+            var noteValues = _dbContext.Entry(draft).Collection(r => r.NoteValues);
+            if (!noteValues.IsLoaded)
+            {
+                await noteValues.LoadAsync(ct);
+            }
+        }
+
+        return draft.NoteValues;
+    }
+
+    /// <summary>
     /// Adds the first revision of a table added in the draft.
     /// </summary>
     public DbSheetTableRevision StartNew(DbSheetTable table, string title, int displayOrder, ITableProperties? configurationOverride)
@@ -90,8 +128,24 @@ internal class TableDrafts
 
         var started = NewDraft(published.SheetTableId, published.RevisionNumber + 1, published.Title, published.DisplayOrder);
         started.ConfigurationOverride = published.ConfigurationOverride;
-        started.WidgetValues = published.WidgetValues is null ? null : [.. published.WidgetValues];
-        started.Notes = published.Notes is null ? null : [.. published.Notes];
+
+        var widgetValues = await _dbContext.SheetTableWidgetValues
+            .AsNoTracking()
+            .Where(v => v.SheetTableRevisionId == published.Id)
+            .ToListAsync(ct);
+        foreach (var value in widgetValues)
+        {
+            started.WidgetValues.Add(value with { SheetTableRevisionId = 0 });
+        }
+
+        var noteValues = await _dbContext.SheetTableNoteValues
+            .AsNoTracking()
+            .Where(v => v.SheetTableRevisionId == published.Id)
+            .ToListAsync(ct);
+        foreach (var value in noteValues)
+        {
+            started.NoteValues.Add(value with { SheetTableRevisionId = 0 });
+        }
 
         _dbContext.SheetTableRevisions.Add(started);
         return started;
@@ -110,8 +164,6 @@ internal class TableDrafts
             Title = title,
             DisplayOrder = displayOrder,
             ConfigurationOverride = null,
-            WidgetValues = null,
-            Notes = null,
             IsDeleted = false,
             CreatedByUserId = _user.Id,
             CreatedDateTime = now,

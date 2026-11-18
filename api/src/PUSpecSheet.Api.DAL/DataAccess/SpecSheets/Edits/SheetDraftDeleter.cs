@@ -6,7 +6,7 @@ namespace PUSpecSheet.Api.DAL.DataAccess.SpecSheets.Edits;
 
 /// <summary>
 /// Drops a sheet's drafts, for a draft of a sheet type edited on the revisions that is deleted: every draft revision, and
-/// the tables, groups, rows, cells and properties added in the draft. It runs in the caller's transaction.
+/// the tables, groups, rows, cells, widgets, notes and properties added in the draft. It runs in the caller's transaction.
 /// </summary>
 internal class SheetDraftDeleter
 {
@@ -37,6 +37,16 @@ internal class SheetDraftDeleter
             .Where(r => r.SheetId == sheetId && r.Status == RevisionStatus.Draft)
             .ExecuteDeleteAsync(cancellationToken);
 
+        await _dbContext.SheetTableWidgets
+            .Where(w => !_dbContext.SheetTableWidgetValues.Any(v => v.SheetTableWidgetId == w.Id) && _dbContext.SheetTables.Any(t => t.Id == w.SheetTableId && t.SheetId == sheetId))
+            .ExecuteDeleteAsync(cancellationToken);
+        await _dbContext.SheetTableNotes
+            .Where(n => !_dbContext.SheetTableNoteValues.Any(v => v.SheetTableNoteId == n.Id) && _dbContext.SheetTables.Any(t => t.Id == n.SheetTableId && t.SheetId == sheetId))
+            .ExecuteDeleteAsync(cancellationToken);
+        await _dbContext.SheetTableGroupWidgets
+            .Where(w => !_dbContext.SheetTableGroupWidgetValues.Any(v => v.SheetTableGroupWidgetId == w.Id)
+                && _dbContext.SheetTableGroups.Any(g => g.Id == w.SheetTableGroupId && _dbContext.SheetTables.Any(t => t.Id == g.SheetTableId && t.SheetId == sheetId)))
+            .ExecuteDeleteAsync(cancellationToken);
         await _dbContext.SheetTableRows
             .Where(row => !row.Revisions.Any() && _dbContext.SheetTableGroups.Any(g => g.Id == row.SheetTableGroupId && _dbContext.SheetTables.Any(t => t.Id == g.SheetTableId && t.SheetId == sheetId)))
             .ExecuteDeleteAsync(cancellationToken);
