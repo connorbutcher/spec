@@ -44,6 +44,11 @@ internal class SheetDataAccessService : ISheetDataAccessService
         return await _sheetReader.ReadVersionsAsync(sheetId, cancellationToken);
     }
 
+    public async Task<IReadOnlyList<SheetSubmission>?> GetSheetSubmissionsAsync(int sheetId, int? versionNumber, CancellationToken cancellationToken)
+    {
+        return await _sheetReader.ReadSubmissionsAsync(sheetId, versionNumber, cancellationToken);
+    }
+
     public async Task<Sheet?> GetLatestPublishedSheetByPhaseAndTypeAsync(int phaseId, int sheetTypeId, DateTime? publishedBy, CancellationToken cancellationToken)
     {
         var sheetId = await _sheetReader.FindSheetIdAsync(phaseId, sheetTypeId, cancellationToken);

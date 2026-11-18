@@ -23,6 +23,12 @@ public interface ISheetDataAccessService
     Task<IReadOnlyList<SheetVersion>> GetSheetVersionsAsync(int sheetId, CancellationToken cancellationToken);
 
     /// <summary>
+    /// The sheet's submissions and who approved them, oldest first: only those that published the version when one is
+    /// given. Null when the sheet has no such version.
+    /// </summary>
+    Task<IReadOnlyList<SheetSubmission>?> GetSheetSubmissionsAsync(int sheetId, int? versionNumber, CancellationToken cancellationToken);
+
+    /// <summary>
     /// The sheet for the phase and sheet type as it stood at its latest version published at or before the moment: its
     /// latest version when no moment is given. Null when there is no such sheet or version.
     /// </summary>

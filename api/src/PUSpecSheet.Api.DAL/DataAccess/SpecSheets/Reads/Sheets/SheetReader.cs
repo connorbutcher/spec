@@ -70,6 +70,35 @@ internal class SheetReader
     }
 
     /// <summary>
+    /// The sheet's submissions, oldest first; only those that published the version when one is given. Null when the
+    /// sheet has no such version.
+    /// </summary>
+    public async Task<List<SheetSubmission>?> ReadSubmissionsAsync(int sheetId, int? versionNumber, CancellationToken cancellationToken)
+    {
+        var versions = await ReadVersionRowsAsync(sheetId, cancellationToken);
+        var version = versionNumber is null ? null : versions.FirstOrDefault(v => v.VersionNumber == versionNumber);
+        if (versionNumber is not null && version is null)
+        {
+            return null;
+        }
+
+        var versionId = version?.Id;
+        var submissions = await _dbContext.SheetSubmissions
+            .Where(submission => submission.SheetId == sheetId && (versionId == null || submission.SheetVersionId == versionId))
+            .Include(submission => submission.SubmittedByUser)
+            .Include(submission => submission.Approvers)
+                .ThenInclude(approver => approver.User)
+            .OrderBy(submission => submission.SubmittedDateTime)
+            .ThenBy(submission => submission.Id)
+            .AsSplitQuery()
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
+        var mapper = new SheetMapper([], versions);
+        return [.. submissions.Select(mapper.MapSubmission)];
+    }
+
+    /// <summary>
     /// The id of the sheet for the phase and sheet type, or null when there is none.
     /// </summary>
     public async Task<int?> FindSheetIdAsync(int phaseId, int sheetTypeId, CancellationToken cancellationToken)

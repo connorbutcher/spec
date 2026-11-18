@@ -36,6 +36,13 @@ public class SheetsController : ControllerBase
         return sheet is null ? NotFound() : Ok(sheet);
     }
 
+    [HttpGet("{id:int}/submissions")]
+    public async Task<ActionResult<IReadOnlyList<SheetSubmission>>> GetSheetSubmissionsAsync(int id, [FromQuery] int? version = null)
+    {
+        var submissions = await _sheetDataAccessService.GetSheetSubmissionsAsync(id, version, HttpContext.RequestAborted);
+        return submissions is null ? NotFound() : Ok(submissions);
+    }
+
     [HttpGet("phase/{phaseId:int}/all")]
     public async Task<ActionResult<IReadOnlyList<SheetSummary>>> GetSheetSummariesByPhaseAsync(int phaseId, [FromQuery] bool includeChildren = false)
     {

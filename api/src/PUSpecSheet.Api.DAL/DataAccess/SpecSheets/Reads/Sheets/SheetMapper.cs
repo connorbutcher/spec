@@ -8,6 +8,7 @@ using PUSpecSheet.Api.Database.Mappers.Configuration;
 using PUSpecSheet.Api.Database.Mappers.Template;
 using PUSpecSheet.Api.Database.Mappers.Types;
 using PUSpecSheet.Api.Database.Schema.Access;
+using PUSpecSheet.Api.Database.Schema.Approval;
 using PUSpecSheet.Api.Database.Schema.Cell;
 using PUSpecSheet.Api.Database.Schema.Spec;
 
@@ -136,6 +137,37 @@ internal class SheetMapper
             LegacySpecSheetId = version.LegacySpecSheetId,
             SourceCreatedByUserId = version.SourceCreatedByUserId,
             SourceCreatedDateTime = version.SourceCreatedDateTime
+        };
+    }
+
+    /// <summary>
+    /// A submission with the users its includes brought, for a mapper that wasn't given them.
+    /// </summary>
+    public SheetSubmission MapSubmission(DbSheetSubmission submission)
+    {
+        return new SheetSubmission
+        {
+            Id = submission.Id,
+            SheetId = submission.SheetId,
+            Note = submission.Note,
+            SubmittedByUserId = submission.SubmittedByUserId,
+            SubmittedByUser = submission.SubmittedByUser?.MapToDomain(),
+            SubmittedDateTime = submission.SubmittedDateTime,
+            Status = submission.Status,
+            DecidedDateTime = submission.DecidedDateTime,
+            SheetVersionId = submission.SheetVersionId,
+            SheetVersionNumber = submission.SheetVersionId is { } versionId && _versionNumbers.TryGetValue(versionId, out var number) ? number : null,
+            Approvers = [.. submission.Approvers
+                .OrderBy(approver => approver.UserId)
+                .Select(approver => new SheetSubmissionApprover
+                {
+                    SheetSubmissionId = approver.SheetSubmissionId,
+                    UserId = approver.UserId,
+                    User = approver.User?.MapToDomain(),
+                    Decision = approver.Decision,
+                    DecidedDateTime = approver.DecidedDateTime,
+                    Reason = approver.Reason == DbSheetSubmissionApprover.NoReasonGiven ? null : approver.Reason
+                })]
         };
     }
 
