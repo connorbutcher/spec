@@ -34,5 +34,7 @@
     <None Include="*.ps1" />
     <Build Remove="seed.sql" />
     <None Include="seed.sql" />
+    <Build Remove="seed-local-users.sql" />
+    <None Include="seed-local-users.sql" />
   </ItemGroup>
 </Project>

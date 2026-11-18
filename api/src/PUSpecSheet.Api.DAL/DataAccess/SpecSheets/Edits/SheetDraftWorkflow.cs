@@ -96,7 +96,7 @@ internal class SheetDraftWorkflow
 
         foreach (var approver in approvers)
         {
-            await _emailService.SendApprovalEmailAsync(_emailBuilderService.BuildApprovalNotificationEmail(NotificationArgs(sheet, approver.MapToDomain(), changeLog)), cancellationToken);
+            await SendSafelyAsync(() => _emailService.SendApprovalEmailAsync(_emailBuilderService.BuildApprovalNotificationEmail(NotificationArgs(sheet, approver.MapToDomain(), changeLog)), cancellationToken), sheetId);
         }
 
         _logger.LogInformation("Submitted UserId {UserId}'s changes to Sheet with Id {SheetId} for approval as submission {SubmissionId}", submittingUser.Id, sheetId, submitted.Id);
@@ -151,11 +151,11 @@ internal class SheetDraftWorkflow
         {
             if (rejection)
             {
-                await _emailService.SendRejectionEmailAsync(email, cancellationToken);
+                await SendSafelyAsync(() => _emailService.SendRejectionEmailAsync(email, cancellationToken), sheetId);
             }
             else
             {
-                await _emailService.SendPublishedEmailAsync(email, cancellationToken);
+                await SendSafelyAsync(() => _emailService.SendPublishedEmailAsync(email, cancellationToken), sheetId);
             }
         }
 
@@ -213,7 +213,20 @@ internal class SheetDraftWorkflow
             .ToListAsync(cancellationToken);
         foreach (var user in added)
         {
-            await _emailService.SendApprovalEmailAsync(_emailBuilderService.BuildApprovalNotificationEmail(NotificationArgs(sheet, user.MapToDomain(), submission.Note ?? string.Empty)), cancellationToken);
+            await SendSafelyAsync(() => _emailService.SendApprovalEmailAsync(_emailBuilderService.BuildApprovalNotificationEmail(NotificationArgs(sheet, user.MapToDomain(), submission.Note ?? string.Empty)), cancellationToken), sheetId);
+        }
+    }
+
+    // The emails go after the change is committed, so one that can't be sent is logged rather than failing the request.
+    private async Task SendSafelyAsync(Func<Task> send, int sheetId)
+    {
+        try
+        {
+            await send();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Could not send an email about Sheet with Id {SheetId}", sheetId);
         }
     }
 
