@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Reflection;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.OpenApi;
@@ -8,7 +8,7 @@ using PUSpecSheet.Api.Common.Logging;
 using PUSpecSheet.Api.Common.Redis;
 using PUSpecSheet.CheckInOut.Api.Hubs;
 using PUSpecSheet.CheckInOut.Api.Models;
-using PUSpecSheet.CheckInOut.Api.Services.SpecSheets;
+using PUSpecSheet.CheckInOut.Api.Services.Presence;
 using PUSpecSheet.CheckInOut.Api.Services.Users;
 // using StackExchange.Redis;
 
@@ -57,14 +57,12 @@ builder.Services.AddSignalR(x =>
 builder.AddDocumentation(apiInfo);
 
 // builder.Services.AddKeyedSingleton<ICacheProvider<ConnectedUser>, DistributedCacheProvider<ConnectedUser>>(ConnectedUserService.ConnectedUsersCacheName);
-// builder.Services.AddKeyedSingleton<ICacheProvider<ConnectedUser>, DistributedCacheProvider<ConnectedUser>>(PUSpecSheetCheckInOutService.PUSpecSheetCheckedOutCacheName);
-// builder.Services.AddKeyedSingleton<ICacheProvider<CheckoutRequest>, DistributedCacheProvider<CheckoutRequest>>(PUSpecSheetCheckInOutService.PUSpecSheetCheckoutRequestsCacheName);
+// builder.Services.AddKeyedSingleton<ICacheProvider<ConnectedUser>, DistributedCacheProvider<ConnectedUser>>(SheetPresenceService.SheetPresenceCacheName);
 builder.Services.AddKeyedSingleton<ICacheProvider<ConnectedUser>, InMemoryCacheProvider<ConnectedUser>>(ConnectedUserService.ConnectedUsersCacheName);
-builder.Services.AddKeyedSingleton<ICacheProvider<ConnectedUser>, InMemoryCacheProvider<ConnectedUser>>(PUSpecSheetCheckInOutService.PUSpecSheetCheckedOutCacheName);
-builder.Services.AddKeyedSingleton<ICacheProvider<CheckoutRequest>, InMemoryCacheProvider<CheckoutRequest>>(PUSpecSheetCheckInOutService.PUSpecSheetCheckoutRequestsCacheName);
+builder.Services.AddKeyedSingleton<ICacheProvider<ConnectedUser>, InMemoryCacheProvider<ConnectedUser>>(SheetPresenceService.SheetPresenceCacheName);
 
 builder.Services.AddSingleton<IConnectedUserService, ConnectedUserService>();
-builder.Services.AddSingleton<IPUSpecSheetCheckInOutService, PUSpecSheetCheckInOutService>();
+builder.Services.AddSingleton<ISheetPresenceService, SheetPresenceService>();
 
 var app = builder.Build();
 
