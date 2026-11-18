@@ -1,10 +1,16 @@
 <div class="spec-sheet-version-option">
-  <app-sheet-summary-properties-display
-    [specSheet]="specSheet()"
-    [specSheetType]="specSheetType()"
-  />
+  @if (specSheet().properties.length > 0) {
+    <app-sheet-summary-properties-display
+      [specSheet]="specSheet()"
+      [specSheetType]="specSheetType()"
+    />
+  } @else {
+    <span>Version {{ specSheet().versionNumber }}</span>
+  }
 
-  @if (!specSheet().isDraft) {
+  @if (specSheet().isDraft) {
+    <span class="sheet-state">Draft</span>
+  } @else {
     <span class="sheet-state locked">Locked</span>
   }
 

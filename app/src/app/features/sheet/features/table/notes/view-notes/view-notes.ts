@@ -56,7 +56,7 @@ export class ViewNotes {
       createdByUser: user,
       isObsolete: false,
       sourceSystem: 'puspecsheet',
-      specSheetTableId: this.table().id,
+      sheetTableId: this.table().id,
     });
 
     this.tabCtrl.reset();

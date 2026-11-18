@@ -9,11 +9,16 @@ import { SheetsDataService } from './sheets-data.service';
 
 @Injectable()
 export class SheetsService {
-  public readonly specSheetsForPhaseAndType = computed(
-    () => this._sheetsForPhaseAndTypeResource.value() ?? [],
+  public readonly specSheetsForPhaseAndType = computed(() =>
+    this._sheetsForPhaseAndTypeResource.hasValue()
+      ? this._sheetsForPhaseAndTypeResource.value()
+      : [],
   );
   public readonly isLoading = computed(() =>
     this._sheetsForPhaseAndTypeResource.isLoading(),
+  );
+  public readonly hasError = computed(
+    () => this._sheetsForPhaseAndTypeResource.error() !== undefined,
   );
   public readonly latestSpecSheet = computed(
     () => this.specSheetsForPhaseAndType()[0] ?? null,

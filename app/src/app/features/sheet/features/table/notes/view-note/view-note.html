@@ -1,6 +1,6 @@
 <div class="notes-row" [class.not-last]="!isLast()">
   <div class="note-header">
-    <span class="user">{{ note().createdByUser().displayName }}</span>
+    <span class="user">{{ note().createdByUser()?.displayName }}</span>
     <span class="info">{{
       note().createdDateTime() | date: "dd/MM/yyyy HH:mm"
     }}</span>

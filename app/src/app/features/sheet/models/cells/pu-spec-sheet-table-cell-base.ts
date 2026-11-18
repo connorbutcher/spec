@@ -146,7 +146,7 @@ export abstract class PUSpecSheetTableCellBase<
     this.rowSpan = signal(cell.rowSpan);
     this.colSpan = signal(cell.colSpan);
     this.isIdentifier = signal(cell.cellConfiguration!.isIdentifier);
-    this.tableCellType = signal(cell.tableCellType);
+    this.tableCellType = signal(cell.tableCellType!);
 
     this.stylingConfiguration = signal(
       new StylingConfiguration(this.tableCellType(), cell.cellConfiguration!),

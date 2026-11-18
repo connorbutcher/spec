@@ -105,7 +105,7 @@ export class PublishSpecSheetDialog {
     }
 
     const indexOfCurrentVersion = versions.findIndex(
-      (v) => v.versionNumber === specSheet.versionNumber,
+      (v) => v.versionNumber === specSheet.versionNumber(),
     );
     if (
       indexOfCurrentVersion === -1 ||

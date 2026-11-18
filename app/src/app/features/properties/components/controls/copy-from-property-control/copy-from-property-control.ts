@@ -76,7 +76,7 @@ export class CopyFromPropertyControlComponent extends PropertyControlBase<
       .subscribe((summaries) => {
         const specSheetType = this.specSheetType();
         if (!specSheetType.canCopyFromMigrated) {
-          summaries = summaries.filter((s) => !s.hasBeenMigrated);
+          summaries = summaries.filter((s) => !s.version?.hasBeenMigrated);
         }
 
         const phases = this._phasesService

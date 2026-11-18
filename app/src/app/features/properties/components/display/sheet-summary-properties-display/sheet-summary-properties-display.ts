@@ -52,8 +52,13 @@ export class SheetSummaryPropertiesDisplay implements AfterViewInit {
     container.clear();
 
     for (const property of properties) {
+      const typeProperty = property.specSheetTypeProperty;
+      if (!typeProperty) {
+        continue;
+      }
+
       const component = PropertyControlTypeHelpers.getViewComponent(
-        property.valueControlType,
+        typeProperty.valueControlType,
       );
       if (component) {
         const componentRef = container.createComponent(component);

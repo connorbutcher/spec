@@ -21,7 +21,12 @@ public static class EmailModule
         builder.Services.AddHttpClient("NotificationService", (serviceProvider, httpClient) =>
         {
             var configuration = serviceProvider.GetRequiredService<IOptions<NotificationsServiceSettings>>().Value;
-            httpClient.BaseAddress = new Uri(configuration.BaseUrl);
+            // A placeholder BaseUrl (as in local development) leaves the client without a base address,
+            // so sending an email fails rather than every request that resolves the email service.
+            if (Uri.TryCreate(configuration.BaseUrl, UriKind.Absolute, out var baseAddress))
+            {
+                httpClient.BaseAddress = baseAddress;
+            }
         });
 
         builder.Services.AddScoped<IEmailService, EmailService>();

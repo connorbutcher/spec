@@ -60,7 +60,9 @@ internal class SheetMapper
     public static IEnumerable<int> SummaryUserIds(IEnumerable<DbSheet> sheets)
     {
         return sheets.SelectMany(sheet => sheet.Versions.Select(version => version.PublishedByUserId)
-            .Concat(sheet.Properties.Select(property => property.Revisions.Shown().CreatedByUserId)));
+            .Concat(sheet.Properties
+                .Where(property => property.Revisions.Count > 0)
+                .Select(property => property.Revisions.Shown().CreatedByUserId)));
     }
 
     /// <summary>
@@ -80,8 +82,9 @@ internal class SheetMapper
             SpecSheetType = sheet.SpecSheetType?.MapToDomain(),
             LatestVersion = latest is null ? null : MapVersion(latest),
             DraftSpecSheetId = draftSpecSheetId,
+            // Only published revisions are read, so a property that has only ever been drafted has none and isn't shown.
             Properties = [.. sheet.Properties
-                .Where(property => property.Revisions.IsShown())
+                .Where(property => property.Revisions.Count > 0 && property.Revisions.IsShown())
                 .Select(MapProperty)
                 .OrderBy(property => property.Id)]
         };

@@ -143,6 +143,10 @@ export class Sheet extends CanDeactivate implements AfterViewInit {
   public readonly error = computed<string[]>(() => {
     const error = this.specSheetResource.error();
     const errorMessages: string[] = [];
+    if (!this.id() && this._sheetsService?.hasError()) {
+      errorMessages.push('Failed to load the spec sheet versions.');
+    }
+
     if (error) {
       errorMessages.push('Failed to load spec sheet.');
     }

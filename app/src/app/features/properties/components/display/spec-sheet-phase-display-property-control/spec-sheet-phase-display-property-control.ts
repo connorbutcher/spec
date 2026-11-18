@@ -16,6 +16,6 @@ export class SpecSheetPhaseDisplayPropertyControl {
       return 'N/A';
     }
 
-    return sheet.specSheetPhase.phase;
+    return sheet.specSheetPhase?.phase ?? 'N/A';
   });
 }

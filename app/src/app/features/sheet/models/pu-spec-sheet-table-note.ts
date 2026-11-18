@@ -11,7 +11,7 @@ export class PUSpecSheetTableNote {
   public readonly note: WritableSignal<string>;
   public readonly sourceSystem: WritableSignal<NoteSourceSystem>;
   public readonly isObsolete: WritableSignal<boolean>;
-  public readonly createdByUser: WritableSignal<User>;
+  public readonly createdByUser: WritableSignal<User | undefined>;
   public readonly createdDateTime: WritableSignal<string>;
 
   public readonly hasChanges: Signal<boolean>;

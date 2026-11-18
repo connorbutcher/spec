@@ -163,26 +163,17 @@ export class CreatePuSpecSheetDialog
           specSheetType,
         );
 
-        const properties =
-          specSheetType.properties?.filter((tp) => tp.canValueBeSetInForm) ??
-          [];
-        for (let i = 0; i < properties.length; i++) {
-          this.formContent()!.remove();
-          this.form.removeControl(properties[i].valueKey);
-          this.formComponents.update((components) => {
-            const index = components.findIndex(
-              (c) => c.property().valueKey === properties[i].valueKey,
-            );
-            components.splice(index, 1);
-            return [...components];
-          });
+        for (const component of this.formComponents()) {
+          this.form.removeControl(component.property().valueKey);
         }
+        this.formContent().clear();
+        this.formComponents.set([]);
 
         this.hasErrored.set(false);
 
-        for (const property of specSheetType.properties
-          .filter((p) => p.canValueBeSetInForm)
-          .sort((a, b) => a.displayOrder - b.displayOrder)) {
+        for (const property of this.getFormProperties(specSheetType).sort(
+          (a, b) => a.displayOrder - b.displayOrder,
+        )) {
           if (!this.form.contains(property.valueKey)) {
             this.form.addControl(
               property.valueKey,
@@ -212,11 +203,9 @@ export class CreatePuSpecSheetDialog
 
     try {
       const propertyValues: CreateSheetPropertyValueRequest[] = [];
-      for (const property of this.specSheetTypeCtrl.value.properties) {
-        if (!property.canValueBeSetInForm) {
-          continue;
-        }
-
+      for (const property of this.getFormProperties(
+        this.specSheetTypeCtrl.value,
+      )) {
         const control = this.form.get(property.valueKey);
         if (control) {
           const value = control.value;
@@ -262,6 +251,22 @@ export class CreatePuSpecSheetDialog
   public hasError(controlName: string, errorName: string): boolean {
     const control = this.form.controls[controlName];
     return control.hasError(errorName) && control.dirty;
+  }
+
+  /**
+   * The type's properties that get a control in the form below the type and phase. The type and phase properties
+   * are set by the dialog's own type and phase controls, so they have no edit component and are left out.
+   */
+  private getFormProperties(
+    specSheetType: SpecSheetType,
+  ): SpecSheetTypeProperty[] {
+    return (specSheetType.properties ?? []).filter(
+      (property) =>
+        property.canValueBeSetInForm &&
+        PropertyControlTypeHelpers.getEditComponent(
+          property.valueControlType,
+        ) !== undefined,
+    );
   }
 
   private buildForm(): FormGroup {
