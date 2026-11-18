@@ -25,6 +25,7 @@ import { SystemReferencesConfirmationDialogData } from '../../../dialogs/system-
 import { SystemReferencesConfirmationDialog } from '../../../dialogs/system-references-confirmation-dialog/system-references-confirmation-dialog';
 import { PUSpecSheetTableBase } from '../../../models/tables/pu-spec-sheet-table-base';
 import { ActiveSheetService } from '../../../services/active-sheet.service';
+import { SheetItemLockHelpers } from '../../../../../core/helpers/sheet-item-lock-helpers';
 import { SheetCheckoutService } from '../../../services/sheet-checkout.service';
 import { ItemLockTag } from '../item-lock-tag/item-lock-tag';
 import { ReferencesIndicator } from '../references-indicator/references-indicator';
@@ -82,8 +83,12 @@ export class TableHeader {
   );
   /** Whether the current user has the table checked out, and can undo their changes to it. */
   public readonly canUndoTable = computed(() => {
-    const lock = this._activeSheetService.lockOf(this.table().table.revision);
-    return this.canEdit() && !!lock?.isMine && !lock.isAwaitingApproval;
+    return (
+      this.canEdit() &&
+      SheetItemLockHelpers.isUndoable(
+        this._activeSheetService.lockOf(this.table().table.revision),
+      )
+    );
   });
 
   public readonly canConfigureTable = computed(() => {

@@ -17,6 +17,7 @@ import { UserService } from '../../../core/services/user.service';
 import { PUCardAnalyticsService } from '../../analytics/services/pu-card-analytics.service';
 import { SheetsService } from '../../sheets/services/sheets.service';
 import { PUSpecSheet } from '../models/pu-spec-sheet';
+import { PUSpecSheetTableGroup } from '../models/pu-spec-sheet-table-group';
 import { SheetContext } from './sheet-context';
 import { SheetDetail } from '../../../core/models/domain/sheets/sheet-detail';
 
@@ -50,7 +51,8 @@ export class ActiveSheetService implements SheetContext {
       specSheet.sheet,
       this.currentUserId(),
     );
-  });  public readonly hasChanges = computed(
+  });
+  public readonly hasChanges = computed(
     () => this.specSheet()?.hasChanges() ?? false,
   );
   public readonly externalReferences = computed(
@@ -59,7 +61,8 @@ export class ActiveSheetService implements SheetContext {
   /** Whether the current user has saved checked-out changes they can submit (or publish). */
   public readonly canPublish = computed(
     () => this.canEdit() && this.checkoutSummary().mine > 0,
-  );  public readonly isValid = computed(
+  );
+  public readonly isValid = computed(
     () => this.specSheet()?.isValid() ?? false,
   );
   public readonly tableTemplateWidgets = computed(() => {
@@ -153,6 +156,28 @@ export class ActiveSheetService implements SheetContext {
   public canEditItem(revision: SheetItemRevision | undefined): boolean {
     return (
       this.canEdit() && SheetItemLockHelpers.isEditable(this.lockOf(revision))
+    );
+  }
+
+  /** A group can't be removed while someone else has it, or any of its rows, checked out. */
+  public canRemoveGroup(group: PUSpecSheetTableGroup): boolean {
+    return (
+      this.canEditItem(group.group.revision) &&
+      group.rows().every((row) => this.canEditItem(row.row.revision))
+    );
+  }
+
+  /** Whether the current user has saved changes to the group or its rows that they can undo. */
+  public canUndoGroup(group: PUSpecSheetTableGroup): boolean {
+    if (group.id <= 0) {
+      return false;
+    }
+
+    return [
+      group.group.revision,
+      ...group.rows().map((row) => row.row.revision),
+    ].some((revision) =>
+      SheetItemLockHelpers.isUndoable(this.lockOf(revision)),
     );
   }
 

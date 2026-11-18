@@ -28,6 +28,11 @@ export class SheetItemLockHelpers {
     return !lock || (lock.isMine && !lock.isAwaitingApproval);
   }
 
+  /** Whether the item has the current user's saved changes, not yet submitted, which they can undo. */
+  public static isUndoable(lock: SheetItemLock | undefined): boolean {
+    return !!lock?.isMine && !lock.isAwaitingApproval;
+  }
+
   /** A short description of the lock, to show on the item. */
   public static describe(lock: SheetItemLock): string {
     if (lock.isAwaitingApproval) {

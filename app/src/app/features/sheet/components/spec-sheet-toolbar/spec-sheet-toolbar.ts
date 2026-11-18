@@ -205,6 +205,7 @@ export class SpecSheetToolbar {
 
     await this._sheetCheckoutService.undoMineAsync();
   }
+
   public async addTable(tableType?: TableTemplate) {
     const specSheetType = this._sheetsService.selectedType();
     const user = this._userService.user();

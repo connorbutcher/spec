@@ -75,33 +75,18 @@ export class VerticalTableRowHoverContextMenu {
   /** A row can't be removed while someone else has it, or anything in it, checked out. */
   public readonly canRemove = computed(() => {
     const activeElement = this.activeElement();
-    if (!activeElement) {
-      return false;
-    }
-
-    const group = activeElement.group;
     return (
-      this._specSheetService.canEditItem(group.group.revision) &&
-      group
-        .rows()
-        .every((row) => this._specSheetService.canEditItem(row.row.revision))
+      !!activeElement &&
+      this._specSheetService.canRemoveGroup(activeElement.group)
     );
   });
   /** Whether the current user has saved changes to the row they can undo. */
   public readonly canUndo = computed(() => {
     const activeElement = this.activeElement();
-    if (!activeElement || activeElement.group.id <= 0) {
-      return false;
-    }
-
-    const group = activeElement.group;
-    return [
-      group.group.revision,
-      ...group.rows().map((row) => row.row.revision),
-    ].some((revision) => {
-      const lock = this._specSheetService.lockOf(revision);
-      return !!lock?.isMine && !lock.isAwaitingApproval;
-    });
+    return (
+      !!activeElement &&
+      this._specSheetService.canUndoGroup(activeElement.group)
+    );
   });
 
   private _direction: 'above' | 'below' | undefined = undefined;
