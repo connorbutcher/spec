@@ -130,9 +130,12 @@ export class SheetComparison {
     side: 'left' | 'right',
   ): void {
     const comparison = this._specSheetComparisonService;
-    const sheet = side === 'left' ? comparison.leftSpecSheet : comparison.rightSpecSheet;
+    const sheet =
+      side === 'left' ? comparison.leftSpecSheet : comparison.rightSpecSheet;
     const version =
-      side === 'left' ? comparison.leftVersionNumber : comparison.rightVersionNumber;
+      side === 'left'
+        ? comparison.leftVersionNumber
+        : comparison.rightVersionNumber;
 
     combineLatest([
       toObservable(versionNumber),

@@ -26,7 +26,11 @@ import { ValidatorRuleRegistry } from '../services/validator-rule-registry';
 import { SpecSheetAdvisory } from '../spec-sheet-advisory';
 import { ValidatorBase } from '../validators/validator-base';
 import { StylingConfiguration } from './styling-configuration';
-import { SheetCellValue, SheetExternalReference, SheetTableCell } from '../../../../core/models/domain/sheets/sheet';
+import {
+  SheetCellValue,
+  SheetExternalReference,
+  SheetTableCell,
+} from '../../../../core/models/domain/sheets/sheet';
 
 export abstract class PUSpecSheetTableCellBase<
   CV extends CellValue = CellValue,
@@ -219,7 +223,10 @@ export abstract class PUSpecSheetTableCellBase<
       columnNumber: this.columnNumber(),
       colSpan: this.colSpan(),
       rowSpan: this.rowSpan(),
-      value: CellValueHelpers.buildCellValue(this.cellValue, cellValue) as SheetCellValue,
+      value: CellValueHelpers.buildCellValue(
+        this.cellValue,
+        cellValue,
+      ) as SheetCellValue,
       tableCellTemplateId: this.cell.tableCellTemplateId,
       createdDateTime: this.cell?.createdDateTime,
       cellConfiguration: this.cell?.cellConfiguration,
@@ -227,8 +234,6 @@ export abstract class PUSpecSheetTableCellBase<
       configurationOverride: this.cell.configurationOverride,
     };
   }
-
-
 
   public *compileOperations(): Generator<SpecSheetOp> {
     if (this.isNew) {
@@ -252,7 +257,10 @@ export abstract class PUSpecSheetTableCellBase<
       yield {
         $type: 'UpdateSpecSheetTableCellOp',
         id: this.id,
-        rowNumber: UpdateHelpers.compare(this.originalRowNumber, this.rowNumber()),
+        rowNumber: UpdateHelpers.compare(
+          this.originalRowNumber,
+          this.rowNumber(),
+        ),
         columnNumber: UpdateHelpers.compare(
           this.cell.columnNumber,
           this.columnNumber(),

@@ -146,7 +146,9 @@ export class SheetApprovalStatus {
     try {
       const request = {
         sheetId: this._activeSheetService.specSheet().id,
-        decision: approve ? ApproverDecision.Approved : ApproverDecision.Rejected,
+        decision: approve
+          ? ApproverDecision.Approved
+          : ApproverDecision.Rejected,
         comment: comment ?? undefined,
       } as DecideSubmissionRequest;
 

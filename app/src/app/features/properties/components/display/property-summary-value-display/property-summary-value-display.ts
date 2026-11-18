@@ -19,8 +19,7 @@ export class PropertySummaryValueDisplay implements AfterViewInit {
   public readonly container = viewChild.required('container', {
     read: ViewContainerRef,
   });
-  public readonly propertyValue =
-    input.required<SheetProperty>();
+  public readonly propertyValue = input.required<SheetProperty>();
 
   constructor() {
     effect(() => {

@@ -13,21 +13,21 @@
 </div>
 
 <div class="panel-content">
-  @let activeWorkflow = activeWorkflowAttempt();
-  @let currentWorkflow = displayedWorkflowAttempt();
-  @if (currentWorkflow) {
-    <app-workflow-step-status
-      [workflowStep]="currentWorkflow"
+  @let active = activeSubmission();
+  @let current = displayedSubmission();
+  @if (current) {
+    <app-sheet-submission-status
+      [submission]="current"
       [canToggle]="false"
-      [heading]="activeWorkflow ? 'Current approval' : 'Latest approval'"
+      [heading]="active ? 'Current approval' : 'Latest approval'"
     />
   }
 
-  @if (historyWorkflowAttempts().length > 0) {
-    <section class="workflow-attempts">
+  @if (historySubmissions().length > 0) {
+    <section class="submission-history">
       <h4>History</h4>
 
-      @for (pastApproval of historyWorkflowAttempts(); track pastApproval.id) {
+      @for (pastApproval of historySubmissions(); track pastApproval.id) {
         <details class="history-attempt">
           <summary>
             <i class="material-symbols-outlined history-chevron"
@@ -36,12 +36,12 @@
             <span class="attempt-date">{{
               pastApproval.submittedDateTime | date: "dd MMM yyyy, HH:mm"
             }}</span>
-            <app-workflow-step-status-tag [state]="pastApproval.status" />
+            <app-approval-status-tag [state]="pastApproval.status" />
           </summary>
 
           <div class="history-content">
-            <app-workflow-step-status
-              [workflowStep]="pastApproval"
+            <app-sheet-submission-status
+              [submission]="pastApproval"
               [canToggle]="true"
             />
           </div>
@@ -50,7 +50,7 @@
     </section>
   }
 
-  @if (!currentWorkflow) {
+  @if (!current) {
     <p>No approval history</p>
   }
 </div>

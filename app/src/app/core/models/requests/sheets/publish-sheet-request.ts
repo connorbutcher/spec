@@ -1,6 +1,6 @@
 import { User } from '../../domain/access/user';
 
-export type PublishSpecSheetRequest = {
+export type PublishSheetRequest = {
   id: number;
   changeLog: string;
   approvers: User[];

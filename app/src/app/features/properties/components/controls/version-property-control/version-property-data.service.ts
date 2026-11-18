@@ -10,6 +10,9 @@ export class VersionPropertyDataService {
     phaseId: number,
     typeId: number,
   ): Promise<SheetListItem[]> {
-    return await this._sheetListingService.getByPhaseAndTypeAsync(phaseId, typeId);
+    return await this._sheetListingService.getByPhaseAndTypeAsync(
+      phaseId,
+      typeId,
+    );
   }
 }

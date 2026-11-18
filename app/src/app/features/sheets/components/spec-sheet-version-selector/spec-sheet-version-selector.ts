@@ -32,10 +32,7 @@ export class SpecSheetVersionSelector {
 
     const propertyReferenceId =
       groupLevel.levelValues[0].specSheetTypePropertyReferenceId;
-    const groups = new Map<
-      string,
-      { label: string; items: SheetListItem[] }
-    >();
+    const groups = new Map<string, { label: string; items: SheetListItem[] }>();
 
     for (const version of versions) {
       const property = SheetPropertyHelpers.findByReferenceId(

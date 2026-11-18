@@ -9,7 +9,7 @@ import { firstValueFrom } from 'rxjs';
 import { CellValueHelpers } from '../../../../core/helpers/cell-value-helpers';
 import { nextTempId } from '../../../../core/helpers/temp-id-counter';
 import { TableTemplate } from '../../../../core/models/domain/template/table-template';
-import { PublishSpecSheetRequest } from '../../../../core/models/requests/spec-sheets/publish-spec-sheet-request';
+import { PublishSheetRequest } from '../../../../core/models/requests/sheets/publish-sheet-request';
 import { CheckInOutService } from '../../../../core/services/check-in-out.service';
 import { UserService } from '../../../../core/services/user.service';
 import { PUCardAnalyticsService } from '../../../analytics/services/pu-card-analytics.service';
@@ -28,7 +28,13 @@ import { SheetDataService } from '../../services/sheet-data.service';
 import { SheetApprovalStatus } from '../sheet-approval-alert/sheet-approval-status';
 import { SpecSheetSearch } from '../spec-sheet-search/spec-sheet-search';
 import { SheetItemHelpers } from '../../../../core/helpers/sheet-item-helpers';
-import { SheetTable, SheetTableCell, SheetTableGroup, SheetTableRow, SheetWidget } from '../../../../core/models/domain/sheets/sheet';
+import {
+  SheetTable,
+  SheetTableCell,
+  SheetTableGroup,
+  SheetTableRow,
+  SheetWidget,
+} from '../../../../core/models/domain/sheets/sheet';
 
 @Component({
   selector: 'app-spec-sheet-toolbar',
@@ -131,7 +137,7 @@ export class SpecSheetToolbar {
 
   public async publishSpecSheetAsync(): Promise<void> {
     const publishDialogRef = this._dialog.open<
-      PublishSpecSheetRequest,
+      PublishSheetRequest,
       unknown,
       PublishSpecSheetDialog
     >(PublishSpecSheetDialog, {

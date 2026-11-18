@@ -6,7 +6,10 @@ import { SpecSheetOp } from '../../../../core/models/operations/spec-sheet-op';
 import { ResetOption } from '../../types/cell-reset-options';
 import { PUSpecSheetTableRow } from '../pu-spec-sheet-table-row';
 import { PUSpecSheetTableCellBase } from './pu-spec-sheet-table-cell-base';
-import { SheetCellValue, SheetTableCell } from '../../../../core/models/domain/sheets/sheet';
+import {
+  SheetCellValue,
+  SheetTableCell,
+} from '../../../../core/models/domain/sheets/sheet';
 
 export class PUSpecSheetTableCellPair extends PUSpecSheetTableCellBase {
   public override readonly value = linkedSignal(() => {
@@ -67,7 +70,10 @@ export class PUSpecSheetTableCellPair extends PUSpecSheetTableCellBase {
       columnNumber: this.columnNumber(),
       colSpan: this.colSpan(),
       rowSpan: this.rowSpan(),
-      value: CellValueHelpers.buildCellValue(this.cellValue, cellValue) as SheetCellValue,
+      value: CellValueHelpers.buildCellValue(
+        this.cellValue,
+        cellValue,
+      ) as SheetCellValue,
       tableCellTemplateId: this.cell.tableCellTemplateId,
       createdDateTime: this.cell?.createdDateTime,
       cellConfigurationId: this.cell.cellConfigurationId,
@@ -76,8 +82,6 @@ export class PUSpecSheetTableCellPair extends PUSpecSheetTableCellBase {
       tableCellType: this.tableCellType(),
     };
   }
-
-
 
   public override *compileValueOperations(): Generator<SpecSheetOp> {
     if (this.isNew) {

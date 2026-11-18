@@ -29,11 +29,17 @@ import { ChangeTracker } from '../services/change-tracker';
 import { WidgetTypeRegistry } from '../services/widget-type-registry';
 import { SpecSheetAdvisory } from '../spec-sheet-advisory';
 import { WidgetPropertyBase } from '../widgets/widget-base';
-import { SheetExternalReference, SheetTable, SheetTableGroup, SheetTableNote, SheetWidget } from '../../../../core/models/domain/sheets/sheet';
+import {
+  SheetExternalReference,
+  SheetTable,
+  SheetTableGroup,
+  SheetTableNote,
+  SheetWidget,
+} from '../../../../core/models/domain/sheets/sheet';
 
 export abstract class PUSpecSheetTableBase<
-  P extends
-    TablePropertyBase<TableProperties> = TablePropertyBase<TableProperties>,
+  P extends TablePropertyBase<TableProperties> =
+    TablePropertyBase<TableProperties>,
 > {
   public readonly id: number;
   public readonly referenceId: Signal<string>;
@@ -331,7 +337,6 @@ export abstract class PUSpecSheetTableBase<
         $type: 'AddSpecSheetTableOp',
         tempId: this.id,
         referenceId: this.referenceId(),
-        specSheetId: this.table.sheetId,
         tableTemplateId: this.tableTemplateId(),
         title: this.title(),
         displayOrder: this.displayOrder(),

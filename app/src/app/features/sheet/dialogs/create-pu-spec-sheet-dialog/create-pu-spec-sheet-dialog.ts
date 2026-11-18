@@ -37,8 +37,8 @@ import {
 import { SpecSheetPhase } from '../../../../core/models/domain/types/spec-sheet-phase';
 import { SpecSheetType } from '../../../../core/models/domain/types/spec-sheet-type';
 import { SpecSheetTypeProperty } from '../../../../core/models/domain/types/spec-sheet-type-property';
-import { CreateSpecSheetRequest } from '../../../../core/models/requests/spec-sheets/create-spec-sheet-request';
-import { CreateSpecSheetPropertyValueRequest } from '../../../../core/models/requests/spec-sheets/properties/create-spec-sheet-property-value-request';
+import { CreateSheetRequest } from '../../../../core/models/requests/sheets/create-sheet-request';
+import { CreateSheetPropertyValueRequest } from '../../../../core/models/requests/sheets/create-sheet-property-value-request';
 import { PhasesService } from '../../../../core/services/phases.service';
 import { TypesService } from '../../../../core/services/types.service';
 import { PropertyControlType } from '../../../../core/types/properties/property-control-type.enum';
@@ -211,7 +211,7 @@ export class CreatePuSpecSheetDialog
     this.isCreating.set(true);
 
     try {
-      const propertyValues: CreateSpecSheetPropertyValueRequest[] = [];
+      const propertyValues: CreateSheetPropertyValueRequest[] = [];
       for (const property of this.specSheetTypeCtrl.value.properties) {
         if (!property.canValueBeSetInForm) {
           continue;
@@ -231,7 +231,7 @@ export class CreatePuSpecSheetDialog
         specSheetPhaseId: this.specSheetPhaseCtrl.value.data!.id,
         specSheetTypeId: this.specSheetTypeCtrl.value.id,
         propertyValues,
-      } as CreateSpecSheetRequest;
+      } as CreateSheetRequest;
 
       const specSheetId =
         await this._createPUSpecSheetDialogDataService.createSpecSheetAsync(

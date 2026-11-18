@@ -3,7 +3,7 @@ import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { InputText } from 'primeng/inputtext';
 import { combineLatest, take } from 'rxjs';
-import { StringPropertyValue } from '../../../../../core/models/domain/spec-sheet/properties/values/string-property-value';
+import { StringPropertyValue } from '../../../../../core/models/domain/values/property-values/string-property-value';
 import { PropertyValueType } from '../../../../../core/types/properties/property-value-type.enum';
 import { ElementLabel } from '../../../../common/element-label/element-label';
 import { PropertyControlBase } from '../property-control-base';

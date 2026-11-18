@@ -9,9 +9,7 @@ import { SheetExternalReference } from '../../../../core/models/domain/sheets/sh
 export abstract class ConfigurablePropertyBase {
   public abstract readonly isValid: Signal<boolean>;
   public abstract readonly hasChanges: Signal<boolean>;
-  public abstract readonly internalReferences: Signal<
-    SheetExternalReference[]
-  >;
+  public abstract readonly internalReferences: Signal<SheetExternalReference[]>;
 
   protected readonly _cellLookupService = inject<
     CellLookupService<

@@ -65,9 +65,7 @@ export class ReassignApproversDialog {
 
     return (
       approvers.length !== originalApprovers.length ||
-      approvers.some(
-        (a) => !originalApprovers.some((oa) => oa.userId === a.id),
-      )
+      approvers.some((a) => !originalApprovers.some((oa) => oa.userId === a.id))
     );
   });
   public readonly isValid = computed(() => this.approvers().length > 0);

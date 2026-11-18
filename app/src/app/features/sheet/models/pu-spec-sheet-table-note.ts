@@ -3,7 +3,10 @@ import { UpdateHelpers } from '../../../core/helpers/update-helpers';
 import { User } from '../../../core/models/domain/access/user';
 import { SpecSheetOp } from '../../../core/models/operations/spec-sheet-op';
 import { ChangeTracker } from './services/change-tracker';
-import { NoteSourceSystem, SheetTableNote } from '../../../core/models/domain/sheets/sheet';
+import {
+  NoteSourceSystem,
+  SheetTableNote,
+} from '../../../core/models/domain/sheets/sheet';
 
 export class PUSpecSheetTableNote {
   public readonly id: number;
@@ -42,8 +45,6 @@ export class PUSpecSheetTableNote {
       this.isObsolete,
     ).hasChanges;
   }
-
-
 
   public *compileOperations(): Generator<SpecSheetOp> {
     if (this.isNew) {

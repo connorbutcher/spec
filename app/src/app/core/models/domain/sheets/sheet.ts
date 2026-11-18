@@ -37,7 +37,6 @@ export type SheetVersion = {
   changeLog?: string;
   hasBeenMigrated: boolean;
   sourceSpecSheetId?: number;
-  legacySpecSheetId?: number;
   sourceCreatedByUserId?: number;
   sourceCreatedDateTime?: string;
 };
@@ -205,21 +204,7 @@ export type SheetSubmission = {
   approvers: SheetSubmissionApprover[];
 };
 
-export type SheetSummary = {
-  id: number;
-  referenceId: string;
-  specSheetPhaseId: number;
-  specSheetTypeId: number;
-  createdDateTime: string;
-  specSheetPhase?: SpecSheetPhase;
-  specSheetType?: SpecSheetType;
-  latestVersion?: SheetVersion;
-  draftSpecSheetId?: number;
-  properties: SheetProperty[];
-};
-
 export type SheetLocation = {
-  specSheetId: number;
   sheetId: number;
   versionNumber?: number;
   isDraft: boolean;

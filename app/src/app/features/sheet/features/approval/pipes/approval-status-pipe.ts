@@ -2,9 +2,9 @@ import { Pipe, PipeTransform } from '@angular/core';
 import { SubmissionStatus } from '../../../../../core/types/sheets/submission-status.enum';
 
 @Pipe({
-  name: 'workflowStatePipe',
+  name: 'approvalStatus',
 })
-export class WorkflowStatePipePipe implements PipeTransform {
+export class ApprovalStatusPipe implements PipeTransform {
   transform(value: SubmissionStatus, ...args: unknown[]): string {
     switch (value) {
       case SubmissionStatus.Approved:

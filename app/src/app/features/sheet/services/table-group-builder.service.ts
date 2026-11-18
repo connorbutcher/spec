@@ -14,7 +14,13 @@ import { ConfigureCellPropertiesDialog } from '../dialogs/configure-cell-propert
 import { PUSpecSheetTableGroup } from '../models/pu-spec-sheet-table-group';
 import { PUSpecSheetTableBase } from '../models/tables/pu-spec-sheet-table-base';
 import { ActiveSheetService } from './active-sheet.service';
-import { SheetCellValue, SheetTableCell, SheetTableGroup, SheetTableRow, SheetWidget } from '../../../core/models/domain/sheets/sheet';
+import {
+  SheetCellValue,
+  SheetTableCell,
+  SheetTableGroup,
+  SheetTableRow,
+  SheetWidget,
+} from '../../../core/models/domain/sheets/sheet';
 import { SheetItemHelpers } from '../../../core/helpers/sheet-item-helpers';
 
 @Injectable()
@@ -422,7 +428,7 @@ export class TableGroupBuilderService {
               id: nextTempId(),
               sheetTableRowId: 0,
               tableCellTemplateId: cellTemplate.id,
-            tableCellTypeId: cellTemplate.tableCellTypeId,
+              tableCellTypeId: cellTemplate.tableCellTypeId,
               cellConfigurationId: cellTemplate.cellConfigurationId,
               columnNumber: cellTemplate.columnNumber,
               rowSpan: cellTemplate.rowSpan,

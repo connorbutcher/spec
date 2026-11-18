@@ -23,7 +23,10 @@ import { ChangeTracker } from './services/change-tracker';
 import { ValidatorRuleRegistry } from './services/validator-rule-registry';
 import { SpecSheetAdvisory } from './spec-sheet-advisory';
 import { ValidatorBase } from './validators/validator-base';
-import { SheetExternalReference, SheetTableRow } from '../../../core/models/domain/sheets/sheet';
+import {
+  SheetExternalReference,
+  SheetTableRow,
+} from '../../../core/models/domain/sheets/sheet';
 
 export class PUSpecSheetTableRow {
   public readonly id: number;
@@ -181,7 +184,10 @@ export class PUSpecSheetTableRow {
       yield {
         $type: 'UpdateSpecSheetTableRowOp',
         id: this.id,
-        rowNumber: UpdateHelpers.compare(this.row.displayOrder, this.rowNumber()),
+        rowNumber: UpdateHelpers.compare(
+          this.row.displayOrder,
+          this.rowNumber(),
+        ),
       };
     }
 

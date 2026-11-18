@@ -1,7 +1,11 @@
 import { SpecSheetType } from '../models/domain/types/spec-sheet-type';
 import { SheetPropertyHelpers } from './sheet-property-helpers';
 import { StructureLevelType } from '../types/configuration/structure-level-type.enum';
-import { Sheet, SheetListItem, SheetProperty } from '../models/domain/sheets/sheet';
+import {
+  Sheet,
+  SheetListItem,
+  SheetProperty,
+} from '../models/domain/sheets/sheet';
 
 export class SpecSheetHelpers {
   public static getPropertiesForSpecSheetSummary(
@@ -24,7 +28,10 @@ export class SpecSheetHelpers {
       );
       if (property) {
         properties.push(
-          SheetPropertyHelpers.withTypeProperty(property, specSheetType.properties),
+          SheetPropertyHelpers.withTypeProperty(
+            property,
+            specSheetType.properties,
+          ),
         );
       }
     }
@@ -52,7 +59,10 @@ export class SpecSheetHelpers {
       );
       if (property) {
         properties.push(
-          SheetPropertyHelpers.withTypeProperty(property, specSheetType.properties),
+          SheetPropertyHelpers.withTypeProperty(
+            property,
+            specSheetType.properties,
+          ),
         );
       }
     }

@@ -3,7 +3,7 @@ import { inject, Injectable } from '@angular/core';
 import { lastValueFrom } from 'rxjs';
 import { environment } from '../../../../../../environments/environment';
 import { SheetLocation } from '../../../../core/models/domain/sheets/sheet';
-import { CreateSpecSheetRequest } from '../../../../core/models/requests/spec-sheets/create-spec-sheet-request';
+import { CreateSheetRequest } from '../../../../core/models/requests/sheets/create-sheet-request';
 
 @Injectable()
 export class CreatePUSpecSheetDialogDataService {
@@ -11,7 +11,7 @@ export class CreatePUSpecSheetDialogDataService {
 
   /** Starts the draft, and returns the id of the sheet. */
   public async createSpecSheetAsync(
-    request: CreateSpecSheetRequest,
+    request: CreateSheetRequest,
   ): Promise<number> {
     const url = `${environment.apiUrl}/sheets/draft`;
     const location = await lastValueFrom(

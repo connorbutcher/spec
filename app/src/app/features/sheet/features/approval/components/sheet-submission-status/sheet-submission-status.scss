@@ -9,7 +9,7 @@ h4 {
   font-weight: 600;
 }
 
-.workflow-header {
+.submission-header {
   display: flex;
   flex-wrap: wrap;
   gap: var(--gap);
@@ -42,7 +42,7 @@ h4 {
   h4 {
     margin-bottom: var(--gap-s);
   }
-  app-workflow-step-actor-status + app-workflow-step-actor-status {
+  app-sheet-submission-approver-status + app-sheet-submission-approver-status {
     border-top: 1px solid var(--theme-border-color);
   }
 }

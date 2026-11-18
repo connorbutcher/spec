@@ -40,8 +40,6 @@ export class PUSpecSheetTableCellDropdown extends PUSpecSheetTableCellBase<
     super(cell, parent);
   }
 
-
-
   public override get originalValue(): any {
     return this.cellValue.value;
   }

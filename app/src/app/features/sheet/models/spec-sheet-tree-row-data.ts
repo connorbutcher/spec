@@ -1,4 +1,7 @@
-import { SheetListItem, SheetProperty } from '../../../core/models/domain/sheets/sheet';
+import {
+  SheetListItem,
+  SheetProperty,
+} from '../../../core/models/domain/sheets/sheet';
 
 export type SpecSheetTreeRowData = {
   specSheet: SheetListItem;

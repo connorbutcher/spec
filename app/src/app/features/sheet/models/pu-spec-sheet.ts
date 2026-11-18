@@ -10,14 +10,18 @@ import {
 } from '@angular/core';
 import { SpecSheetPhase } from '../../../core/models/domain/types/spec-sheet-phase';
 import { SpecSheetType } from '../../../core/models/domain/types/spec-sheet-type';
-import { SpecSheetChanges } from '../../../core/models/operations/spec-sheet-changes';
+import { SheetChanges } from '../../../core/models/operations/sheet-changes';
 import { SpecSheetOp } from '../../../core/models/operations/spec-sheet-op';
 import { CellLookupService } from '../../../core/services/cell-lookup.service';
 import { ValidatorLevel } from '../../../core/types/configuration/validator-level.enum';
 import { SpecSheetTableHelpers } from '../helpers/spec-sheet-table-helpers';
 import { SpecSheetAdvisory } from './spec-sheet-advisory';
 import { PUSpecSheetTableBase } from './tables/pu-spec-sheet-table-base';
-import { Sheet, SheetSubmission, SheetTable } from '../../../core/models/domain/sheets/sheet';
+import {
+  Sheet,
+  SheetSubmission,
+  SheetTable,
+} from '../../../core/models/domain/sheets/sheet';
 import { SubmissionStatus } from '../../../core/types/sheets/submission-status.enum';
 
 export class PUSpecSheet {
@@ -130,7 +134,7 @@ export class PUSpecSheet {
     }
   }
 
-  public compileChanges(): SpecSheetChanges | undefined {
+  public compileChanges(): SheetChanges | undefined {
     const operations = Array.from(
       this.tables().flatMap((t) => [...t.compileOperations()]),
     );

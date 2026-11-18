@@ -8,46 +8,47 @@ import { SubmissionStatus } from '../../../../../../core/types/sheets/submission
 import { UserService } from '../../../../../../core/services/user.service';
 import { ReassignApproversDialog } from '../../../../dialogs/reassign-approvers-dialog/reassign-approvers-dialog';
 import { ActiveSheetService } from '../../../../services/active-sheet.service';
-import { WorkflowStepActorStatus } from '../workflow-step-actor-status/workflow-step-actor-status';
-import { WorkflowStepStatusTag } from '../workflow-step-status-tag/workflow-step-status-tag';
+import { SheetSubmissionApproverStatus } from '../sheet-submission-approver-status/sheet-submission-approver-status';
+import { ApprovalStatusTag } from '../approval-status-tag/approval-status-tag';
 import { SheetSubmission } from '../../../../../../core/models/domain/sheets/sheet';
 
 @Component({
-  selector: 'app-workflow-step-status',
+  selector: 'app-sheet-submission-status',
   imports: [
     DatePipe,
-    WorkflowStepActorStatus,
-    WorkflowStepStatusTag,
+    SheetSubmissionApproverStatus,
+    ApprovalStatusTag,
     ButtonDirective,
     Tooltip,
   ],
-  templateUrl: './workflow-step-status.html',
-  styleUrl: './workflow-step-status.scss',
+  templateUrl: './sheet-submission-status.html',
+  styleUrl: './sheet-submission-status.scss',
 })
-export class WorkflowStepStatus {
-  public readonly workflowStep = input.required<SheetSubmission>();
+export class SheetSubmissionStatus {
+  public readonly submission = input.required<SheetSubmission>();
   public readonly canToggle = input.required<boolean>();
   public readonly heading = input('Current approval');
   public readonly approvers = computed(() => {
-    const actors = [...this.workflowStep().approvers];
-    if (this.workflowStep().status === SubmissionStatus.Pending) {
-      actors.sort(
+    const approvers = [...this.submission().approvers];
+    if (this.submission().status === SubmissionStatus.Pending) {
+      approvers.sort(
         (left, right) =>
           Number(right.decision === ApproverDecision.Pending) -
           Number(left.decision === ApproverDecision.Pending),
       );
     }
-    return actors;
+    return approvers;
   });
   public readonly approvalCounts = computed(() => {
-    const actors = this.workflowStep().approvers;
+    const approvers = this.submission().approvers;
     return [
       { state: ApproverDecision.Approved, label: 'approved' },
       { state: ApproverDecision.Pending, label: 'pending' },
       { state: ApproverDecision.Rejected, label: 'rejected' },
     ]
       .map(({ state, label }) => ({
-        count: actors.filter((actor) => actor.decision === state).length,
+        count: approvers.filter((approver) => approver.decision === state)
+          .length,
         label,
       }))
       .filter(({ count }) => count > 0);
@@ -55,7 +56,7 @@ export class WorkflowStepStatus {
   public readonly canReassign = computed(
     () =>
       !this.canToggle() &&
-      this.workflowStep().status === SubmissionStatus.Pending &&
+      this.submission().status === SubmissionStatus.Pending &&
       this.isViewerThePublisher(),
   );
   public readonly isViewerThePublisher = computed(() => {
@@ -65,7 +66,7 @@ export class WorkflowStepStatus {
       return false;
     }
 
-    return this.workflowStep().submittedByUserId === user.id;
+    return this.submission().submittedByUserId === user.id;
   });
 
   private readonly _activeSheetService = inject(ActiveSheetService);
@@ -78,7 +79,7 @@ export class WorkflowStepStatus {
       ReassignApproversDialog,
       {
         injector: this._injector,
-        data: this.workflowStep(),
+        data: this.submission(),
         minWidth: '40%',
       },
     );

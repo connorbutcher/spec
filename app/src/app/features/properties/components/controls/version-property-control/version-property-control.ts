@@ -9,7 +9,7 @@ import {
 import { isNil } from 'lodash';
 import { InputNumber } from 'primeng/inputnumber';
 import { combineLatest, filter, switchMap, takeUntil } from 'rxjs';
-import { IntPropertyValue } from '../../../../../core/models/domain/spec-sheet/properties/values/int-property-value';
+import { IntPropertyValue } from '../../../../../core/models/domain/values/property-values/int-property-value';
 import { SpecSheetPhase } from '../../../../../core/models/domain/types/spec-sheet-phase';
 import { SpecSheetType } from '../../../../../core/models/domain/types/spec-sheet-type';
 import { PropertyControlType } from '../../../../../core/types/properties/property-control-type.enum';

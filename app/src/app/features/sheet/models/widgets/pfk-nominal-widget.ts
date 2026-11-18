@@ -57,10 +57,7 @@ export class PFKNomWidget extends WidgetPropertyBase<
     return advisories;
   });
 
-  constructor(
-    widget: SheetWidget,
-    parent: PUSpecSheetTableGroup,
-  ) {
+  constructor(widget: SheetWidget, parent: PUSpecSheetTableGroup) {
     super(widget, parent);
   }
 

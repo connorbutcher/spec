@@ -21,7 +21,9 @@ export class SheetListingService {
   }
 
   /** The published versions of every sheet of the type. */
-  public async getPublishedByTypeAsync(typeId: number): Promise<SheetListItem[]> {
+  public async getPublishedByTypeAsync(
+    typeId: number,
+  ): Promise<SheetListItem[]> {
     const url = `${environment.apiUrl}/sheets/type/${typeId}/list`;
     return await lastValueFrom(this._httpClient.get<SheetListItem[]>(url));
   }

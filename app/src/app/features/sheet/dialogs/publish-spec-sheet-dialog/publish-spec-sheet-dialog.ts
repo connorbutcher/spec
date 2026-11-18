@@ -11,7 +11,7 @@ import { ButtonDirective } from 'primeng/button';
 import { Message } from 'primeng/message';
 import { Select } from 'primeng/select';
 import { SpecSheetPhaseObserver } from '../../../../core/models/domain/access/spec-sheet-phase-observer';
-import { PublishSpecSheetRequest } from '../../../../core/models/requests/spec-sheets/publish-spec-sheet-request';
+import { PublishSheetRequest } from '../../../../core/models/requests/sheets/publish-sheet-request';
 import { PhasesService } from '../../../../core/services/phases.service';
 import { UserService } from '../../../../core/services/user.service';
 import { DialogHeader } from '../../../common/dialog-header/dialog-header';
@@ -71,7 +71,7 @@ export class PublishSpecSheetDialog {
   private readonly _phasesService = inject(PhasesService);
   private readonly _userService = inject(UserService);
   private readonly _dialogRef = inject(
-    DialogRef<PublishSpecSheetRequest, PublishSpecSheetDialog>,
+    DialogRef<PublishSheetRequest, PublishSpecSheetDialog>,
   );
   private readonly _formBuilder = inject(NonNullableFormBuilder);
 
@@ -88,7 +88,7 @@ export class PublishSpecSheetDialog {
       id: this.specSheet().id,
       changeLog: this.form.value.publishInfo,
       approvers: this.form.value.approvers?.map((o) => o.user) ?? [],
-    } as PublishSpecSheetRequest;
+    } as PublishSheetRequest;
 
     this._dialogRef.close(request);
   }

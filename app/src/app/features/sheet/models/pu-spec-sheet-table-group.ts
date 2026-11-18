@@ -23,7 +23,12 @@ import { WidgetTypeRegistry } from './services/widget-type-registry';
 import { SpecSheetAdvisory } from './spec-sheet-advisory';
 import { PUSpecSheetTableBase } from './tables/pu-spec-sheet-table-base';
 import { WidgetPropertyBase } from './widgets/widget-base';
-import { SheetExternalReference, SheetTableGroup, SheetTableRow, SheetWidget } from '../../../core/models/domain/sheets/sheet';
+import {
+  SheetExternalReference,
+  SheetTableGroup,
+  SheetTableRow,
+  SheetWidget,
+} from '../../../core/models/domain/sheets/sheet';
 
 export type ColumnDefinitions = {
   count: number;
@@ -56,8 +61,7 @@ export class PUSpecSheetTableGroup {
       return [];
     }
 
-    const widgetProperties: WidgetPropertyBase<SheetWidget>[] =
-      [];
+    const widgetProperties: WidgetPropertyBase<SheetWidget>[] = [];
     for (const widget of widgets) {
       const tableTemplateWidget =
         tableGroupTemplate.tableGroupTemplateWidgets.find(
@@ -220,8 +224,10 @@ export class PUSpecSheetTableGroup {
       (lg) => lg.linkedGroupReferenceId === group.referenceId,
     );
 
-    this._changeTracker = new ChangeTracker(group)
-      .track('displayOrder', this.order);
+    this._changeTracker = new ChangeTracker(group).track(
+      'displayOrder',
+      this.order,
+    );
     this.hasChanges = computed(() => {
       const hasDeletedRows = this.group.rows.some(
         (or) => !this.rows().find((r) => r.id === or.id),
@@ -246,7 +252,9 @@ export class PUSpecSheetTableGroup {
         (cg) => cg.linkedGroupReferenceId === lg.referenceId,
       );
 
-      groups.push(new PUSpecSheetTableGroup(lg, childGroups, this._parent, this.id));
+      groups.push(
+        new PUSpecSheetTableGroup(lg, childGroups, this._parent, this.id),
+      );
     }
 
     this.childGroups = signal(groups);
@@ -256,7 +264,12 @@ export class PUSpecSheetTableGroup {
 
   public addGroup(group: SheetTableGroup, index?: number): void {
     runInInjectionContext(this._injector, () => {
-      const puGroup = new PUSpecSheetTableGroup(group, [], this._parent, this.id);
+      const puGroup = new PUSpecSheetTableGroup(
+        group,
+        [],
+        this._parent,
+        this.id,
+      );
       if (index !== undefined) {
         this.childGroups.update((groups) => {
           groups.splice(index, 0, puGroup);

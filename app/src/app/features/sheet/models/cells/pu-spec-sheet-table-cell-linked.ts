@@ -7,7 +7,10 @@ import { LinkedSpecSheetValueDropdownPhaseTypeCellProperty } from '../../feature
 import { ResetOption } from '../../types/cell-reset-options';
 import { PUSpecSheetTableRow } from '../pu-spec-sheet-table-row';
 import { PUSpecSheetTableCellBase } from './pu-spec-sheet-table-cell-base';
-import { SheetCellValue, SheetTableCell } from '../../../../core/models/domain/sheets/sheet';
+import {
+  SheetCellValue,
+  SheetTableCell,
+} from '../../../../core/models/domain/sheets/sheet';
 
 export class PUSpecSheetTableCellLinked extends PUSpecSheetTableCellBase<
   LinkedSpecSheetValue,
@@ -79,7 +82,10 @@ export class PUSpecSheetTableCellLinked extends PUSpecSheetTableCellBase<
       columnNumber: this.columnNumber(),
       colSpan: this.colSpan(),
       rowSpan: this.rowSpan(),
-      value: CellValueHelpers.buildCellValue(this.cellValue, cellValue) as SheetCellValue,
+      value: CellValueHelpers.buildCellValue(
+        this.cellValue,
+        cellValue,
+      ) as SheetCellValue,
       tableCellTemplateId: this.cell.tableCellTemplateId,
       createdDateTime: this.cell?.createdDateTime,
       cellConfiguration: this.cell?.cellConfiguration,
@@ -87,8 +93,6 @@ export class PUSpecSheetTableCellLinked extends PUSpecSheetTableCellBase<
       configurationOverride: this.cell.configurationOverride,
     };
   }
-
-
 
   public override *compileValueOperations(): Generator<SpecSheetOp> {
     if (this.isNew) {

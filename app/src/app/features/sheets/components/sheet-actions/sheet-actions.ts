@@ -34,7 +34,9 @@ export class SheetActions {
       return true;
     }
 
-    return versions[versions.length - 1].versionNumber === specSheet.versionNumber;
+    return (
+      versions[versions.length - 1].versionNumber === specSheet.versionNumber
+    );
   });
   private readonly _sheetsService = inject(SheetsService);
   private readonly _puCardAnalyticsService = inject(PUCardAnalyticsService);

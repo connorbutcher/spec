@@ -8,9 +8,7 @@ import { SheetExternalReference } from '../../../core/models/domain/sheets/sheet
 
 export abstract class SheetContext {
   public abstract readonly specSheet: Signal<PUSpecSheet>;
-  public abstract readonly externalReferences: Signal<
-    SheetExternalReference[]
-  >;
+  public abstract readonly externalReferences: Signal<SheetExternalReference[]>;
   public abstract readonly tableGroupTemplates: Signal<TableGroupTemplate[]>;
   public abstract readonly tableRowTemplates: Signal<TableRowTemplate[]>;
   public abstract readonly tableTemplateWidgets: Signal<TableTemplateWidget[]>;

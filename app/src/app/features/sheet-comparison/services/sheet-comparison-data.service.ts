@@ -1,5 +1,8 @@
 import { inject, Injectable } from '@angular/core';
-import { SheetDetail, SheetListItem } from '../../../core/models/domain/sheets/sheet';
+import {
+  SheetDetail,
+  SheetListItem,
+} from '../../../core/models/domain/sheets/sheet';
 import { SheetListingService } from '../../../core/services/sheet-listing.service';
 import { SheetDataService } from '../../sheet/services/sheet-data.service';
 
@@ -16,6 +19,9 @@ export class SheetComparisonDataService {
     phaseId: number,
     typeId: number,
   ): Promise<SheetListItem[]> {
-    return await this._sheetListingService.getByPhaseAndTypeAsync(phaseId, typeId);
+    return await this._sheetListingService.getByPhaseAndTypeAsync(
+      phaseId,
+      typeId,
+    );
   }
 }

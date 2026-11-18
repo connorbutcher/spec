@@ -6,39 +6,39 @@ import { SubmissionStatus } from '../../../../../core/types/sheets/submission-st
 import { ISidePanelLayer } from '../../../../side-panel/models/side-panel-layer-data.interface';
 import { SidePanelService } from '../../../../side-panel/side-panel.service';
 import { ActiveSheetService } from '../../../services/active-sheet.service';
-import { WorkflowStepStatusTag } from '../components/workflow-step-status-tag/workflow-step-status-tag';
-import { WorkflowStepStatus } from '../components/workflow-step-status/workflow-step-status';
+import { ApprovalStatusTag } from '../components/approval-status-tag/approval-status-tag';
+import { SheetSubmissionStatus } from '../components/sheet-submission-status/sheet-submission-status';
 
 @Component({
   selector: 'app-approval-side-panel',
   imports: [
     ButtonDirective,
     DatePipe,
-    WorkflowStepStatus,
-    WorkflowStepStatusTag,
+    SheetSubmissionStatus,
+    ApprovalStatusTag,
   ],
   templateUrl: './approval-side-panel.html',
   styleUrl: './approval-side-panel.scss',
 })
-export class ApprovalSidePanel
-  implements ISidePanelLayer<Record<string, never>>
-{
+export class ApprovalSidePanel implements ISidePanelLayer<
+  Record<string, never>
+> {
   public data: Record<string, never> = {};
   public readonly title = signal('Approval Status');
 
   private readonly _activeSheetService = inject(ActiveSheetService);
   private readonly _sidePanelService = inject(SidePanelService);
-  private readonly _workflowAttempts = computed(
+  private readonly _submissions = computed(
     () => this._activeSheetService.specSheet().submissions,
   );
 
-  public readonly activeWorkflowAttempt = computed(() =>
-    this._workflowAttempts().find(
+  public readonly activeSubmission = computed(() =>
+    this._submissions().find(
       (attempt) => attempt.status === SubmissionStatus.Pending,
     ),
   );
-  public readonly pastWorkflowAttempts = computed(() =>
-    this._workflowAttempts()
+  public readonly pastSubmissions = computed(() =>
+    this._submissions()
       .filter((attempt) => attempt.status !== SubmissionStatus.Pending)
       .sort(
         (left, right) =>
@@ -46,12 +46,12 @@ export class ApprovalSidePanel
           DateTime.fromISO(left.submittedDateTime).toMillis(),
       ),
   );
-  public readonly displayedWorkflowAttempt = computed(
-    () => this.activeWorkflowAttempt() ?? this.pastWorkflowAttempts()[0],
+  public readonly displayedSubmission = computed(
+    () => this.activeSubmission() ?? this.pastSubmissions()[0],
   );
-  public readonly historyWorkflowAttempts = computed(() =>
-    this.pastWorkflowAttempts().filter(
-      (attempt) => attempt.id !== this.displayedWorkflowAttempt()?.id,
+  public readonly historySubmissions = computed(() =>
+    this.pastSubmissions().filter(
+      (attempt) => attempt.id !== this.displayedSubmission()?.id,
     ),
   );
 

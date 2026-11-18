@@ -17,6 +17,8 @@ export class NumberDisplayPropertyControl {
       return 'N/A';
     }
 
-    return SheetPropertyHelpers.getValue<number>(instancePropertyValue) ?? 'N/A';
+    return (
+      SheetPropertyHelpers.getValue<number>(instancePropertyValue) ?? 'N/A'
+    );
   });
 }

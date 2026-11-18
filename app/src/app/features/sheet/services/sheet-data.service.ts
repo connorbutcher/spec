@@ -2,12 +2,15 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { lastValueFrom } from 'rxjs';
 import { environment } from '../../../../../environments/environment';
-import { SpecSheetChanges } from '../../../core/models/operations/spec-sheet-changes';
-import { PublishSpecSheetRequest } from '../../../core/models/requests/spec-sheets/publish-spec-sheet-request';
+import { SheetChanges } from '../../../core/models/operations/sheet-changes';
+import { PublishSheetRequest } from '../../../core/models/requests/sheets/publish-sheet-request';
 import { DecideSubmissionRequest } from '../../../core/models/requests/sheets/decide-submission-request';
 import { ReassignSubmissionApproversRequest } from '../../../core/models/requests/sheets/reassign-submission-approvers-request';
 import { SheetListingService } from '../../../core/services/sheet-listing.service';
-import { SheetDetail, SheetListItem } from '../../../core/models/domain/sheets/sheet';
+import {
+  SheetDetail,
+  SheetListItem,
+} from '../../../core/models/domain/sheets/sheet';
 
 @Injectable()
 export class SheetDataService {
@@ -44,17 +47,20 @@ export class SheetDataService {
     phaseId: number,
     typeId: number,
   ): Promise<SheetListItem[]> {
-    return await this._sheetListingService.getByPhaseAndTypeAsync(phaseId, typeId);
+    return await this._sheetListingService.getByPhaseAndTypeAsync(
+      phaseId,
+      typeId,
+    );
   }
 
-  public async updateSheetAsync(request: SpecSheetChanges): Promise<void> {
+  public async updateSheetAsync(request: SheetChanges): Promise<void> {
     const url = `${environment.apiUrl}/sheets/${request.sheetId}/draft`;
     await lastValueFrom(
       this._httpClient.patch<void>(url, { operations: request.operations }),
     );
   }
 
-  public async publishSheetAsync(request: PublishSpecSheetRequest): Promise<void> {
+  public async publishSheetAsync(request: PublishSheetRequest): Promise<void> {
     const url = `${environment.apiUrl}/sheets/${request.id}/publish`;
     await lastValueFrom(
       this._httpClient.patch<void>(url, {

@@ -4,7 +4,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { toInteger } from 'lodash';
 import { InputNumber } from 'primeng/inputnumber';
 import { combineLatest, take } from 'rxjs';
-import { IntPropertyValue } from '../../../../../core/models/domain/spec-sheet/properties/values/int-property-value';
+import { IntPropertyValue } from '../../../../../core/models/domain/values/property-values/int-property-value';
 import { PropertyValueType } from '../../../../../core/types/properties/property-value-type.enum';
 import { ElementLabel } from '../../../../common/element-label/element-label';
 import { PropertyControlBase } from '../property-control-base';

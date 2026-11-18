@@ -1,0 +1,18 @@
+<div class="submission-approver">
+  <div class="wsa-status">
+    <span class="approver-name">{{
+      approver().user?.displayName || "Unassigned approver"
+    }}</span>
+    <app-approval-status-tag [state]="approver().decision" />
+  </div>
+
+  @if (approver().decidedDateTime) {
+    <div class="actioned-date">
+      {{ approver().decidedDateTime | date: "dd MMM yyyy, HH:mm" }}
+    </div>
+  }
+
+  @if (safeComment()) {
+    <div class="wsa-comment" [innerHTML]="safeComment()"></div>
+  }
+</div>

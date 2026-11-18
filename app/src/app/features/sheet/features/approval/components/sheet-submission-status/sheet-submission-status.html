@@ -1,7 +1,7 @@
 @if (!canToggle()) {
-  <div class="workflow-header">
+  <div class="submission-header">
     <h4>{{ heading() }}</h4>
-    <app-workflow-step-status-tag [state]="workflowStep().status" />
+    <app-approval-status-tag [state]="submission().status" />
 
     @if (canReassign()) {
       <button
@@ -17,7 +17,7 @@
     }
   </div>
   <p class="started-date">
-    Started {{ workflowStep().submittedDateTime | date: "dd MMM yyyy, HH:mm" }}
+    Started {{ submission().submittedDateTime | date: "dd MMM yyyy, HH:mm" }}
   </p>
 }
 
@@ -29,8 +29,8 @@
 
 <section class="approvers">
   <h4>Approvers</h4>
-  @for (stepActor of approvers(); track stepActor.userId) {
-    <app-workflow-step-actor-status [actor]="stepActor" />
+  @for (approver of approvers(); track approver.userId) {
+    <app-sheet-submission-approver-status [approver]="approver" />
   } @empty {
     <p class="empty-approvers">No approvers assigned</p>
   }

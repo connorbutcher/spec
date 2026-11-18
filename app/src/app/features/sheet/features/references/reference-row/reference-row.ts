@@ -7,7 +7,6 @@ import { SheetExternalReference } from '../../../../../core/models/domain/sheets
   styleUrl: './reference-row.scss',
 })
 export class ReferenceRow {
-  public readonly systemReference =
-    input.required<SheetExternalReference>();
+  public readonly systemReference = input.required<SheetExternalReference>();
   public readonly highlightedReferenceId = input<string>();
 }

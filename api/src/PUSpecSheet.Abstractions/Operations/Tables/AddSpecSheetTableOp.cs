@@ -8,8 +8,6 @@ public record AddSpecSheetTableOp : IChangeOp
     [Range(int.MinValue, 1)]
     public required int TempId { get; init; }
 
-    public required int SpecSheetId { get; init; }
-
     [Range(1, int.MaxValue)]
     public required int TableTemplateId { get; init; }
 

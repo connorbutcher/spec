@@ -136,7 +136,8 @@ export class Sheet extends CanDeactivate implements AfterViewInit {
 
     const activeSheet = this._sheetService.specSheet();
     return (
-      !activeSheet || activeSheet.sheet !== this.specSheetResource.value()!.sheet
+      !activeSheet ||
+      activeSheet.sheet !== this.specSheetResource.value()!.sheet
     );
   });
   public readonly error = computed<string[]>(() => {

@@ -4,7 +4,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { TreeNode } from 'primeng/api';
 import { TreeSelect } from 'primeng/treeselect';
 import { combineLatest, filter, switchMap, takeUntil } from 'rxjs';
-import { IntPropertyValue } from '../../../../../core/models/domain/spec-sheet/properties/values/int-property-value';
+import { IntPropertyValue } from '../../../../../core/models/domain/values/property-values/int-property-value';
 import { SpecSheetType } from '../../../../../core/models/domain/types/spec-sheet-type';
 import { PhasesService } from '../../../../../core/services/phases.service';
 import { PropertyValueType } from '../../../../../core/types/properties/property-value-type.enum';
