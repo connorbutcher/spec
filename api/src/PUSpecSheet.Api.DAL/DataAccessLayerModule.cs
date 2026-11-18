@@ -82,6 +82,7 @@ public static class DataAccessLayerModule
         builder.Services.AddScoped<SheetDraftPublisher>();
         builder.Services.AddScoped<SheetSubmissions>();
         builder.Services.AddScoped<SheetDraftWorkflow>();
+        builder.Services.AddScoped<SheetExternalReferences>();
     }
 
     private static void RegisterResolvers(IServiceCollection services)

@@ -7,6 +7,7 @@ using PUSpecSheet.Abstractions.Domain.Types;
 using PUSpecSheet.Abstractions.Types;
 using PUSpecSheet.Api.Common.Context;
 using PUSpecSheet.Api.DAL.DataAccess.SpecSheets;
+using PUSpecSheet.Api.DAL.DataAccess.SpecSheets.Edits;
 using PUSpecSheet.Api.DAL.DataAccess.Types;
 using PUSpecSheet.Api.DAL.Query.Mappers;
 using PUSpecSheet.Api.DAL.Query.Resolvers.Cells;
@@ -26,12 +27,14 @@ namespace PUSpecSheet.Api.DAL.DataAccess.Query;
 internal class QueryDataAccessService : IQueryDataAccessService
 {
     private readonly ISpecSheetDataAccessService _specSheetDataAccessService;
+    private readonly SheetExternalReferences _sheetExternalReferences;
     private readonly ITypeDataAccessService _typeDataAccessService;
     private readonly LinkedTableResolver _linkedTableResolver;
     private readonly LinkedSpecSheetLookupCellResolver _linkedSpecSheetLookupCellResolver;
     private readonly ILogger<IQueryDataAccessService> _logger;
 
     public QueryDataAccessService(ISpecSheetDataAccessService specSheetDataAccessService,
+        SheetExternalReferences sheetExternalReferences,
         ITypeDataAccessService typeDataAccessService,
         IUserContext userContext,
         LinkedTableResolver linkedTableResolver,
@@ -39,6 +42,7 @@ internal class QueryDataAccessService : IQueryDataAccessService
         ILogger<IQueryDataAccessService> logger)
     {
         ArgumentNullException.ThrowIfNull(specSheetDataAccessService, nameof(specSheetDataAccessService));
+        ArgumentNullException.ThrowIfNull(sheetExternalReferences, nameof(sheetExternalReferences));
         ArgumentNullException.ThrowIfNull(typeDataAccessService, nameof(typeDataAccessService));
         ArgumentNullException.ThrowIfNull(userContext, nameof(userContext));
         ArgumentNullException.ThrowIfNull(linkedTableResolver, nameof(linkedTableResolver));
@@ -46,6 +50,7 @@ internal class QueryDataAccessService : IQueryDataAccessService
         ArgumentNullException.ThrowIfNull(logger, nameof(logger));
 
         _specSheetDataAccessService = specSheetDataAccessService;
+        _sheetExternalReferences = sheetExternalReferences;
         _typeDataAccessService = typeDataAccessService;
         _linkedTableResolver = linkedTableResolver;
         _linkedSpecSheetLookupCellResolver = linkedSpecSheetLookupCellResolver;
@@ -307,14 +312,20 @@ internal class QueryDataAccessService : IQueryDataAccessService
         return result;
     }
 
+    // The references of sheets of a type edited on the revisions are theirs to update; the rest are the copies'.
     public async Task UpdateSystemReferencesAsync(ICollection<ExternalSystemReferenceRequest> systemReferences,
         CancellationToken cancellationToken)
     {
-        await _specSheetDataAccessService.UpdateSystemReferencesAsync(systemReferences, null, cancellationToken);
+        var copyReferences = await _sheetExternalReferences.UpdateAsync(systemReferences, cancellationToken);
+        if (copyReferences.Count > 0)
+        {
+            await _specSheetDataAccessService.UpdateSystemReferencesAsync(copyReferences, null, cancellationToken);
+        }
     }
 
     public async Task DeleteSystemReferencesByExternalIdAsync(int externalId, CancellationToken cancellationToken)
     {
+        await _sheetExternalReferences.DeleteByExternalIdAsync(externalId, cancellationToken);
         await _specSheetDataAccessService.DeleteSystemReferencesByExternalIdAsync(externalId, cancellationToken);
     }
 
