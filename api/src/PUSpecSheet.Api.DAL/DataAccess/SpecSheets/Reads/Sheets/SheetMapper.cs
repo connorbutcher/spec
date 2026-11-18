@@ -52,6 +52,39 @@ internal class SheetMapper
             .Concat(versions.Select(version => version.PublishedByUserId));
     }
 
+    /// <summary>
+    /// The ids of the users a mapped summary names: those who published its versions and wrote its properties.
+    /// </summary>
+    public static IEnumerable<int> SummaryUserIds(IEnumerable<DbSheet> sheets)
+    {
+        return sheets.SelectMany(sheet => sheet.Versions.Select(version => version.PublishedByUserId)
+            .Concat(sheet.Properties.Select(property => property.Revisions.Shown().CreatedByUserId)));
+    }
+
+    /// <summary>
+    /// The sheet without its tables, with its latest version and the properties its current published revisions give.
+    /// </summary>
+    public SheetSummary MapSummary(DbSheet sheet, int? draftSpecSheetId)
+    {
+        var latest = sheet.Versions.OrderByDescending(version => version.VersionNumber).FirstOrDefault();
+        return new SheetSummary
+        {
+            Id = sheet.Id,
+            ReferenceId = sheet.ReferenceId,
+            SpecSheetPhaseId = sheet.SpecSheetPhaseId,
+            SpecSheetTypeId = sheet.SpecSheetTypeId,
+            CreatedDateTime = sheet.CreatedDateTime,
+            SpecSheetPhase = sheet.SpecSheetPhase?.MapToDomain(),
+            SpecSheetType = sheet.SpecSheetType?.MapToDomain(),
+            LatestVersion = latest is null ? null : MapVersion(latest),
+            DraftSpecSheetId = draftSpecSheetId,
+            Properties = [.. sheet.Properties
+                .Where(property => property.Revisions.IsShown())
+                .Select(MapProperty)
+                .OrderBy(property => property.Id)]
+        };
+    }
+
     public Sheet Map(DbSheet sheet, DbSheetVersion? version, ICollection<DbSheetLinkedTable> linkedTables, DateTime asOf, bool isDraft)
     {
         return new Sheet
@@ -98,7 +131,11 @@ internal class SheetMapper
             PublishedByUserId = version.PublishedByUserId,
             PublishedByUser = User(version.PublishedByUserId),
             ChangeLog = version.ChangeLog,
-            HasBeenMigrated = version.HasBeenMigrated
+            HasBeenMigrated = version.HasBeenMigrated,
+            SourceSpecSheetId = version.SourceSpecSheetId,
+            LegacySpecSheetId = version.LegacySpecSheetId,
+            SourceCreatedByUserId = version.SourceCreatedByUserId,
+            SourceCreatedDateTime = version.SourceCreatedDateTime
         };
     }
 

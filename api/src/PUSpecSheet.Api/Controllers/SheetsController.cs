@@ -36,6 +36,41 @@ public class SheetsController : ControllerBase
         return sheet is null ? NotFound() : Ok(sheet);
     }
 
+    [HttpGet("phase/{phaseId:int}/all")]
+    public async Task<ActionResult<IReadOnlyList<SheetSummary>>> GetSheetSummariesByPhaseAsync(int phaseId, [FromQuery] bool includeChildren = false)
+    {
+        var summaries = await _sheetDataAccessService.GetSheetSummariesByPhaseAsync(phaseId, includeChildren, HttpContext.RequestAborted);
+        return Ok(summaries);
+    }
+
+    [HttpGet("type/{sheetTypeId:int}")]
+    public async Task<ActionResult<IReadOnlyList<SheetSummary>>> GetSheetSummariesByTypeAsync(int sheetTypeId)
+    {
+        var summaries = await _sheetDataAccessService.GetSheetSummariesByTypeAsync(sheetTypeId, HttpContext.RequestAborted);
+        return Ok(summaries);
+    }
+
+    [HttpGet("phase/{phaseId:int}/type/{sheetTypeId:int}")]
+    public async Task<ActionResult<SheetSummary>> GetSheetSummaryByPhaseAndTypeAsync(int phaseId, int sheetTypeId)
+    {
+        var summary = await _sheetDataAccessService.GetSheetSummaryByPhaseAndTypeAsync(phaseId, sheetTypeId, HttpContext.RequestAborted);
+        return summary is null ? NotFound() : Ok(summary);
+    }
+
+    [HttpGet("phase/{phaseId:int}/type/{sheetTypeId:int}/latest")]
+    public async Task<ActionResult<Sheet>> GetLatestPublishedSheetByPhaseAndTypeAsync(int phaseId, int sheetTypeId, [FromQuery] DateTime? publishedBy = null)
+    {
+        var sheet = await _sheetDataAccessService.GetLatestPublishedSheetByPhaseAndTypeAsync(phaseId, sheetTypeId, publishedBy, HttpContext.RequestAborted);
+        return sheet is null ? NotFound() : Ok(sheet);
+    }
+
+    [HttpGet("spec-sheet/{specSheetId:int}")]
+    public async Task<ActionResult<SheetLocation>> FindSheetAsync(int specSheetId)
+    {
+        var location = await _sheetDataAccessService.FindSheetAsync(specSheetId, HttpContext.RequestAborted);
+        return location is null ? NotFound() : Ok(location);
+    }
+
     [HttpGet("{id:int}/versions")]
     public async Task<ActionResult<IReadOnlyList<SheetVersion>>> GetSheetVersionsAsync(int id)
     {

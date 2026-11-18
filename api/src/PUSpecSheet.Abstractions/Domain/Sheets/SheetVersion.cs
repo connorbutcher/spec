@@ -19,4 +19,15 @@ public record SheetVersion
     public required string? ChangeLog { get; init; }
 
     public required bool HasBeenMigrated { get; init; }
+
+    /// <summary>
+    /// The SpecSheets row this version was migrated from, which the app's older screens know it by.
+    /// </summary>
+    public required int? SourceSpecSheetId { get; init; }
+
+    public required int? LegacySpecSheetId { get; init; }
+
+    public required int? SourceCreatedByUserId { get; init; }
+
+    public required DateTime? SourceCreatedDateTime { get; init; }
 }
