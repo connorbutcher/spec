@@ -10,7 +10,7 @@ using PUSpecSheet.CheckInOut.Api.Hubs;
 using PUSpecSheet.CheckInOut.Api.Models;
 using PUSpecSheet.CheckInOut.Api.Services.SpecSheets;
 using PUSpecSheet.CheckInOut.Api.Services.Users;
-using StackExchange.Redis;
+// using StackExchange.Redis;
 
 OpenApiInfo apiInfo = new()
 {
@@ -34,30 +34,34 @@ builder.Services.AddResponseCompression(options =>
 
 builder.Services.AddControllers();
 
-var redisConfiguration = RedisConfigurationOptions.GetConfigurationOptions(builder.Configuration.GetRequiredSection("Redis"));
-builder.Services.AddSingleton<IConnectionMultiplexer, ConnectionMultiplexer>(sp =>
-{
-    return ConnectionMultiplexer.Connect(redisConfiguration);
-});
-
-builder.Services.AddStackExchangeRedisCache(options =>
-{
-    options.ConfigurationOptions = redisConfiguration;
-});
+// Redis is disabled for local running: the caches are held in memory and SignalR runs without a backplane.
+// var redisConfiguration = RedisConfigurationOptions.GetConfigurationOptions(builder.Configuration.GetRequiredSection("Redis"));
+// builder.Services.AddSingleton<IConnectionMultiplexer, ConnectionMultiplexer>(sp =>
+// {
+//     return ConnectionMultiplexer.Connect(redisConfiguration);
+// });
+//
+// builder.Services.AddStackExchangeRedisCache(options =>
+// {
+//     options.ConfigurationOptions = redisConfiguration;
+// });
 
 builder.Services.AddSignalR(x =>
 {
     x.KeepAliveInterval = TimeSpan.FromSeconds(5);
     x.ClientTimeoutInterval = TimeSpan.FromSeconds(10);
     x.EnableDetailedErrors = true;
-})
-.AddStackExchangeRedis(o => o.Configuration = redisConfiguration);
+});
+// .AddStackExchangeRedis(o => o.Configuration = redisConfiguration);
 
 builder.AddDocumentation(apiInfo);
 
-builder.Services.AddKeyedSingleton<ICacheProvider<ConnectedUser>, DistributedCacheProvider<ConnectedUser>>(ConnectedUserService.ConnectedUsersCacheName);
-builder.Services.AddKeyedSingleton<ICacheProvider<ConnectedUser>, DistributedCacheProvider<ConnectedUser>>(PUSpecSheetCheckInOutService.PUSpecSheetCheckedOutCacheName);
-builder.Services.AddKeyedSingleton<ICacheProvider<CheckoutRequest>, DistributedCacheProvider<CheckoutRequest>>(PUSpecSheetCheckInOutService.PUSpecSheetCheckoutRequestsCacheName);
+// builder.Services.AddKeyedSingleton<ICacheProvider<ConnectedUser>, DistributedCacheProvider<ConnectedUser>>(ConnectedUserService.ConnectedUsersCacheName);
+// builder.Services.AddKeyedSingleton<ICacheProvider<ConnectedUser>, DistributedCacheProvider<ConnectedUser>>(PUSpecSheetCheckInOutService.PUSpecSheetCheckedOutCacheName);
+// builder.Services.AddKeyedSingleton<ICacheProvider<CheckoutRequest>, DistributedCacheProvider<CheckoutRequest>>(PUSpecSheetCheckInOutService.PUSpecSheetCheckoutRequestsCacheName);
+builder.Services.AddKeyedSingleton<ICacheProvider<ConnectedUser>, InMemoryCacheProvider<ConnectedUser>>(ConnectedUserService.ConnectedUsersCacheName);
+builder.Services.AddKeyedSingleton<ICacheProvider<ConnectedUser>, InMemoryCacheProvider<ConnectedUser>>(PUSpecSheetCheckInOutService.PUSpecSheetCheckedOutCacheName);
+builder.Services.AddKeyedSingleton<ICacheProvider<CheckoutRequest>, InMemoryCacheProvider<CheckoutRequest>>(PUSpecSheetCheckInOutService.PUSpecSheetCheckoutRequestsCacheName);
 
 builder.Services.AddSingleton<IConnectedUserService, ConnectedUserService>();
 builder.Services.AddSingleton<IPUSpecSheetCheckInOutService, PUSpecSheetCheckInOutService>();
