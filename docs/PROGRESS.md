@@ -112,6 +112,16 @@ Done since: `SheetDraftCreator`, `SheetDraftCopier`, `SheetDraftItems`, `SheetCo
 
 Notes above that mention `SheetReads:Source`, `SheetEdits:RevisionSheetTypeIds`, `/revisions/compare`, the obsolete controller actions or `SpecSheetDataAccessService` describe the code before stage 8.
 
+## Row and table checkout (branch `row-checkout`, 2026-11-18)
+
+"Create New Version" is gone. The latest version of a sheet opens as it stands now and anyone can edit it: each table,
+group or row changed is checked out to whoever made its draft (`CreatedByUserId` of its draft revision) until they undo
+or submit it. Submitting tags only that user's drafts with a new submission; approval publishes only those as the next
+version (with a published SpecSheets row made then), rejection or withdrawal hands them back. Several users can have
+submissions pending on one sheet. The check-in/out SignalR service now only does presence and change notices. No schema
+change. Locally an `X-Local-User` header (the UI's "Act as" select) picks one of three seeded users. Details, what was
+checked and the known limits are in `docs/ROW-CHECKOUT.md`. Notes above about the draft's SpecSheets header row,
+`SheetDraftWorkflow` keeping workflow steps and one pending submission per sheet describe the code before this.
 ## Open items
 
 1. Nothing has been compiled or tested (no dotnet SDK in the sandbox). First step on a real machine: build the solution and run `dotnet test`.

@@ -65,25 +65,53 @@ database and survive disconnects. The hub becomes presence and change notices:
 
 ## Testing with more than one user
 
-Auth is off locally, so every request is Local Admin. For testing:
+Auth is off locally, so every request is Local Admin unless it says otherwise:
 
 - The API's `DefaultUserClaimsAccessor` reads an `X-Local-User` header (`1`, `2` or `3`) and acts as Local Admin, Local
-  Engineer or Local Approver (`DefaultUsers`). No header means Local Admin, as now.
-- `database/seed-local-users.sql` adds the two extra users with edit and approve permissions (data only, safe to rerun).
-- The UI has a small "Act as" select in the top bar (development builds only) stored in localStorage, sent as the header
-  and used as the SignalR user name. Use a normal and a private browser window to be two users at once.
+  Engineer or Local Approver (`LocalUsers`). No header means Local Admin, as before.
+- `database/seed-local-users.sql` gives Local Engineer and Local Approver the admin's permissions and makes all three
+  approvers of every phase (data only, safe to rerun):
+  `sqlcmd -S "(localdb)\MSSQLLocalDB" -d PUSpecSheetLegacy -E -b -I -i database/seed-local-users.sql`
+- The UI has an "Act as" select in the side nav (development builds only, expand the nav to change it). It is kept per
+  browser tab (sessionStorage), so two tabs can be two users at once. It is sent as the header and is the SignalR user
+  name, so presence shows the right people.
 
-## Steps (commits)
+## Commits
 
-1. This plan.
-2. API: `SheetSubmissionId` on `SheetItemRevision`; locks enforced in the draft helpers; 409 for lock conflicts.
-3. API: undo (all mine, one item).
-4. API: submit/publish only my drafts; per-submission decide and reassign; header made at publish; create only for new
-   sheets.
-5. API: local users for testing (header, seed script).
-6. Check-in/out service: presence and change notices instead of whole-sheet checkout.
-7. UI: models, services and the act-as switch.
-8. UI: toolbar (no Create New Version; version, save, undo, submit).
-9. UI: lock tags and read-only rows, row undo.
-10. UI: approvals per submission; remove the old checkout guard and dialogs.
-11. Docs: PROGRESS.md and this file brought up to date with what was checked.
+1. `030db52` Plan.
+2. `93e638d` API: locks enforced in the draft helpers; 409 with the reason (`SheetEditExceptionFilter`).
+3. `03e9e92` API: undo (all mine, one table, group or row).
+4. `00eeee1` API: submit only my drafts, several pending submissions per sheet, per-submission decide, withdraw and
+   reassign; a published SpecSheets row made at publish; create only for a new phase and type.
+5. `d68b97c` API: local users for testing.
+6. `1124dc8` Check-in/out service: presence and change notices instead of the whole-sheet checkout.
+7. `a11cb08` UI: presence client, act-as switch, models; old checkout guard and dialogs removed.
+8. `1311af6` UI: editing in place with lock tags, read-only rows, toolbar (version, checkouts, Undo My Changes,
+   Submit/Publish), row and table undo, per-submission approvals.
+9. `6e70b6e` A failed email no longer fails a committed submit or decision; seed-local-users.sql kept out of the schema.
+
+## What was checked (2026-11-18)
+
+- API, check-in/out service and UI all build (`dotnet build`, `ng build`).
+- The API was run on a scratch database (deploy.ps1, seed.ps1, seed-local-users.sql) and driven as the three local users:
+  create refused for an existing sheet; undo of everything on a never-published sheet removes it; Engineer refused
+  (409, naming Local Admin) on the Admin's checked-out cell, on adding a row inside the Admin's new group and on removing
+  the Admin's table; submit refused with nothing checked out and with yourself as approver; submitted items refused for
+  everyone, the author included; reject hands them back; resubmit and approve publishes v1; a non-approver's decision is
+  refused; after v1 the Engineer checks out the row and the Admin is refused it; the Admin renames the table (a separate
+  lock); both submit; approving only the Admin's publishes v2 with the rename and without the Engineer's value; the
+  Engineer withdraws, then undoes, and the row shows v2 again; v1 still reads as it was.
+- Not checked in a browser: the UI against the new API (lock tags, read-only cells, toolbar, presence, change reloads,
+  approvals panel). That needs the API and check-in/out service restarted on this branch.
+
+## Known limits
+
+- A row or group removed in someone's draft is hidden from everyone's view of the sheet until it is submitted or undone,
+  so others don't see who is removing it. Undo all brings it back for the remover.
+- Table notes and widgets aren't greyed out in the UI when someone else has the table checked out; the API refuses the
+  save with the holder's name.
+- Reordering rows touches every row moved, so it is refused when someone else has one of them checked out.
+- Approve/Reject in the toolbar acts on the first pending submission the user hasn't decided; the approvals side panel
+  has buttons for each submission.
+- The sheet types' existing data: drafts left from the old "Create New Version" flow belong to whoever made them and are
+  now their checkouts; an old unpublished SpecSheets header row from that flow is left alone and no longer used.
