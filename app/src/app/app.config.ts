@@ -27,7 +27,7 @@ import Aura from '@primeuix/themes/aura';
 import { MessageService } from 'primeng/api';
 import { providePrimeNG } from 'primeng/config';
 import { routes } from './app.routes';
-import { provideAuth } from './auth/auth.module';
+// import { provideAuth } from './auth/auth.module';
 import { RequestShareInterceptor } from './core/interceptors/request-share.interceptor';
 import { CheckInOutService } from './core/services/check-in-out.service';
 import { PhasesService } from './core/services/phases.service';
@@ -65,7 +65,7 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideZonelessChangeDetection(),
-    provideAuth(),
+    // provideAuth(),
     provideHttpClient(withInterceptorsFromDi()),
     provideRouter(
       routes,

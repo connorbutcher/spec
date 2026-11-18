@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, input, OnInit, signal } from '@angular/core';
-import { MsalService } from '@azure/msal-angular';
+// Auth is disabled for local running, so there is no signed-in account to report.
+// import { MsalService } from '@azure/msal-angular';
 
 type Context = {
   timestamp: Date;
@@ -18,20 +19,25 @@ export class LoginFailed implements OnInit {
   public readonly reason = input.required<string>();
   public readonly context = signal<Context | undefined>(undefined);
 
-  constructor(private readonly _msalService: MsalService) {}
+  // constructor(private readonly _msalService: MsalService) {}
 
   ngOnInit(): void {
     this.context.set(this.generateContext());
   }
 
   private generateContext(): Context {
-    const activeAccount = this._msalService.instance.getActiveAccount();
-    const userObjectId = activeAccount?.idTokenClaims?.oid;
-
+    // const activeAccount = this._msalService.instance.getActiveAccount();
+    // const userObjectId = activeAccount?.idTokenClaims?.oid;
+    //
+    // return {
+    //   timestamp: new Date(),
+    //   userObjectId: userObjectId ?? 'unknown',
+    //   username: activeAccount?.username ?? 'unknown',
+    // };
     return {
       timestamp: new Date(),
-      userObjectId: userObjectId ?? 'unknown',
-      username: activeAccount?.username ?? 'unknown',
+      userObjectId: 'unknown',
+      username: 'unknown',
     };
   }
 }

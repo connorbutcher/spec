@@ -73,20 +73,20 @@ The result has the whole schema and no rows. Nothing in it works until the refer
 `seed.ps1` adds just enough reference data to use the app:
 
 ```powershell
-./seed.ps1 -Database PUSpecSheetLegacy -AdminObjectId <your Entra object id> -AdminName '<your name>' -AdminEmail <your email>
+./seed.ps1 -Database PUSpecSheetLegacy
 ```
 
 | Seeded | What |
 | --- | --- |
 | Permissions | `admin.view`, `admin.sheets`, `admin.types`, `admin.phases`, `admin.users`, `admin.permissions`: every key the API and UI check. |
-| Admin user | The user you name, with every permission, and the approver of the phase. |
+| Admin user | The API's default user (Local Admin, `00000000-0000-0000-0000-000000000001`) unless you name another, with every permission, and the approver of the phase. |
 | Phase | Development (`DEV`). |
 | Sheet type | Engine Specification: vertical tables, approval required, in the Development phase, with the properties the admin UI gives a new type (Type, Phase, Version, Copy From) and one display level labelled by the version. |
 | Cell types | All 26 the UI knows (`CellTypeReferenceKey`), with their `Type` and `ModelType`. |
 | Widget types | Part pair identifier and PFK nominal (`WidgetTypeKey`). |
 | Table template | Limits: a header row (Description, Min, Max, Unit) and a Limit group under it with one row of a text cell, two numeric cells (2 decimal places) and a text dropdown (mm, um, N.m, bar, degC). Both groups are default, so a new table starts with the headings and one limit; more are added from the header. |
 
-The API finds the signed-in user by the `oid` claim of their token, so `-AdminObjectId` must be your Entra ID object id for the permissions to be yours (it's on your user's page in the Entra admin centre, or in the `oid` claim of a token from the app). Leave it out and the admin is a placeholder user (`00000000-0000-0000-0000-000000000001`); signing in then creates you a second user with no permissions. Run the script again with your object id to fix that.
+Auth is disabled for local running: the API treats every request as one default user, `DefaultUser` in `api/src/PUSpecSheet.Api.Common/Claims` (object id `00000000-0000-0000-0000-000000000001`, Local Admin, local.admin@localhost), and the script seeds that user as the admin by default, so no Entra object id is needed. With auth turned back on the API finds the signed-in user by the `oid` claim of their token instead; then pass `-AdminObjectId` (your Entra ID object id, from your user's page in the Entra admin centre or the `oid` claim of a token from the app), `-AdminName` and `-AdminEmail` so the permissions are yours.
 
 It only inserts what is missing, matching each row on its natural key (a permission's key, a user's object id, a phase's or type's name, a cell or widget type's key, a template's name within its type, a group's title, a row's number and a cell's column). Running it again changes nothing, and nothing it finds is updated or deleted. It touches the reference tables only.
 

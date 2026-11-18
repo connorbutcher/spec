@@ -12,4 +12,16 @@ public static class ClaimsServiceCollectionExtensions
 
         return services;
     }
+
+    /// <summary>
+    /// Registers accessors that give every request the <see cref="DefaultUser"/>, for running locally with auth
+    /// disabled. Use in place of <see cref="AddClaimsAccessors"/>.
+    /// </summary>
+    public static IServiceCollection AddDefaultUserClaimsAccessors(this IServiceCollection services)
+    {
+        services.AddSingleton<IClaimsAccessor, DefaultUserClaimsAccessor>();
+        services.AddSingleton<IIdentityContextAccessor, ClaimsIdentityContextAccessor>();
+
+        return services;
+    }
 }

@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿// using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PUSpecSheet.Abstractions.Domain.Template;
 using PUSpecSheet.Api.DAL.DataAccess.Template;
@@ -6,7 +6,7 @@ using PUSpecSheet.Api.DAL.DataAccess.Template;
 namespace PUSpecSheet.Api.Controllers;
 
 [Route("template")]
-[Authorize]
+// [Authorize]
 public class TemplateController : ControllerBase
 {
     private readonly ITemplateDataAccessService _templateDataAccessService;

@@ -1,10 +1,11 @@
 using System.Diagnostics;
 using System.Reflection;
 using System.Text.Json.Serialization;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+// Auth is disabled for local running; see DefaultUserClaimsAccessor.
+// using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.OpenApi;
-using PUSpecSheet.Api.Common.Authentication;
+// using PUSpecSheet.Api.Common.Authentication;
 using PUSpecSheet.Api.Common.Claims;
 using PUSpecSheet.Api.Common.Cors;
 using PUSpecSheet.Api.Common.Documentation;
@@ -24,9 +25,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddHttpContextAccessor();
 
 builder.AddSerilog();
-builder.AddIdentityWebApiAuthentication();
-
-builder.Services.AddClaimsAccessors();
+// Auth is disabled for local running: every request acts as the default admin user (DefaultUser).
+// builder.AddIdentityWebApiAuthentication();
+// builder.Services.AddClaimsAccessors();
+builder.Services.AddDefaultUserClaimsAccessors();
 builder.Services.AddCorsPolicy(builder.Configuration.GetRequiredSection("Cors"));
 
 builder.Services.AddResponseCompression(options =>
@@ -44,10 +46,11 @@ builder.Services.AddControllers(opt =>
     options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
 });
 
-builder.AddDocumentation(apiInfo, (config) =>
-{
-    config.WithEntraIDAuthentication(JwtBearerDefaults.AuthenticationScheme);
-});
+// builder.AddDocumentation(apiInfo, (config) =>
+// {
+//     config.WithEntraIDAuthentication(JwtBearerDefaults.AuthenticationScheme);
+// });
+builder.AddDocumentation(apiInfo);
 
 builder.Services.AddOpenApi();
 builder.Services.AddEndpointsApiExplorer();
@@ -65,7 +68,7 @@ if (app.Environment.IsDevelopment())
 app.UseDocumentation(apiInfo, (config) =>
 {
     config
-        .WithEntraIDAuthentication()
+        // .WithEntraIDAuthentication()
         .WithNoSyntaxHighlight();
 });
 
@@ -76,8 +79,8 @@ app.UseRouting();
 
 app.UseCors(CorsConstants.DefaultCorsPolicy);
 
-app.UseAuthentication();
-app.UseAuthorization();
+// app.UseAuthentication();
+// app.UseAuthorization();
 
 app.MapControllers();
 

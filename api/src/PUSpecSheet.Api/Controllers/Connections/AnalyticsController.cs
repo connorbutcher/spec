@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿// using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PUSpecSheet.Api.DAL.DataAccess.Query;
 using PUSpecSheet.Query.Models.Analytics;
@@ -7,7 +7,7 @@ using PUSpecSheet.Query.Requests;
 namespace PUSpecSheet.Api.Controllers.Connections;
 
 [Route("analytics")]
-[Authorize]
+// [Authorize]
 public class AnalyticsController : ControllerBase
 {
     private readonly IQueryDataAccessService _queryDataAccessService;

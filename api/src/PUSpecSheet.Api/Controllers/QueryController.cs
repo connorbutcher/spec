@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authorization;
+// using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PUSpecSheet.Api.DAL.DataAccess.Query;
 using PUSpecSheet.Query.Models;
@@ -8,7 +8,7 @@ using PUSpecSheet.Query.Requests;
 namespace PUSpecSheet.Api.Controllers;
 
 [Route("query")]
-[Authorize]
+// [Authorize]
 public class QueryController : ControllerBase
 {
     private readonly IQueryDataAccessService _queryDataAccessService;

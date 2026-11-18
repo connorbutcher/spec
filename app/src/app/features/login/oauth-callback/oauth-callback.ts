@@ -2,8 +2,9 @@ import { PlatformLocation } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { MsalService } from '@azure/msal-angular';
-import { AuthenticationResult } from '@azure/msal-browser';
+// Auth is disabled for local running: the API treats every request as its default admin user.
+// import { MsalService } from '@azure/msal-angular';
+// import { AuthenticationResult } from '@azure/msal-browser';
 import { lastValueFrom, take } from 'rxjs';
 import { CheckInOutService } from '../../../core/services/check-in-out.service';
 import { UserService } from '../../../core/services/user.service';
@@ -18,7 +19,7 @@ import { OAuthCallbackDataService } from './oauth-callback-data.service';
   providers: [OAuthCallbackDataService],
 })
 export class OAuthCallback implements OnInit {
-  private readonly _authService = inject(MsalService);
+  // private readonly _authService = inject(MsalService);
   private readonly _router = inject(Router);
   private readonly _activatedRoute = inject(ActivatedRoute);
   private readonly _platformLocation = inject(PlatformLocation);
@@ -31,49 +32,49 @@ export class OAuthCallback implements OnInit {
   }
 
   private async initAsync() {
-    await lastValueFrom(this._authService.initialize());
-    const result = await this._authService.instance.handleRedirectPromise();
-
-    if (result) {
-      this.checkAndSetActiveAccount();
-      this.handleAuthRedirectAsync(result);
-    } else {
-      const paramMap = await lastValueFrom(
-        this._activatedRoute.queryParamMap.pipe(take(1)),
-      );
-      const postLoginRoute = paramMap.get('postLoginRoute') ?? '/';
-      this.attemptLoginAsync(decodeURIComponent(postLoginRoute));
-    }
+    // await lastValueFrom(this._authService.initialize());
+    // const result = await this._authService.instance.handleRedirectPromise();
+    //
+    // if (result) {
+    //   this.checkAndSetActiveAccount();
+    //   this.handleAuthRedirectAsync(result);
+    // } else {
+    const paramMap = await lastValueFrom(
+      this._activatedRoute.queryParamMap.pipe(take(1)),
+    );
+    const postLoginRoute = paramMap.get('postLoginRoute') ?? '/';
+    this.attemptLoginAsync(decodeURIComponent(postLoginRoute));
+    // }
   }
 
-  private async handleAuthRedirectAsync(result: AuthenticationResult) {
-    const state = result.state;
-
-    if (!state) {
-      this.failLogin('idp_no-state');
-      return;
-    }
-
-    const decodedState = atob(state);
-    const json = JSON.parse(decodedState);
-    const postLoginUri: string | undefined = json.postLoginRedirectUri;
-
-    if (!postLoginUri) {
-      this.failLogin('idp_no-post-login-uri');
-      return;
-    }
-
-    this.attemptLoginAsync(postLoginUri);
-  }
+  // private async handleAuthRedirectAsync(result: AuthenticationResult) {
+  //   const state = result.state;
+  //
+  //   if (!state) {
+  //     this.failLogin('idp_no-state');
+  //     return;
+  //   }
+  //
+  //   const decodedState = atob(state);
+  //   const json = JSON.parse(decodedState);
+  //   const postLoginUri: string | undefined = json.postLoginRedirectUri;
+  //
+  //   if (!postLoginUri) {
+  //     this.failLogin('idp_no-post-login-uri');
+  //     return;
+  //   }
+  //
+  //   this.attemptLoginAsync(postLoginUri);
+  // }
 
   private async attemptLoginAsync(postLoginRoute: string) {
     postLoginRoute = this.sanitizePostLoginRoute(postLoginRoute);
 
-    const account = this._authService.instance.getActiveAccount();
-    if (!account) {
-      this.failLogin('idp_no-active-account');
-      return;
-    }
+    // const account = this._authService.instance.getActiveAccount();
+    // if (!account) {
+    //   this.failLogin('idp_no-active-account');
+    //   return;
+    // }
 
     try {
       const user = await this._oauthCallbackDataService.getCurrentUserAsync();
@@ -133,15 +134,15 @@ export class OAuthCallback implements OnInit {
     });
   }
 
-  private checkAndSetActiveAccount() {
-    let activeAccount = this._authService.instance.getActiveAccount();
-
-    if (
-      !activeAccount &&
-      this._authService.instance.getAllAccounts().length > 0
-    ) {
-      let accounts = this._authService.instance.getAllAccounts();
-      this._authService.instance.setActiveAccount(accounts[0]);
-    }
-  }
+  // private checkAndSetActiveAccount() {
+  //   let activeAccount = this._authService.instance.getActiveAccount();
+  //
+  //   if (
+  //     !activeAccount &&
+  //     this._authService.instance.getAllAccounts().length > 0
+  //   ) {
+  //     let accounts = this._authService.instance.getAllAccounts();
+  //     this._authService.instance.setActiveAccount(accounts[0]);
+  //   }
+  // }
 }

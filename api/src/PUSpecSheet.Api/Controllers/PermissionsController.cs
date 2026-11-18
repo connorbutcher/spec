@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using PUSpecSheet.Abstractions.Domain.Access;
 using PUSpecSheet.Abstractions.Requests.Access.Tables;
-using PUSpecSheet.Api.Common.Authorization;
+// using PUSpecSheet.Api.Common.Authorization;
 using PUSpecSheet.Api.DAL.DataAccess.Admin;
 
 namespace PUSpecSheet.Api.Controllers;
@@ -10,7 +10,7 @@ namespace PUSpecSheet.Api.Controllers;
 /// Defines the permissions controller.
 /// </summary>
 [Route("permissions")]
-[UserPermissionAuthorization("admin.view", "admin.users")]
+// [UserPermissionAuthorization("admin.view", "admin.users")]
 public class PermissionsController : ControllerBase
 {
     private readonly IAdminDataAccessService _adminDataAccessService;

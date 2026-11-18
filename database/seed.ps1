@@ -8,11 +8,16 @@
     database that already has some of the data. It touches the reference tables only (access, types, template,
     configuration); sheets, values and revisions stay empty.
 
-    The API finds the signed-in user by their Entra ID object id (the token's oid claim), so pass your own as
-    -AdminObjectId for the admin permissions to apply to you. Without it the admin is a placeholder user, and you get a
-    user with no permissions of your own when you sign in; run the script again with your object id to fix that.
+    Auth is disabled for local running, so the API treats every request as its default user (DefaultUser in
+    api/src/PUSpecSheet.Api.Common/Claims). The admin defaults to that same user, so seeding needs no Entra object id.
+    With auth turned back on the API finds the signed-in user by their Entra ID object id (the token's oid claim)
+    instead; then pass your own as -AdminObjectId, with -AdminName and -AdminEmail, for the admin permissions to apply
+    to you.
 
     Uses Windows authentication.
+
+.EXAMPLE
+    ./seed.ps1 -Database PUSpecSheetLegacy
 
 .EXAMPLE
     ./seed.ps1 -Database PUSpecSheetLegacy -AdminObjectId 00000000-0000-0000-0000-000000000000 -AdminName 'Jo Bloggs' -AdminEmail jo.bloggs@example.com
@@ -24,9 +29,10 @@
 param(
     [string]$Server = '(localdb)\MSSQLLocalDB',
     [string]$Database = 'PUSpecSheetLegacy',
+    # The API's default user while auth is disabled (DefaultUser); keep them in step.
     [guid]$AdminObjectId = '00000000-0000-0000-0000-000000000001',
-    [string]$AdminName = 'Seed Admin',
-    [string]$AdminEmail = 'seed.admin@example.com'
+    [string]$AdminName = 'Local Admin',
+    [string]$AdminEmail = 'local.admin@localhost'
 )
 
 $ErrorActionPreference = 'Stop'

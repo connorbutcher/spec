@@ -1,9 +1,9 @@
 import { Routes } from '@angular/router';
 import { chainActivateGuards } from './core/guards/guard-helpers';
 import { legacySpecSheetGuard } from './core/guards/legacy-spec-sheet.guard';
-import { msalGuard } from './core/guards/msal.guard';
+// import { msalGuard } from './core/guards/msal.guard';
 import { userRegisteredGuard } from './core/guards/user-registered.guard';
-import { userRoleGuard } from './core/guards/user-role.guard';
+// import { userRoleGuard } from './core/guards/user-role.guard';
 import { adminRoles } from './features/admin/admin.routes';
 import { SheetDataService } from './features/sheet/services/sheet-data.service';
 
@@ -15,7 +15,7 @@ export const routes: Routes = [
     providers: [SheetDataService],
     canActivate: [
       chainActivateGuards(
-        msalGuard(),
+        // msalGuard(),
         userRegisteredGuard,
         legacySpecSheetGuard,
       ),
@@ -25,7 +25,7 @@ export const routes: Routes = [
     path: 'phases',
     loadChildren: () =>
       import('./features/sheets/sheet.routes').then((m) => m.SHEET_ROUTES),
-    canActivate: [chainActivateGuards(msalGuard(), userRegisteredGuard)],
+    canActivate: [chainActivateGuards(/* msalGuard(), */ userRegisteredGuard)],
   },
   {
     path: 'comparison',
@@ -33,7 +33,7 @@ export const routes: Routes = [
       import('./features/sheet-comparison/sheet-comparison').then(
         (m) => m.SheetComparison,
       ),
-    canActivate: [chainActivateGuards(msalGuard(), userRegisteredGuard)],
+    canActivate: [chainActivateGuards(/* msalGuard(), */ userRegisteredGuard)],
     title: 'Comparison',
   },
   {
@@ -41,7 +41,9 @@ export const routes: Routes = [
     loadChildren: () =>
       import('./features/admin/admin.routes').then((m) => m.routes),
     canActivate: [
-      chainActivateGuards(msalGuard(), userRegisteredGuard, userRoleGuard),
+      chainActivateGuards(
+        /* msalGuard(), */ userRegisteredGuard /* , userRoleGuard */,
+      ),
     ],
     data: { roles: adminRoles },
   },

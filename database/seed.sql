@@ -13,8 +13,9 @@
     stay empty.
 
     Variables (sqlcmd -v):
-        AdminObjectID     The admin's Entra ID object id (the token's oid claim). The API finds the signed-in user
-                          by it, so it must be the real one for the permissions to apply to you.
+        AdminObjectID     The admin's object id. While auth is disabled for local running the API acts as its
+                          default user (DefaultUser, 00000000-0000-0000-0000-000000000001), which seed.ps1 passes
+                          by default. With auth on it is the admin's Entra ID object id (the token's oid claim).
         AdminDisplayName  The admin's display name.
         AdminEmail        The admin's email address.
 

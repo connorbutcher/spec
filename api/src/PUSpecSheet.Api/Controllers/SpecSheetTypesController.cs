@@ -1,14 +1,14 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿// using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PUSpecSheet.Abstractions.Domain.Types;
 using PUSpecSheet.Abstractions.Requests.Types.Type;
-using PUSpecSheet.Api.Common.Authorization;
+// using PUSpecSheet.Api.Common.Authorization;
 using PUSpecSheet.Api.DAL.DataAccess.Types;
 
 namespace PUSpecSheet.Api.Controllers;
 
 [Route("specsheettypes")]
-[Authorize]
+// [Authorize]
 public class SpecSheetTypesController : ControllerBase
 {
     private readonly ITypeDataAccessService _typeDataAccessService;
@@ -35,7 +35,7 @@ public class SpecSheetTypesController : ControllerBase
     }
 
     [HttpPost("create")]
-    [UserPermissionAuthorization("admin.view", "admin.types")]
+    // [UserPermissionAuthorization("admin.view", "admin.types")]
     public async Task<ActionResult> CreateSpecSheetTypeAsync([FromBody] CreateSpecSheetTypeRequest createSpecSheetTypeRequest)
     {
         if (!ModelState.IsValid)
@@ -48,7 +48,7 @@ public class SpecSheetTypesController : ControllerBase
     }
 
     [HttpPatch("update")]
-    [UserPermissionAuthorization("admin.view", "admin.types")]
+    // [UserPermissionAuthorization("admin.view", "admin.types")]
     public async Task<ActionResult> UpdateSpecSheetTypeAsync([FromBody] UpdateSpecSheetTypeRequest updateSpecSheetTypeRequest)
     {
         if (!ModelState.IsValid)

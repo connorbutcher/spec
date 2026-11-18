@@ -1,7 +1,7 @@
 import { Routes } from '@angular/router';
 import { canDeactivateComponentGuard } from '../../core/guards/can-deactivate-component.guard';
 import { chainActivateGuards } from '../../core/guards/guard-helpers';
-import { msalGuard } from '../../core/guards/msal.guard';
+// import { msalGuard } from '../../core/guards/msal.guard';
 import { userRegisteredGuard } from '../../core/guards/user-registered.guard';
 
 export const SHEET_ROUTES: Routes = [
@@ -9,7 +9,7 @@ export const SHEET_ROUTES: Routes = [
     path: '',
     loadComponent: () =>
       import('./components/phases-page/phases-page').then((m) => m.PhasesPage),
-    canActivate: [chainActivateGuards(msalGuard(), userRegisteredGuard)],
+    canActivate: [chainActivateGuards(/* msalGuard(), */ userRegisteredGuard)],
     children: [
       {
         path: '',
@@ -17,7 +17,9 @@ export const SHEET_ROUTES: Routes = [
           import('./components/phase-select-prompt/phase-select-prompt').then(
             (m) => m.PhaseSelectPrompt,
           ),
-        canActivate: [chainActivateGuards(msalGuard(), userRegisteredGuard)],
+        canActivate: [
+          chainActivateGuards(/* msalGuard(), */ userRegisteredGuard),
+        ],
       },
       {
         path: ':phaseId',
@@ -30,7 +32,7 @@ export const SHEET_ROUTES: Routes = [
                 (m) => m.TypeSelectPrompt,
               ),
             canActivate: [
-              chainActivateGuards(msalGuard(), userRegisteredGuard),
+              chainActivateGuards(/* msalGuard(), */ userRegisteredGuard),
             ],
           },
           {
@@ -38,7 +40,7 @@ export const SHEET_ROUTES: Routes = [
             loadComponent: () => import('../sheet/sheet').then((m) => m.Sheet),
             canDeactivate: [canDeactivateComponentGuard],
             canActivate: [
-              chainActivateGuards(msalGuard(), userRegisteredGuard),
+              chainActivateGuards(/* msalGuard(), */ userRegisteredGuard),
             ],
           },
         ],

@@ -1,8 +1,8 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿// using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PUSpecSheet.Abstractions.Domain.Access;
 using PUSpecSheet.Abstractions.Requests.Access;
-using PUSpecSheet.Api.Common.Authorization;
+// using PUSpecSheet.Api.Common.Authorization;
 using PUSpecSheet.Api.Common.Context;
 using PUSpecSheet.Api.DAL.DataAccess.Admin;
 
@@ -12,7 +12,7 @@ namespace PUSpecSheet.Api.Controllers;
 /// Defines the user controller.
 /// </summary>
 [Route("users")]
-[Authorize]
+// [Authorize]
 public class UserController : ControllerBase
 {
     private readonly IUserContext _userContext;
@@ -44,7 +44,7 @@ public class UserController : ControllerBase
     /// </summary>
     /// <returns>All the users.</returns>
     [HttpGet("all")]
-    [UserPermissionAuthorization("admin.view", "admin.users")]
+    // [UserPermissionAuthorization("admin.view", "admin.users")]
     public async Task<ActionResult<IReadOnlyList<User>>> GetAllUsersAsync()
     {
         var users = await _adminDataAccessService.GetAllUsersAsync(HttpContext.RequestAborted);
@@ -68,7 +68,7 @@ public class UserController : ControllerBase
     /// </summary>
     /// <returns>All the users.</returns>
     [HttpPatch("permissions/update")]
-    [UserPermissionAuthorization("admin.view", "admin.users")]
+    // [UserPermissionAuthorization("admin.view", "admin.users")]
     public async Task<ActionResult<IReadOnlyList<User>>> UpdateUserPermissionsAsync([FromBody] UpdateUserPermissionsRequest updateUserPermissionsRequest)
     {
         if (!ModelState.IsValid)

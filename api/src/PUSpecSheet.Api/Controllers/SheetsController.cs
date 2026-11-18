@@ -1,8 +1,8 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿// using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PUSpecSheet.Abstractions.Domain.Sheets;
 using PUSpecSheet.Abstractions.Requests.Sheets;
-using PUSpecSheet.Api.Common.Authorization;
+// using PUSpecSheet.Api.Common.Authorization;
 using PUSpecSheet.Api.DAL.DataAccess.SpecSheets;
 
 namespace PUSpecSheet.Api.Controllers;
@@ -11,7 +11,7 @@ namespace PUSpecSheet.Api.Controllers;
 /// Sheets in the shape of the revision schema. Ids here are sheet ids and the ids of the sheet's items.
 /// </summary>
 [Route("sheets")]
-[Authorize]
+// [Authorize]
 public class SheetsController : ControllerBase
 {
     private readonly ISheetDataAccessService _sheetDataAccessService;
@@ -122,7 +122,7 @@ public class SheetsController : ControllerBase
     }
 
     [HttpDelete("{id:int}/draft")]
-    [UserPermissionAuthorization("admin.view", "admin.sheets")]
+    // [UserPermissionAuthorization("admin.view", "admin.sheets")]
     public async Task<ActionResult> DeleteDraftAsync(int id)
     {
         await _sheetDataAccessService.DeleteDraftAsync(id, HttpContext.RequestAborted);
