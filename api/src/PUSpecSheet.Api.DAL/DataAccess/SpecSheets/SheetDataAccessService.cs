@@ -20,6 +20,7 @@ internal class SheetDataAccessService : ISheetDataAccessService
     private readonly IUserContext _userContext;
     private readonly SheetDraftCreator _draftCreator;
     private readonly SheetDraftDeleter _draftDeleter;
+    private readonly SheetDraftUndoer _draftUndoer;
     private readonly SheetDraftWorkflow _workflow;
     private readonly ISpecSheetCache _specSheetCache;
     private readonly ILogger<ISheetDataAccessService> _logger;
@@ -29,6 +30,7 @@ internal class SheetDataAccessService : ISheetDataAccessService
         IUserContext userContext,
         SheetDraftCreator draftCreator,
         SheetDraftDeleter draftDeleter,
+        SheetDraftUndoer draftUndoer,
         SheetDraftWorkflow workflow,
         ISpecSheetCache specSheetCache,
         ILogger<ISheetDataAccessService> logger)
@@ -38,6 +40,7 @@ internal class SheetDataAccessService : ISheetDataAccessService
         ArgumentNullException.ThrowIfNull(userContext, nameof(userContext));
         ArgumentNullException.ThrowIfNull(draftCreator, nameof(draftCreator));
         ArgumentNullException.ThrowIfNull(draftDeleter, nameof(draftDeleter));
+        ArgumentNullException.ThrowIfNull(draftUndoer, nameof(draftUndoer));
         ArgumentNullException.ThrowIfNull(workflow, nameof(workflow));
         ArgumentNullException.ThrowIfNull(specSheetCache, nameof(specSheetCache));
         ArgumentNullException.ThrowIfNull(logger, nameof(logger));
@@ -47,6 +50,7 @@ internal class SheetDataAccessService : ISheetDataAccessService
         _userContext = userContext;
         _draftCreator = draftCreator;
         _draftDeleter = draftDeleter;
+        _draftUndoer = draftUndoer;
         _workflow = workflow;
         _specSheetCache = specSheetCache;
         _logger = logger;
@@ -274,6 +278,28 @@ internal class SheetDataAccessService : ISheetDataAccessService
 
         await _specSheetCache.RemoveAsync(specSheetId, cancellationToken);
         _logger.LogInformation("Deleted the draft of Sheet with Id {SheetId}", sheetId);
+    }
+
+    public async Task UndoMyChangesAsync(int sheetId, CancellationToken cancellationToken)
+    {
+        var currentUser = await GetCurrentUserAsync(cancellationToken);
+
+        await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+        await _draftUndoer.UndoAllAsync(sheetId, currentUser.Id, cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
+
+        _logger.LogInformation("Undid the changes UserId {UserId} had checked out on Sheet with Id {SheetId}", currentUser.Id, sheetId);
+    }
+
+    public async Task UndoMyItemChangesAsync(int sheetId, SheetItemKind kind, int itemId, CancellationToken cancellationToken)
+    {
+        var currentUser = await GetCurrentUserAsync(cancellationToken);
+
+        await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+        await _draftUndoer.UndoItemAsync(sheetId, currentUser.Id, kind, itemId, cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
+
+        _logger.LogInformation("Undid the changes UserId {UserId} had checked out on {Kind} with Id {ItemId} of Sheet with Id {SheetId}", currentUser.Id, kind, itemId, sheetId);
     }
 
     public async Task DecideSubmissionAsync(int sheetId, DecideSubmissionRequest request, CancellationToken cancellationToken)

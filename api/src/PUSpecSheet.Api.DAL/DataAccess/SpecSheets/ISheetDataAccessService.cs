@@ -1,5 +1,6 @@
 ﻿using PUSpecSheet.Abstractions.Domain.Sheets;
 using PUSpecSheet.Abstractions.Requests.Sheets;
+using PUSpecSheet.Abstractions.Types;
 
 namespace PUSpecSheet.Api.DAL.DataAccess.SpecSheets;
 
@@ -113,6 +114,17 @@ public interface ISheetDataAccessService
     /// Publishes the sheet's draft, or submits it for approval when its type needs it.
     /// </summary>
     Task PublishAsync(int sheetId, PublishSheetRequest request, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Undoes every change the current user has checked out on the sheet that isn't awaiting approval, which frees those
+    /// items for anyone to edit.
+    /// </summary>
+    Task UndoMyChangesAsync(int sheetId, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Undoes the current user's checked-out changes to one table, group or row of the sheet and to what is inside it.
+    /// </summary>
+    Task UndoMyItemChangesAsync(int sheetId, SheetItemKind kind, int itemId, CancellationToken cancellationToken);
 
     /// <summary>
     /// Throws away the sheet's draft. Published versions can't be deleted.

@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using PUSpecSheet.Abstractions.Domain.Sheets;
 using PUSpecSheet.Abstractions.Requests.Sheets;
+using PUSpecSheet.Abstractions.Types;
 // using PUSpecSheet.Api.Common.Authorization;
 using PUSpecSheet.Api.DAL.DataAccess.SpecSheets;
 
@@ -126,6 +127,34 @@ public class SheetsController : ControllerBase
     public async Task<ActionResult> DeleteDraftAsync(int id)
     {
         await _sheetDataAccessService.DeleteDraftAsync(id, HttpContext.RequestAborted);
+        return NoContent();
+    }
+
+    [HttpDelete("{id:int}/draft/mine")]
+    public async Task<ActionResult> UndoMyChangesAsync(int id)
+    {
+        await _sheetDataAccessService.UndoMyChangesAsync(id, HttpContext.RequestAborted);
+        return NoContent();
+    }
+
+    [HttpDelete("{id:int}/draft/mine/tables/{tableId:int}")]
+    public async Task<ActionResult> UndoMyTableChangesAsync(int id, int tableId)
+    {
+        await _sheetDataAccessService.UndoMyItemChangesAsync(id, SheetItemKind.Table, tableId, HttpContext.RequestAborted);
+        return NoContent();
+    }
+
+    [HttpDelete("{id:int}/draft/mine/groups/{groupId:int}")]
+    public async Task<ActionResult> UndoMyGroupChangesAsync(int id, int groupId)
+    {
+        await _sheetDataAccessService.UndoMyItemChangesAsync(id, SheetItemKind.Group, groupId, HttpContext.RequestAborted);
+        return NoContent();
+    }
+
+    [HttpDelete("{id:int}/draft/mine/rows/{rowId:int}")]
+    public async Task<ActionResult> UndoMyRowChangesAsync(int id, int rowId)
+    {
+        await _sheetDataAccessService.UndoMyItemChangesAsync(id, SheetItemKind.Row, rowId, HttpContext.RequestAborted);
         return NoContent();
     }
 

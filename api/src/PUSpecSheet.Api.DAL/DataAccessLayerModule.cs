@@ -76,6 +76,7 @@ public static class DataAccessLayerModule
     {
         builder.Services.AddScoped<SheetDraftCreator>();
         builder.Services.AddScoped<SheetDraftDeleter>();
+        builder.Services.AddScoped<SheetDraftUndoer>();
         builder.Services.AddScoped<SheetDraftPublisher>();
         builder.Services.AddScoped<SheetSubmissions>();
         builder.Services.AddScoped<SheetDraftWorkflow>();
