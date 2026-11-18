@@ -1,6 +1,4 @@
-.avatar-menu-item {
-  display: grid;
-  grid-template-columns: auto 1fr;
+.viewers {
+  display: flex;
   align-items: center;
-  gap: var(--gap);
 }

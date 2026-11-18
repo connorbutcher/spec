@@ -9,12 +9,20 @@ import { LocalStorageService } from '../../core/services/local-storage.service';
 import { adminRoles } from '../admin/admin.routes';
 import { PUCardAnalyticsService } from '../analytics/services/pu-card-analytics.service';
 import { Help } from '../common/help/help';
+import { LocalUserSelect } from './components/local-user-select/local-user-select';
 import { SideNavPhaseTree } from './components/side-nav-phase-tree/side-nav-phase-tree';
 import { SideNavService } from './side-nav.service';
 
 @Component({
   selector: 'app-side-nav',
-  imports: [RouterLink, RouterLinkActive, Divider, Tooltip, SideNavPhaseTree],
+  imports: [
+    RouterLink,
+    RouterLinkActive,
+    Divider,
+    Tooltip,
+    SideNavPhaseTree,
+    LocalUserSelect,
+  ],
   templateUrl: './side-nav.html',
   styleUrl: './side-nav.scss',
 })

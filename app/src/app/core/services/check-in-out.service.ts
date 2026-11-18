@@ -1,4 +1,4 @@
-import { computed, Injectable, signal } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 import {
   HttpTransportType,
   HubConnection,
@@ -6,12 +6,11 @@ import {
   HubConnectionState,
   RetryContext,
 } from '@microsoft/signalr';
-import { MessageService } from 'primeng/api';
-import { BehaviorSubject, Subject } from 'rxjs';
+import { Subject } from 'rxjs';
 import { environment } from '../../../../environments/environment';
-import { CheckoutRequest } from '../models/check-in-out/checkout-request';
-import { CheckoutSummary } from '../models/check-in-out/checkout-summary';
-import { UserService } from './user.service';
+import { ConnectedUser } from '../models/check-in-out/connected-user';
+import { SheetChangedNotice } from '../models/check-in-out/sheet-changed-notice';
+import { SheetPresence } from '../models/check-in-out/sheet-presence';
 
 function reconnectPolicy(retryContext: RetryContext): number | null {
   switch (retryContext.previousRetryCount) {
@@ -37,44 +36,24 @@ function reconnectPolicy(retryContext: RetryContext): number | null {
   return null;
 }
 
+/**
+ * The connection to the check-in/out service. Rows and tables are checked out in the API (each draft belongs to the
+ * user who made it), so this only says who has each sheet open and tells the others viewing a sheet when someone
+ * saves, undoes, submits or decides changes on it, so they read it again.
+ */
 @Injectable({
   providedIn: 'root',
 })
 export class CheckInOutService {
   public readonly isServiceConnected = signal<boolean>(false);
-  public readonly checkoutSummary = signal<CheckoutSummary | undefined>(
-    undefined,
-    { equal: () => false },
+  /** Who has each sheet open, by sheet id. */
+  public readonly presences = signal<Map<number, ConnectedUser[]>>(
+    new Map<number, ConnectedUser[]>(),
   );
-  public readonly checkoutRequested$ = new BehaviorSubject<
-    CheckoutRequest | undefined
-  >(undefined);
-  public readonly checkoutRequestAccepted$ = new Subject<CheckoutRequest>();
-  public readonly closeCheckInOutRelatedDialog$ = new BehaviorSubject<
-    string | undefined
-  >(undefined);
-
-  // public readonly puCardLocked$ = new Subject<string>();
-  // public readonly puCardSaved$ = new Subject<string>();
-  public readonly puSpecSheetCheckouts = computed(
-    () => {
-      const checkoutSummary = this.checkoutSummary();
-      if (!checkoutSummary) {
-        return [];
-      }
-
-      return checkoutSummary.puSpecSheetCheckouts;
-    },
-    { equal: () => false },
-  );
+  public readonly sheetChanged$ = new Subject<SheetChangedNotice>();
 
   private _hubConnection!: HubConnection;
-  private _originalConnectionId: string | undefined;
-
-  constructor(
-    private readonly _userService: UserService,
-    private readonly _messageService: MessageService,
-  ) {}
+  private readonly _joinedSheetIds = new Set<number>();
 
   /**
    * Start the signalR connection.
@@ -98,12 +77,10 @@ export class CheckInOutService {
       .withAutomaticReconnect({ nextRetryDelayInMilliseconds: reconnectPolicy })
       .build();
 
-    this._hubConnection.keepAliveIntervalInMilliseconds = 5;
+    this.setupSubscriptions();
 
     try {
       await this._hubConnection.start();
-
-      this._originalConnectionId = this.currentConnectionId;
 
       this.handleCompleteDisconnect();
       this.handleReconnection();
@@ -112,7 +89,6 @@ export class CheckInOutService {
     }
 
     this.isServiceConnected.set(true);
-    this.setupSubscriptions();
   }
 
   /**
@@ -127,185 +103,62 @@ export class CheckInOutService {
     this.isServiceConnected.set(false);
   }
 
-  //#region Check Out
+  //#region Presence
 
-  public async invokeCheckoutAsync(id: number): Promise<void> {
+  /** Tells the others that this user has the sheet open. */
+  public async joinSheetAsync(sheetId: number): Promise<void> {
+    this._joinedSheetIds.add(sheetId);
     if (!this.isHubConnected) {
       return;
     }
 
     try {
-      await this._hubConnection.invoke('CheckoutAsync', id);
+      await this._hubConnection.invoke('JoinSheetAsync', sheetId);
     } catch (error) {
-      console.error('Error invoking CheckOut:', error);
+      console.error('Error invoking JoinSheet:', error);
     }
   }
 
-  //#endregion Check Out
-
-  //#region Check In
-
-  public async invokeCheckInAsync(id: number): Promise<void> {
+  /** Tells the others that this user has closed the sheet. */
+  public async leaveSheetAsync(sheetId: number): Promise<void> {
+    this._joinedSheetIds.delete(sheetId);
     if (!this.isHubConnected) {
       return;
     }
 
     try {
-      await this._hubConnection.invoke('CheckInAsync', id);
+      await this._hubConnection.invoke('LeaveSheetAsync', sheetId);
     } catch (error) {
-      console.error('Error invoking CheckIn:', error);
+      console.error('Error invoking LeaveSheet:', error);
     }
   }
 
-  //#endregion Check In
-
-  //#region Request Check Out
-
-  public async invokeRequestCheckoutAsync(
-    id: number,
-  ): Promise<CheckoutRequest | undefined> {
-    if (!this.isHubConnected) {
-      return undefined;
-    }
-
-    try {
-      return await this._hubConnection.invoke<CheckoutRequest>(
-        'RequestCheckoutAsync',
-        id,
-      );
-    } catch (err) {
-      return Promise.reject(err);
-    }
+  /** Who has the sheet open, this user included. */
+  public viewersOf(sheetId: number): ConnectedUser[] {
+    return this.presences().get(sheetId) ?? [];
   }
 
-  public async invokeCancelRequestToCheckoutAsync(
-    checkoutRequestContextId: string,
-  ): Promise<void> {
-    if (!this.isHubConnected) {
-      return undefined;
-    }
+  //#endregion Presence
 
-    await this._hubConnection.invoke(
-      'CancelRequestToCheckoutAsync',
-      checkoutRequestContextId,
-    );
-  }
+  //#region Changes
 
-  public async invokeOverrideCheckoutRequestAsync(
-    checkoutRequestContextId: string,
-  ): Promise<void> {
-    if (!this.isHubConnected) {
-      return undefined;
-    }
-
-    await this._hubConnection.invoke(
-      'OverrideCheckoutRequestAsync',
-      checkoutRequestContextId,
-    );
-  }
-
-  public async invokeRespondToCheckoutRequestAsync(
-    checkoutRequestContextId: string,
-    accept: boolean,
-  ): Promise<void> {
-    if (!this.isHubConnected) {
-      return undefined;
-    }
-
-    try {
-      await this._hubConnection.invoke(
-        'RespondToCheckoutRequestAsync',
-        checkoutRequestContextId,
-        accept,
-      );
-    } catch (err) {
-      return Promise.reject(err);
-    }
-  }
-
-  //#endregion Request Check Out
-
-  // //#region Saved
-
-  // public async invokePUCardSavedAsync(id: number): Promise<void> {
-  //   if (!this.isHubConnected) {
-  //     return;
-  //   }
-
-  //   try {
-  //     await this._hubConnection.invoke('PUCardSavedAsync', id);
-  //   } catch (err) {
-  //     return Promise.reject(err);
-  //   }
-  // }
-
-  // //#endregion Saved
-
-  // //#region Locked
-
-  // public async invokePUCardLockedAsync(id: number): Promise<void> {
-  //   if (!this.isHubConnected) {
-  //     return;
-  //   }
-
-  //   try {
-  //     await this._hubConnection.invoke('PUCardLockedAsync', id);
-  //   } catch (err) {
-  //     return Promise.reject(err);
-  //   }
-  // }
-
-  // //#endregion Locked
-
-  //#region Transfer Ownership
-
-  public async invokeTransferOwnershipAsync(
-    oldConnectionId: string,
-    checkouts: CheckoutSummary,
+  /** Tells the others viewing the sheet that this user changed what is checked out on it. */
+  public async notifySheetChangedAsync(
+    sheetId: number,
+    change: string,
   ): Promise<void> {
     if (!this.isHubConnected) {
       return;
     }
 
     try {
-      await this._hubConnection.invoke(
-        'TransferOwnershipAsync',
-        oldConnectionId,
-        checkouts,
-      );
-    } catch (err) {
-      return Promise.reject(err);
+      await this._hubConnection.invoke('SheetChangedAsync', sheetId, change);
+    } catch (error) {
+      console.error('Error invoking SheetChanged:', error);
     }
   }
 
-  //#endregion Transfer Ownership
-
-  public isPUSpecSheetCheckedOut(id: number): boolean {
-    const puSpecSheetCheckouts = this.puSpecSheetCheckouts();
-    if (!puSpecSheetCheckouts) {
-      return false;
-    }
-
-    const puSpecSheet = puSpecSheetCheckouts.find((pss) => pss.id === id);
-    return !!puSpecSheet;
-  }
-
-  public isPUSpecSheetCheckedOutToYou(id: number): boolean {
-    const puSpecSheetCheckouts = this.puSpecSheetCheckouts();
-    if (!puSpecSheetCheckouts) {
-      return false;
-    }
-
-    const user = this._userService.user();
-    if (!user) {
-      return false;
-    }
-
-    const puSpecSheet = puSpecSheetCheckouts.find(
-      (p) => p.id === id && p.user.connectionId === this.currentConnectionId,
-    );
-    return !!puSpecSheet;
-  }
+  //#endregion Changes
 
   public get currentConnectionId(): string {
     return this._hubConnection?.connectionId ?? '';
@@ -314,219 +167,54 @@ export class CheckInOutService {
   //#region Subscriptions
 
   private setupSubscriptions(): void {
-    this.onCheckInOutSummary();
-    this.onCheckoutRequested();
-    this.onCancelCheckoutRequest();
-    this.onCheckoutRequestAccepted();
-    this.onCheckoutRequestRejected();
-    this.onOverrideCheckoutRequested();
-    // this.onTableCheckoutLost();
-    // this.onPUCardSaved();
-    // this.onPUCardLocked();
-  }
+    this._hubConnection.on('SheetPresence', (presence: SheetPresence) => {
+      const presences = new Map(this.presences());
+      presences.set(presence.sheetId, presence.users);
+      this.presences.set(presences);
+    });
 
-  private onCheckInOutSummary(): void {
-    if (!this.isHubConnected) {
-      return;
-    }
-
-    this._hubConnection.on(
-      'CheckInOutSummary',
-      (checkoutSummary: CheckoutSummary) => {
-        this.checkoutSummary.set(checkoutSummary);
-        console.log('Check in/out event occurred', checkoutSummary);
-      },
-    );
-  }
-
-  public onCheckoutRequested(): void {
-    if (!this.isHubConnected) {
-      return;
-    }
-
-    this._hubConnection.on(
-      'CheckoutRequested',
-      async (request: CheckoutRequest) => {
-        this.checkoutRequested$.next(request);
-      },
-    );
-  }
-
-  public onCancelCheckoutRequest(): void {
-    if (!this.isHubConnected) {
-      return;
-    }
-
-    this._hubConnection.on('CancelCheckoutRequest', (requestContextId) => {
-      this.closeCheckInOutRelatedDialog$.next(requestContextId);
-      this._messageService.add({
-        severity: 'info',
-        summary: 'Checkout request cancelled by requesting user',
-      });
+    this._hubConnection.on('SheetChanged', (notice: SheetChangedNotice) => {
+      this.sheetChanged$.next(notice);
     });
   }
 
-  public onCheckoutRequestAccepted(): void {
-    if (!this.isHubConnected) {
-      return;
-    }
+  //#endregion Subscriptions
 
-    this._hubConnection.on(
-      'CheckoutRequestAccepted',
-      (request: CheckoutRequest) => {
-        this.checkoutRequestAccepted$.next(request);
-        this.closeCheckInOutRelatedDialog$.next(request.requestContextId);
-        this._messageService.add({
-          severity: 'success',
-          summary: `Your checkout request was accepted by ${request.requestingUser.username}`,
-        });
-
-        this.checkoutRequested$.next(undefined);
-      },
-    );
-  }
-
-  public onCheckoutRequestRejected(): void {
-    if (!this.isHubConnected) {
-      return;
-    }
-
-    this._hubConnection.on(
-      'CheckoutRequestRejected',
-      (request: CheckoutRequest) => {
-        this.closeCheckInOutRelatedDialog$.next(request.requestContextId);
-        this._messageService.add({
-          severity: 'warn',
-          summary: `Your checkout request was rejected by ${request.requestingUser.username}`,
-        });
-
-        this.checkoutRequested$.next(undefined);
-      },
-    );
-  }
-
-  public onOverrideCheckoutRequested(): void {
-    if (!this.isHubConnected) {
-      return;
-    }
-
-    this._hubConnection.on(
-      'OverrideCheckoutRequested',
-      (request: CheckoutRequest) => {
-        if (request.requestingUser.connectionId === this.currentConnectionId) {
-          return;
-        }
-
-        this.closeCheckInOutRelatedDialog$.next(request.requestContextId);
-        this._messageService.add({
-          severity: 'warn',
-          summary: `Your checkout request was overridden by ${request.respondingUser.username}`,
-        });
-
-        this.checkoutRequested$.next(undefined);
-      },
-    );
-  }
-
-  // public onPUCardSaved(): void {
-  //   if (!this.isHubConnected) {
-  //     return;
-  //   }
-
-  //   this._hubConnection.on('PUCardSaved', (id: number, username: string) => {
-  //     this._messageService.add({
-  //       summary: `This ${this._puCardTerminology.PUCardTypeName} Card has been saved by ${username}`,
-  //       severity: 'info',
-  //     });
-  //     this.puCardSaved$.next(username);
-  //   });
-  // }
-
-  // public onPUCardLocked(): void {
-  //   if (!this.isHubConnected) {
-  //     return;
-  //   }
-
-  //   this._hubConnection.on('PUCardLocked', (id: number, username: string) => {
-  //     this._messageService.add({
-  //       summary: `This ${this._puCardTerminology.PUCardTypeName} Card has been locked by ${username}`,
-  //       severity: 'info',
-  //     });
-  //     this.puCardLocked$.next(username);
-  //   });
-  // }
-
-  // //#endregion Subscriptions
-
-  // //#region Disconnection Handling
+  //#region Disconnection Handling
 
   private handleCompleteDisconnect() {
     this._hubConnection.onclose(async () => {
+      this.isServiceConnected.set(false);
       setTimeout(async () => {
         try {
-          const checkoutsForUser = this.getCheckoutsForUser();
-          if (!checkoutsForUser) {
-            await this._hubConnection.start();
-            this._originalConnectionId = this.currentConnectionId;
-            return;
-          }
-
           await this._hubConnection.start();
-          this._originalConnectionId = this.currentConnectionId;
-
-          await this.invokeTransferOwnershipAsync(
-            this._originalConnectionId,
-            checkoutsForUser,
-          );
-
-          this.setupSubscriptions();
+          this.isServiceConnected.set(true);
+          await this.rejoinSheetsAsync();
         } catch (err) {}
       }, 5000);
     });
   }
 
   private handleReconnection() {
-    this._hubConnection.onreconnected(() => {
-      if (this._originalConnectionId !== this.currentConnectionId) {
-        const checkoutsForUser = this.getCheckoutsForUser();
-        if (!checkoutsForUser) {
-          return;
-        }
-
-        try {
-          this.invokeTransferOwnershipAsync(
-            this._originalConnectionId!,
-            checkoutsForUser,
-          );
-
-          this._originalConnectionId = this.currentConnectionId;
-
-          this.setupSubscriptions();
-        } catch (err) {}
-      }
+    this._hubConnection.onreconnected(async () => {
+      this.isServiceConnected.set(true);
+      await this.rejoinSheetsAsync();
     });
   }
 
-  // //#endregion Disconnection Handling
+  // A new connection is in no sheet's group, so the sheets open here are joined again.
+  private async rejoinSheetsAsync(): Promise<void> {
+    for (const sheetId of this._joinedSheetIds) {
+      await this.joinSheetAsync(sheetId);
+    }
+  }
+
+  //#endregion Disconnection Handling
 
   private get isHubConnected(): boolean {
     return (
       this._hubConnection &&
       this._hubConnection.state === HubConnectionState.Connected
     );
-  }
-
-  private getCheckoutsForUser(): CheckoutSummary | undefined {
-    const puSpecSheetCheckouts = this.puSpecSheetCheckouts();
-
-    if (!puSpecSheetCheckouts || puSpecSheetCheckouts.length === 0) {
-      return undefined;
-    }
-
-    return {
-      puSpecSheetCheckouts: puSpecSheetCheckouts.filter(
-        (td) => td.user.connectionId === this._originalConnectionId,
-      ),
-    };
   }
 }

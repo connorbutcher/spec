@@ -1,0 +1,21 @@
+.local-user-select {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-xs);
+
+  padding: var(--gap-xs) var(--gap-s);
+}
+
+.local-user-label {
+  font-size: 0.75rem;
+  color: var(--p-text-muted-color);
+}
+
+.local-user-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  height: 33px;
+  color: var(--p-text-muted-color);
+}

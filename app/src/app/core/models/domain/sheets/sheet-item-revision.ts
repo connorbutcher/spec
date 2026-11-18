@@ -12,4 +12,6 @@ export type SheetItemRevision = {
   supersededDateTime?: string;
   sheetVersionId?: number;
   sheetVersionNumber?: number;
+  /** The submission a draft is awaiting approval in; a draft without one is checked out to its creator. */
+  sheetSubmissionId?: number;
 };

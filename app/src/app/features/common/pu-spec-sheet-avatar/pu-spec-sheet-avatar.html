@@ -1,12 +1,13 @@
-@let checkout = checkoutForTemplate();
-@if (checkout) {
-  <div>
-    <app-avatar
-      [avatar]="checkout.user.username"
-      [backgroundColor]="checkout.user.colour"
-      [uid]="checkout.user.uid"
-      [index]="0"
-      [size]="size()"
-    />
+@if (viewers().length > 0) {
+  <div class="viewers">
+    @for (viewer of viewers(); track viewer.connectionId; let i = $index) {
+      <app-avatar
+        [avatar]="viewer.username"
+        [backgroundColor]="viewer.colour"
+        [uid]="viewer.uid"
+        [index]="i"
+        [size]="size()"
+      />
+    }
   </div>
 }

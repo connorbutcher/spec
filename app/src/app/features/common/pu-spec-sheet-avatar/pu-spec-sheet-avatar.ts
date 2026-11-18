@@ -3,6 +3,7 @@ import { CheckInOutService } from '../../../core/services/check-in-out.service';
 import { Avatar } from '../avatar/avatar';
 import { AvatarSize } from '../avatar/avatar-size.type';
 
+/** The people who have a sheet open. */
 @Component({
   selector: 'app-pu-spec-sheet-avatar',
   imports: [Avatar],
@@ -12,14 +13,14 @@ import { AvatarSize } from '../avatar/avatar-size.type';
 export class PUSpecSheetAvatar {
   public readonly puSpecSheetId = input.required<number>();
   public readonly size = input<AvatarSize>('medium');
-  public readonly checkoutForTemplate = computed(() => {
-    const puSpecSheetCheckouts = this._checkInOutService.puSpecSheetCheckouts();
-    const id = this.puSpecSheetId();
-    if (!puSpecSheetCheckouts || puSpecSheetCheckouts.length === 0 || !id) {
-      return undefined;
-    }
+  public readonly viewers = computed(() => {
+    const presences = this._checkInOutService.presences();
+    const users = presences.get(this.puSpecSheetId()) ?? [];
 
-    return puSpecSheetCheckouts.find((checkout) => checkout.id === id);
+    // One avatar per person, however many tabs they have open.
+    return users.filter(
+      (user, index) => users.findIndex((u) => u.uid === user.uid) === index,
+    );
   });
 
   private readonly _checkInOutService = inject(CheckInOutService);

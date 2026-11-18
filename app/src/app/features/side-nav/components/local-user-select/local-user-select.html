@@ -1,0 +1,25 @@
+@if (isEnabled) {
+  @if (isExpanded()) {
+    <div class="local-user-select">
+      <span class="local-user-label">Act as</span>
+      <p-select
+        [options]="options"
+        optionLabel="label"
+        optionValue="value"
+        [ngModel]="selected()"
+        (ngModelChange)="select($event)"
+        size="small"
+        [fluid]="true"
+        appendTo="body"
+      />
+    </div>
+  } @else {
+    <div
+      class="local-user-icon"
+      [pTooltip]="'Acting as ' + selectedLabel() + ' (expand to change)'"
+      tooltipPosition="right"
+    >
+      <span class="material-symbols-outlined">person</span>
+    </div>
+  }
+}

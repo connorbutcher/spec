@@ -28,6 +28,7 @@ import { MessageService } from 'primeng/api';
 import { providePrimeNG } from 'primeng/config';
 import { routes } from './app.routes';
 // import { provideAuth } from './auth/auth.module';
+import { LocalUserInterceptor } from './core/interceptors/local-user.interceptor';
 import { RequestShareInterceptor } from './core/interceptors/request-share.interceptor';
 import { CheckInOutService } from './core/services/check-in-out.service';
 import { PhasesService } from './core/services/phases.service';
@@ -102,6 +103,11 @@ export const appConfig: ApplicationConfig = {
     {
       provide: OVERLAY_DEFAULT_CONFIG,
       useValue: { usePopover: false },
+    },
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: LocalUserInterceptor,
+      multi: true,
     },
     {
       provide: HTTP_INTERCEPTORS,
