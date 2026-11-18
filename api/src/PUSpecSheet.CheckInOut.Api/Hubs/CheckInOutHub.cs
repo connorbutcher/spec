@@ -80,7 +80,7 @@ public class CheckInOutHub : Hub<ICheckInOutHub>
 
         foreach (var sheetId in sheetIds)
         {
-            await Clients.Group(SheetGroup(sheetId)).SheetPresence(await _sheetPresenceService.GetPresenceAsync(sheetId));
+            await BroadcastPresenceAsync(sheetId);
         }
 
         await base.OnDisconnectedAsync(exception);
@@ -101,7 +101,7 @@ public class CheckInOutHub : Hub<ICheckInOutHub>
         await Groups.AddToGroupAsync(Context.ConnectionId, SheetGroup(sheetId));
         await _sheetPresenceService.JoinAsync(sheetId, user);
 
-        await Clients.Group(SheetGroup(sheetId)).SheetPresence(await _sheetPresenceService.GetPresenceAsync(sheetId));
+        await BroadcastPresenceAsync(sheetId);
     }
 
     /// <summary>
@@ -118,7 +118,7 @@ public class CheckInOutHub : Hub<ICheckInOutHub>
         await Groups.RemoveFromGroupAsync(Context.ConnectionId, SheetGroup(sheetId));
         await _sheetPresenceService.LeaveAsync(sheetId, Context.ConnectionId);
 
-        await Clients.Group(SheetGroup(sheetId)).SheetPresence(await _sheetPresenceService.GetPresenceAsync(sheetId));
+        await BroadcastPresenceAsync(sheetId);
     }
 
     #endregion Presence
@@ -161,6 +161,12 @@ public class CheckInOutHub : Hub<ICheckInOutHub>
         }
 
         return user;
+    }
+
+    private async Task BroadcastPresenceAsync(int sheetId)
+    {
+        var presence = await _sheetPresenceService.GetPresenceAsync(sheetId);
+        await Clients.Group(SheetGroup(sheetId)).SheetPresence(presence);
     }
 
     private static string SheetGroup(int sheetId)
