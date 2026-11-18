@@ -1,6 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Abstractions.Domain.Sheets;
-using PUSpecSheet.Abstractions.Domain.Values.WidgetValues;
 using PUSpecSheet.Api.Database;
 using PUSpecSheet.Api.Database.Schema.SpecSheets;
 using PUSpecSheet.Migrator.Snapshots;
@@ -17,12 +16,18 @@ namespace PUSpecSheet.Migrator.Legacy;
 internal sealed class LegacySheetReader
 {
     private readonly PUSpecSheetDbContext _dbContext;
+    private readonly LegacyCellValueReader _cellValues;
+    private readonly LegacyWidgetReader _widgets;
+    private readonly LegacyWorkflowReader _workflow;
 
     public LegacySheetReader(PUSpecSheetDbContext dbContext)
     {
         ArgumentNullException.ThrowIfNull(dbContext, nameof(dbContext));
 
         _dbContext = dbContext;
+        _cellValues = new LegacyCellValueReader(dbContext);
+        _widgets = new LegacyWidgetReader(dbContext);
+        _workflow = new LegacyWorkflowReader(dbContext);
     }
 
     public async Task<IReadOnlyList<LegacySheet>> ListSheetsAsync(CancellationToken cancellationToken)
@@ -48,17 +53,7 @@ internal sealed class LegacySheetReader
     {
         var warnings = new List<string>();
 
-        // Each query narrows the one before, so every read below is of this sheet's copies only.
-        var copies = _dbContext.SpecSheets.AsNoTracking()
-            .Where(copy => copy.SpecSheetPhaseId == sheet.PhaseId && copy.SpecSheetTypeId == sheet.SheetTypeId);
-        var tables = _dbContext.SpecSheetTables.AsNoTracking()
-            .Where(table => !table.IsDeleted && copies.Any(copy => copy.Id == table.SpecSheetId));
-        var groups = _dbContext.SpecSheetTableGroups.AsNoTracking()
-            .Where(group => !group.IsDeleted && tables.Any(table => table.Id == group.SpecSheetTableId));
-        var rows = _dbContext.SpecSheetTableRows.AsNoTracking()
-            .Where(row => !row.IsDeleted && groups.Any(group => group.Id == row.SpecSheetTableGroupId));
-        var cells = _dbContext.SpecSheetTableCells.AsNoTracking()
-            .Where(cell => !cell.IsDeleted && rows.Any(row => row.Id == cell.SpecSheetTableRowId));
+        var (copies, tables, groups, rows, cells) = LegacySheetScope.Of(_dbContext, sheet);
 
         var copyRows = await copies
             .Select(copy => new
@@ -134,7 +129,7 @@ internal sealed class LegacySheetReader
         var rowTemplates = rowRows.ToDictionary(row => row.Id, row => row.TableRowTemplateId);
         var rowNumbers = rowRows.ToDictionary(row => row.Id, row => row.RowNumber);
 
-        var contents = await ReadContentsAsync(cells, warnings, cancellationToken);
+        var contents = await _cellValues.ReadAsync(cells, warnings, cancellationToken);
 
         var templateCellOfCell = new Dictionary<int, int>();
         var differing = 0;
@@ -166,7 +161,7 @@ internal sealed class LegacySheetReader
 
             if (cell.ConfigurationOverride is not null)
             {
-                Get(contents, cell.Id).ConfigurationOverride = cell.ConfigurationOverride;
+                contents.GetOrNew(cell.Id).ConfigurationOverride = cell.ConfigurationOverride;
             }
         }
 
@@ -180,86 +175,14 @@ internal sealed class LegacySheetReader
             warnings.Add($"{differing} cell(s), across all copies, have a cell type or configuration other than their template cell's; the revisions take them from the template cell.");
         }
 
-        var tableWidgets = await ReadTableWidgetsAsync(tables, cancellationToken);
-        var groupWidgets = await ReadGroupWidgetsAsync(groups, cancellationToken);
+        var tableWidgets = await _widgets.ReadTableWidgetsAsync(tables, cancellationToken);
+        var groupWidgets = await _widgets.ReadGroupWidgetsAsync(groups, cancellationToken);
 
-        var notes = (await _dbContext.SpecSheetTableNotes.AsNoTracking()
-                .Where(note => tables.Any(table => table.Id == note.SpecSheetTableId))
-                .OrderBy(note => note.CreatedDateTime)
-                .ThenBy(note => note.Id)
-                .Select(note => new { note.SpecSheetTableId, note.Note, note.SourceSystem, note.IsObsolete, note.CreatedByUserId, note.CreatedDateTime })
-                .ToListAsync(cancellationToken))
-            .ToLookup(
-                note => note.SpecSheetTableId,
-                note => new SheetTableNote
-                {
-                    Note = note.Note,
-                    SourceSystem = note.SourceSystem,
-                    IsObsolete = note.IsObsolete,
-                    CreatedByUserId = note.CreatedByUserId,
-                    CreatedDateTime = note.CreatedDateTime
-                });
-
-        var properties = new Dictionary<int, Dictionary<int, string?>>();
-        foreach (var property in await _dbContext.SpecSheetPropertyValues.AsNoTracking()
-            .Where(property => copies.Any(copy => copy.Id == property.SpecSheetId))
-            .OrderBy(property => property.Id)
-            .Select(property => new { property.SpecSheetId, property.SpecSheetTypePropertyId, property.PropertyValue })
-            .ToListAsync(cancellationToken))
-        {
-            Get(properties, property.SpecSheetId)[property.SpecSheetTypePropertyId] = property.PropertyValue;
-        }
-
-        var references = new Dictionary<int, Dictionary<Guid, SnapshotExternalReference>>();
-        foreach (var reference in await _dbContext.SpecSheetExternalReferences.AsNoTracking()
-            .Where(reference => copies.Any(copy => copy.Id == reference.SpecSheetId))
-            .OrderBy(reference => reference.Id)
-            .Select(reference => new
-            {
-                reference.SpecSheetId,
-                reference.ReferenceId,
-                reference.ExternalId,
-                reference.SystemName,
-                reference.OwnerName,
-                reference.Url,
-                reference.Type,
-                reference.Grouping,
-                reference.SystemIconUrl,
-                reference.Description
-            })
-            .ToListAsync(cancellationToken))
-        {
-            Get(references, reference.SpecSheetId)[reference.ReferenceId] = new SnapshotExternalReference
-            {
-                ReferenceId = reference.ReferenceId,
-                ExternalId = reference.ExternalId,
-                SystemName = reference.SystemName,
-                OwnerName = reference.OwnerName,
-                Url = reference.Url,
-                Type = reference.Type,
-                Grouping = reference.Grouping,
-                SystemIconUrl = reference.SystemIconUrl,
-                Description = reference.Description
-            };
-        }
-
-        var linkedTables = new Dictionary<int, Dictionary<Guid, SnapshotLinkedTable>>();
-        foreach (var link in await _dbContext.SpecSheetLinkedTables.AsNoTracking()
-            .Where(link => copies.Any(copy => copy.Id == link.SpecSheetId))
-            .OrderBy(link => link.Id)
-            .Select(link => new { link.Id, link.SpecSheetId, link.TableReferenceId, link.DisplayOrder, link.LinkedByUserId, link.LinkedDateTime })
-            .ToListAsync(cancellationToken))
-        {
-            Get(linkedTables, link.SpecSheetId)[link.TableReferenceId] = new SnapshotLinkedTable
-            {
-                TableReferenceId = link.TableReferenceId,
-                DisplayOrder = link.DisplayOrder,
-                LinkedByUserId = link.LinkedByUserId,
-                LinkedDateTime = link.LinkedDateTime
-            };
-        }
-
-        var workflow = await ReadWorkflowAsync(copies, cancellationToken);
+        var notes = await ReadNotesAsync(tables, cancellationToken);
+        var properties = await ReadPropertiesAsync(copies, cancellationToken);
+        var references = await ReadExternalReferencesAsync(copies, cancellationToken);
+        var linkedTables = await ReadLinkedTablesAsync(copies, cancellationToken);
+        var workflow = await _workflow.ReadAsync(copies, cancellationToken);
 
         // Each table, group, row and cell belongs to one copy. Grouping them by it once, in the order they were read,
         // saves going through every copy's items for each copy. One whose parent wasn't read is under copy 0, which
@@ -359,196 +282,105 @@ internal sealed class LegacySheetReader
         return new LegacyCopies { Copies = built, Warnings = warnings };
     }
 
-    // A cell has at most one value of each kind; where a copy has more, the newest (highest id) is kept.
-    private async Task<Dictionary<int, CellContentParts>> ReadContentsAsync(
-        IQueryable<DbSpecSheetTableCell> cells,
-        List<string> warnings,
-        CancellationToken cancellationToken)
+    // A table's notes, oldest first.
+    private async Task<ILookup<int, SheetTableNote>> ReadNotesAsync(IQueryable<DbSpecSheetTable> tables, CancellationToken cancellationToken)
     {
-        var parts = new Dictionary<int, CellContentParts>();
-        var repeated = 0;
-
-        foreach (var value in await _dbContext.TextValues.AsNoTracking()
-            .Where(value => value.Value != null && cells.Any(cell => cell.Id == value.SpecSheetTableCellId))
-            .OrderBy(value => value.Id)
-            .Select(value => new { value.SpecSheetTableCellId, value.Value })
-            .ToListAsync(cancellationToken))
-        {
-            var cell = Get(parts, value.SpecSheetTableCellId);
-            repeated += cell.Text is null ? 0 : 1;
-            cell.Text = value.Value;
-        }
-
-        foreach (var value in await _dbContext.NumericValues.AsNoTracking()
-            .Where(value => value.Value != null && cells.Any(cell => cell.Id == value.SpecSheetTableCellId))
-            .OrderBy(value => value.Id)
-            .Select(value => new { value.SpecSheetTableCellId, value.Value })
-            .ToListAsync(cancellationToken))
-        {
-            var cell = Get(parts, value.SpecSheetTableCellId);
-            repeated += cell.Number is null ? 0 : 1;
-            cell.Number = value.Value;
-        }
-
-        foreach (var value in await _dbContext.PairValues.AsNoTracking()
-            .Where(value => (value.PairValueX != null || value.PairValueY != null) && cells.Any(cell => cell.Id == value.SpecSheetTableCellId))
-            .OrderBy(value => value.Id)
-            .Select(value => new { value.SpecSheetTableCellId, value.PairValueX, value.PairValueY })
-            .ToListAsync(cancellationToken))
-        {
-            var cell = Get(parts, value.SpecSheetTableCellId);
-            repeated += cell.PairX is null && cell.PairY is null ? 0 : 1;
-            cell.PairX = value.PairValueX;
-            cell.PairY = value.PairValueY;
-        }
-
-        foreach (var value in await _dbContext.LinkedSpecSheetValues.AsNoTracking()
-            .Where(value => cells.Any(cell => cell.Id == value.SpecSheetTableCellId))
-            .OrderBy(value => value.Id)
-            .Select(value => new
-            {
-                value.SpecSheetTableCellId,
-                value.LinkedSpecSheetTypeId,
-                value.LinkedSpecSheetPhaseId,
-                value.TableReferenceId,
-                value.LinkedReferenceId
-            })
-            .ToListAsync(cancellationToken))
-        {
-            var cell = Get(parts, value.SpecSheetTableCellId);
-            repeated += cell.Linked is null ? 0 : 1;
-            cell.Linked = new LinkedSheetTarget
-            {
-                SheetTypeId = value.LinkedSpecSheetTypeId,
-                PhaseId = value.LinkedSpecSheetPhaseId,
-                TableReferenceId = value.TableReferenceId,
-                ItemReferenceId = value.LinkedReferenceId
-            };
-        }
-
-        if (repeated > 0)
-        {
-            warnings.Add($"{repeated} value(s) were one of several of the same kind on one cell; the newest of each was kept.");
-        }
-
-        return parts;
+        return (await _dbContext.SpecSheetTableNotes.AsNoTracking()
+                .Where(note => tables.Any(table => table.Id == note.SpecSheetTableId))
+                .OrderBy(note => note.CreatedDateTime)
+                .ThenBy(note => note.Id)
+                .Select(note => new { note.SpecSheetTableId, note.Note, note.SourceSystem, note.IsObsolete, note.CreatedByUserId, note.CreatedDateTime })
+                .ToListAsync(cancellationToken))
+            .ToLookup(
+                note => note.SpecSheetTableId,
+                note => new SheetTableNote
+                {
+                    Note = note.Note,
+                    SourceSystem = note.SourceSystem,
+                    IsObsolete = note.IsObsolete,
+                    CreatedByUserId = note.CreatedByUserId,
+                    CreatedDateTime = note.CreatedDateTime
+                });
     }
 
-    // A table's widget values, one per template widget; where a copy has more than one, the newest is kept.
-    private async Task<Dictionary<int, IReadOnlyList<SheetWidgetValue>>> ReadTableWidgetsAsync(
-        IQueryable<DbSpecSheetTable> tables,
-        CancellationToken cancellationToken)
+    // Each copy's property values, by SpecSheetTypePropertyID; where a copy has more than one, the newest is kept.
+    private async Task<Dictionary<int, Dictionary<int, string?>>> ReadPropertiesAsync(IQueryable<DbSpecSheet> copies, CancellationToken cancellationToken)
     {
-        var widgets = _dbContext.SpecSheetTableWidgets.AsNoTracking()
-            .Where(widget => tables.Any(table => table.Id == widget.SpecSheetTableId));
-        var owners = await widgets
-            .OrderBy(widget => widget.Id)
-            .Select(widget => new { widget.Id, OwnerId = widget.SpecSheetTableId, TemplateWidgetId = widget.TableTemplateWidgetId })
-            .ToListAsync(cancellationToken);
-        var values = await _dbContext.TableWidgetValues.AsNoTracking()
-            .Where(value => widgets.Any(widget => widget.Id == value.SpecSheetTableWidgetId))
-            .OrderBy(value => value.Id)
-            .Select(value => new { WidgetId = value.SpecSheetTableWidgetId, value.Value })
-            .ToListAsync(cancellationToken);
-
-        return Widgets(
-            owners.Select(owner => (owner.Id, owner.OwnerId, owner.TemplateWidgetId)),
-            values.Select(value => (value.WidgetId, value.Value)));
-    }
-
-    private async Task<Dictionary<int, IReadOnlyList<SheetWidgetValue>>> ReadGroupWidgetsAsync(
-        IQueryable<DbSpecSheetTableGroup> groups,
-        CancellationToken cancellationToken)
-    {
-        var widgets = _dbContext.SpecSheetTableGroupWidgets.AsNoTracking()
-            .Where(widget => groups.Any(group => group.Id == widget.SpecSheetTableGroupId));
-        var owners = await widgets
-            .OrderBy(widget => widget.Id)
-            .Select(widget => new { widget.Id, OwnerId = widget.SpecSheetTableGroupId, TemplateWidgetId = widget.TableGroupTemplateWidgetId })
-            .ToListAsync(cancellationToken);
-        var values = await _dbContext.TableGroupWidgetValues.AsNoTracking()
-            .Where(value => widgets.Any(widget => widget.Id == value.SpecSheetTableGroupWidgetId))
-            .OrderBy(value => value.Id)
-            .Select(value => new { WidgetId = value.SpecSheetTableGroupWidgetId, value.Value })
-            .ToListAsync(cancellationToken);
-
-        return Widgets(
-            owners.Select(owner => (owner.Id, owner.OwnerId, owner.TemplateWidgetId)),
-            values.Select(value => (value.WidgetId, value.Value)));
-    }
-
-    private static Dictionary<int, IReadOnlyList<SheetWidgetValue>> Widgets(
-        IEnumerable<(int Id, int OwnerId, int TemplateWidgetId)> widgets,
-        IEnumerable<(int WidgetId, WidgetValue? Value)> values)
-    {
-        var valueOf = new Dictionary<int, WidgetValue?>();
-        foreach (var (widgetId, value) in values)
+        var properties = new Dictionary<int, Dictionary<int, string?>>();
+        foreach (var property in await _dbContext.SpecSheetPropertyValues.AsNoTracking()
+            .Where(property => copies.Any(copy => copy.Id == property.SpecSheetId))
+            .OrderBy(property => property.Id)
+            .Select(property => new { property.SpecSheetId, property.SpecSheetTypePropertyId, property.PropertyValue })
+            .ToListAsync(cancellationToken))
         {
-            valueOf[widgetId] = value;
+            properties.GetOrNew(property.SpecSheetId)[property.SpecSheetTypePropertyId] = property.PropertyValue;
         }
 
-        var byOwner = new Dictionary<int, Dictionary<int, WidgetValue?>>();
-        foreach (var widget in widgets)
-        {
-            Get(byOwner, widget.OwnerId)[widget.TemplateWidgetId] = valueOf.GetValueOrDefault(widget.Id);
-        }
-
-        return byOwner.ToDictionary(
-            owner => owner.Key,
-            owner => (IReadOnlyList<SheetWidgetValue>)owner.Value
-                .OrderBy(widget => widget.Key)
-                .Select(widget => new SheetWidgetValue { TemplateWidgetId = widget.Key, Value = widget.Value })
-                .ToList());
+        return properties;
     }
 
-    private async Task<ILookup<int, LegacyWorkflowStep>> ReadWorkflowAsync(
+    // Each copy's external references, by ReferenceID; where a copy has more than one, the newest is kept.
+    private async Task<Dictionary<int, Dictionary<Guid, SnapshotExternalReference>>> ReadExternalReferencesAsync(
         IQueryable<DbSpecSheet> copies,
         CancellationToken cancellationToken)
     {
-        var steps = _dbContext.WorkflowSteps.AsNoTracking()
-            .Where(step => copies.Any(copy => copy.Id == step.SpecSheetId));
-
-        var actors = (await _dbContext.WorkflowStepActors.AsNoTracking()
-                .Where(actor => steps.Any(step => step.Id == actor.WorkflowStepId))
-                .OrderBy(actor => actor.Id)
-                .Select(actor => new { actor.Id, actor.WorkflowStepId, actor.ActorUserId, actor.Comment, actor.State, actor.ActionedDateTime })
-                .ToListAsync(cancellationToken))
-            .ToLookup(
-                actor => actor.WorkflowStepId,
-                actor => new LegacyWorkflowActor
-                {
-                    Id = actor.Id,
-                    UserId = actor.ActorUserId,
-                    Comment = actor.Comment,
-                    State = (int)actor.State,
-                    ActionedDateTime = actor.ActionedDateTime
-                });
-
-        return (await steps
-                .OrderBy(step => step.StartedDateTime)
-                .ThenBy(step => step.Id)
-                .Select(step => new { step.Id, step.SpecSheetId, step.StartedDateTime, step.State })
-                .ToListAsync(cancellationToken))
-            .ToLookup(
-                step => step.SpecSheetId,
-                step => new LegacyWorkflowStep
-                {
-                    Id = step.Id,
-                    StartedDateTime = step.StartedDateTime,
-                    State = (int)step.State,
-                    Actors = actors[step.Id].ToList()
-                });
-    }
-
-    private static TValue Get<TValue>(Dictionary<int, TValue> map, int key)
-        where TValue : new()
-    {
-        if (!map.TryGetValue(key, out var value))
+        var references = new Dictionary<int, Dictionary<Guid, SnapshotExternalReference>>();
+        foreach (var reference in await _dbContext.SpecSheetExternalReferences.AsNoTracking()
+            .Where(reference => copies.Any(copy => copy.Id == reference.SpecSheetId))
+            .OrderBy(reference => reference.Id)
+            .Select(reference => new
+            {
+                reference.SpecSheetId,
+                reference.ReferenceId,
+                reference.ExternalId,
+                reference.SystemName,
+                reference.OwnerName,
+                reference.Url,
+                reference.Type,
+                reference.Grouping,
+                reference.SystemIconUrl,
+                reference.Description
+            })
+            .ToListAsync(cancellationToken))
         {
-            value = new TValue();
-            map[key] = value;
+            references.GetOrNew(reference.SpecSheetId)[reference.ReferenceId] = new SnapshotExternalReference
+            {
+                ReferenceId = reference.ReferenceId,
+                ExternalId = reference.ExternalId,
+                SystemName = reference.SystemName,
+                OwnerName = reference.OwnerName,
+                Url = reference.Url,
+                Type = reference.Type,
+                Grouping = reference.Grouping,
+                SystemIconUrl = reference.SystemIconUrl,
+                Description = reference.Description
+            };
         }
 
-        return value;
+        return references;
+    }
+
+    // Each copy's linked tables, by the linked table's ReferenceID; where a copy has more than one, the newest is kept.
+    private async Task<Dictionary<int, Dictionary<Guid, SnapshotLinkedTable>>> ReadLinkedTablesAsync(
+        IQueryable<DbSpecSheet> copies,
+        CancellationToken cancellationToken)
+    {
+        var linkedTables = new Dictionary<int, Dictionary<Guid, SnapshotLinkedTable>>();
+        foreach (var link in await _dbContext.SpecSheetLinkedTables.AsNoTracking()
+            .Where(link => copies.Any(copy => copy.Id == link.SpecSheetId))
+            .OrderBy(link => link.Id)
+            .Select(link => new { link.Id, link.SpecSheetId, link.TableReferenceId, link.DisplayOrder, link.LinkedByUserId, link.LinkedDateTime })
+            .ToListAsync(cancellationToken))
+        {
+            linkedTables.GetOrNew(link.SpecSheetId)[link.TableReferenceId] = new SnapshotLinkedTable
+            {
+                TableReferenceId = link.TableReferenceId,
+                DisplayOrder = link.DisplayOrder,
+                LinkedByUserId = link.LinkedByUserId,
+                LinkedDateTime = link.LinkedDateTime
+            };
+        }
+
+        return linkedTables;
     }
 }

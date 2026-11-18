@@ -7,6 +7,7 @@ using PUSpecSheet.Abstractions.Requests.Access.Tables;
 using PUSpecSheet.Api.DAL.Caching;
 using PUSpecSheet.Api.DAL.DataAccess.SpecSheets;
 using PUSpecSheet.Api.DAL.DataAccess.SpecSheets.Reads;
+using PUSpecSheet.Api.DAL.DataAccess.SpecSheets.Reads.Revisions;
 using PUSpecSheet.Api.Database;
 using PUSpecSheet.Api.Database.Mappers.Access;
 using PUSpecSheet.Api.Database.Schema.Access;

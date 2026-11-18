@@ -1,9 +1,4 @@
 ﻿using System.Globalization;
-using PUSpecSheet.Abstractions.Domain.Properties.Table;
-using PUSpecSheet.Abstractions.Domain.Sheets;
-using PUSpecSheet.Abstractions.Types;
-using PUSpecSheet.Api.Database.Schema.Approval;
-using PUSpecSheet.Api.Database.Schema.Cell;
 using PUSpecSheet.Api.Database.Schema.Spec;
 using PUSpecSheet.Migrator.Legacy;
 using PUSpecSheet.Migrator.Snapshots;
@@ -26,7 +21,8 @@ internal sealed class SheetHistoryBuilder
     private readonly List<string> _warnings = [];
     private readonly KeyAssigner _assigner;
     private readonly List<BuiltVersion> _checks = [];
-    private readonly List<PlannedSubmission> _submissions = [];
+    private readonly SubmissionPlanner _submissions;
+    private readonly RevisionFactory _revisions;
     private readonly List<IDbSheetRevision> _writtenForCopy = [];
     private readonly HashSet<Guid> _claimedReferenceIds = [];
     private readonly Dictionary<int, ItemTrack<DbSheetTable, DbSheetTableRevision>> _tables = [];
@@ -46,6 +42,8 @@ internal sealed class SheetHistoryBuilder
         _sheet = sheet;
         _now = now;
         _assigner = new KeyAssigner(_warnings);
+        _submissions = new SubmissionPlanner(sheet, _warnings);
+        _revisions = new RevisionFactory(sheet);
     }
 
     /// <param name="sheet">The sheet, already saved so that it has its id.</param>
@@ -59,7 +57,7 @@ internal sealed class SheetHistoryBuilder
         {
             Sheet = sheet,
             Checks = builder._checks,
-            Submissions = builder._submissions,
+            Submissions = builder._submissions.Planned,
             Warnings = builder._warnings
         };
     }
@@ -105,7 +103,7 @@ internal sealed class SheetHistoryBuilder
             _sheet.Versions.Add(version);
 
             Apply(copy, version, at);
-            PlanSubmissions(copy, version, at);
+            _submissions.Plan(copy, version, at, _writtenForCopy);
             _checks.Add(new BuiltVersion { VersionNumber = number, Moment = at, Expected = copy.Snapshot });
             last = at;
         }
@@ -119,7 +117,7 @@ internal sealed class SheetHistoryBuilder
             }
 
             Apply(copy, null, _now);
-            PlanSubmissions(copy, null, _now);
+            _submissions.Plan(copy, null, _now, _writtenForCopy);
             _checks.Add(new BuiltVersion { VersionNumber = number + 1, Moment = null, Expected = copy.Snapshot });
         }
     }
@@ -178,7 +176,7 @@ internal sealed class SheetHistoryBuilder
         var widgetValues = ListOrNull(table.WidgetValues);
         var notes = ListOrNull(table.Notes);
         var state = $"{table.DisplayOrder}|{table.Title}|{SnapshotJson.Of(table.ConfigurationOverride)}|{SnapshotJson.Of(table.WidgetValues)}|{SnapshotJson.Of(table.Notes)}";
-        Write(context, track, state, revisionNumber => TableRevision(
+        Write(context, track, state, revisionNumber => _revisions.TableRevision(
             context,
             revisionNumber,
             table.Title,
@@ -210,7 +208,7 @@ internal sealed class SheetHistoryBuilder
 
         var widgetValues = ListOrNull(group.WidgetValues);
         var state = $"{group.DisplayOrder}|{SnapshotJson.Of(group.WidgetValues)}|{group.LinkedGroupReferenceId}";
-        Write(context, track, state, revisionNumber => GroupRevision(
+        Write(context, track, state, revisionNumber => _revisions.GroupRevision(
             context,
             revisionNumber,
             group.DisplayOrder,
@@ -251,8 +249,8 @@ internal sealed class SheetHistoryBuilder
         var state = $"{row.DisplayOrder}|{RowSignature(contents)}";
         var written = Write(context, track, state, revisionNumber =>
         {
-            var revision = RowRevision(context, revisionNumber, row.DisplayOrder, isDeleted: false);
-            AddValues(revision, contents);
+            var revision = _revisions.RowRevision(context, revisionNumber, row.DisplayOrder, isDeleted: false);
+            RevisionFactory.AddValues(revision, contents);
             return revision;
         });
 
@@ -301,7 +299,7 @@ internal sealed class SheetHistoryBuilder
         {
             var track = _tables[key];
             var last = track.LastPublished!;
-            Write(context, track, Removed, revisionNumber => TableRevision(
+            Write(context, track, Removed, revisionNumber => _revisions.TableRevision(
                 context,
                 revisionNumber,
                 last.Title,
@@ -318,7 +316,7 @@ internal sealed class SheetHistoryBuilder
             if (tablesNow.Contains(track.TableKey!.Value))
             {
                 var last = track.LastPublished!;
-                Write(context, track, Removed, revisionNumber => GroupRevision(
+                Write(context, track, Removed, revisionNumber => _revisions.GroupRevision(
                     context,
                     revisionNumber,
                     last.DisplayOrder,
@@ -338,8 +336,8 @@ internal sealed class SheetHistoryBuilder
                 var kept = track.PublishedCells;
                 Write(context, track, Removed, revisionNumber =>
                 {
-                    var revision = RowRevision(context, revisionNumber, last.DisplayOrder, isDeleted: true);
-                    AddValues(revision, kept);
+                    var revision = _revisions.RowRevision(context, revisionNumber, last.DisplayOrder, isDeleted: true);
+                    RevisionFactory.AddValues(revision, kept);
                     return revision;
                 });
             }
@@ -364,14 +362,14 @@ internal sealed class SheetHistoryBuilder
                 _properties[propertyId] = track;
             }
 
-            Write(context, track, $"={value}", revisionNumber => PropertyRevision(context, revisionNumber, value, isDeleted: false));
+            Write(context, track, $"={value}", revisionNumber => _revisions.PropertyRevision(context, revisionNumber, value, isDeleted: false));
         }
 
         foreach (var propertyId in _previousProperties.Where(id => !snapshot.Properties.ContainsKey(id)))
         {
             var track = _properties[propertyId];
             var last = track.LastPublished!;
-            Write(context, track, Removed, revisionNumber => PropertyRevision(context, revisionNumber, last.PropertyValue, isDeleted: true));
+            Write(context, track, Removed, revisionNumber => _revisions.PropertyRevision(context, revisionNumber, last.PropertyValue, isDeleted: true));
         }
 
         if (context.Version is not null)
@@ -400,7 +398,7 @@ internal sealed class SheetHistoryBuilder
                 _linkedTables[link.TableReferenceId] = track;
             }
 
-            Write(context, track, $"{link.DisplayOrder}", revisionNumber => LinkedTableRevision(context, revisionNumber, link.DisplayOrder, isDeleted: false));
+            Write(context, track, $"{link.DisplayOrder}", revisionNumber => _revisions.LinkedTableRevision(context, revisionNumber, link.DisplayOrder, isDeleted: false));
         }
 
         var now = snapshot.LinkedTables.Select(link => link.TableReferenceId).ToHashSet();
@@ -408,7 +406,7 @@ internal sealed class SheetHistoryBuilder
         {
             var track = _linkedTables[tableReferenceId];
             var last = track.LastPublished!;
-            Write(context, track, Removed, revisionNumber => LinkedTableRevision(context, revisionNumber, last.DisplayOrder, isDeleted: true));
+            Write(context, track, Removed, revisionNumber => _revisions.LinkedTableRevision(context, revisionNumber, last.DisplayOrder, isDeleted: true));
         }
 
         if (context.Version is not null)
@@ -556,301 +554,6 @@ internal sealed class SheetHistoryBuilder
             default:
                 throw new InvalidOperationException($"A {revision.GetType().Name} can't belong to a {item.GetType().Name}.");
         }
-    }
-
-    private DbSheetTableRevision TableRevision(
-        WriteContext context,
-        int revisionNumber,
-        string title,
-        int displayOrder,
-        ITableProperties? configurationOverride,
-        ICollection<SheetWidgetValue>? widgetValues,
-        ICollection<SheetTableNote>? notes,
-        bool isDeleted)
-    {
-        return new DbSheetTableRevision
-        {
-            Id = 0,
-            SheetTableId = 0,
-            SheetId = _sheet.Id,
-            RevisionNumber = revisionNumber,
-            Status = context.Status,
-            Title = title,
-            DisplayOrder = displayOrder,
-            ConfigurationOverride = configurationOverride,
-            WidgetValues = widgetValues,
-            Notes = notes,
-            IsDeleted = isDeleted,
-            CreatedByUserId = context.UserId,
-            CreatedDateTime = context.At,
-            LastModifiedDateTime = context.At,
-            PublishedDateTime = context.PublishedDateTime,
-            SupersededDateTime = null,
-            SheetVersionId = null,
-            SheetSubmissionId = null,
-            SheetVersion = context.Version
-        };
-    }
-
-    private DbSheetTableGroupRevision GroupRevision(
-        WriteContext context,
-        int revisionNumber,
-        int displayOrder,
-        Guid? linkedGroupReferenceId,
-        ICollection<SheetWidgetValue>? widgetValues,
-        bool isDeleted)
-    {
-        return new DbSheetTableGroupRevision
-        {
-            Id = 0,
-            SheetTableGroupId = 0,
-            SheetId = _sheet.Id,
-            RevisionNumber = revisionNumber,
-            Status = context.Status,
-            DisplayOrder = displayOrder,
-            LinkedSheetTableGroupReferenceId = linkedGroupReferenceId,
-            WidgetValues = widgetValues,
-            IsDeleted = isDeleted,
-            CreatedByUserId = context.UserId,
-            CreatedDateTime = context.At,
-            LastModifiedDateTime = context.At,
-            PublishedDateTime = context.PublishedDateTime,
-            SupersededDateTime = null,
-            SheetVersionId = null,
-            SheetSubmissionId = null,
-            SheetVersion = context.Version
-        };
-    }
-
-    private DbSheetTableRowRevision RowRevision(WriteContext context, int revisionNumber, int displayOrder, bool isDeleted)
-    {
-        return new DbSheetTableRowRevision
-        {
-            Id = 0,
-            SheetTableRowId = 0,
-            SheetId = _sheet.Id,
-            RevisionNumber = revisionNumber,
-            Status = context.Status,
-            DisplayOrder = displayOrder,
-            IsDeleted = isDeleted,
-            CreatedByUserId = context.UserId,
-            CreatedDateTime = context.At,
-            LastModifiedDateTime = context.At,
-            PublishedDateTime = context.PublishedDateTime,
-            SupersededDateTime = null,
-            SheetVersionId = null,
-            SheetSubmissionId = null,
-            SheetVersion = context.Version
-        };
-    }
-
-    private DbSheetPropertyRevision PropertyRevision(WriteContext context, int revisionNumber, string? value, bool isDeleted)
-    {
-        return new DbSheetPropertyRevision
-        {
-            Id = 0,
-            SheetPropertyId = 0,
-            SheetId = _sheet.Id,
-            RevisionNumber = revisionNumber,
-            Status = context.Status,
-            PropertyValue = value,
-            IsDeleted = isDeleted,
-            CreatedByUserId = context.UserId,
-            CreatedDateTime = context.At,
-            LastModifiedDateTime = context.At,
-            PublishedDateTime = context.PublishedDateTime,
-            SupersededDateTime = null,
-            SheetVersionId = null,
-            SheetSubmissionId = null,
-            SheetVersion = context.Version
-        };
-    }
-
-    private DbSheetLinkedTableRevision LinkedTableRevision(WriteContext context, int revisionNumber, int displayOrder, bool isDeleted)
-    {
-        return new DbSheetLinkedTableRevision
-        {
-            Id = 0,
-            SheetLinkedTableId = 0,
-            SheetId = _sheet.Id,
-            RevisionNumber = revisionNumber,
-            Status = context.Status,
-            DisplayOrder = displayOrder,
-            IsDeleted = isDeleted,
-            CreatedByUserId = context.UserId,
-            CreatedDateTime = context.At,
-            LastModifiedDateTime = context.At,
-            PublishedDateTime = context.PublishedDateTime,
-            SupersededDateTime = null,
-            SheetVersionId = null,
-            SheetSubmissionId = null,
-            SheetVersion = context.Version
-        };
-    }
-
-    private static void AddValues(DbSheetTableRowRevision revision, IReadOnlyList<(DbSheetTableCell Cell, CellContent Content)> contents)
-    {
-        foreach (var (cell, content) in contents)
-        {
-            if (content.Text is { } text)
-            {
-                revision.TextValues.Add(new DbSheetTextValue
-                {
-                    SheetTableRowRevisionId = 0,
-                    SheetTableCellId = 0,
-                    Value = text,
-                    SheetTableCell = cell
-                });
-            }
-
-            if (content.Number is { } number)
-            {
-                revision.NumericValues.Add(new DbSheetNumericValue
-                {
-                    SheetTableRowRevisionId = 0,
-                    SheetTableCellId = 0,
-                    Value = number,
-                    SheetTableCell = cell
-                });
-            }
-
-            if (content.HasPair)
-            {
-                revision.PairValues.Add(new DbSheetPairValue
-                {
-                    SheetTableRowRevisionId = 0,
-                    SheetTableCellId = 0,
-                    PairValueX = content.PairX,
-                    PairValueY = content.PairY,
-                    SheetTableCell = cell
-                });
-            }
-
-            if (content.Linked is { } linked)
-            {
-                revision.LinkedSheetValues.Add(new DbSheetLinkedSheetValue
-                {
-                    SheetTableRowRevisionId = 0,
-                    SheetTableCellId = 0,
-                    LinkedSpecSheetTypeId = linked.SheetTypeId,
-                    LinkedSpecSheetPhaseId = linked.PhaseId,
-                    TableReferenceId = linked.TableReferenceId,
-                    LinkedReferenceId = linked.ItemReferenceId,
-                    SheetTableCell = cell
-                });
-            }
-
-            if (content.ConfigurationOverride is { } configurationOverride)
-            {
-                revision.CellConfigurationOverrides.Add(new DbSheetCellConfigurationOverride
-                {
-                    SheetTableRowRevisionId = 0,
-                    SheetTableCellId = 0,
-                    ConfigurationOverride = configurationOverride,
-                    SheetTableCell = cell
-                });
-            }
-        }
-    }
-
-    // A copy's workflow steps become submissions. The step that approved a published copy is the submission that
-    // published its version, and the revisions written for that version are its changes. A pending step on the working
-    // copy is a submission awaiting approval, holding the drafts. Every other step is kept as decided.
-    private void PlanSubmissions(LegacyCopy copy, DbSheetVersion? version, DateTime at)
-    {
-        var steps = copy.Workflow.OrderBy(step => step.StartedDateTime).ThenBy(step => step.Id).ToList();
-        var publishing = version is null ? null : steps.LastOrDefault(step => LegacyWorkflowStates.Step(step) == SubmissionStatus.Approved);
-        var awaiting = version is null ? steps.LastOrDefault() : null;
-        if (awaiting is not null && LegacyWorkflowStates.Step(awaiting) != SubmissionStatus.Pending)
-        {
-            awaiting = null;
-        }
-
-        for (var index = 0; index < steps.Count; index++)
-        {
-            var step = steps[index];
-            var status = LegacyWorkflowStates.Step(step);
-            var next = index + 1 < steps.Count ? steps[index + 1].StartedDateTime : (DateTime?)null;
-            DateTime? decidedDateTime;
-            if (step == publishing)
-            {
-                decidedDateTime = LatestAction(step) ?? at;
-            }
-            else if (step == awaiting)
-            {
-                decidedDateTime = null;
-            }
-            else if (status == SubmissionStatus.Pending)
-            {
-                // Overtaken by a later step or by publishing, so withdrawn when that happened.
-                status = SubmissionStatus.Withdrawn;
-                decidedDateTime = next ?? at;
-                _warnings.Add($"Workflow step {step.Id} (copy {copy.Id}) was never decided; it is kept as withdrawn.");
-            }
-            else
-            {
-                if (status == SubmissionStatus.Approved)
-                {
-                    _warnings.Add($"Workflow step {step.Id} (copy {copy.Id}) approved a copy that a later step decided again, or that wasn't published; it is kept as approved without a version.");
-                }
-
-                decidedDateTime = LatestAction(step) ?? next ?? at;
-            }
-
-            var submission = new DbSheetSubmission
-            {
-                Id = 0,
-                SheetId = _sheet.Id,
-                Note = null,
-                SubmittedByUserId = copy.CreatedByUserId,
-                SubmittedDateTime = step.StartedDateTime,
-                Status = status,
-                DecidedDateTime = decidedDateTime,
-                SheetVersionId = null
-            };
-            AddApprovers(submission, step, copy);
-
-            _submissions.Add(new PlannedSubmission
-            {
-                Submission = submission,
-                Version = step == publishing ? version : null,
-                Revisions = step == publishing || step == awaiting ? [.. _writtenForCopy] : []
-            });
-        }
-    }
-
-    private void AddApprovers(DbSheetSubmission submission, LegacyWorkflowStep step, LegacyCopy copy)
-    {
-        foreach (var actors in step.Actors.Where(actor => actor.UserId is not null).GroupBy(actor => actor.UserId!.Value))
-        {
-            var ordered = actors.OrderBy(candidate => candidate.Id).ToList();
-            if (ordered.Count > 1)
-            {
-                _warnings.Add($"User {actors.Key} is an actor of workflow step {step.Id} (copy {copy.Id}) more than once; the last is kept.");
-            }
-
-            var actor = ordered[^1];
-            var decision = LegacyWorkflowStates.Actor(actor);
-            var reason = string.IsNullOrWhiteSpace(actor.Comment) ? null : actor.Comment.Trim();
-            if (decision == ApproverDecision.Rejected && reason is null)
-            {
-                reason = DbSheetSubmissionApprover.NoReasonGiven;
-            }
-
-            submission.Approvers.Add(new DbSheetSubmissionApprover
-            {
-                SheetSubmissionId = 0,
-                UserId = actors.Key,
-                Decision = decision,
-                DecidedDateTime = decision == ApproverDecision.Pending ? null : actor.ActionedDateTime ?? submission.DecidedDateTime ?? step.StartedDateTime,
-                Reason = reason
-            });
-        }
-    }
-
-    private static DateTime? LatestAction(LegacyWorkflowStep step)
-    {
-        return step.Actors.Max(actor => actor.ActionedDateTime);
     }
 
     // Items keep their ReferenceID. One that turns up twice on the sheet (an item moved to another parent, say, which

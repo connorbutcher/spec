@@ -11,6 +11,7 @@ using PUSpecSheet.Api.DAL.DataAccess.Query;
 using PUSpecSheet.Api.DAL.DataAccess.SpecSheets;
 using PUSpecSheet.Api.DAL.DataAccess.SpecSheets.Edits;
 using PUSpecSheet.Api.DAL.DataAccess.SpecSheets.Reads;
+using PUSpecSheet.Api.DAL.DataAccess.SpecSheets.Reads.Revisions;
 using PUSpecSheet.Api.DAL.DataAccess.Template;
 using PUSpecSheet.Api.DAL.DataAccess.Types;
 using PUSpecSheet.Api.DAL.Query.Resolvers.Cells;

@@ -27,15 +27,15 @@ It exits with 0 when every sheet was migrated, checked or already up to date, 1 
 
 A sheet is every `SpecSheets` row with one phase and sheet type. For each:
 
-1. **Read** every copy (`Legacy/LegacySheetReader`) into a `SheetSnapshot`: what the copy shows, leaving out deleted tables, groups, rows and cells.
+1. **Read** every copy (`Legacy/LegacySheetReader`, with `LegacySheetScope` narrowing each table to the sheet and the cell value, widget and workflow readers beside it) into a `SheetSnapshot`: what the copy shows, leaving out deleted tables, groups, rows and cells.
 2. **Compare** a hash of the copies (`Legacy/LegacyFingerprint`: each copy's publish details, what it shows and its workflow) with the one `spec.Sheets.LegacySourceHash` kept when the sheet was last built. If they match, the sheet is up to date and left alone.
 3. **Delete** what was built for the sheet before, if anything, and **build** it again, all in one transaction:
    - Items are followed from copy to copy by their `ReferenceID`, which a copy made from another keeps (`Building/KeyAssigner`), and keep it. An item whose ReferenceID turns up under another parent or template is treated as removed and added again, with a warning, since an item can't move or change its template.
-   - Each published copy, oldest first, becomes a `SheetVersion`. Each item gets a published revision only when it is new or differs from its last one (its order included, as the copy numbers it), and that revision replaces the one before at the same moment (`Building/SheetHistoryBuilder`).
+   - Each published copy, oldest first, becomes a `SheetVersion`. Each item gets a published revision only when it is new or differs from its last one (its order included, as the copy numbers it), and that revision replaces the one before at the same moment (`Building/SheetHistoryBuilder`; `RevisionFactory` makes the revisions and `SubmissionPlanner` the submissions).
    - An item missing from a copy gets a removing revision, unless the table or group it was in went too.
    - The working copy, if there is one, becomes drafts held by its creator.
    - Workflow steps become submissions, saved after the versions they published, and then their revisions are pointed at them.
-4. **Check** it (`Verification/`): the sheet is read back as of every version, and with its drafts, and each is compared with its copy, rendered as text in order (tables, groups, rows and cells with their orders, ReferenceIDs and contents, widgets, notes and configuration overrides, properties, linked tables, and for versions the external references). The first difference is logged.
+4. **Check** it (`Verification/`): the sheet's history is read back once (`TargetSheetHistory`) and shown as of every version, and with its drafts, and each is compared with its copy, rendered as text in order (tables, groups, rows and cells with their orders, ReferenceIDs and contents, widgets, notes and configuration overrides, properties, linked tables, and for versions the external references). The first difference is logged.
 5. **Commit** only if every check matched and `--commit` was given. Otherwise it rolls back, and the sheet as it was before the run is untouched.
 
 A sheet in `spec.Sheets` without a `LegacySourceHash` wasn't built by the migrator, so it is never replaced.

@@ -116,11 +116,12 @@ internal sealed class SheetMigrator
         var sheetId = history.Sheet.Id;
         db.ChangeTracker.Clear();
 
+        // The history is read once and shown as of each version, rather than read again for each.
+        var target = await TargetSheetHistory.LoadAsync(db, sheetId, cancellationToken);
         var matches = true;
         foreach (var check in history.Checks)
         {
-            var actual = await TargetSnapshotReader.ReadAsync(db, sheetId, check.Moment, cancellationToken);
-            if (SheetVerifier.Difference(check.Expected, actual) is { } difference)
+            if (SheetVerifier.Difference(check.Expected, target.At(check.Moment)) is { } difference)
             {
                 var which = check.Moment is null ? "the working copy (drafts)" : $"version {check.VersionNumber}";
                 _logger.Mismatch(legacySheet.Name, which, difference);

@@ -52,7 +52,7 @@ The legacy codebase is the base. The rewrite's features (revision model, drafts,
 
 **Reads** (`api/src/PUSpecSheet.Api.DAL/DataAccess/SpecSheets/Reads/`):
 - `SheetReads:Source` = Copies | Compare | Revisions (appsettings, default Copies). Used by `GetSpecSheetByIdAsync` on a cache miss.
-- `SpecSheetRevisionReader` builds the same DbSpecSheet graph via one filtered-include split query, then uses the existing `MapToDomain`.
+- `Reads/Revisions/`: `SpecSheetRevisionReader` queries (one filtered-include split query) and `SpecSheetRevisionMapper` builds the same DbSpecSheet graph a copy loads into, then the existing `MapToDomain` is used.
 - `GET /revisions/compare` (AdminController) lists differences and sheets not yet migrated.
 - Compare mode doubles read cost on a cache miss.
 

@@ -5,6 +5,7 @@ using PUSpecSheet.Abstractions.Domain.SpecSheets.Properties;
 using PUSpecSheet.Abstractions.Requests.SpecSheets;
 using PUSpecSheet.Abstractions.Types;
 using PUSpecSheet.Api.DAL.DataAccess.SpecSheets.Reads;
+using PUSpecSheet.Api.DAL.DataAccess.SpecSheets.Reads.Revisions;
 using PUSpecSheet.Api.DAL.DataAccess.Types;
 using PUSpecSheet.Api.Database;
 using PUSpecSheet.Api.Database.Schema.Spec;
