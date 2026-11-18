@@ -59,13 +59,6 @@ public class SheetsController : ControllerBase
         return Ok(summaries);
     }
 
-    [HttpGet("phase/{phaseId:int}/type/{sheetTypeId:int}")]
-    public async Task<ActionResult<SheetSummary>> GetSheetSummaryByPhaseAndTypeAsync(int phaseId, int sheetTypeId)
-    {
-        var summary = await _sheetDataAccessService.GetSheetSummaryByPhaseAndTypeAsync(phaseId, sheetTypeId, HttpContext.RequestAborted);
-        return summary is null ? NotFound() : Ok(summary);
-    }
-
     [HttpGet("phase/{phaseId:int}/type/{sheetTypeId:int}/latest")]
     public async Task<ActionResult<Sheet>> GetLatestPublishedSheetByPhaseAndTypeAsync(int phaseId, int sheetTypeId, [FromQuery] DateTime? publishedBy = null)
     {
@@ -101,10 +94,11 @@ public class SheetsController : ControllerBase
         return Ok(versions);
     }
 
-    [HttpGet("phase/{phaseId:int}/type/{sheetTypeId:int}/versions")]
-    public async Task<ActionResult<IReadOnlyList<SheetVersionSummary>>> GetVersionSummariesByPhaseAndTypeAsync(int phaseId, int sheetTypeId)
+    [HttpGet("phase/{phaseId:int}/type/{sheetTypeId:int}/listing")]
+    public async Task<ActionResult<SheetListing>> GetSheetListingAsync(int phaseId, int sheetTypeId)
     {
-        return Ok(await _sheetDataAccessService.GetPublishedVersionSummariesAsync(sheetTypeId, phaseId, HttpContext.RequestAborted));
+        var listing = await _sheetDataAccessService.GetSheetListingAsync(phaseId, sheetTypeId, HttpContext.RequestAborted);
+        return Ok(listing);
     }
 
     [HttpGet("type/{sheetTypeId:int}/versions")]
@@ -183,17 +177,11 @@ public class SheetsController : ControllerBase
         return sheet is null ? NotFound() : Ok(sheet);
     }
 
-    [HttpGet("spec-sheet/{specSheetId:int}/submissions")]
-    public async Task<ActionResult<IReadOnlyList<SheetSubmission>>> GetSubmissionsBySpecSheetAsync(int specSheetId)
+    [HttpGet("spec-sheet/{specSheetId:int}/detail")]
+    public async Task<ActionResult<SheetDetail>> GetSheetDetailBySpecSheetAsync(int specSheetId)
     {
-        var location = await _sheetDataAccessService.FindSheetAsync(specSheetId, HttpContext.RequestAborted);
-        if (location is null)
-        {
-            return NotFound();
-        }
-
-        var submissions = await _sheetDataAccessService.GetSheetSubmissionsAsync(location.SheetId, location.VersionNumber, HttpContext.RequestAborted);
-        return submissions is null ? NotFound() : Ok(submissions);
+        var detail = await _sheetDataAccessService.GetSheetDetailAsync(specSheetId, HttpContext.RequestAborted);
+        return detail is null ? NotFound() : Ok(detail);
     }
 
     [HttpPatch("spec-sheet/{specSheetId:int}/draft")]

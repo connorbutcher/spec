@@ -153,6 +153,33 @@ internal class SheetDataAccessService : ISheetDataAccessService
         return summaries.FirstOrDefault();
     }
 
+    public async Task<SheetListing> GetSheetListingAsync(int phaseId, int sheetTypeId, CancellationToken cancellationToken)
+    {
+        var versions = await GetPublishedVersionSummariesAsync(sheetTypeId, phaseId, cancellationToken);
+        var sheet = await GetSheetSummaryByPhaseAndTypeAsync(phaseId, sheetTypeId, cancellationToken);
+        return new SheetListing { Versions = [.. versions], Sheet = sheet };
+    }
+
+    public async Task<SheetDetail?> GetSheetDetailAsync(int specSheetId, CancellationToken cancellationToken)
+    {
+        var location = await _sheetReader.FindLocationAsync(specSheetId, cancellationToken);
+        if (location is null)
+        {
+            return null;
+        }
+
+        var sheet = location.IsDraft
+            ? await GetDraftSheetAsync(location.SheetId, cancellationToken)
+            : await GetPublishedSheetAsync(location.SheetId, location.VersionNumber, cancellationToken);
+        if (sheet is null)
+        {
+            return null;
+        }
+
+        var submissions = await _sheetReader.ReadSubmissionsAsync(location.SheetId, location.VersionNumber, cancellationToken);
+        return new SheetDetail { Location = location, Sheet = sheet, Submissions = [.. submissions ?? []] };
+    }
+
     public async Task<SheetLocation?> FindSheetAsync(int specSheetId, CancellationToken cancellationToken)
     {
         return await _sheetReader.FindLocationAsync(specSheetId, cancellationToken);

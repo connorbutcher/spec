@@ -3,7 +3,7 @@ import { inject, Injectable } from '@angular/core';
 import { lastValueFrom } from 'rxjs';
 import { environment } from '../../../../../environments/environment';
 import { SheetAdapter } from '../../../core/helpers/sheet-adapter';
-import { Sheet, SheetSubmission } from '../../../core/models/domain/sheets/sheet';
+import { SheetDetail } from '../../../core/models/domain/sheets/sheet';
 import { SpecSheet } from '../../../core/models/domain/spec-sheet/spec-sheet';
 import { SpecSheetSummary } from '../../../core/models/domain/spec-sheet/spec-sheet-summary';
 import { SpecSheetChanges } from '../../../core/models/operations/spec-sheet-changes';
@@ -18,13 +18,9 @@ export class SheetDataService {
   private readonly _sheetListingService = inject(SheetListingService);
 
   public async getSpecSheetByIdAsync(id: number): Promise<SpecSheet> {
-    const url = `${environment.apiUrl}/sheets/spec-sheet/${id}`;
-    const [sheet, submissions] = await Promise.all([
-      lastValueFrom(this._httpClient.get<Sheet>(`${url}/sheet`)),
-      lastValueFrom(this._httpClient.get<SheetSubmission[]>(`${url}/submissions`)),
-    ]);
-
-    return SheetAdapter.toSpecSheet(sheet, id, submissions);
+    const url = `${environment.apiUrl}/sheets/spec-sheet/${id}/detail`;
+    const detail = await lastValueFrom(this._httpClient.get<SheetDetail>(url));
+    return SheetAdapter.toSpecSheet(detail.sheet, id, detail.submissions);
   }
 
   public async getAllSpecSheetsByPhaseAndTypeAsync(

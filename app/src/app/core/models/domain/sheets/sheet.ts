@@ -221,3 +221,14 @@ export type SheetLocation = {
   versionNumber?: number;
   isDraft: boolean;
 };
+
+export type SheetDetail = {
+  location: SheetLocation;
+  sheet: Sheet;
+  submissions: SheetSubmission[];
+};
+
+export type SheetListing = {
+  versions: SheetVersionSummary[];
+  sheet?: SheetSummary;
+};
