@@ -321,7 +321,12 @@ internal class SheetReader
         }
 
         var versions = await ReadVersionRowsAsync(sheetId, cancellationToken);
-        return await ReadAsync(sheetId, versions.LastOrDefault(), versions, DateTime.UtcNow, true, cancellationToken);
+        var latest = versions.LastOrDefault();
+
+        // A version published within a second of the one before it is given the next whole second, which can be just
+        // ahead of now; the sheet as it stands includes it all the same.
+        var moment = latest is not null && latest.PublishedDateTime > DateTime.UtcNow ? latest.PublishedDateTime : DateTime.UtcNow;
+        return await ReadAsync(sheetId, latest, versions, moment, true, cancellationToken);
     }
 
     private async Task<Sheet> ReadAsync(int sheetId, DbSheetVersion? version, List<DbSheetVersion> versions, DateTime moment, bool withDrafts, CancellationToken cancellationToken)

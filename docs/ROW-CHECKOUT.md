@@ -75,6 +75,9 @@ Auth is off locally, so every request is Local Admin unless it says otherwise:
 - The UI has an "Act as" select in the side nav (development builds only, expand the nav to change it). It is kept per
   browser tab (sessionStorage), so two tabs can be two users at once. It is sent as the header and is the SignalR user
   name, so presence shows the right people.
+- `database/seed-sample-checkouts.ps1` (run with the API up) makes a sheet with v1 to v3 published by different users,
+  a submission awaiting approval, a rejected one handed back, and open checkouts including an added row. It leaves a
+  sheet that has been published alone, and clears and remakes one that never has.
 
 ## Commits
 
@@ -110,6 +113,8 @@ Auth is off locally, so every request is Local Admin unless it says otherwise:
   so others don't see who is removing it. Undo all brings it back for the remover.
 - Table notes and widgets aren't greyed out in the UI when someone else has the table checked out; the API refuses the
   save with the holder's name.
+- Two versions published within one second: the later is given the next whole second, and the current-state read
+  uses that moment when it is just ahead of now.
 - Reordering rows touches every row moved, so it is refused when someone else has one of them checked out.
 - Approve/Reject in the toolbar acts on the first pending submission the user hasn't decided; the approvals side panel
   has buttons for each submission.
