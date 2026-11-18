@@ -7,9 +7,10 @@ using PUSpecSheet.Api.Database.Schema.Spec;
 namespace PUSpecSheet.Api.DAL.DataAccess.SpecSheets.Edits;
 
 /// <summary>
-/// Keeps a sheet's submission in step with the approval workflow on its draft's SpecSheets row. The workflow steps are
-/// still what the screens act on; the submission is what the revisions keep of them, and its drafts point at it while
-/// it is pending. Each method runs in the caller's transaction and saves.
+/// A user's checked-out changes to a sheet, submitted together. Submitting tags the user's open drafts with the
+/// submission, which freezes them for everyone until it is decided: approval publishes them, rejection or withdrawal hands
+/// them back, still checked out to the user. Several users can each have a submission pending on one sheet. Each method
+/// runs in the caller's transaction and saves.
 /// </summary>
 internal class SheetSubmissions
 {
@@ -22,14 +23,12 @@ internal class SheetSubmissions
         _dbContext = dbContext;
     }
 
-    public async Task SubmitAsync(int sheetId, int submittedByUserId, string? note, IEnumerable<int> approverUserIds, CancellationToken cancellationToken)
+    /// <summary>
+    /// Submits the user's open drafts on the sheet. Throws when they have none.
+    /// </summary>
+    public async Task<DbSheetSubmission> SubmitAsync(int sheetId, int submittedByUserId, string? note, IEnumerable<int> approverUserIds, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(approverUserIds, nameof(approverUserIds));
-
-        if (await FindPendingAsync(sheetId, cancellationToken) is not null)
-        {
-            throw new InvalidOperationException($"Sheet with Id {sheetId} already has a submission awaiting approval.");
-        }
 
         var submission = new DbSheetSubmission
         {
@@ -46,52 +45,54 @@ internal class SheetSubmissions
 
         await _dbContext.SheetSubmissions.AddAsync(submission, cancellationToken);
         await _dbContext.SaveChangesAsync(cancellationToken);
-        await TagDraftsAsync(sheetId, submission.Id, cancellationToken);
-    }
 
-    public async Task RecordDecisionAsync(int sheetId, int userId, WorkflowState state, string? comment, CancellationToken cancellationToken)
-    {
-        var submission = await GetPendingAsync(sheetId, cancellationToken);
-        var approver = submission.Approvers.FirstOrDefault(a => a.UserId == userId)
-            ?? throw new KeyNotFoundException($"User with Id {userId} isn't an approver of the submission of Sheet with Id {sheetId}.");
-
-        approver.Decision = state switch
+        var tagged = await TagOpenDraftsAsync(sheetId, submittedByUserId, submission.Id, cancellationToken);
+        if (tagged == 0)
         {
-            WorkflowState.Approved => ApproverDecision.Approved,
-            WorkflowState.Rejected => ApproverDecision.Rejected,
-            _ => ApproverDecision.Pending
-        };
-        approver.DecidedDateTime = approver.Decision == ApproverDecision.Pending ? null : DateTime.UtcNow;
-        approver.Reason = approver.Decision == ApproverDecision.Rejected ? comment ?? DbSheetSubmissionApprover.NoReasonGiven : comment;
+            throw new InvalidOperationException("You have no changes checked out on this sheet to submit.");
+        }
+
+        return submission;
+    }
+
+    public async Task RecordDecisionAsync(DbSheetSubmission submission, int userId, ApproverDecision decision, string? comment, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(submission, nameof(submission));
+
+        var approver = submission.Approvers.FirstOrDefault(a => a.UserId == userId)
+            ?? throw new KeyNotFoundException($"User with Id {userId} isn't an approver of submission {submission.Id}.");
+
+        approver.Decision = decision;
+        approver.DecidedDateTime = decision == ApproverDecision.Pending ? null : DateTime.UtcNow;
+        approver.Reason = decision == ApproverDecision.Rejected ? comment ?? DbSheetSubmissionApprover.NoReasonGiven : comment;
 
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
 
     /// <summary>
-    /// Rejects the submission, which hands its drafts back to be edited.
+    /// Ends the submission without publishing it (rejected or withdrawn), which hands its drafts back to their author.
     /// </summary>
-    public async Task RejectAsync(int sheetId, CancellationToken cancellationToken)
+    public async Task HandBackAsync(DbSheetSubmission submission, SubmissionStatus status, CancellationToken cancellationToken)
     {
-        var submission = await GetPendingAsync(sheetId, cancellationToken);
-        submission.Status = SubmissionStatus.Rejected;
+        ArgumentNullException.ThrowIfNull(submission, nameof(submission));
+
+        submission.Status = status;
         submission.DecidedDateTime = DateTime.UtcNow;
-
         await _dbContext.SaveChangesAsync(cancellationToken);
-        await TagDraftsAsync(sheetId, null, cancellationToken);
+
+        await UntagDraftsAsync(submission.Id, cancellationToken);
     }
 
     /// <summary>
-    /// Approves the submission. Its drafts are tagged before they are published, so call this first.
+    /// Marks the submission approved. Publish its drafts afterwards, then name the version with <see cref="SetVersionAsync"/>.
     /// </summary>
-    public async Task<DbSheetSubmission> ApproveAsync(int sheetId, CancellationToken cancellationToken)
+    public async Task ApproveAsync(DbSheetSubmission submission, CancellationToken cancellationToken)
     {
-        var submission = await GetPendingAsync(sheetId, cancellationToken);
+        ArgumentNullException.ThrowIfNull(submission, nameof(submission));
+
         submission.Status = SubmissionStatus.Approved;
         submission.DecidedDateTime = DateTime.UtcNow;
-
         await _dbContext.SaveChangesAsync(cancellationToken);
-        await TagDraftsAsync(sheetId, submission.Id, cancellationToken);
-        return submission;
     }
 
     public async Task SetVersionAsync(DbSheetSubmission submission, DbSheetVersion version, CancellationToken cancellationToken)
@@ -103,12 +104,12 @@ internal class SheetSubmissions
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task ReassignAsync(int sheetId, IEnumerable<int> removedUserIds, IEnumerable<int> addedUserIds, CancellationToken cancellationToken)
+    public async Task ReassignAsync(DbSheetSubmission submission, IEnumerable<int> removedUserIds, IEnumerable<int> addedUserIds, CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(submission, nameof(submission));
         ArgumentNullException.ThrowIfNull(removedUserIds, nameof(removedUserIds));
         ArgumentNullException.ThrowIfNull(addedUserIds, nameof(addedUserIds));
 
-        var submission = await GetPendingAsync(sheetId, cancellationToken);
         foreach (var approver in submission.Approvers.Where(a => removedUserIds.Contains(a.UserId)).ToList())
         {
             submission.Approvers.Remove(approver);
@@ -123,6 +124,23 @@ internal class SheetSubmissions
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
 
+    /// <summary>
+    /// The sheet's submission with this id that is awaiting approval, with its approvers, tracked.
+    /// </summary>
+    public async Task<DbSheetSubmission> GetPendingAsync(int sheetId, int submissionId, CancellationToken cancellationToken)
+    {
+        var submission = await _dbContext.SheetSubmissions
+            .Include(s => s.Approvers)
+            .FirstOrDefaultAsync(s => s.Id == submissionId && s.SheetId == sheetId, cancellationToken)
+            ?? throw new KeyNotFoundException($"Submission {submissionId} not found on Sheet with Id {sheetId}.");
+        if (submission.Status != SubmissionStatus.Pending)
+        {
+            throw new InvalidOperationException("This submission has already been decided.");
+        }
+
+        return submission;
+    }
+
     private static DbSheetSubmissionApprover Approver(int userId)
     {
         return new DbSheetSubmissionApprover
@@ -135,36 +153,42 @@ internal class SheetSubmissions
         };
     }
 
-    private async Task<DbSheetSubmission> GetPendingAsync(int sheetId, CancellationToken cancellationToken)
+    private async Task<int> TagOpenDraftsAsync(int sheetId, int userId, int submissionId, CancellationToken cancellationToken)
     {
-        return await FindPendingAsync(sheetId, cancellationToken)
-            ?? throw new InvalidOperationException($"Sheet with Id {sheetId} has no submission awaiting approval.");
+        var tagged = await _dbContext.SheetTableRevisions
+            .Where(r => r.SheetId == sheetId && r.Status == RevisionStatus.Draft && r.CreatedByUserId == userId && r.SheetSubmissionId == null)
+            .ExecuteUpdateAsync(setters => setters.SetProperty(r => r.SheetSubmissionId, submissionId), cancellationToken);
+        tagged += await _dbContext.SheetTableGroupRevisions
+            .Where(r => r.SheetId == sheetId && r.Status == RevisionStatus.Draft && r.CreatedByUserId == userId && r.SheetSubmissionId == null)
+            .ExecuteUpdateAsync(setters => setters.SetProperty(r => r.SheetSubmissionId, submissionId), cancellationToken);
+        tagged += await _dbContext.SheetTableRowRevisions
+            .Where(r => r.SheetId == sheetId && r.Status == RevisionStatus.Draft && r.CreatedByUserId == userId && r.SheetSubmissionId == null)
+            .ExecuteUpdateAsync(setters => setters.SetProperty(r => r.SheetSubmissionId, submissionId), cancellationToken);
+        tagged += await _dbContext.SheetPropertyRevisions
+            .Where(r => r.SheetId == sheetId && r.Status == RevisionStatus.Draft && r.CreatedByUserId == userId && r.SheetSubmissionId == null)
+            .ExecuteUpdateAsync(setters => setters.SetProperty(r => r.SheetSubmissionId, submissionId), cancellationToken);
+        tagged += await _dbContext.SheetLinkedTableRevisions
+            .Where(r => r.SheetId == sheetId && r.Status == RevisionStatus.Draft && r.CreatedByUserId == userId && r.SheetSubmissionId == null)
+            .ExecuteUpdateAsync(setters => setters.SetProperty(r => r.SheetSubmissionId, submissionId), cancellationToken);
+        return tagged;
     }
 
-    private async Task<DbSheetSubmission?> FindPendingAsync(int sheetId, CancellationToken cancellationToken)
-    {
-        return await _dbContext.SheetSubmissions
-            .Include(s => s.Approvers)
-            .FirstOrDefaultAsync(s => s.SheetId == sheetId && s.Status == SubmissionStatus.Pending, cancellationToken);
-    }
-
-    // Every draft of the sheet belongs to its pending submission, or to none once the submission is rejected.
-    private async Task TagDraftsAsync(int sheetId, int? submissionId, CancellationToken cancellationToken)
+    private async Task UntagDraftsAsync(int submissionId, CancellationToken cancellationToken)
     {
         await _dbContext.SheetTableRevisions
-            .Where(r => r.SheetId == sheetId && r.Status == RevisionStatus.Draft)
-            .ExecuteUpdateAsync(setters => setters.SetProperty(r => r.SheetSubmissionId, submissionId), cancellationToken);
+            .Where(r => r.Status == RevisionStatus.Draft && r.SheetSubmissionId == submissionId)
+            .ExecuteUpdateAsync(setters => setters.SetProperty(r => r.SheetSubmissionId, (int?)null), cancellationToken);
         await _dbContext.SheetTableGroupRevisions
-            .Where(r => r.SheetId == sheetId && r.Status == RevisionStatus.Draft)
-            .ExecuteUpdateAsync(setters => setters.SetProperty(r => r.SheetSubmissionId, submissionId), cancellationToken);
+            .Where(r => r.Status == RevisionStatus.Draft && r.SheetSubmissionId == submissionId)
+            .ExecuteUpdateAsync(setters => setters.SetProperty(r => r.SheetSubmissionId, (int?)null), cancellationToken);
         await _dbContext.SheetTableRowRevisions
-            .Where(r => r.SheetId == sheetId && r.Status == RevisionStatus.Draft)
-            .ExecuteUpdateAsync(setters => setters.SetProperty(r => r.SheetSubmissionId, submissionId), cancellationToken);
+            .Where(r => r.Status == RevisionStatus.Draft && r.SheetSubmissionId == submissionId)
+            .ExecuteUpdateAsync(setters => setters.SetProperty(r => r.SheetSubmissionId, (int?)null), cancellationToken);
         await _dbContext.SheetPropertyRevisions
-            .Where(r => r.SheetId == sheetId && r.Status == RevisionStatus.Draft)
-            .ExecuteUpdateAsync(setters => setters.SetProperty(r => r.SheetSubmissionId, submissionId), cancellationToken);
+            .Where(r => r.Status == RevisionStatus.Draft && r.SheetSubmissionId == submissionId)
+            .ExecuteUpdateAsync(setters => setters.SetProperty(r => r.SheetSubmissionId, (int?)null), cancellationToken);
         await _dbContext.SheetLinkedTableRevisions
-            .Where(r => r.SheetId == sheetId && r.Status == RevisionStatus.Draft)
-            .ExecuteUpdateAsync(setters => setters.SetProperty(r => r.SheetSubmissionId, submissionId), cancellationToken);
+            .Where(r => r.Status == RevisionStatus.Draft && r.SheetSubmissionId == submissionId)
+            .ExecuteUpdateAsync(setters => setters.SetProperty(r => r.SheetSubmissionId, (int?)null), cancellationToken);
     }
 }

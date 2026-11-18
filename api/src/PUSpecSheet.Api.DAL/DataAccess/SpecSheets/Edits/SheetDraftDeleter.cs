@@ -5,8 +5,9 @@ using PUSpecSheet.Api.Database;
 namespace PUSpecSheet.Api.DAL.DataAccess.SpecSheets.Edits;
 
 /// <summary>
-/// Drops a sheet's drafts, for a draft that is deleted: every draft revision, and
-/// the tables, groups, rows, cells, widgets, notes and properties added in the draft. It runs in the caller's transaction.
+/// Drops every user's checked-out changes to a sheet (an admin clearing its checkouts): every draft revision that isn't
+/// awaiting approval, and the tables, groups, rows, cells, widgets, notes and properties added in them. Drafts awaiting
+/// approval are left to be decided. It runs in the caller's transaction.
 /// </summary>
 internal class SheetDraftDeleter
 {
@@ -21,20 +22,19 @@ internal class SheetDraftDeleter
 
     public async Task DeleteDraftsAsync(int sheetId, CancellationToken cancellationToken)
     {
-        await EnsureNotSubmittedAsync(sheetId, cancellationToken);
         await DeleteCellsAddedSinceLastVersionAsync(sheetId, cancellationToken);
 
         await _dbContext.SheetTableRowRevisions
-            .Where(r => r.SheetId == sheetId && r.Status == RevisionStatus.Draft)
+            .Where(r => r.SheetId == sheetId && r.Status == RevisionStatus.Draft && r.SheetSubmissionId == null)
             .ExecuteDeleteAsync(cancellationToken);
         await _dbContext.SheetTableGroupRevisions
-            .Where(r => r.SheetId == sheetId && r.Status == RevisionStatus.Draft)
+            .Where(r => r.SheetId == sheetId && r.Status == RevisionStatus.Draft && r.SheetSubmissionId == null)
             .ExecuteDeleteAsync(cancellationToken);
         await _dbContext.SheetTableRevisions
-            .Where(r => r.SheetId == sheetId && r.Status == RevisionStatus.Draft)
+            .Where(r => r.SheetId == sheetId && r.Status == RevisionStatus.Draft && r.SheetSubmissionId == null)
             .ExecuteDeleteAsync(cancellationToken);
         await _dbContext.SheetPropertyRevisions
-            .Where(r => r.SheetId == sheetId && r.Status == RevisionStatus.Draft)
+            .Where(r => r.SheetId == sheetId && r.Status == RevisionStatus.Draft && r.SheetSubmissionId == null)
             .ExecuteDeleteAsync(cancellationToken);
 
         await _dbContext.SheetTableWidgets
@@ -61,18 +61,6 @@ internal class SheetDraftDeleter
             .ExecuteDeleteAsync(cancellationToken);
     }
 
-    private async Task EnsureNotSubmittedAsync(int sheetId, CancellationToken cancellationToken)
-    {
-        var isSubmitted = await _dbContext.SheetTableRowRevisions.AnyAsync(r => r.SheetId == sheetId && r.Status == RevisionStatus.Draft && r.SheetSubmissionId != null, cancellationToken)
-            || await _dbContext.SheetTableGroupRevisions.AnyAsync(r => r.SheetId == sheetId && r.Status == RevisionStatus.Draft && r.SheetSubmissionId != null, cancellationToken)
-            || await _dbContext.SheetTableRevisions.AnyAsync(r => r.SheetId == sheetId && r.Status == RevisionStatus.Draft && r.SheetSubmissionId != null, cancellationToken)
-            || await _dbContext.SheetPropertyRevisions.AnyAsync(r => r.SheetId == sheetId && r.Status == RevisionStatus.Draft && r.SheetSubmissionId != null, cancellationToken);
-        if (isSubmitted)
-        {
-            throw new InvalidOperationException($"The drafts of Sheet with Id {sheetId} are awaiting approval, so they can't be deleted.");
-        }
-    }
-
     // The revisions don't keep cells per revision: a cell added to a published row in the draft is one made since the
     // sheet's last version was published. Its values are all in the row drafts dropped with it.
     private async Task DeleteCellsAddedSinceLastVersionAsync(int sheetId, CancellationToken cancellationToken)
@@ -87,7 +75,8 @@ internal class SheetDraftDeleter
 
         var addedCellIds = _dbContext.SheetTableCells
             .Where(c => c.CreatedDateTime > lastPublished.Value
-                && _dbContext.SheetTableRowRevisions.Any(r => r.SheetTableRowId == c.SheetTableRowId && r.SheetId == sheetId && r.Status == RevisionStatus.Published))
+                && _dbContext.SheetTableRowRevisions.Any(r => r.SheetTableRowId == c.SheetTableRowId && r.SheetId == sheetId && r.Status == RevisionStatus.Published)
+                && _dbContext.SheetTableRowRevisions.Any(r => r.SheetTableRowId == c.SheetTableRowId && r.Status == RevisionStatus.Draft && r.SheetSubmissionId == null))
             .Select(c => c.Id);
 
         await _dbContext.SheetTextValues.Where(v => addedCellIds.Contains(v.SheetTableCellId)).ExecuteDeleteAsync(cancellationToken);

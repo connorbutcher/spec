@@ -158,17 +158,24 @@ public class SheetsController : ControllerBase
         return NoContent();
     }
 
-    [HttpPatch("{id:int}/submission/decision")]
-    public async Task<ActionResult> DecideSubmissionAsync(int id, [FromBody] DecideSubmissionRequest request)
+    [HttpPatch("{id:int}/submissions/{submissionId:int}/decision")]
+    public async Task<ActionResult> DecideSubmissionAsync(int id, int submissionId, [FromBody] DecideSubmissionRequest request)
     {
-        await _sheetDataAccessService.DecideSubmissionAsync(id, request, HttpContext.RequestAborted);
+        await _sheetDataAccessService.DecideSubmissionAsync(id, submissionId, request, HttpContext.RequestAborted);
         return NoContent();
     }
 
-    [HttpPatch("{id:int}/submission/approvers")]
-    public async Task<ActionResult> ReassignSubmissionApproversAsync(int id, [FromBody] ReassignSubmissionApproversRequest request)
+    [HttpPatch("{id:int}/submissions/{submissionId:int}/withdraw")]
+    public async Task<ActionResult> WithdrawSubmissionAsync(int id, int submissionId)
     {
-        await _sheetDataAccessService.ReassignSubmissionApproversAsync(id, request, HttpContext.RequestAborted);
+        await _sheetDataAccessService.WithdrawSubmissionAsync(id, submissionId, HttpContext.RequestAborted);
+        return NoContent();
+    }
+
+    [HttpPatch("{id:int}/submissions/{submissionId:int}/approvers")]
+    public async Task<ActionResult> ReassignSubmissionApproversAsync(int id, int submissionId, [FromBody] ReassignSubmissionApproversRequest request)
+    {
+        await _sheetDataAccessService.ReassignSubmissionApproversAsync(id, submissionId, request, HttpContext.RequestAborted);
         return NoContent();
     }
 }

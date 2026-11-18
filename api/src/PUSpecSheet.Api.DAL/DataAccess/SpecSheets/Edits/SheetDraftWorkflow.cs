@@ -2,20 +2,19 @@
 using Microsoft.Extensions.Logging;
 using PUSpecSheet.Abstractions.Domain.Access;
 using PUSpecSheet.Abstractions.Types;
-using PUSpecSheet.Api.DAL.Caching;
 using PUSpecSheet.Api.Database;
 using PUSpecSheet.Api.Database.Mappers.Access;
-using PUSpecSheet.Api.Database.Schema.Legacy.SpecSheets;
-using PUSpecSheet.Api.Database.Schema.Legacy.Workflow;
+using PUSpecSheet.Api.Database.Schema.Approval;
+using PUSpecSheet.Api.Database.Schema.Spec;
 using PUSpecSheet.Api.Emails.Models;
 using PUSpecSheet.Api.Emails.Services;
 
 namespace PUSpecSheet.Api.DAL.DataAccess.SpecSheets.Edits;
 
 /// <summary>
-/// Publishes, submits for approval and decides a sheet's drafts. The draft's
-/// SpecSheets row still holds its workflow steps and who published it, which the lists and screens read, so the row,
-/// the sheet's submission and its drafts are kept in step here, and the people involved are emailed.
+/// Submits a user's checked-out changes to a sheet and decides submissions. A sheet type without approval publishes the
+/// changes as the next version straight away; otherwise the chosen approvers must all approve, and the people involved
+/// are emailed.
 /// </summary>
 internal class SheetDraftWorkflow
 {
@@ -24,7 +23,6 @@ internal class SheetDraftWorkflow
     private readonly SheetSubmissions _submissions;
     private readonly IEmailBuilderService _emailBuilderService;
     private readonly IEmailService _emailService;
-    private readonly ISpecSheetCache _specSheetCache;
     private readonly ILogger<SheetDraftWorkflow> _logger;
 
     public SheetDraftWorkflow(PUSpecSheetDbContext dbContext,
@@ -32,7 +30,6 @@ internal class SheetDraftWorkflow
         SheetSubmissions submissions,
         IEmailBuilderService emailBuilderService,
         IEmailService emailService,
-        ISpecSheetCache specSheetCache,
         ILogger<SheetDraftWorkflow> logger)
     {
         ArgumentNullException.ThrowIfNull(dbContext, nameof(dbContext));
@@ -40,7 +37,6 @@ internal class SheetDraftWorkflow
         ArgumentNullException.ThrowIfNull(submissions, nameof(submissions));
         ArgumentNullException.ThrowIfNull(emailBuilderService, nameof(emailBuilderService));
         ArgumentNullException.ThrowIfNull(emailService, nameof(emailService));
-        ArgumentNullException.ThrowIfNull(specSheetCache, nameof(specSheetCache));
         ArgumentNullException.ThrowIfNull(logger, nameof(logger));
 
         _dbContext = dbContext;
@@ -48,30 +44,41 @@ internal class SheetDraftWorkflow
         _submissions = submissions;
         _emailBuilderService = emailBuilderService;
         _emailService = emailService;
-        _specSheetCache = specSheetCache;
         _logger = logger;
     }
 
     /// <summary>
-    /// Publishes the draft as the next version, or, when its sheet type needs approval, submits it to the approvers.
+    /// Submits the user's checked-out changes: publishes them as the next version when the sheet type doesn't need
+    /// approval, otherwise sends them to the approvers.
     /// </summary>
-    public async Task PublishAsync(int sheetId, int specSheetId, User publishingUser, string changeLog, IReadOnlyCollection<int> approverUserIds, CancellationToken cancellationToken)
+    public async Task SubmitAsync(int sheetId, User submittingUser, string changeLog, IReadOnlyCollection<int> approverUserIds, CancellationToken cancellationToken)
     {
-        ArgumentNullException.ThrowIfNull(publishingUser, nameof(publishingUser));
+        ArgumentNullException.ThrowIfNull(submittingUser, nameof(submittingUser));
+        ArgumentNullException.ThrowIfNull(approverUserIds, nameof(approverUserIds));
 
-        var header = await GetHeaderAsync(specSheetId, true, cancellationToken);
-        header.PublishedByUserId = publishingUser.Id;
-        header.ChangeLog = changeLog;
+        var sheet = await GetSheetAsync(sheetId, cancellationToken);
 
-        if (!header.SpecSheetType!.RequiresApprovalWorkflow)
+        if (!sheet.SpecSheetType!.RequiresApprovalWorkflow)
         {
             await using var publishing = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
-            await _publisher.PublishAsync(sheetId, header, publishingUser.Id, changeLog, cancellationToken);
+            var submission = await _submissions.SubmitAsync(sheetId, submittingUser.Id, changeLog, [], cancellationToken);
+            await _submissions.ApproveAsync(submission, cancellationToken);
+            var version = await _publisher.PublishAsync(submission, submittingUser.Id, cancellationToken);
+            await _submissions.SetVersionAsync(submission, version, cancellationToken);
             await publishing.CommitAsync(cancellationToken);
 
-            await _specSheetCache.RemoveAsync(specSheetId, cancellationToken);
-            _logger.LogInformation("Published SpecSheet with Id {SpecSheetId} by UserId {UserId} without workflow as the SpecSheetType does not require approval", specSheetId, publishingUser.Id);
+            _logger.LogInformation("Published UserId {UserId}'s changes to Sheet with Id {SheetId} as version {VersionNumber} without approval", submittingUser.Id, sheetId, version.VersionNumber);
             return;
+        }
+
+        if (approverUserIds.Count == 0)
+        {
+            throw new InvalidOperationException("Choose at least one approver.");
+        }
+
+        if (approverUserIds.Contains(submittingUser.Id))
+        {
+            throw new InvalidOperationException("You can't approve your own changes.");
         }
 
         var approvers = await _dbContext.Users
@@ -80,86 +87,52 @@ internal class SheetDraftWorkflow
             .ToListAsync(cancellationToken);
         if (approvers.Count != approverUserIds.Count)
         {
-            throw new KeyNotFoundException($"An approver of Spec Sheet with Id {specSheetId} was not found.");
+            throw new KeyNotFoundException($"An approver of the changes to Sheet with Id {sheetId} was not found.");
         }
 
-        // The workflow step is saved with the submission, so that neither is kept without the other.
-        header.WorkflowSteps.Add(new DbWorkflowStep
-        {
-            Id = 0,
-            SpecSheetId = specSheetId,
-            State = WorkflowState.Pending,
-            StartedDateTime = DateTime.UtcNow,
-            Actors = [.. approverUserIds.Select(userId => NewActor(userId))]
-        });
-
         await using var submitting = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
-        await _submissions.SubmitAsync(sheetId, publishingUser.Id, changeLog, approverUserIds, cancellationToken);
+        var submitted = await _submissions.SubmitAsync(sheetId, submittingUser.Id, changeLog, approverUserIds, cancellationToken);
         await submitting.CommitAsync(cancellationToken);
 
         foreach (var approver in approvers)
         {
-            await _emailService.SendApprovalEmailAsync(_emailBuilderService.BuildApprovalNotificationEmail(NotificationArgs(header, approver.MapToDomain(), changeLog)), cancellationToken);
+            await _emailService.SendApprovalEmailAsync(_emailBuilderService.BuildApprovalNotificationEmail(NotificationArgs(sheet, approver.MapToDomain(), changeLog)), cancellationToken);
         }
 
-        await _specSheetCache.RemoveAsync(specSheetId, cancellationToken);
-        _logger.LogInformation("Submitted SpecSheet with Id {SpecSheetId} for approval by UserId {UserId}", specSheetId, publishingUser.Id);
+        _logger.LogInformation("Submitted UserId {UserId}'s changes to Sheet with Id {SheetId} for approval as submission {SubmissionId}", submittingUser.Id, sheetId, submitted.Id);
     }
 
     /// <summary>
-    /// Records the user's decision on the pending submission. Any rejection hands the draft back to be edited; the last
-    /// approval publishes it.
+    /// Records the user's decision on the submission. A rejection hands its changes back to their author, still checked
+    /// out to them; the last approval publishes them as the next version.
     /// </summary>
-    public async Task DecideAsync(int sheetId, int specSheetId, User decidingUser, ApproverDecision decision, string? comment, CancellationToken cancellationToken)
+    public async Task DecideAsync(int sheetId, int submissionId, User decidingUser, ApproverDecision decision, string? comment, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(decidingUser, nameof(decidingUser));
 
-        var state = decision switch
-        {
-            ApproverDecision.Approved => WorkflowState.Approved,
-            ApproverDecision.Rejected => WorkflowState.Rejected,
-            _ => WorkflowState.Pending
-        };
+        var sheet = await GetSheetAsync(sheetId, cancellationToken);
+        var emails = new List<(EmailArgs Email, bool Rejection)>();
 
         await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
 
-        var header = await GetHeaderAsync(specSheetId, true, cancellationToken);
-        var step = await GetPendingStepAsync(specSheetId, cancellationToken);
-        var actor = step.Actors.FirstOrDefault(a => a.ActorUserId == decidingUser.Id)
-            ?? throw new KeyNotFoundException($"User with Id {decidingUser.Id} isn't an approver of the submission of Spec Sheet with Id {specSheetId}.");
+        var submission = await _submissions.GetPendingAsync(sheetId, submissionId, cancellationToken);
+        await _submissions.RecordDecisionAsync(submission, decidingUser.Id, decision, comment, cancellationToken);
 
-        actor.State = state;
-        actor.Comment = comment;
-        actor.ActionedDateTime = DateTime.UtcNow;
-        await _submissions.RecordDecisionAsync(sheetId, decidingUser.Id, state, comment, cancellationToken);
-
-        var emails = new List<(EmailArgs Email, bool Rejection)>();
-
-        if (state == WorkflowState.Rejected)
+        if (decision == ApproverDecision.Rejected)
         {
-            var publishedByUser = await _dbContext.Users
-                .AsNoTracking()
-                .FirstOrDefaultAsync(user => user.Id == header.PublishedByUserId, cancellationToken)
-                ?? throw new KeyNotFoundException($"PublishedByUser with Id {header.PublishedByUserId} not found.");
+            await _submissions.HandBackAsync(submission, SubmissionStatus.Rejected, cancellationToken);
 
-            header.PublishedByUserId = null;
-            header.PublishedDateTime = null;
-            header.IsPublished = false;
-            step.State = WorkflowState.Rejected;
-            await _submissions.RejectAsync(sheetId, cancellationToken);
-
-            emails.Add((_emailBuilderService.BuildRejectionNotificationEmail(NotificationArgs(header, publishedByUser.MapToDomain(), comment!) with { RejectedBy = decidingUser.DisplayName }), true));
+            var submitter = await GetUserAsync(submission.SubmittedByUserId, cancellationToken);
+            emails.Add((_emailBuilderService.BuildRejectionNotificationEmail(NotificationArgs(sheet, submitter, comment!) with { RejectedBy = decidingUser.DisplayName }), true));
         }
-        else if (step.Actors.All(a => a.State == WorkflowState.Approved))
+        else if (submission.Approvers.All(a => a.Decision == ApproverDecision.Approved))
         {
-            step.State = WorkflowState.Approved;
-
-            var submission = await _submissions.ApproveAsync(sheetId, cancellationToken);
-            var version = await _publisher.PublishAsync(sheetId, header, header.PublishedByUserId ?? decidingUser.Id, header.ChangeLog, cancellationToken);
+            await _submissions.ApproveAsync(submission, cancellationToken);
+            var version = await _publisher.PublishAsync(submission, submission.SubmittedByUserId, cancellationToken);
             await _submissions.SetVersionAsync(submission, version, cancellationToken);
 
             // Everyone watching the phase, or its parent phase, is told it has been published.
-            var phaseId = header.SpecSheetPhase!.ParentSpecSheetPhaseId ?? header.SpecSheetPhaseId;
+            var phaseId = sheet.SpecSheetPhase!.ParentSpecSheetPhaseId ?? sheet.SpecSheetPhaseId;
             var observers = await _dbContext.SpecSheetPhaseObservers
                 .Where(observer => observer.SpecSheetPhaseId == phaseId)
                 .Include(observer => observer.User)
@@ -168,11 +141,10 @@ internal class SheetDraftWorkflow
                 .ToListAsync(cancellationToken);
             foreach (var observer in observers)
             {
-                emails.Add((_emailBuilderService.BuildPublishedNotificationEmail(NotificationArgs(header, observer.User!.MapToDomain(), header.ChangeLog!)), false));
+                emails.Add((_emailBuilderService.BuildPublishedNotificationEmail(NotificationArgs(sheet, observer.User!.MapToDomain(), submission.Note ?? string.Empty)), false));
             }
         }
 
-        await _dbContext.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
 
         foreach (var (email, rejection) in emails)
@@ -187,36 +159,52 @@ internal class SheetDraftWorkflow
             }
         }
 
-        await _specSheetCache.RemoveAsync(specSheetId, cancellationToken);
-        _logger.LogInformation("UserId {UserId} decided {Decision} on the submission of SpecSheet with Id {SpecSheetId}", decidingUser.Id, decision, specSheetId);
+        _logger.LogInformation("UserId {UserId} decided {Decision} on submission {SubmissionId} of Sheet with Id {SheetId}", decidingUser.Id, decision, submissionId, sheetId);
     }
 
     /// <summary>
-    /// Changes who may approve the pending submission, and emails those added.
+    /// Takes back a submission its author no longer wants approved: its changes go back to being checked out to them.
     /// </summary>
-    public async Task ReassignAsync(int sheetId, int specSheetId, IReadOnlyCollection<int> addedUserIds, IReadOnlyCollection<int> removedUserIds, CancellationToken cancellationToken)
+    public async Task WithdrawAsync(int sheetId, int submissionId, User withdrawingUser, CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(withdrawingUser, nameof(withdrawingUser));
+
         await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
 
-        var header = await GetHeaderAsync(specSheetId, false, cancellationToken);
-        var step = await GetPendingStepAsync(specSheetId, cancellationToken);
-
-        foreach (var userId in removedUserIds)
+        var submission = await _submissions.GetPendingAsync(sheetId, submissionId, cancellationToken);
+        if (submission.SubmittedByUserId != withdrawingUser.Id)
         {
-            var actor = step.Actors.FirstOrDefault(a => a.ActorUserId == userId)
-                ?? throw new KeyNotFoundException($"User with Id {userId} isn't an approver of the submission of Spec Sheet with Id {specSheetId}.");
-            step.Actors.Remove(actor);
-            _dbContext.WorkflowStepActors.Remove(actor);
+            throw new InvalidOperationException("Only who submitted these changes can withdraw them.");
         }
 
-        var newUserIds = addedUserIds.Where(userId => step.Actors.All(a => a.ActorUserId != userId)).ToList();
-        foreach (var userId in newUserIds)
+        await _submissions.HandBackAsync(submission, SubmissionStatus.Withdrawn, cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
+
+        _logger.LogInformation("UserId {UserId} withdrew submission {SubmissionId} of Sheet with Id {SheetId}", withdrawingUser.Id, submissionId, sheetId);
+    }
+
+    /// <summary>
+    /// Changes who may approve the submission, and emails those added.
+    /// </summary>
+    public async Task ReassignAsync(int sheetId, int submissionId, IReadOnlyCollection<int> addedUserIds, IReadOnlyCollection<int> removedUserIds, CancellationToken cancellationToken)
+    {
+        var sheet = await GetSheetAsync(sheetId, cancellationToken);
+
+        await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+
+        var submission = await _submissions.GetPendingAsync(sheetId, submissionId, cancellationToken);
+        if (addedUserIds.Contains(submission.SubmittedByUserId))
         {
-            step.Actors.Add(NewActor(userId, step.Id));
+            throw new InvalidOperationException("Who submitted the changes can't approve them.");
         }
 
-        await _dbContext.SaveChangesAsync(cancellationToken);
-        await _submissions.ReassignAsync(sheetId, removedUserIds, newUserIds, cancellationToken);
+        var newUserIds = addedUserIds.Where(userId => submission.Approvers.All(a => a.UserId != userId)).ToList();
+        await _submissions.ReassignAsync(submission, removedUserIds, newUserIds, cancellationToken);
+        if (submission.Approvers.Count == 0)
+        {
+            throw new InvalidOperationException("A submission needs at least one approver.");
+        }
+
         await transaction.CommitAsync(cancellationToken);
 
         var added = await _dbContext.Users
@@ -225,59 +213,38 @@ internal class SheetDraftWorkflow
             .ToListAsync(cancellationToken);
         foreach (var user in added)
         {
-            await _emailService.SendApprovalEmailAsync(_emailBuilderService.BuildApprovalNotificationEmail(NotificationArgs(header, user.MapToDomain(), header.ChangeLog!)), cancellationToken);
+            await _emailService.SendApprovalEmailAsync(_emailBuilderService.BuildApprovalNotificationEmail(NotificationArgs(sheet, user.MapToDomain(), submission.Note ?? string.Empty)), cancellationToken);
         }
-
-        await _specSheetCache.RemoveAsync(specSheetId, cancellationToken);
     }
 
-    private static DbWorkflowStepActor NewActor(int userId, int workflowStepId = 0)
+    private async Task<DbSheet> GetSheetAsync(int sheetId, CancellationToken cancellationToken)
     {
-        return new DbWorkflowStepActor
-        {
-            Id = 0,
-            WorkflowStepId = workflowStepId,
-            ActorUserId = userId,
-            State = WorkflowState.Pending,
-            ActionedDateTime = null,
-            Comment = null
-        };
-    }
-
-    private async Task<DbSpecSheet> GetHeaderAsync(int specSheetId, bool tracked, CancellationToken cancellationToken)
-    {
-        var query = _dbContext.SpecSheets
+        return await _dbContext.Sheets
+            .AsNoTracking()
             .Include(s => s.SpecSheetPhase)
             .Include(s => s.SpecSheetType)
-            .AsQueryable();
-        if (!tracked)
-        {
-            query = query.AsNoTracking();
-        }
-
-        return await query.FirstOrDefaultAsync(s => s.Id == specSheetId, cancellationToken)
-            ?? throw new KeyNotFoundException($"Spec Sheet with Id {specSheetId} not found.");
+            .FirstOrDefaultAsync(s => s.Id == sheetId, cancellationToken)
+            ?? throw new KeyNotFoundException($"Sheet with Id {sheetId} not found.");
     }
 
-    private async Task<DbWorkflowStep> GetPendingStepAsync(int specSheetId, CancellationToken cancellationToken)
+    private async Task<User> GetUserAsync(int userId, CancellationToken cancellationToken)
     {
-        return await _dbContext.WorkflowSteps
-            .Include(step => step.Actors)
-            .Where(step => step.SpecSheetId == specSheetId && step.State == WorkflowState.Pending)
-            .OrderByDescending(step => step.StartedDateTime)
-            .FirstOrDefaultAsync(cancellationToken)
-            ?? throw new InvalidOperationException($"Spec Sheet with Id {specSheetId} has no submission awaiting approval.");
+        var user = await _dbContext.Users
+            .AsNoTracking()
+            .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken)
+            ?? throw new KeyNotFoundException($"User with Id {userId} not found.");
+        return user.MapToDomain();
     }
 
-    private static SpecSheetEmailArgs NotificationArgs(DbSpecSheet header, User user, string content)
+    private static SpecSheetEmailArgs NotificationArgs(DbSheet sheet, User user, string content)
     {
         return new SpecSheetEmailArgs
         {
-            SpecSheetId = header.Id,
-            SpecSheetPhaseId = header.SpecSheetPhaseId,
-            SpecSheetTypeId = header.SpecSheetTypeId,
-            TypeName = header.SpecSheetType!.Type,
-            PhaseName = header.SpecSheetPhase!.Phase,
+            SpecSheetId = sheet.Id,
+            SpecSheetPhaseId = sheet.SpecSheetPhaseId,
+            SpecSheetTypeId = sheet.SpecSheetTypeId,
+            TypeName = sheet.SpecSheetType!.Type,
+            PhaseName = sheet.SpecSheetPhase!.Phase,
             Content = content,
             User = user
         };

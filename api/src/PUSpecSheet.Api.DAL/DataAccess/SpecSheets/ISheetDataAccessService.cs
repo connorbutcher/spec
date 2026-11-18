@@ -101,17 +101,19 @@ public interface ISheetDataAccessService
     Task<SheetLocation?> FindSheetAsync(int specSheetId, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Starts the draft for the phase and sheet type. A sheet type must have been migrated to the revisions first.
+    /// Creates the sheet for a phase and sheet type that has none, its drafts checked out to the current user.
     /// </summary>
     Task<SheetLocation> CreateDraftAsync(CreateSheetRequest request, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Applies the changes to the sheet's draft.
+    /// Applies the changes to the sheet's drafts, checking out each item changed to the current user. Items checked out to
+    /// someone else or awaiting approval are refused.
     /// </summary>
     Task ApplyChangesAsync(int sheetId, SheetChanges changes, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Publishes the sheet's draft, or submits it for approval when its type needs it.
+    /// Submits the current user's checked-out changes: publishes them as the next version, or sends them for approval
+    /// when the sheet type needs it.
     /// </summary>
     Task PublishAsync(int sheetId, PublishSheetRequest request, CancellationToken cancellationToken);
 
@@ -127,18 +129,24 @@ public interface ISheetDataAccessService
     Task UndoMyItemChangesAsync(int sheetId, SheetItemKind kind, int itemId, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Throws away the sheet's draft. Published versions can't be deleted.
+    /// Throws away every user's checked-out changes to the sheet that aren't awaiting approval (an admin's way to clear
+    /// its checkouts). Published versions can't be deleted.
     /// </summary>
     Task DeleteDraftAsync(int sheetId, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Records the current user's decision on the sheet's pending submission. A rejection hands the draft back; the
-    /// last approval publishes it.
+    /// Records the current user's decision on one of the sheet's pending submissions. A rejection hands its changes back
+    /// to their author; the last approval publishes them as the next version.
     /// </summary>
-    Task DecideSubmissionAsync(int sheetId, DecideSubmissionRequest request, CancellationToken cancellationToken);
+    Task DecideSubmissionAsync(int sheetId, int submissionId, DecideSubmissionRequest request, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Changes who may approve the sheet's pending submission.
+    /// Takes back the current user's pending submission: its changes go back to being checked out to them.
     /// </summary>
-    Task ReassignSubmissionApproversAsync(int sheetId, ReassignSubmissionApproversRequest request, CancellationToken cancellationToken);
+    Task WithdrawSubmissionAsync(int sheetId, int submissionId, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Changes who may approve one of the sheet's pending submissions.
+    /// </summary>
+    Task ReassignSubmissionApproversAsync(int sheetId, int submissionId, ReassignSubmissionApproversRequest request, CancellationToken cancellationToken);
 }

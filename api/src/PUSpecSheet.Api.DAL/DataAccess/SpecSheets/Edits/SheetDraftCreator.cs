@@ -8,14 +8,13 @@ using PUSpecSheet.Api.DAL.DataAccess.SpecSheets.Reads.Sheets;
 using PUSpecSheet.Api.DAL.DataAccess.Types;
 using PUSpecSheet.Api.Database;
 using PUSpecSheet.Api.Database.Schema.Spec;
-using PUSpecSheet.Api.Database.Schema.Legacy.SpecSheets;
 
 namespace PUSpecSheet.Api.DAL.DataAccess.SpecSheets.Edits;
 
 /// <summary>
-/// Creates a sheet's draft. The SpecSheets row is the draft's header, and the sheet's
-/// drafts are made to show the sheet copied from, or nothing, with the property values given, as a new copy did. The
-/// property values are kept on the header too, where the lists of spec sheets read them; they aren't changed afterwards.
+/// Creates the sheet for a phase and sheet type that has none: its drafts are made to show the sheet copied from, or
+/// nothing, with the property values given, all checked out to the user creating it until they submit or undo them. A
+/// sheet that exists already is edited in place rather than created again.
 /// </summary>
 internal class SheetDraftCreator
 {
@@ -36,6 +35,9 @@ internal class SheetDraftCreator
         _typeDataAccessService = typeDataAccessService;
     }
 
+    /// <summary>
+    /// Creates the sheet and returns its id.
+    /// </summary>
     public async Task<int> CreateAsync(CreateSheetRequest request, User creatingUser, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(request, nameof(request));
@@ -43,30 +45,7 @@ internal class SheetDraftCreator
 
         await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
 
-        await EnsureNoDraftHeaderAsync(request, cancellationToken);
-        var sheet = await FindOrAddSheetAsync(request, cancellationToken);
-        await EnsureNoDraftsAsync(sheet.Id, cancellationToken);
-
-        var header = new DbSpecSheet
-        {
-            Id = 0,
-            SpecSheetPhaseId = request.SpecSheetPhaseId,
-            SpecSheetTypeId = request.SpecSheetTypeId,
-            CreatedByUserId = creatingUser.Id,
-            CreatedDateTime = DateTime.UtcNow,
-            IsPublished = false,
-            HasBeenMigrated = false,
-            PropertyValues = [.. request.PropertyValues.Select(pv => new DbSpecSheetPropertyValue
-            {
-                Id = 0,
-                SpecSheetId = 0,
-                SpecSheetTypePropertyId = pv.SpecSheetTypePropertyId,
-                PropertyValue = pv.PropertyValue?.ToString()
-            })]
-        };
-
-        await _dbContext.SpecSheets.AddAsync(header, cancellationToken);
-        await _dbContext.SaveChangesAsync(cancellationToken);
+        var sheet = await AddSheetAsync(request, cancellationToken);
 
         var sourceTables = await ReadCopyFromTablesAsync(request, cancellationToken);
         var target = await _sheetReader.ReadDraftAsync(sheet.Id, cancellationToken)
@@ -80,32 +59,19 @@ internal class SheetDraftCreator
         await _dbContext.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
 
-        return header.Id;
+        return sheet.Id;
     }
 
-    private async Task EnsureNoDraftHeaderAsync(CreateSheetRequest request, CancellationToken cancellationToken)
+    private async Task<DbSheet> AddSheetAsync(CreateSheetRequest request, CancellationToken cancellationToken)
     {
-        var existingDraftId = await _dbContext.SpecSheets
-            .AsNoTracking()
-            .Where(ss => ss.SpecSheetPhaseId == request.SpecSheetPhaseId && ss.SpecSheetTypeId == request.SpecSheetTypeId && !ss.IsPublished)
-            .Select(ss => (int?)ss.Id)
-            .FirstOrDefaultAsync(cancellationToken);
-        if (existingDraftId.HasValue)
+        var exists = await _dbContext.Sheets
+            .AnyAsync(s => s.SpecSheetPhaseId == request.SpecSheetPhaseId && s.SpecSheetTypeId == request.SpecSheetTypeId, cancellationToken);
+        if (exists)
         {
-            throw new InvalidOperationException($"A draft spec sheet with Id {existingDraftId} already exists for SpecSheetPhaseId {request.SpecSheetPhaseId} and SpecSheetTypeId {request.SpecSheetTypeId}. Please publish or delete the existing draft before creating a new one.");
-        }
-    }
-
-    private async Task<DbSheet> FindOrAddSheetAsync(CreateSheetRequest request, CancellationToken cancellationToken)
-    {
-        var sheet = await _dbContext.Sheets
-            .FirstOrDefaultAsync(s => s.SpecSheetPhaseId == request.SpecSheetPhaseId && s.SpecSheetTypeId == request.SpecSheetTypeId, cancellationToken);
-        if (sheet is not null)
-        {
-            return sheet;
+            throw new InvalidOperationException($"A sheet already exists for SpecSheetPhaseId {request.SpecSheetPhaseId} and SpecSheetTypeId {request.SpecSheetTypeId}. Edit it rather than creating it again.");
         }
 
-        sheet = new DbSheet
+        var sheet = new DbSheet
         {
             Id = 0,
             SpecSheetPhaseId = request.SpecSheetPhaseId,
@@ -120,20 +86,6 @@ internal class SheetDraftCreator
         await _dbContext.SaveChangesAsync(cancellationToken);
         return sheet;
     }
-
-    // Drafts without a header are left over from somewhere else; they aren't the new draft's to take over.
-    private async Task EnsureNoDraftsAsync(int sheetId, CancellationToken cancellationToken)
-    {
-        var hasDrafts = await _dbContext.SheetTableRevisions.AnyAsync(r => r.SheetId == sheetId && r.Status == RevisionStatus.Draft, cancellationToken)
-            || await _dbContext.SheetTableGroupRevisions.AnyAsync(r => r.SheetId == sheetId && r.Status == RevisionStatus.Draft, cancellationToken)
-            || await _dbContext.SheetTableRowRevisions.AnyAsync(r => r.SheetId == sheetId && r.Status == RevisionStatus.Draft, cancellationToken)
-            || await _dbContext.SheetPropertyRevisions.AnyAsync(r => r.SheetId == sheetId && r.Status == RevisionStatus.Draft, cancellationToken);
-        if (hasDrafts)
-        {
-            throw new InvalidOperationException($"Sheet with Id {sheetId} already has drafts without a draft spec sheet.");
-        }
-    }
-
     private async Task<IReadOnlyCollection<SheetTable>> ReadCopyFromTablesAsync(CreateSheetRequest request, CancellationToken cancellationToken)
     {
         var specSheetType = await _typeDataAccessService.GetSpecSheetTypeByIdAsync(request.SpecSheetTypeId, cancellationToken)

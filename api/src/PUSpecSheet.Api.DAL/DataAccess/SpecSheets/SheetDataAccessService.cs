@@ -162,7 +162,8 @@ internal class SheetDataAccessService : ISheetDataAccessService
         var items = versions.Select(MapToListItem).ToList();
 
         var sheet = await GetSheetSummaryByPhaseAndTypeAsync(phaseId, sheetTypeId, cancellationToken);
-        if (sheet?.DraftSpecSheetId is not null)
+        // A sheet that has never been published is listed by its drafts, which are its first version.
+        if (sheet is not null && sheet.LatestVersion is null)
         {
             items.Add(new SheetListItem
             {
@@ -223,14 +224,10 @@ internal class SheetDataAccessService : ISheetDataAccessService
         ArgumentNullException.ThrowIfNull(request, nameof(request));
 
         var currentUser = await GetCurrentUserAsync(cancellationToken);
+        var sheetId = await _draftCreator.CreateAsync(request, currentUser, cancellationToken);
 
-        var specSheetId = await _draftCreator.CreateAsync(request, currentUser, cancellationToken);
-
-        var sheetId = await _sheetReader.FindSheetIdAsync(request.SpecSheetPhaseId, request.SpecSheetTypeId, cancellationToken)
-            ?? throw new InvalidOperationException($"No sheet found for PhaseId {request.SpecSheetPhaseId} and TypeId {request.SpecSheetTypeId} after creating its draft.");
-
-        _logger.LogInformation("Created the draft of Sheet with Id {SheetId} by UserId {UserId}", sheetId, currentUser.Id);
-        return new SheetLocation { SpecSheetId = specSheetId, SheetId = sheetId, VersionNumber = null, IsDraft = true };
+        _logger.LogInformation("Created Sheet with Id {SheetId} by UserId {UserId}", sheetId, currentUser.Id);
+        return new SheetLocation { SpecSheetId = 0, SheetId = sheetId, VersionNumber = null, IsDraft = true };
     }
 
     public async Task PublishAsync(int sheetId, PublishSheetRequest request, CancellationToken cancellationToken)
@@ -238,46 +235,18 @@ internal class SheetDataAccessService : ISheetDataAccessService
         ArgumentNullException.ThrowIfNull(request, nameof(request));
 
         var currentUser = await GetCurrentUserAsync(cancellationToken);
-        var specSheetId = await FindDraftSpecSheetIdAsync(sheetId, cancellationToken);
-        await _workflow.PublishAsync(sheetId, specSheetId, currentUser, request.ChangeLog, [.. request.ApproverUserIds.Distinct()], cancellationToken);
+        await _workflow.SubmitAsync(sheetId, currentUser, request.ChangeLog, [.. request.ApproverUserIds.Distinct()], cancellationToken);
     }
 
     public async Task DeleteDraftAsync(int sheetId, CancellationToken cancellationToken)
     {
-        var specSheetId = await FindDraftSpecSheetIdAsync(sheetId, cancellationToken);
+        await EnsureSheetExistsAsync(sheetId, cancellationToken);
 
         await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
-
         await _draftDeleter.DeleteDraftsAsync(sheetId, cancellationToken);
-
-        // The draft's SpecSheets row goes with what hangs off it.
-        var workflowStepIds = _dbContext.WorkflowSteps
-            .Where(step => step.SpecSheetId == specSheetId)
-            .Select(step => step.Id);
-        await _dbContext.WorkflowStepActors
-            .Where(actor => workflowStepIds.Contains(actor.WorkflowStepId))
-            .ExecuteDeleteAsync(cancellationToken);
-        await _dbContext.WorkflowSteps
-            .Where(step => step.SpecSheetId == specSheetId)
-            .ExecuteDeleteAsync(cancellationToken);
-        await _dbContext.SpecSheetExternalReferences
-            .Where(reference => reference.SpecSheetId == specSheetId)
-            .ExecuteDeleteAsync(cancellationToken);
-        await _dbContext.SpecSheetPropertyValues
-            .Where(property => property.SpecSheetId == specSheetId)
-            .ExecuteDeleteAsync(cancellationToken);
-        var deleted = await _dbContext.SpecSheets
-            .Where(s => s.Id == specSheetId)
-            .ExecuteDeleteAsync(cancellationToken);
-        if (deleted == 0)
-        {
-            throw new KeyNotFoundException($"Spec Sheet with Id {specSheetId} not found.");
-        }
-
         await transaction.CommitAsync(cancellationToken);
 
-        await _specSheetCache.RemoveAsync(specSheetId, cancellationToken);
-        _logger.LogInformation("Deleted the draft of Sheet with Id {SheetId}", sheetId);
+        _logger.LogInformation("Cleared every checkout on Sheet with Id {SheetId}", sheetId);
     }
 
     public async Task UndoMyChangesAsync(int sheetId, CancellationToken cancellationToken)
@@ -302,7 +271,7 @@ internal class SheetDataAccessService : ISheetDataAccessService
         _logger.LogInformation("Undid the changes UserId {UserId} had checked out on {Kind} with Id {ItemId} of Sheet with Id {SheetId}", currentUser.Id, kind, itemId, sheetId);
     }
 
-    public async Task DecideSubmissionAsync(int sheetId, DecideSubmissionRequest request, CancellationToken cancellationToken)
+    public async Task DecideSubmissionAsync(int sheetId, int submissionId, DecideSubmissionRequest request, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(request, nameof(request));
 
@@ -312,16 +281,20 @@ internal class SheetDataAccessService : ISheetDataAccessService
         }
 
         var currentUser = await GetCurrentUserAsync(cancellationToken);
-        var specSheetId = await FindDraftSpecSheetIdAsync(sheetId, cancellationToken);
-        await _workflow.DecideAsync(sheetId, specSheetId, currentUser, request.Decision, request.Comment, cancellationToken);
+        await _workflow.DecideAsync(sheetId, submissionId, currentUser, request.Decision, request.Comment, cancellationToken);
     }
 
-    public async Task ReassignSubmissionApproversAsync(int sheetId, ReassignSubmissionApproversRequest request, CancellationToken cancellationToken)
+    public async Task WithdrawSubmissionAsync(int sheetId, int submissionId, CancellationToken cancellationToken)
+    {
+        var currentUser = await GetCurrentUserAsync(cancellationToken);
+        await _workflow.WithdrawAsync(sheetId, submissionId, currentUser, cancellationToken);
+    }
+
+    public async Task ReassignSubmissionApproversAsync(int sheetId, int submissionId, ReassignSubmissionApproversRequest request, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(request, nameof(request));
 
-        var specSheetId = await FindDraftSpecSheetIdAsync(sheetId, cancellationToken);
-        await _workflow.ReassignAsync(sheetId, specSheetId, [.. request.AddedUserIds.Distinct()], [.. request.RemovedUserIds.Distinct()], cancellationToken);
+        await _workflow.ReassignAsync(sheetId, submissionId, [.. request.AddedUserIds.Distinct()], [.. request.RemovedUserIds.Distinct()], cancellationToken);
     }
 
     public async Task ApplyChangesAsync(int sheetId, SheetChanges changes, CancellationToken cancellationToken)
@@ -329,32 +302,20 @@ internal class SheetDataAccessService : ISheetDataAccessService
         ArgumentNullException.ThrowIfNull(changes, nameof(changes));
 
         var currentUser = await GetCurrentUserAsync(cancellationToken);
-        var specSheetId = await FindDraftSpecSheetIdAsync(sheetId, cancellationToken);
+        await EnsureSheetExistsAsync(sheetId, cancellationToken);
 
         await new SheetDraftChangeProcessor(_dbContext, currentUser, sheetId, _logger).ApplyChangesAsync(changes.Operations, cancellationToken);
 
-        await _specSheetCache.RemoveAsync(specSheetId, cancellationToken);
-        _logger.LogInformation("Applied {OperationCount} change(s) to the draft of Sheet with Id {SheetId} by UserId {UserId}", changes.Operations.Length, sheetId, currentUser.Id);
+        _logger.LogInformation("Applied {OperationCount} change(s) to the drafts of Sheet with Id {SheetId} by UserId {UserId}", changes.Operations.Length, sheetId, currentUser.Id);
     }
 
-    // The unpublished SpecSheets row that is the sheet's draft: what the spec sheet methods act on.
-    private async Task<int> FindDraftSpecSheetIdAsync(int sheetId, CancellationToken cancellationToken)
+    private async Task EnsureSheetExistsAsync(int sheetId, CancellationToken cancellationToken)
     {
-        var sheet = await _dbContext.Sheets
-            .AsNoTracking()
-            .Where(s => s.Id == sheetId)
-            .Select(s => new { s.SpecSheetTypeId, s.SpecSheetPhaseId })
-            .FirstOrDefaultAsync(cancellationToken)
-            ?? throw new KeyNotFoundException($"Sheet with Id {sheetId} not found.");
-
-        return await _dbContext.SpecSheets
-            .AsNoTracking()
-            .Where(s => !s.IsPublished && s.SpecSheetTypeId == sheet.SpecSheetTypeId && s.SpecSheetPhaseId == sheet.SpecSheetPhaseId)
-            .Select(s => (int?)s.Id)
-            .FirstOrDefaultAsync(cancellationToken)
-            ?? throw new InvalidOperationException($"Sheet with Id {sheetId} has no draft.");
+        if (!await _dbContext.Sheets.AnyAsync(s => s.Id == sheetId, cancellationToken))
+        {
+            throw new KeyNotFoundException($"Sheet with Id {sheetId} not found.");
+        }
     }
-
     #endregion Writes
 
     private static SheetListItem MapToListItem(SheetVersionSummary summary)
