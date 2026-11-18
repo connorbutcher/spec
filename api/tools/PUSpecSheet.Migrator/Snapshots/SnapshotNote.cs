@@ -1,9 +1,9 @@
-﻿namespace PUSpecSheet.Abstractions.Domain.Sheets;
+﻿namespace PUSpecSheet.Migrator.Snapshots;
 
 /// <summary>
-/// A note on a table, held on the table's revision.
+/// A table note as a copy shows it, which the history builder turns into a note item and a row on each table revision that has it.
 /// </summary>
-public record SheetTableNote
+public record SnapshotNote
 {
     public required string Note { get; init; }
 

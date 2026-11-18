@@ -1,6 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Abstractions.Domain.Properties.Table;
-using PUSpecSheet.Abstractions.Domain.Sheets;
 using PUSpecSheet.Abstractions.Types;
 using PUSpecSheet.Api.Database;
 using PUSpecSheet.Migrator.Snapshots;
@@ -29,7 +28,7 @@ internal sealed class TargetSheetHistory
 
     private sealed record GroupData(int DisplayOrder, Guid? LinkedGroupReferenceId);
 
-    private sealed record NoteOf(int ItemId, SheetTableNote Note);
+    private sealed record NoteOf(int ItemId, SnapshotNote Note);
 
     // A group or row item's parent is its table or group; a table has none, and keeps the sheet's id there.
     private sealed record ItemOf(int Id, Guid ReferenceId, int ParentId, int TemplateId);
@@ -51,8 +50,8 @@ internal sealed class TargetSheetHistory
     private Dictionary<int, SnapshotLinkedTable> _links = [];
     private List<CellItem> _cells = [];
     private Dictionary<int, Dictionary<int, CellContentParts>> _contentsByRowRevision = [];
-    private Dictionary<int, List<SheetWidgetValue>> _tableWidgetsByRevision = [];
-    private Dictionary<int, List<SheetWidgetValue>> _groupWidgetsByRevision = [];
+    private Dictionary<int, List<SnapshotWidgetValue>> _tableWidgetsByRevision = [];
+    private Dictionary<int, List<SnapshotWidgetValue>> _groupWidgetsByRevision = [];
     private Dictionary<int, List<NoteOf>> _notesByRevision = [];
 
     private TargetSheetHistory()
@@ -275,7 +274,7 @@ internal sealed class TargetSheetHistory
     }
 
     // The widgets of every table revision of the sheet, by revision.
-    private static async Task<Dictionary<int, List<SheetWidgetValue>>> ReadTableWidgetsAsync(PUSpecSheetDbContext db, int sheetId, CancellationToken cancellationToken)
+    private static async Task<Dictionary<int, List<SnapshotWidgetValue>>> ReadTableWidgetsAsync(PUSpecSheetDbContext db, int sheetId, CancellationToken cancellationToken)
     {
         var rows = await db.SheetTableWidgetValues.AsNoTracking()
             .Where(value => db.SheetTableRevisions.Any(revision => revision.Id == value.SheetTableRevisionId && revision.SheetId == sheetId))
@@ -286,10 +285,10 @@ internal sealed class TargetSheetHistory
             .GroupBy(row => row.SheetTableRevisionId)
             .ToDictionary(
                 revision => revision.Key,
-                revision => revision.Select(row => new SheetWidgetValue { TemplateWidgetId = row.TableTemplateWidgetId, Value = row.Value }).ToList());
+                revision => revision.Select(row => new SnapshotWidgetValue { TemplateWidgetId = row.TableTemplateWidgetId, Value = row.Value }).ToList());
     }
 
-    private static async Task<Dictionary<int, List<SheetWidgetValue>>> ReadGroupWidgetsAsync(PUSpecSheetDbContext db, int sheetId, CancellationToken cancellationToken)
+    private static async Task<Dictionary<int, List<SnapshotWidgetValue>>> ReadGroupWidgetsAsync(PUSpecSheetDbContext db, int sheetId, CancellationToken cancellationToken)
     {
         var rows = await db.SheetTableGroupWidgetValues.AsNoTracking()
             .Where(value => db.SheetTableGroupRevisions.Any(revision => revision.Id == value.SheetTableGroupRevisionId && revision.SheetId == sheetId))
@@ -300,7 +299,7 @@ internal sealed class TargetSheetHistory
             .GroupBy(row => row.SheetTableGroupRevisionId)
             .ToDictionary(
                 revision => revision.Key,
-                revision => revision.Select(row => new SheetWidgetValue { TemplateWidgetId = row.TableGroupTemplateWidgetId, Value = row.Value }).ToList());
+                revision => revision.Select(row => new SnapshotWidgetValue { TemplateWidgetId = row.TableGroupTemplateWidgetId, Value = row.Value }).ToList());
     }
 
     // The notes of every table revision of the sheet, by revision, oldest first as the copies read them.
@@ -327,7 +326,7 @@ internal sealed class TargetSheetHistory
                 revision => revision
                     .OrderBy(row => row.CreatedDateTime)
                     .ThenBy(row => row.SheetTableNoteId)
-                    .Select(row => new NoteOf(row.SheetTableNoteId, new SheetTableNote
+                    .Select(row => new NoteOf(row.SheetTableNoteId, new SnapshotNote
                     {
                         Note = row.Note,
                         SourceSystem = row.SourceSystem,

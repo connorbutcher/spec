@@ -1,5 +1,4 @@
-﻿using PUSpecSheet.Abstractions.Domain.Sheets;
-
+﻿
 namespace PUSpecSheet.Migrator.Snapshots;
 
 /// <summary>
@@ -18,7 +17,7 @@ internal sealed record SnapshotGroup
 
     public required int DisplayOrder { get; init; }
 
-    public required IReadOnlyList<SheetWidgetValue> WidgetValues { get; init; }
+    public required IReadOnlyList<SnapshotWidgetValue> WidgetValues { get; init; }
 
     public required Guid? LinkedGroupReferenceId { get; init; }
 }

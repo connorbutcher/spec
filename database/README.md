@@ -103,7 +103,7 @@ The `ModelType` of the dropdown and lookup cell types (text and numeric dropdown
 | `configuration` | Cell configurations. |
 | `legacy` | Sheets as copies: every version of a sheet is a whole copy of its tables, groups, rows, cells and values, with workflow steps for approval. These are the tables the revisions (`spec`, `cell`, `approval`) replace; see [The legacy schema](#the-legacy-schema). |
 | `spec` | Sheets as revisions (stage 3 onwards): see below. |
-| `cell` | The cell values of `spec` row revisions. |
+| `cell` | The values of `spec` revisions: a row revision's cell values, and a table or group revision's widget values and a table revision's note values. |
 | `approval` | Submissions of a sheet's drafts and their approvers. |
 
 ### The legacy schema
@@ -131,7 +131,7 @@ A sheet (`spec.Sheets`) is one per phase and sheet type. Its tables, groups, row
 | `SheetLinkedTables` (another sheet's table, by ReferenceID) | Display order |
 | `SheetExternalReferences` | Everything, published only: references belong to versions |
 
-A table's widgets (`SheetTableWidgets`, one per `template.TableTemplateWidgets` widget) and notes (`SheetTableNotes`, with their writer, time and source system), and a group's widgets (`SheetTableGroupWidgets`), are items with no revisions of their own, like cells. What a revision holds of them is a row in `SheetTableWidgetValues`, `SheetTableNoteValues` or `SheetTableGroupWidgetValues`, keyed by the revision and the item: the widget's value (JSON, which may be empty), or the note's text and whether it is obsolete. A revision has a widget or note if it has its row, so a draft is started by copying the published revision's rows.
+A table's widgets (`SheetTableWidgets`, one per `template.TableTemplateWidgets` widget) and notes (`SheetTableNotes`, with their writer, time and source system), and a group's widgets (`SheetTableGroupWidgets`), are items with no revisions of their own, like cells. What a revision holds of them is a row in `cell.TableWidgetValues`, `cell.TableNoteValues` or `cell.TableGroupWidgetValues`, keyed by the revision and the item: the widget's value (JSON, which may be empty), or the note's text and whether it is obsolete. A revision has a widget or note if it has its row, so a draft is started by copying the published revision's rows.
 
 A row's cells (`SheetTableCells`, one per `template.TableCellTemplates` cell) have no revisions of their own; their values (`cell.TextValues`, `NumericValues`, `PairValues`, `LinkedSheetValues`) and any configuration override (`cell.CellConfigurationOverrides`) are keyed by the row revision and the cell.
 

@@ -1,15 +1,16 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using PUSpecSheet.Api.Database.Schema.Cell;
 using PUSpecSheet.Api.Database.Schema.Spec;
 
-namespace PUSpecSheet.Api.Database.Configuration.Spec;
+namespace PUSpecSheet.Api.Database.Configuration.Cell;
 
 internal class SheetTableNoteValueConfiguration : IEntityTypeConfiguration<DbSheetTableNoteValue>
 {
     public void Configure(EntityTypeBuilder<DbSheetTableNoteValue> builder)
     {
         builder.HasKey(x => new { x.SheetTableRevisionId, x.SheetTableNoteId });
-        builder.ToTable("SheetTableNoteValues", "spec");
+        builder.ToTable("TableNoteValues", "cell");
 
         builder.Property(x => x.SheetTableRevisionId)
             .HasColumnName("SheetTableRevisionID")

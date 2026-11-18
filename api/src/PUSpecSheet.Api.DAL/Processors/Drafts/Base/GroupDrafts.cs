@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Abstractions.Domain.Access;
 using PUSpecSheet.Abstractions.Types;
+using PUSpecSheet.Api.Database.Schema.Cell;
 using PUSpecSheet.Api.Database;
 using PUSpecSheet.Api.Database.Schema.Spec;
 

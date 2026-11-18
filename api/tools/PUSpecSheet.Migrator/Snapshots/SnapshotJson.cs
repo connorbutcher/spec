@@ -1,7 +1,6 @@
 ﻿using System.Text.Json;
 using PUSpecSheet.Abstractions.Domain.Properties.Cell;
 using PUSpecSheet.Abstractions.Domain.Properties.Table;
-using PUSpecSheet.Abstractions.Domain.Sheets;
 
 namespace PUSpecSheet.Migrator.Snapshots;
 
@@ -26,14 +25,14 @@ internal static class SnapshotJson
         return properties is null ? null : JsonSerializer.Serialize(properties, _options);
     }
 
-    public static string? Of(IReadOnlyList<SheetWidgetValue> widgetValues)
+    public static string? Of(IReadOnlyList<SnapshotWidgetValue> widgetValues)
     {
         return widgetValues.Count == 0
             ? null
             : JsonSerializer.Serialize(widgetValues.OrderBy(widget => widget.TemplateWidgetId).ToList(), _options);
     }
 
-    public static string? Of(IReadOnlyList<SheetTableNote> notes)
+    public static string? Of(IReadOnlyList<SnapshotNote> notes)
     {
         return notes.Count == 0 ? null : JsonSerializer.Serialize(notes, _options);
     }

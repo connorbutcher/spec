@@ -1,4 +1,5 @@
-﻿using PUSpecSheet.Api.Database.Schema.Template;
+﻿using PUSpecSheet.Api.Database.Schema.Cell;
+using PUSpecSheet.Api.Database.Schema.Template;
 
 namespace PUSpecSheet.Api.Database.Schema.Spec;
 

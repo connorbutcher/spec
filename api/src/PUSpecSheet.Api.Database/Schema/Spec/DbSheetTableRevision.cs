@@ -1,6 +1,7 @@
 ﻿using PUSpecSheet.Abstractions.Domain.Properties.Table;
 using PUSpecSheet.Abstractions.Types;
 using PUSpecSheet.Api.Database.Schema.Access;
+using PUSpecSheet.Api.Database.Schema.Cell;
 
 namespace PUSpecSheet.Api.Database.Schema.Spec;
 

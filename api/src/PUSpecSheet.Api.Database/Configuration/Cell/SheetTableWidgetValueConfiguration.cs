@@ -2,17 +2,18 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using PUSpecSheet.Abstractions.Domain.Values.WidgetValues;
+using PUSpecSheet.Api.Database.Schema.Cell;
 using PUSpecSheet.Api.Database.Schema.Spec;
 using PUSpecSheet.Api.Database.Serialization;
 
-namespace PUSpecSheet.Api.Database.Configuration.Spec;
+namespace PUSpecSheet.Api.Database.Configuration.Cell;
 
 internal class SheetTableWidgetValueConfiguration : IEntityTypeConfiguration<DbSheetTableWidgetValue>
 {
     public void Configure(EntityTypeBuilder<DbSheetTableWidgetValue> builder)
     {
         builder.HasKey(x => new { x.SheetTableRevisionId, x.SheetTableWidgetId });
-        builder.ToTable("SheetTableWidgetValues", "spec");
+        builder.ToTable("TableWidgetValues", "cell");
 
         builder.Property(x => x.SheetTableRevisionId)
             .HasColumnName("SheetTableRevisionID")

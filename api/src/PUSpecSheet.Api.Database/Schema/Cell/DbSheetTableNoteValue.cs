@@ -1,4 +1,6 @@
-﻿namespace PUSpecSheet.Api.Database.Schema.Spec;
+﻿using PUSpecSheet.Api.Database.Schema.Spec;
+
+namespace PUSpecSheet.Api.Database.Schema.Cell;
 
 /// <summary>
 /// A table note as a table revision has it. The revision has the note if it has this row.

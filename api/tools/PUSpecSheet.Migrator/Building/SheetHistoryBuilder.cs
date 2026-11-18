@@ -1,5 +1,5 @@
 ﻿using System.Globalization;
-using PUSpecSheet.Abstractions.Domain.Sheets;
+using PUSpecSheet.Api.Database.Schema.Cell;
 using PUSpecSheet.Api.Database.Schema.Spec;
 using PUSpecSheet.Migrator.Legacy;
 using PUSpecSheet.Migrator.Snapshots;
@@ -220,7 +220,7 @@ internal sealed class SheetHistoryBuilder
 
     // The rows that give a table revision its widgets: each is a new row for the widget's item, which the table has
     // from the first copy that has the widget.
-    private List<DbSheetTableWidgetValue> TableWidgetRows(WriteContext context, int tableKey, IReadOnlyList<SheetWidgetValue> widgets)
+    private List<DbSheetTableWidgetValue> TableWidgetRows(WriteContext context, int tableKey, IReadOnlyList<SnapshotWidgetValue> widgets)
     {
         var rows = new List<DbSheetTableWidgetValue>();
         foreach (var widget in widgets)
@@ -251,7 +251,7 @@ internal sealed class SheetHistoryBuilder
         return rows;
     }
 
-    private List<DbSheetTableGroupWidgetValue> GroupWidgetRows(WriteContext context, int groupKey, IReadOnlyList<SheetWidgetValue> widgets)
+    private List<DbSheetTableGroupWidgetValue> GroupWidgetRows(WriteContext context, int groupKey, IReadOnlyList<SnapshotWidgetValue> widgets)
     {
         var rows = new List<DbSheetTableGroupWidgetValue>();
         foreach (var widget in widgets)
@@ -283,7 +283,7 @@ internal sealed class SheetHistoryBuilder
     }
 
     // A note is its item from when it was written; the copies repeat it, with whether it is obsolete as it was then.
-    private List<DbSheetTableNoteValue> NoteRows(WriteContext context, int tableKey, IReadOnlyList<SheetTableNote> notes)
+    private List<DbSheetTableNoteValue> NoteRows(WriteContext context, int tableKey, IReadOnlyList<SnapshotNote> notes)
     {
         var rows = new List<DbSheetTableNoteValue>();
         var seen = new Dictionary<(int UserId, DateTime CreatedDateTime, string SourceSystem), int>();

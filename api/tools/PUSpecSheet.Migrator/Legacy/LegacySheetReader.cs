@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using PUSpecSheet.Abstractions.Domain.Sheets;
 using PUSpecSheet.Api.Database;
 using PUSpecSheet.Api.Database.Schema.Legacy.SpecSheets;
 using PUSpecSheet.Migrator.Snapshots;
@@ -283,7 +282,7 @@ internal sealed class LegacySheetReader
     }
 
     // A table's notes, oldest first.
-    private async Task<ILookup<int, SheetTableNote>> ReadNotesAsync(IQueryable<DbSpecSheetTable> tables, CancellationToken cancellationToken)
+    private async Task<ILookup<int, SnapshotNote>> ReadNotesAsync(IQueryable<DbSpecSheetTable> tables, CancellationToken cancellationToken)
     {
         return (await _dbContext.SpecSheetTableNotes.AsNoTracking()
                 .Where(note => tables.Any(table => table.Id == note.SpecSheetTableId))
@@ -293,7 +292,7 @@ internal sealed class LegacySheetReader
                 .ToListAsync(cancellationToken))
             .ToLookup(
                 note => note.SpecSheetTableId,
-                note => new SheetTableNote
+                note => new SnapshotNote
                 {
                     Note = note.Note,
                     SourceSystem = note.SourceSystem,

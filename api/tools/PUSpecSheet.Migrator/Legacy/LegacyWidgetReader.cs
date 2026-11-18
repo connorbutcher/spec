@@ -1,8 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using PUSpecSheet.Abstractions.Domain.Sheets;
 using PUSpecSheet.Abstractions.Domain.Values.WidgetValues;
 using PUSpecSheet.Api.Database;
 using PUSpecSheet.Api.Database.Schema.Legacy.SpecSheets;
+using PUSpecSheet.Migrator.Snapshots;
 
 namespace PUSpecSheet.Migrator.Legacy;
 
@@ -21,7 +21,7 @@ internal sealed class LegacyWidgetReader
     }
 
     // A table's widget values, one per template widget; where a copy has more than one, the newest is kept.
-    public async Task<Dictionary<int, IReadOnlyList<SheetWidgetValue>>> ReadTableWidgetsAsync(
+    public async Task<Dictionary<int, IReadOnlyList<SnapshotWidgetValue>>> ReadTableWidgetsAsync(
         IQueryable<DbSpecSheetTable> tables,
         CancellationToken cancellationToken)
     {
@@ -42,7 +42,7 @@ internal sealed class LegacyWidgetReader
             values.Select(value => (value.WidgetId, value.Value)));
     }
 
-    public async Task<Dictionary<int, IReadOnlyList<SheetWidgetValue>>> ReadGroupWidgetsAsync(
+    public async Task<Dictionary<int, IReadOnlyList<SnapshotWidgetValue>>> ReadGroupWidgetsAsync(
         IQueryable<DbSpecSheetTableGroup> groups,
         CancellationToken cancellationToken)
     {
@@ -63,7 +63,7 @@ internal sealed class LegacyWidgetReader
             values.Select(value => (value.WidgetId, value.Value)));
     }
 
-    private static Dictionary<int, IReadOnlyList<SheetWidgetValue>> Widgets(
+    private static Dictionary<int, IReadOnlyList<SnapshotWidgetValue>> Widgets(
         IEnumerable<(int Id, int OwnerId, int TemplateWidgetId)> widgets,
         IEnumerable<(int WidgetId, WidgetValue? Value)> values)
     {
@@ -81,9 +81,9 @@ internal sealed class LegacyWidgetReader
 
         return byOwner.ToDictionary(
             owner => owner.Key,
-            owner => (IReadOnlyList<SheetWidgetValue>)owner.Value
+            owner => (IReadOnlyList<SnapshotWidgetValue>)owner.Value
                 .OrderBy(widget => widget.Key)
-                .Select(widget => new SheetWidgetValue { TemplateWidgetId = widget.Key, Value = widget.Value })
+                .Select(widget => new SnapshotWidgetValue { TemplateWidgetId = widget.Key, Value = widget.Value })
                 .ToList());
     }
 }

@@ -1,5 +1,4 @@
 ﻿using PUSpecSheet.Abstractions.Domain.Properties.Table;
-using PUSpecSheet.Abstractions.Domain.Sheets;
 
 namespace PUSpecSheet.Migrator.Snapshots;
 
@@ -21,7 +20,7 @@ internal sealed record SnapshotTable
 
     public required ITableProperties? ConfigurationOverride { get; init; }
 
-    public required IReadOnlyList<SheetWidgetValue> WidgetValues { get; init; }
+    public required IReadOnlyList<SnapshotWidgetValue> WidgetValues { get; init; }
 
-    public required IReadOnlyList<SheetTableNote> Notes { get; init; }
+    public required IReadOnlyList<SnapshotNote> Notes { get; init; }
 }

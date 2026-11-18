@@ -3,6 +3,7 @@ using PUSpecSheet.Abstractions.Domain.Access;
 using PUSpecSheet.Abstractions.Operations.Tables.Widgets;
 using PUSpecSheet.Api.DAL.Processors.Base;
 using PUSpecSheet.Api.DAL.Processors.Drafts.Base;
+using PUSpecSheet.Api.Database.Schema.Cell;
 using PUSpecSheet.Api.Database;
 using PUSpecSheet.Api.Database.Schema.Spec;
 

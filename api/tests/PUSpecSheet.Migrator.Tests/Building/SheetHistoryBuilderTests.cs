@@ -1,5 +1,4 @@
 ﻿using PUSpecSheet.Abstractions.Domain.Properties.Cell;
-using PUSpecSheet.Abstractions.Domain.Sheets;
 using PUSpecSheet.Abstractions.Domain.Values.WidgetValues;
 using PUSpecSheet.Abstractions.Types;
 using PUSpecSheet.Api.Database.Schema.Spec;
@@ -332,9 +331,9 @@ public sealed class SheetHistoryBuilderTests
 
     private static SheetSnapshot WithNotes(SheetSnapshot snapshot, bool obsolete)
     {
-        SheetTableNote[] notes =
+        SnapshotNote[] notes =
         [
-            new SheetTableNote
+            new SnapshotNote
             {
                 Note = "Check the torque",
                 SourceSystem = "PU",
@@ -348,7 +347,7 @@ public sealed class SheetHistoryBuilderTests
 
     private static SheetSnapshot WithWidget(SheetSnapshot snapshot, string value)
     {
-        SheetWidgetValue[] widgets = [new SheetWidgetValue { TemplateWidgetId = 4, Value = new PartPairWidgetValue { TopValue = value, BottomValue = "-" } }];
+        SnapshotWidgetValue[] widgets = [new SnapshotWidgetValue { TemplateWidgetId = 4, Value = new PartPairWidgetValue { TopValue = value, BottomValue = "-" } }];
         return snapshot with { Tables = [snapshot.Tables[0] with { WidgetValues = widgets }] };
     }
 
