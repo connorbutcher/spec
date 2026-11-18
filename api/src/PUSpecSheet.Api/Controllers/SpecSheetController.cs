@@ -21,6 +21,7 @@ public class SpecSheetController : ControllerBase
         _specSheetDataAccessService = specSheetDataAccessService;
     }
 
+    [Obsolete("Use GET sheets/spec-sheet/{specSheetId} to find the sheet, then GET sheets/{id} or sheets/{id}/draft.")]
     [HttpGet("{id:int}")]
     public async Task<ActionResult<SpecSheet>> GetSpecSheetByIdAsync([FromRoute] int id)
     {
@@ -33,6 +34,7 @@ public class SpecSheetController : ControllerBase
         return Ok(specSheet);
     }
 
+    [Obsolete("Use GET sheets/phase/{phaseId}/type/{sheetTypeId}/latest.")]
     [HttpGet("latest/published/type/{typeId:int}/phase/{phaseId:int}")]
     public async Task<ActionResult<SpecSheet?>> GetLatestPublishedSpecSheetByTypeAndPhaseAsync(
         [FromRoute] int typeId,
@@ -48,6 +50,7 @@ public class SpecSheetController : ControllerBase
         return Ok(specSheet);
     }
 
+    [Obsolete("Use GET sheets/phase/{phaseId}/all.")]
     [HttpGet("phase/{phaseId:int}/all")]
     public async Task<ActionResult<ICollection<SpecSheetSummary>>> GetAllSpecSheetsByPhaseAsync([FromRoute] int phaseId, [FromQuery] bool includeChildren = false)
     {
@@ -60,6 +63,7 @@ public class SpecSheetController : ControllerBase
         return Ok(specSheets);
     }
 
+    [Obsolete("Use GET sheets/phase/{phaseId}/type/{sheetTypeId}.")]
     [HttpGet("phase/{phaseId:int}/type/{typeId:int}")]
     [HttpGet("phase/{phaseId:int}/type/{typeId:int}/published/{published:bool}")]
     public async Task<ActionResult<ICollection<SpecSheetSummary>>> GetAllSpecSheetsByPhaseAndTypeAsync([FromRoute] int phaseId, [FromRoute] int typeId, [FromRoute] bool? published)
@@ -73,6 +77,7 @@ public class SpecSheetController : ControllerBase
         return Ok(specSheets);
     }
 
+    [Obsolete("Use GET sheets/type/{sheetTypeId}.")]
     [HttpGet("type/{typeId:int}")]
     public async Task<ActionResult<ICollection<SpecSheetSummary>>> GetAllSpecSheetsByTypeAsync([FromRoute] int typeId)
     {
@@ -85,6 +90,7 @@ public class SpecSheetController : ControllerBase
         return Ok(specSheets);
     }
 
+    [Obsolete("Use POST sheets/draft.")]
     [HttpPost("create")]
     public async Task<ActionResult<int>> CreateSpecSheetAsync([FromBody] CreateSpecSheetRequest createPUSpecSheetRequest)
     {
@@ -97,6 +103,7 @@ public class SpecSheetController : ControllerBase
         return Ok(specSheetId);
     }
 
+    [Obsolete("Use PATCH sheets/{id}/draft.")]
     [HttpPatch("update")]
     public async Task<ActionResult> UpdateSpecSheetAsync([FromBody] SpecSheetChanges specSheetChanges)
     {
@@ -109,6 +116,7 @@ public class SpecSheetController : ControllerBase
         return Ok();
     }
 
+    [Obsolete("Use PATCH sheets/{id}/publish.")]
     [HttpPatch("publish")]
     public async Task<ActionResult> PublishSpecSheetAsync([FromBody] PublishSpecSheetRequest publishSpecSheetRequest)
     {
@@ -121,6 +129,7 @@ public class SpecSheetController : ControllerBase
         return Ok();
     }
 
+    [Obsolete("Use DELETE sheets/{id}/draft.")]
     [HttpDelete("{id:int}")]
     [UserPermissionAuthorization("admin.view", "admin.sheets")]
     public async Task<ActionResult> DeleteSpecSheetAsync([FromRoute] int id)

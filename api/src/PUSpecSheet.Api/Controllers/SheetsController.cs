@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PUSpecSheet.Abstractions.Domain.Sheets;
+using PUSpecSheet.Abstractions.Requests.Sheets;
+using PUSpecSheet.Api.Common.Authorization;
 using PUSpecSheet.Api.DAL.DataAccess.SpecSheets;
 
 namespace PUSpecSheet.Api.Controllers;
@@ -83,5 +85,48 @@ public class SheetsController : ControllerBase
     {
         var versions = await _sheetDataAccessService.GetSheetVersionsAsync(id, HttpContext.RequestAborted);
         return Ok(versions);
+    }
+
+    [HttpPost("draft")]
+    public async Task<ActionResult<SheetLocation>> CreateDraftAsync([FromBody] CreateSheetRequest request)
+    {
+        var location = await _sheetDataAccessService.CreateDraftAsync(request, HttpContext.RequestAborted);
+        return Ok(location);
+    }
+
+    [HttpPatch("{id:int}/draft")]
+    public async Task<ActionResult> ApplyChangesAsync(int id, [FromBody] SheetChanges changes)
+    {
+        await _sheetDataAccessService.ApplyChangesAsync(id, changes, HttpContext.RequestAborted);
+        return NoContent();
+    }
+
+    [HttpPatch("{id:int}/publish")]
+    public async Task<ActionResult> PublishAsync(int id, [FromBody] PublishSheetRequest request)
+    {
+        await _sheetDataAccessService.PublishAsync(id, request, HttpContext.RequestAborted);
+        return NoContent();
+    }
+
+    [HttpDelete("{id:int}/draft")]
+    [UserPermissionAuthorization("admin.view", "admin.sheets")]
+    public async Task<ActionResult> DeleteDraftAsync(int id)
+    {
+        await _sheetDataAccessService.DeleteDraftAsync(id, HttpContext.RequestAborted);
+        return NoContent();
+    }
+
+    [HttpPatch("{id:int}/submission/decision")]
+    public async Task<ActionResult> DecideSubmissionAsync(int id, [FromBody] DecideSubmissionRequest request)
+    {
+        await _sheetDataAccessService.DecideSubmissionAsync(id, request, HttpContext.RequestAborted);
+        return NoContent();
+    }
+
+    [HttpPatch("{id:int}/submission/approvers")]
+    public async Task<ActionResult> ReassignSubmissionApproversAsync(int id, [FromBody] ReassignSubmissionApproversRequest request)
+    {
+        await _sheetDataAccessService.ReassignSubmissionApproversAsync(id, request, HttpContext.RequestAborted);
+        return NoContent();
     }
 }

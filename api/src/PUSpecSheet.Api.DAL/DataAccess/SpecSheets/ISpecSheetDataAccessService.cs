@@ -42,16 +42,22 @@ public interface ISpecSheetDataAccessService
 
     Task<IReadOnlyList<SpecSheetSummary>> GetAllSpecSheetsByPhaseAndTypeAsync(int phaseId, int typeId, bool? published, CancellationToken cancellationToken);
 
+    [Obsolete("Use ISheetDataAccessService.CreateDraftAsync.")]
     Task<int> CreateSpecSheetAsync(CreateSpecSheetRequest createPUSpecSheetRequest, CancellationToken cancellationToken);
 
+    [Obsolete("Use ISheetDataAccessService.ApplyChangesAsync.")]
     Task UpdateSpecSheetAsync(SpecSheetChanges specSheetChanges, CancellationToken cancellationToken);
 
+    [Obsolete("Use ISheetDataAccessService.PublishAsync.")]
     Task PublishSpecSheetAsync(PublishSpecSheetRequest publishSpecSheetRequest, CancellationToken cancellationToken);
 
+    [Obsolete("Use ISheetDataAccessService.DeleteDraftAsync.")]
     Task DeleteSpecSheetAsync(int id, CancellationToken cancellationToken);
 
+    [Obsolete("Use ISheetDataAccessService.DecideSubmissionAsync.")]
     Task UpdateWorkflowStepActorStateAsync(UpdateWorkflowStepActorRequest updateWorkflowStepActorRequest, CancellationToken cancellationToken);
 
+    [Obsolete("Use ISheetDataAccessService.ReassignSubmissionApproversAsync.")]
     Task ReassignWorkflowStepActorsAsync(ReassignWorkflowStepActorsRequest reassignWorkflowStepActorsRequest, CancellationToken cancellationToken);
 
     Task UpdateSystemReferencesAsync(ICollection<ExternalSystemReferenceRequest> systemReferences,

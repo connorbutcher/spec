@@ -18,6 +18,7 @@ public class WorkflowController : ControllerBase
         _specSheetDataAccessService = specSheetDataAccessService;
     }
 
+    [Obsolete("Use PATCH sheets/{id}/submission/decision.")]
     [HttpPatch("actor")]
     public async Task<ActionResult> UpdateWorkflowStepActorAsync([FromBody] UpdateWorkflowStepActorRequest updateWorkflowStepActor)
     {
@@ -31,6 +32,7 @@ public class WorkflowController : ControllerBase
         return NoContent();
     }
 
+    [Obsolete("Use PATCH sheets/{id}/submission/approvers.")]
     [HttpPatch("reassign")]
     public async Task<ActionResult> ReassignWorkflowStepActorsAsync([FromBody] ReassignWorkflowStepActorsRequest reassignWorkflowStepActorsRequest)
     {
