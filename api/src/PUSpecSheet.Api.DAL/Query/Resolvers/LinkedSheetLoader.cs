@@ -13,6 +13,7 @@ internal class LinkedSheetLoader
 {
     private readonly SheetReader _sheetReader;
     private readonly ISpecSheetCache _specSheetCache;
+    private readonly Dictionary<(int SheetTypeId, int PhaseId, DateTime PublishedBy), Task<Sheet?>> _loaded = [];
 
     public LinkedSheetLoader(SheetReader sheetReader, ISpecSheetCache specSheetCache)
     {
@@ -23,7 +24,19 @@ internal class LinkedSheetLoader
         _specSheetCache = specSheetCache;
     }
 
-    public async Task<Sheet?> LoadAsync(int sheetTypeId, int phaseId, DateTime publishedBy, CancellationToken cancellationToken)
+    // A sheet is loaded once per request, however many of its cells and tables are linked to.
+    public Task<Sheet?> LoadAsync(int sheetTypeId, int phaseId, DateTime publishedBy, CancellationToken cancellationToken)
+    {
+        var key = (sheetTypeId, phaseId, publishedBy);
+        if (!_loaded.TryGetValue(key, out var loading))
+        {
+            _loaded[key] = loading = ReadAsync(sheetTypeId, phaseId, publishedBy, cancellationToken);
+        }
+
+        return loading;
+    }
+
+    private async Task<Sheet?> ReadAsync(int sheetTypeId, int phaseId, DateTime publishedBy, CancellationToken cancellationToken)
     {
         var location = await _sheetReader.FindVersionAtAsync(phaseId, sheetTypeId, publishedBy, cancellationToken);
         if (location is null)

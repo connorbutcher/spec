@@ -96,30 +96,17 @@ internal class SheetReader
     public async Task<SheetCells?> ReadCellsAsync(int sheetId, IReadOnlyCollection<Guid> referenceIds, DateTime? publishedBy, CancellationToken cancellationToken)
     {
         var sheet = await ReadPublishedByAsync(sheetId, publishedBy, cancellationToken);
-        if (sheet is null)
-        {
-            return null;
-        }
+        return sheet is null ? null : MapCells(sheet, referenceIds);
+    }
 
-        var header = await _dbContext.Sheets
-            .AsNoTracking()
-            .Where(s => s.Id == sheetId)
-            .Select(s => new { s.SpecSheetTypeId, s.SpecSheetPhaseId })
-            .FirstAsync(cancellationToken);
-
-        return new SheetCells
-        {
-            Version = sheet.Version,
-            SheetId = sheetId,
-            SpecSheetTypeId = header.SpecSheetTypeId,
-            SpecSheetPhaseId = header.SpecSheetPhaseId,
-            Properties = sheet.Properties,
-            Cells = [.. sheet.Tables
-                .SelectMany(table => table.Groups)
-                .SelectMany(group => group.Rows)
-                .SelectMany(row => row.Cells)
-                .Where(cell => referenceIds.Contains(cell.ReferenceId))]
-        };
+    /// <summary>
+    /// The cells with the reference ids, of the sheet as it stood when the version was published (the latest version when
+    /// none is given). Null when it has no such version.
+    /// </summary>
+    public async Task<SheetCells?> ReadPublishedCellsAsync(int sheetId, int? versionNumber, IReadOnlyCollection<Guid> referenceIds, CancellationToken cancellationToken)
+    {
+        var sheet = await ReadPublishedAsync(sheetId, versionNumber, cancellationToken);
+        return sheet is null ? null : MapCells(sheet, referenceIds);
     }
 
     /// <summary>
@@ -198,9 +185,7 @@ internal class SheetReader
             .Include(s => s.SpecSheetPhase)
             .Include(s => s.SpecSheetType)
             .Include(s => s.Versions)
-            .Include(s => s.Properties.Where(p => p.Revisions.Any(r => !r.IsDeleted
-                    && r.Status == RevisionStatus.Published
-                    && r.SupersededDateTime == null)))
+            .Include(s => s.Properties)
                 .ThenInclude(p => p.Revisions.Where(r => r.Status == RevisionStatus.Published
                     && r.SupersededDateTime == null))
             .Include(s => s.Properties)
@@ -293,6 +278,24 @@ internal class SheetReader
             .Select(s => (int?)s.Id)
             .FirstOrDefaultAsync(cancellationToken)
             ?? throw new InvalidOperationException($"Spec Sheet with Id {specSheetId} has no sheet; it hasn't been migrated.");
+    }
+
+    private static SheetCells MapCells(Sheet sheet, IReadOnlyCollection<Guid> referenceIds)
+    {
+        var requested = referenceIds.ToHashSet();
+        return new SheetCells
+        {
+            Version = sheet.Version!,
+            SheetId = sheet.Id,
+            SpecSheetTypeId = sheet.SpecSheetTypeId,
+            SpecSheetPhaseId = sheet.SpecSheetPhaseId,
+            Properties = sheet.Properties,
+            Cells = [.. sheet.Tables
+                .SelectMany(table => table.Groups)
+                .SelectMany(group => group.Rows)
+                .SelectMany(row => row.Cells)
+                .Where(cell => requested.Contains(cell.ReferenceId))]
+        };
     }
 
     private async Task<Sheet?> ReadPublishedAsync(int sheetId, Func<List<DbSheetVersion>, DbSheetVersion?> chooseVersion, CancellationToken cancellationToken)

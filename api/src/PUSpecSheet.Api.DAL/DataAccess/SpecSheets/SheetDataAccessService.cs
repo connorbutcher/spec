@@ -105,9 +105,7 @@ internal class SheetDataAccessService : ISheetDataAccessService
             return null;
         }
 
-        var versions = await _sheetReader.ReadVersionsAsync(sheetId, cancellationToken);
-        var version = versionNumber is null ? versions.LastOrDefault() : versions.FirstOrDefault(v => v.VersionNumber == versionNumber);
-        return version is null ? null : await _sheetReader.ReadCellsAsync(sheetId, referenceIds, version.PublishedDateTime, cancellationToken);
+        return await _sheetReader.ReadPublishedCellsAsync(sheetId, versionNumber, referenceIds, cancellationToken);
     }
 
     public async Task<IReadOnlyList<SheetTable>> GetUniqueTablesAsync(CancellationToken cancellationToken)
@@ -175,11 +173,8 @@ internal class SheetDataAccessService : ISheetDataAccessService
             PropertyValues = request.PropertyValues
         }, currentUser, cancellationToken);
 
-        var sheetId = await _dbContext.Sheets
-            .AsNoTracking()
-            .Where(s => s.SpecSheetPhaseId == request.SpecSheetPhaseId && s.SpecSheetTypeId == request.SpecSheetTypeId)
-            .Select(s => s.Id)
-            .FirstAsync(cancellationToken);
+        var sheetId = await _sheetReader.FindSheetIdAsync(request.SpecSheetPhaseId, request.SpecSheetTypeId, cancellationToken)
+            ?? throw new InvalidOperationException($"No sheet found for PhaseId {request.SpecSheetPhaseId} and TypeId {request.SpecSheetTypeId} after creating its draft.");
 
         _logger.LogInformation("Created the draft of Sheet with Id {SheetId} by UserId {UserId}", sheetId, currentUser.Id);
         return new SheetLocation { SpecSheetId = specSheetId, SheetId = sheetId, VersionNumber = null, IsDraft = true };
@@ -285,29 +280,29 @@ internal class SheetDataAccessService : ISheetDataAccessService
             ?? throw new InvalidOperationException($"Sheet with Id {sheetId} has no draft.");
     }
 
+    #endregion Writes
+
     private async Task<User> GetCurrentUserAsync(CancellationToken cancellationToken)
     {
         return await _userContext.EnsureUserAsync(cancellationToken)
             ?? throw new InvalidOperationException("Current user not found in the context.");
     }
 
-    #endregion Writes
-
     // A table that has permissions is only shown to the users it has them for, as a copy's is.
     private async Task<Sheet> TrimTablesAsync(Sheet sheet, CancellationToken cancellationToken)
     {
-        var currentUser = await _userContext.EnsureUserAsync(cancellationToken)
-            ?? throw new InvalidOperationException("Current user not found in the context.");
+        var currentUser = await GetCurrentUserAsync(cancellationToken);
 
         var tableReferenceIds = sheet.Tables.Select(table => table.ReferenceId).ToList();
-        var permissions = await _dbContext.SpecSheetTablePermissions
+        var permittedUserIds = (await _dbContext.SpecSheetTablePermissions
             .AsNoTracking()
             .Where(permission => tableReferenceIds.Contains(permission.TableReferenceId))
-            .ToListAsync(cancellationToken);
+            .Select(permission => new { permission.TableReferenceId, permission.UserId })
+            .ToListAsync(cancellationToken))
+            .ToLookup(permission => permission.TableReferenceId, permission => permission.UserId);
 
         var tables = sheet.Tables
-            .Where(table => !permissions.Any(permission => permission.TableReferenceId == table.ReferenceId)
-                || permissions.Any(permission => permission.TableReferenceId == table.ReferenceId && permission.UserId == currentUser.Id))
+            .Where(table => !permittedUserIds.Contains(table.ReferenceId) || permittedUserIds[table.ReferenceId].Contains(currentUser.Id))
             .ToList();
 
         return sheet with { Tables = tables };
