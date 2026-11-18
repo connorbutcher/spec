@@ -24,8 +24,9 @@
     The sheet type should need approval (as the seeded Engine Specification does); for one that doesn't, each submit
     publishes straight away, so every change becomes a version and nothing is left pending.
 
-    A sheet that already has a published version is left alone: pass another phase or sheet type. A sheet with no
-    published version yet is cleared first (each local user's checkouts are undone) and made again.
+    Run it again to finish a run that stopped part way: stages whose submission is already on the sheet are skipped. A
+    sheet with a published version that isn't this sample is left alone (pass another phase or sheet type), and one with
+    no published version yet is cleared first (each local user's checkouts are undone) and made again.
 
 .EXAMPLE
     ./seed-sample-checkouts.ps1
@@ -140,6 +141,9 @@ function Approve-Submission {
     param([int]$User, [int]$SheetId, $Submission)
 
     Invoke-Api $User PATCH "/sheets/$SheetId/submissions/$($Submission.id)/decision" @{ decision = 1 } | Out-Null
+
+    # Versions are kept to the whole second; waiting keeps each one in a second of its own.
+    Start-Sleep -Milliseconds 1100
 }
 
 function Reject-Submission {
@@ -275,88 +279,121 @@ if (-not $sheetType.requiresApprovalWorkflow) {
     Write-Warning "Sheet type '$($sheetType.type)' doesn't need approval, so every submit publishes straight away and nothing is left pending."
 }
 
-# A sheet with a published version is never touched; one that has never been published is cleared and made again.
-$existing = Invoke-Api $Admin GET "/sheets/phase/$PhaseId/all" | Where-Object { $_.specSheetTypeId -eq $SheetTypeId } | Select-Object -First 1
-if ($existing) {
-    if ($existing.latestVersion) {
-        throw "The sheet for phase $PhaseId and type $SheetTypeId already has version $($existing.latestVersion.versionNumber). Pass another -PhaseId or -SheetTypeId."
-    }
+# The sample's submissions, by their notes: a stage whose submission is already on the sheet is skipped, so a run that
+# stopped part way can be run again to finish.
+$FirstNote = 'First issue of the limits.'
+$SecondNote = 'Tightened the bore and journal limits after the gauge study.'
+$ThirdNote = 'Clearances are now quoted hot.'
+$PendingNote = 'Corrected the crank journal clearance.'
+$RejectedNote = 'Renamed the bore row for liners.'
 
-    Write-Host "Clearing the never-published sheet $($existing.id)..."
-    foreach ($user in $Admin, $Engineer, $Approver) {
-        Invoke-Api $user DELETE "/sheets/$($existing.id)/draft/mine" | Out-Null
+function Test-Submitted {
+    param($Sheet, [string]$Note)
+
+    return [bool]($Sheet.submissions | Where-Object { $_.note -eq $Note })
+}
+
+# A sheet with a published version that isn't this sample's is never touched; one that has never been published is
+# cleared and made again.
+$existing = Invoke-Api $Admin GET "/sheets/phase/$PhaseId/all" | Where-Object { $_.specSheetTypeId -eq $SheetTypeId } | Select-Object -First 1
+$sheetId = $null
+if ($existing) {
+    $existingSheet = Get-Sheet $existing.id
+    if (Test-Submitted $existingSheet $FirstNote) {
+        Write-Host "Carrying on with the sample sheet $($existing.id), at version $($existingSheet.sheet.version.versionNumber)..."
+        $sheetId = $existing.id
+    }
+    elseif ($existing.latestVersion) {
+        throw "The sheet for phase $PhaseId and type $SheetTypeId already has version $($existing.latestVersion.versionNumber) and isn't this sample. Pass another -PhaseId or -SheetTypeId."
+    }
+    else {
+        Write-Host "Clearing the never-published sheet $($existing.id)..."
+        foreach ($user in $Admin, $Engineer, $Approver) {
+            Invoke-Api $user DELETE "/sheets/$($existing.id)/draft/mine" | Out-Null
+        }
     }
 }
 
-Write-Host 'Creating the sheet as Local Admin...'
-$location = Invoke-Api $Admin POST '/sheets/draft' @{ specSheetPhaseId = $PhaseId; specSheetTypeId = $SheetTypeId; propertyValues = @() }
-$sheetId = $location.sheetId
+if (-not $sheetId) {
+    Write-Host 'v1: Local Admin creates the sheet and submits it, Local Approver approves...'
+    $location = Invoke-Api $Admin POST '/sheets/draft' @{ specSheetPhaseId = $PhaseId; specSheetTypeId = $SheetTypeId; propertyValues = @() }
+    $sheetId = $location.sheetId
 
-$operations = @(New-TableOperations $tableTemplate 'Bore and journal limits' 1 4 $limitValue)
-$operations += New-TableOperations $tableTemplate 'Running clearances' 2 3 $limitValue
-Save-Changes $Admin $sheetId $operations
+    $operations = @(New-TableOperations $tableTemplate 'Bore and journal limits' 1 4 $limitValue)
+    $operations += New-TableOperations $tableTemplate 'Running clearances' 2 3 $limitValue
+    Save-Changes $Admin $sheetId $operations
 
-Write-Host 'v1: Local Admin submits, Local Approver approves...'
-$submission = Submit-Changes $Admin $sheetId 'First issue of the limits.' @($UserIds[$Approver])
-Approve-Submission $Approver $sheetId $submission
+    $submission = Submit-Changes $Admin $sheetId $FirstNote @($UserIds[$Approver])
+    Approve-Submission $Approver $sheetId $submission
+}
 
-Write-Host 'v2: Local Engineer changes the first table, Local Admin approves...'
 $sheet = Get-Sheet $sheetId
-$rows = Get-Rows $sheet 'Bore and journal limits'
-$operations = @(
-    New-NumberUpdate (Get-Cell $rows[1] 'numeric') 85.025
-    New-NumberUpdate (Get-Cell $rows[2] 'numeric') 90.04
-    New-TextUpdate (Get-Cell $rows[2] 'text') 'Crank main journal'
-)
-Save-Changes $Engineer $sheetId $operations
-$submission = Submit-Changes $Engineer $sheetId 'Tightened the bore and journal limits after the gauge study.' @($UserIds[$Admin])
-Approve-Submission $Admin $sheetId $submission
+if (-not (Test-Submitted $sheet $SecondNote)) {
+    Write-Host 'v2: Local Engineer changes the first table, Local Admin approves...'
+    $rows = Get-Rows $sheet 'Bore and journal limits'
+    $operations = @(
+        New-NumberUpdate (Get-Cell $rows[1] 'numeric') 85.025
+        New-NumberUpdate (Get-Cell $rows[2] 'numeric') 90.04
+        New-TextUpdate (Get-Cell $rows[2] 'text') 'Crank main journal'
+    )
+    Save-Changes $Engineer $sheetId $operations
+    $submission = Submit-Changes $Engineer $sheetId $SecondNote @($UserIds[$Admin])
+    Approve-Submission $Admin $sheetId $submission
+}
 
-Write-Host 'v3: Local Admin renames the second table and changes a row, Local Approver approves...'
 $sheet = Get-Sheet $sheetId
-$table = $sheet.sheet.tables | Where-Object { $_.title -eq 'Running clearances' }
-$rows = Get-Rows $sheet 'Running clearances'
-$operations = @(
-    [ordered]@{ '$type' = 'UpdateSpecSheetTableOp'; id = $table.id; title = 'Running clearances (hot)'; displayOrder = $table.displayOrder }
-    New-NumberUpdate (Get-Cell $rows[1] 'numeric') 81.5
-)
-Save-Changes $Admin $sheetId $operations
-$submission = Submit-Changes $Admin $sheetId 'Clearances are now quoted hot.' @($UserIds[$Approver])
-Approve-Submission $Approver $sheetId $submission
+if (-not (Test-Submitted $sheet $ThirdNote)) {
+    Write-Host 'v3: Local Admin renames the second table and changes a row, Local Approver approves...'
+    $table = $sheet.sheet.tables | Where-Object { $_.title -eq 'Running clearances' }
+    $rows = Get-Rows $sheet 'Running clearances'
+    $operations = @(
+        [ordered]@{ '$type' = 'UpdateSpecSheetTableOp'; id = $table.id; title = 'Running clearances (hot)'; displayOrder = $table.displayOrder }
+        New-NumberUpdate (Get-Cell $rows[1] 'numeric') 81.5
+    )
+    Save-Changes $Admin $sheetId $operations
+    $submission = Submit-Changes $Admin $sheetId $ThirdNote @($UserIds[$Approver])
+    Approve-Submission $Approver $sheetId $submission
+}
 
-Write-Host 'Awaiting approval: Local Approver changes a row of the second table, for Local Admin to approve...'
 $sheet = Get-Sheet $sheetId
-$rows = Get-Rows $sheet 'Running clearances (hot)'
-Save-Changes $Approver $sheetId @(New-NumberUpdate (Get-Cell $rows[2] 'numeric') 86.75)
-Submit-Changes $Approver $sheetId 'Corrected the crank journal clearance.' @($UserIds[$Admin]) | Out-Null
+if (-not (Test-Submitted $sheet $PendingNote)) {
+    Write-Host 'Awaiting approval: Local Approver changes a row of the second table, for Local Admin to approve...'
+    $rows = Get-Rows $sheet 'Running clearances (hot)'
+    Save-Changes $Approver $sheetId @(New-NumberUpdate (Get-Cell $rows[2] 'numeric') 86.75)
+    Submit-Changes $Approver $sheetId $PendingNote @($UserIds[$Admin]) | Out-Null
+}
 
-Write-Host 'Rejected: Local Admin changes the first row, Local Approver rejects it...'
-$rows = Get-Rows $sheet 'Bore and journal limits'
-Save-Changes $Admin $sheetId @(New-TextUpdate (Get-Cell $rows[1] 'text') 'Cylinder bore (liner)')
-$submission = Submit-Changes $Admin $sheetId 'Renamed the bore row for liners.' @($UserIds[$Approver])
-Reject-Submission $Approver $sheetId $submission 'Liners are a separate table; keep this row for parent bores.'
+$sheet = Get-Sheet $sheetId
+if (-not (Test-Submitted $sheet $RejectedNote)) {
+    Write-Host 'Rejected: Local Admin changes the first row, Local Approver rejects it...'
+    $rows = Get-Rows $sheet 'Bore and journal limits'
+    Save-Changes $Admin $sheetId @(New-TextUpdate (Get-Cell $rows[1] 'text') 'Cylinder bore (liner)')
+    $submission = Submit-Changes $Admin $sheetId $RejectedNote @($UserIds[$Approver])
+    Reject-Submission $Approver $sheetId $submission 'Liners are a separate table; keep this row for parent bores.'
+}
 
-Write-Host 'Checked out: Local Engineer changes a row and adds a row, without submitting...'
 $sheet = Get-Sheet $sheetId
 $table = $sheet.sheet.tables | Where-Object { $_.title -eq 'Bore and journal limits' }
-$rows = Get-Rows $sheet 'Bore and journal limits'
-Save-Changes $Engineer $sheetId @(New-NumberUpdate (Get-Cell $rows[3] 'numeric') 70.012)
+$engineerHasCheckouts = [bool]($table.groups | ForEach-Object { $_.rows } | Where-Object { $_.revision.status -eq 0 -and $_.revision.createdByUserId -eq $UserIds[$Engineer] })
+if (-not $engineerHasCheckouts) {
+    Write-Host 'Checked out: Local Engineer changes a row and adds a row, without submitting...'
+    $rows = Get-Rows $sheet 'Bore and journal limits'
+    Save-Changes $Engineer $sheetId @(New-NumberUpdate (Get-Cell $rows[3] 'numeric') 70.012)
 
-# A new row is a copy of the table's last group, linked to its first group as the screens add one.
-$groups = @($table.groups | Sort-Object displayOrder)
-$lastGroup = $groups[-1]
-$groupTemplate = $tableTemplate.tableGroupTemplates | Where-Object { $_.id -eq $lastGroup.tableGroupTemplateId }
-$script:nextTempId = -1000
-$groupOperation = [ordered]@{
-    '$type' = 'AddSpecSheetTableGroupOp'; tempId = -1; specSheetTableId = $table.id; tableGroupTemplateId = $groupTemplate.id
-    order = $lastGroup.displayOrder + 1; referenceId = [guid]::NewGuid().ToString()
-}
-if ($groups.Count -gt 1) {
-    $groupOperation.linkedSpecSheetTableGroupId = $groups[0].id
-}
+    # A new row is a copy of the table's last group, linked to its first group as the screens add one.
+    $groups = @($table.groups | Sort-Object displayOrder)
+    $lastGroup = $groups[-1]
+    $groupTemplate = $tableTemplate.tableGroupTemplates | Where-Object { $_.id -eq $lastGroup.tableGroupTemplateId }
+    $groupOperation = [ordered]@{
+        '$type' = 'AddSpecSheetTableGroupOp'; tempId = -1; specSheetTableId = $table.id; tableGroupTemplateId = $groupTemplate.id
+        order = $lastGroup.displayOrder + 1; referenceId = [guid]::NewGuid().ToString()
+    }
+    if ($groups.Count -gt 1) {
+        $groupOperation.linkedSpecSheetTableGroupId = $groups[0].id
+    }
 
-$operations = @($groupOperation)
-foreach ($rowTemplate in $groupTemplate.rowTemplates) {
+    $operations = @($groupOperation)
+    $rowTemplate = $groupTemplate.rowTemplates | Select-Object -First 1
     $operations += [ordered]@{
         '$type' = 'AddSpecSheetTableRowOp'; tempId = -2; specSheetTableGroupId = -1; tableRowTemplateId = $rowTemplate.id
         rowNumber = $rowTemplate.rowNumber; referenceId = [guid]::NewGuid().ToString()
@@ -376,9 +413,8 @@ foreach ($rowTemplate in $groupTemplate.rowTemplates) {
             'numeric' { $operations += [ordered]@{ '$type' = 'AddNumberValueOp'; specSheetTableCellId = $cellTempId; value = 42.0 + $cellTemplate.columnNumber / 100 } }
         }
     }
-    break
+    Save-Changes $Engineer $sheetId $operations
 }
-Save-Changes $Engineer $sheetId $operations
 
 $sheet = Get-Sheet $sheetId
 Write-Host ''
