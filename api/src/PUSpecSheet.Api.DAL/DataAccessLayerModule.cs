@@ -3,7 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using PUSpecSheet.Api.Common.Context;
-using PUSpecSheet.Api.Common.Redis;
+// using PUSpecSheet.Api.Common.Redis;
 using PUSpecSheet.Api.DAL.Caching;
 using PUSpecSheet.Api.DAL.Context;
 using PUSpecSheet.Api.DAL.DataAccess.Admin;
@@ -19,7 +19,7 @@ using PUSpecSheet.Api.DAL.Query.Resolvers;
 using PUSpecSheet.Api.DAL.Query.Resolvers.Cells;
 using PUSpecSheet.Api.DAL.Query.Resolvers.Tables;
 using PUSpecSheet.Api.Database;
-using StackExchange.Redis;
+// using StackExchange.Redis;
 
 namespace PUSpecSheet.Api.DAL;
 
@@ -40,23 +40,25 @@ public static class DataAccessLayerModule
             options.UseSqlServer(builder.Configuration.GetConnectionString("PUSpecSheet"));
         });
 
-        var redisConfiguration = RedisConfigurationOptions.GetConfigurationOptions(builder.Configuration.GetRequiredSection("Redis"));
-        builder.Services.AddSingleton<IConnectionMultiplexer, ConnectionMultiplexer>(sp =>
-        {
-            return ConnectionMultiplexer.Connect(redisConfiguration);
-        });
+        //var redisConfiguration = RedisConfigurationOptions.GetConfigurationOptions(builder.Configuration.GetRequiredSection("Redis"));
+        //builder.Services.AddSingleton<IConnectionMultiplexer, ConnectionMultiplexer>(sp =>
+        //{
+        //    return ConnectionMultiplexer.Connect(redisConfiguration);
+        //});
 
-        builder.Services.AddStackExchangeRedisCache(options =>
-        {
-            options.ConfigurationOptions = redisConfiguration;
-        });
+        //builder.Services.AddStackExchangeRedisCache(options =>
+        //{
+        //    options.ConfigurationOptions = redisConfiguration;
+        //});
 
         builder.Services.AddScoped<IUserContext, UserContext>();
         builder.Services.AddScoped<IAdminDataAccessService, AdminDataAccessService>();
         builder.Services.AddScoped<ITemplateDataAccessService, TemplateDataAccessService>();
         builder.Services.AddScoped<ITypeDataAccessService, TypeDataAccessService>();
         builder.Services.AddScoped<IQueryDataAccessService, QueryDataAccessService>();
-        builder.Services.AddScoped<ISpecSheetCache, SpecSheetCache>();
+        // Redis is disabled for local running, so nothing is cached.
+        // builder.Services.AddScoped<ISpecSheetCache, SpecSheetCache>();
+        builder.Services.AddScoped<ISpecSheetCache, NoOpSpecSheetCache>();
 
         RegisterReaders(builder);
         RegisterEdits(builder);
