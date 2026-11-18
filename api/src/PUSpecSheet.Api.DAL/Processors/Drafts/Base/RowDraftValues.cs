@@ -32,16 +32,16 @@ internal class RowDraftValues
 
     public void SetText(DbSheetTableRowRevision draft, int cellId, string? value)
     {
-        var existing = draft.SheetTextValues.FirstOrDefault(v => v.SheetTableCellId == cellId);
+        var existing = draft.TextValues.FirstOrDefault(v => v.SheetTableCellId == cellId);
         if (value is null)
         {
-            Remove(draft.SheetTextValues, existing);
+            Remove(draft.TextValues, existing);
             return;
         }
 
         if (existing is null)
         {
-            draft.SheetTextValues.Add(new DbSheetTextValue { SheetTableRowRevisionId = draft.Id, SheetTableCellId = cellId, Value = value });
+            draft.TextValues.Add(new DbSheetTextValue { SheetTableRowRevisionId = draft.Id, SheetTableCellId = cellId, Value = value });
             return;
         }
 
@@ -50,16 +50,16 @@ internal class RowDraftValues
 
     public void SetNumber(DbSheetTableRowRevision draft, int cellId, double? value)
     {
-        var existing = draft.SheetNumericValues.FirstOrDefault(v => v.SheetTableCellId == cellId);
+        var existing = draft.NumericValues.FirstOrDefault(v => v.SheetTableCellId == cellId);
         if (!value.HasValue)
         {
-            Remove(draft.SheetNumericValues, existing);
+            Remove(draft.NumericValues, existing);
             return;
         }
 
         if (existing is null)
         {
-            draft.SheetNumericValues.Add(new DbSheetNumericValue { SheetTableRowRevisionId = draft.Id, SheetTableCellId = cellId, Value = value.Value });
+            draft.NumericValues.Add(new DbSheetNumericValue { SheetTableRowRevisionId = draft.Id, SheetTableCellId = cellId, Value = value.Value });
             return;
         }
 
@@ -188,10 +188,10 @@ internal class RowDraftValues
         switch (value)
         {
             case SheetTextValue { Value: { } text }:
-                draft.SheetTextValues.Add(new DbSheetTextValue { SheetTableRowRevisionId = draft.Id, SheetTableCellId = cell.Id, Value = text, SheetTableCell = cell });
+                draft.TextValues.Add(new DbSheetTextValue { SheetTableRowRevisionId = draft.Id, SheetTableCellId = cell.Id, Value = text, SheetTableCell = cell });
                 break;
             case SheetNumericValue { Value: { } number }:
-                draft.SheetNumericValues.Add(new DbSheetNumericValue { SheetTableRowRevisionId = draft.Id, SheetTableCellId = cell.Id, Value = number, SheetTableCell = cell });
+                draft.NumericValues.Add(new DbSheetNumericValue { SheetTableRowRevisionId = draft.Id, SheetTableCellId = cell.Id, Value = number, SheetTableCell = cell });
                 break;
             case SheetPairValue pair when pair.ValueX is not null || pair.ValueY is not null:
                 draft.PairValues.Add(new DbSheetPairValue

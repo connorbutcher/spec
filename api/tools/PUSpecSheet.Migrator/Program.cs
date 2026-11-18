@@ -9,7 +9,9 @@ using PUSpecSheet.Migrator.Legacy;
 using var loggerFactory = LoggerFactory.Create(logging => logging.AddSimpleConsole(console => console.SingleLine = true));
 var logger = loggerFactory.CreateLogger("PUSpecSheet.Migrator");
 
-if (args.Length > 1 || !MigratorOptions.TryLoad(args.Length == 1 ? args[0] : MigratorOptions.DefaultPath, out var options, out var error))
+MigratorOptions? options = null;
+string? error = null;
+if (args.Length > 1 || !MigratorOptions.TryLoad(args.Length == 1 ? args[0] : MigratorOptions.DefaultPath, out options, out error))
 {
     logger.BadOptions(error ?? "Give at most one argument: the options file.", MigratorOptions.Usage);
     return 2;

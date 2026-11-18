@@ -3,7 +3,6 @@ using Microsoft.Extensions.Logging;
 using PUSpecSheet.Abstractions.Domain.Template;
 using PUSpecSheet.Api.Common.Context;
 using PUSpecSheet.Api.Database;
-using PUSpecSheet.Api.Database.Mappers.Legacy.SpecSheets;
 using PUSpecSheet.Api.Database.Mappers.Template;
 
 namespace PUSpecSheet.Api.DAL.DataAccess.Template;

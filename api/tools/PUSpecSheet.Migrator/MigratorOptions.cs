@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
 
 namespace PUSpecSheet.Migrator;
 
@@ -61,7 +62,7 @@ internal sealed record MigratorOptions
     /// <summary>
     /// Reads the options file; on failure the options are null and the error says why.
     /// </summary>
-    public static bool TryLoad(string path, out MigratorOptions? options, out string? error)
+    public static bool TryLoad(string path, [NotNullWhen(true)] out MigratorOptions? options, [NotNullWhen(false)] out string? error)
     {
         options = null;
         error = null;
