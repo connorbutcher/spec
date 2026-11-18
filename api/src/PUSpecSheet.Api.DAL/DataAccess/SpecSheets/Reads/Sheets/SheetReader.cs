@@ -108,7 +108,6 @@ internal class SheetReader
                 || (r.Status == RevisionStatus.Published
                     && r.PublishedDateTime <= moment
                     && (r.SupersededDateTime == null || r.SupersededDateTime > moment))))
-            .AsSplitQuery()
             .AsNoTracking()
             .ToListAsync(cancellationToken);
     }

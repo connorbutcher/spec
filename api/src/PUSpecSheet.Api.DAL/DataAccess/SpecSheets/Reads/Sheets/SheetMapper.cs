@@ -1,5 +1,8 @@
 ﻿using PUSpecSheet.Abstractions.Domain.Access;
+using PUSpecSheet.Abstractions.Domain.Configuration;
+using PUSpecSheet.Abstractions.Domain.Properties.Cell;
 using PUSpecSheet.Abstractions.Domain.Sheets;
+using PUSpecSheet.Abstractions.Domain.Template;
 using PUSpecSheet.Api.Database.Mappers.Access;
 using PUSpecSheet.Api.Database.Mappers.Configuration;
 using PUSpecSheet.Api.Database.Mappers.Template;
@@ -19,6 +22,8 @@ internal class SheetMapper
 {
     private readonly Dictionary<int, User> _users;
     private readonly Dictionary<int, int> _versionNumbers;
+    private readonly Dictionary<int, TableCellType> _cellTypes = [];
+    private readonly Dictionary<int, CellConfiguration> _cellConfigurations = [];
 
     public SheetMapper(IEnumerable<DbUser> users, IEnumerable<DbSheetVersion> versions)
     {
@@ -209,6 +214,7 @@ internal class SheetMapper
     private SheetTableRow MapRow(DbSheetTableRow row)
     {
         var revision = row.Revisions.Shown();
+        var values = new RowValues(revision);
         return new SheetTableRow
         {
             Id = row.Id,
@@ -220,11 +226,11 @@ internal class SheetMapper
             DisplayOrder = revision.DisplayOrder,
             Cells = [.. row.Cells
                 .OrderBy(cell => cell.TableCellTemplate!.ColumnNumber)
-                .Select(cell => MapCell(cell, revision))]
+                .Select(cell => MapCell(cell, values))]
         };
     }
 
-    private static SheetTableCell MapCell(DbSheetTableCell cell, DbSheetTableRowRevision revision)
+    private SheetTableCell MapCell(DbSheetTableCell cell, RowValues values)
     {
         var templateCell = cell.TableCellTemplate!;
         return new SheetTableCell
@@ -239,55 +245,88 @@ internal class SheetMapper
             RowSpan = templateCell.RowSpan,
             ReferenceId = cell.ReferenceId,
             CreatedDateTime = cell.CreatedDateTime,
-            Value = MapValue(cell.Id, templateCell.TableCellType!.ModelType, revision),
-            ConfigurationOverride = revision.CellConfigurationOverrides.FirstOrDefault(value => value.SheetTableCellId == cell.Id)?.ConfigurationOverride,
-            CellConfiguration = templateCell.CellConfiguration?.MapToDomain(),
-            TableCellType = templateCell.TableCellType.MapToDomain()
+            Value = values.ValueOf(cell.Id, templateCell.TableCellType!.ModelType),
+            ConfigurationOverride = values.ConfigurationOverrideOf(cell.Id),
+            CellConfiguration = templateCell.CellConfiguration is null ? null : MapOnce(_cellConfigurations, templateCell.CellConfigurationId, () => templateCell.CellConfiguration.MapToDomain()),
+            TableCellType = MapOnce(_cellTypes, templateCell.TableCellTypeId, () => templateCell.TableCellType!.MapToDomain())
         };
     }
 
-    // The value the row revision has for the cell. A cell the revision has no value for is empty, of the kind its type holds.
-    private static SheetCellValue MapValue(int cellId, string modelType, DbSheetTableRowRevision revision)
+    // Template cells share a few cell types and configurations, so each is mapped once for the sheet, not for every cell.
+    private static TMapped MapOnce<TMapped>(Dictionary<int, TMapped> mapped, int id, Func<TMapped> map)
     {
-        if (revision.NumericValues.FirstOrDefault(value => value.SheetTableCellId == cellId) is { } number)
+        if (!mapped.TryGetValue(id, out var value))
         {
-            return new SheetNumericValue { SheetTableCellId = cellId, Value = number.Value };
+            value = map();
+            mapped[id] = value;
         }
 
-        if (revision.TextValues.FirstOrDefault(value => value.SheetTableCellId == cellId) is { } text)
-        {
-            return new SheetTextValue { SheetTableCellId = cellId, Value = text.Value };
-        }
-
-        if (revision.PairValues.FirstOrDefault(value => value.SheetTableCellId == cellId) is { } pair)
-        {
-            return new SheetPairValue { SheetTableCellId = cellId, ValueX = pair.PairValueX, ValueY = pair.PairValueY };
-        }
-
-        if (revision.LinkedSheetValues.FirstOrDefault(value => value.SheetTableCellId == cellId) is { } link)
-        {
-            return MapLinkedValue(cellId, link);
-        }
-
-        return modelType switch
-        {
-            "numeric" or "numericDropdown" => new SheetNumericValue { SheetTableCellId = cellId, Value = null },
-            "pair" => new SheetPairValue { SheetTableCellId = cellId, ValueX = null, ValueY = null },
-            "linkedSpecSheet" => new SheetLinkedSheetValue { SheetTableCellId = cellId, TableReferenceId = null, LinkedSpecSheetTypeId = null, LinkedSpecSheetPhaseId = null, LinkedReferenceId = null },
-            _ => new SheetTextValue { SheetTableCellId = cellId, Value = null }
-        };
+        return value;
     }
 
-    private static SheetLinkedSheetValue MapLinkedValue(int cellId, DbSheetLinkedSheetValue link)
+    /// <summary>
+    /// The values of one row revision by cell, so that each cell finds its value without searching the revision.
+    /// </summary>
+    private sealed class RowValues
     {
-        return new SheetLinkedSheetValue
+        private readonly Dictionary<int, DbSheetNumericValue> _numbers;
+        private readonly Dictionary<int, DbSheetTextValue> _texts;
+        private readonly Dictionary<int, DbSheetPairValue> _pairs;
+        private readonly Dictionary<int, DbSheetLinkedSheetValue> _links;
+        private readonly Dictionary<int, DbSheetCellConfigurationOverride> _overrides;
+
+        public RowValues(DbSheetTableRowRevision revision)
         {
-            SheetTableCellId = cellId,
-            TableReferenceId = link.TableReferenceId,
-            LinkedSpecSheetTypeId = link.LinkedSpecSheetTypeId,
-            LinkedSpecSheetPhaseId = link.LinkedSpecSheetPhaseId,
-            LinkedReferenceId = link.LinkedReferenceId
-        };
+            _numbers = revision.NumericValues.ToDictionary(value => value.SheetTableCellId);
+            _texts = revision.TextValues.ToDictionary(value => value.SheetTableCellId);
+            _pairs = revision.PairValues.ToDictionary(value => value.SheetTableCellId);
+            _links = revision.LinkedSheetValues.ToDictionary(value => value.SheetTableCellId);
+            _overrides = revision.CellConfigurationOverrides.ToDictionary(value => value.SheetTableCellId);
+        }
+
+        public ICellProperties? ConfigurationOverrideOf(int cellId)
+        {
+            return _overrides.GetValueOrDefault(cellId)?.ConfigurationOverride;
+        }
+
+        // The value the row revision has for the cell. A cell the revision has no value for is empty, of the kind its type holds.
+        public SheetCellValue ValueOf(int cellId, string modelType)
+        {
+            if (_numbers.TryGetValue(cellId, out var number))
+            {
+                return new SheetNumericValue { SheetTableCellId = cellId, Value = number.Value };
+            }
+
+            if (_texts.TryGetValue(cellId, out var text))
+            {
+                return new SheetTextValue { SheetTableCellId = cellId, Value = text.Value };
+            }
+
+            if (_pairs.TryGetValue(cellId, out var pair))
+            {
+                return new SheetPairValue { SheetTableCellId = cellId, ValueX = pair.PairValueX, ValueY = pair.PairValueY };
+            }
+
+            if (_links.TryGetValue(cellId, out var link))
+            {
+                return new SheetLinkedSheetValue
+                {
+                    SheetTableCellId = cellId,
+                    TableReferenceId = link.TableReferenceId,
+                    LinkedSpecSheetTypeId = link.LinkedSpecSheetTypeId,
+                    LinkedSpecSheetPhaseId = link.LinkedSpecSheetPhaseId,
+                    LinkedReferenceId = link.LinkedReferenceId
+                };
+            }
+
+            return modelType switch
+            {
+                "numeric" or "numericDropdown" => new SheetNumericValue { SheetTableCellId = cellId, Value = null },
+                "pair" => new SheetPairValue { SheetTableCellId = cellId, ValueX = null, ValueY = null },
+                "linkedSpecSheet" => new SheetLinkedSheetValue { SheetTableCellId = cellId, TableReferenceId = null, LinkedSpecSheetTypeId = null, LinkedSpecSheetPhaseId = null, LinkedReferenceId = null },
+                _ => new SheetTextValue { SheetTableCellId = cellId, Value = null }
+            };
+        }
     }
 
     private SheetProperty MapProperty(DbSheetProperty property)
