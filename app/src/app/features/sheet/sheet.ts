@@ -53,6 +53,7 @@ import { VerticalLayout } from './features/layouts/vertical-layout/vertical-layo
 import { PUSpecSheetTableCellBase } from './models/cells/pu-spec-sheet-table-cell-base';
 import { PUSpecSheetTableGroup } from './models/pu-spec-sheet-table-group';
 import { PUSpecSheetTableRow } from './models/pu-spec-sheet-table-row';
+import { SheetLoadParams } from './models/sheet-load-params';
 import { PUSpecSheetTableBase } from './models/tables/pu-spec-sheet-table-base';
 import { ActiveSheetService } from './services/active-sheet.service';
 import { LinkedSheetService } from './services/linked-sheet.service';
@@ -101,24 +102,7 @@ export class Sheet extends CanDeactivate implements AfterViewInit {
   });
 
   public readonly specSheetResource = resource({
-    params: () => {
-      const id = this.id();
-      if (id) {
-        return { sheetId: id, versionNumber: undefined, isDraft: false };
-      }
-
-      // The latest version is opened as the sheet stands now, everyone's checked-out changes included, which is
-      // what is edited. Older versions are read-only.
-      const selected = this._sheetsService?.selectedSpecSheet();
-      return selected
-        ? {
-            sheetId: selected.sheetId,
-            versionNumber: selected.versionNumber,
-            isDraft:
-              selected.isDraft || this._sheetsService.isSelectedSheetLatest(),
-          }
-        : undefined;
-    },
+    params: () => this._sheetToLoad(),
     loader: ({ params }) =>
       params.isDraft
         ? this._sheetDataService.getDraftSheetAsync(params.sheetId)
@@ -164,6 +148,35 @@ export class Sheet extends CanDeactivate implements AfterViewInit {
   });
 
   private readonly _specSheet = computed(() => this.specSheetResource.value());
+
+  // Reloading the version list makes new list items; comparing by value stops that from reading the sheet again
+  // when the same sheet and version are still selected.
+  private readonly _sheetToLoad = computed<SheetLoadParams | undefined>(
+    () => {
+      const id = this.id();
+      if (id) {
+        return { sheetId: id, versionNumber: undefined, isDraft: false };
+      }
+
+      // The latest version is opened as the sheet stands now, everyone's checked-out changes included, which is
+      // what is edited. Older versions are read-only.
+      const selected = this._sheetsService?.selectedSpecSheet();
+      return selected
+        ? {
+            sheetId: selected.sheetId,
+            versionNumber: selected.versionNumber,
+            isDraft:
+              selected.isDraft || this._sheetsService.isSelectedSheetLatest(),
+          }
+        : undefined;
+    },
+    {
+      equal: (previous, next) =>
+        previous?.sheetId === next?.sheetId &&
+        previous?.versionNumber === next?.versionNumber &&
+        previous?.isDraft === next?.isDraft,
+    },
+  );
 
   constructor(
     private readonly _sheetService: ActiveSheetService,
