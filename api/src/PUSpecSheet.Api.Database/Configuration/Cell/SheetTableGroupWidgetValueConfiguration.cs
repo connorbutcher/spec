@@ -13,7 +13,7 @@ internal class SheetTableGroupWidgetValueConfiguration : IEntityTypeConfiguratio
     public void Configure(EntityTypeBuilder<DbSheetTableGroupWidgetValue> builder)
     {
         builder.HasKey(x => new { x.SheetTableGroupRevisionId, x.SheetTableGroupWidgetId });
-        builder.ToTable("TableGroupWidgetValues", "cell");
+        builder.ToTable("SheetTableGroupWidgetValues", "cell");
 
         builder.Property(x => x.SheetTableGroupRevisionId)
             .HasColumnName("SheetTableGroupRevisionID")

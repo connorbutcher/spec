@@ -10,7 +10,7 @@ internal class SheetTableNoteValueConfiguration : IEntityTypeConfiguration<DbShe
     public void Configure(EntityTypeBuilder<DbSheetTableNoteValue> builder)
     {
         builder.HasKey(x => new { x.SheetTableRevisionId, x.SheetTableNoteId });
-        builder.ToTable("TableNoteValues", "cell");
+        builder.ToTable("SheetTableNoteValues", "cell");
 
         builder.Property(x => x.SheetTableRevisionId)
             .HasColumnName("SheetTableRevisionID")
