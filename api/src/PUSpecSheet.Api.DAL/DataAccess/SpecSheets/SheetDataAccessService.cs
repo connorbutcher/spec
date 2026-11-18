@@ -288,7 +288,7 @@ internal class SheetDataAccessService : ISheetDataAccessService
             ?? throw new InvalidOperationException("Current user not found in the context.");
     }
 
-    // A table that has permissions is only shown to the users it has them for, as a copy's is.
+    // A table that has permissions is only shown to the users it has them for.
     private async Task<Sheet> TrimTablesAsync(Sheet sheet, CancellationToken cancellationToken)
     {
         var currentUser = await GetCurrentUserAsync(cancellationToken);

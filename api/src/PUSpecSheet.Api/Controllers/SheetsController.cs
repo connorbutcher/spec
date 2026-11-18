@@ -8,8 +8,8 @@ using PUSpecSheet.Api.DAL.DataAccess.SpecSheets;
 namespace PUSpecSheet.Api.Controllers;
 
 /// <summary>
-/// Sheets in the shape of the revision schema, alongside the legacy <c>specsheets</c> endpoints. Ids here are sheet ids
-/// and the ids of the sheet's items, not those of a copy.
+/// Sheets in the shape of the revision schema. Ids here are sheet ids and the ids of the sheet's items, except under
+/// <c>spec-sheet/{specSheetId}</c>, which takes the id of a spec sheet (a published version's or a draft's).
 /// </summary>
 [Route("sheets")]
 [Authorize]
@@ -94,18 +94,23 @@ public class SheetsController : ControllerBase
         return Ok(tables);
     }
 
-    [HttpGet("spec-sheet/{specSheetId:int}")]
-    public async Task<ActionResult<SheetLocation>> FindSheetAsync(int specSheetId)
-    {
-        var location = await _sheetDataAccessService.FindSheetAsync(specSheetId, HttpContext.RequestAborted);
-        return location is null ? NotFound() : Ok(location);
-    }
-
     [HttpGet("{id:int}/versions")]
     public async Task<ActionResult<IReadOnlyList<SheetVersion>>> GetSheetVersionsAsync(int id)
     {
         var versions = await _sheetDataAccessService.GetSheetVersionsAsync(id, HttpContext.RequestAborted);
         return Ok(versions);
+    }
+
+    [HttpGet("phase/{phaseId:int}/type/{sheetTypeId:int}/versions")]
+    public async Task<ActionResult<IReadOnlyList<SheetVersionSummary>>> GetVersionSummariesByPhaseAndTypeAsync(int phaseId, int sheetTypeId)
+    {
+        return Ok(await _sheetDataAccessService.GetPublishedVersionSummariesAsync(sheetTypeId, phaseId, HttpContext.RequestAborted));
+    }
+
+    [HttpGet("type/{sheetTypeId:int}/versions")]
+    public async Task<ActionResult<IReadOnlyList<SheetVersionSummary>>> GetVersionSummariesByTypeAsync(int sheetTypeId)
+    {
+        return Ok(await _sheetDataAccessService.GetPublishedVersionSummariesAsync(sheetTypeId, null, HttpContext.RequestAborted));
     }
 
     [HttpPost("draft")]
@@ -155,6 +160,13 @@ public class SheetsController : ControllerBase
 
     // The app opens, edits and lists sheets by the id of a spec sheet (a published version's or a draft's), which these
     // endpoints take in place of the sheet's.
+
+    [HttpGet("spec-sheet/{specSheetId:int}")]
+    public async Task<ActionResult<SheetLocation>> FindSheetAsync(int specSheetId)
+    {
+        var location = await _sheetDataAccessService.FindSheetAsync(specSheetId, HttpContext.RequestAborted);
+        return location is null ? NotFound() : Ok(location);
+    }
 
     [HttpGet("spec-sheet/{specSheetId:int}/sheet")]
     public async Task<ActionResult<Sheet>> GetSheetBySpecSheetAsync(int specSheetId)
@@ -248,19 +260,6 @@ public class SheetsController : ControllerBase
 
         await _sheetDataAccessService.ReassignSubmissionApproversAsync(location.SheetId, request, HttpContext.RequestAborted);
         return NoContent();
-    }
-
-    // Every published version of the sheets of the phase and type, then the draft's id where there is one.
-    [HttpGet("phase/{phaseId:int}/type/{sheetTypeId:int}/versions")]
-    public async Task<ActionResult<IReadOnlyList<SheetVersionSummary>>> GetVersionSummariesByPhaseAndTypeAsync(int phaseId, int sheetTypeId)
-    {
-        return Ok(await _sheetDataAccessService.GetPublishedVersionSummariesAsync(sheetTypeId, phaseId, HttpContext.RequestAborted));
-    }
-
-    [HttpGet("type/{sheetTypeId:int}/versions")]
-    public async Task<ActionResult<IReadOnlyList<SheetVersionSummary>>> GetVersionSummariesByTypeAsync(int sheetTypeId)
-    {
-        return Ok(await _sheetDataAccessService.GetPublishedVersionSummariesAsync(sheetTypeId, null, HttpContext.RequestAborted));
     }
 
     private async Task<SheetLocation?> FindDraftAsync(int specSheetId)

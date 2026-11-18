@@ -14,7 +14,7 @@ using PUSpecSheet.Api.Database.Schema.Legacy.SpecSheets;
 namespace PUSpecSheet.Api.DAL.DataAccess.SpecSheets.Edits;
 
 /// <summary>
-/// Creates a draft for a sheet type edited on the revisions. The SpecSheets row is the draft's header, and the sheet's
+/// Creates a sheet's draft. The SpecSheets row is the draft's header, and the sheet's
 /// drafts are made to show the sheet copied from, or nothing, with the property values given, as a new copy did. The
 /// property values are kept on the header too, where the lists of spec sheets read them; they aren't changed afterwards.
 /// </summary>

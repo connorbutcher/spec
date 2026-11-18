@@ -69,7 +69,7 @@ public interface ISheetDataAccessService
 
     /// <summary>
     /// Where the spec sheet with a SpecSheets id is among the sheets. Null when it isn't: it hasn't been migrated to a
-    /// version, or it is an unpublished one whose type isn't edited on the revisions.
+    /// version, or it is an unpublished one with no sheet.
     /// </summary>
     Task<SheetLocation?> FindSheetAsync(int specSheetId, CancellationToken cancellationToken);
 

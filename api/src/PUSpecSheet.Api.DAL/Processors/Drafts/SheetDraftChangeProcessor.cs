@@ -30,7 +30,7 @@ using PUSpecSheet.Api.Database;
 namespace PUSpecSheet.Api.DAL.Processors.Drafts;
 
 /// <summary>
-/// Applies changes to a sheet's drafts in the revisions, for a sheet type edited on the revisions.
+/// Applies changes to a sheet's drafts in the revisions.
 /// </summary>
 internal class SheetDraftChangeProcessor : ChangeProcessorBase
 {

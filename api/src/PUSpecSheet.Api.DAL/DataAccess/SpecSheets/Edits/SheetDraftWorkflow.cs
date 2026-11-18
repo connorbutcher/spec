@@ -13,7 +13,7 @@ using PUSpecSheet.Api.Emails.Services;
 namespace PUSpecSheet.Api.DAL.DataAccess.SpecSheets.Edits;
 
 /// <summary>
-/// Publishes, submits for approval and decides a sheet's drafts, for a sheet type edited on the revisions. The draft's
+/// Publishes, submits for approval and decides a sheet's drafts. The draft's
 /// SpecSheets row still holds its workflow steps and who published it, which the lists and screens read, so the row,
 /// the sheet's submission and its drafts are kept in step here, and the people involved are emailed.
 /// </summary>
@@ -249,7 +249,6 @@ internal class SheetDraftWorkflow
         var query = _dbContext.SpecSheets
             .Include(s => s.SpecSheetPhase)
             .Include(s => s.SpecSheetType)
-            .Include(s => s.WorkflowSteps)
             .AsQueryable();
         if (!tracked)
         {

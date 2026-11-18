@@ -16,7 +16,7 @@ namespace PUSpecSheet.Api.DAL.DataAccess.SpecSheets.Reads.Sheets;
 /// </summary>
 /// <remarks>
 /// The sheet is read the way <see cref="SpecSheetRevisionReader"/> reads it, plus its linked tables and versions, and
-/// mapped by <see cref="SheetMapper"/>. Nothing is read from the copies, and nothing is numbered: every id is the id of
+/// mapped by <see cref="SheetMapper"/>. Nothing is numbered: every id is the id of
 /// the item in the revision schema.
 /// </remarks>
 internal class SheetReader
@@ -238,7 +238,7 @@ internal class SheetReader
 
     /// <summary>
     /// Where the spec sheet with this SpecSheets id is among the sheets, or null when it isn't: it hasn't been migrated to
-    /// a version, or it is an unpublished one whose type isn't edited on the revisions.
+    /// a version, or it is an unpublished one with no sheet.
     /// </summary>
     public async Task<SheetLocation?> FindLocationAsync(int specSheetId, CancellationToken cancellationToken)
     {

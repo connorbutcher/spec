@@ -4,8 +4,7 @@ using PUSpecSheet.Abstractions.Operations;
 namespace PUSpecSheet.Abstractions.Requests.Sheets;
 
 /// <summary>
-/// Changes to a sheet's draft. The operations are the ones the spec sheet edits use, with the ids of the sheet's items
-/// (see <c>Sheet</c>) in place of a copy's.
+/// Changes to a sheet's draft. The operations carry the ids of the sheet's items (see <c>Sheet</c>).
 /// </summary>
 public sealed record SheetChanges
 {

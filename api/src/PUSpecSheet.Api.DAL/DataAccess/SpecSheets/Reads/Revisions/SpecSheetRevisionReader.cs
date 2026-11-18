@@ -12,7 +12,7 @@ namespace PUSpecSheet.Api.DAL.DataAccess.SpecSheets.Reads.Revisions;
 
 /// <summary>
 /// Reads a published spec sheet from the revisions: the version that was migrated from the SpecSheets copy with the
-/// given id, as its sheet stood when the version was published, or the drafts of a sheet type edited on the revisions
+/// given id, as its sheet stood when the version was published, or the sheet's drafts
 /// (<see cref="ReadDraftAsync"/>). It builds the same <see cref="DbSpecSheet"/> a copy is
 /// read into and maps it the same way, so everything after the read is the same whichever it came from.
 /// </summary>

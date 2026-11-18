@@ -5,7 +5,7 @@ using PUSpecSheet.Api.Database;
 namespace PUSpecSheet.Api.DAL.DataAccess.SpecSheets.Edits;
 
 /// <summary>
-/// Drops a sheet's drafts, for a draft of a sheet type edited on the revisions that is deleted: every draft revision, and
+/// Drops a sheet's drafts, for a draft that is deleted: every draft revision, and
 /// the tables, groups, rows, cells, widgets, notes and properties added in the draft. It runs in the caller's transaction.
 /// </summary>
 internal class SheetDraftDeleter
