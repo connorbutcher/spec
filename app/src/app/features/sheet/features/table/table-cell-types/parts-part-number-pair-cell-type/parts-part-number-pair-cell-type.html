@@ -13,11 +13,13 @@
       class="top"
       [(value)]="cellValue"
       [referenceId]="cell().referenceId()"
+      [readOnly]="!canEdit()"
     />
 
     <app-text-input
       [(value)]="cellValueY"
       [referenceId]="cell().referenceId()"
+      [readOnly]="!canEdit()"
     />
   </div>
 

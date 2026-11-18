@@ -17,11 +17,21 @@
         />
       }
 
-      <i
-        class="icon red pi pi-trash"
-        pTooltip="Delete"
-        (click)="removeGroupAsync()"
-      ></i>
+      @if (canUndo()) {
+        <i
+          class="icon pi pi-undo"
+          pTooltip="Undo your changes to this row"
+          (click)="undoAsync()"
+        ></i>
+      }
+
+      @if (canRemove()) {
+        <i
+          class="icon red pi pi-trash"
+          pTooltip="Delete"
+          (click)="removeGroupAsync()"
+        ></i>
+      }
     </div>
 
     <div class="context-menu-triangle"></div>

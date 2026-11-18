@@ -25,6 +25,8 @@ import { SystemReferencesConfirmationDialogData } from '../../../dialogs/system-
 import { SystemReferencesConfirmationDialog } from '../../../dialogs/system-references-confirmation-dialog/system-references-confirmation-dialog';
 import { PUSpecSheetTableBase } from '../../../models/tables/pu-spec-sheet-table-base';
 import { ActiveSheetService } from '../../../services/active-sheet.service';
+import { SheetCheckoutService } from '../../../services/sheet-checkout.service';
+import { ItemLockTag } from '../item-lock-tag/item-lock-tag';
 import { ReferencesIndicator } from '../references-indicator/references-indicator';
 import { TableAddOptions } from '../table-add-options/table-add-options';
 import { TableTitleInput } from '../table-title-input/table-title-input';
@@ -42,6 +44,7 @@ import { TableTitleInput } from '../table-title-input/table-title-input';
     CdkDragHandle,
     TableAddOptions,
     ReferencesIndicator,
+    ItemLockTag,
   ],
   templateUrl: './table-header.html',
   styleUrl: './table-header.scss',
@@ -73,8 +76,18 @@ export class TableHeader {
       );
   });
 
+  /** Whether the table itself (title, configuration, access, removal) can be changed: nobody else has it checked out. */
+  public readonly canEditTable = computed(() =>
+    this._activeSheetService.canEditItem(this.table().table.revision),
+  );
+  /** Whether the current user has the table checked out, and can undo their changes to it. */
+  public readonly canUndoTable = computed(() => {
+    const lock = this._activeSheetService.lockOf(this.table().table.revision);
+    return this.canEdit() && !!lock?.isMine && !lock.isAwaitingApproval;
+  });
+
   public readonly canConfigureTable = computed(() => {
-    if (!this.canEdit()) {
+    if (!this.canEditTable()) {
       return false;
     }
 
@@ -89,6 +102,7 @@ export class TableHeader {
   });
 
   private readonly _activeSheetService = inject(ActiveSheetService);
+  private readonly _sheetCheckoutService = inject(SheetCheckoutService);
   private readonly _dialog = inject(Dialog);
   private readonly _injector = inject(Injector);
 
@@ -125,6 +139,14 @@ export class TableHeader {
         minWidth: '40vw',
       },
     );
+  }
+
+  public async undoTableAsync(): Promise<void> {
+    if (!this.canUndoTable()) {
+      return;
+    }
+
+    await this._sheetCheckoutService.undoTableAsync(this.table().id);
   }
 
   public async deleteTableAsync(): Promise<void> {

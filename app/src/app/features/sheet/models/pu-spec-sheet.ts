@@ -20,13 +20,11 @@ import { PUSpecSheetTableBase } from './tables/pu-spec-sheet-table-base';
 import { Sheet } from '../../../core/models/domain/sheets/sheet';
 import { SheetSubmission } from '../../../core/models/domain/sheets/sheet-submission';
 import { SheetTable } from '../../../core/models/domain/sheets/sheet-table';
-import { SubmissionStatus } from '../../../core/types/sheets/submission-status.enum';
 
 export class PUSpecSheet {
   public readonly id: number;
   public readonly versionNumber: Signal<number>;
   public readonly isPublished: Signal<boolean>;
-  public readonly hasApprovalWorkflowStarted: boolean;
   public readonly requiresApprovalWorkflow: boolean;
   public readonly specSheetType: Signal<SpecSheetType>;
   public readonly specSheetPhase: Signal<SpecSheetPhase>;
@@ -95,14 +93,6 @@ export class PUSpecSheet {
     );
     this.requiresApprovalWorkflow =
       sheet.specSheetType!.requiresApprovalWorkflow;
-
-    if (sheet.specSheetType!.requiresApprovalWorkflow) {
-      this.hasApprovalWorkflowStarted = submissions.some(
-        (s) => s.status === SubmissionStatus.Pending,
-      );
-    } else {
-      this.hasApprovalWorkflowStarted = true;
-    }
   }
 
   public addTable(table: SheetTable): void {

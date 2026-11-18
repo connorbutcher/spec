@@ -17,8 +17,52 @@
     }
   </div>
   <p class="started-date">
-    Started {{ submission().submittedDateTime | date: "dd MMM yyyy, HH:mm" }}
+    Submitted {{ submission().submittedDateTime | date: "dd MMM yyyy, HH:mm" }}
   </p>
+
+  @if (submission().note) {
+    <p class="submission-note">{{ submission().note }}</p>
+  }
+
+  @if (canDecide() || canWithdraw()) {
+    <div class="submission-actions">
+      @if (canDecide()) {
+        <button
+          pButton
+          size="small"
+          severity="success"
+          (click)="decideAsync(true)"
+        >
+          <i class="pi pi-check"></i>
+          Approve
+        </button>
+        <button
+          pButton
+          size="small"
+          severity="danger"
+          [outlined]="true"
+          (click)="decideAsync(false)"
+        >
+          <i class="pi pi-times"></i>
+          Reject
+        </button>
+      }
+
+      @if (canWithdraw()) {
+        <button
+          pButton
+          size="small"
+          severity="secondary"
+          [outlined]="true"
+          pTooltip="Take these changes back; they stay checked out to you"
+          (click)="withdrawAsync()"
+        >
+          <i class="pi pi-replay"></i>
+          Withdraw
+        </button>
+      }
+    </div>
+  }
 }
 
 <div class="approval-counts">

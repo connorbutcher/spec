@@ -9,7 +9,11 @@ import {
 } from '@angular/core';
 import { Subject } from 'rxjs';
 import { CellLookupService } from '../../../core/services/cell-lookup.service';
-import { CheckInOutService } from '../../../core/services/check-in-out.service';
+import { SheetItemLockHelpers } from '../../../core/helpers/sheet-item-lock-helpers';
+import { SheetCheckoutSummary } from '../../../core/models/domain/sheets/sheet-checkout-summary';
+import { SheetItemLock } from '../../../core/models/domain/sheets/sheet-item-lock';
+import { SheetItemRevision } from '../../../core/models/domain/sheets/sheet-item-revision';
+import { UserService } from '../../../core/services/user.service';
 import { PUCardAnalyticsService } from '../../analytics/services/pu-card-analytics.service';
 import { SheetsService } from '../../sheets/services/sheets.service';
 import { PUSpecSheet } from '../models/pu-spec-sheet';
@@ -22,45 +26,40 @@ export class ActiveSheetService implements SheetContext {
     new Set<string>(),
   );
 
+  /**
+   * Whether the sheet open is its current state, which anyone may edit: each row or table they change is checked out
+   * to them. Older versions are read-only. Use canEditItem for whether a particular item can be changed.
+   */
   public readonly canEdit = computed(() => {
     const specSheet = this.specSheet();
-    if (
-      !specSheet ||
-      specSheet.isPublished() ||
-      this._puCardAnalyticsService.isEnabled() ||
-      (specSheet.requiresApprovalWorkflow &&
-        specSheet.hasApprovalWorkflowStarted)
-    ) {
-      return false;
-    }
-
-    const checkout = this._checkInOutService
-      .puSpecSheetCheckouts()
-      .find((c) => c.id === specSheet.id);
-    if (!checkout) {
-      return false;
-    }
-
     return (
-      checkout.user.connectionId === this._checkInOutService.currentConnectionId
+      !!specSheet &&
+      !specSheet.isPublished() &&
+      !this._puCardAnalyticsService.isEnabled()
     );
   });
-  public readonly hasChanges = computed(
+  public readonly currentUserId = computed(() => this._userService.user()?.id);
+  /** How many rows and tables are checked out, by the current user and by others. */
+  public readonly checkoutSummary = computed<SheetCheckoutSummary>(() => {
+    const specSheet = this.specSheet();
+    if (!specSheet) {
+      return { mine: 0, mineAwaitingApproval: 0, others: [] };
+    }
+
+    return SheetItemLockHelpers.summarise(
+      specSheet.sheet,
+      this.currentUserId(),
+    );
+  });  public readonly hasChanges = computed(
     () => this.specSheet()?.hasChanges() ?? false,
   );
   public readonly externalReferences = computed(
     () => this.specSheet()?.sheet.externalReferences ?? [],
   );
-  public readonly canPublish = computed(() => {
-    const specSheet = this.specSheet();
-    return (
-      !!specSheet &&
-      !specSheet.isPublished() &&
-      (!specSheet.requiresApprovalWorkflow ||
-        !specSheet.hasApprovalWorkflowStarted)
-    );
-  });
-  public readonly isValid = computed(
+  /** Whether the current user has saved checked-out changes they can submit (or publish). */
+  public readonly canPublish = computed(
+    () => this.canEdit() && this.checkoutSummary().mine > 0,
+  );  public readonly isValid = computed(
     () => this.specSheet()?.isValid() ?? false,
   );
   public readonly tableTemplateWidgets = computed(() => {
@@ -110,7 +109,7 @@ export class ActiveSheetService implements SheetContext {
   });
 
   private readonly _sheetsService = inject(SheetsService);
-  private readonly _checkInOutService = inject(CheckInOutService);
+  private readonly _userService = inject(UserService);
   private readonly _cellLookupService = inject(CellLookupService);
   private readonly _puCardAnalyticsService = inject(PUCardAnalyticsService);
   private readonly _injector = inject(Injector);
@@ -141,6 +140,20 @@ export class ActiveSheetService implements SheetContext {
 
   public isGroupReferenceIdDeleted(referenceId: string): boolean {
     return this.groupReferenceIdsDeleted().has(referenceId);
+  }
+
+  /** Who has the item checked out, or undefined when anyone may edit it. */
+  public lockOf(
+    revision: SheetItemRevision | undefined,
+  ): SheetItemLock | undefined {
+    return SheetItemLockHelpers.lockOf(revision, this.currentUserId());
+  }
+
+  /** Whether the current user may change the item: the sheet is editable and nobody else has it checked out. */
+  public canEditItem(revision: SheetItemRevision | undefined): boolean {
+    return (
+      this.canEdit() && SheetItemLockHelpers.isEditable(this.lockOf(revision))
+    );
   }
 
   public triggerReload(): void {

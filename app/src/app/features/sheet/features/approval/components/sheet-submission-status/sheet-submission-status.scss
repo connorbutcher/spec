@@ -46,3 +46,15 @@ h4 {
     border-top: 1px solid var(--theme-border-color);
   }
 }
+
+.submission-note {
+  margin: 0;
+  font-size: 0.8rem;
+  white-space: pre-wrap;
+}
+
+.submission-actions {
+  display: flex;
+  gap: var(--gap-s);
+  margin: var(--gap-xs) 0;
+}

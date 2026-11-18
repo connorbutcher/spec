@@ -17,6 +17,7 @@ import { TableGroupTemplate } from '../../../../../../core/models/domain/templat
 import { SystemReferencesConfirmationDialogData } from '../../../../dialogs/system-references-confirmation-dialog/models/system-references-confirmation-dialog-data.interface';
 import { SystemReferencesConfirmationDialog } from '../../../../dialogs/system-references-confirmation-dialog/system-references-confirmation-dialog';
 import { ActiveSheetService } from '../../../../services/active-sheet.service';
+import { SheetCheckoutService } from '../../../../services/sheet-checkout.service';
 import {
   ActiveElement,
   RowContextMenuService,
@@ -71,6 +72,38 @@ export class HorizontalTableRowHoverContextMenu {
     );
   });
 
+  /** A row can't be removed while someone else has it, or anything in it, checked out. */
+  public readonly canRemove = computed(() => {
+    const activeElement = this.activeElement();
+    if (!activeElement) {
+      return false;
+    }
+
+    const group = activeElement.group;
+    return (
+      this._specSheetService.canEditItem(group.group.revision) &&
+      group
+        .rows()
+        .every((row) => this._specSheetService.canEditItem(row.row.revision))
+    );
+  });
+  /** Whether the current user has saved changes to the row they can undo. */
+  public readonly canUndo = computed(() => {
+    const activeElement = this.activeElement();
+    if (!activeElement || activeElement.group.id <= 0) {
+      return false;
+    }
+
+    const group = activeElement.group;
+    return [
+      group.group.revision,
+      ...group.rows().map((row) => row.row.revision),
+    ].some((revision) => {
+      const lock = this._specSheetService.lockOf(revision);
+      return !!lock?.isMine && !lock.isAwaitingApproval;
+    });
+  });
+
   private _direction: 'above' | 'below' | undefined = undefined;
 
   private readonly _rowContextMenuService = inject(RowContextMenuService);
@@ -79,6 +112,7 @@ export class HorizontalTableRowHoverContextMenu {
   private readonly _specSheetService = inject(ActiveSheetService);
   private readonly _tableGroupBuilderService = inject(TableGroupBuilderService);
   private readonly _dialog = inject(Dialog);
+  private readonly _sheetCheckoutService = inject(SheetCheckoutService);
 
   constructor() {
     effect(() => {
@@ -118,8 +152,17 @@ export class HorizontalTableRowHoverContextMenu {
     );
   }
 
+  public async undoAsync(): Promise<void> {
+    const activeElement = this.activeElement();
+    if (!activeElement || !this.canUndo()) {
+      return;
+    }
+
+    await this._sheetCheckoutService.undoGroupAsync(activeElement.group.id);
+  }
+
   public async removeGroupAsync(): Promise<void> {
-    if (!this.canEdit()) {
+    if (!this.canEdit() || !this.canRemove()) {
       return;
     }
 

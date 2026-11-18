@@ -35,6 +35,9 @@ export class TableTitleInput {
 
   private readonly _sheetFilterService = inject(SheetFilterService);
   private readonly _activeSheetService = inject(ActiveSheetService);
+  private readonly _canEdit = computed(() =>
+    this._activeSheetService.canEditItem(this.table().table.revision),
+  );
 
   constructor() {
     effect(() => {
@@ -79,7 +82,8 @@ export class TableTitleInput {
     this.isFocused.set(true);
   }
 
+  /** The title can't be changed while someone else has the table checked out. */
   public get canEdit(): Signal<boolean> {
-    return this._activeSheetService.canEdit;
+    return this._canEdit;
   }
 }

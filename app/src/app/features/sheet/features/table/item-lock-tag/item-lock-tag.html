@@ -1,0 +1,10 @@
+@if (lock()) {
+  <p-tag
+    class="item-lock-tag"
+    [icon]="icon()"
+    [value]="label()"
+    [severity]="severity()"
+    [pTooltip]="description()"
+    tooltipPosition="top"
+  />
+}

@@ -1,0 +1,13 @@
+:host {
+  display: inline-flex;
+  pointer-events: auto;
+}
+
+.item-lock-tag {
+  padding: 0 var(--gap-xs);
+
+  font-size: 0.7rem;
+  font-weight: 500;
+  line-height: 1.2;
+  white-space: nowrap;
+}

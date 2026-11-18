@@ -84,7 +84,10 @@ export class CellTypeBase<
       backgroundColor: backgroundColor,
     };
   });
-  public readonly canEdit = computed(() => this._sheetService.canEdit());
+  /** Whether the cell can be changed: the sheet is editable and nobody else has its row checked out. */
+  public readonly canEdit = computed(() =>
+    this._sheetService.canEditItem(this.row().row.revision),
+  );
 
   protected readonly _sheetFilterService = inject(SheetFilterService);
   protected readonly _sheetService = inject(ActiveSheetService);

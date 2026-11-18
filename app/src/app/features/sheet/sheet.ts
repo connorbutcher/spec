@@ -18,14 +18,17 @@ import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { Title } from '@angular/platform-browser';
 import { Router } from '@angular/router';
 import { ButtonDirective } from 'primeng/button';
+import { MessageService } from 'primeng/api';
 import {
   combineLatest,
   distinctUntilChanged,
   filter,
   firstValueFrom,
-  switchMap,
+  map,
+  pairwise,
+  startWith,
 } from 'rxjs';
-import { CheckoutRequest } from '../../core/models/check-in-out/checkout-request';
+import { SheetChangedNotice } from '../../core/models/check-in-out/sheet-changed-notice';
 import { CellLookupService } from '../../core/services/cell-lookup.service';
 import { CheckInOutService } from '../../core/services/check-in-out.service';
 import { FragmentHandler } from '../../core/services/fragment-handler.service';
@@ -35,7 +38,6 @@ import { DeactivationType } from '../../core/types/deactivation-type.enum';
 import { AnalyticsDataPointConfiguration } from '../analytics/components/analytics-data-point-configuration/analytics-data-point-configuration';
 import { PUCardAnalyticsService } from '../analytics/services/pu-card-analytics.service';
 import { CanDeactivate } from '../common/can-deactivate/can-deactivate';
-import { CheckoutRequestedDialog } from '../common/checkout-requested-dialog/checkout-requested-dialog';
 import { EmptyState } from '../common/empty-state/empty-state';
 import { ErroredBlock } from '../common/errored-block/errored-block';
 import { LoadingBlock } from '../common/loading-block/loading-block';
@@ -58,7 +60,9 @@ import { RowContextMenuService } from './services/row-context-menu.service';
 import { SelectionService } from './services/selection.service';
 import { SheetContext } from './services/sheet-context';
 import { SheetDataService } from './services/sheet-data.service';
+import { SheetCheckoutService } from './services/sheet-checkout.service';
 import { SheetFilterService } from './services/sheet-filter.service';
+import { SheetSubmissionService } from './services/sheet-submission.service';
 import { TableGroupBuilderService } from './services/table-group-builder.service';
 
 @Component({
@@ -85,6 +89,8 @@ import { TableGroupBuilderService } from './services/table-group-builder.service
     TableGroupBuilderService,
     SidePanelConfigService,
     SelectionService,
+    SheetCheckoutService,
+    SheetSubmissionService,
   ],
 })
 export class Sheet extends CanDeactivate implements AfterViewInit {
@@ -101,12 +107,15 @@ export class Sheet extends CanDeactivate implements AfterViewInit {
         return { sheetId: id, versionNumber: undefined, isDraft: false };
       }
 
+      // The latest version is opened as the sheet stands now, everyone's checked-out changes included, which is
+      // what is edited. Older versions are read-only.
       const selected = this._sheetsService?.selectedSpecSheet();
       return selected
         ? {
             sheetId: selected.sheetId,
             versionNumber: selected.versionNumber,
-            isDraft: selected.isDraft,
+            isDraft:
+              selected.isDraft || this._sheetsService.isSelectedSheetLatest(),
           }
         : undefined;
     },
@@ -178,6 +187,7 @@ export class Sheet extends CanDeactivate implements AfterViewInit {
     private readonly _destroyRef: DestroyRef,
     private readonly _dialog: Dialog,
     private readonly _router: Router,
+    private readonly _messageService: MessageService,
   ) {
     super();
 
@@ -241,54 +251,34 @@ export class Sheet extends CanDeactivate implements AfterViewInit {
       this.setContent();
     });
 
-    combineLatest([
-      toObservable(this._checkInOutService.isServiceConnected),
-      toObservable(this._sheetService.specSheet),
-    ])
+    // Everyone viewing the sheet sees who else has it open.
+    toObservable(this._sheetService.specSheet)
       .pipe(
         takeUntilDestroyed(),
+        map((specSheet) => specSheet?.id),
+        filter((id): id is number => !!id),
         distinctUntilChanged(),
-        filter(
-          ([isConnected, specSheet]) =>
-            isConnected &&
-            !!specSheet &&
-            !specSheet.isPublished() &&
-            (!specSheet.requiresApprovalWorkflow ||
-              !specSheet.hasApprovalWorkflowStarted) &&
-            !this._checkInOutService.isPUSpecSheetCheckedOut(specSheet.id),
-        ),
-        switchMap(([_, specSheet]) =>
-          this._checkInOutService.invokeCheckoutAsync(specSheet.id),
-        ),
+        startWith(undefined),
+        pairwise(),
       )
-      .subscribe();
-
-    this._checkInOutService.checkoutRequested$
-      .pipe(takeUntilDestroyed(this._destroyRef))
-      .subscribe(async (checkoutRequest) => {
-        if (!checkoutRequest) {
-          return;
+      .subscribe(async ([previousId, id]) => {
+        if (previousId) {
+          await this._checkInOutService.leaveSheetAsync(previousId);
         }
 
-        const dialogRef = this._dialog.open<
-          boolean | undefined,
-          CheckoutRequest,
-          CheckoutRequestedDialog
-        >(CheckoutRequestedDialog, {
-          data: checkoutRequest,
-        });
-
-        const result = await firstValueFrom(dialogRef.closed);
-        if (result === undefined) {
-          return;
-        }
-
-        await this._checkInOutService.invokeRespondToCheckoutRequestAsync(
-          checkoutRequest.requestContextId,
-          result,
-        );
+        await this._checkInOutService.joinSheetAsync(id!);
       });
 
+    this._destroyRef.onDestroy(() => {
+      const specSheet = this._sheetService.specSheet();
+      if (specSheet) {
+        this._checkInOutService.leaveSheetAsync(specSheet.id);
+      }
+    });
+
+    this._checkInOutService.sheetChanged$
+      .pipe(takeUntilDestroyed())
+      .subscribe((notice) => this.handleSheetChanged(notice));
     this.handleAnalyticsConfiguration();
   }
 
@@ -351,15 +341,35 @@ export class Sheet extends CanDeactivate implements AfterViewInit {
       return;
     }
 
-    if (!this._checkInOutService.isPUSpecSheetCheckedOutToYou(specSheet.id)) {
-      return;
-    }
-
     if (deactivationType === DeactivationType.SaveAndExit) {
       await this.toolbarComponent()?.saveChangesAsync();
     }
+  }
 
-    await this._checkInOutService.invokeCheckInAsync(specSheet.id);
+  // Another user changed what is checked out on this sheet. With nothing unsaved here the sheet is read again
+  // straight away; otherwise the user is told, so their unsaved changes aren't lost.
+  private handleSheetChanged(notice: SheetChangedNotice): void {
+    const specSheet = this._sheetService.specSheet();
+    if (!specSheet || notice.sheetId !== specSheet.id) {
+      return;
+    }
+
+    if (this._sheetService.hasChanges()) {
+      this._messageService.add({
+        severity: 'warn',
+        summary: `${notice.user.username} ${notice.change}`,
+        detail:
+          'Save your changes, or reload the sheet, to see what is checked out now.',
+      });
+      return;
+    }
+
+    this._messageService.add({
+      severity: 'info',
+      summary: `${notice.user.username} ${notice.change}`,
+    });
+    this._sheetsService.reload();
+    this.specSheetResource.reload();
   }
 
   public get showSidePanel(): Signal<boolean> {

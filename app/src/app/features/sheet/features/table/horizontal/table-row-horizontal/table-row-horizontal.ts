@@ -2,6 +2,7 @@ import { CdkDrag } from '@angular/cdk/drag-drop';
 import {
   AfterViewInit,
   Component,
+  computed,
   effect,
   inject,
   input,
@@ -15,16 +16,22 @@ import { RowHoverDirective } from '../../../../directives/row-hover.directive';
 import { PUSpecSheetTableGroup } from '../../../../models/pu-spec-sheet-table-group';
 import { PUSpecSheetTableRow } from '../../../../models/pu-spec-sheet-table-row';
 import { PUSpecSheetTableBase } from '../../../../models/tables/pu-spec-sheet-table-base';
+import { ActiveSheetService } from '../../../../services/active-sheet.service';
+import { ItemLockTag } from '../../item-lock-tag/item-lock-tag';
 import { TableCell } from '../../table-cell/table-cell';
 
 @Component({
   selector: 'div[app-table-row-horizontal]',
+  imports: [ItemLockTag],
   templateUrl: './table-row-horizontal.html',
   styleUrl: './table-row-horizontal.scss',
   host: {
     '[style.grid-row]': 'row().rowNumber()',
     '[class.invalid-row]': '!row().isValid()',
     '[class]': 'row().advisoryStateClass()',
+    '[class.locked-by-other]': '!!rowLock() && !rowLock()!.isMine',
+    '[class.locked-by-me]': '!!rowLock()?.isMine && !rowLock()!.isAwaitingApproval',
+    '[class.awaiting-approval]': '!!rowLock()?.isAwaitingApproval',
   },
   hostDirectives: [
     { directive: CdkDrag, inputs: ['cdkDragDisabled', 'cdkDragData'] },
@@ -41,11 +48,16 @@ export class TableRowHorizontal extends Destroyable implements AfterViewInit {
   public readonly parentGroup = input.required<PUSpecSheetTableGroup>();
   public readonly row = input.required<PUSpecSheetTableRow>();
   public readonly id = input.required<string>();
+  /** Who has the row checked out, if anyone. */
+  public readonly rowLock = computed(() =>
+    this._activeSheetService.lockOf(this.row().row.revision),
+  );
 
   public readonly rowContent = viewChild.required('rowContent', {
     read: ViewContainerRef,
   });
 
+  private readonly _activeSheetService = inject(ActiveSheetService);
   private readonly _activationService = inject(ActivationService);
 
   constructor() {

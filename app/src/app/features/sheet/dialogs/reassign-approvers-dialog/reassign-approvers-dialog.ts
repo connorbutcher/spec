@@ -111,6 +111,7 @@ export class ReassignApproversDialog {
     try {
       const request = {
         sheetId: this._activeSheetService.specSheet().id,
+        submissionId: this._dialogData.id,
         addedUserIds: approversToAdd.map((a) => a.id),
         removedUserIds: approversToRemove.map((oa) => oa.userId),
       } as ReassignSubmissionApproversRequest;

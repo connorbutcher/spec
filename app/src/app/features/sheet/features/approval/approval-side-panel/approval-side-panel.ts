@@ -6,6 +6,7 @@ import { SubmissionStatus } from '../../../../../core/types/sheets/submission-st
 import { ISidePanelLayer } from '../../../../side-panel/models/side-panel-layer-data.interface';
 import { SidePanelService } from '../../../../side-panel/side-panel.service';
 import { ActiveSheetService } from '../../../services/active-sheet.service';
+import { SheetSubmissionService } from '../../../services/sheet-submission.service';
 import { ApprovalStatusTag } from '../components/approval-status-tag/approval-status-tag';
 import { SheetSubmissionStatus } from '../components/sheet-submission-status/sheet-submission-status';
 
@@ -32,8 +33,9 @@ export class ApprovalSidePanel implements ISidePanelLayer<
     () => this._activeSheetService.specSheet().submissions,
   );
 
-  public readonly activeSubmission = computed(() =>
-    this._submissions().find(
+  /** Every submission awaiting approval: each is one user's checked-out changes. */
+  public readonly activeSubmissions = computed(() =>
+    this._submissions().filter(
       (attempt) => attempt.status === SubmissionStatus.Pending,
     ),
   );
@@ -46,14 +48,7 @@ export class ApprovalSidePanel implements ISidePanelLayer<
           DateTime.fromISO(left.submittedDateTime).toMillis(),
       ),
   );
-  public readonly displayedSubmission = computed(
-    () => this.activeSubmission() ?? this.pastSubmissions()[0],
-  );
-  public readonly historySubmissions = computed(() =>
-    this.pastSubmissions().filter(
-      (attempt) => attempt.id !== this.displayedSubmission()?.id,
-    ),
-  );
+  public readonly whoseChanges = SheetSubmissionService.whoseChanges;
 
   public close(): void {
     this._sidePanelService.pop();

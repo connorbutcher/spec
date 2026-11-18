@@ -20,6 +20,8 @@
       >
     }
 
+    <app-item-lock-tag [revision]="table().table.revision" />
+
     @if (!table().isValid() && table().advisoryState() === 3) {
       <p-tag
         class="px-tag-inverted px-tag-danger"
@@ -40,10 +42,24 @@
       pTooltip="Click to control who can see this table"
       tooltipPosition="left"
       (click)="configureTableAccessAsync()"
-      [disabled]="!canEdit()"
+      [disabled]="!canEditTable()"
     >
       <i class="pi pi-shield"></i>
     </button>
+
+    @if (canUndoTable()) {
+      <button
+        pButton
+        class="px-button-table-widget"
+        iconOnly
+        [text]="true"
+        pTooltip="Undo your changes to this table"
+        tooltipPosition="left"
+        (click)="undoTableAsync()"
+      >
+        <i class="pi pi-undo"></i>
+      </button>
+    }
 
     @if (canEdit()) {
       <p-overlay-badge
@@ -91,7 +107,7 @@
         pTooltip="Click to delete the table"
         tooltipPosition="left"
         (click)="deleteTableAsync()"
-        [disabled]="!canEdit()"
+        [disabled]="!canEditTable()"
       >
         <i class="pi pi-trash"></i>
       </button>

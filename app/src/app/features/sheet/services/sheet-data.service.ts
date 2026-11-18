@@ -28,7 +28,7 @@ export class SheetDataService {
     );
   }
 
-  /** The draft of the sheet. */
+  /** The sheet as it stands now: everyone's checked-out changes over the latest version. */
   public async getDraftSheetAsync(sheetId: number): Promise<SheetDetail> {
     const url = `${environment.apiUrl}/sheets/${sheetId}/draft/detail`;
     return await lastValueFrom(this._httpClient.get<SheetDetail>(url));
@@ -68,10 +68,52 @@ export class SheetDataService {
     );
   }
 
+  /** Takes back the current user's pending submission; its changes go back to being checked out to them. */
+  public async withdrawSubmissionAsync(
+    sheetId: number,
+    submissionId: number,
+  ): Promise<void> {
+    const url = `${environment.apiUrl}/sheets/${sheetId}/submissions/${submissionId}/withdraw`;
+    await lastValueFrom(this._httpClient.patch<void>(url, {}));
+  }
+
+  /** Undoes every change the current user has checked out on the sheet. */
+  public async undoMyChangesAsync(sheetId: number): Promise<void> {
+    const url = `${environment.apiUrl}/sheets/${sheetId}/draft/mine`;
+    await lastValueFrom(this._httpClient.delete<void>(url));
+  }
+
+  /** Undoes the current user's checked-out changes to one row, and frees it. */
+  public async undoMyRowChangesAsync(
+    sheetId: number,
+    rowId: number,
+  ): Promise<void> {
+    const url = `${environment.apiUrl}/sheets/${sheetId}/draft/mine/rows/${rowId}`;
+    await lastValueFrom(this._httpClient.delete<void>(url));
+  }
+
+  /** Undoes the current user's checked-out changes to one group and its rows, and frees them. */
+  public async undoMyGroupChangesAsync(
+    sheetId: number,
+    groupId: number,
+  ): Promise<void> {
+    const url = `${environment.apiUrl}/sheets/${sheetId}/draft/mine/groups/${groupId}`;
+    await lastValueFrom(this._httpClient.delete<void>(url));
+  }
+
+  /** Undoes the current user's checked-out changes to one table and what is inside it, and frees them. */
+  public async undoMyTableChangesAsync(
+    sheetId: number,
+    tableId: number,
+  ): Promise<void> {
+    const url = `${environment.apiUrl}/sheets/${sheetId}/draft/mine/tables/${tableId}`;
+    await lastValueFrom(this._httpClient.delete<void>(url));
+  }
+
   public async decideSubmissionAsync(
     request: DecideSubmissionRequest,
   ): Promise<void> {
-    const url = `${environment.apiUrl}/sheets/${request.sheetId}/submission/decision`;
+    const url = `${environment.apiUrl}/sheets/${request.sheetId}/submissions/${request.submissionId}/decision`;
     await lastValueFrom(
       this._httpClient.patch<void>(url, {
         decision: request.decision,
@@ -83,7 +125,7 @@ export class SheetDataService {
   public async reassignSubmissionApproversAsync(
     request: ReassignSubmissionApproversRequest,
   ): Promise<void> {
-    const url = `${environment.apiUrl}/sheets/${request.sheetId}/submission/approvers`;
+    const url = `${environment.apiUrl}/sheets/${request.sheetId}/submissions/${request.submissionId}/approvers`;
     await lastValueFrom(
       this._httpClient.patch<void>(url, {
         addedUserIds: request.addedUserIds,

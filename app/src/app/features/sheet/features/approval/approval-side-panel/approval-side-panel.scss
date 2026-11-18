@@ -75,6 +75,11 @@
     min-width: 0;
   }
 
+  .attempt-by {
+    font-size: 0.75rem;
+    color: var(--p-text-muted-color);
+  }
+
   &[open] .history-chevron {
     transform: rotate(90deg);
   }

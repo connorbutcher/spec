@@ -13,21 +13,19 @@
 </div>
 
 <div class="panel-content">
-  @let active = activeSubmission();
-  @let current = displayedSubmission();
-  @if (current) {
+  @for (submission of activeSubmissions(); track submission.id) {
     <app-sheet-submission-status
-      [submission]="current"
+      [submission]="submission"
       [canToggle]="false"
-      [heading]="active ? 'Current approval' : 'Latest approval'"
+      [heading]="whoseChanges(submission)"
     />
   }
 
-  @if (historySubmissions().length > 0) {
+  @if (pastSubmissions().length > 0) {
     <section class="submission-history">
       <h4>History</h4>
 
-      @for (pastApproval of historySubmissions(); track pastApproval.id) {
+      @for (pastApproval of pastSubmissions(); track pastApproval.id) {
         <details class="history-attempt">
           <summary>
             <i class="material-symbols-outlined history-chevron"
@@ -35,6 +33,9 @@
             >
             <span class="attempt-date">{{
               pastApproval.submittedDateTime | date: "dd MMM yyyy, HH:mm"
+            }}</span>
+            <span class="attempt-by">{{
+              pastApproval.submittedByUser?.displayName
             }}</span>
             <app-approval-status-tag [state]="pastApproval.status" />
           </summary>
@@ -50,7 +51,7 @@
     </section>
   }
 
-  @if (!current) {
+  @if (activeSubmissions().length === 0 && pastSubmissions().length === 0) {
     <p>No approval history</p>
   }
 </div>

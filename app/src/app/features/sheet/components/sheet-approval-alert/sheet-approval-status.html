@@ -1,6 +1,6 @@
 <div
   class="approval-status"
-  [class.approval-status--required]="isApprovalRequired()"
+  [class.approval-status--required]="!!submissionToDecide()"
 >
   <button
     pButton
@@ -15,12 +15,14 @@
     {{ approvalStatus().label }}
   </button>
 
-  @if (isApprovalRequired()) {
+  @if (submissionToDecide()) {
     <button
       pButton
       size="small"
       severity="success"
       (click)="updateStateAsync(true)"
+      [pTooltip]="'Approve ' + decideTooltip()"
+      tooltipPosition="bottom"
     >
       <i class="pi pi-check"></i>
       Approve
@@ -31,6 +33,8 @@
       severity="danger"
       [outlined]="true"
       (click)="updateStateAsync(false)"
+      [pTooltip]="'Reject ' + decideTooltip()"
+      tooltipPosition="bottom"
     >
       <i class="pi pi-times"></i>
       Reject

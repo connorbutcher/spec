@@ -1,6 +1,7 @@
 import {
   AfterViewInit,
   Component,
+  computed,
   effect,
   inject,
   input,
@@ -16,11 +17,13 @@ import { PUSpecSheetTableRow } from '../../../../models/pu-spec-sheet-table-row'
 import { PUSpecSheetTableBase } from '../../../../models/tables/pu-spec-sheet-table-base';
 import { SelectionService } from '../../../../services/selection.service';
 import { ReferencesIndicator } from '../../references-indicator/references-indicator';
+import { ActiveSheetService } from '../../../../services/active-sheet.service';
+import { ItemLockTag } from '../../item-lock-tag/item-lock-tag';
 import { TableCell } from '../../table-cell/table-cell';
 
 @Component({
   selector: 'div[app-table-row]',
-  imports: [FragmentedElementDirective, ReferencesIndicator],
+  imports: [FragmentedElementDirective, ReferencesIndicator, ItemLockTag],
   templateUrl: './table-row.html',
   styleUrl: './table-row.scss',
   host: {
@@ -28,6 +31,9 @@ import { TableCell } from '../../table-cell/table-cell';
     '[class.invalid-row]': '!row().isValid()',
     '[class.has-references]': '(row().rowReferences()?.length ?? 0) > 0',
     '[class]': 'row().advisoryStateClass()',
+    '[class.locked-by-other]': '!!rowLock() && !rowLock()!.isMine',
+    '[class.locked-by-me]': '!!rowLock()?.isMine && !rowLock()!.isAwaitingApproval',
+    '[class.awaiting-approval]': '!!rowLock()?.isAwaitingApproval',
     '(click)': 'selectRow()',
   },
   hostDirectives: [{ directive: FragmentedElementDirective, inputs: ['id'] }],
@@ -37,11 +43,16 @@ export class TableRow extends Destroyable implements AfterViewInit {
   public readonly group = input.required<PUSpecSheetTableGroup>();
   public readonly row = input.required<PUSpecSheetTableRow>();
   public readonly id = input.required<string>();
+  /** Who has the row checked out, if anyone. */
+  public readonly rowLock = computed(() =>
+    this._activeSheetService.lockOf(this.row().row.revision),
+  );
 
   public readonly rowContent = viewChild.required('rowContent', {
     read: ViewContainerRef,
   });
 
+  private readonly _activeSheetService = inject(ActiveSheetService);
   private readonly _activationService = inject(ActivationService);
   private readonly _puCardAnalyticsService = inject(PUCardAnalyticsService);
   private readonly _selectionService = inject(SelectionService);

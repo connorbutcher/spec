@@ -25,3 +25,19 @@
 .selected-row {
   background-color: lightcoral;
 }
+
+.row-lock {
+  position: absolute;
+  top: 1px;
+  right: 1px;
+  z-index: 101;
+}
+
+:host(.locked-by-other),
+:host(.awaiting-approval) {
+  box-shadow: inset 3px 0 0 var(--p-surface-400);
+}
+
+:host(.locked-by-me) {
+  box-shadow: inset 3px 0 0 var(--p-primary-400);
+}

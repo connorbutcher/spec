@@ -1,31 +1,32 @@
 import { Dialog } from '@angular/cdk/dialog';
 import { Component, computed, inject, Injector, Signal } from '@angular/core';
-import { Router } from '@angular/router';
 import { DateTime } from 'luxon';
 import { MenuItem, MessageService } from 'primeng/api';
 import { ButtonDirective } from 'primeng/button';
 import { SplitButton } from 'primeng/splitbutton';
+import { Tooltip } from 'primeng/tooltip';
 import { firstValueFrom } from 'rxjs';
 import { CellValueHelpers } from '../../../../core/helpers/cell-value-helpers';
 import { nextTempId } from '../../../../core/helpers/temp-id-counter';
 import { TableTemplate } from '../../../../core/models/domain/template/table-template';
 import { PublishSheetRequest } from '../../../../core/models/requests/sheets/publish-sheet-request';
-import { CheckInOutService } from '../../../../core/services/check-in-out.service';
 import { UserService } from '../../../../core/services/user.service';
 import { PUCardAnalyticsService } from '../../../analytics/services/pu-card-analytics.service';
 import { SpinnerDialogData } from '../../../common/spinner-dialog/models/spinner-dialog-data';
 import { SpinnerDialog } from '../../../common/spinner-dialog/spinner-dialog';
 import { SheetsService } from '../../../sheets/services/sheets.service';
 import { ConfigureTablePropertiesDialog } from '../../dialogs/configure-table-properties-dialog/configure-table-properties-dialog';
-import { CreatePuSpecSheetDialog } from '../../dialogs/create-pu-spec-sheet-dialog/create-pu-spec-sheet-dialog';
-import { CreatePUSpecSheetDialogData } from '../../dialogs/create-pu-spec-sheet-dialog/models/create-pu-spec-sheet-dialog-data';
 import { PublishSpecSheetDialog } from '../../dialogs/publish-spec-sheet-dialog/publish-spec-sheet-dialog';
 import { AdvisoryOverview } from '../../features/advisories/advisory-overview/advisory-overview';
 import { ReferencesButton } from '../../features/references/references-button/references-button';
 import { PUSpecSheet } from '../../models/pu-spec-sheet';
 import { ActiveSheetService } from '../../services/active-sheet.service';
 import { SheetDataService } from '../../services/sheet-data.service';
+import { ConfirmationDialog } from '../../../common/confirmation-dialog/confirmation-dialog';
+import { ConfirmationDialogData } from '../../../common/confirmation-dialog/models/confirmation-dialog-data.interface';
+import { SheetCheckoutService } from '../../services/sheet-checkout.service';
 import { SheetApprovalStatus } from '../sheet-approval-alert/sheet-approval-status';
+import { SheetCheckoutStatus } from '../sheet-checkout-status/sheet-checkout-status';
 import { SpecSheetSearch } from '../spec-sheet-search/spec-sheet-search';
 import { SheetItemHelpers } from '../../../../core/helpers/sheet-item-helpers';
 import { SheetTable } from '../../../../core/models/domain/sheets/sheet-table';
@@ -43,6 +44,8 @@ import { SheetWidget } from '../../../../core/models/domain/sheets/sheet-widget'
     ReferencesButton,
     AdvisoryOverview,
     SheetApprovalStatus,
+    SheetCheckoutStatus,
+    Tooltip,
   ],
   templateUrl: './spec-sheet-toolbar.html',
   styleUrl: './spec-sheet-toolbar.scss',
@@ -66,25 +69,18 @@ export class SpecSheetToolbar {
         }) as MenuItem,
     );
   });
-  public readonly canCreateNewVersion = computed(() => {
-    const hasUnpublishedVersion = this._sheetsService
-      .specSheetsForPhaseAndType()
-      .some((v) => v.isDraft);
-
-    return (
-      this._sheetsService.selectedSpecSheet()?.isDraft === false &&
-      !hasUnpublishedVersion
-    );
-  });
+  /** Whether the current user has saved changes checked out that they can undo. */
+  public readonly canUndoMine = computed(
+    () => this._activeSheetService.checkoutSummary().mine > 0,
+  );
 
   private readonly _sheetsService = inject(SheetsService);
   private readonly _activeSheetService = inject(ActiveSheetService);
   private readonly _userService = inject(UserService);
   private readonly _puCardAnalyticsService = inject(PUCardAnalyticsService);
   private readonly _sheetDataService = inject(SheetDataService);
-  private readonly _checkInOutService = inject(CheckInOutService);
+  private readonly _sheetCheckoutService = inject(SheetCheckoutService);
   private readonly _messageService = inject(MessageService);
-  private readonly _router = inject(Router);
   private readonly _dialog = inject(Dialog);
   private readonly _injector = inject(Injector);
 
@@ -120,13 +116,16 @@ export class SpecSheetToolbar {
       this._messageService.add({
         severity: 'success',
         summary: 'Spec Sheet Changes Saved',
+        detail:
+          'The rows and tables you changed are checked out to you until you submit or undo them.',
       });
       this._activeSheetService.triggerReload();
+      await this._sheetCheckoutService.notifyAsync('saved changes');
     } catch (err) {
       this._messageService.add({
         severity: 'error',
         summary: 'Error Saving Spec Sheet Changes',
-        detail: (err as Error).message,
+        detail: SheetCheckoutService.reasonOf(err),
       });
     } finally {
       spinnerDialogRef.close();
@@ -153,43 +152,49 @@ export class SpecSheetToolbar {
       SpinnerDialog
     >(SpinnerDialog, {
       data: {
-        name: 'Publishing Spec Sheet',
-        hint: 'Please wait while the spec sheet is being published.',
+        name: 'Submitting Your Changes',
+        hint: 'Please wait while your changes are submitted.',
       },
     });
 
     try {
       await this._sheetDataService.publishSheetAsync(result);
 
+      const needsApproval = this.specSheet().requiresApprovalWorkflow;
       this._messageService.add({
         severity: 'success',
-        summary: 'Spec Sheet Published',
+        summary: needsApproval
+          ? 'Your Changes Were Submitted for Approval'
+          : 'Your Changes Were Published',
       });
+      this._sheetsService.reload();
       this._activeSheetService.triggerReload();
-
-      await this._checkInOutService.invokeCheckInAsync(this.specSheet().id);
+      await this._sheetCheckoutService.notifyAsync(
+        needsApproval ? 'submitted changes for approval' : 'published changes',
+      );
     } catch (err) {
       this._messageService.add({
         severity: 'error',
-        summary: 'Error Publishing Spec Sheet',
-        detail: (err as Error).message,
+        summary: 'Error Submitting Your Changes',
+        detail: SheetCheckoutService.reasonOf(err),
       });
     } finally {
       spinnerDialogRef.close();
     }
   }
 
-  public async createNewVersionAsync(): Promise<void> {
+  public async undoMineAsync(): Promise<void> {
+    const count = this._activeSheetService.checkoutSummary().mine;
     const dialogRef = this._dialog.open<
-      number | undefined,
-      CreatePUSpecSheetDialogData,
-      CreatePuSpecSheetDialog
-    >(CreatePuSpecSheetDialog, {
-      injector: this._injector,
+      boolean,
+      ConfirmationDialogData,
+      ConfirmationDialog
+    >(ConfirmationDialog, {
       data: {
-        type: this.specSheet().specSheetType(),
-        phase: this.specSheet().specSheetPhase(),
-        copyFromSpecSheetId: this.specSheet().sheet.version?.sourceSpecSheetId,
+        title: 'Undo My Changes',
+        message: `Throw away your changes to the ${count} row(s) and table(s) you have checked out? They go back to the latest version and are free for anyone to edit. This can't be undone.`,
+        confirmText: 'Undo',
+        confirmSeverity: 'danger',
       },
     });
 
@@ -197,14 +202,9 @@ export class SpecSheetToolbar {
     if (!result) {
       return;
     }
-    await this._router.navigate([], {
-      queryParams: {},
-      queryParamsHandling: 'replace',
-    });
-    this._sheetsService.reload();
-    this._activeSheetService.triggerReload();
-  }
 
+    await this._sheetCheckoutService.undoMineAsync();
+  }
   public async addTable(tableType?: TableTemplate) {
     const specSheetType = this._sheetsService.selectedType();
     const user = this._userService.user();

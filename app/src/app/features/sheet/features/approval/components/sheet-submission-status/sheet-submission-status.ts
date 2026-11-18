@@ -8,6 +8,7 @@ import { SubmissionStatus } from '../../../../../../core/types/sheets/submission
 import { UserService } from '../../../../../../core/services/user.service';
 import { ReassignApproversDialog } from '../../../../dialogs/reassign-approvers-dialog/reassign-approvers-dialog';
 import { ActiveSheetService } from '../../../../services/active-sheet.service';
+import { SheetSubmissionService } from '../../../../services/sheet-submission.service';
 import { SheetSubmissionApproverStatus } from '../sheet-submission-approver-status/sheet-submission-approver-status';
 import { ApprovalStatusTag } from '../approval-status-tag/approval-status-tag';
 import { SheetSubmission } from '../../../../../../core/models/domain/sheets/sheet-submission';
@@ -59,6 +60,25 @@ export class SheetSubmissionStatus {
       this.submission().status === SubmissionStatus.Pending &&
       this.isViewerThePublisher(),
   );
+  /** The current user is an approver of this pending submission and hasn't decided yet. */
+  public readonly canDecide = computed(() => {
+    const user = this._userService.user();
+    return (
+      !!user &&
+      this.submission().status === SubmissionStatus.Pending &&
+      !this._activeSheetService.hasChanges() &&
+      this.submission().approvers.some(
+        (approver) =>
+          approver.userId === user.id &&
+          approver.decision === ApproverDecision.Pending,
+      )
+    );
+  });
+  public readonly canWithdraw = computed(
+    () =>
+      this.submission().status === SubmissionStatus.Pending &&
+      this.isViewerThePublisher(),
+  );
   public readonly isViewerThePublisher = computed(() => {
     const sheet = this._activeSheetService.specSheet();
     const user = this._userService.user();
@@ -70,9 +90,18 @@ export class SheetSubmissionStatus {
   });
 
   private readonly _activeSheetService = inject(ActiveSheetService);
+  private readonly _submissionService = inject(SheetSubmissionService);
   private readonly _userService = inject(UserService);
   private readonly _dialog = inject(Dialog);
   private readonly _injector = inject(Injector);
+
+  public async decideAsync(approve: boolean): Promise<void> {
+    await this._submissionService.decideAsync(this.submission(), approve);
+  }
+
+  public async withdrawAsync(): Promise<void> {
+    await this._submissionService.withdrawAsync(this.submission());
+  }
 
   public async reassignApprovers(): Promise<void> {
     this._dialog.open<unknown, SheetSubmission, ReassignApproversDialog>(

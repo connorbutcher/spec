@@ -7,7 +7,6 @@ import {
   input,
   model,
   signal,
-  Signal,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { isNil } from 'lodash';
@@ -24,6 +23,11 @@ import { ActiveSheetService } from '../../../../services/active-sheet.service';
 export class TextInput {
   public readonly value = model.required<string | undefined>();
   public readonly referenceId = input.required<string>();
+  /** Set when the row or table holding the input is checked out to someone else. */
+  public readonly readOnly = input<boolean>(false);
+  public readonly canEdit = computed(
+    () => this._sheetService.canEdit() && !this.readOnly(),
+  );
   public readonly isCellFocused = signal<boolean>(false);
 
   public readonly hasValue = computed(() => !isNil(this.value()));
@@ -54,9 +58,5 @@ export class TextInput {
     }
 
     this.isCellFocused.set(true);
-  }
-
-  public get canEdit(): Signal<boolean> {
-    return this._sheetService.canEdit;
   }
 }

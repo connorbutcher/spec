@@ -1,0 +1,42 @@
+<div class="sheet-checkout-status">
+  <span
+    class="version"
+    [pTooltip]="
+      isCurrent()
+        ? 'The latest published version. Rows and tables you change are checked out to you until you submit or undo them.'
+        : 'An older version, which is read-only.'
+    "
+    tooltipPosition="bottom"
+    >{{ versionLabel() }}</span
+  >
+
+  @if (isCurrent()) {
+    @if (summary().mine > 0) {
+      <p-tag
+        icon="pi pi-lock"
+        severity="info"
+        [value]="summary().mine + ' checked out to you'"
+      />
+    }
+
+    @if (summary().mineAwaitingApproval > 0) {
+      <p-tag
+        icon="pi pi-hourglass"
+        severity="warn"
+        [value]="summary().mineAwaitingApproval + ' awaiting approval'"
+      />
+    }
+
+    @if (summary().others.length > 0) {
+      <p-tag
+        icon="pi pi-lock"
+        severity="secondary"
+        [value]="othersLabel()"
+        [pTooltip]="othersTooltip()"
+        tooltipPosition="bottom"
+      />
+    }
+  }
+
+  <app-pu-spec-sheet-avatar [puSpecSheetId]="sheetId()" size="xsmall" />
+</div>

@@ -1,0 +1,17 @@
+.sheet-checkout-status {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-s);
+
+  font-size: 0.8rem;
+  white-space: nowrap;
+
+  p-tag {
+    font-size: 0.7rem;
+  }
+}
+
+.version {
+  font-weight: 600;
+  color: var(--p-text-muted-color);
+}

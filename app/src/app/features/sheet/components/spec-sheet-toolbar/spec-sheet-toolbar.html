@@ -5,6 +5,8 @@
       <app-advisory-overview />
       <app-references-button />
 
+      <app-sheet-checkout-status />
+
       @if (specSheet().requiresApprovalWorkflow) {
         <app-sheet-approval-status />
       }
@@ -12,12 +14,7 @@
   </div>
 
   <div class="toolbar-actions">
-    @if (
-      canEdit() &&
-      tableTypes() &&
-      tableTypes().length > 0 &&
-      !isAnalyticsEnabled()
-    ) {
+    @if (canEdit() && tableTypes() && tableTypes().length > 0) {
       @if (tableTypes().length === 1) {
         <button
           pButton
@@ -44,42 +41,50 @@
       }
     }
 
-    @if (canCreateNewVersion() && !isAnalyticsEnabled()) {
-      <button
-        pButton
-        size="small"
-        severity="success"
-        (click)="createNewVersionAsync()"
-      >
-        Create New Version
-      </button>
-    } @else {
-      @if (canPublish() && !isAnalyticsEnabled() && canEdit()) {
+    @if (canEdit()) {
+      @if (canUndoMine()) {
         <button
           pButton
-          severity="success"
-          [outlined]="true"
-          (click)="publishSpecSheetAsync()"
-          [disabled]="!isValid() || hasChanges() || !canEdit()"
+          severity="secondary"
+          [text]="true"
+          (click)="undoMineAsync()"
           size="small"
+          pTooltip="Throw away every change you have checked out on this sheet, and free those rows and tables"
+          tooltipPosition="bottom"
         >
-          <i class="pi pi-upload"></i>
-          Publish
+          <i class="pi pi-undo"></i>
+          Undo My Changes
         </button>
       }
 
-      @if (!isAnalyticsEnabled() && canEdit()) {
-        <button
-          pButton
-          (click)="saveChangesAsync()"
-          [disabled]="!isValid() || !hasChanges() || !canEdit()"
-          size="small"
-          severity="secondary"
-        >
-          <i class="pi pi-save"></i>
-          Save Changes
-        </button>
-      }
+      <button
+        pButton
+        severity="success"
+        [outlined]="true"
+        (click)="publishSpecSheetAsync()"
+        [disabled]="!isValid() || hasChanges() || !canPublish()"
+        size="small"
+        [pTooltip]="
+          specSheet().requiresApprovalWorkflow
+            ? 'Send the changes you have checked out for approval'
+            : 'Publish the changes you have checked out as the next version'
+        "
+        tooltipPosition="bottom"
+      >
+        <i class="pi pi-upload"></i>
+        {{ specSheet().requiresApprovalWorkflow ? "Submit" : "Publish" }}
+      </button>
+
+      <button
+        pButton
+        (click)="saveChangesAsync()"
+        [disabled]="!isValid() || !hasChanges()"
+        size="small"
+        severity="secondary"
+      >
+        <i class="pi pi-save"></i>
+        Save Changes
+      </button>
     }
   </div>
 </div>
