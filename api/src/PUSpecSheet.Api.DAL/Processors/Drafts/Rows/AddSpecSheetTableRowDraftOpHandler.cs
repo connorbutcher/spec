@@ -20,6 +20,7 @@ internal class AddSpecSheetTableRowDraftOpHandler : DraftOperationHandlerBase, I
     {
         var groupId = ResolveId(operation.SpecSheetTableGroupId, tempIdMap);
         await EnsureGroupOnSheetAsync(groupId, ct);
+        await Locks.EnsureGroupOpenAsync(groupId, ct);
 
         var newRow = new DbSheetTableRow
         {

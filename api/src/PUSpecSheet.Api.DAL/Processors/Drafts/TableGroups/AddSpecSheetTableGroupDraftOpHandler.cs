@@ -23,6 +23,7 @@ internal class AddSpecSheetTableGroupDraftOpHandler : DraftOperationHandlerBase,
     {
         var tableId = ResolveId(operation.SpecSheetTableId, tempIdMap);
         await EnsureTableOnSheetAsync(tableId, ct);
+        await Locks.EnsureTableOpenAsync(tableId, ct);
 
         Guid? linkedGroupReferenceId = operation.LinkedSpecSheetTableGroupId.HasValue
             ? await Groups.FindReferenceIdAsync(ResolveId(operation.LinkedSpecSheetTableGroupId.Value, tempIdMap), ct)

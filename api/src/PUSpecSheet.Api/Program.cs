@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Reflection;
 using System.Text.Json.Serialization;
 // Auth is disabled for local running; see DefaultUserClaimsAccessor.
@@ -12,6 +12,7 @@ using PUSpecSheet.Api.Common.Documentation;
 using PUSpecSheet.Api.Common.Logging;
 using PUSpecSheet.Api.DAL;
 using PUSpecSheet.Api.Emails;
+using PUSpecSheet.Api.Filters;
 
 OpenApiInfo apiInfo = new()
 {
@@ -40,6 +41,7 @@ builder.Services.AddResponseCompression(options =>
 builder.Services.AddControllers(opt =>
 {
     opt.MaxValidationDepth = 256;
+    opt.Filters.Add<SheetEditExceptionFilter>();
 }).AddJsonOptions(options =>
 {
     options.JsonSerializerOptions.MaxDepth = 256;

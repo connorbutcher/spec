@@ -222,7 +222,8 @@ internal class SheetMapper
             PublishedDateTime = revision.PublishedDateTime,
             SupersededDateTime = revision.SupersededDateTime,
             SheetVersionId = revision.SheetVersionId,
-            SheetVersionNumber = revision.SheetVersionId is { } versionId && _versionNumbers.TryGetValue(versionId, out var number) ? number : null
+            SheetVersionNumber = revision.SheetVersionId is { } versionId && _versionNumbers.TryGetValue(versionId, out var number) ? number : null,
+            SheetSubmissionId = revision.SheetSubmissionId
         };
     }
 

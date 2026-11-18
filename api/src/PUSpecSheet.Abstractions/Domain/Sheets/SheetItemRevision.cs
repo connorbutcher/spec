@@ -29,4 +29,9 @@ public record SheetItemRevision
     public required int? SheetVersionId { get; init; }
 
     public required int? SheetVersionNumber { get; init; }
+
+    /// <summary>
+    /// The submission a draft is awaiting approval in. A draft without one is checked out to its creator.
+    /// </summary>
+    public required int? SheetSubmissionId { get; init; }
 }

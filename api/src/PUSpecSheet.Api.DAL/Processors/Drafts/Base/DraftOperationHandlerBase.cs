@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Abstractions.Domain.Access;
 using PUSpecSheet.Api.DAL.Processors.Base;
+using PUSpecSheet.Api.DAL.Processors.Drafts.Locks;
 using PUSpecSheet.Api.Database;
 
 namespace PUSpecSheet.Api.DAL.Processors.Drafts.Base;
@@ -20,6 +21,7 @@ internal abstract class DraftOperationHandlerBase : OperationHandlerBase
         Rows = new RowDrafts(dbContext, user, sheetId);
         Values = new RowDraftValues(dbContext);
         Owners = new DraftItemOwners(dbContext, sheetId);
+        Locks = new DraftLocks(dbContext, user);
     }
 
     protected int SheetId { get; }
@@ -33,6 +35,8 @@ internal abstract class DraftOperationHandlerBase : OperationHandlerBase
     protected RowDraftValues Values { get; }
 
     protected DraftItemOwners Owners { get; }
+
+    protected DraftLocks Locks { get; }
 
     protected async Task EnsureTableOnSheetAsync(int tableId, CancellationToken ct)
     {

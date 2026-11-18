@@ -26,6 +26,8 @@ internal class DeleteSpecSheetTableGroupDraftOpHandler : DraftOperationHandlerBa
             return;
         }
 
+        await Locks.EnsureNothingHeldInGroupAsync(operation.Id, ct);
+
         draft.IsDeleted = true;
 
         var referenceId = await Groups.FindReferenceIdAsync(operation.Id, ct);

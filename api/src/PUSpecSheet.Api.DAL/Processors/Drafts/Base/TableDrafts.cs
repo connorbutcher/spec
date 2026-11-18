@@ -4,6 +4,7 @@ using PUSpecSheet.Abstractions.Domain.Properties.Table;
 using PUSpecSheet.Abstractions.Types;
 using PUSpecSheet.Api.Database.Schema.Cell;
 using PUSpecSheet.Api.Database;
+using PUSpecSheet.Api.DAL.Processors.Drafts.Locks;
 using PUSpecSheet.Api.Database.Schema.Spec;
 
 namespace PUSpecSheet.Api.DAL.Processors.Drafts.Base;
@@ -17,6 +18,7 @@ internal class TableDrafts
     private readonly PUSpecSheetDbContext _dbContext;
     private readonly User _user;
     private readonly int _sheetId;
+    private readonly DraftLocks _locks;
 
     public TableDrafts(PUSpecSheetDbContext dbContext, User user, int sheetId)
     {
@@ -26,6 +28,7 @@ internal class TableDrafts
         _dbContext = dbContext;
         _user = user;
         _sheetId = sheetId;
+        _locks = new DraftLocks(dbContext, user);
     }
 
     /// <summary>
@@ -50,6 +53,7 @@ internal class TableDrafts
         var draft = _dbContext.SheetTableRevisions.Local
             .FirstOrDefault(r => r.SheetTableId == tableId && r.Status == RevisionStatus.Draft)
             ?? await FindOrStartAsync(tableId, ct);
+        await _locks.EnsureEditableAsync(draft, "table", ct);
 
         draft.LastModifiedDateTime = DateTime.UtcNow;
         return draft;

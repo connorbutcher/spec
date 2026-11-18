@@ -18,6 +18,8 @@ internal class DeleteSpecSheetTableDraftOpHandler : DraftOperationHandlerBase, I
 
     public async Task ApplyAsync(DeleteSpecSheetTableOp operation, IReadOnlyDictionary<int, int> tempIdMap, CancellationToken ct)
     {
+        await Locks.EnsureNothingHeldInTableAsync(operation.Id, ct);
+
         var draft = await Tables.GetAsync(operation.Id, ct);
         draft.IsDeleted = true;
     }
