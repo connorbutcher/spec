@@ -7,7 +7,6 @@ using PUSpecSheet.Abstractions.Requests.Types.Structure;
 using PUSpecSheet.Abstractions.Requests.Types.Type;
 using PUSpecSheet.Api.Common.Context;
 using PUSpecSheet.Api.Database;
-using PUSpecSheet.Api.Database.Mappers.Legacy.SpecSheets;
 using PUSpecSheet.Api.Database.Mappers.Types;
 using PUSpecSheet.Api.Database.Schema.Access;
 using PUSpecSheet.Api.Database.Schema.Types;

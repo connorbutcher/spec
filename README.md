@@ -57,6 +57,6 @@ What remains of the copied model:
 
 - The legacy tables and their `Db*` entities, which the migrator reads. Run it with `"commit": true` on a schedule while anything still writes the legacy tables.
 - The `SpecSheets` row, which is the draft's header (lists, emails, approval steps) and the source of each version's id.
-- `SpecSheetRevisionReader` and the `Abstractions/Domain/Legacy` models, which `SheetDraftCreator` still uses to copy a published sheet's tables into a new draft. Porting `SheetDraftCreator`, `SheetDraftCopier`, `SheetDraftItems` and `SheetCopySignatures` to the `Sheet` models would let both go.
+- `SheetDraftCreator`, `SheetDraftCopier`, `SheetDraftItems` and `SheetCopySignatures` work on the `Sheet` models; the copy-from property still names its source by spec sheet id (a version's `SourceSpecSheetId`), which `SheetReader.FindLocationAsync` resolves.
 - The Angular app works on the `Sheet*` models directly. The one spec sheet id it still handles is a version's `sourceSpecSheetId`, which the copy-from property sends because `SheetDraftCreator` reads its source by spec sheet id.
 

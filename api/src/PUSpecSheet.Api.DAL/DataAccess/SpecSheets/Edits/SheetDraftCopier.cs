@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Abstractions.Domain.Access;
-using PUSpecSheet.Abstractions.Domain.Legacy.SpecSheets;
+using PUSpecSheet.Abstractions.Domain.Sheets;
 using PUSpecSheet.Api.DAL.Processors.Drafts.Base;
 using PUSpecSheet.Api.Database;
 using PUSpecSheet.Api.Database.Schema.Spec;
@@ -8,7 +8,7 @@ using PUSpecSheet.Api.Database.Schema.Spec;
 namespace PUSpecSheet.Api.DAL.DataAccess.SpecSheets.Edits;
 
 /// <summary>
-/// Makes a sheet's drafts show what another spec sheet shows, as copying a sheet into a new copy did. Tables, groups, rows
+/// Makes a sheet's drafts show what another sheet (or version of one) shows, as copying a sheet into a new copy did. Tables, groups, rows
 /// and cells are matched by ReferenceID: one the sheet has is changed in its draft only where it differs, one it hasn't
 /// is added, and one the other sheet hasn't is removed. Copying a sheet's own published version therefore changes
 /// nothing.
@@ -39,8 +39,8 @@ internal class SheetDraftCopier
     }
 
     /// <param name="target">The sheet as its drafts show it now, read from the revisions.</param>
-    /// <param name="sourceTables">The tables of the spec sheet to copy.</param>
-    public async Task CopyAsync(SpecSheet target, IEnumerable<SpecSheetTable> sourceTables, CancellationToken ct)
+    /// <param name="sourceTables">The tables of the sheet to copy.</param>
+    public async Task CopyAsync(Sheet target, IEnumerable<SheetTable> sourceTables, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(target, nameof(target));
         ArgumentNullException.ThrowIfNull(sourceTables, nameof(sourceTables));
@@ -64,7 +64,7 @@ internal class SheetDraftCopier
         }
     }
 
-    private async Task CopyTableAsync(SpecSheetTable target, SpecSheetTable source, CancellationToken ct)
+    private async Task CopyTableAsync(SheetTable target, SheetTable source, CancellationToken ct)
     {
         if (SheetCopySignatures.Of(target) != SheetCopySignatures.Of(source))
         {
@@ -75,18 +75,16 @@ internal class SheetDraftCopier
             await _items.SetTableItemsAsync(draft, null, source, ct);
         }
 
-        var targetLinks = LinkedReferenceIds(target);
         var targetGroups = target.Groups.ToDictionary(group => group.ReferenceId);
-        var sourceLinks = LinkedReferenceIds(source);
         foreach (var sourceGroup in source.Groups)
         {
             if (targetGroups.Remove(sourceGroup.ReferenceId, out var targetGroup))
             {
-                await CopyGroupAsync(targetGroup, targetLinks[targetGroup.Id], sourceGroup, sourceLinks[sourceGroup.Id], ct);
+                await CopyGroupAsync(targetGroup, sourceGroup, ct);
             }
             else
             {
-                var newGroup = await NewGroupAsync(target.Id, sourceGroup, sourceLinks[sourceGroup.Id], ct);
+                var newGroup = await NewGroupAsync(target.Id, sourceGroup, ct);
                 await _dbContext.SheetTableGroups.AddAsync(newGroup, ct);
             }
         }
@@ -97,13 +95,13 @@ internal class SheetDraftCopier
         }
     }
 
-    private async Task CopyGroupAsync(SpecSheetTableGroup target, Guid? targetLink, SpecSheetTableGroup source, Guid? sourceLink, CancellationToken ct)
+    private async Task CopyGroupAsync(SheetTableGroup target, SheetTableGroup source, CancellationToken ct)
     {
-        if (target.Order != source.Order || targetLink != sourceLink || SheetCopySignatures.Of(target) != SheetCopySignatures.Of(source))
+        if (target.DisplayOrder != source.DisplayOrder || target.LinkedGroupReferenceId != source.LinkedGroupReferenceId || SheetCopySignatures.Of(target) != SheetCopySignatures.Of(source))
         {
             var draft = await _groups.GetShownAsync(target.Id, ct);
-            draft.DisplayOrder = source.Order;
-            draft.LinkedSheetTableGroupReferenceId = sourceLink;
+            draft.DisplayOrder = source.DisplayOrder;
+            draft.LinkedSheetTableGroupReferenceId = source.LinkedGroupReferenceId;
             await _items.SetGroupItemsAsync(draft, null, source, ct);
         }
 
@@ -126,7 +124,7 @@ internal class SheetDraftCopier
         }
     }
 
-    private async Task CopyRowAsync(SpecSheetTableRow target, SpecSheetTableRow source, CancellationToken ct)
+    private async Task CopyRowAsync(SheetTableRow target, SheetTableRow source, CancellationToken ct)
     {
         if (SheetCopySignatures.Of(target) == SheetCopySignatures.Of(source))
         {
@@ -134,14 +132,14 @@ internal class SheetDraftCopier
         }
 
         var draft = await _rows.GetShownAsync(target.Id, ct);
-        draft.DisplayOrder = source.RowNumber;
+        draft.DisplayOrder = source.DisplayOrder;
 
         var targetCells = target.Cells.ToDictionary(cell => cell.ReferenceId);
         foreach (var sourceCell in source.Cells)
         {
             if (targetCells.Remove(sourceCell.ReferenceId, out var targetCell))
             {
-                _values.ReplaceValue(draft, targetCell.Id, sourceCell.CellValue);
+                _values.ReplaceValue(draft, targetCell.Id, sourceCell.Value);
                 _values.SetConfigurationOverride(draft, targetCell.Id, sourceCell.ConfigurationOverride);
             }
             else
@@ -158,7 +156,7 @@ internal class SheetDraftCopier
         }
     }
 
-    private async Task<DbSheetTable> NewTableAsync(SpecSheetTable source, CancellationToken ct)
+    private async Task<DbSheetTable> NewTableAsync(SheetTable source, CancellationToken ct)
     {
         var newTable = new DbSheetTable
         {
@@ -172,16 +170,15 @@ internal class SheetDraftCopier
         var draft = _tables.StartNew(newTable, source.Title, source.DisplayOrder, source.ConfigurationOverride);
         await _items.SetTableItemsAsync(draft, newTable, source, ct);
 
-        var links = LinkedReferenceIds(source);
         foreach (var sourceGroup in source.Groups)
         {
-            newTable.Groups.Add(await NewGroupAsync(0, sourceGroup, links[sourceGroup.Id], ct));
+            newTable.Groups.Add(await NewGroupAsync(0, sourceGroup, ct));
         }
 
         return newTable;
     }
 
-    private async Task<DbSheetTableGroup> NewGroupAsync(int tableId, SpecSheetTableGroup source, Guid? linkedReferenceId, CancellationToken ct)
+    private async Task<DbSheetTableGroup> NewGroupAsync(int tableId, SheetTableGroup source, CancellationToken ct)
     {
         var newGroup = new DbSheetTableGroup
         {
@@ -192,7 +189,7 @@ internal class SheetDraftCopier
             CreatedDateTime = DateTime.UtcNow
         };
 
-        var draft = _groups.StartNew(newGroup, source.Order, linkedReferenceId);
+        var draft = _groups.StartNew(newGroup, source.DisplayOrder, source.LinkedGroupReferenceId);
         await _items.SetGroupItemsAsync(draft, newGroup, source, ct);
 
         foreach (var sourceRow in source.Rows)
@@ -203,7 +200,7 @@ internal class SheetDraftCopier
         return newGroup;
     }
 
-    private async Task<DbSheetTableRow> NewRowAsync(int groupId, SpecSheetTableRow source, CancellationToken ct)
+    private async Task<DbSheetTableRow> NewRowAsync(int groupId, SheetTableRow source, CancellationToken ct)
     {
         var newRow = new DbSheetTableRow
         {
@@ -214,7 +211,7 @@ internal class SheetDraftCopier
             CreatedDateTime = DateTime.UtcNow
         };
 
-        var draft = _rows.StartNew(newRow, source.RowNumber);
+        var draft = _rows.StartNew(newRow, source.DisplayOrder);
         foreach (var sourceCell in source.Cells)
         {
             var newCell = await NewCellAsync(0, source.TableRowTemplateId, sourceCell, ct);
@@ -226,7 +223,7 @@ internal class SheetDraftCopier
     }
 
     // A cell is kept as its row template's cell in the same column.
-    private async Task<DbSheetTableCell> NewCellAsync(int rowId, int rowTemplateId, SpecSheetTableCell source, CancellationToken ct)
+    private async Task<DbSheetTableCell> NewCellAsync(int rowId, int rowTemplateId, SheetTableCell source, CancellationToken ct)
     {
         if (!_templateCellIds.TryGetValue(rowTemplateId, out var templateCellIds))
         {
@@ -251,23 +248,12 @@ internal class SheetDraftCopier
         };
     }
 
-    private void AddCellContent(DbSheetTableRowRevision draft, DbSheetTableCell newCell, SpecSheetTableCell source)
+    private void AddCellContent(DbSheetTableRowRevision draft, DbSheetTableCell newCell, SheetTableCell source)
     {
-        _values.AddValue(draft, newCell, source.CellValue);
+        _values.AddValue(draft, newCell, source.Value);
         if (source.ConfigurationOverride is not null)
         {
             _values.AddConfigurationOverride(draft, newCell, source.ConfigurationOverride);
         }
-    }
-
-    // Each group's link, as the ReferenceID of the group it is linked to, which is how the revisions keep it.
-    private static Dictionary<int, Guid?> LinkedReferenceIds(SpecSheetTable table)
-    {
-        var referenceIds = table.Groups.ToDictionary(group => group.Id, group => group.ReferenceId);
-        return table.Groups.ToDictionary(
-            group => group.Id,
-            group => group.LinkedSpecSheetTableGroupId is { } linkedId && referenceIds.TryGetValue(linkedId, out var linked)
-                ? linked
-                : (Guid?)null);
     }
 }

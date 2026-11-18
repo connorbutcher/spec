@@ -1,53 +1,53 @@
 ﻿using System.Text.Json;
-using PUSpecSheet.Abstractions.Domain.Legacy.SpecSheets;
+using PUSpecSheet.Abstractions.Domain.Sheets;
 
 namespace PUSpecSheet.Api.DAL.DataAccess.SpecSheets.Edits;
 
 /// <summary>
-/// What a table, group or row holds, as the revisions keep it, put in one string so that the item in two spec sheets can
+/// What a table, group or row holds, as the revisions keep it, put in one string so that the item in two sheets can
 /// be compared. Ids, and who made and changed the item, are left out.
 /// </summary>
 internal static class SheetCopySignatures
 {
-    public static string Of(SpecSheetTable table)
+    public static string Of(SheetTable table)
     {
         return Json(new object?[] { table.Title, table.DisplayOrder, table.ConfigurationOverride, WidgetValuesOf(table), NotesOf(table) });
     }
 
-    public static string Of(SpecSheetTableGroup group)
+    public static string Of(SheetTableGroup group)
     {
         return Json(WidgetValuesOf(group));
     }
 
-    public static string Of(SpecSheetTableRow row)
+    public static string Of(SheetTableRow row)
     {
         var cells = row.Cells
             .OrderBy(cell => cell.ReferenceId)
             .Select(cell => new object?[]
             {
                 cell.ReferenceId,
-                cell.CellValue is null ? null : cell.CellValue with { Id = 0, SpecSheetTableCellId = 0 },
+                cell.Value with { SheetTableCellId = 0 },
                 cell.ConfigurationOverride
             });
 
-        return Json(new object?[] { row.RowNumber, cells });
+        return Json(new object?[] { row.DisplayOrder, cells });
     }
 
-    private static IEnumerable<object?> WidgetValuesOf(SpecSheetTable table)
+    private static IEnumerable<object?> WidgetValuesOf(SheetTable table)
     {
         return table.Widgets
             .OrderBy(widget => widget.TableTemplateWidgetId)
-            .Select(widget => new object?[] { widget.TableTemplateWidgetId, widget.Value.Value });
+            .Select(widget => new object?[] { widget.TableTemplateWidgetId, widget.Value });
     }
 
-    private static IEnumerable<object?> WidgetValuesOf(SpecSheetTableGroup group)
+    private static IEnumerable<object?> WidgetValuesOf(SheetTableGroup group)
     {
         return group.Widgets
             .OrderBy(widget => widget.TableGroupTemplateWidgetId)
-            .Select(widget => new object?[] { widget.TableGroupTemplateWidgetId, widget.Value.Value });
+            .Select(widget => new object?[] { widget.TableGroupTemplateWidgetId, widget.Value });
     }
 
-    private static IEnumerable<object?> NotesOf(SpecSheetTable table)
+    private static IEnumerable<object?> NotesOf(SheetTable table)
     {
         return table.Notes
             .OrderBy(note => note.CreatedDateTime)

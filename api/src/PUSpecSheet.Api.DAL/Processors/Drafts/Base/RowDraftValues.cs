@@ -1,5 +1,5 @@
 ﻿using PUSpecSheet.Abstractions.Domain.Properties.Cell;
-using PUSpecSheet.Abstractions.Domain.Legacy.Values;
+using PUSpecSheet.Abstractions.Domain.Sheets;
 using PUSpecSheet.Api.Database;
 using PUSpecSheet.Api.Database.Schema.Cell;
 using PUSpecSheet.Api.Database.Schema.Spec;
@@ -32,16 +32,16 @@ internal class RowDraftValues
 
     public void SetText(DbSheetTableRowRevision draft, int cellId, string? value)
     {
-        var existing = draft.TextValues.FirstOrDefault(v => v.SheetTableCellId == cellId);
+        var existing = draft.SheetTextValues.FirstOrDefault(v => v.SheetTableCellId == cellId);
         if (value is null)
         {
-            Remove(draft.TextValues, existing);
+            Remove(draft.SheetTextValues, existing);
             return;
         }
 
         if (existing is null)
         {
-            draft.TextValues.Add(new DbSheetTextValue { SheetTableRowRevisionId = draft.Id, SheetTableCellId = cellId, Value = value });
+            draft.SheetTextValues.Add(new DbSheetTextValue { SheetTableRowRevisionId = draft.Id, SheetTableCellId = cellId, Value = value });
             return;
         }
 
@@ -50,16 +50,16 @@ internal class RowDraftValues
 
     public void SetNumber(DbSheetTableRowRevision draft, int cellId, double? value)
     {
-        var existing = draft.NumericValues.FirstOrDefault(v => v.SheetTableCellId == cellId);
+        var existing = draft.SheetNumericValues.FirstOrDefault(v => v.SheetTableCellId == cellId);
         if (!value.HasValue)
         {
-            Remove(draft.NumericValues, existing);
+            Remove(draft.SheetNumericValues, existing);
             return;
         }
 
         if (existing is null)
         {
-            draft.NumericValues.Add(new DbSheetNumericValue { SheetTableRowRevisionId = draft.Id, SheetTableCellId = cellId, Value = value.Value });
+            draft.SheetNumericValues.Add(new DbSheetNumericValue { SheetTableRowRevisionId = draft.Id, SheetTableCellId = cellId, Value = value.Value });
             return;
         }
 
@@ -127,20 +127,20 @@ internal class RowDraftValues
     /// <summary>
     /// Sets the cell's value from a cell value of any kind.
     /// </summary>
-    public void SetValue(DbSheetTableRowRevision draft, int cellId, CellValue? value)
+    public void SetValue(DbSheetTableRowRevision draft, int cellId, SheetCellValue? value)
     {
         switch (value)
         {
-            case TextValue text:
+            case SheetTextValue text:
                 SetText(draft, cellId, text.Value);
                 break;
-            case NumericValue number:
+            case SheetNumericValue number:
                 SetNumber(draft, cellId, number.Value);
                 break;
-            case PairValue pair:
+            case SheetPairValue pair:
                 SetPair(draft, cellId, pair.ValueX, pair.ValueY);
                 break;
-            case LinkedSpecSheetValue linked:
+            case SheetLinkedSheetValue linked:
                 SetLinked(draft, cellId, new LinkedDraftValue
                 {
                     LinkedSpecSheetTypeId = linked.LinkedSpecSheetTypeId,
@@ -155,24 +155,24 @@ internal class RowDraftValues
     /// <summary>
     /// Sets the cell's value from a cell value of any kind, and removes any value of another kind the cell holds.
     /// </summary>
-    public void ReplaceValue(DbSheetTableRowRevision draft, int cellId, CellValue? value)
+    public void ReplaceValue(DbSheetTableRowRevision draft, int cellId, SheetCellValue? value)
     {
-        if (value is not TextValue)
+        if (value is not SheetTextValue)
         {
             SetText(draft, cellId, null);
         }
 
-        if (value is not NumericValue)
+        if (value is not SheetNumericValue)
         {
             SetNumber(draft, cellId, null);
         }
 
-        if (value is not PairValue)
+        if (value is not SheetPairValue)
         {
             SetPair(draft, cellId, null, null);
         }
 
-        if (value is not LinkedSpecSheetValue)
+        if (value is not SheetLinkedSheetValue)
         {
             Remove(draft.LinkedSheetValues, LinkedOf(draft, cellId));
         }
@@ -183,17 +183,17 @@ internal class RowDraftValues
     /// <summary>
     /// Gives a cell added in the draft its value, before the cell has an id.
     /// </summary>
-    public void AddValue(DbSheetTableRowRevision draft, DbSheetTableCell cell, CellValue? value)
+    public void AddValue(DbSheetTableRowRevision draft, DbSheetTableCell cell, SheetCellValue? value)
     {
         switch (value)
         {
-            case TextValue { Value: { } text }:
-                draft.TextValues.Add(new DbSheetTextValue { SheetTableRowRevisionId = draft.Id, SheetTableCellId = cell.Id, Value = text, SheetTableCell = cell });
+            case SheetTextValue { Value: { } text }:
+                draft.SheetTextValues.Add(new DbSheetTextValue { SheetTableRowRevisionId = draft.Id, SheetTableCellId = cell.Id, Value = text, SheetTableCell = cell });
                 break;
-            case NumericValue { Value: { } number }:
-                draft.NumericValues.Add(new DbSheetNumericValue { SheetTableRowRevisionId = draft.Id, SheetTableCellId = cell.Id, Value = number, SheetTableCell = cell });
+            case SheetNumericValue { Value: { } number }:
+                draft.SheetNumericValues.Add(new DbSheetNumericValue { SheetTableRowRevisionId = draft.Id, SheetTableCellId = cell.Id, Value = number, SheetTableCell = cell });
                 break;
-            case PairValue pair when pair.ValueX is not null || pair.ValueY is not null:
+            case SheetPairValue pair when pair.ValueX is not null || pair.ValueY is not null:
                 draft.PairValues.Add(new DbSheetPairValue
                 {
                     SheetTableRowRevisionId = draft.Id,
@@ -203,7 +203,7 @@ internal class RowDraftValues
                     SheetTableCell = cell
                 });
                 break;
-            case LinkedSpecSheetValue linked when linked.LinkedSpecSheetTypeId.HasValue
+            case SheetLinkedSheetValue linked when linked.LinkedSpecSheetTypeId.HasValue
                 || linked.LinkedSpecSheetPhaseId.HasValue
                 || linked.TableReferenceId.HasValue
                 || linked.LinkedReferenceId.HasValue:

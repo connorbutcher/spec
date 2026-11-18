@@ -1,4 +1,4 @@
-﻿using PUSpecSheet.Abstractions.Domain.Legacy.SpecSheets.Properties;
+﻿using PUSpecSheet.Abstractions.Domain.Values.PropertyValues;
 
 namespace PUSpecSheet.Abstractions.Requests.SpecSheets.Properties;
 

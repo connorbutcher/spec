@@ -2,7 +2,6 @@
 using Microsoft.Extensions.Logging;
 using PUSpecSheet.Abstractions.Domain.Access;
 using PUSpecSheet.Abstractions.Domain.Sheets;
-using PUSpecSheet.Abstractions.Requests.SpecSheets;
 using PUSpecSheet.Abstractions.Requests.Sheets;
 using PUSpecSheet.Abstractions.Types;
 using PUSpecSheet.Api.Common.Context;
@@ -221,12 +220,7 @@ internal class SheetDataAccessService : ISheetDataAccessService
 
         var currentUser = await GetCurrentUserAsync(cancellationToken);
 
-        var specSheetId = await _draftCreator.CreateAsync(new CreateSpecSheetRequest
-        {
-            SpecSheetPhaseId = request.SpecSheetPhaseId,
-            SpecSheetTypeId = request.SpecSheetTypeId,
-            PropertyValues = request.PropertyValues
-        }, currentUser, cancellationToken);
+        var specSheetId = await _draftCreator.CreateAsync(request, currentUser, cancellationToken);
 
         var sheetId = await _sheetReader.FindSheetIdAsync(request.SpecSheetPhaseId, request.SpecSheetTypeId, cancellationToken)
             ?? throw new InvalidOperationException($"No sheet found for PhaseId {request.SpecSheetPhaseId} and TypeId {request.SpecSheetTypeId} after creating its draft.");

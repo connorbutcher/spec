@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace PUSpecSheet.Abstractions.Domain.Legacy.SpecSheets.Properties;
+namespace PUSpecSheet.Abstractions.Domain.Values.PropertyValues;
 
 [JsonDerivedType(typeof(StringPropertyValue), "string")]
 [JsonDerivedType(typeof(IntPropertyValue), "int")]

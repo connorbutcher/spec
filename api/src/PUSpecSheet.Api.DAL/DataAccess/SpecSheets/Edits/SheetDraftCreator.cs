@@ -1,11 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Abstractions.Domain.Access;
-using PUSpecSheet.Abstractions.Domain.Legacy.SpecSheets;
-using PUSpecSheet.Abstractions.Domain.Legacy.SpecSheets.Properties;
-using PUSpecSheet.Abstractions.Requests.SpecSheets;
+using PUSpecSheet.Abstractions.Domain.Sheets;
+using PUSpecSheet.Abstractions.Domain.Values.PropertyValues;
+using PUSpecSheet.Abstractions.Requests.Sheets;
 using PUSpecSheet.Abstractions.Types;
-using PUSpecSheet.Api.DAL.DataAccess.SpecSheets.Reads;
-using PUSpecSheet.Api.DAL.DataAccess.SpecSheets.Reads.Revisions;
+using PUSpecSheet.Api.DAL.DataAccess.SpecSheets.Reads.Sheets;
 using PUSpecSheet.Api.DAL.DataAccess.Types;
 using PUSpecSheet.Api.Database;
 using PUSpecSheet.Api.Database.Schema.Spec;
@@ -21,23 +20,23 @@ namespace PUSpecSheet.Api.DAL.DataAccess.SpecSheets.Edits;
 internal class SheetDraftCreator
 {
     private readonly PUSpecSheetDbContext _dbContext;
-    private readonly SpecSheetRevisionReader _revisionReader;
+    private readonly SheetReader _sheetReader;
     private readonly ITypeDataAccessService _typeDataAccessService;
 
     public SheetDraftCreator(PUSpecSheetDbContext dbContext,
-        SpecSheetRevisionReader revisionReader,
+        SheetReader sheetReader,
         ITypeDataAccessService typeDataAccessService)
     {
         ArgumentNullException.ThrowIfNull(dbContext, nameof(dbContext));
-        ArgumentNullException.ThrowIfNull(revisionReader, nameof(revisionReader));
+        ArgumentNullException.ThrowIfNull(sheetReader, nameof(sheetReader));
         ArgumentNullException.ThrowIfNull(typeDataAccessService, nameof(typeDataAccessService));
 
         _dbContext = dbContext;
-        _revisionReader = revisionReader;
+        _sheetReader = sheetReader;
         _typeDataAccessService = typeDataAccessService;
     }
 
-    public async Task<int> CreateAsync(CreateSpecSheetRequest request, User creatingUser, CancellationToken cancellationToken)
+    public async Task<int> CreateAsync(CreateSheetRequest request, User creatingUser, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(request, nameof(request));
         ArgumentNullException.ThrowIfNull(creatingUser, nameof(creatingUser));
@@ -70,7 +69,8 @@ internal class SheetDraftCreator
         await _dbContext.SaveChangesAsync(cancellationToken);
 
         var sourceTables = await ReadCopyFromTablesAsync(request, cancellationToken);
-        var target = await _revisionReader.ReadDraftAsync(header.Id, sheet.Id, cancellationToken);
+        var target = await _sheetReader.ReadDraftAsync(sheet.Id, cancellationToken)
+            ?? throw new InvalidOperationException($"Sheet with Id {sheet.Id} not found after adding it.");
         await new SheetDraftCopier(_dbContext, creatingUser, sheet.Id).CopyAsync(target, sourceTables, cancellationToken);
 
         var propertyValues = request.PropertyValues.ToDictionary(pv => pv.SpecSheetTypePropertyId, pv => pv.PropertyValue?.ToString());
@@ -83,7 +83,7 @@ internal class SheetDraftCreator
         return header.Id;
     }
 
-    private async Task EnsureNoDraftHeaderAsync(CreateSpecSheetRequest request, CancellationToken cancellationToken)
+    private async Task EnsureNoDraftHeaderAsync(CreateSheetRequest request, CancellationToken cancellationToken)
     {
         var existingDraftId = await _dbContext.SpecSheets
             .AsNoTracking()
@@ -96,7 +96,7 @@ internal class SheetDraftCreator
         }
     }
 
-    private async Task<DbSheet> FindOrAddSheetAsync(CreateSpecSheetRequest request, CancellationToken cancellationToken)
+    private async Task<DbSheet> FindOrAddSheetAsync(CreateSheetRequest request, CancellationToken cancellationToken)
     {
         var sheet = await _dbContext.Sheets
             .FirstOrDefaultAsync(s => s.SpecSheetPhaseId == request.SpecSheetPhaseId && s.SpecSheetTypeId == request.SpecSheetTypeId, cancellationToken);
@@ -134,7 +134,7 @@ internal class SheetDraftCreator
         }
     }
 
-    private async Task<IReadOnlyCollection<SpecSheetTable>> ReadCopyFromTablesAsync(CreateSpecSheetRequest request, CancellationToken cancellationToken)
+    private async Task<IReadOnlyCollection<SheetTable>> ReadCopyFromTablesAsync(CreateSheetRequest request, CancellationToken cancellationToken)
     {
         var specSheetType = await _typeDataAccessService.GetSpecSheetTypeByIdAsync(request.SpecSheetTypeId, cancellationToken)
             ?? throw new KeyNotFoundException($"Spec Sheet Type with Id {request.SpecSheetTypeId} not found.");
@@ -148,8 +148,15 @@ internal class SheetDraftCreator
             return [];
         }
 
-        var source = await _revisionReader.ReadPublishedAsync(copyFromId, cancellationToken)
-            ?? throw new InvalidOperationException($"Spec Sheet with Id {copyFromId} isn't a published version, so it can't be copied from.");
+        var location = await _sheetReader.FindLocationAsync(copyFromId, cancellationToken);
+        var source = location is { IsDraft: false }
+            ? await _sheetReader.ReadPublishedAsync(location.SheetId, location.VersionNumber, cancellationToken)
+            : null;
+        if (source is null)
+        {
+            throw new InvalidOperationException($"Spec Sheet with Id {copyFromId} isn't a published version, so it can't be copied from.");
+        }
+
         return [.. source.Tables];
     }
 }

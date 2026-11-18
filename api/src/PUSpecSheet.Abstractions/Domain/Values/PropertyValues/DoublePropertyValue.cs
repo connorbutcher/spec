@@ -1,4 +1,4 @@
-﻿namespace PUSpecSheet.Abstractions.Domain.Legacy.SpecSheets.Properties;
+﻿namespace PUSpecSheet.Abstractions.Domain.Values.PropertyValues;
 
 public sealed record DoublePropertyValue : IPropertyValue
 {

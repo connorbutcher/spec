@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using PUSpecSheet.Abstractions.Domain.Legacy.SpecSheets;
+using PUSpecSheet.Abstractions.Domain.Sheets;
 using PUSpecSheet.Api.DAL.Processors.Drafts.Base;
 using PUSpecSheet.Api.Database.Schema.Cell;
 using PUSpecSheet.Api.Database;
@@ -8,9 +8,9 @@ using PUSpecSheet.Api.Database.Schema.Spec;
 namespace PUSpecSheet.Api.DAL.DataAccess.SpecSheets.Edits;
 
 /// <summary>
-/// Makes the widget and note rows of a table or group draft hold what a spec sheet's table or group holds. A widget is
+/// Makes the widget and note rows of a table or group draft hold what a sheet's table or group holds. A widget is
 /// matched to the table's or group's by its template widget, and a note by who wrote it, when and its source system. One
-/// the table or group hasn't got is added as an item, and a row for one the spec sheet hasn't got is dropped from the draft.
+/// the table or group hasn't got is added as an item, and a row for one the sheet hasn't got is dropped from the draft.
 /// </summary>
 internal class SheetDraftItems
 {
@@ -32,7 +32,7 @@ internal class SheetDraftItems
     /// <param name="draft">The table's draft.</param>
     /// <param name="newTable">The table, when it is added in the draft and not saved yet, otherwise null.</param>
     /// <param name="source">The table to copy the widgets and notes of.</param>
-    public async Task SetTableItemsAsync(DbSheetTableRevision draft, DbSheetTable? newTable, SpecSheetTable source, CancellationToken ct)
+    public async Task SetTableItemsAsync(DbSheetTableRevision draft, DbSheetTable? newTable, SheetTable source, CancellationToken ct)
     {
         await SetTableWidgetsAsync(draft, newTable, source, ct);
         await SetNotesAsync(draft, newTable, source, ct);
@@ -41,7 +41,7 @@ internal class SheetDraftItems
     /// <param name="draft">The group's draft.</param>
     /// <param name="newGroup">The group, when it is added in the draft and not saved yet, otherwise null.</param>
     /// <param name="source">The group to copy the widgets of.</param>
-    public async Task SetGroupItemsAsync(DbSheetTableGroupRevision draft, DbSheetTableGroup? newGroup, SpecSheetTableGroup source, CancellationToken ct)
+    public async Task SetGroupItemsAsync(DbSheetTableGroupRevision draft, DbSheetTableGroup? newGroup, SheetTableGroup source, CancellationToken ct)
     {
         var items = newGroup is null
             ? await _dbContext.SheetTableGroupWidgets.Where(w => w.SheetTableGroupId == draft.SheetTableGroupId).ToListAsync(ct)
@@ -85,14 +85,14 @@ internal class SheetDraftItems
                 values.Add(value);
             }
 
-            value.Value = sourceWidget.Value.Value;
+            value.Value = sourceWidget.Value;
             wanted.Add(value);
         }
 
         Drop(values, wanted);
     }
 
-    private async Task SetTableWidgetsAsync(DbSheetTableRevision draft, DbSheetTable? newTable, SpecSheetTable source, CancellationToken ct)
+    private async Task SetTableWidgetsAsync(DbSheetTableRevision draft, DbSheetTable? newTable, SheetTable source, CancellationToken ct)
     {
         var items = newTable is null
             ? await _dbContext.SheetTableWidgets.Where(w => w.SheetTableId == draft.SheetTableId).ToListAsync(ct)
@@ -136,14 +136,14 @@ internal class SheetDraftItems
                 values.Add(value);
             }
 
-            value.Value = sourceWidget.Value.Value;
+            value.Value = sourceWidget.Value;
             wanted.Add(value);
         }
 
         Drop(values, wanted);
     }
 
-    private async Task SetNotesAsync(DbSheetTableRevision draft, DbSheetTable? newTable, SpecSheetTable source, CancellationToken ct)
+    private async Task SetNotesAsync(DbSheetTableRevision draft, DbSheetTable? newTable, SheetTable source, CancellationToken ct)
     {
         var items = newTable is null
             ? await _dbContext.SheetTableNotes.Where(n => n.SheetTableId == draft.SheetTableId).ToListAsync(ct)
@@ -204,7 +204,7 @@ internal class SheetDraftItems
         Drop(values, wanted);
     }
 
-    // What the draft has beyond what is wanted isn't in the spec sheet.
+    // What the draft has beyond what is wanted isn't in the source.
     private void Drop<TValue>(ICollection<TValue> values, HashSet<TValue> wanted)
         where TValue : class
     {
