@@ -12,7 +12,7 @@ namespace PUSpecSheet.Migrator;
 /// Brings one sheet's revisions into step with its copies, in its own transaction. A sheet whose copies have changed
 /// since it was last migrated (or that hasn't been migrated) is built again from them: what was built before is
 /// deleted, the history is built and saved, read back as of every version (and with its drafts) and compared with each
-/// copy. It commits only when every check matches and --commit was given.
+/// copy. It commits only when every check matches and commit is set.
 /// </summary>
 internal sealed class SheetMigrator
 {

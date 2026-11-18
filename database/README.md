@@ -44,11 +44,10 @@ The project holds the schema only, with no data. The real types, phases, templat
    ./deploy.ps1 -Database PUSpecSheetLegacy
    ```
 
-4. Build the revisions from the copies. Do a dry run first, then commit:
+4. Build the revisions from the copies. Copy `api/tools/PUSpecSheet.Migrator/migrator.example.json` to `migrator.json` and set `connectionString`. Do a dry run first, then set `"commit": true` and run it again:
 
    ```powershell
-   dotnet run --project api/tools/PUSpecSheet.Migrator -- --connection "<connection string>"
-   dotnet run --project api/tools/PUSpecSheet.Migrator -- --connection "<connection string>" --commit
+   dotnet run --project api/tools/PUSpecSheet.Migrator
    ```
 
 5. Point `ConnectionStrings:PUSpecSheet` in `api/src/PUSpecSheet.Api/appsettings.Development.json` at the database.

@@ -4,3 +4,5 @@ obj/
 *.user
 
 # The UI's own ignores are in app/.gitignore, the API's in api/.gitignore.
+
+api/tools/PUSpecSheet.Migrator/migrator.json

@@ -45,10 +45,10 @@ The legacy codebase is the base. The rewrite's features (revision model, drafts,
 
 **Migrator** (`api/tools/PUSpecSheet.Migrator`, tests in `api/tests/PUSpecSheet.Migrator.Tests`):
 - Reads copies, fingerprints them (`LegacyFingerprint`, BuildVersion "3"), rebuilds only changed sheets, one transaction per sheet.
-- Verifies by reading each sheet back as of every version (plus drafts) and comparing to each copy. Commits only with `--commit`.
+- Verifies by reading each sheet back as of every version (plus drafts) and comparing to each copy. Commits only with `"commit": true` in the options file.
 - Never replaces sheets without a LegacySourceHash (those belong to the new app).
 - Workflow steps become submissions. Cells map to their template cell by ColumnNumber.
-- Usage: `dotnet run --project api/tools/PUSpecSheet.Migrator -- --connection "..." [--phase N] [--rebuild] [--commit]`
+- Usage: `dotnet run --project api/tools/PUSpecSheet.Migrator [-- options.json]`. The JSON file (default `migrator.json`, see `migrator.example.json`) has `connectionString`, `phaseIds`, `sheetTypeIds`, `rebuild` and `commit`.
 
 **Reads** (`api/src/PUSpecSheet.Api.DAL/DataAccess/SpecSheets/Reads/`):
 - `SheetReads:Source` = Copies | Compare | Revisions (appsettings, default Copies). Used by `GetSpecSheetByIdAsync` on a cache miss.
@@ -71,7 +71,7 @@ The legacy codebase is the base. The rewrite's features (revision model, drafts,
 - The first edit clears the sheet's `LegacySourceHash`, so the migrator leaves it alone from then on.
 - Published sheets of a listed type are read with `SheetReads:Source` = `Revisions`.
 
-**Before a type is listed:** the migrator has run with `--commit` and `/revisions/compare?specSheetTypeId=` is clean for it, and the scheduled migrator run is stopped for it.
+**Before a type is listed:** the migrator has run with `commit` on and `/revisions/compare?specSheetTypeId=` is clean for it, and the scheduled migrator run is stopped for it.
 
 **Slices.** Each is a commit or two. Until slice 5 is done the switch is for scratch databases only: whatever a slice doesn't cover yet is refused for a listed type.
 
@@ -103,7 +103,7 @@ The legacy codebase is the base. The rewrite's features (revision model, drafts,
 ## Open items
 
 1. Nothing has been compiled or tested (no dotnet SDK in the sandbox). First step on a real machine: build the solution and run `dotnet test`.
-2. Run the migrator as a dry run, then with `--commit`, against a copy of production.
+2. Run the migrator as a dry run, then with `commit` on, against a copy of production.
 3. Call `/revisions/compare` until it is clean, then try `Compare` and `Revisions` modes.
 4. Check the datetime2 scale (the dump shows 0; scripts use `DATETIME2 (0)`; unverified).
 5. Resolved 2026-11-17: the sheet copies' tables are in the `legacy` schema in the scripts and the EF context, as in `docs/legacy-schema.txt`. A refactor log moves them on deploy.

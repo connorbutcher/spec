@@ -9,10 +9,9 @@ using PUSpecSheet.Migrator.Legacy;
 using var loggerFactory = LoggerFactory.Create(logging => logging.AddSimpleConsole(console => console.SingleLine = true));
 var logger = loggerFactory.CreateLogger("PUSpecSheet.Migrator");
 
-var options = MigratorOptions.Parse(args);
-if (options is null)
+if (args.Length > 1 || !MigratorOptions.TryLoad(args.Length == 1 ? args[0] : MigratorOptions.DefaultPath, out var options, out var error))
 {
-    logger.BadArguments(MigratorOptions.Usage);
+    logger.BadOptions(error ?? "Give at most one argument: the options file.", MigratorOptions.Usage);
     return 2;
 }
 
@@ -37,7 +36,7 @@ var reader = new LegacySheetReader(legacyDb);
 var migrator = new SheetMigrator(dbFactory, reader, options, logger);
 
 var sheets = (await reader.ListSheetsAsync(cancellation.Token))
-    .Where(sheet => options.PhaseIds.Count == 0 || options.PhaseIds.Contains(sheet.PhaseId))
+    .Where(sheet => options.Includes(sheet.PhaseId, sheet.SheetTypeId))
     .ToList();
 logger.Starting(sheets.Count, options.Commit ? "keeping what is built" : "dry run, nothing is kept");
 

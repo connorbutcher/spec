@@ -61,7 +61,7 @@ The revision read builds the same `DbSpecSheet` a copy is read into and maps it 
 
 To move over:
 
-1. Run the migrator with `--commit`, and keep running it on a schedule so new publishes reach the revisions.
+1. Run the migrator with `"commit": true`, and keep running it on a schedule so new publishes reach the revisions.
 2. Call `GET /revisions/compare` (optionally `?specSheetTypeId=` and `?specSheetPhaseId=`). It reads every published sheet both ways, without the cache, and lists the sheets that differ, with the lines each read has that the other hasn't, and those not migrated yet. Fix what it finds, in the migrator or the reader, until the list is empty.
 3. Set `SheetReads:Source` to `Compare` for a while to catch what the check missed, then to `Revisions`. Reset the cache (`DELETE /cache/reset?specSheetTypeId=`) after changing it, as cached sheets keep whichever read made them.
 

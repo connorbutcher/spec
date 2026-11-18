@@ -6,22 +6,25 @@ It reads and writes through the app's own `PUSpecSheetDbContext`, in the one dat
 
 ## Running it
 
-```powershell
-# Dry run: every changed sheet is built, checked and rolled back.
-dotnet run --project api/tools/PUSpecSheet.Migrator -- --connection "Server=...;Database=PUSpecSheet;..."
+Copy `migrator.example.json` to `migrator.json` (which git ignores, as it holds a connection string) and fill it in. Then:
 
-# Keep what is built.
-dotnet run --project api/tools/PUSpecSheet.Migrator -- --connection "<connection string>" --commit
+```powershell
+# Reads migrator.json from the current directory, or the file given.
+dotnet run --project api/tools/PUSpecSheet.Migrator
+dotnet run --project api/tools/PUSpecSheet.Migrator -- path/to/other.json
 ```
 
-| Option | |
+| Setting | |
 | --- | --- |
-| `--connection <connection string>` | The PUSpecSheet database. Required. |
-| `--phase <phase id>` | Only this phase's sheets. Can be given more than once. |
-| `--rebuild` | Build every sheet again, whether its copies changed or not. |
-| `--commit` | Keep what is built. Without it, it's a dry run. |
+| `connectionString` | The PUSpecSheet database. Required. |
+| `phaseIds` | Only these phases' sheets. Every phase's when empty or left out. |
+| `sheetTypeIds` | Only these sheet types' sheets. Every type's when empty or left out. With `phaseIds`, a sheet must be in both. |
+| `rebuild` | Build every sheet again, whether its copies changed or not. Default `false`. |
+| `commit` | Keep what is built. Without it (`false`, the default) it's a dry run. |
 
-It exits with 0 when every sheet was migrated, checked or already up to date, 1 when any failed, and 2 for bad arguments.
+Comments and trailing commas are allowed in the file; a setting it doesn't know is an error, so a typo doesn't quietly widen a run.
+
+It exits with 0 when every sheet was migrated, checked or already up to date, 1 when any failed, and 2 when the options file is missing or wrong.
 
 ## What a run does
 
@@ -36,7 +39,7 @@ A sheet is every `SpecSheets` row with one phase and sheet type. For each:
    - The working copy, if there is one, becomes drafts held by its creator.
    - Workflow steps become submissions, saved after the versions they published, and then their revisions are pointed at them.
 4. **Check** it (`Verification/`): the sheet's history is read back once (`TargetSheetHistory`) and shown as of every version, and with its drafts, and each is compared with its copy, rendered as text in order (tables, groups, rows and cells with their orders, ReferenceIDs and contents, widgets, notes and configuration overrides, properties, linked tables, and for versions the external references). The first difference is logged.
-5. **Commit** only if every check matched and `--commit` was given. Otherwise it rolls back, and the sheet as it was before the run is untouched.
+5. **Commit** only if every check matched and `commit` is set. Otherwise it rolls back, and the sheet as it was before the run is untouched.
 
 A sheet in `spec.Sheets` without a `LegacySourceHash` wasn't built by the migrator, so it is never replaced.
 

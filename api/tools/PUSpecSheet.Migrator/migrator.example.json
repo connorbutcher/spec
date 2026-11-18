@@ -1,0 +1,14 @@
+{
+  // The PUSpecSheet database.
+  "connectionString": "Server=...;Database=PUSpecSheet;...",
+
+  // Only these phases' and sheet types' sheets. Empty, or left out, means all of them.
+  "phaseIds": [],
+  "sheetTypeIds": [],
+
+  // Build every sheet again, changed or not.
+  "rebuild": false,
+
+  // Keep what is built. false is a dry run: every changed sheet is built, checked and rolled back.
+  "commit": false
+}

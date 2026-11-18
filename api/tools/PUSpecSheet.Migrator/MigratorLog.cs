@@ -7,8 +7,8 @@ namespace PUSpecSheet.Migrator;
 /// </summary>
 internal static partial class MigratorLog
 {
-    [LoggerMessage(Level = LogLevel.Error, Message = "The arguments aren't right.\n{Usage}")]
-    public static partial void BadArguments(this ILogger logger, string usage);
+    [LoggerMessage(Level = LogLevel.Error, Message = "{Error}\n{Usage}")]
+    public static partial void BadOptions(this ILogger logger, string error, string usage);
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Checking {Count} sheet(s); {Mode}.")]
     public static partial void Starting(this ILogger logger, int count, string mode);
