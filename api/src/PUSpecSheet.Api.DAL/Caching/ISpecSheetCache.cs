@@ -1,12 +1,15 @@
-﻿using PUSpecSheet.Abstractions.Domain.Legacy.SpecSheets;
+﻿using PUSpecSheet.Abstractions.Domain.Sheets;
 
 namespace PUSpecSheet.Api.DAL.Caching;
 
+/// <summary>
+/// Published sheets as they stood at a version, by the id of the SpecSheets row the version came from.
+/// </summary>
 internal interface ISpecSheetCache
 {
-    Task<SpecSheet?> GetAsync(int specSheetId, CancellationToken cancellationToken = default);
+    Task<Sheet?> GetAsync(int specSheetId, CancellationToken cancellationToken = default);
 
-    Task SetAsync(SpecSheet specSheet, CancellationToken cancellationToken = default);
+    Task SetAsync(Sheet sheet, CancellationToken cancellationToken = default);
 
     Task RemoveAsync(int specSheetId, CancellationToken cancellationToken = default);
 

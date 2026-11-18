@@ -2,53 +2,78 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { lastValueFrom } from 'rxjs';
 import { environment } from '../../../../../environments/environment';
+import { SheetAdapter } from '../../../core/helpers/sheet-adapter';
+import { Sheet, SheetSubmission } from '../../../core/models/domain/sheets/sheet';
 import { SpecSheet } from '../../../core/models/domain/spec-sheet/spec-sheet';
 import { SpecSheetSummary } from '../../../core/models/domain/spec-sheet/spec-sheet-summary';
 import { SpecSheetChanges } from '../../../core/models/operations/spec-sheet-changes';
 import { PublishSpecSheetRequest } from '../../../core/models/requests/spec-sheets/publish-spec-sheet-request';
 import { ReassignWorkflowStepActorsRequest } from '../../../core/models/requests/workflow/reassign-workflow-step-actors-request';
 import { UpdateWorkflowStepActorRequest } from '../../../core/models/requests/workflow/update-workflow-step-actor-request';
+import { SheetListingService } from '../../../core/services/sheet-listing.service';
 
 @Injectable()
 export class SheetDataService {
   private readonly _httpClient = inject(HttpClient);
+  private readonly _sheetListingService = inject(SheetListingService);
 
   public async getSpecSheetByIdAsync(id: number): Promise<SpecSheet> {
-    const url = `${environment.apiUrl}/specsheets/${id}`;
-    return await lastValueFrom(this._httpClient.get<SpecSheet>(url));
+    const url = `${environment.apiUrl}/sheets/spec-sheet/${id}`;
+    const [sheet, submissions] = await Promise.all([
+      lastValueFrom(this._httpClient.get<Sheet>(`${url}/sheet`)),
+      lastValueFrom(this._httpClient.get<SheetSubmission[]>(`${url}/submissions`)),
+    ]);
+
+    return SheetAdapter.toSpecSheet(sheet, id, submissions);
   }
 
   public async getAllSpecSheetsByPhaseAndTypeAsync(
     phaseId: number,
     typeId: number,
   ): Promise<SpecSheetSummary[]> {
-    const url = `${environment.apiUrl}/specsheets/phase/${phaseId}/type/${typeId}`;
-    return await lastValueFrom(this._httpClient.get<SpecSheetSummary[]>(url));
+    return await this._sheetListingService.getByPhaseAndTypeAsync(phaseId, typeId);
   }
 
   public async updateSpecSheetAsync(request: SpecSheetChanges): Promise<void> {
-    const url = `${environment.apiUrl}/specsheets/update`;
-    await lastValueFrom(this._httpClient.patch<void>(url, request));
+    const url = `${environment.apiUrl}/sheets/spec-sheet/${request.specSheetId}/draft`;
+    await lastValueFrom(
+      this._httpClient.patch<void>(url, { operations: request.operations }),
+    );
   }
 
   public async publishSpecSheetAsync(
     request: PublishSpecSheetRequest,
   ): Promise<void> {
-    const url = `${environment.apiUrl}/specsheets/publish`;
-    await lastValueFrom(this._httpClient.patch<void>(url, request));
+    const url = `${environment.apiUrl}/sheets/spec-sheet/${request.id}/publish`;
+    await lastValueFrom(
+      this._httpClient.patch<void>(url, {
+        changeLog: request.changeLog,
+        approverUserIds: request.approvers.map((approver) => approver.id),
+      }),
+    );
   }
 
   public async updateApprovalStateAsync(
     request: UpdateWorkflowStepActorRequest,
   ): Promise<void> {
-    const url = `${environment.apiUrl}/workflow/actor`;
-    await lastValueFrom(this._httpClient.patch<void>(url, request));
+    const url = `${environment.apiUrl}/sheets/spec-sheet/${request.specSheetId}/submission/decision`;
+    await lastValueFrom(
+      this._httpClient.patch<void>(url, {
+        decision: request.state,
+        comment: request.comment,
+      }),
+    );
   }
 
   public async reassignWorkflowStepActorsAsync(
     request: ReassignWorkflowStepActorsRequest,
   ): Promise<void> {
-    const url = `${environment.apiUrl}/workflow/reassign`;
-    await lastValueFrom(this._httpClient.patch<void>(url, request));
+    const url = `${environment.apiUrl}/sheets/spec-sheet/${request.specSheetId}/submission/approvers`;
+    await lastValueFrom(
+      this._httpClient.patch<void>(url, {
+        addedUserIds: request.createWorkflowStepActorRequests,
+        removedUserIds: request.deleteWorkflowStepActorRequests,
+      }),
+    );
   }
 }

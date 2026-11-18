@@ -18,7 +18,6 @@ internal class SheetDataAccessService : ISheetDataAccessService
 {
     private readonly PUSpecSheetDbContext _dbContext;
     private readonly SheetReader _sheetReader;
-    private readonly SheetEditSwitch _editSwitch;
     private readonly IUserContext _userContext;
     private readonly SheetDraftCreator _draftCreator;
     private readonly SheetDraftDeleter _draftDeleter;
@@ -28,7 +27,6 @@ internal class SheetDataAccessService : ISheetDataAccessService
 
     public SheetDataAccessService(PUSpecSheetDbContext dbContext,
         SheetReader sheetReader,
-        SheetEditSwitch editSwitch,
         IUserContext userContext,
         SheetDraftCreator draftCreator,
         SheetDraftDeleter draftDeleter,
@@ -38,7 +36,6 @@ internal class SheetDataAccessService : ISheetDataAccessService
     {
         ArgumentNullException.ThrowIfNull(dbContext, nameof(dbContext));
         ArgumentNullException.ThrowIfNull(sheetReader, nameof(sheetReader));
-        ArgumentNullException.ThrowIfNull(editSwitch, nameof(editSwitch));
         ArgumentNullException.ThrowIfNull(userContext, nameof(userContext));
         ArgumentNullException.ThrowIfNull(draftCreator, nameof(draftCreator));
         ArgumentNullException.ThrowIfNull(draftDeleter, nameof(draftDeleter));
@@ -48,7 +45,6 @@ internal class SheetDataAccessService : ISheetDataAccessService
 
         _dbContext = dbContext;
         _sheetReader = sheetReader;
-        _editSwitch = editSwitch;
         _userContext = userContext;
         _draftCreator = draftCreator;
         _draftDeleter = draftDeleter;
@@ -128,6 +124,11 @@ internal class SheetDataAccessService : ISheetDataAccessService
         return [.. tables.Where(table => permitted.Contains(table.ReferenceId))];
     }
 
+    public async Task<IReadOnlyList<SheetVersionSummary>> GetPublishedVersionSummariesAsync(int sheetTypeId, int? phaseId, CancellationToken cancellationToken)
+    {
+        return await _sheetReader.ReadVersionSummariesAsync(sheet => sheet.SpecSheetTypeId == sheetTypeId && (phaseId == null || sheet.SpecSheetPhaseId == phaseId), cancellationToken);
+    }
+
     public async Task<IReadOnlyList<SheetSummary>> GetSheetSummariesByPhaseAsync(int phaseId, bool includeChildren, CancellationToken cancellationToken)
     {
         var phaseIds = new List<int> { phaseId };
@@ -156,7 +157,7 @@ internal class SheetDataAccessService : ISheetDataAccessService
 
     public async Task<SheetLocation?> FindSheetAsync(int specSheetId, CancellationToken cancellationToken)
     {
-        return await _sheetReader.FindLocationAsync(specSheetId, _editSwitch, cancellationToken);
+        return await _sheetReader.FindLocationAsync(specSheetId, cancellationToken);
     }
 
     #region Writes
@@ -165,7 +166,6 @@ internal class SheetDataAccessService : ISheetDataAccessService
     {
         ArgumentNullException.ThrowIfNull(request, nameof(request));
 
-        EnsureOnRevisions(request.SpecSheetTypeId, $"Sheet type with Id {request.SpecSheetTypeId}");
         var currentUser = await GetCurrentUserAsync(cancellationToken);
 
         var specSheetId = await _draftCreator.CreateAsync(new CreateSpecSheetRequest
@@ -267,14 +267,6 @@ internal class SheetDataAccessService : ISheetDataAccessService
         _logger.LogInformation("Applied {OperationCount} change(s) to the draft of Sheet with Id {SheetId} by UserId {UserId}", changes.Operations.Length, sheetId, currentUser.Id);
     }
 
-    private void EnsureOnRevisions(int sheetTypeId, string what)
-    {
-        if (!_editSwitch.IsOnRevisions(sheetTypeId))
-        {
-            throw new NotSupportedException($"{what} is still edited on its copies, so it can't be changed through the sheets yet.");
-        }
-    }
-
     // The unpublished SpecSheets row that is the sheet's draft: what the spec sheet methods act on.
     private async Task<int> FindDraftSpecSheetIdAsync(int sheetId, CancellationToken cancellationToken)
     {
@@ -284,7 +276,6 @@ internal class SheetDataAccessService : ISheetDataAccessService
             .Select(s => new { s.SpecSheetTypeId, s.SpecSheetPhaseId })
             .FirstOrDefaultAsync(cancellationToken)
             ?? throw new KeyNotFoundException($"Sheet with Id {sheetId} not found.");
-        EnsureOnRevisions(sheet.SpecSheetTypeId, $"Sheet with Id {sheetId}");
 
         return await _dbContext.SpecSheets
             .AsNoTracking()

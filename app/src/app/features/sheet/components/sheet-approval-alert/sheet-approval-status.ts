@@ -145,6 +145,7 @@ export class SheetApprovalStatus {
 
     try {
       const request = {
+        specSheetId: this._activeSheetService.specSheet().specSheet.id,
         workflowStepId: approval.workflowStepId,
         workflowStepActorId: approval.id,
         state: approve ? WorkflowState.Approved : WorkflowState.Rejected,

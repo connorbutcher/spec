@@ -104,11 +104,19 @@ The legacy codebase is the base. The rewrite's features (revision model, drafts,
 
 **Known limits.** Two versions of one sheet published in the same second would share a moment. A cell added to a row that is already published shows, empty, in the published read too, as the revisions don't keep cells per revision (deleting the draft removes it again). External references aren't copied into a new draft: the revisions keep them per version, pushed by the external systems, so they're for stage 7. A copied table keeps its notes' authors and times, where a new copy made them the copier's. `UpdateSpecSheetAsync` logs and swallows errors, as it always has, so a refused edit only shows in the log. The draft's workflow steps are still the header's.
 
+## Stage 8: retiring the copies
+
+Done: the Query layer (mappers, resolvers, `SlimTableBuilder`), the admin cache refresh and the Angular app now read and write through `/sheets`. The `SheetReads` and `SheetEdits` switches, `SpecSheetDataAccessService`, the legacy readers and comparer, the copy edit processors and the `specsheet`, `workflow` and `specsheettables` controllers are deleted, along with `GET /revisions/compare` (so the migration can no longer be checked that way). Every sheet type is now assumed migrated: run the migrator for all of them. The cache key prefix is `sheets:`. New endpoints under `/sheets/spec-sheet/{specSheetId}/...` serve the app, which still keys routing and presence on spec sheet ids. The app adapts `/sheets` JSON to its editor models in `core/helpers/sheet-adapter.ts`.
+
+Remaining: `Abstractions/Domain/Legacy`, `SpecSheetRevisionReader`'s published/draft reads and its mapper, and the legacy `Db*` entities and tables (the migrator reads them). `SheetDraftCreator`, `SheetDraftCopier`, `SheetDraftItems` and `SheetCopySignatures` still use the legacy models; port them to `Sheet`, then delete these. Everything in stage 8 is uncompiled and untested.
+
+Notes above that mention `SheetReads:Source`, `SheetEdits:RevisionSheetTypeIds`, `/revisions/compare`, the obsolete controller actions or `SpecSheetDataAccessService` describe the code before stage 8.
+
 ## Open items
 
 1. Nothing has been compiled or tested (no dotnet SDK in the sandbox). First step on a real machine: build the solution and run `dotnet test`.
 2. Run the migrator as a dry run, then with `commit` on, against a copy of production.
-3. Call `/revisions/compare` until it is clean, then try `Compare` and `Revisions` modes.
+3. (Stage 8: `/revisions/compare` and the read modes are gone; run the migrator for every type instead.)
 4. Check the datetime2 scale (the dump shows 0; scripts use `DATETIME2 (0)`; unverified).
 5. Resolved 2026-11-17: the sheet copies' tables are in the `legacy` schema in the scripts and the EF context, as in `docs/legacy-schema.txt`. A refactor log moves them on deploy.
 6. Push the reference tag yourself: `git tag new-app-reference 2c82183 && git push origin new-app-reference`.

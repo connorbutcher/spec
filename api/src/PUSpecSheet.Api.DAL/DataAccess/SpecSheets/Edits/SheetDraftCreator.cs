@@ -21,22 +21,18 @@ namespace PUSpecSheet.Api.DAL.DataAccess.SpecSheets.Edits;
 internal class SheetDraftCreator
 {
     private readonly PUSpecSheetDbContext _dbContext;
-    private readonly ISpecSheetReader _specSheetReader;
     private readonly SpecSheetRevisionReader _revisionReader;
     private readonly ITypeDataAccessService _typeDataAccessService;
 
     public SheetDraftCreator(PUSpecSheetDbContext dbContext,
-        ISpecSheetReader specSheetReader,
         SpecSheetRevisionReader revisionReader,
         ITypeDataAccessService typeDataAccessService)
     {
         ArgumentNullException.ThrowIfNull(dbContext, nameof(dbContext));
-        ArgumentNullException.ThrowIfNull(specSheetReader, nameof(specSheetReader));
         ArgumentNullException.ThrowIfNull(revisionReader, nameof(revisionReader));
         ArgumentNullException.ThrowIfNull(typeDataAccessService, nameof(typeDataAccessService));
 
         _dbContext = dbContext;
-        _specSheetReader = specSheetReader;
         _revisionReader = revisionReader;
         _typeDataAccessService = typeDataAccessService;
     }
@@ -152,7 +148,8 @@ internal class SheetDraftCreator
             return [];
         }
 
-        var source = await _specSheetReader.ReadAsync(copyFromId, cancellationToken);
+        var source = await _revisionReader.ReadPublishedAsync(copyFromId, cancellationToken)
+            ?? throw new InvalidOperationException($"Spec Sheet with Id {copyFromId} isn't a published version, so it can't be copied from.");
         return [.. source.Tables];
     }
 }

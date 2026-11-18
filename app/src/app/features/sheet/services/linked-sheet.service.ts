@@ -1,4 +1,4 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import {
   inject,
   Injectable,
@@ -8,6 +8,8 @@ import {
 } from '@angular/core';
 import { lastValueFrom } from 'rxjs';
 import { environment } from '../../../../../environments/environment';
+import { SheetAdapter } from '../../../core/helpers/sheet-adapter';
+import { Sheet } from '../../../core/models/domain/sheets/sheet';
 import { SpecSheet } from '../../../core/models/domain/spec-sheet/spec-sheet';
 import { PUSpecSheet } from '../models/pu-spec-sheet';
 import { SheetContext } from './sheet-context';
@@ -71,13 +73,22 @@ export class LinkedSheetService {
       const publishedDateTime =
         publishedByDateTime ?? specSheet.specSheet.publishedDateTime;
       if (publishedDateTime) {
-        params = params.append('publishedByDateTime', publishedDateTime);
+        params = params.append('publishedBy', publishedDateTime);
       }
     }
 
-    const url = `${environment.apiUrl}/specsheets/latest/published/type/${typeId}/phase/${phaseId}`;
-    return lastValueFrom(
-      this._httpClient.get<SpecSheet | undefined>(url, { params }),
-    );
+    const url = `${environment.apiUrl}/sheets/phase/${phaseId}/type/${typeId}/latest`;
+    try {
+      const sheet = await lastValueFrom(
+        this._httpClient.get<Sheet>(url, { params }),
+      );
+      return SheetAdapter.toSpecSheet(sheet, sheet.version?.sourceSpecSheetId ?? 0);
+    } catch (error) {
+      if (error instanceof HttpErrorResponse && error.status === 404) {
+        return undefined;
+      }
+
+      throw error;
+    }
   }
 }

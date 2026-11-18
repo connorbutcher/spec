@@ -1,65 +1,48 @@
 ﻿using PUSpecSheet.Abstractions.Domain.Properties.Table;
-using PUSpecSheet.Abstractions.Domain.Legacy.SpecSheets;
-using PUSpecSheet.Api.DAL.Caching;
-using PUSpecSheet.Api.DAL.DataAccess.SpecSheets;
+using PUSpecSheet.Abstractions.Domain.Sheets;
 using PUSpecSheet.Api.DAL.DataAccess.Types;
 using PUSpecSheet.Api.DAL.Query.Resolvers.Models;
 
 namespace PUSpecSheet.Api.DAL.Query.Resolvers.Tables;
 
-internal class LinkedTableResolver : TableResolver<LinkedTableProperties, LinkedResolverResult<SpecSheetTable>>
+internal class LinkedTableResolver : TableResolver<LinkedTableProperties, LinkedResolverResult<SheetTable>>
 {
-    private readonly ISpecSheetDataAccessService _specSheetDataAccessService;
     private readonly ITypeDataAccessService _typeDataAccessService;
 
-    public LinkedTableResolver(ISpecSheetDataAccessService specSheetDataAccessService,
-        ITypeDataAccessService typeDataAccessService,
-        ISpecSheetCache loadedSpecSheetsService)
-        : base(loadedSpecSheetsService)
+    public LinkedTableResolver(ITypeDataAccessService typeDataAccessService,
+        LinkedSheetLoader linkedSheetLoader)
+        : base(linkedSheetLoader)
     {
-        _specSheetDataAccessService = specSheetDataAccessService;
         _typeDataAccessService = typeDataAccessService;
     }
 
-    public override async Task<LinkedResolverResult<SpecSheetTable>?> ResolveAsync(SpecSheet specSheet, LinkedTableProperties data, CancellationToken cancellationToken)
+    public override async Task<LinkedResolverResult<SheetTable>?> ResolveAsync(Sheet sheet, LinkedTableProperties data, CancellationToken cancellationToken)
     {
-        if (data.TableReferenceId is null || data.SpecSheetTypeId is null || data.SpecSheetPhaseId is null)
+        if (data.TableReferenceId is null || data.SpecSheetTypeId is null || data.SpecSheetPhaseId is null || sheet.Version is null)
         {
             return null;
         }
 
-        var latestSpecSheetSummary = await _specSheetDataAccessService.GetLatestPublishedSpecSheetSummaryByTypeAndPhaseAsync(
+        var latestSheet = await _linkedSheetLoader.LoadAsync(
             data.SpecSheetTypeId.Value,
             data.SpecSheetPhaseId.Value,
-            specSheet.PublishedDateTime!.Value,
+            sheet.Version.PublishedDateTime,
             cancellationToken);
-        if (latestSpecSheetSummary is null)
+        if (latestSheet is null)
         {
             return null;
         }
 
-        var latestSpecSheet = await _loadedSpecSheetsService.GetAsync(latestSpecSheetSummary.Id, cancellationToken);
-        if (latestSpecSheet is null)
-        {
-            latestSpecSheet = await _specSheetDataAccessService.GetSpecSheetByIdAsync(latestSpecSheetSummary.Id, cancellationToken);
-            if (latestSpecSheet is null)
-            {
-                return null;
-            }
-
-            await _loadedSpecSheetsService.SetAsync(latestSpecSheet, cancellationToken);
-        }
-
-        var referencedTable = latestSpecSheet.Tables.FirstOrDefault(t => t.ReferenceId == data.TableReferenceId.Value);
+        var referencedTable = latestSheet.Tables.FirstOrDefault(t => t.ReferenceId == data.TableReferenceId.Value);
         if (referencedTable is null)
         {
             return null;
         }
 
-        var specSheetType = await _typeDataAccessService.GetSpecSheetTypeByIdAsync(specSheet.SpecSheetTypeId, cancellationToken)
-            ?? throw new Exception($"SpecSheetType with Id {specSheet.SpecSheetTypeId} not found for SpecSheet with Id {specSheet.Id}.");
+        var specSheetType = await _typeDataAccessService.GetSpecSheetTypeByIdAsync(latestSheet.SpecSheetTypeId, cancellationToken)
+            ?? throw new Exception($"SpecSheetType with Id {latestSheet.SpecSheetTypeId} not found for Sheet with Id {latestSheet.Id}.");
 
-        return new LinkedResolverResult<SpecSheetTable>
+        return new LinkedResolverResult<SheetTable>
         {
             Result = referencedTable,
             SpecSheetType = specSheetType,

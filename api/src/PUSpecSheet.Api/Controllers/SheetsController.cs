@@ -150,4 +150,124 @@ public class SheetsController : ControllerBase
         await _sheetDataAccessService.ReassignSubmissionApproversAsync(id, request, HttpContext.RequestAborted);
         return NoContent();
     }
+
+    #region By Spec Sheet Id
+
+    // The app opens, edits and lists sheets by the id of a spec sheet (a published version's or a draft's), which these
+    // endpoints take in place of the sheet's.
+
+    [HttpGet("spec-sheet/{specSheetId:int}/sheet")]
+    public async Task<ActionResult<Sheet>> GetSheetBySpecSheetAsync(int specSheetId)
+    {
+        var location = await _sheetDataAccessService.FindSheetAsync(specSheetId, HttpContext.RequestAborted);
+        if (location is null)
+        {
+            return NotFound();
+        }
+
+        var sheet = location.IsDraft
+            ? await _sheetDataAccessService.GetDraftSheetAsync(location.SheetId, HttpContext.RequestAborted)
+            : await _sheetDataAccessService.GetPublishedSheetAsync(location.SheetId, location.VersionNumber, HttpContext.RequestAborted);
+        return sheet is null ? NotFound() : Ok(sheet);
+    }
+
+    [HttpGet("spec-sheet/{specSheetId:int}/submissions")]
+    public async Task<ActionResult<IReadOnlyList<SheetSubmission>>> GetSubmissionsBySpecSheetAsync(int specSheetId)
+    {
+        var location = await _sheetDataAccessService.FindSheetAsync(specSheetId, HttpContext.RequestAborted);
+        if (location is null)
+        {
+            return NotFound();
+        }
+
+        var submissions = await _sheetDataAccessService.GetSheetSubmissionsAsync(location.SheetId, location.VersionNumber, HttpContext.RequestAborted);
+        return submissions is null ? NotFound() : Ok(submissions);
+    }
+
+    [HttpPatch("spec-sheet/{specSheetId:int}/draft")]
+    public async Task<ActionResult> ApplyChangesBySpecSheetAsync(int specSheetId, [FromBody] SheetChanges changes)
+    {
+        var location = await FindDraftAsync(specSheetId);
+        if (location is null)
+        {
+            return NotFound();
+        }
+
+        await _sheetDataAccessService.ApplyChangesAsync(location.SheetId, changes, HttpContext.RequestAborted);
+        return NoContent();
+    }
+
+    [HttpPatch("spec-sheet/{specSheetId:int}/publish")]
+    public async Task<ActionResult> PublishBySpecSheetAsync(int specSheetId, [FromBody] PublishSheetRequest request)
+    {
+        var location = await FindDraftAsync(specSheetId);
+        if (location is null)
+        {
+            return NotFound();
+        }
+
+        await _sheetDataAccessService.PublishAsync(location.SheetId, request, HttpContext.RequestAborted);
+        return NoContent();
+    }
+
+    [HttpDelete("spec-sheet/{specSheetId:int}/draft")]
+    [UserPermissionAuthorization("admin.view", "admin.sheets")]
+    public async Task<ActionResult> DeleteDraftBySpecSheetAsync(int specSheetId)
+    {
+        var location = await FindDraftAsync(specSheetId);
+        if (location is null)
+        {
+            return NotFound();
+        }
+
+        await _sheetDataAccessService.DeleteDraftAsync(location.SheetId, HttpContext.RequestAborted);
+        return NoContent();
+    }
+
+    [HttpPatch("spec-sheet/{specSheetId:int}/submission/decision")]
+    public async Task<ActionResult> DecideSubmissionBySpecSheetAsync(int specSheetId, [FromBody] DecideSubmissionRequest request)
+    {
+        var location = await FindDraftAsync(specSheetId);
+        if (location is null)
+        {
+            return NotFound();
+        }
+
+        await _sheetDataAccessService.DecideSubmissionAsync(location.SheetId, request, HttpContext.RequestAborted);
+        return NoContent();
+    }
+
+    [HttpPatch("spec-sheet/{specSheetId:int}/submission/approvers")]
+    public async Task<ActionResult> ReassignSubmissionApproversBySpecSheetAsync(int specSheetId, [FromBody] ReassignSubmissionApproversRequest request)
+    {
+        var location = await FindDraftAsync(specSheetId);
+        if (location is null)
+        {
+            return NotFound();
+        }
+
+        await _sheetDataAccessService.ReassignSubmissionApproversAsync(location.SheetId, request, HttpContext.RequestAborted);
+        return NoContent();
+    }
+
+    // Every published version of the sheets of the phase and type, then the draft's id where there is one.
+    [HttpGet("phase/{phaseId:int}/type/{sheetTypeId:int}/versions")]
+    public async Task<ActionResult<IReadOnlyList<SheetVersionSummary>>> GetVersionSummariesByPhaseAndTypeAsync(int phaseId, int sheetTypeId)
+    {
+        return Ok(await _sheetDataAccessService.GetPublishedVersionSummariesAsync(sheetTypeId, phaseId, HttpContext.RequestAborted));
+    }
+
+    [HttpGet("type/{sheetTypeId:int}/versions")]
+    public async Task<ActionResult<IReadOnlyList<SheetVersionSummary>>> GetVersionSummariesByTypeAsync(int sheetTypeId)
+    {
+        return Ok(await _sheetDataAccessService.GetPublishedVersionSummariesAsync(sheetTypeId, null, HttpContext.RequestAborted));
+    }
+
+    private async Task<SheetLocation?> FindDraftAsync(int specSheetId)
+    {
+        var location = await _sheetDataAccessService.FindSheetAsync(specSheetId, HttpContext.RequestAborted);
+        return location is { IsDraft: true } ? location : null;
+    }
+
+    #endregion By Spec Sheet Id
 }

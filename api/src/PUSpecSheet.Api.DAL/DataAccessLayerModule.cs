@@ -10,11 +10,12 @@ using PUSpecSheet.Api.DAL.DataAccess.Admin;
 using PUSpecSheet.Api.DAL.DataAccess.Query;
 using PUSpecSheet.Api.DAL.DataAccess.SpecSheets;
 using PUSpecSheet.Api.DAL.DataAccess.SpecSheets.Edits;
-using PUSpecSheet.Api.DAL.DataAccess.SpecSheets.Reads;
 using PUSpecSheet.Api.DAL.DataAccess.SpecSheets.Reads.Revisions;
 using PUSpecSheet.Api.DAL.DataAccess.SpecSheets.Reads.Sheets;
 using PUSpecSheet.Api.DAL.DataAccess.Template;
 using PUSpecSheet.Api.DAL.DataAccess.Types;
+using PUSpecSheet.Api.DAL.Query.Builders;
+using PUSpecSheet.Api.DAL.Query.Resolvers;
 using PUSpecSheet.Api.DAL.Query.Resolvers.Cells;
 using PUSpecSheet.Api.DAL.Query.Resolvers.Tables;
 using PUSpecSheet.Api.Database;
@@ -52,7 +53,6 @@ public static class DataAccessLayerModule
 
         builder.Services.AddScoped<IUserContext, UserContext>();
         builder.Services.AddScoped<IAdminDataAccessService, AdminDataAccessService>();
-        builder.Services.AddScoped<ISpecSheetDataAccessService, SpecSheetDataAccessService>();
         builder.Services.AddScoped<ITemplateDataAccessService, TemplateDataAccessService>();
         builder.Services.AddScoped<ITypeDataAccessService, TypeDataAccessService>();
         builder.Services.AddScoped<IQueryDataAccessService, QueryDataAccessService>();
@@ -65,18 +65,13 @@ public static class DataAccessLayerModule
 
     private static void RegisterReaders(IHostApplicationBuilder builder)
     {
-        builder.Services.Configure<SheetReadOptions>(builder.Configuration.GetSection(SheetReadOptions.SectionName));
-        builder.Services.AddScoped<SpecSheetCopyReader>();
         builder.Services.AddScoped<SpecSheetRevisionReader>();
-        builder.Services.AddScoped<ISpecSheetReader, SpecSheetReader>();
         builder.Services.AddScoped<SheetReader>();
         builder.Services.AddScoped<ISheetDataAccessService, SheetDataAccessService>();
     }
 
     private static void RegisterEdits(IHostApplicationBuilder builder)
     {
-        builder.Services.Configure<SheetEditOptions>(builder.Configuration.GetSection(SheetEditOptions.SectionName));
-        builder.Services.AddScoped<SheetEditSwitch>();
         builder.Services.AddScoped<SheetDraftCreator>();
         builder.Services.AddScoped<SheetDraftDeleter>();
         builder.Services.AddScoped<SheetDraftPublisher>();
@@ -87,7 +82,9 @@ public static class DataAccessLayerModule
 
     private static void RegisterResolvers(IServiceCollection services)
     {
+        services.AddScoped<LinkedSheetLoader>();
         services.AddScoped<LinkedTableResolver>();
         services.AddScoped<LinkedSpecSheetLookupCellResolver>();
+        services.AddScoped<SlimTableBuilder>();
     }
 }

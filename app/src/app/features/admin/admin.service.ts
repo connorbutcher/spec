@@ -4,7 +4,7 @@ import { lastValueFrom } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { Permission } from '../../core/models/domain/access/permission';
 import { User } from '../../core/models/domain/access/user';
-import { SpecSheetTable } from '../../core/models/domain/spec-sheet/spec-sheet-table';
+import { SheetTable } from '../../core/models/domain/sheets/sheet';
 
 @Injectable()
 export class AdminService {
@@ -46,8 +46,8 @@ export class AdminService {
     return await lastValueFrom(this._httpClient.get<User[]>(url));
   }
 
-  private async getAllUniqueTablesAsync(): Promise<SpecSheetTable[]> {
-    const url = `${environment.apiUrl}/specsheettables/all/unique`;
-    return await lastValueFrom(this._httpClient.get<SpecSheetTable[]>(url));
+  private async getAllUniqueTablesAsync(): Promise<SheetTable[]> {
+    const url = `${environment.apiUrl}/sheets/tables/unique`;
+    return await lastValueFrom(this._httpClient.get<SheetTable[]>(url));
   }
 }

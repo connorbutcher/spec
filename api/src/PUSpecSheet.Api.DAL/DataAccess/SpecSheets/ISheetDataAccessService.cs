@@ -4,8 +4,7 @@ using PUSpecSheet.Abstractions.Requests.Sheets;
 namespace PUSpecSheet.Api.DAL.DataAccess.SpecSheets;
 
 /// <summary>
-/// Reads sheets in the shape of the revision schema. These are read from the revisions alone, whatever
-/// <c>SheetReads:Source</c> says, and have the ids of the revision schema's items rather than the copies'.
+/// Reads sheets in the shape of the revision schema. These are read from the revisions alone and have the ids of the revision schema's items.
 /// </summary>
 public interface ISheetDataAccessService
 {
@@ -54,6 +53,11 @@ public interface ISheetDataAccessService
     /// </summary>
     Task<IReadOnlyList<SheetTable>> GetUniqueTablesAsync(CancellationToken cancellationToken);
 
+    /// <summary>
+    /// Every published version of the sheets of the type (of the phase too when one is given), without their tables.
+    /// </summary>
+    Task<IReadOnlyList<SheetVersionSummary>> GetPublishedVersionSummariesAsync(int sheetTypeId, int? phaseId, CancellationToken cancellationToken);
+
     Task<IReadOnlyList<SheetSummary>> GetSheetSummariesByPhaseAsync(int phaseId, bool includeChildren, CancellationToken cancellationToken);
 
     Task<IReadOnlyList<SheetSummary>> GetSheetSummariesByTypeAsync(int sheetTypeId, CancellationToken cancellationToken);
@@ -70,9 +74,7 @@ public interface ISheetDataAccessService
     Task<SheetLocation?> FindSheetAsync(int specSheetId, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Starts the draft for the phase and sheet type. Only for sheet types edited on the revisions
-    /// (<c>SheetEdits:RevisionSheetTypeIds</c>), as are the other writes: a type still edited on its copies has no draft
-    /// to change here, and a <see cref="NotSupportedException"/> says so.
+    /// Starts the draft for the phase and sheet type. A sheet type must have been migrated to the revisions first.
     /// </summary>
     Task<SheetLocation> CreateDraftAsync(CreateSheetRequest request, CancellationToken cancellationToken);
 

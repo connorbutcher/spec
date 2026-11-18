@@ -42,35 +42,21 @@ This codebase is the base. The rewrite it replaces, with revision-based versioni
 2. Put the database schema under source control in a SQL database project. *(done; generated from the DbContext and the schema dump, not yet compared with a live database)*
 3. Add the revision tables in their own schemas, beside the existing ones. *(done: `spec`, `cell` and `approval`, built on the existing template tables)*
 4. Bring across the migrator, re-runnable, and keep the revision tables in step with the existing ones. *(done: `api/tools/PUSpecSheet.Migrator`)*
-5. Serve the query API and read-only screens from the revision tables, checked against the existing answers first. *(done: the `SheetReads:Source` switch, below)*
-6. Move editing onto drafts and revisions one sheet type at a time, behind a per-type switch (`SheetEdits:RevisionSheetTypeIds`). *(in progress: cell value edits are done; the plan and slices are in `docs/PROGRESS.md`)*
-7. Port the remaining features one at a time: the published API, lookups, presence. Templates stay as they are: the template tables and their editing aren't replaced.
-8. Retire the copied-sheet tables and the code that writes them.
+5. Serve the query API and read-only screens from the revision tables. *(done)*
+6. Move editing onto drafts and revisions. *(done: every sheet type is edited on drafts and revisions; the plan and slices are in `docs/PROGRESS.md`)*
+7. Port the remaining features: the published API, lookups, external references, the app's screens. Templates stay as they are: the template tables and their editing aren't replaced. *(done: the query API, resolvers, admin and the Angular app all use the sheets)*
+8. Retire the copied-sheet tables and the code that writes them. *(the API code is retired: the `specsheet`, `workflow` and `specsheettables` controllers, the copy readers, the read and edit switches and the copy edit processors are gone. What remains is below.)*
 
-## Reading published sheets from the revisions
+## Sheets
 
-Every whole-sheet read goes through `SpecSheetDataAccessService.GetSpecSheetByIdAsync`: the query API (by id, and the latest version of a type and phase), linked tables and linked cells, and the screens. Where it loads a sheet, on a cache miss, the `SheetReads:Source` setting decides where a published sheet comes from:
+Every sheet is read and written through `ISheetDataAccessService` and the `/sheets` endpoints, in the shape of the revision schema (`Sheet`, `SheetTable`, ...). A published version of a sheet is also a spec sheet, known by the id of the `SpecSheets` row it came from (`SheetVersion.SourceSpecSheetId`), and so is a sheet's unpublished draft, known by its `SpecSheets` header row. The app opens, edits and lists by those ids, which the `/sheets/spec-sheet/{specSheetId}/...` endpoints take; the other endpoints take the sheet's id. The query API (`/query`) builds its models from the same sheets (`PUSpecSheet.Api.DAL/Query`: mappers, the table builder and the resolvers for linked tables and cells).
 
-| Source | |
-| --- | --- |
-| `Copies` | The copy (`SpecSheets` and the tables under it), as before. The default. |
-| `Compare` | The copy, which is what is returned, and the revisions too; a difference is logged as a warning naming the sheet. |
-| `Revisions` | The revisions: the version migrated from that copy, as it stood when it was published (`SpecSheetRevisionReader`). A copy with no version yet, or an unpublished one, is read from the copy. |
+Published sheets that a link points at are cached (`ISpecSheetCache`, keyed by the spec sheet id of the version); the cache key prefix is `sheets:`, so entries from before the move are never read.
 
-The revision read builds the same `DbSpecSheet` a copy is read into and maps it with the same mappers, so the cache, table permissions and the query mapping after it don't change.
+What remains of the copied model:
 
-To move over:
-
-1. Run the migrator with `"commit": true`, and keep running it on a schedule so new publishes reach the revisions.
-2. Call `GET /revisions/compare` (optionally `?specSheetTypeId=` and `?specSheetPhaseId=`). It reads every published sheet both ways, without the cache, and lists the sheets that differ, with the lines each read has that the other hasn't, and those not migrated yet. Fix what it finds, in the migrator or the reader, until the list is empty.
-3. Set `SheetReads:Source` to `Compare` for a while to catch what the check missed, then to `Revisions`. Reset the cache (`DELETE /cache/reset?specSheetTypeId=`) after changing it, as cached sheets keep whichever read made them.
-
-What is left out of the comparison, because it differs by design:
-
-- Ids of tables, groups, rows and cells (the revisions' items have their own), and of workflow step actors, which the revisions number from 1 within the sheet. Widgets and notes have their items' ids too. Items are matched by ReferenceID.
-- Who created and last changed each table, group, row and cell, which the copies keep per item. From the revisions they are who wrote the revision shown, and when it replaced the one before.
-
-What can differ and will show up if it does: a cell's own `RowNumber`, type or configuration where it isn't its row's or its template cell's (the migrator warns about these), a version's workflow steps where a copy's steps started before the version before it was published, an approver's decided time where the copy had none, and a group linked to a deleted group.
-
-Summaries (lists of versions and their properties) and the analytics dataset still read the copies.
+- The legacy tables and their `Db*` entities, which the migrator reads. Run it with `"commit": true` on a schedule while anything still writes the legacy tables.
+- The `SpecSheets` row, which is the draft's header (lists, emails, approval steps) and the source of each version's id.
+- `SpecSheetRevisionReader` and the `Abstractions/Domain/Legacy` models, which `SheetDraftCreator` still uses to copy a published sheet's tables into a new draft. Porting `SheetDraftCreator`, `SheetDraftCopier`, `SheetDraftItems` and `SheetCopySignatures` to the `Sheet` models would let both go.
+- In the Angular app, the screens still work on the `SpecSheet` models, which `SheetAdapter` builds from what `/sheets` returns.
 

@@ -1,13 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using PUSpecSheet.Abstractions.Domain.Access;
-using PUSpecSheet.Abstractions.Domain.Revisions;
 using PUSpecSheet.Abstractions.Requests.Access;
 using PUSpecSheet.Abstractions.Requests.Access.Tables;
 using PUSpecSheet.Api.DAL.Caching;
-using PUSpecSheet.Api.DAL.DataAccess.SpecSheets;
-using PUSpecSheet.Api.DAL.DataAccess.SpecSheets.Reads;
-using PUSpecSheet.Api.DAL.DataAccess.SpecSheets.Reads.Revisions;
+using PUSpecSheet.Api.DAL.DataAccess.SpecSheets.Reads.Sheets;
 using PUSpecSheet.Api.Database;
 using PUSpecSheet.Api.Database.Mappers.Access;
 using PUSpecSheet.Api.Database.Schema.Access;
@@ -17,27 +14,21 @@ namespace PUSpecSheet.Api.DAL.DataAccess.Admin;
 internal class AdminDataAccessService : IAdminDataAccessService
 {
     private readonly PUSpecSheetDbContext _dbContext;
-    private readonly ISpecSheetDataAccessService _specSheetDataAccessService;
     private readonly ISpecSheetCache _specSheetCache;
-    private readonly SpecSheetCopyReader _copyReader;
-    private readonly SpecSheetRevisionReader _revisionReader;
+    private readonly SheetReader _sheetReader;
     private readonly ILogger<IAdminDataAccessService> _logger;
 
     public AdminDataAccessService(PUSpecSheetDbContext dbContext,
-        ISpecSheetDataAccessService specSheetDataAccessService,
         ISpecSheetCache specSheetCache,
-        SpecSheetCopyReader copyReader,
-        SpecSheetRevisionReader revisionReader,
+        SheetReader sheetReader,
         ILogger<IAdminDataAccessService> logger)
     {
         ArgumentNullException.ThrowIfNull(dbContext, nameof(dbContext));
         ArgumentNullException.ThrowIfNull(logger, nameof(logger));
 
         _dbContext = dbContext;
-        _specSheetDataAccessService = specSheetDataAccessService;
         _specSheetCache = specSheetCache;
-        _copyReader = copyReader;
-        _revisionReader = revisionReader;
+        _sheetReader = sheetReader;
         _logger = logger;
     }
 
@@ -206,19 +197,18 @@ internal class AdminDataAccessService : IAdminDataAccessService
                 continue;
             }
 
-            var specSheet = await _dbContext.SpecSheets
-                .AsNoTracking()
-                .Where(s => s.Id == key && s.SpecSheetTypeId == specSheetTypeId)
-                .Select(s => s.Id)
-                .FirstOrDefaultAsync(cancellationToken);
-
-            if (specSheet > 0)
+            var version = await FindVersionOfTypeAsync(key, specSheetTypeId, cancellationToken);
+            if (version is not null)
             {
-                await _specSheetCache.RemoveAsync(specSheet, cancellationToken);
-                _logger.LogInformation("Removed cache entry for Spec Sheet ID {SpecSheetId} with Spec Sheet Type ID {SpecSheetTypeId}.", specSheet, specSheetTypeId);
+                await _specSheetCache.RemoveAsync(key, cancellationToken);
+                _logger.LogInformation("Removed cache entry for Spec Sheet ID {SpecSheetId} with Spec Sheet Type ID {SpecSheetTypeId}.", key, specSheetTypeId);
 
-                await _specSheetDataAccessService.GetSpecSheetByIdAsync(key, cancellationToken);
-                _logger.LogInformation("Refreshed cache entry for Spec Sheet ID {SpecSheetId} with Spec Sheet Type ID {SpecSheetTypeId}.", specSheet, specSheetTypeId);
+                var sheet = await _sheetReader.ReadPublishedAsync(version.Value.SheetId, version.Value.VersionNumber, cancellationToken);
+                if (sheet is not null)
+                {
+                    await _specSheetCache.SetAsync(sheet, cancellationToken);
+                }
+                _logger.LogInformation("Refreshed cache entry for Spec Sheet ID {SpecSheetId} with Spec Sheet Type ID {SpecSheetTypeId}.", key, specSheetTypeId);
             }
         }
     }
@@ -237,69 +227,24 @@ internal class AdminDataAccessService : IAdminDataAccessService
                 continue;
             }
 
-            var specSheet = await _dbContext.SpecSheets
-                .AsNoTracking()
-                .Where(s => s.Id == key && s.SpecSheetTypeId == specSheetTypeId)
-                .Select(s => s.Id)
-                .FirstOrDefaultAsync(cancellationToken);
-
-            if (specSheet > 0)
+            var version = await FindVersionOfTypeAsync(key, specSheetTypeId, cancellationToken);
+            if (version is not null)
             {
-                await _specSheetCache.RemoveAsync(specSheet, cancellationToken);
-                _logger.LogInformation("Removed cache entry for Spec Sheet ID {SpecSheetId} with Spec Sheet Type ID {SpecSheetTypeId}.", specSheet, specSheetTypeId);
+                await _specSheetCache.RemoveAsync(key, cancellationToken);
+                _logger.LogInformation("Removed cache entry for Spec Sheet ID {SpecSheetId} with Spec Sheet Type ID {SpecSheetTypeId}.", key, specSheetTypeId);
             }
         }
     }
 
-    public async Task<RevisionReadCheck> CompareRevisionReadsAsync(int? specSheetTypeId, int? specSheetPhaseId, CancellationToken cancellationToken)
+    // Where the version that the cache entry for the spec sheet is of: null when it isn't a version of a sheet of the type.
+    private async Task<(int SheetId, int VersionNumber)?> FindVersionOfTypeAsync(int specSheetId, int specSheetTypeId, CancellationToken cancellationToken)
     {
-        var specSheetIds = await _dbContext.SpecSheets
-            .AsNoTracking()
-            .Where(s => s.IsPublished
-                && (!specSheetTypeId.HasValue || s.SpecSheetTypeId == specSheetTypeId.Value)
-                && (!specSheetPhaseId.HasValue || s.SpecSheetPhaseId == specSheetPhaseId.Value))
-            .OrderBy(s => s.Id)
-            .Select(s => s.Id)
-            .ToListAsync(cancellationToken);
+        var version = await (from v in _dbContext.SheetVersions.AsNoTracking()
+                             join s in _dbContext.Sheets.AsNoTracking() on v.SheetId equals s.Id
+                             where v.SourceSpecSheetId == specSheetId && s.SpecSheetTypeId == specSheetTypeId
+                             select new { v.SheetId, v.VersionNumber })
+            .FirstOrDefaultAsync(cancellationToken);
 
-        var notMigrated = new List<int>();
-        var mismatches = new List<RevisionReadMismatch>();
-        foreach (var specSheetId in specSheetIds)
-        {
-            try
-            {
-                var fromRevisions = await _revisionReader.ReadPublishedAsync(specSheetId, cancellationToken);
-                if (fromRevisions is null)
-                {
-                    notMigrated.Add(specSheetId);
-                    continue;
-                }
-
-                var fromCopy = await _copyReader.ReadAsync(specSheetId, cancellationToken);
-                if (SpecSheetReadComparer.Difference(fromCopy, fromRevisions) is { } difference)
-                {
-                    mismatches.Add(new RevisionReadMismatch { SpecSheetId = specSheetId, Difference = difference });
-                }
-            }
-            catch (Exception ex) when (ex is not OperationCanceledException)
-            {
-                _logger.LogError(ex, "Spec Sheet ID {SpecSheetId} couldn't be compared. Message: {Message}", specSheetId, ex.Message);
-                mismatches.Add(new RevisionReadMismatch { SpecSheetId = specSheetId, Difference = $"couldn't be read: {ex.Message}" });
-            }
-        }
-
-        _logger.LogInformation(
-            "Compared {Checked} published Spec Sheets with the revisions: {Mismatched} differ, {NotMigrated} not migrated.",
-            specSheetIds.Count,
-            mismatches.Count,
-            notMigrated.Count);
-
-        return new RevisionReadCheck
-        {
-            Checked = specSheetIds.Count,
-            Matched = specSheetIds.Count - mismatches.Count - notMigrated.Count,
-            NotMigrated = notMigrated,
-            Mismatches = mismatches
-        };
+        return version is null ? null : (version.SheetId, version.VersionNumber);
     }
 }

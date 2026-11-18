@@ -1,11 +1,11 @@
-using PUSpecSheet.Abstractions.Domain.Legacy.SpecSheets;
+﻿using PUSpecSheet.Abstractions.Domain.Sheets;
 using PUSpecSheet.Query.Models.Table;
 
 namespace PUSpecSheet.Api.DAL.Query.Mappers;
 
 internal static class NoteMapper
 {
-    public static SlimPUSpecSheetTableNote MapToSlimNote(this SpecSheetTableNote note)
+    public static SlimPUSpecSheetTableNote MapToSlimNote(this SheetTableNote note)
     {
         return new SlimPUSpecSheetTableNote
         {
@@ -13,12 +13,12 @@ internal static class NoteMapper
             Note = note.Note,
             SourceSystem = note.SourceSystem,
             IsObsolete = note.IsObsolete,
-            CreatedBy = note.CreatedByUser.DisplayName,
+            CreatedBy = note.CreatedByUser!.DisplayName,
             CreatedDateTime = note.CreatedDateTime
         };
     }
 
-    public static IEnumerable<SlimPUSpecSheetTableNote> MapToSlimNotes(this ICollection<SpecSheetTableNote> notes)
+    public static IEnumerable<SlimPUSpecSheetTableNote> MapToSlimNotes(this ICollection<SheetTableNote> notes)
     {
         return notes.Select(MapToSlimNote);
     }

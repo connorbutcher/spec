@@ -1,5 +1,4 @@
 ﻿using PUSpecSheet.Abstractions.Domain.Access;
-using PUSpecSheet.Abstractions.Domain.Revisions;
 using PUSpecSheet.Abstractions.Requests.Access;
 using PUSpecSheet.Abstractions.Requests.Access.Tables;
 
@@ -24,10 +23,4 @@ public interface IAdminDataAccessService
     Task RefreshCacheForSpecSheetTypeAsync(int specSheetTypeId, CancellationToken cancellationToken);
 
     Task ResetCacheForSpecSheetTypeAsync(int specSheetTypeId, CancellationToken cancellationToken);
-
-    /// <summary>
-    /// Reads every published spec sheet (of a type or phase, when given) from its copy and from the revisions, and
-    /// compares them. Nothing is cached or changed.
-    /// </summary>
-    Task<RevisionReadCheck> CompareRevisionReadsAsync(int? specSheetTypeId, int? specSheetPhaseId, CancellationToken cancellationToken);
 }

@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Text.Json;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Configuration;
-using PUSpecSheet.Abstractions.Domain.Legacy.SpecSheets;
+using PUSpecSheet.Abstractions.Domain.Sheets;
 using PUSpecSheet.Api.Common.Configuration;
 using PUSpecSheet.Api.Common.Redis;
 using StackExchange.Redis;
@@ -28,10 +28,10 @@ internal class SpecSheetCache : ISpecSheetCache
     {
         _cache = cache;
         _connectionMultiplexer = connectionMultiplexer;
-        _cacheKeyPrefix = $"{configuration.GetCacheKeyPrefix()}specsheets:";
+        _cacheKeyPrefix = $"{configuration.GetCacheKeyPrefix()}sheets:";
     }
 
-    public async Task<SpecSheet?> GetAsync(int specSheetId, CancellationToken cancellationToken)
+    public async Task<Sheet?> GetAsync(int specSheetId, CancellationToken cancellationToken)
     {
         var cacheKey = $"{_cacheKeyPrefix}{specSheetId}";
         var payload = await _cache.GetAsync(cacheKey, cancellationToken);
@@ -49,20 +49,25 @@ internal class SpecSheetCache : ISpecSheetCache
 
         await using (sourceStream)
         {
-            return await JsonSerializer.DeserializeAsync<SpecSheet>(sourceStream, cancellationToken: cancellationToken);
+            return await JsonSerializer.DeserializeAsync<Sheet>(sourceStream, cancellationToken: cancellationToken);
         }
     }
 
-    public async Task SetAsync(SpecSheet specSheet, CancellationToken cancellationToken)
+    public async Task SetAsync(Sheet sheet, CancellationToken cancellationToken)
     {
-        var cacheKey = $"{_cacheKeyPrefix}{specSheet.Id}";
+        if (sheet.Version?.SourceSpecSheetId is not { } specSheetId)
+        {
+            return;
+        }
+
+        var cacheKey = $"{_cacheKeyPrefix}{specSheetId}";
         var existingPayload = await _cache.GetAsync(cacheKey, cancellationToken);
         if (existingPayload is not null)
         {
             return;
         }
 
-        var payload = JsonSerializer.SerializeToUtf8Bytes(specSheet);
+        var payload = JsonSerializer.SerializeToUtf8Bytes(sheet);
         if (payload.Length >= CompressionThresholdBytes)
         {
             payload = Compress(payload);

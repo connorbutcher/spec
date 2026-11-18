@@ -1,17 +1,15 @@
-﻿using PUSpecSheet.Abstractions.Domain.Legacy.SpecSheets;
-using PUSpecSheet.Abstractions.Domain.Legacy.Values;
-using PUSpecSheet.Api.DAL.Caching;
+﻿using PUSpecSheet.Abstractions.Domain.Sheets;
 
 namespace PUSpecSheet.Api.DAL.Query.Resolvers.Cells;
 
-internal abstract class CellResolver<T, R> where T : CellValue
+internal abstract class CellResolver<T, R> where T : SheetCellValue
 {
-    protected readonly ISpecSheetCache _loadedSpecSheetsService;
+    protected readonly LinkedSheetLoader _linkedSheetLoader;
 
-    public CellResolver(ISpecSheetCache loadedSpecSheetsService)
+    public CellResolver(LinkedSheetLoader linkedSheetLoader)
     {
-        _loadedSpecSheetsService = loadedSpecSheetsService;
+        _linkedSheetLoader = linkedSheetLoader;
     }
 
-    public abstract Task<R?> ResolveAsync(SpecSheet specSheet, T data, CancellationToken cancellationToken);
+    public abstract Task<R?> ResolveAsync(Sheet sheet, T data, CancellationToken cancellationToken);
 }

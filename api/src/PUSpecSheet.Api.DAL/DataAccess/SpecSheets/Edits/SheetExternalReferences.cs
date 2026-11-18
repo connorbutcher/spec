@@ -8,7 +8,7 @@ using PUSpecSheet.Query.Requests;
 namespace PUSpecSheet.Api.DAL.DataAccess.SpecSheets.Edits;
 
 /// <summary>
-/// Updates the external references of sheets of a type edited on the revisions. References are only revised by
+/// Updates the external references of sheets. References are only revised by
 /// versions, but other systems change them without a publish, so a change is made to the sheet's latest version: a
 /// reference new or changed in it has a revision of that version (changed in place if its current revision is of that
 /// version already, otherwise superseding it as of the version's moment), and one removed from it has a removing
@@ -17,37 +17,37 @@ namespace PUSpecSheet.Api.DAL.DataAccess.SpecSheets.Edits;
 internal class SheetExternalReferences
 {
     private readonly PUSpecSheetDbContext _dbContext;
-    private readonly SheetEditSwitch _editSwitch;
     private readonly ISpecSheetCache _specSheetCache;
     private readonly ILogger<SheetExternalReferences> _logger;
 
-    public SheetExternalReferences(PUSpecSheetDbContext dbContext, SheetEditSwitch editSwitch, ISpecSheetCache specSheetCache, ILogger<SheetExternalReferences> logger)
+    public SheetExternalReferences(PUSpecSheetDbContext dbContext, ISpecSheetCache specSheetCache, ILogger<SheetExternalReferences> logger)
     {
         ArgumentNullException.ThrowIfNull(dbContext, nameof(dbContext));
-        ArgumentNullException.ThrowIfNull(editSwitch, nameof(editSwitch));
         ArgumentNullException.ThrowIfNull(specSheetCache, nameof(specSheetCache));
         ArgumentNullException.ThrowIfNull(logger, nameof(logger));
 
         _dbContext = dbContext;
-        _editSwitch = editSwitch;
         _specSheetCache = specSheetCache;
         _logger = logger;
     }
 
     /// <summary>
-    /// Updates the references of the spec sheets that are the latest version of a sheet whose type is edited on the
-    /// revisions, as the copies' update does: a reference not given for a spec sheet and system is removed. Returns the
-    /// references for any other spec sheet, which are the copies' to update.
+    /// Updates the references of the spec sheets that are the latest version of a sheet: a reference not given for a
+    /// spec sheet and system is removed. A spec sheet that isn't a version of a sheet is logged and left.
     /// </summary>
-    public async Task<List<ExternalSystemReferenceRequest>> UpdateAsync(ICollection<ExternalSystemReferenceRequest> references, CancellationToken cancellationToken)
+    public async Task UpdateAsync(ICollection<ExternalSystemReferenceRequest> references, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(references, nameof(references));
 
         var latestVersions = await FindLatestVersionsAsync(references.Select(r => r.PUSpecSheetId).Distinct().ToList(), cancellationToken);
-        var rest = references.Where(r => !latestVersions.ContainsKey(r.PUSpecSheetId)).ToList();
+        foreach (var specSheetId in references.Select(r => r.PUSpecSheetId).Distinct().Where(id => !latestVersions.ContainsKey(id)))
+        {
+            _logger.LogWarning("Spec Sheet with Id {SpecSheetId} isn't a version of a sheet, so its system references weren't updated", specSheetId);
+        }
+
         if (latestVersions.Count == 0)
         {
-            return rest;
+            return;
         }
 
         await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
@@ -64,8 +64,7 @@ internal class SheetExternalReferences
             await _specSheetCache.RemoveAsync(specSheetId, cancellationToken);
         }
 
-        _logger.LogInformation("Updated the system references of {SpecSheetCount} sheet(s) on the revisions", latestVersions.Count);
-        return rest;
+        _logger.LogInformation("Updated the system references of {SpecSheetCount} sheet(s)", latestVersions.Count);
     }
 
     /// <summary>
@@ -105,10 +104,10 @@ internal class SheetExternalReferences
             await _specSheetCache.RemoveAsync(specSheetId, cancellationToken);
         }
 
-        _logger.LogInformation("Deleted {ReferenceCount} system references for ExternalId {ExternalId} on the revisions", items.Count, externalId);
+        _logger.LogInformation("Deleted {ReferenceCount} system references for ExternalId {ExternalId}", items.Count, externalId);
     }
 
-    // For each spec sheet that is a version of a sheet of a type edited on the revisions: the sheet's latest version. A
+    // For each spec sheet that is a version of a sheet: the sheet's latest version. A
     // spec sheet that is an earlier version isn't one to change, as its references are shared with the later ones.
     private async Task<Dictionary<int, DbSheetVersion>> FindLatestVersionsAsync(List<int> specSheetIds, CancellationToken cancellationToken)
     {
@@ -122,10 +121,6 @@ internal class SheetExternalReferences
         }
 
         var sheetIds = versions.Select(version => version.SheetId).Distinct().ToList();
-        var sheetTypeIds = await _dbContext.Sheets
-            .AsNoTracking()
-            .Where(sheet => sheetIds.Contains(sheet.Id))
-            .ToDictionaryAsync(sheet => sheet.Id, sheet => sheet.SpecSheetTypeId, cancellationToken);
         var latestNumbers = await _dbContext.SheetVersions
             .AsNoTracking()
             .Where(version => sheetIds.Contains(version.SheetId))
@@ -134,7 +129,7 @@ internal class SheetExternalReferences
             .ToDictionaryAsync(latest => latest.SheetId, latest => latest.VersionNumber, cancellationToken);
 
         var result = new Dictionary<int, DbSheetVersion>();
-        foreach (var version in versions.Where(version => _editSwitch.IsOnRevisions(sheetTypeIds[version.SheetId])))
+        foreach (var version in versions)
         {
             if (version.VersionNumber != latestNumbers[version.SheetId])
             {

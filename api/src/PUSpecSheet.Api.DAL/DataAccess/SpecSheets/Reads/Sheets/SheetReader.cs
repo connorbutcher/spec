@@ -70,6 +70,26 @@ internal class SheetReader
     }
 
     /// <summary>
+    /// The latest published version of the sheet of the phase and type at or before the moment (the latest of all when no
+    /// moment is given), as where to read it; null when there is none.
+    /// </summary>
+    public async Task<SheetLocation?> FindVersionAtAsync(int phaseId, int sheetTypeId, DateTime? publishedBy, CancellationToken cancellationToken)
+    {
+        var version = await (from v in _dbContext.SheetVersions.AsNoTracking()
+                             join s in _dbContext.Sheets.AsNoTracking() on v.SheetId equals s.Id
+                             where s.SpecSheetPhaseId == phaseId
+                                 && s.SpecSheetTypeId == sheetTypeId
+                                 && (publishedBy == null || v.PublishedDateTime <= publishedBy)
+                             orderby v.PublishedDateTime descending
+                             select new { v.SheetId, v.VersionNumber, v.SourceSpecSheetId })
+            .FirstOrDefaultAsync(cancellationToken);
+
+        return version is null
+            ? null
+            : new SheetLocation { SpecSheetId = version.SourceSpecSheetId ?? 0, SheetId = version.SheetId, VersionNumber = version.VersionNumber, IsDraft = false };
+    }
+
+    /// <summary>
     /// The cells with the reference ids, of the sheet as it stood at its latest version published at or before the
     /// moment (its latest version when no moment is given). Null when it has no such version.
     /// </summary>
@@ -93,6 +113,7 @@ internal class SheetReader
             SheetId = sheetId,
             SpecSheetTypeId = header.SpecSheetTypeId,
             SpecSheetPhaseId = header.SpecSheetPhaseId,
+            Properties = sheet.Properties,
             Cells = [.. sheet.Tables
                 .SelectMany(table => table.Groups)
                 .SelectMany(group => group.Rows)
@@ -207,10 +228,34 @@ internal class SheetReader
     }
 
     /// <summary>
+    /// Every published version of the sheets that match, without their tables: oldest sheet first, then oldest version
+    /// first.
+    /// </summary>
+    public async Task<List<SheetVersionSummary>> ReadVersionSummariesAsync(Expression<Func<DbSheet, bool>> filter, CancellationToken cancellationToken)
+    {
+        var sheets = await _dbContext.Sheets
+            .Where(filter)
+            .Include(s => s.SpecSheetPhase)
+            .Include(s => s.SpecSheetType)
+            .Include(s => s.Versions)
+            .Include(s => s.Properties)
+                .ThenInclude(p => p.Revisions.Where(r => r.Status == RevisionStatus.Published))
+            .Include(s => s.Properties)
+                .ThenInclude(p => p.SpecSheetTypeProperty)
+            .OrderBy(s => s.Id)
+            .AsSplitQuery()
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
+        var mapper = new SheetMapper([], sheets.SelectMany(sheet => sheet.Versions));
+        return [.. sheets.SelectMany(mapper.MapVersionSummaries)];
+    }
+
+    /// <summary>
     /// Where the spec sheet with this SpecSheets id is among the sheets, or null when it isn't: it hasn't been migrated to
     /// a version, or it is an unpublished one whose type isn't edited on the revisions.
     /// </summary>
-    public async Task<SheetLocation?> FindLocationAsync(int specSheetId, SheetEditSwitch editSwitch, CancellationToken cancellationToken)
+    public async Task<SheetLocation?> FindLocationAsync(int specSheetId, CancellationToken cancellationToken)
     {
         var version = await _dbContext.SheetVersions
             .AsNoTracking()
@@ -223,10 +268,31 @@ internal class SheetReader
             return new SheetLocation { SpecSheetId = specSheetId, SheetId = version.SheetId, VersionNumber = version.VersionNumber, IsDraft = false };
         }
 
-        var draftSheetId = await editSwitch.FindDraftSheetIdAsync(specSheetId, cancellationToken);
+        var draftSheetId = await FindDraftSheetIdAsync(specSheetId, cancellationToken);
         return draftSheetId is null
             ? null
             : new SheetLocation { SpecSheetId = specSheetId, SheetId = draftSheetId.Value, VersionNumber = null, IsDraft = true };
+    }
+
+    // The sheet that holds the drafts of the unpublished spec sheet with this id, or null when the spec sheet is published.
+    private async Task<int?> FindDraftSheetIdAsync(int specSheetId, CancellationToken cancellationToken)
+    {
+        var specSheet = await _dbContext.SpecSheets
+            .AsNoTracking()
+            .Where(s => s.Id == specSheetId)
+            .Select(s => new { s.IsPublished, s.SpecSheetTypeId, s.SpecSheetPhaseId })
+            .FirstOrDefaultAsync(cancellationToken);
+        if (specSheet is null || specSheet.IsPublished)
+        {
+            return null;
+        }
+
+        return await _dbContext.Sheets
+            .AsNoTracking()
+            .Where(s => s.SpecSheetTypeId == specSheet.SpecSheetTypeId && s.SpecSheetPhaseId == specSheet.SpecSheetPhaseId)
+            .Select(s => (int?)s.Id)
+            .FirstOrDefaultAsync(cancellationToken)
+            ?? throw new InvalidOperationException($"Spec Sheet with Id {specSheetId} has no sheet; it hasn't been migrated.");
     }
 
     private async Task<Sheet?> ReadPublishedAsync(int sheetId, Func<List<DbSheetVersion>, DbSheetVersion?> chooseVersion, CancellationToken cancellationToken)

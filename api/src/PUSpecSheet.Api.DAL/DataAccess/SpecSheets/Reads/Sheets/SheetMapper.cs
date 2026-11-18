@@ -86,6 +86,34 @@ internal class SheetMapper
         };
     }
 
+    /// <summary>
+    /// Each of the sheet's versions, with the property values the sheet had when it was published. The sheet's property
+    /// revisions are all those that were published, not only those that are current.
+    /// </summary>
+    public IEnumerable<SheetVersionSummary> MapVersionSummaries(DbSheet sheet)
+    {
+        foreach (var version in sheet.Versions.OrderBy(version => version.VersionNumber))
+        {
+            var moment = version.PublishedDateTime;
+            yield return new SheetVersionSummary
+            {
+                SheetId = sheet.Id,
+                SpecSheetPhaseId = sheet.SpecSheetPhaseId,
+                SpecSheetTypeId = sheet.SpecSheetTypeId,
+                SpecSheetPhase = sheet.SpecSheetPhase?.MapToDomain(),
+                SpecSheetType = sheet.SpecSheetType?.MapToDomain(),
+                Version = MapVersion(version),
+                Properties = [.. sheet.Properties
+                    .Select(property => (Property: property, Revision: property.Revisions.FirstOrDefault(r => r.Status == RevisionStatus.Published
+                        && r.PublishedDateTime <= moment
+                        && (r.SupersededDateTime == null || r.SupersededDateTime > moment))))
+                    .Where(pair => pair.Revision is { IsDeleted: false })
+                    .Select(pair => MapProperty(pair.Property, pair.Revision!))
+                    .OrderBy(property => property.Id)]
+            };
+        }
+    }
+
     public Sheet Map(DbSheet sheet, DbSheetVersion? version, ICollection<DbSheetLinkedTable> linkedTables, DateTime asOf, bool isDraft)
     {
         return new Sheet
@@ -423,7 +451,11 @@ internal class SheetMapper
 
     private SheetProperty MapProperty(DbSheetProperty property)
     {
-        var revision = property.Revisions.Shown();
+        return MapProperty(property, property.Revisions.Shown());
+    }
+
+    private SheetProperty MapProperty(DbSheetProperty property, DbSheetPropertyRevision revision)
+    {
         return new SheetProperty
         {
             Id = property.Id,

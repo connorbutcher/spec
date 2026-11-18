@@ -14,4 +14,9 @@ public record SheetCells
     public required int SpecSheetPhaseId { get; init; }
 
     public required IReadOnlyList<SheetTableCell> Cells { get; init; }
+
+    /// <summary>
+    /// The sheet's property values as of the version.
+    /// </summary>
+    public required ICollection<SheetProperty> Properties { get; init; }
 }

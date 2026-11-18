@@ -1,17 +1,14 @@
-import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
-import { lastValueFrom } from 'rxjs';
-import { environment } from '../../../../../../../environments/environment';
+import { inject, Injectable } from '@angular/core';
 import { SpecSheetSummary } from '../../../../../core/models/domain/spec-sheet/spec-sheet-summary';
+import { SheetListingService } from '../../../../../core/services/sheet-listing.service';
 
 @Injectable()
 export class CopyFromPropertyDataService {
-  constructor(private readonly _httpClient: HttpClient) {}
+  private readonly _sheetListingService = inject(SheetListingService);
 
   public async getAllSpecSheetsByTypeAsync(
     typeId: number,
   ): Promise<SpecSheetSummary[]> {
-    const url = `${environment.apiUrl}/specsheets/type/${typeId}`;
-    return await lastValueFrom(this._httpClient.get<SpecSheetSummary[]>(url));
+    return await this._sheetListingService.getPublishedByTypeAsync(typeId);
   }
 }

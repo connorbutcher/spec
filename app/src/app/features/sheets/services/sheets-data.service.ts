@@ -1,33 +1,29 @@
-import { httpResource } from '@angular/common/http';
-import { Injectable, Signal } from '@angular/core';
-import { environment } from '../../../../../environments/environment';
+import { inject, Injectable, resource, Signal } from '@angular/core';
 import { SpecSheetHelpers } from '../../../core/helpers/spec-sheet-helpers';
-import { SpecSheetSummary } from '../../../core/models/domain/spec-sheet/spec-sheet-summary';
 import { SpecSheetType } from '../../../core/models/domain/types/spec-sheet-type';
+import { SheetListingService } from '../../../core/services/sheet-listing.service';
 
 @Injectable()
 export class SheetsDataService {
+  private readonly _sheetListingService = inject(SheetListingService);
+
   public getSpecSheetsForPhaseAndTypeResource(
     phaseId: Signal<number | null>,
     specSheetType: Signal<SpecSheetType | null>,
   ) {
-    return httpResource<SpecSheetSummary[]>(
-      () => {
+    return resource({
+      params: () => {
         const type = specSheetType();
-        return phaseId() && type
-          ? {
-              url: `${environment.apiUrl}/specsheets/phase/${phaseId()}/type/${type.id}`,
-            }
-          : undefined;
+        const phase = phaseId();
+        return phase && type ? { phaseId: phase, type } : undefined;
       },
-      {
-        parse: (value) => {
-          const type = specSheetType();
-          return type
-            ? SpecSheetHelpers.sortSummaries(value as SpecSheetSummary[], type)
-            : [];
-        },
+      loader: async ({ params }) => {
+        const summaries = await this._sheetListingService.getByPhaseAndTypeAsync(
+          params.phaseId,
+          params.type.id,
+        );
+        return SpecSheetHelpers.sortSummaries(summaries, params.type);
       },
-    );
+    });
   }
 }

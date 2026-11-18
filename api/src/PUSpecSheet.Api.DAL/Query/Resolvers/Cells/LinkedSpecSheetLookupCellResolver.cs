@@ -1,8 +1,5 @@
-using PUSpecSheet.Abstractions.Domain.Properties.Table;
-using PUSpecSheet.Abstractions.Domain.Legacy.SpecSheets;
-using PUSpecSheet.Abstractions.Domain.Legacy.Values;
-using PUSpecSheet.Api.DAL.Caching;
-using PUSpecSheet.Api.DAL.DataAccess.SpecSheets;
+﻿using PUSpecSheet.Abstractions.Domain.Properties.Table;
+using PUSpecSheet.Abstractions.Domain.Sheets;
 using PUSpecSheet.Api.DAL.Query.Mappers;
 using PUSpecSheet.Api.DAL.Query.Resolvers.Tables;
 using PUSpecSheet.Query.Models.Table.Cell;
@@ -10,58 +7,43 @@ using PUSpecSheet.Query.Models.Values;
 
 namespace PUSpecSheet.Api.DAL.Query.Resolvers.Cells;
 
-internal class LinkedSpecSheetLookupCellResolver : CellResolver<LinkedSpecSheetValue, SlimPUSpecSheetCell>
+internal class LinkedSpecSheetLookupCellResolver : CellResolver<SheetLinkedSheetValue, SlimPUSpecSheetCell>
 {
-    private readonly ISpecSheetDataAccessService _specSheetDataAccessService;
     private readonly LinkedTableResolver _linkedTableResolver;
 
-    public LinkedSpecSheetLookupCellResolver(ISpecSheetDataAccessService specSheetDataAccessService,
-        ISpecSheetCache loadedSpecSheetsService,
+    public LinkedSpecSheetLookupCellResolver(LinkedSheetLoader linkedSheetLoader,
         LinkedTableResolver linkedTableResolver)
-        : base(loadedSpecSheetsService)
+        : base(linkedSheetLoader)
     {
-        _specSheetDataAccessService = specSheetDataAccessService;
         _linkedTableResolver = linkedTableResolver;
     }
 
-    public override async Task<SlimPUSpecSheetCell?> ResolveAsync(SpecSheet specSheet, LinkedSpecSheetValue data, CancellationToken cancellationToken)
+    public override async Task<SlimPUSpecSheetCell?> ResolveAsync(Sheet sheet, SheetLinkedSheetValue data, CancellationToken cancellationToken)
     {
-        if (data.TableReferenceId is null || data.LinkedReferenceId is null || data.LinkedSpecSheetPhaseId is null || data.LinkedSpecSheetTypeId is null)
+        if (data.TableReferenceId is null || data.LinkedReferenceId is null || data.LinkedSpecSheetPhaseId is null || data.LinkedSpecSheetTypeId is null || sheet.Version is null)
         {
             return null;
         }
 
-        var latestSpecSheetSummary = await _specSheetDataAccessService.GetLatestPublishedSpecSheetSummaryByTypeAndPhaseAsync(
+        var latestSheet = await _linkedSheetLoader.LoadAsync(
             data.LinkedSpecSheetTypeId.Value,
             data.LinkedSpecSheetPhaseId.Value,
-            specSheet.PublishedDateTime!.Value,
+            sheet.Version.PublishedDateTime,
             cancellationToken);
-        if (latestSpecSheetSummary is null)
+        if (latestSheet is null)
         {
             return null;
         }
 
-        var latestSpecSheet = await _loadedSpecSheetsService.GetAsync(latestSpecSheetSummary.Id, cancellationToken);
-        if (latestSpecSheet is null)
-        {
-            latestSpecSheet = await _specSheetDataAccessService.GetSpecSheetByIdAsync(latestSpecSheetSummary.Id, cancellationToken);
-            if (latestSpecSheet is null)
-            {
-                return null;
-            }
-
-            await _loadedSpecSheetsService.SetAsync(latestSpecSheet, cancellationToken);
-        }
-
-        var referencedTable = latestSpecSheet.Tables.FirstOrDefault(t => t.ReferenceId == data.TableReferenceId.Value);
+        var referencedTable = latestSheet.Tables.FirstOrDefault(t => t.ReferenceId == data.TableReferenceId.Value);
         if (referencedTable is null)
         {
             return null;
         }
 
-        if (referencedTable.ConfigurationOverride is not null && referencedTable.ConfigurationOverride is LinkedTableProperties linkedTableProperties)
+        if (referencedTable.ConfigurationOverride is LinkedTableProperties linkedTableProperties)
         {
-            var table = await _linkedTableResolver.ResolveAsync(latestSpecSheet, linkedTableProperties, cancellationToken);
+            var table = await _linkedTableResolver.ResolveAsync(latestSheet, linkedTableProperties, cancellationToken);
             if (table is null)
             {
                 return null;
@@ -80,10 +62,10 @@ internal class LinkedSpecSheetLookupCellResolver : CellResolver<LinkedSpecSheetV
             return null;
         }
 
-        var mappedCell = await referencedCell.MapToSlimCell(specSheet, this, cancellationToken);
+        var mappedCell = await referencedCell.MapToSlimCell(sheet, this, cancellationToken);
         var linkedValue = new SlimLinkedValue
         {
-            Id = referencedCell.CellValue!.Id,
+            Id = referencedCell.Value.SheetTableCellId,
             LinkedReferenceId = referencedCell.ReferenceId,
             SpecSheetTypeId = data.LinkedSpecSheetTypeId.Value,
             SpecSheetPhaseId = data.LinkedSpecSheetPhaseId.Value,
