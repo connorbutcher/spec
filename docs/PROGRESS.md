@@ -56,6 +56,12 @@ The legacy codebase is the base. The rewrite's features (revision model, drafts,
 - `GET /revisions/compare` (AdminController) lists differences and sheets not yet migrated.
 - Compare mode doubles read cost on a cache miss.
 
+**Sheet models and endpoints** (the revision schema's own shape, alongside the legacy ones):
+- `PUSpecSheet.Abstractions/Domain/Sheets`: `Sheet`, `SheetVersion`, `SheetTable`, `SheetTableGroup`, `SheetTableRow`, `SheetTableCell`, `SheetTableWidget`, `SheetTableGroupWidget`, `SheetTableNote`, `SheetProperty`, `SheetLinkedTable`, `SheetExternalReference`. Every id is the id of the item in the `spec` schema. Items with revisions carry a `SheetItemRevision` (revision number, status, who and when, published and superseded times, version). A cell's `Value` is a `SheetCellValue` (`SheetTextValue`, `SheetNumericValue`, `SheetPairValue`, `SheetLinkedSheetValue`, JSON discriminators text, numeric, pair, linkedSpecSheet).
+- `Reads/Sheets`: `SheetReader` (reuses `SpecSheetRevisionReader.ReadSheetAsync`, plus linked tables and versions) and `SheetMapper`. `SheetDataAccessService` (`ISheetDataAccessService`) trims tables by table permission as the copies' read does. It reads the revisions whatever `SheetReads:Source` says, has no cache, and isn't tied to a SpecSheets row.
+- `SheetsController`: `GET /sheets/{id}?version=` (published as of that version, default the latest), `GET /sheets/{id}/draft` (drafts laid over published), `GET /sheets/{id}/versions`. Ids are sheet ids, not SpecSheets ids; a version's `SourceSpecSheetId` isn't exposed yet.
+- Not done: lookups by type and phase, workflow submissions, and writes. The legacy endpoints and models are unchanged.
+
 ## Stage 6: editing on drafts and revisions
 
 **The switch.** `SheetEdits:RevisionSheetTypeIds` in appsettings, a list of sheet type ids, empty by default. For a listed type:
@@ -105,3 +111,4 @@ The legacy codebase is the base. The rewrite's features (revision model, drafts,
 7. Known limits: version lists, property summaries and the analytics dataset still read the copies. Empty cell values are synthesized from the cell type's ModelType. A version's workflow steps are reconstructed from submissions since the previous version. `/revisions/compare` has no authorization attribute (like the existing cache endpoints). Ids under a sheet change on every rebuild; the sheet keeps its ReferenceID.
 8. A deliberate EF leftover: SpecSheetTableNotes.CreatedByUserId relates to Users in EF but the DB has no FK (the same for `spec.SheetTableNotes`).
 9. Widgets and notes became tables (`spec.SheetTableWidgets`, `SheetTableGroupWidgets`, `SheetTableNotes` and their `...Values` rows) after the first migrator design kept them as JSON on the revisions. Apply the new tables and drop the JSON columns on any database that has the older scripts; the migrator's BuildVersion "3" rebuilds every sheet on its next run. A sheet already edited on the revisions has no copies to rebuild from, so only scratch databases can have that.
+10. The new `/sheets` models, reader and endpoints are uncompiled and untested too. Unlike the legacy read they have no cache.

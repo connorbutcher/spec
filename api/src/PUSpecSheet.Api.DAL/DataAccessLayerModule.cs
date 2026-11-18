@@ -12,6 +12,7 @@ using PUSpecSheet.Api.DAL.DataAccess.SpecSheets;
 using PUSpecSheet.Api.DAL.DataAccess.SpecSheets.Edits;
 using PUSpecSheet.Api.DAL.DataAccess.SpecSheets.Reads;
 using PUSpecSheet.Api.DAL.DataAccess.SpecSheets.Reads.Revisions;
+using PUSpecSheet.Api.DAL.DataAccess.SpecSheets.Reads.Sheets;
 using PUSpecSheet.Api.DAL.DataAccess.Template;
 using PUSpecSheet.Api.DAL.DataAccess.Types;
 using PUSpecSheet.Api.DAL.Query.Resolvers.Cells;
@@ -68,6 +69,8 @@ public static class DataAccessLayerModule
         builder.Services.AddScoped<SpecSheetCopyReader>();
         builder.Services.AddScoped<SpecSheetRevisionReader>();
         builder.Services.AddScoped<ISpecSheetReader, SpecSheetReader>();
+        builder.Services.AddScoped<SheetReader>();
+        builder.Services.AddScoped<ISheetDataAccessService, SheetDataAccessService>();
     }
 
     private static void RegisterEdits(IHostApplicationBuilder builder)

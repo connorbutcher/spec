@@ -130,7 +130,7 @@ internal class SpecSheetRevisionReader
     // remove it, with that revision alone, and each external reference with its revision then, if it had one. Groups
     // and rows are only read under tables and groups that are shown, so nothing in a removed table is. With drafts,
     // each item's draft is read too, and is the revision shown where it has one (see SpecSheetRevisionMapper).
-    private async Task<DbSheet> ReadSheetAsync(int sheetId, DateTime moment, bool withDrafts, CancellationToken cancellationToken)
+    internal async Task<DbSheet> ReadSheetAsync(int sheetId, DateTime moment, bool withDrafts, CancellationToken cancellationToken)
     {
         return await _dbContext.Sheets
             .Where(s => s.Id == sheetId)
@@ -259,7 +259,7 @@ internal class SpecSheetRevisionReader
             .ToListAsync(cancellationToken);
     }
 
-    private async Task<Dictionary<int, DbUser>> ReadUsersAsync(IEnumerable<int> userIds, CancellationToken cancellationToken)
+    internal async Task<Dictionary<int, DbUser>> ReadUsersAsync(IEnumerable<int> userIds, CancellationToken cancellationToken)
     {
         var wanted = userIds.Distinct().ToList();
         return await _dbContext.Users
