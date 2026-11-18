@@ -38,7 +38,9 @@ internal class DraftItemNumbers
 
     public async Task<DraftItemNumber> FindGroupWidgetAsync(int number, CancellationToken ct)
     {
-        var tableIds = (await ReadShownTablesAsync(ct)).Select(table => table.SheetTableId).ToList();
+        var tableOrder = (await ReadShownTablesAsync(ct))
+            .Select((table, index) => (table.SheetTableId, index))
+            .ToDictionary(table => table.SheetTableId, table => table.index);
         var groups = await _dbContext.SheetTableGroupRevisions
             .AsNoTracking()
             .Where(r => r.SheetId == _sheetId && (r.Status == RevisionStatus.Draft || r.SupersededDateTime == null))
@@ -47,9 +49,9 @@ internal class DraftItemNumbers
 
         var shown = groups
             .GroupBy(g => g.Revision.SheetTableGroupId)
-            .Select(g => new { Revision = Shown(g.Select(x => x.Revision)), g.First().SheetTableId })
-            .Where(g => !g.Revision.IsDeleted && tableIds.Contains(g.SheetTableId))
-            .OrderBy(g => tableIds.IndexOf(g.SheetTableId))
+            .Select(g => new { Revision = g.Select(x => x.Revision).Shown(), g.First().SheetTableId })
+            .Where(g => !g.Revision.IsDeleted && tableOrder.ContainsKey(g.SheetTableId))
+            .OrderBy(g => tableOrder[g.SheetTableId])
             .ThenBy(g => g.Revision.SheetTableGroupId)
             .Select(g => (g.Revision.SheetTableGroupId, g.Revision.WidgetValues?.Count ?? 0));
 
@@ -72,12 +74,6 @@ internal class DraftItemNumbers
         throw new KeyNotFoundException($"No {kind} with Id {number} on Sheet with Id {_sheetId}.");
     }
 
-    private static TRevision Shown<TRevision>(IEnumerable<TRevision> revisions)
-        where TRevision : IDbSheetRevision
-    {
-        return revisions.OrderBy(revision => revision.Status == RevisionStatus.Draft ? 0 : 1).First();
-    }
-
     private async Task<List<DbSheetTableRevision>> ReadShownTablesAsync(CancellationToken ct)
     {
         var revisions = await _dbContext.SheetTableRevisions
@@ -87,7 +83,7 @@ internal class DraftItemNumbers
 
         return [.. revisions
             .GroupBy(r => r.SheetTableId)
-            .Select(Shown)
+            .Select(group => group.Shown())
             .Where(r => !r.IsDeleted)
             .OrderBy(r => r.SheetTableId)];
     }

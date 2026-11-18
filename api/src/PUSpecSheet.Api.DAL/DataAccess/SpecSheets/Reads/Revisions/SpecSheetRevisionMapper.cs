@@ -18,19 +18,6 @@ namespace PUSpecSheet.Api.DAL.DataAccess.SpecSheets.Reads.Revisions;
 /// </summary>
 internal static class SpecSheetRevisionMapper
 {
-    // Of an item's revisions read, the one shown: its draft where it has one, otherwise its published revision.
-    private static TRevision Shown<TRevision>(ICollection<TRevision> revisions)
-        where TRevision : IDbSheetRevision
-    {
-        return revisions.OrderBy(revision => revision.Status == RevisionStatus.Draft ? 0 : 1).First();
-    }
-
-    private static bool IsShown<TRevision>(ICollection<TRevision> revisions)
-        where TRevision : IDbSheetRevision
-    {
-        return !Shown(revisions).IsDeleted;
-    }
-
     private static int? LastModifiedByUserId(IDbSheetRevision revision)
     {
         return revision.RevisionNumber > 1 ? revision.CreatedByUserId : null;
@@ -44,7 +31,7 @@ internal static class SpecSheetRevisionMapper
     public static List<DbSpecSheetTable> MapTables(DbSheet sheet, int specSheetId, RevisionItemNumbering ids, Dictionary<int, DbUser> users)
     {
         return [.. sheet.Tables
-            .Where(table => IsShown(table.Revisions))
+            .Where(table => table.Revisions.IsShown())
             .OrderBy(table => table.Id)
             .Select(table => MapTable(table, specSheetId, ids, users))
             .OrderBy(table => table.DisplayOrder)];
@@ -53,7 +40,7 @@ internal static class SpecSheetRevisionMapper
     public static List<DbSpecSheetPropertyValue> MapProperties(DbSheet sheet, int specSheetId)
     {
         return [.. sheet.Properties
-            .Where(property => IsShown(property.Revisions))
+            .Where(property => property.Revisions.IsShown())
             .Select(property => MapProperty(property, specSheetId))];
     }
 
@@ -66,11 +53,11 @@ internal static class SpecSheetRevisionMapper
 
     private static DbSpecSheetTable MapTable(DbSheetTable table, int specSheetId, RevisionItemNumbering ids, Dictionary<int, DbUser> users)
     {
-        var revision = Shown(table.Revisions);
+        var revision = table.Revisions.Shown();
 
         // A group is nested under the group it is linked to, which the revisions keep by ReferenceID.
         var groupIdsByReference = table.Groups
-            .Where(group => IsShown(group.Revisions))
+            .Where(group => group.Revisions.IsShown())
             .GroupBy(group => group.ReferenceId)
             .ToDictionary(group => group.Key, group => group.First().Id);
 
@@ -88,7 +75,7 @@ internal static class SpecSheetRevisionMapper
             LastModifiedByUserId = LastModifiedByUserId(revision),
             LastModifiedDateTime = LastModifiedDateTime(revision),
             ConfigurationOverride = revision.ConfigurationOverride,
-            Groups = [.. table.Groups.Where(group => IsShown(group.Revisions)).OrderBy(group => group.Id).Select(group => MapGroup(group, groupIdsByReference, ids))],
+            Groups = [.. table.Groups.Where(group => group.Revisions.IsShown()).OrderBy(group => group.Id).Select(group => MapGroup(group, groupIdsByReference, ids))],
             Widgets = [.. (revision.WidgetValues ?? []).Select(widget => MapTableWidget(widget, table.Id, ids))],
             Notes = [.. (revision.Notes ?? []).Select(note => MapNote(note, table.Id, ids, users))]
         };
@@ -123,7 +110,7 @@ internal static class SpecSheetRevisionMapper
 
     private static DbSpecSheetTableGroup MapGroup(DbSheetTableGroup group, Dictionary<Guid, int> groupIdsByReference, RevisionItemNumbering ids)
     {
-        var revision = Shown(group.Revisions);
+        var revision = group.Revisions.Shown();
         int? linkedGroupId = revision.LinkedSheetTableGroupReferenceId is { } linkedReference
             && groupIdsByReference.TryGetValue(linkedReference, out var linked)
                 ? linked
@@ -138,7 +125,7 @@ internal static class SpecSheetRevisionMapper
             Order = revision.DisplayOrder,
             ReferenceId = group.ReferenceId,
             IsDeleted = false,
-            Rows = [.. group.Rows.Where(row => IsShown(row.Revisions)).Select(MapRow).OrderBy(row => row.RowNumber)],
+            Rows = [.. group.Rows.Where(row => row.Revisions.IsShown()).Select(MapRow).OrderBy(row => row.RowNumber)],
             Widgets = [.. (revision.WidgetValues ?? []).Select(widget => MapGroupWidget(widget, group.Id, ids))],
             CreatedByUserId = revision.CreatedByUserId,
             CreatedDateTime = group.CreatedDateTime,
@@ -161,7 +148,7 @@ internal static class SpecSheetRevisionMapper
 
     private static DbSpecSheetTableRow MapRow(DbSheetTableRow row)
     {
-        var revision = Shown(row.Revisions);
+        var revision = row.Revisions.Shown();
         var values = new RowRevisionValues(revision);
 
         var mapped = new DbSpecSheetTableRow
@@ -222,7 +209,7 @@ internal static class SpecSheetRevisionMapper
             Id = property.Id,
             SpecSheetId = specSheetId,
             SpecSheetTypePropertyId = property.SpecSheetTypePropertyId,
-            PropertyValue = Shown(property.Revisions).PropertyValue,
+            PropertyValue = property.Revisions.Shown().PropertyValue,
             SpecSheetTypeProperty = property.SpecSheetTypeProperty
         };
     }
