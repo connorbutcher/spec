@@ -1,5 +1,5 @@
 import { Component, input } from '@angular/core';
-import { SpecSheetExternalReference } from '../../../../../core/models/domain/references/spec-sheet-external-reference';
+import { SheetExternalReference } from '../../../../../core/models/domain/sheets/sheet';
 
 @Component({
   selector: 'app-reference-row',
@@ -8,6 +8,6 @@ import { SpecSheetExternalReference } from '../../../../../core/models/domain/re
 })
 export class ReferenceRow {
   public readonly systemReference =
-    input.required<SpecSheetExternalReference>();
+    input.required<SheetExternalReference>();
   public readonly highlightedReferenceId = input<string>();
 }

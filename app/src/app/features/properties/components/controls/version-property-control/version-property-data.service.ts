@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
-import { SpecSheetSummary } from '../../../../../core/models/domain/spec-sheet/spec-sheet-summary';
 import { SheetListingService } from '../../../../../core/services/sheet-listing.service';
+import { SheetListItem } from '../../../../../core/models/domain/sheets/sheet';
 
 @Injectable()
 export class VersionPropertyDataService {
@@ -9,7 +9,7 @@ export class VersionPropertyDataService {
   public async getAllSpecSheetsByPhaseAndTypeAsync(
     phaseId: number,
     typeId: number,
-  ): Promise<SpecSheetSummary[]> {
+  ): Promise<SheetListItem[]> {
     return await this._sheetListingService.getByPhaseAndTypeAsync(phaseId, typeId);
   }
 }

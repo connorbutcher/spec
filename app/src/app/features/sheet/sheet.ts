@@ -1,4 +1,5 @@
 import { Dialog } from '@angular/cdk/dialog';
+import { SheetPropertyHelpers } from '../../core/helpers/sheet-property-helpers';
 import {
   AfterViewInit,
   Component,
@@ -95,11 +96,27 @@ export class Sheet extends CanDeactivate implements AfterViewInit {
 
   public readonly specSheetResource = resource({
     params: () => {
-      const id = this.id() ?? this._sheetsService?.selectedSpecSheet()?.id;
-      return id ? { id } : undefined;
+      const id = this.id();
+      if (id) {
+        return { sheetId: id, versionNumber: undefined, isDraft: false };
+      }
+
+      const selected = this._sheetsService?.selectedSpecSheet();
+      return selected
+        ? {
+            sheetId: selected.sheetId,
+            versionNumber: selected.versionNumber,
+            isDraft: selected.isDraft,
+          }
+        : undefined;
     },
     loader: ({ params }) =>
-      this._sheetDataService.getSpecSheetByIdAsync(params.id),
+      params.isDraft
+        ? this._sheetDataService.getDraftSheetAsync(params.sheetId)
+        : this._sheetDataService.getPublishedSheetAsync(
+            params.sheetId,
+            params.versionNumber,
+          ),
   });
 
   public readonly isLoading = computed(() => {
@@ -119,7 +136,7 @@ export class Sheet extends CanDeactivate implements AfterViewInit {
 
     const activeSheet = this._sheetService.specSheet();
     return (
-      !activeSheet || activeSheet.specSheet !== this.specSheetResource.value()
+      !activeSheet || activeSheet.sheet !== this.specSheetResource.value()!.sheet
     );
   });
   public readonly error = computed<string[]>(() => {
@@ -175,15 +192,16 @@ export class Sheet extends CanDeactivate implements AfterViewInit {
         takeUntilDestroyed(),
         filter(([s, st]) => !!s && !!st),
       )
-      .subscribe(([specSheet, specSheetType]) => {
-        if (!specSheet || !specSheetType) {
+      .subscribe(([detail, specSheetType]) => {
+        if (!detail || !specSheetType) {
           return;
         }
 
+        const specSheet = detail.sheet;
         runInInjectionContext(this._injector, () => {
           this._cellLookupService.reset();
           this._linkedSheetService.reset();
-          this._sheetService.setSpecSheet(specSheet);
+          this._sheetService.setSpecSheet(detail);
         });
 
         const displayStructureLevel = specSheetType.structureLevels.find(
@@ -193,15 +211,15 @@ export class Sheet extends CanDeactivate implements AfterViewInit {
           return;
         }
 
-        let title = `${specSheet.specSheetType.type} - ${specSheet.specSheetPhase.phase}`;
+        let title = `${specSheetType.type} - ${this._phasesService.selectedPhase()?.phase ?? ''}`;
         for (const levelValue of displayStructureLevel.levelValues) {
-          const property = specSheet.propertyValues.find(
-            (pv) =>
-              pv.specSheetTypeProperty.referenceId ===
-              levelValue.specSheetTypePropertyReferenceId,
+          const property = SheetPropertyHelpers.findByReferenceId(
+            specSheet.properties,
+            specSheetType.properties,
+            levelValue.specSheetTypePropertyReferenceId,
           );
-          if (property && property.propertyValue) {
-            title += ` - ${(property.propertyValue as any).value}`;
+          if (property?.value) {
+            title += ` - ${SheetPropertyHelpers.getText(property)}`;
           }
         }
 

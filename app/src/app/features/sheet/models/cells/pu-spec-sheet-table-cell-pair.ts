@@ -1,14 +1,12 @@
 import { computed, linkedSignal } from '@angular/core';
 import { CellValueHelpers } from '../../../../core/helpers/cell-value-helpers';
 import { UpdateHelpers } from '../../../../core/helpers/update-helpers';
-import { SpecSheetTableCell } from '../../../../core/models/domain/spec-sheet/spec-sheet-table-cell';
 import { PairValue } from '../../../../core/models/domain/values/pair-value';
 import { SpecSheetOp } from '../../../../core/models/operations/spec-sheet-op';
-import { CreateSpecSheetTableCellRequest } from '../../../../core/models/requests/spec-sheets/cells/create-spec-sheet-table-cell-request';
-import { UpdateSpecSheetTableCellRequest } from '../../../../core/models/requests/spec-sheets/cells/update-spec-sheet-table-cell-request';
 import { ResetOption } from '../../types/cell-reset-options';
 import { PUSpecSheetTableRow } from '../pu-spec-sheet-table-row';
 import { PUSpecSheetTableCellBase } from './pu-spec-sheet-table-cell-base';
+import { SheetCellValue, SheetTableCell } from '../../../../core/models/domain/sheets/sheet';
 
 export class PUSpecSheetTableCellPair extends PUSpecSheetTableCellBase {
   public override readonly value = linkedSignal(() => {
@@ -43,11 +41,11 @@ export class PUSpecSheetTableCellPair extends PUSpecSheetTableCellBase {
     );
   });
 
-  constructor(cell: SpecSheetTableCell, parent: PUSpecSheetTableRow) {
+  constructor(cell: SheetTableCell, parent: PUSpecSheetTableRow) {
     super(cell, parent);
   }
 
-  public override toTableCell(reset?: ResetOption): SpecSheetTableCell {
+  public override toTableCell(reset?: ResetOption): SheetTableCell {
     let cellValue: any | undefined = undefined;
     switch (reset) {
       case 'all':
@@ -64,16 +62,14 @@ export class PUSpecSheetTableCellPair extends PUSpecSheetTableCellBase {
     return {
       id: reset ? 0 : this.cell.id,
       tableCellTypeId: this.cell.tableCellTypeId,
-      specSheetTableRowId: this.cell.specSheetTableRowId,
-      createdByUserId: this.cell?.createdByUserId,
+      sheetTableRowId: this.cell.sheetTableRowId,
       referenceId: reset ? crypto.randomUUID() : this.referenceId(),
-      rowNumber: this.rowNumber(),
       columnNumber: this.columnNumber(),
       colSpan: this.colSpan(),
       rowSpan: this.rowSpan(),
-      cellValue: CellValueHelpers.buildCellValue(this.cellValue, cellValue),
+      value: CellValueHelpers.buildCellValue(this.cellValue, cellValue) as SheetCellValue,
+      tableCellTemplateId: this.cell.tableCellTemplateId,
       createdDateTime: this.cell?.createdDateTime,
-      isDeleted: this.cell?.isDeleted,
       cellConfigurationId: this.cell.cellConfigurationId,
       configurationOverride: this.cell.configurationOverride,
       cellConfiguration: this.cell?.cellConfiguration,
@@ -81,39 +77,7 @@ export class PUSpecSheetTableCellPair extends PUSpecSheetTableCellBase {
     };
   }
 
-  public override toNewTableCellRequest(): CreateSpecSheetTableCellRequest {
-    return {
-      specSheetTableGroupId: this.cell.specSheetTableRowId,
-      specSheetTableRowId: this.cell.specSheetTableRowId,
-      tableCellTypeId: this.cell.tableCellTypeId,
-      cellConfigurationId: this.cell.cellConfigurationId,
-      referenceId: this.referenceId(),
-      rowNumber: this.rowNumber(),
-      columnNumber: this.columnNumber(),
-      colSpan: this.colSpan(),
-      rowSpan: this.rowSpan(),
-      value: CellValueHelpers.buildCellValue(this.cellValue, {
-        valueX: this.value(),
-        valueY: this.valueY(),
-      }),
-    };
-  }
 
-  public override toUpdateTableCellRequest(): UpdateSpecSheetTableCellRequest {
-    return {
-      id: this.id,
-      rowNumber: UpdateHelpers.compare(this.cell.rowNumber, this.rowNumber()),
-      columnNumber: UpdateHelpers.compare(
-        this.cell.columnNumber,
-        this.columnNumber(),
-      ),
-      cellValue: UpdateHelpers.compareToPropertyChanged(this.cellValue, {
-        ...this.cellValue,
-        valueX: this.value(),
-        valueY: this.valueY(),
-      } as PairValue),
-    };
-  }
 
   public override *compileValueOperations(): Generator<SpecSheetOp> {
     if (this.isNew) {
@@ -126,7 +90,7 @@ export class PUSpecSheetTableCellPair extends PUSpecSheetTableCellBase {
     } else if (this.hasChanges()) {
       yield {
         $type: 'UpdatePairValueOp',
-        id: this.cellValue.id,
+        id: this.cell.id,
         valueX: UpdateHelpers.compareToPropertyChanged(
           (this.cellValue as PairValue).valueX,
           this.value(),

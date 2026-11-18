@@ -49,7 +49,7 @@ This codebase is the base. The rewrite it replaces, with revision-based versioni
 
 ## Sheets
 
-Every sheet is read and written through `ISheetDataAccessService` and the `/sheets` endpoints, in the shape of the revision schema (`Sheet`, `SheetTable`, ...). A published version of a sheet is also a spec sheet, known by the id of the `SpecSheets` row it came from (`SheetVersion.SourceSpecSheetId`), and so is a sheet's unpublished draft, known by its `SpecSheets` header row. The app opens, edits and lists by those ids, which the `/sheets/spec-sheet/{specSheetId}/...` endpoints take; the other endpoints take the sheet's id. The query API (`/query`) builds its models from the same sheets (`PUSpecSheet.Api.DAL/Query`: mappers, the table builder and the resolvers for linked tables and cells).
+Every sheet is read and written through `ISheetDataAccessService` and the `/sheets` endpoints, in the shape of the revision schema (`Sheet`, `SheetTable`, ...). A published version of a sheet is also a spec sheet, known by the id of the `SpecSheets` row it came from (`SheetVersion.SourceSpecSheetId`), and so is a sheet's unpublished draft, known by its `SpecSheets` header row. The `/sheets` endpoints take the sheet's id; the app opens, edits and lists by sheet id and version number (a draft is the version after the latest published one). The spec sheet ids stay server-side, for lists, the workflow and emails. The query API (`/query`) builds its models from the same sheets (`PUSpecSheet.Api.DAL/Query`: mappers, the table builder and the resolvers for linked tables and cells).
 
 Published sheets that a link points at are cached (`ISpecSheetCache`, keyed by the spec sheet id of the version); the cache key prefix is `sheets:`, so entries from before the move are never read.
 
@@ -58,5 +58,5 @@ What remains of the copied model:
 - The legacy tables and their `Db*` entities, which the migrator reads. Run it with `"commit": true` on a schedule while anything still writes the legacy tables.
 - The `SpecSheets` row, which is the draft's header (lists, emails, approval steps) and the source of each version's id.
 - `SpecSheetRevisionReader` and the `Abstractions/Domain/Legacy` models, which `SheetDraftCreator` still uses to copy a published sheet's tables into a new draft. Porting `SheetDraftCreator`, `SheetDraftCopier`, `SheetDraftItems` and `SheetCopySignatures` to the `Sheet` models would let both go.
-- In the Angular app, the screens still work on the `SpecSheet` models, which `SheetAdapter` builds from what `/sheets` returns.
+- The Angular app works on the `Sheet*` models directly. The one spec sheet id it still handles is a version's `sourceSpecSheetId`, which the copy-from property sends because `SheetDraftCreator` reads its source by spec sheet id.
 

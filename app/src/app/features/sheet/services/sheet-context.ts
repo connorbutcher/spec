@@ -1,15 +1,15 @@
 import { Signal } from '@angular/core';
-import { SpecSheetExternalReference } from '../../../core/models/domain/references/spec-sheet-external-reference';
 import { TableGroupTemplate } from '../../../core/models/domain/template/table-group-template';
 import { TableGroupTemplateWidget } from '../../../core/models/domain/template/table-group-template-widget';
 import { TableRowTemplate } from '../../../core/models/domain/template/table-row-template';
 import { TableTemplateWidget } from '../../../core/models/domain/template/table-template-widget';
 import { PUSpecSheet } from '../models/pu-spec-sheet';
+import { SheetExternalReference } from '../../../core/models/domain/sheets/sheet';
 
 export abstract class SheetContext {
   public abstract readonly specSheet: Signal<PUSpecSheet>;
   public abstract readonly externalReferences: Signal<
-    SpecSheetExternalReference[]
+    SheetExternalReference[]
   >;
   public abstract readonly tableGroupTemplates: Signal<TableGroupTemplate[]>;
   public abstract readonly tableRowTemplates: Signal<TableRowTemplate[]>;

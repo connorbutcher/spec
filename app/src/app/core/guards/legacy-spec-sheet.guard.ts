@@ -3,6 +3,9 @@ import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { SheetDataService } from '../../features/sheet/services/sheet-data.service';
 
+/**
+ * Sends a link to a sheet by its id (`spec/:id`, with an optional `?version=` version number) to the sheet's page.
+ */
 export const legacySpecSheetGuard: CanActivateFn = async (route) => {
   const router = inject(Router);
   const sheetDataService = inject(SheetDataService);
@@ -12,12 +15,29 @@ export const legacySpecSheetGuard: CanActivateFn = async (route) => {
     return router.createUrlTree(['/phases']);
   }
 
+  const version = route.queryParamMap.get('version');
+  const versionNumber =
+    version !== null && Number.isSafeInteger(Number(version))
+      ? Number(version)
+      : undefined;
+
   try {
-    const sheet = await sheetDataService.getSpecSheetByIdAsync(id);
+    const detail = await sheetDataService.getPublishedSheetAsync(
+      id,
+      versionNumber,
+    );
     return router.createUrlTree(
-      ['/phases', sheet.specSheetPhaseId, 'sheets', sheet.specSheetTypeId],
+      [
+        '/phases',
+        detail.sheet.specSheetPhaseId,
+        'sheets',
+        detail.sheet.specSheetTypeId,
+      ],
       {
-        queryParams: { ...route.queryParams, version: id },
+        queryParams: {
+          ...route.queryParams,
+          version: versionNumber ?? null,
+        },
         fragment: route.fragment ?? undefined,
       },
     );

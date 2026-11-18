@@ -1,4 +1,3 @@
-import { SpecSheetTableCell } from '../../../../core/models/domain/spec-sheet/spec-sheet-table-cell';
 import { PUSpecSheetTableCell } from '../cells/pu-spec-sheet-table-cell';
 import { PUSpecSheetTableCellBase } from '../cells/pu-spec-sheet-table-cell-base';
 import { PUSpecSheetTableCellDropdown } from '../cells/pu-spec-sheet-table-cell-dropdown';
@@ -6,9 +5,10 @@ import { PUSpecSheetTableCellGroupLookup } from '../cells/pu-spec-sheet-table-ce
 import { PUSpecSheetTableCellLinked } from '../cells/pu-spec-sheet-table-cell-linked';
 import { PUSpecSheetTableCellPair } from '../cells/pu-spec-sheet-table-cell-pair';
 import { PUSpecSheetTableRow } from '../pu-spec-sheet-table-row';
+import { SheetTableCell } from '../../../../core/models/domain/sheets/sheet';
 
 export type CellFactory = (
-  cell: SpecSheetTableCell,
+  cell: SheetTableCell,
   parent: PUSpecSheetTableRow,
 ) => PUSpecSheetTableCellBase;
 
@@ -25,7 +25,7 @@ export class CellTypeRegistry {
 
   public static createCell(
     cellType: string,
-    cell: SpecSheetTableCell,
+    cell: SheetTableCell,
     parent: PUSpecSheetTableRow,
   ): PUSpecSheetTableCellBase | undefined {
     const factory = this._registry.get(cellType);

@@ -1,17 +1,16 @@
 import { WidgetTypeKey } from '../../../core/models/domain/enums/widget-type-key';
-import { SpecSheetTableGroupWidget } from '../../../core/models/domain/spec-sheet/spec-sheet-table-group-widget';
-import { SpecSheetTableWidget } from '../../../core/models/domain/spec-sheet/spec-sheet-table-widget';
 import { PUSpecSheetTableGroup } from '../models/pu-spec-sheet-table-group';
 import { WidgetTypeRegistry } from '../models/services/widget-type-registry';
 import { PUSpecSheetTableBase } from '../models/tables/pu-spec-sheet-table-base';
 import { WidgetPropertyBase } from '../models/widgets/widget-base';
+import { SheetWidget } from '../../../core/models/domain/sheets/sheet';
 
 export class SpecSheetWidgetHelpers {
   public static mapTableWidgetToClass(
-    tableWidget: SpecSheetTableWidget,
+    tableWidget: SheetWidget,
     widgetType: WidgetTypeKey,
     parent: PUSpecSheetTableBase,
-  ): WidgetPropertyBase<SpecSheetTableWidget> {
+  ): WidgetPropertyBase<SheetWidget> {
     return WidgetTypeRegistry.createTableWidget(
       widgetType,
       tableWidget,
@@ -20,10 +19,10 @@ export class SpecSheetWidgetHelpers {
   }
 
   public static mapTableGroupWidgetToClass(
-    groupWidget: SpecSheetTableGroupWidget,
+    groupWidget: SheetWidget,
     widgetType: WidgetTypeKey,
     parent: PUSpecSheetTableGroup,
-  ): WidgetPropertyBase<SpecSheetTableGroupWidget> {
+  ): WidgetPropertyBase<SheetWidget> {
     return WidgetTypeRegistry.createGroupWidget(
       widgetType,
       groupWidget,

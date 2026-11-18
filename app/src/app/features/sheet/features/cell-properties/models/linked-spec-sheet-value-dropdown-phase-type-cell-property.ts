@@ -4,7 +4,6 @@ import { environment } from '../../../../../../../environments/environment';
 import { SpecSheetPhaseHelpers } from '../../../../../core/helpers/spec-sheet-phase-helpers';
 import { CellProperties } from '../../../../../core/models/domain/properties/cell/cell-properties';
 import { LinkedSpecSheetDropdownCellProperties } from '../../../../../core/models/domain/properties/cell/linked-spec-sheet-dropdown-cell-properties';
-import { SpecSheetExternalReference } from '../../../../../core/models/domain/references/spec-sheet-external-reference';
 import { TableCellTemplate } from '../../../../../core/models/domain/template/table-cell-template';
 import { TableCellType } from '../../../../../core/models/domain/template/table-cell-type';
 import { SpecSheetPhase } from '../../../../../core/models/domain/types/spec-sheet-phase';
@@ -17,6 +16,7 @@ import { PUSpecSheetTableBase } from '../../../models/tables/pu-spec-sheet-table
 import { LinkedSheetService } from '../../../services/linked-sheet.service';
 import { SheetContext } from '../../../services/sheet-context';
 import { CellPropertyBase } from './cell-property-base';
+import { SheetExternalReference } from '../../../../../core/models/domain/sheets/sheet';
 
 export class LinkedSpecSheetValueDropdownPhaseTypeCellProperty extends CellPropertyBase<LinkedSpecSheetDropdownCellProperties> {
   public override readonly isValid = computed(
@@ -34,7 +34,7 @@ export class LinkedSpecSheetValueDropdownPhaseTypeCellProperty extends CellPrope
     { equal: () => false },
   );
   public override readonly internalReferences = computed(() => {
-    const references: SpecSheetExternalReference[] = [];
+    const references: SheetExternalReference[] = [];
 
     const type = this.specSheetType();
     const phase = this.specSheetPhase();
@@ -46,7 +46,7 @@ export class LinkedSpecSheetValueDropdownPhaseTypeCellProperty extends CellPrope
 
     references.push({
       id: -1,
-      specSheetId: linkedSpecSheet.id,
+      sheetId: this._activeSheetService.specSheet()?.id!,
       externalId: this._activeSheetService.specSheet()?.id!,
       referenceId: table.referenceId(),
       type: 'table',

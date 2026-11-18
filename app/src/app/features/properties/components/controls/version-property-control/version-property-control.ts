@@ -10,16 +10,16 @@ import { isNil } from 'lodash';
 import { InputNumber } from 'primeng/inputnumber';
 import { combineLatest, filter, switchMap, takeUntil } from 'rxjs';
 import { IntPropertyValue } from '../../../../../core/models/domain/spec-sheet/properties/values/int-property-value';
-import { SpecSheetSummary } from '../../../../../core/models/domain/spec-sheet/spec-sheet-summary';
 import { SpecSheetPhase } from '../../../../../core/models/domain/types/spec-sheet-phase';
 import { SpecSheetType } from '../../../../../core/models/domain/types/spec-sheet-type';
 import { PropertyControlType } from '../../../../../core/types/properties/property-control-type.enum';
 import { PropertyValueType } from '../../../../../core/types/properties/property-value-type.enum';
 import { ElementLabel } from '../../../../common/element-label/element-label';
-import { PropertyValueHelpers } from '../../../helpers/property-value-helpers';
+import { SheetPropertyHelpers } from '../../../../../core/helpers/sheet-property-helpers';
 import { PropertiesInfoService } from '../../../services/properties-info.service';
 import { PropertyControlBase } from '../property-control-base';
 import { VersionPropertyDataService } from './version-property-data.service';
+import { SheetListItem } from '../../../../../core/models/domain/sheets/sheet';
 
 @Component({
   selector: 'app-version-property-control',
@@ -39,7 +39,7 @@ export class VersionPropertyControl extends PropertyControlBase<
     this._propertiesInfoService.extraPropertyInfo().get('specSheetPhase'),
   );
 
-  private readonly _summaries = signal<SpecSheetSummary[]>([]);
+  private readonly _summaries = signal<SheetListItem[]>([]);
 
   constructor(
     private readonly _propertiesInfoService: PropertiesInfoService,
@@ -87,14 +87,16 @@ export class VersionPropertyControl extends PropertyControlBase<
         // Get the latest version number and add 1 to it for the default value of the version control
         const versionNumbers = summaries
           .map((s) => {
-            const versionProperty = s.propertyValues.find(
-              (pv) => pv.valueControlType === PropertyControlType.Version,
+            const versionProperty = s.properties.find(
+              (pv) =>
+                pv.specSheetTypeProperty?.valueControlType ===
+                PropertyControlType.Version,
             );
             if (!versionProperty) {
               return null;
             }
 
-            return PropertyValueHelpers.getValue<number>(versionProperty);
+            return SheetPropertyHelpers.getValue<number>(versionProperty);
           })
           .filter((v) => !isNil(v));
         const latestVersionNumber = versionNumbers.length
@@ -105,7 +107,7 @@ export class VersionPropertyControl extends PropertyControlBase<
   }
 
   private versionNumberUniqueValidator(
-    getOptions: () => SpecSheetSummary[],
+    getOptions: () => SheetListItem[],
   ): ValidatorFn {
     return (control: AbstractControl) => {
       const value = control.value as number | null | undefined;
@@ -116,14 +118,16 @@ export class VersionPropertyControl extends PropertyControlBase<
       const options = getOptions() ?? [];
       const versionNumbers = options
         .map((o) => {
-          const versionProperty = o.propertyValues.find(
-            (pv) => pv.valueControlType === PropertyControlType.Version,
+          const versionProperty = o.properties.find(
+            (pv) =>
+              pv.specSheetTypeProperty?.valueControlType ===
+              PropertyControlType.Version,
           );
           if (!versionProperty) {
             return null;
           }
 
-          return PropertyValueHelpers.getValue<number>(versionProperty);
+          return SheetPropertyHelpers.getValue<number>(versionProperty);
         })
         .filter((v) => !isNil(v));
       const exists = versionNumbers.some((vn) => vn === value);

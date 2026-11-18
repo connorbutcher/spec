@@ -8,11 +8,9 @@ import {
 } from '@angular/core';
 import { lastValueFrom } from 'rxjs';
 import { environment } from '../../../../../environments/environment';
-import { SheetAdapter } from '../../../core/helpers/sheet-adapter';
-import { Sheet } from '../../../core/models/domain/sheets/sheet';
-import { SpecSheet } from '../../../core/models/domain/spec-sheet/spec-sheet';
 import { PUSpecSheet } from '../models/pu-spec-sheet';
 import { SheetContext } from './sheet-context';
+import { Sheet } from '../../../core/models/domain/sheets/sheet';
 
 @Injectable()
 export class LinkedSheetService {
@@ -25,7 +23,7 @@ export class LinkedSheetService {
     return `${typeId}-${phaseId}`;
   }
 
-  public setLinkedSpecSheet(specSheet: SpecSheet): PUSpecSheet {
+  public setLinkedSpecSheet(specSheet: Sheet): PUSpecSheet {
     const key = this.buildKey(
       specSheet.specSheetTypeId,
       specSheet.specSheetPhaseId,
@@ -65,13 +63,13 @@ export class LinkedSheetService {
     phaseId: number,
     lockToLatestPublished: boolean,
     publishedByDateTime?: string,
-  ): Promise<SpecSheet | undefined> {
+  ): Promise<Sheet | undefined> {
     const specSheet = this._activeSheetService.specSheet();
 
     let params = new HttpParams();
     if (lockToLatestPublished) {
       const publishedDateTime =
-        publishedByDateTime ?? specSheet.specSheet.publishedDateTime;
+        publishedByDateTime ?? specSheet.sheet.version?.publishedDateTime;
       if (publishedDateTime) {
         params = params.append('publishedBy', publishedDateTime);
       }
@@ -82,7 +80,7 @@ export class LinkedSheetService {
       const sheet = await lastValueFrom(
         this._httpClient.get<Sheet>(url, { params }),
       );
-      return SheetAdapter.toSpecSheet(sheet, sheet.version?.sourceSpecSheetId ?? 0);
+      return sheet;
     } catch (error) {
       if (error instanceof HttpErrorResponse && error.status === 404) {
         return undefined;

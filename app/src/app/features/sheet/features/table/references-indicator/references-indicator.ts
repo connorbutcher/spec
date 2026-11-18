@@ -1,7 +1,7 @@
 import { Component, inject, input } from '@angular/core';
 import { Tooltip } from 'primeng/tooltip';
-import { SpecSheetExternalReference } from '../../../../../core/models/domain/references/spec-sheet-external-reference';
 import { ReferencesSidePanelService } from '../../references/references-side-panel/references-side-panel.service';
+import { SheetExternalReference } from '../../../../../core/models/domain/sheets/sheet';
 
 @Component({
   selector: 'app-references-indicator',
@@ -13,7 +13,7 @@ import { ReferencesSidePanelService } from '../../references/references-side-pan
   },
 })
 export class ReferencesIndicator {
-  public readonly references = input.required<SpecSheetExternalReference[]>();
+  public readonly references = input.required<SheetExternalReference[]>();
   public readonly showLine = input.required<boolean>();
 
   private readonly _referencesSidePanel = inject(ReferencesSidePanelService);

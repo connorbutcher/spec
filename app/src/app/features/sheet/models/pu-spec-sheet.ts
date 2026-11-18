@@ -8,9 +8,6 @@ import {
   Signal,
   WritableSignal,
 } from '@angular/core';
-import { WorkflowState } from '../../../core/models/domain/enums/workflow-state';
-import { SpecSheet } from '../../../core/models/domain/spec-sheet/spec-sheet';
-import { SpecSheetTable } from '../../../core/models/domain/spec-sheet/spec-sheet-table';
 import { SpecSheetPhase } from '../../../core/models/domain/types/spec-sheet-phase';
 import { SpecSheetType } from '../../../core/models/domain/types/spec-sheet-type';
 import { SpecSheetChanges } from '../../../core/models/operations/spec-sheet-changes';
@@ -20,6 +17,8 @@ import { ValidatorLevel } from '../../../core/types/configuration/validator-leve
 import { SpecSheetTableHelpers } from '../helpers/spec-sheet-table-helpers';
 import { SpecSheetAdvisory } from './spec-sheet-advisory';
 import { PUSpecSheetTableBase } from './tables/pu-spec-sheet-table-base';
+import { Sheet, SheetSubmission, SheetTable } from '../../../core/models/domain/sheets/sheet';
+import { SubmissionStatus } from '../../../core/types/sheets/submission-status.enum';
 
 export class PUSpecSheet {
   public readonly id: number;
@@ -38,12 +37,7 @@ export class PUSpecSheet {
     return errorAdvisories.length === 0;
   });
   public readonly hasChanges = computed(() => {
-    const specSheet = this.specSheet;
-    if (!specSheet) {
-      return true;
-    }
-
-    const originalTables = this.specSheet.tables;
+    const originalTables = this.sheet.tables;
     const currentTables = this.tables();
     let hasDeletedTables = false;
     for (const originalTable of originalTables) {
@@ -83,30 +77,33 @@ export class PUSpecSheet {
   private readonly _injector = inject(Injector);
   private readonly _cellLookupService = inject(CellLookupService);
 
-  constructor(public readonly specSheet: SpecSheet) {
-    this.id = specSheet.id;
-    this.versionNumber = signal(specSheet.versionNumber);
-    this.isPublished = signal(specSheet.isPublished);
-    this.specSheetType = signal(specSheet.specSheetType);
-    this.specSheetPhase = signal(specSheet.specSheetPhase);
+  constructor(
+    public readonly sheet: Sheet,
+    public readonly submissions: SheetSubmission[] = [],
+  ) {
+    this.id = sheet.id;
+    this.versionNumber = signal(
+      (sheet.version?.versionNumber ?? 0) + (sheet.isDraft ? 1 : 0),
+    );
+    this.isPublished = signal(!sheet.isDraft);
+    this.specSheetType = signal(sheet.specSheetType!);
+    this.specSheetPhase = signal(sheet.specSheetPhase!);
     this.tables = signal(
-      specSheet.tables.map((table) =>
-        SpecSheetTableHelpers.toTable(table, this),
-      ),
+      sheet.tables.map((table) => SpecSheetTableHelpers.toTable(table, this)),
     );
     this.requiresApprovalWorkflow =
-      specSheet.specSheetType.requiresApprovalWorkflow;
+      sheet.specSheetType!.requiresApprovalWorkflow;
 
-    if (specSheet.specSheetType.requiresApprovalWorkflow) {
-      this.hasApprovalWorkflowStarted = specSheet.workflowSteps.some(
-        (ws) => ws.state === WorkflowState.Pending,
+    if (sheet.specSheetType!.requiresApprovalWorkflow) {
+      this.hasApprovalWorkflowStarted = submissions.some(
+        (s) => s.status === SubmissionStatus.Pending,
       );
     } else {
       this.hasApprovalWorkflowStarted = true;
     }
   }
 
-  public addTable(table: SpecSheetTable): void {
+  public addTable(table: SheetTable): void {
     runInInjectionContext(this._injector, () => {
       const puTable = SpecSheetTableHelpers.toTable(table, this);
       this.tables.update((tables) => [...tables, puTable]);
@@ -143,13 +140,13 @@ export class PUSpecSheet {
     }
 
     return {
-      specSheetId: this.id,
+      sheetId: this.id,
       operations: operations,
     };
   }
 
   private *compileDeletedTableOperations(): Generator<SpecSheetOp> {
-    for (const originalTable of this.specSheet.tables) {
+    for (const originalTable of this.sheet.tables) {
       const exists = this.tables().find((t) => t.id === originalTable.id);
       if (!exists) {
         yield {

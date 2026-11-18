@@ -8,9 +8,9 @@ import {
   ViewContainerRef,
 } from '@angular/core';
 import { SpecSheetHelpers } from '../../../../../core/helpers/spec-sheet-helpers';
-import { SpecSheetSummary } from '../../../../../core/models/domain/spec-sheet/spec-sheet-summary';
 import { SpecSheetType } from '../../../../../core/models/domain/types/spec-sheet-type';
 import { PropertyControlTypeHelpers } from '../../../helpers/property-control-type-helpers';
+import { SheetListItem } from '../../../../../core/models/domain/sheets/sheet';
 
 @Component({
   selector: 'app-sheet-summary-properties-display',
@@ -21,7 +21,7 @@ export class SheetSummaryPropertiesDisplay implements AfterViewInit {
   public readonly container = viewChild.required('container', {
     read: ViewContainerRef,
   });
-  public readonly specSheet = input.required<SpecSheetSummary>();
+  public readonly specSheet = input.required<SheetListItem>();
   public readonly specSheetType = input.required<SpecSheetType>();
 
   private readonly _properties = computed(() =>

@@ -7,11 +7,12 @@ import { SpecSheetPhase } from '../types/spec-sheet-phase';
 import { SpecSheetType } from '../types/spec-sheet-type';
 import { TableCellType } from '../template/table-cell-type';
 import { WidgetValue } from '../values/widget-values/widget-value';
-import { NoteSourceSystem } from '../spec-sheet/spec-sheet-table-note';
 
 /**
  * A sheet in the shape the sheets endpoints return it: every item has its own id and the revision of it that is shown.
  */
+export type NoteSourceSystem = 'puspecsheet' | 'pucards';
+
 export type SheetItemRevision = {
   id: number;
   revisionNumber: number;
@@ -169,13 +170,15 @@ export type Sheet = {
   externalReferences: SheetExternalReference[];
 };
 
-export type SheetVersionSummary = {
+export type SheetListItem = {
   sheetId: number;
   specSheetPhaseId: number;
   specSheetTypeId: number;
   specSheetPhase?: SpecSheetPhase;
   specSheetType?: SpecSheetType;
-  version: SheetVersion;
+  versionNumber: number;
+  isDraft: boolean;
+  version?: SheetVersion;
   properties: SheetProperty[];
 };
 
@@ -223,12 +226,6 @@ export type SheetLocation = {
 };
 
 export type SheetDetail = {
-  location: SheetLocation;
   sheet: Sheet;
   submissions: SheetSubmission[];
-};
-
-export type SheetListing = {
-  versions: SheetVersionSummary[];
-  sheet?: SheetSummary;
 };

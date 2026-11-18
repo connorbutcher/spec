@@ -7,7 +7,6 @@ import { Tag } from 'primeng/tag';
 import { Tooltip } from 'primeng/tooltip';
 import { firstValueFrom } from 'rxjs';
 import { SpecSheetHelpers } from '../../../../../../core/helpers/spec-sheet-helpers';
-import { SpecSheetSummary } from '../../../../../../core/models/domain/spec-sheet/spec-sheet-summary';
 import { SpecSheetPhase } from '../../../../../../core/models/domain/types/spec-sheet-phase';
 import { SpecSheetType } from '../../../../../../core/models/domain/types/spec-sheet-type';
 import { SpinnerDialogService } from '../../../../../../core/services/spinner-dialog.service';
@@ -15,6 +14,7 @@ import { ConfirmationDialog } from '../../../../../common/confirmation-dialog/co
 import { ConfirmationDialogData } from '../../../../../common/confirmation-dialog/models/confirmation-dialog-data.interface';
 import { PropertySummaryValueDisplay } from '../../../../../properties/components/display/property-summary-value-display/property-summary-value-display';
 import { SheetsAuditService } from '../../sheets-audit.service';
+import { SheetListItem } from '../../../../../../core/models/domain/sheets/sheet';
 
 @Component({
   selector: 'app-sheet-for-phase-row',
@@ -29,7 +29,7 @@ import { SheetsAuditService } from '../../sheets-audit.service';
   styleUrl: './sheet-for-phase-row.scss',
 })
 export class SheetForPhaseRow {
-  public readonly sheet = input.required<SpecSheetSummary>();
+  public readonly sheet = input.required<SheetListItem>();
   public readonly phase = input.required<SpecSheetPhase>();
   public readonly type = input.required<SpecSheetType>();
 
@@ -53,8 +53,7 @@ export class SheetForPhaseRow {
       !this.sheet() ||
       !this.phase() ||
       !this.type() ||
-      this.sheet().isPublished ||
-      this.sheet().hasBeenMigrated
+      !this.sheet().isDraft
     ) {
       return;
     }
@@ -83,7 +82,7 @@ export class SheetForPhaseRow {
     );
 
     try {
-      await this._auditService.deleteSpecSheetAsync(this.sheet()!.id);
+      await this._auditService.deleteDraftAsync(this.sheet().sheetId);
 
       this._messageService.add({
         severity: 'success',

@@ -8,14 +8,13 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { combineLatest, filter, tap } from 'rxjs';
-import { SpecSheet } from '../../../core/models/domain/spec-sheet/spec-sheet';
-import { SpecSheetSummary } from '../../../core/models/domain/spec-sheet/spec-sheet-summary';
 import { TableTemplate } from '../../../core/models/domain/template/table-template';
 import { SpecSheetPhase } from '../../../core/models/domain/types/spec-sheet-phase';
 import { SpecSheetType } from '../../../core/models/domain/types/spec-sheet-type';
 import { CellLookupService } from '../../../core/services/cell-lookup.service';
 import { PUSpecSheet } from '../../sheet/models/pu-spec-sheet';
 import { SheetComparison } from '../models/sheet-comparison';
+import { SheetDetail, SheetListItem } from '../../../core/models/domain/sheets/sheet';
 
 @Injectable()
 export class SheetComparisonService {
@@ -28,9 +27,11 @@ export class SheetComparisonService {
   );
   public readonly leftPUSpecSheet = signal<PUSpecSheet | undefined>(undefined);
   public readonly rightPUSpecSheet = signal<PUSpecSheet | undefined>(undefined);
-  public readonly leftSpecSheet = signal<SpecSheet | undefined>(undefined);
-  public readonly rightSpecSheet = signal<SpecSheet | undefined>(undefined);
-  public readonly specSheetVersions = signal<SpecSheetSummary[]>([]);
+  public readonly leftSpecSheet = signal<SheetDetail | undefined>(undefined);
+  public readonly rightSpecSheet = signal<SheetDetail | undefined>(undefined);
+  public readonly leftVersionNumber = signal<number | undefined>(undefined);
+  public readonly rightVersionNumber = signal<number | undefined>(undefined);
+  public readonly specSheetVersions = signal<SheetListItem[]>([]);
   public readonly sheetComparison = signal<SheetComparison | undefined>(
     undefined,
   );
@@ -66,6 +67,8 @@ export class SheetComparisonService {
     this.specSheetPhase.set(undefined);
     this.leftSpecSheet.set(undefined);
     this.rightSpecSheet.set(undefined);
+    this.leftVersionNumber.set(undefined);
+    this.rightVersionNumber.set(undefined);
     this.leftPUSpecSheet.set(undefined);
     this.rightPUSpecSheet.set(undefined);
     this.specSheetVersions.set([]);

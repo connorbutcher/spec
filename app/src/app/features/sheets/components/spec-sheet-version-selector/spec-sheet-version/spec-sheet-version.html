@@ -4,11 +4,11 @@
     [specSheetType]="specSheetType()"
   />
 
-  @if (specSheet().isPublished) {
+  @if (!specSheet().isDraft) {
     <span class="sheet-state locked">Locked</span>
   }
 
   @if (showAvatars()) {
-    <app-pu-spec-sheet-avatar [puSpecSheetId]="specSheet().id" size="xsmall" />
+    <app-pu-spec-sheet-avatar [puSpecSheetId]="specSheet().sheetId" size="xsmall" />
   }
 </div>

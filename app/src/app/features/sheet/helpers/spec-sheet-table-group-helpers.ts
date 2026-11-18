@@ -1,5 +1,5 @@
-import { SpecSheetTableGroup } from '../../../core/models/domain/spec-sheet/spec-sheet-table-group';
 import { GroupHierarchyManager } from '../models/services/group-hierarchy-manager';
+import { SheetTableGroup } from '../../../core/models/domain/sheets/sheet';
 
 export class SpecSheetTableGroupHelpers {
   /**
@@ -10,16 +10,22 @@ export class SpecSheetTableGroupHelpers {
    * @returns An array containing the root group and all its descendants
    */
   public static getAllGroupsRecursive(
-    rootGroup: SpecSheetTableGroup,
-    childGroups: SpecSheetTableGroup[],
+    rootGroup: SheetTableGroup,
+    childGroups: SheetTableGroup[],
     includeRoot: boolean = true,
-  ): SpecSheetTableGroup[] {
-    const groupMap = new Map<number, SpecSheetTableGroup>(
+  ): SheetTableGroup[] {
+    const groupMap = new Map<number, SheetTableGroup>(
       childGroups.map((g) => [g.id, g]),
+    );
+    const idByReferenceId = new Map<string, number>(
+      childGroups.map((g) => [g.referenceId, g.id]),
     );
     const hierarchyMap = GroupHierarchyManager.buildHierarchyMap(
       childGroups,
-      (g) => g.linkedSpecSheetTableGroupId ?? undefined,
+      (g) =>
+        g.linkedGroupReferenceId
+          ? idByReferenceId.get(g.linkedGroupReferenceId)
+          : undefined,
     );
     const descendants = GroupHierarchyManager.getDescendants(
       rootGroup.id,

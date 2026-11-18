@@ -29,7 +29,7 @@ export class SheetsService {
 
     return (
       this.specSheetsForPhaseAndType().find(
-        (sheet) => sheet.id === Number(version),
+        (sheet) => sheet.versionNumber === Number(version),
       ) ?? null
     );
   });
@@ -70,7 +70,7 @@ export class SheetsService {
       return false;
     }
 
-    return selectedSheet.id === latestSheet.id;
+    return selectedSheet.versionNumber === latestSheet.versionNumber;
   });
 
   private readonly _sheetsDataService = inject(SheetsDataService);
@@ -100,10 +100,13 @@ export class SheetsService {
     });
   }
 
-  public selectVersion(versionId: number | null): void {
+  public selectVersion(versionNumber: number | null): void {
     this._router.navigate([], {
       queryParams: {
-        version: versionId === this.latestSpecSheet()?.id ? null : versionId,
+        version:
+          versionNumber === this.latestSpecSheet()?.versionNumber
+            ? null
+            : versionNumber,
       },
       queryParamsHandling: 'merge',
       preserveFragment: true,

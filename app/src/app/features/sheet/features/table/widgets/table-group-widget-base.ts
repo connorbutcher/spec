@@ -6,12 +6,12 @@ import {
   model,
   Signal,
 } from '@angular/core';
-import { SpecSheetTableGroupWidget } from '../../../../../core/models/domain/spec-sheet/spec-sheet-table-group-widget';
 import { Destroyable } from '../../../../common/destructable/destructable';
 import { PUSpecSheetTableGroup } from '../../../models/pu-spec-sheet-table-group';
 import { PUSpecSheetTableBase } from '../../../models/tables/pu-spec-sheet-table-base';
 import { WidgetPropertyBase } from '../../../models/widgets/widget-base';
 import { ActiveSheetService } from '../../../services/active-sheet.service';
+import { SheetWidget } from '../../../../../core/models/domain/sheets/sheet';
 
 @Component({
   selector: 'app-table-group-widget-base',
@@ -20,7 +20,7 @@ import { ActiveSheetService } from '../../../services/active-sheet.service';
 })
 export class TableGroupWidgetBase<
   V,
-  T extends WidgetPropertyBase<SpecSheetTableGroupWidget>,
+  T extends WidgetPropertyBase<SheetWidget>,
 > extends Destroyable {
   public readonly widget = input.required<T>();
   public readonly table = input.required<PUSpecSheetTableBase>();

@@ -8,7 +8,6 @@ import { LinkedSpecSheetValue } from '../models/domain/values/linked-spec-sheet-
 import { NumericValue } from '../models/domain/values/numeric-value';
 import { PairValue } from '../models/domain/values/pair-value';
 import { TextValue } from '../models/domain/values/text-value';
-import { nextTempId } from './temp-id-counter';
 
 export class CellValueHelpers {
   public static buildNewCellValue(cellTemplate: TableCellTemplate): CellValue {
@@ -30,16 +29,14 @@ export class CellValueHelpers {
       case 'textDropdown':
         return {
           $type: 'text',
-          id: nextTempId(),
-          specSheetTableCellId: 0,
+          sheetTableCellId: 0,
           value: (cellProperties as TextCellProperties).defaultValue,
         } as TextValue;
       case 'numeric':
       case 'numericDropdown':
         return {
           $type: 'numeric',
-          id: nextTempId(),
-          specSheetTableCellId: 0,
+          sheetTableCellId: 0,
           value: (cellProperties as NumberCellProperties).defaultValue,
         } as NumericValue;
       case 'pair': {
@@ -47,8 +44,7 @@ export class CellValueHelpers {
 
         return {
           $type: 'pair',
-          id: nextTempId(),
-          specSheetTableCellId: 0,
+          sheetTableCellId: 0,
           valueX: pairProperties?.defaultValueX || null,
           valueY: pairProperties?.defaultValueY || null,
         } as PairValue;
@@ -59,8 +55,7 @@ export class CellValueHelpers {
 
         return {
           $type: 'linkedSpecSheet',
-          id: nextTempId(),
-          specSheetTableCellId: 0,
+          sheetTableCellId: 0,
           linkedReferenceId: linkedSpecSheetProperties?.defaultValue,
           linkedSpecSheetTypeId:
             linkedSpecSheetProperties?.linkedSpecSheetTypeId,

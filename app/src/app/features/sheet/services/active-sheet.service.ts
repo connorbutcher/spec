@@ -8,13 +8,13 @@ import {
   signal,
 } from '@angular/core';
 import { Subject } from 'rxjs';
-import { SpecSheet } from '../../../core/models/domain/spec-sheet/spec-sheet';
 import { CellLookupService } from '../../../core/services/cell-lookup.service';
 import { CheckInOutService } from '../../../core/services/check-in-out.service';
 import { PUCardAnalyticsService } from '../../analytics/services/pu-card-analytics.service';
 import { SheetsService } from '../../sheets/services/sheets.service';
 import { PUSpecSheet } from '../models/pu-spec-sheet';
 import { SheetContext } from './sheet-context';
+import { SheetDetail } from '../../../core/models/domain/sheets/sheet';
 
 @Injectable()
 export class ActiveSheetService implements SheetContext {
@@ -49,7 +49,7 @@ export class ActiveSheetService implements SheetContext {
     () => this.specSheet()?.hasChanges() ?? false,
   );
   public readonly externalReferences = computed(
-    () => this.specSheet()?.specSheet.externalReferences ?? [],
+    () => this.specSheet()?.sheet.externalReferences ?? [],
   );
   public readonly canPublish = computed(() => {
     const specSheet = this.specSheet();
@@ -118,9 +118,12 @@ export class ActiveSheetService implements SheetContext {
 
   private readonly _specSheet = signal<PUSpecSheet>(undefined!);
 
-  public setSpecSheet(specSheet: SpecSheet): void {
+  public setSpecSheet(detail: SheetDetail): void {
     this._specSheet.set(
-      runInInjectionContext(this._injector, () => new PUSpecSheet(specSheet)),
+      runInInjectionContext(
+        this._injector,
+        () => new PUSpecSheet(detail.sheet, detail.submissions),
+      ),
     );
 
     this._cellLookupService.completeRegistration();

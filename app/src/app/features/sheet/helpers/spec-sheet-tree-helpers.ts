@@ -1,16 +1,16 @@
 import { TreeNode } from 'primeng/api';
 import { SpecSheetTypeStructureLevel } from '../../../core/models/domain/configuration/spec-sheet-type-structure-level';
-import { SpecSheetPropertyValueSummary } from '../../../core/models/domain/spec-sheet/properties/spec-sheet-property-value-summary';
-import { SpecSheetSummary } from '../../../core/models/domain/spec-sheet/spec-sheet-summary';
 import { SpecSheetPhase } from '../../../core/models/domain/types/spec-sheet-phase';
 import { StructureLevelType } from '../../../core/types/configuration/structure-level-type.enum';
 import { SpecSheetTreeNodeData } from '../models/spec-sheet-tree-node-data';
 import { SpecSheetTreeRowData } from '../models/spec-sheet-tree-row-data';
+import { SheetPropertyHelpers } from '../../../core/helpers/sheet-property-helpers';
+import { SheetListItem, SheetProperty } from '../../../core/models/domain/sheets/sheet';
 
 export class SpecSheetTreeHelpers {
   public static build(
     structureLevels: SpecSheetTypeStructureLevel[],
-    specSheets: SpecSheetSummary[],
+    specSheets: SheetListItem[],
     specSheetPhases: SpecSheetPhase[],
   ): TreeNode[] {
     const treeNodes: TreeNode[] = [];
@@ -55,7 +55,7 @@ export class SpecSheetTreeHelpers {
 
   public static buildForCopyFrom(
     structureLevels: SpecSheetTypeStructureLevel[],
-    specSheets: SpecSheetSummary[],
+    specSheets: SheetListItem[],
     specSheetPhases: SpecSheetPhase[],
     allPhases: SpecSheetPhase[],
   ): TreeNode[] {
@@ -125,7 +125,7 @@ export class SpecSheetTreeHelpers {
 
   private static buildCopyFromPhaseNode(
     phase: SpecSheetPhase,
-    specSheets: SpecSheetSummary[],
+    specSheets: SheetListItem[],
     groupLevels: SpecSheetTypeStructureLevel[],
     displayLevel: SpecSheetTypeStructureLevel,
   ): TreeNode {
@@ -150,7 +150,7 @@ export class SpecSheetTreeHelpers {
   }
 
   private static buildLevelNodes(
-    specSheets: SpecSheetSummary[],
+    specSheets: SheetListItem[],
     groupLevels: SpecSheetTypeStructureLevel[],
     levelIndex: number,
     displayLevel: SpecSheetTypeStructureLevel,
@@ -160,18 +160,19 @@ export class SpecSheetTreeHelpers {
       // Base case: no more group levels, create leaf nodes for display level
       const specSheetLabels: {
         label: string;
-        specSheet: SpecSheetSummary;
-        properties: SpecSheetPropertyValueSummary[];
+        specSheet: SheetListItem;
+        properties: SheetProperty[];
       }[] = [];
       for (const specSheet of specSheets) {
         let specSheetString = '';
-        const propertiesToDisplay: SpecSheetPropertyValueSummary[] = [];
+        const propertiesToDisplay: SheetProperty[] = [];
         for (const levelValue of displayLevel.levelValues) {
-          const property = specSheet.propertyValues.find(
-            (pv) =>
-              pv.referenceId === levelValue.specSheetTypePropertyReferenceId,
+          const property = SheetPropertyHelpers.findByReferenceId(
+            specSheet.properties,
+            specSheet.specSheetType?.properties ?? [],
+            levelValue.specSheetTypePropertyReferenceId,
           );
-          const propertyValue = (property?.propertyValue as any)?.value ?? '';
+          const propertyValue = SheetPropertyHelpers.getText(property);
           specSheetString += specSheetString
             ? ` - ${propertyValue}`
             : propertyValue;
@@ -204,13 +205,13 @@ export class SpecSheetTreeHelpers {
         })
         .map(({ label, specSheet, properties }) => ({
           data: isDataId
-            ? specSheet.id
+            ? specSheet.version?.sourceSpecSheetId
             : ({ specSheet, properties } as SpecSheetTreeRowData),
           expanded: false,
           label,
           children: [],
           type: 'specSheet',
-          key: `${specSheet.id}`,
+          key: `${specSheet.sheetId}`,
         }));
     }
 
@@ -220,11 +221,12 @@ export class SpecSheetTreeHelpers {
     // Group the specSheets by the current structure level
     const groupedSpecSheetsByLevel = new Map<any, SpecSheetTreeNodeData>();
     for (const specSheet of specSheets) {
-      const property = specSheet.propertyValues.find(
-        (pv) =>
-          pv.referenceId === groupLevelValue.specSheetTypePropertyReferenceId,
+      const property = SheetPropertyHelpers.findByReferenceId(
+        specSheet.properties,
+        specSheet.specSheetType?.properties ?? [],
+        groupLevelValue.specSheetTypePropertyReferenceId,
       );
-      const propertyValue = (property?.propertyValue as any)?.value ?? 'N/A';
+      const propertyValue = SheetPropertyHelpers.getText(property, 'N/A');
       const existingGroup = groupedSpecSheetsByLevel.get(propertyValue);
 
       if (existingGroup) {

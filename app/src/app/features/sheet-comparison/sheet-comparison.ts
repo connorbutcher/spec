@@ -3,6 +3,7 @@ import {
   effect,
   input,
   numberAttribute,
+  Signal,
   signal,
 } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
@@ -10,6 +11,7 @@ import {
   combineLatest,
   distinctUntilChanged,
   filter,
+  map,
   switchMap,
   tap,
 } from 'rxjs';
@@ -19,6 +21,7 @@ import { CellLookupService } from '../../core/services/cell-lookup.service';
 import { FragmentHandler } from '../../core/services/fragment-handler.service';
 import { PhasesService } from '../../core/services/phases.service';
 import { TypesService } from '../../core/services/types.service';
+import { SheetDataService } from '../sheet/services/sheet-data.service';
 import { SheetFilterService } from '../sheet/services/sheet-filter.service';
 import { SheetCompare } from './components/sheet-compare/sheet-compare';
 import { SheetComparisonHeader } from './components/sheet-comparison-header/sheet-comparison-header';
@@ -34,6 +37,7 @@ import { SheetComparisonService } from './services/sheet-comparison.service';
   providers: [
     SheetComparisonService,
     SheetComparisonDataService,
+    SheetDataService,
     SheetComparisonFilterService,
     FragmentHandler,
     CellLookupService,
@@ -89,37 +93,8 @@ export class SheetComparison {
       this.hasSeeded.set(true);
     });
 
-    toObservable(this.left)
-      .pipe(
-        takeUntilDestroyed(),
-        distinctUntilChanged(),
-        tap(() =>
-          this._specSheetComparisonService.leftSpecSheet.set(undefined),
-        ),
-        filter((leftId) => !!leftId),
-        switchMap((leftId) =>
-          this._specSheetComparisonDataService.getSpecSheetByIdAsync(leftId!),
-        ),
-      )
-      .subscribe((specSheet) => {
-        this._specSheetComparisonService.leftSpecSheet.set(specSheet);
-      });
-
-    toObservable(this.right)
-      .pipe(
-        takeUntilDestroyed(),
-        distinctUntilChanged(),
-        tap(() =>
-          this._specSheetComparisonService.rightSpecSheet.set(undefined),
-        ),
-        filter((rightId) => !!rightId),
-        switchMap((rightId) =>
-          this._specSheetComparisonDataService.getSpecSheetByIdAsync(rightId!),
-        ),
-      )
-      .subscribe((specSheet) => {
-        this._specSheetComparisonService.rightSpecSheet.set(specSheet);
-      });
+    this.loadSide(this.left, 'left');
+    this.loadSide(this.right, 'right');
 
     combineLatest([
       toObservable(this.type),
@@ -147,5 +122,42 @@ export class SheetComparison {
           ),
         );
       });
+  }
+
+  /** Loads the version of the sheet (identified by its version number) for a side of the comparison. */
+  private loadSide(
+    versionNumber: Signal<number>,
+    side: 'left' | 'right',
+  ): void {
+    const comparison = this._specSheetComparisonService;
+    const sheet = side === 'left' ? comparison.leftSpecSheet : comparison.rightSpecSheet;
+    const version =
+      side === 'left' ? comparison.leftVersionNumber : comparison.rightVersionNumber;
+
+    combineLatest([
+      toObservable(versionNumber),
+      toObservable(comparison.specSheetVersions),
+    ])
+      .pipe(
+        takeUntilDestroyed(),
+        distinctUntilChanged(
+          ([previousNumber, previousVersions], [number, versions]) =>
+            previousNumber === number &&
+            previousVersions.find((v) => v.versionNumber === number) ===
+              versions.find((v) => v.versionNumber === number),
+        ),
+        tap(([number]) => {
+          version.set(number || undefined);
+          sheet.set(undefined);
+        }),
+        map(([number, versions]) =>
+          versions.find((v) => v.versionNumber === number),
+        ),
+        filter((item) => !!item),
+        switchMap((item) =>
+          this._specSheetComparisonDataService.getSheetAsync(item!),
+        ),
+      )
+      .subscribe((detail) => sheet.set(detail));
   }
 }

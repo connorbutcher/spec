@@ -1,6 +1,5 @@
 import { computed, linkedSignal } from '@angular/core';
 import { UpdateHelpers } from '../../../../core/helpers/update-helpers';
-import { SpecSheetTableGroupWidget } from '../../../../core/models/domain/spec-sheet/spec-sheet-table-group-widget';
 import { WidgetType } from '../../../../core/models/domain/types/widget-type';
 import { PFKNominalWidgetValue } from '../../../../core/models/domain/values/widget-values/pfk-nominal-widget-value';
 import { SpecSheetOp } from '../../../../core/models/operations/spec-sheet-op';
@@ -8,9 +7,10 @@ import { ValidatorLevel } from '../../../../core/types/configuration/validator-l
 import { PUSpecSheetTableGroup } from '../pu-spec-sheet-table-group';
 import { SpecSheetAdvisory } from '../spec-sheet-advisory';
 import { WidgetPropertyBase } from './widget-base';
+import { SheetWidget } from '../../../../core/models/domain/sheets/sheet';
 
 export class PFKNomWidget extends WidgetPropertyBase<
-  SpecSheetTableGroupWidget,
+  SheetWidget,
   PUSpecSheetTableGroup,
   PFKNominalWidgetValue
 > {
@@ -58,23 +58,19 @@ export class PFKNomWidget extends WidgetPropertyBase<
   });
 
   constructor(
-    widget: SpecSheetTableGroupWidget,
+    widget: SheetWidget,
     parent: PUSpecSheetTableGroup,
   ) {
     super(widget, parent);
   }
 
-  public override toWidget(): SpecSheetTableGroupWidget {
+  public override toWidget(): SheetWidget {
     return {
       ...this.widget,
       value: {
-        id: this.widget.value.id,
-        specSheetTableGroupWidgetId: this.widget.id,
-        value: {
-          $type: 'pfkNominal',
-          automaticNominalCalculation: this.value(),
-        } as PFKNominalWidgetValue,
-      },
+        $type: 'pfkNominal',
+        automaticNominalCalculation: this.value(),
+      } as PFKNominalWidgetValue,
     };
   }
 
@@ -83,7 +79,7 @@ export class PFKNomWidget extends WidgetPropertyBase<
       yield {
         $type: 'AddSpecSheetTableGroupWidgetOp',
         specSheetTableGroupId: this._parent.id,
-        tableGroupTemplateWidgetId: this.widget.tableGroupTemplateWidgetId,
+        tableGroupTemplateWidgetId: this.widget.tableGroupTemplateWidgetId!,
         value: {
           $type: 'pfkNominal',
           automaticNominalCalculation: this.value(),

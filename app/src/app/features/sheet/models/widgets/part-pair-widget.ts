@@ -1,6 +1,5 @@
 import { computed, linkedSignal } from '@angular/core';
 import { UpdateHelpers } from '../../../../core/helpers/update-helpers';
-import { SpecSheetTableWidget } from '../../../../core/models/domain/spec-sheet/spec-sheet-table-widget';
 import { WidgetType } from '../../../../core/models/domain/types/widget-type';
 import { PartPairWidgetValue } from '../../../../core/models/domain/values/widget-values/part-pair-widget-value';
 import { SpecSheetOp } from '../../../../core/models/operations/spec-sheet-op';
@@ -8,9 +7,10 @@ import { ValidatorLevel } from '../../../../core/types/configuration/validator-l
 import { SpecSheetAdvisory } from '../spec-sheet-advisory';
 import { PUSpecSheetTableBase } from '../tables/pu-spec-sheet-table-base';
 import { WidgetPropertyBase } from './widget-base';
+import { SheetWidget } from '../../../../core/models/domain/sheets/sheet';
 
 export class PartPairWidget extends WidgetPropertyBase<
-  SpecSheetTableWidget,
+  SheetWidget,
   PUSpecSheetTableBase,
   PartPairWidgetValue
 > {
@@ -69,22 +69,18 @@ export class PartPairWidget extends WidgetPropertyBase<
     return advisories;
   });
 
-  constructor(widget: SpecSheetTableWidget, parent: PUSpecSheetTableBase) {
+  constructor(widget: SheetWidget, parent: PUSpecSheetTableBase) {
     super(widget, parent);
   }
 
-  public override toWidget(): SpecSheetTableWidget {
+  public override toWidget(): SheetWidget {
     return {
       ...this.widget,
       value: {
-        id: this.widget.value.id,
-        specSheetTableWidgetId: this.widget.id,
-        value: {
-          $type: 'partPair',
-          topValue: this.value(),
-          bottomValue: this.valueBottom(),
-        } as PartPairWidgetValue,
-      },
+        $type: 'partPair',
+        topValue: this.value(),
+        bottomValue: this.valueBottom(),
+      } as PartPairWidgetValue,
     };
   }
 
@@ -93,7 +89,7 @@ export class PartPairWidget extends WidgetPropertyBase<
       yield {
         $type: 'AddSpecSheetTableWidgetOp',
         specSheetTableId: this._parent.id,
-        tableTemplateWidgetId: this.widget.tableTemplateWidgetId,
+        tableTemplateWidgetId: this.widget.tableTemplateWidgetId!,
         value: {
           $type: 'partPair',
           topValue: this.value(),

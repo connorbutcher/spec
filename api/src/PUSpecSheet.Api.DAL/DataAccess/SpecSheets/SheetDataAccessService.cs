@@ -153,31 +153,59 @@ internal class SheetDataAccessService : ISheetDataAccessService
         return summaries.FirstOrDefault();
     }
 
-    public async Task<SheetListing> GetSheetListingAsync(int phaseId, int sheetTypeId, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<SheetListItem>> GetSheetListAsync(int phaseId, int sheetTypeId, CancellationToken cancellationToken)
     {
         var versions = await GetPublishedVersionSummariesAsync(sheetTypeId, phaseId, cancellationToken);
-        var sheet = await GetSheetSummaryByPhaseAndTypeAsync(phaseId, sheetTypeId, cancellationToken);
-        return new SheetListing { Versions = [.. versions], Sheet = sheet };
-    }
+        var items = versions.Select(MapToListItem).ToList();
 
-    public async Task<SheetDetail?> GetSheetDetailAsync(int specSheetId, CancellationToken cancellationToken)
-    {
-        var location = await _sheetReader.FindLocationAsync(specSheetId, cancellationToken);
-        if (location is null)
+        var sheet = await GetSheetSummaryByPhaseAndTypeAsync(phaseId, sheetTypeId, cancellationToken);
+        if (sheet?.DraftSpecSheetId is not null)
         {
-            return null;
+            items.Add(new SheetListItem
+            {
+                SheetId = sheet.Id,
+                SpecSheetPhaseId = sheet.SpecSheetPhaseId,
+                SpecSheetTypeId = sheet.SpecSheetTypeId,
+                SpecSheetPhase = sheet.SpecSheetPhase,
+                SpecSheetType = sheet.SpecSheetType,
+                VersionNumber = (sheet.LatestVersion?.VersionNumber ?? 0) + 1,
+                IsDraft = true,
+                Version = null,
+                Properties = sheet.Properties
+            });
         }
 
-        var sheet = location.IsDraft
-            ? await GetDraftSheetAsync(location.SheetId, cancellationToken)
-            : await GetPublishedSheetAsync(location.SheetId, location.VersionNumber, cancellationToken);
+        return items;
+    }
+
+    public async Task<IReadOnlyList<SheetListItem>> GetPublishedSheetListAsync(int sheetTypeId, CancellationToken cancellationToken)
+    {
+        var versions = await GetPublishedVersionSummariesAsync(sheetTypeId, null, cancellationToken);
+        return [.. versions.Select(MapToListItem)];
+    }
+
+    public async Task<SheetDetail?> GetPublishedSheetDetailAsync(int sheetId, int? versionNumber, CancellationToken cancellationToken)
+    {
+        var sheet = await GetPublishedSheetAsync(sheetId, versionNumber, cancellationToken);
         if (sheet is null)
         {
             return null;
         }
 
-        var submissions = await _sheetReader.ReadSubmissionsAsync(location.SheetId, location.VersionNumber, cancellationToken);
-        return new SheetDetail { Location = location, Sheet = sheet, Submissions = [.. submissions ?? []] };
+        var submissions = await _sheetReader.ReadSubmissionsAsync(sheetId, sheet.Version?.VersionNumber, cancellationToken);
+        return new SheetDetail { Sheet = sheet, Submissions = [.. submissions ?? []] };
+    }
+
+    public async Task<SheetDetail?> GetDraftSheetDetailAsync(int sheetId, CancellationToken cancellationToken)
+    {
+        var sheet = await GetDraftSheetAsync(sheetId, cancellationToken);
+        if (sheet is null)
+        {
+            return null;
+        }
+
+        var submissions = await _sheetReader.ReadSubmissionsAsync(sheetId, null, cancellationToken);
+        return new SheetDetail { Sheet = sheet, Submissions = [.. submissions ?? []] };
     }
 
     public async Task<SheetLocation?> FindSheetAsync(int specSheetId, CancellationToken cancellationToken)
@@ -308,6 +336,22 @@ internal class SheetDataAccessService : ISheetDataAccessService
     }
 
     #endregion Writes
+
+    private static SheetListItem MapToListItem(SheetVersionSummary summary)
+    {
+        return new SheetListItem
+        {
+            SheetId = summary.SheetId,
+            SpecSheetPhaseId = summary.SpecSheetPhaseId,
+            SpecSheetTypeId = summary.SpecSheetTypeId,
+            SpecSheetPhase = summary.SpecSheetPhase,
+            SpecSheetType = summary.SpecSheetType,
+            VersionNumber = summary.Version.VersionNumber,
+            IsDraft = false,
+            Version = summary.Version,
+            Properties = summary.Properties
+        };
+    }
 
     private async Task<User> GetCurrentUserAsync(CancellationToken cancellationToken)
     {

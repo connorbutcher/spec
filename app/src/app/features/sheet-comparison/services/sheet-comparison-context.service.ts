@@ -6,17 +6,17 @@ import {
   runInInjectionContext,
   signal,
 } from '@angular/core';
-import { SpecSheet } from '../../../core/models/domain/spec-sheet/spec-sheet';
 import { CellLookupService } from '../../../core/services/cell-lookup.service';
 import { PUSpecSheet } from '../../sheet/models/pu-spec-sheet';
 import { SheetContext } from '../../sheet/services/sheet-context';
 import { SheetComparisonService } from './sheet-comparison.service';
+import { SheetDetail } from '../../../core/models/domain/sheets/sheet';
 
 @Injectable()
 export class SheetComparisonContextService implements SheetContext {
   public readonly specSheet = signal<PUSpecSheet>(undefined!);
   public readonly externalReferences = computed(
-    () => this.specSheet()?.specSheet.externalReferences ?? [],
+    () => this.specSheet()?.sheet.externalReferences ?? [],
   );
   public readonly tableTemplateWidgets = computed(() =>
     this._comparisonService
@@ -42,7 +42,7 @@ export class SheetComparisonContextService implements SheetContext {
   private readonly _injector = inject(Injector);
   private readonly _deletedGroupReferenceIds = new Set<string>();
 
-  public setSpecSheet(sheet: SpecSheet): void {
+  public setSpecSheet(detail: SheetDetail): void {
     const type = this._comparisonService.specSheetType();
     const phase = this._comparisonService.specSheetPhase();
     if (!type || !phase) {
@@ -56,11 +56,14 @@ export class SheetComparisonContextService implements SheetContext {
       runInInjectionContext(
         this._injector,
         () =>
-          new PUSpecSheet({
-            ...sheet,
-            specSheetType: type,
-            specSheetPhase: phase,
-          }),
+          new PUSpecSheet(
+            {
+              ...detail.sheet,
+              specSheetType: type,
+              specSheetPhase: phase,
+            },
+            detail.submissions,
+          ),
       ),
     );
     this._cellLookupService.completeRegistration();

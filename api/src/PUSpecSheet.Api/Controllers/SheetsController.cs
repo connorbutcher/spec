@@ -8,8 +8,7 @@ using PUSpecSheet.Api.DAL.DataAccess.SpecSheets;
 namespace PUSpecSheet.Api.Controllers;
 
 /// <summary>
-/// Sheets in the shape of the revision schema. Ids here are sheet ids and the ids of the sheet's items, except under
-/// <c>spec-sheet/{specSheetId}</c>, which takes the id of a spec sheet (a published version's or a draft's).
+/// Sheets in the shape of the revision schema. Ids here are sheet ids and the ids of the sheet's items.
 /// </summary>
 [Route("sheets")]
 [Authorize]
@@ -24,25 +23,18 @@ public class SheetsController : ControllerBase
         _sheetDataAccessService = sheetDataAccessService;
     }
 
-    [HttpGet("{id:int}")]
-    public async Task<ActionResult<Sheet>> GetSheetAsync(int id, [FromQuery] int? version = null)
+    [HttpGet("{id:int}/detail")]
+    public async Task<ActionResult<SheetDetail>> GetPublishedSheetDetailAsync(int id, [FromQuery] int? version = null)
     {
-        var sheet = await _sheetDataAccessService.GetPublishedSheetAsync(id, version, HttpContext.RequestAborted);
-        return sheet is null ? NotFound() : Ok(sheet);
+        var detail = await _sheetDataAccessService.GetPublishedSheetDetailAsync(id, version, HttpContext.RequestAborted);
+        return detail is null ? NotFound() : Ok(detail);
     }
 
-    [HttpGet("{id:int}/draft")]
-    public async Task<ActionResult<Sheet>> GetDraftSheetAsync(int id)
+    [HttpGet("{id:int}/draft/detail")]
+    public async Task<ActionResult<SheetDetail>> GetDraftSheetDetailAsync(int id)
     {
-        var sheet = await _sheetDataAccessService.GetDraftSheetAsync(id, HttpContext.RequestAborted);
-        return sheet is null ? NotFound() : Ok(sheet);
-    }
-
-    [HttpGet("{id:int}/submissions")]
-    public async Task<ActionResult<IReadOnlyList<SheetSubmission>>> GetSheetSubmissionsAsync(int id, [FromQuery] int? version = null)
-    {
-        var submissions = await _sheetDataAccessService.GetSheetSubmissionsAsync(id, version, HttpContext.RequestAborted);
-        return submissions is null ? NotFound() : Ok(submissions);
+        var detail = await _sheetDataAccessService.GetDraftSheetDetailAsync(id, HttpContext.RequestAborted);
+        return detail is null ? NotFound() : Ok(detail);
     }
 
     [HttpGet("phase/{phaseId:int}/all")]
@@ -94,17 +86,18 @@ public class SheetsController : ControllerBase
         return Ok(versions);
     }
 
-    [HttpGet("phase/{phaseId:int}/type/{sheetTypeId:int}/listing")]
-    public async Task<ActionResult<SheetListing>> GetSheetListingAsync(int phaseId, int sheetTypeId)
+    [HttpGet("phase/{phaseId:int}/type/{sheetTypeId:int}/list")]
+    public async Task<ActionResult<IReadOnlyList<SheetListItem>>> GetSheetListAsync(int phaseId, int sheetTypeId)
     {
-        var listing = await _sheetDataAccessService.GetSheetListingAsync(phaseId, sheetTypeId, HttpContext.RequestAborted);
-        return Ok(listing);
+        var items = await _sheetDataAccessService.GetSheetListAsync(phaseId, sheetTypeId, HttpContext.RequestAborted);
+        return Ok(items);
     }
 
-    [HttpGet("type/{sheetTypeId:int}/versions")]
-    public async Task<ActionResult<IReadOnlyList<SheetVersionSummary>>> GetVersionSummariesByTypeAsync(int sheetTypeId)
+    [HttpGet("type/{sheetTypeId:int}/list")]
+    public async Task<ActionResult<IReadOnlyList<SheetListItem>>> GetPublishedSheetListAsync(int sheetTypeId)
     {
-        return Ok(await _sheetDataAccessService.GetPublishedVersionSummariesAsync(sheetTypeId, null, HttpContext.RequestAborted));
+        var items = await _sheetDataAccessService.GetPublishedSheetListAsync(sheetTypeId, HttpContext.RequestAborted);
+        return Ok(items);
     }
 
     [HttpPost("draft")]
@@ -149,112 +142,4 @@ public class SheetsController : ControllerBase
         await _sheetDataAccessService.ReassignSubmissionApproversAsync(id, request, HttpContext.RequestAborted);
         return NoContent();
     }
-
-    #region By Spec Sheet Id
-
-    // The app opens, edits and lists sheets by the id of a spec sheet (a published version's or a draft's), which these
-    // endpoints take in place of the sheet's.
-
-    [HttpGet("spec-sheet/{specSheetId:int}")]
-    public async Task<ActionResult<SheetLocation>> FindSheetAsync(int specSheetId)
-    {
-        var location = await _sheetDataAccessService.FindSheetAsync(specSheetId, HttpContext.RequestAborted);
-        return location is null ? NotFound() : Ok(location);
-    }
-
-    [HttpGet("spec-sheet/{specSheetId:int}/sheet")]
-    public async Task<ActionResult<Sheet>> GetSheetBySpecSheetAsync(int specSheetId)
-    {
-        var location = await _sheetDataAccessService.FindSheetAsync(specSheetId, HttpContext.RequestAborted);
-        if (location is null)
-        {
-            return NotFound();
-        }
-
-        var sheet = location.IsDraft
-            ? await _sheetDataAccessService.GetDraftSheetAsync(location.SheetId, HttpContext.RequestAborted)
-            : await _sheetDataAccessService.GetPublishedSheetAsync(location.SheetId, location.VersionNumber, HttpContext.RequestAborted);
-        return sheet is null ? NotFound() : Ok(sheet);
-    }
-
-    [HttpGet("spec-sheet/{specSheetId:int}/detail")]
-    public async Task<ActionResult<SheetDetail>> GetSheetDetailBySpecSheetAsync(int specSheetId)
-    {
-        var detail = await _sheetDataAccessService.GetSheetDetailAsync(specSheetId, HttpContext.RequestAborted);
-        return detail is null ? NotFound() : Ok(detail);
-    }
-
-    [HttpPatch("spec-sheet/{specSheetId:int}/draft")]
-    public async Task<ActionResult> ApplyChangesBySpecSheetAsync(int specSheetId, [FromBody] SheetChanges changes)
-    {
-        var location = await FindDraftAsync(specSheetId);
-        if (location is null)
-        {
-            return NotFound();
-        }
-
-        await _sheetDataAccessService.ApplyChangesAsync(location.SheetId, changes, HttpContext.RequestAborted);
-        return NoContent();
-    }
-
-    [HttpPatch("spec-sheet/{specSheetId:int}/publish")]
-    public async Task<ActionResult> PublishBySpecSheetAsync(int specSheetId, [FromBody] PublishSheetRequest request)
-    {
-        var location = await FindDraftAsync(specSheetId);
-        if (location is null)
-        {
-            return NotFound();
-        }
-
-        await _sheetDataAccessService.PublishAsync(location.SheetId, request, HttpContext.RequestAborted);
-        return NoContent();
-    }
-
-    [HttpDelete("spec-sheet/{specSheetId:int}/draft")]
-    [UserPermissionAuthorization("admin.view", "admin.sheets")]
-    public async Task<ActionResult> DeleteDraftBySpecSheetAsync(int specSheetId)
-    {
-        var location = await FindDraftAsync(specSheetId);
-        if (location is null)
-        {
-            return NotFound();
-        }
-
-        await _sheetDataAccessService.DeleteDraftAsync(location.SheetId, HttpContext.RequestAborted);
-        return NoContent();
-    }
-
-    [HttpPatch("spec-sheet/{specSheetId:int}/submission/decision")]
-    public async Task<ActionResult> DecideSubmissionBySpecSheetAsync(int specSheetId, [FromBody] DecideSubmissionRequest request)
-    {
-        var location = await FindDraftAsync(specSheetId);
-        if (location is null)
-        {
-            return NotFound();
-        }
-
-        await _sheetDataAccessService.DecideSubmissionAsync(location.SheetId, request, HttpContext.RequestAborted);
-        return NoContent();
-    }
-
-    [HttpPatch("spec-sheet/{specSheetId:int}/submission/approvers")]
-    public async Task<ActionResult> ReassignSubmissionApproversBySpecSheetAsync(int specSheetId, [FromBody] ReassignSubmissionApproversRequest request)
-    {
-        var location = await FindDraftAsync(specSheetId);
-        if (location is null)
-        {
-            return NotFound();
-        }
-
-        await _sheetDataAccessService.ReassignSubmissionApproversAsync(location.SheetId, request, HttpContext.RequestAborted);
-        return NoContent();
-    }
-
-    private async Task<SheetLocation?> FindDraftAsync(int specSheetId)
-    {
-        var location = await _sheetDataAccessService.FindSheetAsync(specSheetId, HttpContext.RequestAborted);
-        return location is { IsDraft: true } ? location : null;
-    }
-
-    #endregion By Spec Sheet Id
 }

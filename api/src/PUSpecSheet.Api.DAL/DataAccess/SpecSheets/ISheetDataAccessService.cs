@@ -71,15 +71,27 @@ public interface ISheetDataAccessService
     Task<SheetSummary?> GetSheetSummaryByPhaseAndTypeAsync(int phaseId, int sheetTypeId, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Every published version of the sheet of the phase and type, with the sheet and its draft's id.
+    /// The list of versions of the sheet of the phase and type: every published version, oldest first, then the draft when
+    /// the sheet has one.
     /// </summary>
-    Task<SheetListing> GetSheetListingAsync(int phaseId, int sheetTypeId, CancellationToken cancellationToken);
+    Task<IReadOnlyList<SheetListItem>> GetSheetListAsync(int phaseId, int sheetTypeId, CancellationToken cancellationToken);
 
     /// <summary>
-    /// The sheet the spec sheet is, as it is opened: the draft with its drafts, or the published version, with its
-    /// submissions. Null when the spec sheet isn't one of the sheets, or has no such sheet.
+    /// Every published version of the sheets of the type, as rows of a list.
     /// </summary>
-    Task<SheetDetail?> GetSheetDetailAsync(int specSheetId, CancellationToken cancellationToken);
+    Task<IReadOnlyList<SheetListItem>> GetPublishedSheetListAsync(int sheetTypeId, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// The published sheet as it stood at the version (the latest when none is given), with the submissions that published
+    /// it. Null when the sheet has no such version. Tables the current user has no permission to are left out.
+    /// </summary>
+    Task<SheetDetail?> GetPublishedSheetDetailAsync(int sheetId, int? versionNumber, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// The sheet as it stands now with its drafts, with all its submissions. Null when there is no such sheet. Tables the
+    /// current user has no permission to are left out.
+    /// </summary>
+    Task<SheetDetail?> GetDraftSheetDetailAsync(int sheetId, CancellationToken cancellationToken);
 
     /// <summary>
     /// Where the spec sheet with a SpecSheets id is among the sheets. Null when it isn't: it hasn't been migrated to a

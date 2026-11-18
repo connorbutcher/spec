@@ -34,7 +34,7 @@ export class SheetActions {
       return true;
     }
 
-    return versions[versions.length - 1].id === specSheet.id;
+    return versions[versions.length - 1].versionNumber === specSheet.versionNumber;
   });
   private readonly _sheetsService = inject(SheetsService);
   private readonly _puCardAnalyticsService = inject(PUCardAnalyticsService);
@@ -50,7 +50,7 @@ export class SheetActions {
     }
 
     const indexOfCurrentVersion = versions.findIndex(
-      (v) => v.id === specSheet.id,
+      (v) => v.versionNumber === specSheet.versionNumber,
     );
     if (indexOfCurrentVersion === -1 || indexOfCurrentVersion === 0) {
       return;
@@ -65,8 +65,8 @@ export class SheetActions {
       queryParams: {
         type: this.type().id,
         phase: this.phase().id,
-        left: previousVersion.id,
-        right: specSheet.id,
+        left: previousVersion.versionNumber,
+        right: specSheet.versionNumber,
       },
       queryParamsHandling: 'replace',
     });

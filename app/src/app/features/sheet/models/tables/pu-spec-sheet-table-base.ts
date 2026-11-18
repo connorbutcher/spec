@@ -11,11 +11,6 @@ import { isNil } from 'lodash';
 import { Subject } from 'rxjs';
 import { UpdateHelpers } from '../../../../core/helpers/update-helpers';
 import { TableProperties } from '../../../../core/models/domain/properties/table/table-properties';
-import { SpecSheetExternalReference } from '../../../../core/models/domain/references/spec-sheet-external-reference';
-import { SpecSheetTable } from '../../../../core/models/domain/spec-sheet/spec-sheet-table';
-import { SpecSheetTableGroup } from '../../../../core/models/domain/spec-sheet/spec-sheet-table-group';
-import { SpecSheetTableNote } from '../../../../core/models/domain/spec-sheet/spec-sheet-table-note';
-import { SpecSheetTableWidget } from '../../../../core/models/domain/spec-sheet/spec-sheet-table-widget';
 import { TableTemplate } from '../../../../core/models/domain/template/table-template';
 import { TableOrientation } from '../../../../core/models/domain/types/spec-sheet-type';
 import { SpecSheetOp } from '../../../../core/models/operations/spec-sheet-op';
@@ -34,6 +29,7 @@ import { ChangeTracker } from '../services/change-tracker';
 import { WidgetTypeRegistry } from '../services/widget-type-registry';
 import { SpecSheetAdvisory } from '../spec-sheet-advisory';
 import { WidgetPropertyBase } from '../widgets/widget-base';
+import { SheetExternalReference, SheetTable, SheetTableGroup, SheetTableNote, SheetWidget } from '../../../../core/models/domain/sheets/sheet';
 
 export abstract class PUSpecSheetTableBase<
   P extends
@@ -60,7 +56,7 @@ export abstract class PUSpecSheetTableBase<
       return [];
     }
 
-    const widgetProperties: WidgetPropertyBase<SpecSheetTableWidget>[] = [];
+    const widgetProperties: WidgetPropertyBase<SheetWidget>[] = [];
     for (const widget of widgets) {
       const tableTemplateWidget = tableType.tableTemplateWidgets.find(
         (ttw) => ttw.id === widget.tableTemplateWidgetId,
@@ -170,7 +166,7 @@ export abstract class PUSpecSheetTableBase<
     );
   });
   public readonly internalReferences = computed(() => {
-    const references: SpecSheetExternalReference[] = [];
+    const references: SheetExternalReference[] = [];
 
     const properties = this.properties();
     if (
@@ -189,12 +185,12 @@ export abstract class PUSpecSheetTableBase<
   private readonly _injector = inject(Injector);
   private readonly _typesService = inject(TypesService);
 
-  protected readonly _rootGroups: SpecSheetTableGroup[];
+  protected readonly _rootGroups: SheetTableGroup[];
 
-  private _changeTracker!: ChangeTracker<SpecSheetTable>;
+  private _changeTracker!: ChangeTracker<SheetTable>;
 
   constructor(
-    public readonly table: SpecSheetTable,
+    public readonly table: SheetTable,
     private readonly _parent: PUSpecSheet,
   ) {
     this.id = table.id;
@@ -212,11 +208,11 @@ export abstract class PUSpecSheetTableBase<
     );
 
     this._rootGroups = table.groups.filter((g) =>
-      isNil(g.linkedSpecSheetTableGroupId),
+      isNil(g.linkedGroupReferenceId),
     );
     this.groups = signal(
       this._rootGroups
-        .sort((x, y) => x.order - y.order)
+        .sort((x, y) => x.displayOrder - y.displayOrder)
         .map((g) => {
           const linkedGroups = SpecSheetTableGroupHelpers.getAllGroupsRecursive(
             g,
@@ -249,7 +245,7 @@ export abstract class PUSpecSheetTableBase<
     this.triggerRebuild$.next();
   }
 
-  public addGroup(group: SpecSheetTableGroup, index?: number): void {
+  public addGroup(group: SheetTableGroup, index?: number): void {
     runInInjectionContext(this._injector, () => {
       const puGroup = new PUSpecSheetTableGroup(group, [], this);
       if (isNil(index)) {
@@ -321,7 +317,7 @@ export abstract class PUSpecSheetTableBase<
     }
   }
 
-  public addNote(note: SpecSheetTableNote): void {
+  public addNote(note: SheetTableNote): void {
     this.notes.update((notes) => [...notes, new PUSpecSheetTableNote(note)]);
   }
 
@@ -335,7 +331,7 @@ export abstract class PUSpecSheetTableBase<
         $type: 'AddSpecSheetTableOp',
         tempId: this.id,
         referenceId: this.referenceId(),
-        specSheetId: this.table.specSheetId,
+        specSheetId: this.table.sheetId,
         tableTemplateId: this.tableTemplateId(),
         title: this.title(),
         displayOrder: this.displayOrder(),

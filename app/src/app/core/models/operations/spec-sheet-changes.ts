@@ -1,6 +1,6 @@
 import { SpecSheetOp } from './spec-sheet-op';
 
 export type SpecSheetChanges = {
-  specSheetId: number;
+  sheetId: number;
   operations: SpecSheetOp[];
 };

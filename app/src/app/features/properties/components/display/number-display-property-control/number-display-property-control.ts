@@ -1,7 +1,7 @@
 import { Component, computed, input } from '@angular/core';
 import { Tooltip } from 'primeng/tooltip';
-import { SpecSheetPropertyValueSummary } from '../../../../../core/models/domain/spec-sheet/properties/spec-sheet-property-value-summary';
-import { IntPropertyValue } from '../../../../../core/models/domain/spec-sheet/properties/values/int-property-value';
+import { SheetPropertyHelpers } from '../../../../../core/helpers/sheet-property-helpers';
+import { SheetProperty } from '../../../../../core/models/domain/sheets/sheet';
 
 @Component({
   selector: 'app-number-display-property-control',
@@ -10,15 +10,13 @@ import { IntPropertyValue } from '../../../../../core/models/domain/spec-sheet/p
   imports: [Tooltip],
 })
 export class NumberDisplayPropertyControl {
-  public readonly property = input.required<SpecSheetPropertyValueSummary>();
+  public readonly property = input.required<SheetProperty>();
   public readonly displayValue = computed(() => {
     const instancePropertyValue = this.property();
     if (!instancePropertyValue) {
       return 'N/A';
     }
 
-    const propertyValue =
-      instancePropertyValue.propertyValue as IntPropertyValue;
-    return propertyValue.value;
+    return SheetPropertyHelpers.getValue<number>(instancePropertyValue) ?? 'N/A';
   });
 }

@@ -1,15 +1,13 @@
-import { SpecSheetPropertyValue } from '../models/domain/spec-sheet/properties/spec-sheet-property-value';
-import { SpecSheetPropertyValueSummary } from '../models/domain/spec-sheet/properties/spec-sheet-property-value-summary';
-import { SpecSheet } from '../models/domain/spec-sheet/spec-sheet';
-import { SpecSheetSummary } from '../models/domain/spec-sheet/spec-sheet-summary';
 import { SpecSheetType } from '../models/domain/types/spec-sheet-type';
+import { SheetPropertyHelpers } from './sheet-property-helpers';
 import { StructureLevelType } from '../types/configuration/structure-level-type.enum';
+import { Sheet, SheetListItem, SheetProperty } from '../models/domain/sheets/sheet';
 
 export class SpecSheetHelpers {
   public static getPropertiesForSpecSheetSummary(
-    specSheet: SpecSheetSummary,
+    specSheet: SheetListItem,
     specSheetType: SpecSheetType,
-  ): SpecSheetPropertyValueSummary[] {
+  ): SheetProperty[] {
     const displayLevel = specSheetType.structureLevels.find(
       (sl) => sl.structureLevelType === StructureLevelType.Display,
     );
@@ -17,13 +15,17 @@ export class SpecSheetHelpers {
       return [];
     }
 
-    const properties: SpecSheetPropertyValueSummary[] = [];
+    const properties: SheetProperty[] = [];
     for (const levelValue of displayLevel.levelValues) {
-      const property = specSheet.propertyValues.find(
-        (pv) => pv.referenceId === levelValue.specSheetTypePropertyReferenceId,
+      const property = SheetPropertyHelpers.findByReferenceId(
+        specSheet.properties,
+        specSheetType.properties,
+        levelValue.specSheetTypePropertyReferenceId,
       );
       if (property) {
-        properties.push(property);
+        properties.push(
+          SheetPropertyHelpers.withTypeProperty(property, specSheetType.properties),
+        );
       }
     }
 
@@ -31,9 +33,9 @@ export class SpecSheetHelpers {
   }
 
   public static getPropertiesForSpecSheet(
-    specSheet: SpecSheet,
+    specSheet: Sheet,
     specSheetType: SpecSheetType,
-  ): SpecSheetPropertyValue[] {
+  ): SheetProperty[] {
     const displayLevel = specSheetType.structureLevels.find(
       (sl) => sl.structureLevelType === StructureLevelType.Display,
     );
@@ -41,15 +43,17 @@ export class SpecSheetHelpers {
       return [];
     }
 
-    const properties: SpecSheetPropertyValue[] = [];
+    const properties: SheetProperty[] = [];
     for (const levelValue of displayLevel.levelValues) {
-      const property = specSheet.propertyValues.find(
-        (pv) =>
-          pv.specSheetTypeProperty.referenceId ===
-          levelValue.specSheetTypePropertyReferenceId,
+      const property = SheetPropertyHelpers.findByReferenceId(
+        specSheet.properties,
+        specSheetType.properties,
+        levelValue.specSheetTypePropertyReferenceId,
       );
       if (property) {
-        properties.push(property);
+        properties.push(
+          SheetPropertyHelpers.withTypeProperty(property, specSheetType.properties),
+        );
       }
     }
 
@@ -57,9 +61,9 @@ export class SpecSheetHelpers {
   }
 
   public static sortSummaries(
-    specSheets: SpecSheetSummary[],
+    specSheets: SheetListItem[],
     specSheetType: SpecSheetType,
-  ): SpecSheetSummary[] {
+  ): SheetListItem[] {
     const displayLevel = specSheetType.structureLevels.find(
       (sl) => sl.structureLevelType === StructureLevelType.Display,
     );
@@ -67,15 +71,16 @@ export class SpecSheetHelpers {
       return specSheets;
     }
 
-    const labels: { label: string; specSheet: SpecSheetSummary }[] = [];
+    const labels: { label: string; specSheet: SheetListItem }[] = [];
     for (const specSheet of specSheets) {
-      let label = `${specSheet.id}`;
+      let label = `${specSheet.versionNumber}`;
       for (const levelValue of displayLevel.levelValues) {
-        const property = specSheet.propertyValues.find(
-          (pv) =>
-            pv.referenceId === levelValue.specSheetTypePropertyReferenceId,
+        const property = SheetPropertyHelpers.findByReferenceId(
+          specSheet.properties,
+          specSheetType.properties,
+          levelValue.specSheetTypePropertyReferenceId,
         );
-        const propertyValue = (property?.propertyValue as any)?.value ?? '';
+        const propertyValue = SheetPropertyHelpers.getText(property);
         label += label ? ` - ${propertyValue}` : propertyValue;
       }
 

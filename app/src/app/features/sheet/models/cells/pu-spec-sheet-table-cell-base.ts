@@ -11,13 +11,9 @@ import { UpdateHelpers } from '../../../../core/helpers/update-helpers';
 import { ValidatorProperty } from '../../../../core/models/domain/configuration/validator-properties/validator-property';
 import { CellTypeReferenceKey } from '../../../../core/models/domain/enums/cell-type-reference-key';
 import { CellProperties } from '../../../../core/models/domain/properties/cell/cell-properties';
-import { SpecSheetExternalReference } from '../../../../core/models/domain/references/spec-sheet-external-reference';
-import { SpecSheetTableCell } from '../../../../core/models/domain/spec-sheet/spec-sheet-table-cell';
 import { TableCellType } from '../../../../core/models/domain/template/table-cell-type';
 import { CellValue } from '../../../../core/models/domain/values/cell-value';
 import { SpecSheetOp } from '../../../../core/models/operations/spec-sheet-op';
-import { CreateSpecSheetTableCellRequest } from '../../../../core/models/requests/spec-sheets/cells/create-spec-sheet-table-cell-request';
-import { UpdateSpecSheetTableCellRequest } from '../../../../core/models/requests/spec-sheets/cells/update-spec-sheet-table-cell-request';
 import { CellLookupService } from '../../../../core/services/cell-lookup.service';
 import { ValidatorLevel } from '../../../../core/types/configuration/validator-level.enum';
 import { CellPropertiesClassHelpers } from '../../features/cell-properties/helpers/cell-properties-class-helper';
@@ -30,6 +26,7 @@ import { ValidatorRuleRegistry } from '../services/validator-rule-registry';
 import { SpecSheetAdvisory } from '../spec-sheet-advisory';
 import { ValidatorBase } from '../validators/validator-base';
 import { StylingConfiguration } from './styling-configuration';
+import { SheetCellValue, SheetExternalReference, SheetTableCell } from '../../../../core/models/domain/sheets/sheet';
 
 export abstract class PUSpecSheetTableCellBase<
   CV extends CellValue = CellValue,
@@ -119,7 +116,7 @@ export abstract class PUSpecSheetTableCellBase<
     this.advisories,
   );
   public readonly internalReferences = computed(() => {
-    const references: SpecSheetExternalReference[] = [];
+    const references: SheetExternalReference[] = [];
 
     const properties = this.properties();
     if (properties && properties.internalReferences()) {
@@ -128,19 +125,21 @@ export abstract class PUSpecSheetTableCellBase<
 
     return references;
   });
-  protected _changeTracker!: ChangeTracker<SpecSheetTableCell>;
+  protected _changeTracker!: ChangeTracker<SheetTableCell>;
+  protected readonly originalRowNumber: number;
 
   protected readonly cellLookupService = inject(CellLookupService);
   protected readonly destroyRefs: EffectRef[] = [];
 
   constructor(
-    public readonly cell: SpecSheetTableCell,
+    public readonly cell: SheetTableCell,
     private readonly _parent: PUSpecSheetTableRow,
   ) {
     this.id = cell.id;
-    this.cellValue = cell.cellValue as CV;
+    this.cellValue = cell.value as CV;
     this.referenceId = signal(cell.referenceId);
-    this.rowNumber = signal(cell.rowNumber);
+    this.originalRowNumber = _parent.row.displayOrder;
+    this.rowNumber = signal(this.originalRowNumber);
     this.columnNumber = signal(cell.columnNumber);
     this.rowSpan = signal(cell.rowSpan);
     this.colSpan = signal(cell.colSpan);
@@ -177,7 +176,6 @@ export abstract class PUSpecSheetTableCellBase<
     }
 
     this._changeTracker = new ChangeTracker(cell)
-      .track('rowNumber', this.rowNumber)
       .track('columnNumber', this.columnNumber)
       .track('colSpan', this.colSpan)
       .track('rowSpan', this.rowSpan);
@@ -197,7 +195,7 @@ export abstract class PUSpecSheetTableCellBase<
     this.cellLookupService.removeCell(this.referenceId());
   }
 
-  public toTableCell(reset?: ResetOption): SpecSheetTableCell {
+  public toTableCell(reset?: ResetOption): SheetTableCell {
     let cellValue: any | undefined = undefined;
     switch (reset) {
       case 'all':
@@ -215,56 +213,22 @@ export abstract class PUSpecSheetTableCellBase<
     return {
       id: reset ? 0 : this.cell.id,
       tableCellTypeId: this.cell.tableCellTypeId,
-      specSheetTableRowId: this.cell.specSheetTableRowId,
+      sheetTableRowId: this.cell.sheetTableRowId,
       cellConfigurationId: this.cell.cellConfigurationId,
-      createdByUserId: this.cell?.createdByUserId,
       referenceId: reset ? crypto.randomUUID() : this.referenceId(),
-      rowNumber: this.rowNumber(),
       columnNumber: this.columnNumber(),
       colSpan: this.colSpan(),
       rowSpan: this.rowSpan(),
-      cellValue: CellValueHelpers.buildCellValue(this.cellValue, cellValue),
+      value: CellValueHelpers.buildCellValue(this.cellValue, cellValue) as SheetCellValue,
+      tableCellTemplateId: this.cell.tableCellTemplateId,
       createdDateTime: this.cell?.createdDateTime,
-      isDeleted: this.cell?.isDeleted,
       cellConfiguration: this.cell?.cellConfiguration,
       tableCellType: this.tableCellType(),
       configurationOverride: this.cell.configurationOverride,
     };
   }
 
-  public toNewTableCellRequest(): CreateSpecSheetTableCellRequest {
-    return {
-      specSheetTableGroupId: this.cell.specSheetTableRowId,
-      specSheetTableRowId: this.cell.specSheetTableRowId,
-      tableCellTypeId: this.cell.tableCellTypeId,
-      cellConfigurationId: this.cell.cellConfigurationId,
-      referenceId: this.referenceId(),
-      rowNumber: this.rowNumber(),
-      columnNumber: this.columnNumber(),
-      colSpan: this.colSpan(),
-      rowSpan: this.rowSpan(),
-      value: CellValueHelpers.buildCellValue(this.cellValue, this.value()),
-    };
-  }
 
-  public toUpdateTableCellRequest(): UpdateSpecSheetTableCellRequest {
-    return {
-      id: this.id,
-      rowNumber: UpdateHelpers.compare(this.cell.rowNumber, this.rowNumber()),
-      columnNumber: UpdateHelpers.compare(
-        this.cell.columnNumber,
-        this.columnNumber(),
-      ),
-      cellValue: UpdateHelpers.compareToPropertyChanged(this.cellValue, {
-        ...this.cellValue,
-        value: this.value(),
-      } as any),
-      configurationOverride: UpdateHelpers.compareToPropertyChanged(
-        this.cell.configurationOverride,
-        this.properties()?.toCellConfiguration(),
-      ),
-    };
-  }
 
   public *compileOperations(): Generator<SpecSheetOp> {
     if (this.isNew) {
@@ -288,7 +252,7 @@ export abstract class PUSpecSheetTableCellBase<
       yield {
         $type: 'UpdateSpecSheetTableCellOp',
         id: this.id,
-        rowNumber: UpdateHelpers.compare(this.cell.rowNumber, this.rowNumber()),
+        rowNumber: UpdateHelpers.compare(this.originalRowNumber, this.rowNumber()),
         columnNumber: UpdateHelpers.compare(
           this.cell.columnNumber,
           this.columnNumber(),
@@ -328,7 +292,7 @@ export abstract class PUSpecSheetTableCellBase<
       ) {
         yield {
           $type: 'UpdateNumberValueOp',
-          id: this.cellValue.id,
+          id: this.cell.id,
           value: UpdateHelpers.compareToPropertyChanged(
             (this.cellValue as any).value,
             this.value(),
@@ -337,7 +301,7 @@ export abstract class PUSpecSheetTableCellBase<
       } else {
         yield {
           $type: 'UpdateTextValueOp',
-          id: this.cellValue.id,
+          id: this.cell.id,
           value: UpdateHelpers.compareToPropertyChanged(
             (this.cellValue as any).value,
             this.value(),

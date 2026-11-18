@@ -1,6 +1,6 @@
 import { Component, computed, input } from '@angular/core';
 import { Tooltip } from 'primeng/tooltip';
-import { SpecSheetSummary } from '../../../../../core/models/domain/spec-sheet/spec-sheet-summary';
+import { SheetListItem } from '../../../../../core/models/domain/sheets/sheet';
 
 @Component({
   selector: 'app-spec-sheet-phase-display-property-control',
@@ -9,7 +9,7 @@ import { SpecSheetSummary } from '../../../../../core/models/domain/spec-sheet/s
   imports: [Tooltip],
 })
 export class SpecSheetPhaseDisplayPropertyControl {
-  public readonly sheetSummary = input.required<SpecSheetSummary>();
+  public readonly sheetSummary = input.required<SheetListItem>();
   public readonly displayValue = computed(() => {
     const sheet = this.sheetSummary();
     if (!sheet) {

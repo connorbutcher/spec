@@ -1,7 +1,7 @@
 import { Component, inject, Injector, input, model } from '@angular/core';
-import { SpecSheetTableWidget } from '../../../../../core/models/domain/spec-sheet/spec-sheet-table-widget';
 import { Destroyable } from '../../../../common/destructable/destructable';
 import { WidgetPropertyBase } from '../../../models/widgets/widget-base';
+import { SheetWidget } from '../../../../../core/models/domain/sheets/sheet';
 
 @Component({
   selector: 'app-table-widget-base',
@@ -10,7 +10,7 @@ import { WidgetPropertyBase } from '../../../models/widgets/widget-base';
 })
 export class TableWidgetBase<
   V,
-  T extends WidgetPropertyBase<SpecSheetTableWidget>,
+  T extends WidgetPropertyBase<SheetWidget>,
 > extends Destroyable {
   public readonly widget = input.required<T>();
   public readonly referenceId = input.required<string>();

@@ -44,21 +44,21 @@ export class SheetCompareSelection {
     }
 
     const side = this.comparisonSide();
-    const otherSpecSheet =
+    const otherVersionNumber =
       side === 'left'
-        ? this._specSheetComparisonService.rightSpecSheet()
-        : this._specSheetComparisonService.leftSpecSheet();
-    if (!otherSpecSheet) {
+        ? this._specSheetComparisonService.rightVersionNumber()
+        : this._specSheetComparisonService.leftVersionNumber();
+    if (otherVersionNumber === undefined) {
       return versions;
     }
 
     const indexOfOtherSpecSheet = versions.findIndex(
-      (version) => version.id === otherSpecSheet.id,
+      (version) => version.versionNumber === otherVersionNumber,
     );
 
     return versions.filter(
       (version, index) =>
-        version.id !== otherSpecSheet.id &&
+        version.versionNumber !== otherVersionNumber &&
         (side === 'left'
           ? index > indexOfOtherSpecSheet
           : index < indexOfOtherSpecSheet),
@@ -84,17 +84,17 @@ export class SheetCompareSelection {
   constructor() {
     effect(() => {
       const side = this.comparisonSide();
-      const specSheet =
+      const versionNumber =
         side === 'left'
-          ? this._specSheetComparisonService.leftSpecSheet()
-          : this._specSheetComparisonService.rightSpecSheet();
-      this.selectedSpecSheetCtrl.setValue(specSheet?.id ?? 0);
+          ? this._specSheetComparisonService.leftVersionNumber()
+          : this._specSheetComparisonService.rightVersionNumber();
+      this.selectedSpecSheetCtrl.setValue(versionNumber ?? 0);
     });
 
     this.selectedSpecSheetCtrl.valueChanges
       .pipe(takeUntilDestroyed(), distinctUntilChanged())
-      .subscribe((selectedSpecSheetId) => {
-        if (!selectedSpecSheetId) {
+      .subscribe((selectedVersionNumber) => {
+        if (!selectedVersionNumber) {
           return;
         }
 
@@ -103,8 +103,8 @@ export class SheetCompareSelection {
           queryParamsHandling: 'merge',
           queryParams:
             this.comparisonSide() === 'left'
-              ? { left: selectedSpecSheetId }
-              : { right: selectedSpecSheetId },
+              ? { left: selectedVersionNumber }
+              : { right: selectedVersionNumber },
         });
       });
   }

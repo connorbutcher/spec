@@ -19,7 +19,7 @@ export class SpecSheetVersionHistoryDialog {
       return [];
     }
 
-    return specSheetVersions.filter((v) => v.isPublished);
+    return specSheetVersions.filter((v) => !v.isDraft);
   });
 
   private readonly _sheetsService = inject(SheetsService);

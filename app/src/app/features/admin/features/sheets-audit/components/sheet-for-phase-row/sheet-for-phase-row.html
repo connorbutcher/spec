@@ -10,11 +10,11 @@
   </div>
 
   <div class="tags-container">
-    @if (sheet().hasBeenMigrated) {
+    @if (sheet().version?.hasBeenMigrated) {
       <p-tag severity="info" value="Migrated" class="px-tag-small" />
     }
 
-    @if (sheet().isPublished) {
+    @if (!sheet().isDraft) {
       <p-tag
         severity="warn"
         value="Locked"
@@ -24,7 +24,7 @@
     }
   </div>
 
-  @if (!sheet().isPublished && !sheet().hasBeenMigrated) {
+  @if (sheet().isDraft) {
     <button pButton severity="danger" size="small" (click)="deleteSpecSheet()">
       Delete
     </button>
@@ -33,7 +33,7 @@
 
 <ng-template #locked>
   <div class="locked-info">
-    <span>{{ sheet().publishedByUser?.displayName }}</span>
-    <span>{{ sheet().publishedDateTime | date: "dd/MM/yyyy HH:mm" }}</span>
+    <span>{{ sheet().version?.publishedByUser?.displayName }}</span>
+    <span>{{ sheet().version?.publishedDateTime | date: "dd/MM/yyyy HH:mm" }}</span>
   </div>
 </ng-template>

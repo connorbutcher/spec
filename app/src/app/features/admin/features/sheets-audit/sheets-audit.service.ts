@@ -26,9 +26,9 @@ export class SheetsAuditService {
   private readonly _httpClient = inject(HttpClient);
   private readonly _sheetListingService = inject(SheetListingService);
 
-  /** Deletes the draft that is the spec sheet. */
-  public async deleteSpecSheetAsync(specSheetId: number): Promise<void> {
-    const url = `${environment.apiUrl}/sheets/spec-sheet/${specSheetId}/draft`;
+  /** Deletes the draft of the sheet. */
+  public async deleteDraftAsync(sheetId: number): Promise<void> {
+    const url = `${environment.apiUrl}/sheets/${sheetId}/draft`;
     return await lastValueFrom(this._httpClient.delete<void>(url));
   }
 }

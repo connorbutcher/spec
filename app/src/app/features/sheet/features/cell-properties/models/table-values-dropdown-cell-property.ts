@@ -4,7 +4,6 @@ import { environment } from '../../../../../../../environments/environment';
 import { SpecSheetPhaseHelpers } from '../../../../../core/helpers/spec-sheet-phase-helpers';
 import { CellProperties } from '../../../../../core/models/domain/properties/cell/cell-properties';
 import { LinkedSpecSheetDropdownCellProperties } from '../../../../../core/models/domain/properties/cell/linked-spec-sheet-dropdown-cell-properties';
-import { SpecSheetExternalReference } from '../../../../../core/models/domain/references/spec-sheet-external-reference';
 import { TableCellTemplate } from '../../../../../core/models/domain/template/table-cell-template';
 import { TableCellType } from '../../../../../core/models/domain/template/table-cell-type';
 import { SpecSheetPhase } from '../../../../../core/models/domain/types/spec-sheet-phase';
@@ -15,6 +14,7 @@ import { UserService } from '../../../../../core/services/user.service';
 import { PUSpecSheetTableRow } from '../../../models/pu-spec-sheet-table-row';
 import { PUSpecSheetTableBase } from '../../../models/tables/pu-spec-sheet-table-base';
 import { CellPropertyBase } from './cell-property-base';
+import { SheetExternalReference } from '../../../../../core/models/domain/sheets/sheet';
 
 export class TableValuesDropdownCellProperty extends CellPropertyBase<LinkedSpecSheetDropdownCellProperties> {
   public override readonly isValid = computed(
@@ -29,7 +29,7 @@ export class TableValuesDropdownCellProperty extends CellPropertyBase<LinkedSpec
     () => this.table()?.referenceId() !== this.properties.tableReferenceId,
   );
   public override readonly internalReferences = computed(() => {
-    const references: SpecSheetExternalReference[] = [];
+    const references: SheetExternalReference[] = [];
 
     const type = this.specSheetType();
     const phase = this.specSheetPhase();
@@ -40,12 +40,12 @@ export class TableValuesDropdownCellProperty extends CellPropertyBase<LinkedSpec
 
     references.push({
       id: -1,
-      specSheetId: table.table.specSheetId,
-      externalId: table.table.specSheetId,
+      sheetId: table.table.sheetId,
+      externalId: table.table.sheetId,
       referenceId: table.referenceId(),
       type: 'table',
       systemName: environment.appName,
-      url: `${window.location.origin}/spec/${table.table.specSheetId}#${table.referenceId()}`,
+      url: `${window.location.origin}/spec/${table.table.sheetId}#${table.referenceId()}`,
       ownerName: this._userService.user()?.displayName || 'Unknown User',
       grouping: `${type.type} - ${phase.phase}`,
       description: `Linked table: ${table.title()}`,

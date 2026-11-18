@@ -4,10 +4,10 @@ import { DomSanitizer } from '@angular/platform-browser';
 import { ButtonDirective } from 'primeng/button';
 import { Divider } from 'primeng/divider';
 import { Tooltip } from 'primeng/tooltip';
-import { SpecSheetSummary } from '../../../../../../core/models/domain/spec-sheet/spec-sheet-summary';
 import { SpecSheetType } from '../../../../../../core/models/domain/types/spec-sheet-type';
 import { SheetSummaryPropertiesDisplay } from '../../../../../properties/components/display/sheet-summary-properties-display/sheet-summary-properties-display';
 import { SheetsService } from '../../../../../sheets/services/sheets.service';
+import { SheetListItem } from '../../../../../../core/models/domain/sheets/sheet';
 
 @Component({
   selector: 'app-spec-sheet-version-history-row',
@@ -22,12 +22,12 @@ import { SheetsService } from '../../../../../sheets/services/sheets.service';
   styleUrl: './spec-sheet-version-history-row.scss',
 })
 export class SpecSheetVersionHistoryRow {
-  public readonly specSheet = input.required<SpecSheetSummary>();
-  public readonly compareTo = input.required<SpecSheetSummary | undefined>();
+  public readonly specSheet = input.required<SheetListItem>();
+  public readonly compareTo = input.required<SheetListItem | undefined>();
   public readonly safeContent = computed(() => {
     const specSheet = this.specSheet();
     return this._domSanitizer.bypassSecurityTrustHtml(
-      specSheet?.changeLog ?? '',
+      specSheet?.version?.changeLog ?? '',
     );
   });
 
@@ -41,7 +41,7 @@ export class SpecSheetVersionHistoryRow {
       return;
     }
 
-    const url = `${window.location.origin}/comparison?type=${specSheet.specSheetTypeId}&phase=${specSheet.specSheetPhaseId}&left=${compareTo.id}&right=${specSheet.id}`;
+    const url = `${window.location.origin}/comparison?type=${specSheet.specSheetTypeId}&phase=${specSheet.specSheetPhaseId}&left=${compareTo.versionNumber}&right=${specSheet.versionNumber}`;
     window.open(url, '_blank');
   }
 

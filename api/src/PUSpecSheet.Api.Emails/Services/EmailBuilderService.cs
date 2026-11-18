@@ -21,7 +21,7 @@ internal class EmailBuilderService : IEmailBuilderService
             Type = specSheetEmail.TypeName,
             Phase = specSheetEmail.PhaseName,
             ChangeSummary = specSheetEmail.Content,
-            Url = BuildUrl(specSheetEmail.SpecSheetPhaseId, specSheetEmail.SpecSheetTypeId, specSheetEmail.SpecSheetId)
+            Url = BuildUrl(specSheetEmail.SpecSheetPhaseId, specSheetEmail.SpecSheetTypeId)
         };
 
         return new EmailArgs
@@ -41,7 +41,7 @@ internal class EmailBuilderService : IEmailBuilderService
             Type = specSheetEmail.TypeName,
             Phase = specSheetEmail.PhaseName,
             ChangeSummary = specSheetEmail.Content,
-            Url = BuildUrl(specSheetEmail.SpecSheetPhaseId, specSheetEmail.SpecSheetTypeId, specSheetEmail.SpecSheetId)
+            Url = BuildUrl(specSheetEmail.SpecSheetPhaseId, specSheetEmail.SpecSheetTypeId)
         };
 
         return new EmailArgs
@@ -62,7 +62,7 @@ internal class EmailBuilderService : IEmailBuilderService
             Phase = specSheetEmail.PhaseName,
             RejectedBy = specSheetEmail.RejectedBy!,
             RejectionReason = specSheetEmail.Content,
-            Url = BuildUrl(specSheetEmail.SpecSheetPhaseId, specSheetEmail.SpecSheetTypeId, specSheetEmail.SpecSheetId)
+            Url = BuildUrl(specSheetEmail.SpecSheetPhaseId, specSheetEmail.SpecSheetTypeId)
         };
 
         return new EmailArgs
@@ -74,8 +74,8 @@ internal class EmailBuilderService : IEmailBuilderService
         };
     }
 
-    private string BuildUrl(int specSheetPhaseId, int specSheetTypeId, int specSheetId)
+    private string BuildUrl(int specSheetPhaseId, int specSheetTypeId)
     {
-        return $"{_appUrl}/phases/{specSheetPhaseId}/sheets/{specSheetTypeId}?version={specSheetId}";
+        return $"{_appUrl}/phases/{specSheetPhaseId}/sheets/{specSheetTypeId}";
     }
 }

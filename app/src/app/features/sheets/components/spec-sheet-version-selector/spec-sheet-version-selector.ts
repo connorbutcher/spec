@@ -1,11 +1,12 @@
 import { Component, computed, inject, input } from '@angular/core';
+import { SheetPropertyHelpers } from '../../../../core/helpers/sheet-property-helpers';
 import { FormsModule } from '@angular/forms';
 import { Select } from 'primeng/select';
-import { SpecSheetSummary } from '../../../../core/models/domain/spec-sheet/spec-sheet-summary';
 import { SpecSheetType } from '../../../../core/models/domain/types/spec-sheet-type';
 import { StructureLevelType } from '../../../../core/types/configuration/structure-level-type.enum';
 import { SheetsService } from '../../services/sheets.service';
 import { SpecSheetVersion } from './spec-sheet-version/spec-sheet-version';
+import { SheetListItem } from '../../../../core/models/domain/sheets/sheet';
 
 @Component({
   selector: 'app-spec-sheet-version-selector',
@@ -33,17 +34,16 @@ export class SpecSheetVersionSelector {
       groupLevel.levelValues[0].specSheetTypePropertyReferenceId;
     const groups = new Map<
       string,
-      { label: string; items: SpecSheetSummary[] }
+      { label: string; items: SheetListItem[] }
     >();
 
     for (const version of versions) {
-      const property = version.propertyValues.find(
-        (value) => value.referenceId === propertyReferenceId,
+      const property = SheetPropertyHelpers.findByReferenceId(
+        version.properties,
+        this.specSheetType().properties,
+        propertyReferenceId,
       );
-      const propertyValue = property?.propertyValue as
-        | { value?: string | number | boolean | null }
-        | undefined;
-      const label = String(propertyValue?.value ?? 'N/A');
+      const label = SheetPropertyHelpers.getText(property, 'N/A');
       const group = groups.get(label);
 
       if (group) {
@@ -62,8 +62,8 @@ export class SpecSheetVersionSelector {
 
   private readonly _sheetsService = inject(SheetsService);
 
-  public selectVersion(specSheet: SpecSheetSummary | null): void {
-    this._sheetsService.selectVersion(specSheet?.id ?? null);
+  public selectVersion(specSheet: SheetListItem | null): void {
+    this._sheetsService.selectVersion(specSheet?.versionNumber ?? null);
   }
 
   public get specSheets() {

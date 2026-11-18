@@ -5,8 +5,9 @@ import { MessageService } from 'primeng/api';
 import { ButtonDirective } from 'primeng/button';
 import { Tooltip } from 'primeng/tooltip';
 import { firstValueFrom } from 'rxjs';
-import { WorkflowState } from '../../../../core/models/domain/enums/workflow-state';
-import { UpdateWorkflowStepActorRequest } from '../../../../core/models/requests/workflow/update-workflow-step-actor-request';
+import { DecideSubmissionRequest } from '../../../../core/models/requests/sheets/decide-submission-request';
+import { ApproverDecision } from '../../../../core/types/sheets/approver-decision.enum';
+import { SubmissionStatus } from '../../../../core/types/sheets/submission-status.enum';
 import { SpinnerDialogService } from '../../../../core/services/spinner-dialog.service';
 import { UserService } from '../../../../core/services/user.service';
 import { SidePanelService } from '../../../side-panel/side-panel.service';
@@ -26,27 +27,27 @@ export class SheetApprovalStatus {
     severity: 'secondary' | 'warn' | 'success' | 'danger';
   }>(() => {
     const specSheet = this._activeSheetService.specSheet();
-    const steps = specSheet.specSheet.workflowSteps;
+    const steps = specSheet.submissions;
 
     if (this.isApprovalRequired()) {
       return { label: 'Approval required', severity: 'warn' };
     }
 
-    if (steps.some((step) => step.state === WorkflowState.Pending)) {
+    if (steps.some((step) => step.status === SubmissionStatus.Pending)) {
       return { label: 'Approval pending', severity: 'warn' };
     }
 
     const latestStep = [...steps].sort(
       (left, right) =>
-        DateTime.fromISO(right.startedDateTime).toMillis() -
-        DateTime.fromISO(left.startedDateTime).toMillis(),
+        DateTime.fromISO(right.submittedDateTime).toMillis() -
+        DateTime.fromISO(left.submittedDateTime).toMillis(),
     )[0];
 
-    if (latestStep?.state === WorkflowState.Rejected) {
+    if (latestStep?.status === SubmissionStatus.Rejected) {
       return { label: 'Approval rejected', severity: 'danger' };
     }
 
-    if (latestStep?.state === WorkflowState.Approved) {
+    if (latestStep?.status === SubmissionStatus.Approved) {
       return { label: 'Approved', severity: 'success' };
     }
 
@@ -78,19 +79,18 @@ export class SheetApprovalStatus {
   private readonly _approval = computed(() => {
     const specSheet = this._activeSheetService.specSheet();
     const currentUser = this._userService.user();
-    const workflowSteps = specSheet.specSheet.workflowSteps;
-    const pendingSteps = workflowSteps.filter(
-      (ws) => ws.state === WorkflowState.Pending,
+    const pendingSteps = specSheet.submissions.filter(
+      (ws) => ws.status === SubmissionStatus.Pending,
     );
     if (!currentUser || pendingSteps.length === 0) {
       return undefined;
     }
 
-    const actors = pendingSteps.flatMap((ws) => ws.actors);
-    return actors.find(
-      (actor) =>
-        actor.actor?.id === currentUser.id &&
-        actor.state === WorkflowState.Pending,
+    const approvers = pendingSteps.flatMap((ws) => ws.approvers);
+    return approvers.find(
+      (approver) =>
+        approver.userId === currentUser.id &&
+        approver.decision === ApproverDecision.Pending,
     );
   });
 
@@ -145,14 +145,12 @@ export class SheetApprovalStatus {
 
     try {
       const request = {
-        specSheetId: this._activeSheetService.specSheet().specSheet.id,
-        workflowStepId: approval.workflowStepId,
-        workflowStepActorId: approval.id,
-        state: approve ? WorkflowState.Approved : WorkflowState.Rejected,
-        comment,
-      } as UpdateWorkflowStepActorRequest;
+        sheetId: this._activeSheetService.specSheet().id,
+        decision: approve ? ApproverDecision.Approved : ApproverDecision.Rejected,
+        comment: comment ?? undefined,
+      } as DecideSubmissionRequest;
 
-      await this._sheetDataService.updateApprovalStateAsync(request);
+      await this._sheetDataService.decideSubmissionAsync(request);
 
       this._activeSheetService.triggerReload();
       this._messageService.add({

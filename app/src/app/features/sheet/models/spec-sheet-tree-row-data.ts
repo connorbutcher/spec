@@ -1,7 +1,6 @@
-import { SpecSheetPropertyValueSummary } from '../../../core/models/domain/spec-sheet/properties/spec-sheet-property-value-summary';
-import { SpecSheetSummary } from '../../../core/models/domain/spec-sheet/spec-sheet-summary';
+import { SheetListItem, SheetProperty } from '../../../core/models/domain/sheets/sheet';
 
 export type SpecSheetTreeRowData = {
-  specSheet: SpecSheetSummary;
-  properties: SpecSheetPropertyValueSummary[];
+  specSheet: SheetListItem;
+  properties: SheetProperty[];
 };

@@ -1,9 +1,9 @@
 import { Component, inject, Signal } from '@angular/core';
 import { Badge } from 'primeng/badge';
 import { ButtonDirective } from 'primeng/button';
-import { SpecSheetExternalReference } from '../../../../../core/models/domain/references/spec-sheet-external-reference';
 import { ActiveSheetService } from '../../../services/active-sheet.service';
 import { ReferencesSidePanelService } from '../references-side-panel/references-side-panel.service';
+import { SheetExternalReference } from '../../../../../core/models/domain/sheets/sheet';
 
 @Component({
   selector: 'app-references-button',
@@ -23,7 +23,7 @@ export class ReferencesButton {
     this._referencesSidePanel.open();
   }
 
-  public get references(): Signal<SpecSheetExternalReference[]> {
+  public get references(): Signal<SheetExternalReference[]> {
     return this._activeSheetService.externalReferences;
   }
 }

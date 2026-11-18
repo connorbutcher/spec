@@ -9,7 +9,7 @@ import { CreateSpecSheetRequest } from '../../../../core/models/requests/spec-sh
 export class CreatePUSpecSheetDialogDataService {
   private readonly _httpClient = inject(HttpClient);
 
-  /** Starts the draft, and returns the id of the spec sheet that is it. */
+  /** Starts the draft, and returns the id of the sheet. */
   public async createSpecSheetAsync(
     request: CreateSpecSheetRequest,
   ): Promise<number> {
@@ -17,6 +17,6 @@ export class CreatePUSpecSheetDialogDataService {
     const location = await lastValueFrom(
       this._httpClient.post<SheetLocation>(url, request),
     );
-    return location.specSheetId;
+    return location.sheetId;
   }
 }

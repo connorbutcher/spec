@@ -7,10 +7,10 @@
     />
 
     <span class="text-color-secondary">{{
-      specSheet().publishedByUser?.displayName
+      specSheet().version?.publishedByUser?.displayName
     }}</span>
     <span class="text-color-secondary">{{
-      specSheet().publishedDateTime | date: "dd/MM/yyyy HH:mm"
+      specSheet().version?.publishedDateTime | date: "dd/MM/yyyy HH:mm"
     }}</span>
   </div>
 

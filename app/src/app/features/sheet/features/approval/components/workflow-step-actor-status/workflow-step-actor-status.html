@@ -1,14 +1,14 @@
 <div class="workflow-step-actor">
   <div class="wsa-status">
     <span class="approver-name">{{
-      actor().actor?.displayName || "Unassigned approver"
+      actor().user?.displayName || "Unassigned approver"
     }}</span>
-    <app-workflow-step-status-tag [state]="actor().state" />
+    <app-workflow-step-status-tag [state]="actor().decision" />
   </div>
 
-  @if (actor().actionedDateTime) {
+  @if (actor().decidedDateTime) {
     <div class="actioned-date">
-      {{ actor().actionedDateTime | date: "dd MMM yyyy, HH:mm" }}
+      {{ actor().decidedDateTime | date: "dd MMM yyyy, HH:mm" }}
     </div>
   }
 

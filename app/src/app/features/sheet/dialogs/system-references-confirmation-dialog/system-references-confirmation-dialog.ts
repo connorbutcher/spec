@@ -1,9 +1,9 @@
 import { DIALOG_DATA, DialogRef } from '@angular/cdk/dialog';
 import { Component, Inject } from '@angular/core';
 import { ButtonDirective } from 'primeng/button';
-import { SpecSheetExternalReference } from '../../../../core/models/domain/references/spec-sheet-external-reference';
 import { ReferencesSidePanelService } from '../../features/references/references-side-panel/references-side-panel.service';
 import { SystemReferencesConfirmationDialogData } from './models/system-references-confirmation-dialog-data.interface';
+import { SheetExternalReference } from '../../../../core/models/domain/sheets/sheet';
 
 @Component({
   selector: 'app-system-references-confirmation-dialog',
@@ -38,7 +38,7 @@ export class SystemReferencesConfirmationDialog {
     return this._dialogConfig.type;
   }
 
-  public get references(): SpecSheetExternalReference[] {
+  public get references(): SheetExternalReference[] {
     return this._dialogConfig.references;
   }
 }

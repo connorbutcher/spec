@@ -105,7 +105,7 @@ export class PublishSpecSheetDialog {
     }
 
     const indexOfCurrentVersion = versions.findIndex(
-      (v) => v.id === specSheet.id,
+      (v) => v.versionNumber === specSheet.versionNumber,
     );
     if (
       indexOfCurrentVersion === -1 ||
@@ -120,7 +120,7 @@ export class PublishSpecSheetDialog {
     }
 
     const currentVersion = specSheet;
-    const url = `${window.location.origin}/comparison?type=${currentVersion.specSheetType().id}&phase=${currentVersion.specSheetPhase().id}&left=${previousVersion.id}&right=${currentVersion.id}`;
+    const url = `${window.location.origin}/comparison?type=${currentVersion.specSheetType().id}&phase=${currentVersion.specSheetPhase().id}&left=${previousVersion.versionNumber}&right=${currentVersion.versionNumber}`;
     window.open(url, '_blank');
   }
 

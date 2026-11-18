@@ -5,20 +5,17 @@ import { firstValueFrom } from 'rxjs';
 import { CellValueHelpers } from '../../../core/helpers/cell-value-helpers';
 import { nextTempId } from '../../../core/helpers/temp-id-counter';
 import { User } from '../../../core/models/domain/access/user';
-import { SpecSheetTableCell } from '../../../core/models/domain/spec-sheet/spec-sheet-table-cell';
-import { SpecSheetTableGroup } from '../../../core/models/domain/spec-sheet/spec-sheet-table-group';
-import { SpecSheetTableGroupWidget } from '../../../core/models/domain/spec-sheet/spec-sheet-table-group-widget';
-import { SpecSheetTableRow } from '../../../core/models/domain/spec-sheet/spec-sheet-table-row';
 import { TableCellTemplate } from '../../../core/models/domain/template/table-cell-template';
 import { TableGroupTemplate } from '../../../core/models/domain/template/table-group-template';
 import { TableRowTemplate } from '../../../core/models/domain/template/table-row-template';
-import { CellValue } from '../../../core/models/domain/values/cell-value';
 import { UserService } from '../../../core/services/user.service';
 import { SheetsService } from '../../sheets/services/sheets.service';
 import { ConfigureCellPropertiesDialog } from '../dialogs/configure-cell-properties-dialog/configure-cell-properties-dialog';
 import { PUSpecSheetTableGroup } from '../models/pu-spec-sheet-table-group';
 import { PUSpecSheetTableBase } from '../models/tables/pu-spec-sheet-table-base';
 import { ActiveSheetService } from './active-sheet.service';
+import { SheetCellValue, SheetTableCell, SheetTableGroup, SheetTableRow, SheetWidget } from '../../../core/models/domain/sheets/sheet';
+import { SheetItemHelpers } from '../../../core/helpers/sheet-item-helpers';
 
 @Injectable()
 export class TableGroupBuilderService {
@@ -182,7 +179,7 @@ export class TableGroupBuilderService {
     copyValuesFromPrevious = false,
     newRowNumber?: number,
   ): void {
-    const rows: SpecSheetTableRow[] = [];
+    const rows: SheetTableRow[] = [];
 
     let previousGroup: PUSpecSheetTableGroup | undefined = undefined;
     if (copyFromPrevious && parentGroup) {
@@ -193,7 +190,7 @@ export class TableGroupBuilderService {
           rowNumber = newRowNumber + (rowNumber - 1);
         }
 
-        const cells: SpecSheetTableCell[] = [];
+        const cells: SheetTableCell[] = [];
         for (let c = 0; c < row.cells().length; c++) {
           const cell = row.cells()[c];
           const tableCell = cell.toTableCell(
@@ -201,33 +198,24 @@ export class TableGroupBuilderService {
           );
 
           const cellValue = {
-            ...tableCell.cellValue,
-            id: nextTempId(),
-            specSheetTableCellId: 0,
-          } as CellValue;
-
-          let cellRowNumber = tableCell.rowNumber;
-          if (newRowNumber && cellRowNumber > 1) {
-            cellRowNumber = newRowNumber + (cellRowNumber - 1);
-          }
+            ...tableCell.value,
+            sheetTableCellId: 0,
+          } as SheetCellValue;
 
           cells.push({
             id: nextTempId(),
-            specSheetTableRowId: 0,
+            sheetTableRowId: 0,
+            tableCellTemplateId: tableCell.tableCellTemplateId,
             tableCellTypeId: tableCell.tableCellTypeId,
             cellConfigurationId: tableCell.cellConfigurationId,
-            rowNumber: cellRowNumber,
             columnNumber: tableCell.columnNumber,
             rowSpan: tableCell.rowSpan,
             colSpan: tableCell.colSpan,
             cellConfiguration: tableCell.cellConfiguration,
-            createdByUserId: user.id,
             createdDateTime: DateTime.now().toISO(),
-            createdByUser: user,
-            isDeleted: false,
             referenceId: crypto.randomUUID(),
             tableCellType: tableCell.tableCellType,
-            cellValue: cellValue,
+            value: cellValue,
             configurationOverride: tableCell.tableCellType!
               .requiresUserConfiguration
               ? (tableCell.configurationOverride ??
@@ -238,14 +226,12 @@ export class TableGroupBuilderService {
 
         rows.push({
           id: nextTempId(),
-          specSheetTableGroupId: 0,
+          sheetTableGroupId: 0,
+          revision: SheetItemHelpers.newRevision(user.id),
           tableRowTemplateId: row.tableRowTemplate()!.id,
           referenceId: crypto.randomUUID(),
-          createdByUserId: user.id,
-          createdByUser: user,
           createdDateTime: DateTime.now().toISO(),
-          isDeleted: false,
-          rowNumber: rowNumber,
+          displayOrder: rowNumber,
           cells: cells,
         });
       }
@@ -256,25 +242,22 @@ export class TableGroupBuilderService {
           rowNumber = newRowNumber + (rowNumber - 1);
         }
 
-        const cells: SpecSheetTableCell[] = [];
+        const cells: SheetTableCell[] = [];
         for (const cellTemplate of rowTemplate.cellTemplates) {
           cells.push({
             id: nextTempId(),
-            specSheetTableRowId: 0,
+            sheetTableRowId: 0,
+            tableCellTemplateId: cellTemplate.id,
             tableCellTypeId: cellTemplate.tableCellTypeId,
             cellConfigurationId: cellTemplate.cellConfigurationId,
-            rowNumber: rowNumber,
             columnNumber: cellTemplate.columnNumber,
             rowSpan: cellTemplate.rowSpan,
             colSpan: cellTemplate.colSpan,
             cellConfiguration: cellTemplate.cellConfiguration,
-            createdByUserId: user.id,
             createdDateTime: DateTime.now().toISO(),
-            createdByUser: user,
-            isDeleted: false,
             referenceId: crypto.randomUUID(),
             tableCellType: cellTemplate.tableCellType,
-            cellValue: CellValueHelpers.buildNewCellValue(cellTemplate),
+            value: CellValueHelpers.buildNewCellValue(cellTemplate),
             configurationOverride: cellTemplate.tableCellType!
               .requiresUserConfiguration
               ? cellTemplate.cellConfiguration?.properties
@@ -284,50 +267,42 @@ export class TableGroupBuilderService {
 
         rows.push({
           id: nextTempId(),
-          specSheetTableGroupId: 0,
+          sheetTableGroupId: 0,
+          revision: SheetItemHelpers.newRevision(user.id),
           tableRowTemplateId: rowTemplate.id,
           referenceId: crypto.randomUUID(),
-          createdByUserId: user.id,
-          createdByUser: user,
           createdDateTime: DateTime.now().toISO(),
-          isDeleted: false,
-          rowNumber: rowNumber,
+          displayOrder: rowNumber,
           cells: cells,
         });
       }
     }
 
-    const widgets: SpecSheetTableGroupWidget[] = [];
+    const widgets: SheetWidget[] = [];
     for (const templateWidget of tableGroupTemplate.tableGroupTemplateWidgets) {
       widgets.push({
         id: nextTempId(),
-        specSheetTableGroupId: 0,
+        sheetTableGroupId: 0,
         tableGroupTemplateWidgetId: templateWidget.id,
-        value: {
-          id: nextTempId(),
-          specSheetTableGroupWidgetId: 0,
-          value: undefined,
-        },
+        value: undefined,
       });
     }
 
-    const group: SpecSheetTableGroup = {
+    const group: SheetTableGroup = {
       id: nextTempId(),
-      specSheetTableId: table.id,
+      sheetTableId: table.id,
       tableGroupTemplateId: tableGroupTemplate.id,
       referenceId: crypto.randomUUID(),
-      createdByUserId: user.id,
-      createdByUser: user,
+      revision: SheetItemHelpers.newRevision(user.id),
       createdDateTime: DateTime.now().toISO(),
-      isDeleted: false,
       rows,
       widgets: widgets,
-      order:
+      displayOrder:
         newRowNumber ??
         (parentGroup
           ? parentGroup.childGroups().length + 1
           : table.groups().length + 1),
-      linkedSpecSheetTableGroupId: parentGroup?.id,
+      linkedGroupReferenceId: parentGroup?.referenceId(),
     };
 
     let rowInsertionIndex: number | undefined = undefined;
@@ -383,27 +358,24 @@ export class TableGroupBuilderService {
     if (parentGroupKey && groupedRowTemplates.has(parentGroupKey)) {
       const rowTemplates = groupedRowTemplates.get(parentGroupKey)!;
 
-      const rows: SpecSheetTableRow[] = [];
+      const rows: SheetTableRow[] = [];
       for (const rowTemplate of rowTemplates) {
-        const cells: SpecSheetTableCell[] = [];
+        const cells: SheetTableCell[] = [];
         for (const cellTemplate of rowTemplate.cellTemplates) {
           cells.push({
             id: nextTempId(),
-            specSheetTableRowId: 0,
+            sheetTableRowId: 0,
+            tableCellTemplateId: cellTemplate.id,
             tableCellTypeId: cellTemplate.tableCellTypeId,
             cellConfigurationId: cellTemplate.cellConfigurationId,
-            rowNumber: parentGroup.rows().length + rowTemplate.rowNumber,
             columnNumber: cellTemplate.columnNumber,
             rowSpan: cellTemplate.rowSpan,
             colSpan: cellTemplate.colSpan,
             cellConfiguration: cellTemplate.cellConfiguration,
-            createdByUserId: user.id,
             createdDateTime: DateTime.now().toISO(),
-            createdByUser: user,
-            isDeleted: false,
             referenceId: crypto.randomUUID(),
             tableCellType: cellTemplate.tableCellType,
-            cellValue: CellValueHelpers.buildNewCellValue(cellTemplate),
+            value: CellValueHelpers.buildNewCellValue(cellTemplate),
             configurationOverride: cellTemplate.tableCellType!
               .requiresUserConfiguration
               ? cellTemplate.cellConfiguration?.properties
@@ -413,14 +385,12 @@ export class TableGroupBuilderService {
 
         rows.push({
           id: nextTempId(),
-          specSheetTableGroupId: parentGroup!.id,
+          sheetTableGroupId: parentGroup!.id,
+          revision: SheetItemHelpers.newRevision(user.id),
           tableRowTemplateId: rowTemplate.id,
           referenceId: crypto.randomUUID(),
-          createdByUserId: user.id,
-          createdByUser: user,
           createdDateTime: DateTime.now().toISO(),
-          isDeleted: false,
-          rowNumber: parentGroup.rows().length + rowTemplate.rowNumber,
+          displayOrder: parentGroup.rows().length + rowTemplate.rowNumber,
           cells: cells,
         });
       }
@@ -442,29 +412,26 @@ export class TableGroupBuilderService {
         continue;
       }
 
-      const rowsToAdd = new Map<PUSpecSheetTableGroup, SpecSheetTableRow[]>();
+      const rowsToAdd = new Map<PUSpecSheetTableGroup, SheetTableRow[]>();
       for (const group of groups) {
-        const rows: SpecSheetTableRow[] = [];
+        const rows: SheetTableRow[] = [];
         for (const rowTemplate of rowTemplates) {
-          const cells: SpecSheetTableCell[] = [];
+          const cells: SheetTableCell[] = [];
           for (const cellTemplate of rowTemplate.cellTemplates) {
             cells.push({
               id: nextTempId(),
-              specSheetTableRowId: 0,
-              tableCellTypeId: cellTemplate.tableCellTypeId,
+              sheetTableRowId: 0,
+              tableCellTemplateId: cellTemplate.id,
+            tableCellTypeId: cellTemplate.tableCellTypeId,
               cellConfigurationId: cellTemplate.cellConfigurationId,
-              rowNumber: groups[0].rows().length + rowTemplate.rowNumber,
               columnNumber: cellTemplate.columnNumber,
               rowSpan: cellTemplate.rowSpan,
               colSpan: cellTemplate.colSpan,
               cellConfiguration: cellTemplate.cellConfiguration,
-              createdByUserId: user.id,
               createdDateTime: DateTime.now().toISO(),
-              createdByUser: user,
-              isDeleted: false,
               referenceId: crypto.randomUUID(),
               tableCellType: cellTemplate.tableCellType,
-              cellValue: CellValueHelpers.buildNewCellValue(cellTemplate),
+              value: CellValueHelpers.buildNewCellValue(cellTemplate),
               configurationOverride: cellTemplate.tableCellType!
                 .requiresUserConfiguration
                 ? cellTemplate.cellConfiguration?.properties
@@ -474,14 +441,12 @@ export class TableGroupBuilderService {
 
           rows.push({
             id: nextTempId(),
-            specSheetTableGroupId: group.id,
+            sheetTableGroupId: group.id,
+            revision: SheetItemHelpers.newRevision(user.id),
             tableRowTemplateId: rowTemplate.id,
             referenceId: crypto.randomUUID(),
-            createdByUserId: user.id,
-            createdByUser: user,
             createdDateTime: DateTime.now().toISO(),
-            isDeleted: false,
-            rowNumber: groups[0].rows().length + rowTemplate.rowNumber,
+            displayOrder: groups[0].rows().length + rowTemplate.rowNumber,
             cells: cells,
           });
         }

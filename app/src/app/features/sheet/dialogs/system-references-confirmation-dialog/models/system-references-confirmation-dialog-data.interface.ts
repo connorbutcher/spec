@@ -1,6 +1,6 @@
-import { SpecSheetExternalReference } from '../../../../../core/models/domain/references/spec-sheet-external-reference';
+import { SheetExternalReference } from '../../../../../core/models/domain/sheets/sheet';
 
 export type SystemReferencesConfirmationDialogData = {
   type: string;
-  references: SpecSheetExternalReference[];
+  references: SheetExternalReference[];
 };

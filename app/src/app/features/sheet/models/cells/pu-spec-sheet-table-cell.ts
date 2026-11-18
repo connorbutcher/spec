@@ -1,9 +1,9 @@
-import { SpecSheetTableCell } from '../../../../core/models/domain/spec-sheet/spec-sheet-table-cell';
 import { PUSpecSheetTableRow } from '../pu-spec-sheet-table-row';
 import { PUSpecSheetTableCellBase } from './pu-spec-sheet-table-cell-base';
+import { SheetTableCell } from '../../../../core/models/domain/sheets/sheet';
 
 export class PUSpecSheetTableCell extends PUSpecSheetTableCellBase {
-  constructor(cell: SpecSheetTableCell, parent: PUSpecSheetTableRow) {
+  constructor(cell: SheetTableCell, parent: PUSpecSheetTableRow) {
     super(cell, parent);
   }
 

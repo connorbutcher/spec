@@ -1,15 +1,13 @@
 import { computed, effect, linkedSignal } from '@angular/core';
 import { CellValueHelpers } from '../../../../core/helpers/cell-value-helpers';
 import { UpdateHelpers } from '../../../../core/helpers/update-helpers';
-import { SpecSheetTableCell } from '../../../../core/models/domain/spec-sheet/spec-sheet-table-cell';
 import { LinkedSpecSheetValue } from '../../../../core/models/domain/values/linked-spec-sheet-value';
 import { SpecSheetOp } from '../../../../core/models/operations/spec-sheet-op';
-import { CreateSpecSheetTableCellRequest } from '../../../../core/models/requests/spec-sheets/cells/create-spec-sheet-table-cell-request';
-import { UpdateSpecSheetTableCellRequest } from '../../../../core/models/requests/spec-sheets/cells/update-spec-sheet-table-cell-request';
 import { TableValuesDropdownCellProperty } from '../../features/cell-properties/models/table-values-dropdown-cell-property';
 import { ResetOption } from '../../types/cell-reset-options';
 import { PUSpecSheetTableRow } from '../pu-spec-sheet-table-row';
 import { PUSpecSheetTableCellBase } from './pu-spec-sheet-table-cell-base';
+import { SheetCellValue, SheetTableCell } from '../../../../core/models/domain/sheets/sheet';
 
 export class PUSpecSheetTableCellGroupLookup extends PUSpecSheetTableCellBase<
   LinkedSpecSheetValue,
@@ -45,7 +43,7 @@ export class PUSpecSheetTableCellGroupLookup extends PUSpecSheetTableCellBase<
     );
   });
 
-  constructor(cell: SpecSheetTableCell, parent: PUSpecSheetTableRow) {
+  constructor(cell: SheetTableCell, parent: PUSpecSheetTableRow) {
     super(cell, parent);
 
     const ref = effect(() => {
@@ -59,7 +57,7 @@ export class PUSpecSheetTableCellGroupLookup extends PUSpecSheetTableCellBase<
     this.destroyRefs.push(ref);
   }
 
-  public override toTableCell(reset?: ResetOption): SpecSheetTableCell {
+  public override toTableCell(reset?: ResetOption): SheetTableCell {
     let cellValue: any | undefined = undefined;
     switch (reset) {
       case 'all':
@@ -76,85 +74,28 @@ export class PUSpecSheetTableCellGroupLookup extends PUSpecSheetTableCellBase<
     return {
       id: reset ? 0 : this.cell.id,
       tableCellTypeId: this.cell.tableCellTypeId,
-      specSheetTableRowId: this.cell.specSheetTableRowId,
+      sheetTableRowId: this.cell.sheetTableRowId,
       cellConfigurationId: this.cell.cellConfigurationId,
-      createdByUserId: this.cell?.createdByUserId,
       referenceId: reset ? crypto.randomUUID() : this.referenceId(),
-      rowNumber: this.rowNumber(),
       columnNumber: this.columnNumber(),
       colSpan: this.colSpan(),
       rowSpan: this.rowSpan(),
-      cellValue: CellValueHelpers.buildCellValue(this.cellValue, cellValue),
+      value: CellValueHelpers.buildCellValue(this.cellValue, cellValue) as SheetCellValue,
+      tableCellTemplateId: this.cell.tableCellTemplateId,
       createdDateTime: this.cell?.createdDateTime,
-      isDeleted: this.cell?.isDeleted,
       cellConfiguration: this.cell?.cellConfiguration,
       tableCellType: this.tableCellType(),
       configurationOverride: this.cell.configurationOverride,
     };
   }
 
-  public override toNewTableCellRequest(): CreateSpecSheetTableCellRequest {
-    const value = this.value();
-    if (!value || !(value instanceof PUSpecSheetTableCellBase)) {
-      return undefined!;
-    }
 
-    return {
-      specSheetTableGroupId: this.cell.specSheetTableRowId,
-      specSheetTableRowId: this.cell.specSheetTableRowId,
-      tableCellTypeId: this.cell.tableCellTypeId,
-      cellConfigurationId: this.cell.cellConfigurationId,
-      referenceId: this.referenceId(),
-      rowNumber: this.rowNumber(),
-      columnNumber: this.columnNumber(),
-      colSpan: this.colSpan(),
-      rowSpan: this.rowSpan(),
-      value: CellValueHelpers.buildCellValue(this.cellValue, {
-        ...this.properties()?.toCellConfiguration(),
-        linkedReferenceId: this.value()?.referenceId(),
-        linkedSpecSheetPhaseId: this.properties()?.specSheetPhase()?.id,
-        linkedSpecSheetTypeId: this.properties()?.specSheetType()?.id,
-        tableReferenceId: this.properties()?.table()?.referenceId(),
-      }),
-      configurationOverride: this.cell.configurationOverride,
-    };
-  }
-
-  public override toUpdateTableCellRequest(): UpdateSpecSheetTableCellRequest {
-    const value = this.value();
-    if (!value || !(value instanceof PUSpecSheetTableCellBase)) {
-      return undefined!;
-    }
-
-    return {
-      id: this.id,
-      rowNumber: UpdateHelpers.compare(this.cell.rowNumber, this.rowNumber()),
-      columnNumber: UpdateHelpers.compare(
-        this.cell.columnNumber,
-        this.columnNumber(),
-      ),
-      cellValue: UpdateHelpers.compareToPropertyChanged(this.cellValue, {
-        $type: this.cellValue.$type,
-        id: this.cellValue.id,
-        specSheetTableCellId: this.cellValue.specSheetTableCellId,
-        ...this.properties()?.toCellConfiguration(),
-        linkedReferenceId: this.value()?.referenceId(),
-        linkedSpecSheetPhaseId: this.properties()?.specSheetPhase()?.id,
-        linkedSpecSheetTypeId: this.properties()?.specSheetType()?.id,
-        tableReferenceId: this.properties()?.table()?.referenceId(),
-      } as LinkedSpecSheetValue),
-      configurationOverride: UpdateHelpers.compareToPropertyChanged(
-        this.cell.configurationOverride,
-        this.properties()?.toCellConfiguration(),
-      ),
-    };
-  }
 
   public override *compileValueOperations(): Generator<SpecSheetOp> {
     if (this.isNew) {
       yield {
         $type: 'AddLinkedSpecSheetValueOp',
-        specSheetTableCellId: this.cellValue.specSheetTableCellId,
+        specSheetTableCellId: this.cell.id,
         linkedSpecSheetTypeId: this.properties()?.specSheetType()?.id,
         linkedSpecSheetPhaseId: this.properties()?.specSheetPhase()?.id,
         tableReferenceId: this.properties()?.table()?.referenceId(),
@@ -163,7 +104,7 @@ export class PUSpecSheetTableCellGroupLookup extends PUSpecSheetTableCellBase<
     } else if (this.hasChanges()) {
       yield {
         $type: 'UpdateLinkedSpecSheetValueOp',
-        id: this.cellValue.id,
+        id: this.cell.id,
         linkedSpecSheetTypeId: UpdateHelpers.compareToPropertyChanged(
           this.properties()?.specSheetType()?.id,
           this.cellValue.linkedSpecSheetTypeId,

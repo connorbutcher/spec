@@ -9,10 +9,6 @@ import {
   WritableSignal,
 } from '@angular/core';
 import { UpdateHelpers } from '../../../core/helpers/update-helpers';
-import { SpecSheetExternalReference } from '../../../core/models/domain/references/spec-sheet-external-reference';
-import { SpecSheetTableGroup } from '../../../core/models/domain/spec-sheet/spec-sheet-table-group';
-import { SpecSheetTableGroupWidget } from '../../../core/models/domain/spec-sheet/spec-sheet-table-group-widget';
-import { SpecSheetTableRow } from '../../../core/models/domain/spec-sheet/spec-sheet-table-row';
 import { TableGroupTemplate } from '../../../core/models/domain/template/table-group-template';
 import { SpecSheetOp } from '../../../core/models/operations/spec-sheet-op';
 import { CellLookupService } from '../../../core/services/cell-lookup.service';
@@ -27,6 +23,7 @@ import { WidgetTypeRegistry } from './services/widget-type-registry';
 import { SpecSheetAdvisory } from './spec-sheet-advisory';
 import { PUSpecSheetTableBase } from './tables/pu-spec-sheet-table-base';
 import { WidgetPropertyBase } from './widgets/widget-base';
+import { SheetExternalReference, SheetTableGroup, SheetTableRow, SheetWidget } from '../../../core/models/domain/sheets/sheet';
 
 export type ColumnDefinitions = {
   count: number;
@@ -59,7 +56,7 @@ export class PUSpecSheetTableGroup {
       return [];
     }
 
-    const widgetProperties: WidgetPropertyBase<SpecSheetTableGroupWidget>[] =
+    const widgetProperties: WidgetPropertyBase<SheetWidget>[] =
       [];
     for (const widget of widgets) {
       const tableTemplateWidget =
@@ -145,7 +142,7 @@ export class PUSpecSheetTableGroup {
     const groupReferences = this.groupReferences();
     const rowReferences = this.rows().flatMap((r) => r.rowReferences());
 
-    const references: SpecSheetExternalReference[] = [
+    const references: SheetExternalReference[] = [
       ...groupReferences,
       ...rowReferences,
     ];
@@ -168,7 +165,7 @@ export class PUSpecSheetTableGroup {
   }
   public readonly isValid = computed(() => this.advisories().length === 0);
   public readonly hasChanges!: Signal<boolean>;
-  private _changeTracker!: ChangeTracker<SpecSheetTableGroup>;
+  private _changeTracker!: ChangeTracker<SheetTableGroup>;
   // Own advisories: rules that belong to this group node only
   private readonly _ownAdvisories = computed<SpecSheetAdvisory[]>(() =>
     this.widgets().flatMap((w) => w.advisories()),
@@ -186,7 +183,7 @@ export class PUSpecSheetTableGroup {
     [this._rowAdvisories, this._childGroupAdvisories],
   );
   public readonly internalReferences = computed(() => {
-    const references: SpecSheetExternalReference[] = [];
+    const references: SheetExternalReference[] = [];
 
     const childGroups = this.childGroups().flatMap((cg) =>
       cg.internalReferences(),
@@ -202,27 +199,29 @@ export class PUSpecSheetTableGroup {
   private readonly _cellLookupService = inject(CellLookupService);
   private readonly _injector = inject(Injector);
 
-  private _childGroups: SpecSheetTableGroup[] = [];
+  private readonly _originalParentGroupId: number | undefined;
+  private _childGroups: SheetTableGroup[] = [];
 
   constructor(
-    public readonly group: SpecSheetTableGroup,
-    public readonly linkedGroups: SpecSheetTableGroup[],
+    public readonly group: SheetTableGroup,
+    public readonly linkedGroups: SheetTableGroup[],
     private readonly _parent: PUSpecSheetTableBase,
+    parentGroupId?: number,
   ) {
     this.id = group.id;
-    this.parentGroupId = signal(group.linkedSpecSheetTableGroupId);
+    this._originalParentGroupId = parentGroupId;
+    this.parentGroupId = signal(parentGroupId);
     this.referenceId = signal(group.referenceId);
-    this.order = signal(group.order);
+    this.order = signal(group.displayOrder);
     this.rows = signal(group.rows.map((r) => new PUSpecSheetTableRow(r, this)));
 
     // Get linked groups
     this._childGroups = linkedGroups.filter(
-      (lg) => lg.linkedSpecSheetTableGroupId === group.id,
+      (lg) => lg.linkedGroupReferenceId === group.referenceId,
     );
 
     this._changeTracker = new ChangeTracker(group)
-      .track('order', this.order)
-      .track('linkedSpecSheetTableGroupId', this.parentGroupId);
+      .track('displayOrder', this.order);
     this.hasChanges = computed(() => {
       const hasDeletedRows = this.group.rows.some(
         (or) => !this.rows().find((r) => r.id === or.id),
@@ -232,6 +231,7 @@ export class PUSpecSheetTableGroup {
       );
       return (
         this._changeTracker.hasChanges() ||
+        this.parentGroupId() !== this._originalParentGroupId ||
         this.rows().some((c) => c.hasChanges() || c.isNew) ||
         this.childGroups().some((g) => g.hasChanges() || g.isNew) ||
         this.widgets().some((w) => w.hasChanges()) ||
@@ -243,10 +243,10 @@ export class PUSpecSheetTableGroup {
     const groups: PUSpecSheetTableGroup[] = [];
     for (const lg of this._childGroups) {
       const childGroups = linkedGroups.filter(
-        (cg) => cg.linkedSpecSheetTableGroupId === lg.id,
+        (cg) => cg.linkedGroupReferenceId === lg.referenceId,
       );
 
-      groups.push(new PUSpecSheetTableGroup(lg, childGroups, this._parent));
+      groups.push(new PUSpecSheetTableGroup(lg, childGroups, this._parent, this.id));
     }
 
     this.childGroups = signal(groups);
@@ -254,9 +254,9 @@ export class PUSpecSheetTableGroup {
     this._cellLookupService.registerGroup(this.referenceId(), this);
   }
 
-  public addGroup(group: SpecSheetTableGroup, index?: number): void {
+  public addGroup(group: SheetTableGroup, index?: number): void {
     runInInjectionContext(this._injector, () => {
-      const puGroup = new PUSpecSheetTableGroup(group, [], this._parent);
+      const puGroup = new PUSpecSheetTableGroup(group, [], this._parent, this.id);
       if (index !== undefined) {
         this.childGroups.update((groups) => {
           groups.splice(index, 0, puGroup);
@@ -326,7 +326,7 @@ export class PUSpecSheetTableGroup {
     this.remove(group);
   }
 
-  public addRow(row: SpecSheetTableRow, index?: number): void {
+  public addRow(row: SheetTableRow, index?: number): void {
     runInInjectionContext(this._injector, () => {
       const puRow = new PUSpecSheetTableRow(row, this);
       if (index !== undefined) {
@@ -393,22 +393,6 @@ export class PUSpecSheetTableGroup {
     return cellGroups;
   }
 
-  public toTableGroup(reset?: ResetOption): SpecSheetTableGroup {
-    return {
-      id: reset ? 0 : this.id,
-      specSheetTableId: this.group.specSheetTableId,
-      tableGroupTemplateId: this.group.tableGroupTemplateId,
-      linkedSpecSheetTableGroupId: this.parentGroupId(),
-      referenceId: reset ? crypto.randomUUID() : this.referenceId(),
-      order: this.order(),
-      createdByUserId: this.group.createdByUserId,
-      createdDateTime: this.group.createdDateTime,
-      isDeleted: this.group.isDeleted,
-      rows: this.rows().map((r) => r.toTableRow(reset)),
-      widgets: this.widgets().map((w) => w.toWidget()),
-    };
-  }
-
   public *compileOperations(): Generator<SpecSheetOp> {
     if (this.isNew) {
       yield {
@@ -424,9 +408,9 @@ export class PUSpecSheetTableGroup {
       yield {
         $type: 'UpdateSpecSheetTableGroupOp',
         id: this.id,
-        order: UpdateHelpers.compare(this.group.order, this.order()),
+        order: UpdateHelpers.compare(this.group.displayOrder, this.order()),
         linkedSpecSheetTableGroupId: UpdateHelpers.compareToPropertyChanged(
-          this.group.linkedSpecSheetTableGroupId,
+          this._originalParentGroupId,
           this.parentGroupId(),
         ),
       };

@@ -9,8 +9,6 @@ import {
 import { AdvisoryStateHelpers } from '../../../core/helpers/advisory-state-helpers';
 import { UpdateHelpers } from '../../../core/helpers/update-helpers';
 import { ValidatorProperty } from '../../../core/models/domain/configuration/validator-properties/validator-property';
-import { SpecSheetExternalReference } from '../../../core/models/domain/references/spec-sheet-external-reference';
-import { SpecSheetTableRow } from '../../../core/models/domain/spec-sheet/spec-sheet-table-row';
 import { TableRowTemplate } from '../../../core/models/domain/template/table-row-template';
 import { SpecSheetOp } from '../../../core/models/operations/spec-sheet-op';
 import { CellLookupService } from '../../../core/services/cell-lookup.service';
@@ -25,6 +23,7 @@ import { ChangeTracker } from './services/change-tracker';
 import { ValidatorRuleRegistry } from './services/validator-rule-registry';
 import { SpecSheetAdvisory } from './spec-sheet-advisory';
 import { ValidatorBase } from './validators/validator-base';
+import { SheetExternalReference, SheetTableRow } from '../../../core/models/domain/sheets/sheet';
 
 export class PUSpecSheetTableRow {
   public readonly id: number;
@@ -82,7 +81,7 @@ export class PUSpecSheetTableRow {
 
   public readonly isValid = computed(() => this.advisories().length === 0);
   public readonly hasChanges!: Signal<boolean>;
-  private _changeTracker!: ChangeTracker<SpecSheetTableRow>;
+  private _changeTracker!: ChangeTracker<SheetTableRow>;
   // Own advisories: validator results for this row only
   private readonly _ownAdvisories = computed<SpecSheetAdvisory[]>(() => {
     const advisories: SpecSheetAdvisory[] = [];
@@ -119,7 +118,7 @@ export class PUSpecSheetTableRow {
     );
   });
   public readonly internalReferences = computed(() => {
-    const references: SpecSheetExternalReference[] = [];
+    const references: SheetExternalReference[] = [];
 
     const cells = this.cells().flatMap((r) => r.internalReferences());
     references.push(...cells);
@@ -131,18 +130,18 @@ export class PUSpecSheetTableRow {
   private readonly destroyRefs: EffectRef[] = [];
 
   constructor(
-    public readonly row: SpecSheetTableRow,
+    public readonly row: SheetTableRow,
     public readonly parent: PUSpecSheetTableGroup,
   ) {
     this.id = row.id;
     this.referenceId = signal(row.referenceId);
-    this.rowNumber = signal(row.rowNumber);
+    this.rowNumber = signal(row.displayOrder);
     this.cells = signal(
       row.cells.map((cell) => SpecSheetCellHelpers.toCell(cell, this)),
     );
 
     this._changeTracker = new ChangeTracker(row).track(
-      'rowNumber',
+      'displayOrder',
       this.rowNumber,
     );
     this.hasChanges = computed(() => {
@@ -168,20 +167,6 @@ export class PUSpecSheetTableRow {
     this._cellLookupService.removeRow(this.referenceId());
   }
 
-  public toTableRow(reset?: ResetOption): SpecSheetTableRow {
-    return {
-      id: reset ? 0 : this.row.id,
-      specSheetTableGroupId: this.row.specSheetTableGroupId,
-      tableRowTemplateId: this.row.tableRowTemplateId,
-      createdByUserId: this.row?.createdByUserId,
-      referenceId: reset ? crypto.randomUUID() : this.referenceId(),
-      rowNumber: this.rowNumber(),
-      createdDateTime: this.row?.createdDateTime,
-      isDeleted: this.row?.isDeleted,
-      cells: this.cells().map((c) => c.toTableCell(reset)),
-    };
-  }
-
   public *compileOperations(): Generator<SpecSheetOp> {
     if (this.isNew) {
       yield {
@@ -196,7 +181,7 @@ export class PUSpecSheetTableRow {
       yield {
         $type: 'UpdateSpecSheetTableRowOp',
         id: this.id,
-        rowNumber: UpdateHelpers.compare(this.row.rowNumber, this.rowNumber()),
+        rowNumber: UpdateHelpers.compare(this.row.displayOrder, this.rowNumber()),
       };
     }
 

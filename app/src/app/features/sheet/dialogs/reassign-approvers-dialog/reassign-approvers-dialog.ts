@@ -6,15 +6,15 @@ import { ButtonDirective } from 'primeng/button';
 import { Select } from 'primeng/select';
 import { SpecSheetPhaseHelpers } from '../../../../core/helpers/spec-sheet-phase-helpers';
 import { User } from '../../../../core/models/domain/access/user';
-import { WorkflowState } from '../../../../core/models/domain/enums/workflow-state';
-import { WorkflowStep } from '../../../../core/models/domain/workflow/workflow-step';
-import { ReassignWorkflowStepActorsRequest } from '../../../../core/models/requests/workflow/reassign-workflow-step-actors-request';
+import { ReassignSubmissionApproversRequest } from '../../../../core/models/requests/sheets/reassign-submission-approvers-request';
+import { ApproverDecision } from '../../../../core/types/sheets/approver-decision.enum';
 import { PhasesService } from '../../../../core/services/phases.service';
 import { UserService } from '../../../../core/services/user.service';
 import { DialogHeader } from '../../../common/dialog-header/dialog-header';
 import { ElementLabel } from '../../../common/element-label/element-label';
 import { ActiveSheetService } from '../../services/active-sheet.service';
 import { SheetDataService } from '../../services/sheet-data.service';
+import { SheetSubmission } from '../../../../core/models/domain/sheets/sheet';
 
 @Component({
   selector: 'app-reassign-approvers-dialog',
@@ -58,15 +58,15 @@ export class ReassignApproversDialog {
     }
   });
   public readonly hasChanges = computed(() => {
-    const originalApprovers = this._dialogData.actors.filter(
-      (a) => a.state === WorkflowState.Pending,
+    const originalApprovers = this._dialogData.approvers.filter(
+      (a) => a.decision === ApproverDecision.Pending,
     );
     const approvers = this.approvers();
 
     return (
       approvers.length !== originalApprovers.length ||
       approvers.some(
-        (a) => !originalApprovers.some((oa) => oa.actor!.id === a.id),
+        (a) => !originalApprovers.some((oa) => oa.userId === a.id),
       )
     );
   });
@@ -76,7 +76,7 @@ export class ReassignApproversDialog {
   private readonly _dialogRef = inject(
     DialogRef<void, ReassignApproversDialog>,
   );
-  private readonly _dialogData = inject<WorkflowStep>(DIALOG_DATA);
+  private readonly _dialogData = inject<SheetSubmission>(DIALOG_DATA);
   private readonly _activeSheetService = inject(ActiveSheetService);
   private readonly _sheetDataService = inject(SheetDataService);
   private readonly _phasesService = inject(PhasesService);
@@ -84,10 +84,10 @@ export class ReassignApproversDialog {
   private readonly _messageService = inject(MessageService);
 
   constructor() {
-    const remainingApprovers = this._dialogData.actors.filter(
-      (a) => a.state === WorkflowState.Pending,
+    const remainingApprovers = this._dialogData.approvers.filter(
+      (a) => a.decision === ApproverDecision.Pending,
     );
-    this.approvers.set(remainingApprovers.map((a) => a.actor!));
+    this.approvers.set(remainingApprovers.map((a) => a.user!));
   }
 
   public async saveChanges(): Promise<void> {
@@ -100,25 +100,24 @@ export class ReassignApproversDialog {
       return;
     }
 
-    const originalApprovers = this._dialogData.actors.filter(
-      (a) => a.state === WorkflowState.Pending,
+    const originalApprovers = this._dialogData.approvers.filter(
+      (a) => a.decision === ApproverDecision.Pending,
     );
     const approversToAdd = approvers.filter(
-      (a) => !originalApprovers.some((oa) => oa.actor!.id === a.id),
+      (a) => !originalApprovers.some((oa) => oa.userId === a.id),
     );
     const approversToRemove = originalApprovers.filter(
-      (oa) => !approvers.some((a) => a.id === oa.actor!.id),
+      (oa) => !approvers.some((a) => a.id === oa.userId),
     );
 
     try {
       const request = {
-        specSheetId: this._activeSheetService.specSheet().specSheet.id,
-        workflowStepId: this._dialogData.id,
-        createWorkflowStepActorRequests: approversToAdd.map((a) => a.id),
-        deleteWorkflowStepActorRequests: approversToRemove.map((oa) => oa.id),
-      } as ReassignWorkflowStepActorsRequest;
+        sheetId: this._activeSheetService.specSheet().id,
+        addedUserIds: approversToAdd.map((a) => a.id),
+        removedUserIds: approversToRemove.map((oa) => oa.userId),
+      } as ReassignSubmissionApproversRequest;
 
-      await this._sheetDataService.reassignWorkflowStepActorsAsync(request);
+      await this._sheetDataService.reassignSubmissionApproversAsync(request);
 
       this._messageService.add({
         severity: 'success',

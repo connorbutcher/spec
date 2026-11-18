@@ -8,12 +8,6 @@ import { SplitButton } from 'primeng/splitbutton';
 import { firstValueFrom } from 'rxjs';
 import { CellValueHelpers } from '../../../../core/helpers/cell-value-helpers';
 import { nextTempId } from '../../../../core/helpers/temp-id-counter';
-import { SpecSheetTable } from '../../../../core/models/domain/spec-sheet/spec-sheet-table';
-import { SpecSheetTableCell } from '../../../../core/models/domain/spec-sheet/spec-sheet-table-cell';
-import { SpecSheetTableGroup } from '../../../../core/models/domain/spec-sheet/spec-sheet-table-group';
-import { SpecSheetTableGroupWidget } from '../../../../core/models/domain/spec-sheet/spec-sheet-table-group-widget';
-import { SpecSheetTableRow } from '../../../../core/models/domain/spec-sheet/spec-sheet-table-row';
-import { SpecSheetTableWidget } from '../../../../core/models/domain/spec-sheet/spec-sheet-table-widget';
 import { TableTemplate } from '../../../../core/models/domain/template/table-template';
 import { PublishSpecSheetRequest } from '../../../../core/models/requests/spec-sheets/publish-spec-sheet-request';
 import { CheckInOutService } from '../../../../core/services/check-in-out.service';
@@ -33,6 +27,8 @@ import { ActiveSheetService } from '../../services/active-sheet.service';
 import { SheetDataService } from '../../services/sheet-data.service';
 import { SheetApprovalStatus } from '../sheet-approval-alert/sheet-approval-status';
 import { SpecSheetSearch } from '../spec-sheet-search/spec-sheet-search';
+import { SheetItemHelpers } from '../../../../core/helpers/sheet-item-helpers';
+import { SheetTable, SheetTableCell, SheetTableGroup, SheetTableRow, SheetWidget } from '../../../../core/models/domain/sheets/sheet';
 
 @Component({
   selector: 'app-spec-sheet-toolbar',
@@ -69,10 +65,10 @@ export class SpecSheetToolbar {
   public readonly canCreateNewVersion = computed(() => {
     const hasUnpublishedVersion = this._sheetsService
       .specSheetsForPhaseAndType()
-      .some((v) => !v.isPublished);
+      .some((v) => v.isDraft);
 
     return (
-      this._sheetsService.selectedSpecSheet()?.isPublished &&
+      this._sheetsService.selectedSpecSheet()?.isDraft === false &&
       !hasUnpublishedVersion
     );
   });
@@ -115,7 +111,7 @@ export class SpecSheetToolbar {
     });
 
     try {
-      await this._sheetDataService.updateSpecSheetAsync(updateRequest);
+      await this._sheetDataService.updateSheetAsync(updateRequest);
 
       this._messageService.add({
         severity: 'success',
@@ -159,7 +155,7 @@ export class SpecSheetToolbar {
     });
 
     try {
-      await this._sheetDataService.publishSpecSheetAsync(result);
+      await this._sheetDataService.publishSheetAsync(result);
 
       this._messageService.add({
         severity: 'success',
@@ -189,7 +185,7 @@ export class SpecSheetToolbar {
       data: {
         type: this.specSheet().specSheetType(),
         phase: this.specSheet().specSheetPhase(),
-        copyFromSpecSheetId: this.specSheet().id,
+        copyFromSpecSheetId: this.specSheet().sheet.version?.sourceSpecSheetId,
       },
     });
 
@@ -216,8 +212,8 @@ export class SpecSheetToolbar {
       tableType = specSheetType.tableTemplates[0];
     }
 
-    const groups: SpecSheetTableGroup[] = [];
-    const widgets: SpecSheetTableWidget[] = [];
+    const groups: SheetTableGroup[] = [];
+    const widgets: SheetWidget[] = [];
     if (tableType.requiresUserConfiguration) {
       const dialogRef = this._dialog.open<
         TableTemplate,
@@ -241,91 +237,76 @@ export class SpecSheetToolbar {
         return;
       }
 
-      let linkedSpecSheetTableGroupId: number | undefined = undefined;
+      let linkedGroupReferenceId: string | undefined = undefined;
       for (let i = 0; i < defaultGroups.length; i++) {
         const defaultGroup = defaultGroups[i];
 
-        const rows: SpecSheetTableRow[] = [];
+        const rows: SheetTableRow[] = [];
         for (const row of defaultGroup.rowTemplates) {
-          const cells: SpecSheetTableCell[] = [];
+          const cells: SheetTableCell[] = [];
           for (const cell of row.cellTemplates) {
             cells.push({
               id: nextTempId(),
-              specSheetTableRowId: 0,
+              sheetTableRowId: 0,
+              tableCellTemplateId: cell.id,
               cellConfigurationId: cell.cellConfigurationId,
               tableCellTypeId: cell.tableCellTypeId,
               referenceId: crypto.randomUUID(),
-              rowNumber: row.rowNumber,
               columnNumber: cell.columnNumber,
               rowSpan: cell.rowSpan,
               colSpan: cell.colSpan,
-              createdByUserId: user.id,
-              createdByUser: user,
               createdDateTime: DateTime.now().toISO(),
-              isDeleted: false,
               cellConfiguration: cell.cellConfiguration,
-              cellValue: CellValueHelpers.buildNewCellValue(cell),
+              value: CellValueHelpers.buildNewCellValue(cell),
               tableCellType: cell.tableCellType,
             });
           }
 
           rows.push({
             id: nextTempId(),
-            specSheetTableGroupId: 0,
+            sheetTableGroupId: 0,
+            revision: SheetItemHelpers.newRevision(user.id),
             tableRowTemplateId: row.id,
-            rowNumber: row.rowNumber,
-            isDeleted: false,
             referenceId: crypto.randomUUID(),
+            displayOrder: row.rowNumber,
             cells,
-            createdByUserId: user.id,
-            createdByUser: user,
             createdDateTime: DateTime.now().toISO(),
           });
         }
 
-        const widgets: SpecSheetTableGroupWidget[] = [];
+        const widgets: SheetWidget[] = [];
         for (const tableGroupTemplateWidget of defaultGroup.tableGroupTemplateWidgets) {
           widgets.push({
             id: nextTempId(),
-            specSheetTableGroupId: 0,
+            sheetTableGroupId: 0,
             tableGroupTemplateWidgetId: tableGroupTemplateWidget.id,
-            value: {
-              id: nextTempId(),
-              specSheetTableGroupWidgetId: 0,
-              value: undefined,
-            },
+            value: undefined,
           });
         }
 
-        const specSheetTableGroupId = nextTempId();
+        const groupReferenceId = crypto.randomUUID();
         groups.push({
-          id: specSheetTableGroupId,
-          specSheetTableId: 0,
+          id: nextTempId(),
+          sheetTableId: 0,
+          revision: SheetItemHelpers.newRevision(user.id),
           tableGroupTemplateId: defaultGroup.id,
-          order: 1,
-          referenceId: crypto.randomUUID(),
-          createdByUserId: user.id,
-          createdByUser: user,
+          displayOrder: 1,
+          referenceId: groupReferenceId,
           createdDateTime: DateTime.now().toISO(),
-          isDeleted: false,
           rows,
           widgets,
-          linkedSpecSheetTableGroupId: linkedSpecSheetTableGroupId,
+          linkedGroupReferenceId: linkedGroupReferenceId,
         });
 
-        linkedSpecSheetTableGroupId = specSheetTableGroupId;
+        linkedGroupReferenceId = groupReferenceId;
       }
 
       for (const tableTemplateWidget of tableType.tableTemplateWidgets) {
         widgets.push({
           id: nextTempId(),
-          specSheetTableId: 0,
+          sheetTableId: 0,
           tableTemplateWidgetId: tableTemplateWidget.id,
-          value: {
-            id: nextTempId(),
-            specSheetTableWidgetId: 0,
-            value: undefined,
-          },
+          value: undefined,
         });
       }
 
@@ -334,19 +315,17 @@ export class SpecSheetToolbar {
       }
     }
 
-    const table: SpecSheetTable = {
+    const table: SheetTable = {
       id: nextTempId(),
-      specSheetId: this.specSheet().id,
       tableTemplateId: tableType.id,
       groups,
       widgets,
       title: '',
       displayOrder: this._activeSheetService.specSheet().tables().length + 1,
       referenceId: crypto.randomUUID(),
-      createdByUserId: user.id,
-      createdByUser: user,
+      sheetId: this._activeSheetService.specSheet().id,
+      revision: SheetItemHelpers.newRevision(user.id),
       createdDateTime: DateTime.now().toISO(),
-      isDeleted: false,
       configurationOverride: tableType.defaultConfiguration,
       notes: [],
     };

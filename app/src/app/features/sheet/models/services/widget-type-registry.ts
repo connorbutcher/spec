@@ -1,21 +1,20 @@
 import { WidgetTypeKey } from '../../../../core/models/domain/enums/widget-type-key';
-import { SpecSheetTableGroupWidget } from '../../../../core/models/domain/spec-sheet/spec-sheet-table-group-widget';
-import { SpecSheetTableWidget } from '../../../../core/models/domain/spec-sheet/spec-sheet-table-widget';
 import { PUSpecSheetTableGroup } from '../pu-spec-sheet-table-group';
 import { PUSpecSheetTableBase } from '../tables/pu-spec-sheet-table-base';
 import { PartPairWidget } from '../widgets/part-pair-widget';
 import { PFKNomWidget } from '../widgets/pfk-nominal-widget';
 import { WidgetPropertyBase } from '../widgets/widget-base';
+import { SheetWidget } from '../../../../core/models/domain/sheets/sheet';
 
 export type TableWidgetFactory = (
-  widget: SpecSheetTableWidget,
+  widget: SheetWidget,
   parent: PUSpecSheetTableBase,
-) => WidgetPropertyBase<SpecSheetTableWidget>;
+) => WidgetPropertyBase<SheetWidget>;
 
 export type GroupWidgetFactory = (
-  widget: SpecSheetTableGroupWidget,
+  widget: SheetWidget,
   parent: PUSpecSheetTableGroup,
-) => WidgetPropertyBase<SpecSheetTableGroupWidget>;
+) => WidgetPropertyBase<SheetWidget>;
 
 export class WidgetTypeRegistry {
   private static readonly _tableWidgets = new Map<
@@ -47,9 +46,9 @@ export class WidgetTypeRegistry {
 
   public static createTableWidget(
     type: WidgetTypeKey,
-    widget: SpecSheetTableWidget,
+    widget: SheetWidget,
     parent: PUSpecSheetTableBase,
-  ): WidgetPropertyBase<SpecSheetTableWidget> {
+  ): WidgetPropertyBase<SheetWidget> {
     const factory = this._tableWidgets.get(type);
     if (!factory) {
       throw new Error(`Unsupported table widget type: ${type}`);
@@ -60,9 +59,9 @@ export class WidgetTypeRegistry {
 
   public static createGroupWidget(
     type: WidgetTypeKey,
-    widget: SpecSheetTableGroupWidget,
+    widget: SheetWidget,
     parent: PUSpecSheetTableGroup,
-  ): WidgetPropertyBase<SpecSheetTableGroupWidget> {
+  ): WidgetPropertyBase<SheetWidget> {
     const factory = this._groupWidgets.get(type);
     if (!factory) {
       throw new Error(`Unsupported group widget type: ${type}`);

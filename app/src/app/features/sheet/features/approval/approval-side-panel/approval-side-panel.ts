@@ -2,7 +2,7 @@ import { DatePipe } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { DateTime } from 'luxon';
 import { ButtonDirective } from 'primeng/button';
-import { WorkflowState } from '../../../../../core/models/domain/enums/workflow-state';
+import { SubmissionStatus } from '../../../../../core/types/sheets/submission-status.enum';
 import { ISidePanelLayer } from '../../../../side-panel/models/side-panel-layer-data.interface';
 import { SidePanelService } from '../../../../side-panel/side-panel.service';
 import { ActiveSheetService } from '../../../services/active-sheet.service';
@@ -29,21 +29,21 @@ export class ApprovalSidePanel
   private readonly _activeSheetService = inject(ActiveSheetService);
   private readonly _sidePanelService = inject(SidePanelService);
   private readonly _workflowAttempts = computed(
-    () => this._activeSheetService.specSheet().specSheet.workflowSteps,
+    () => this._activeSheetService.specSheet().submissions,
   );
 
   public readonly activeWorkflowAttempt = computed(() =>
     this._workflowAttempts().find(
-      (attempt) => attempt.state === WorkflowState.Pending,
+      (attempt) => attempt.status === SubmissionStatus.Pending,
     ),
   );
   public readonly pastWorkflowAttempts = computed(() =>
     this._workflowAttempts()
-      .filter((attempt) => attempt.state !== WorkflowState.Pending)
+      .filter((attempt) => attempt.status !== SubmissionStatus.Pending)
       .sort(
         (left, right) =>
-          DateTime.fromISO(right.startedDateTime).toMillis() -
-          DateTime.fromISO(left.startedDateTime).toMillis(),
+          DateTime.fromISO(right.submittedDateTime).toMillis() -
+          DateTime.fromISO(left.submittedDateTime).toMillis(),
       ),
   );
   public readonly displayedWorkflowAttempt = computed(

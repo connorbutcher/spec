@@ -4,7 +4,6 @@ import { environment } from '../../../../../../../environments/environment';
 import { SpecSheetPhaseHelpers } from '../../../../../core/helpers/spec-sheet-phase-helpers';
 import { CellProperties } from '../../../../../core/models/domain/properties/cell/cell-properties';
 import { LinkedTableProperties } from '../../../../../core/models/domain/properties/table/linked-table-properties';
-import { SpecSheetExternalReference } from '../../../../../core/models/domain/references/spec-sheet-external-reference';
 import { TableTemplate } from '../../../../../core/models/domain/template/table-template';
 import { SpecSheetPhase } from '../../../../../core/models/domain/types/spec-sheet-phase';
 import { SpecSheetType } from '../../../../../core/models/domain/types/spec-sheet-type';
@@ -15,6 +14,7 @@ import { PUSpecSheet } from '../../../models/pu-spec-sheet';
 import { PUSpecSheetTableBase } from '../../../models/tables/pu-spec-sheet-table-base';
 import { LinkedSheetService } from '../../../services/linked-sheet.service';
 import { TablePropertyBase } from './table-property-base';
+import { SheetExternalReference } from '../../../../../core/models/domain/sheets/sheet';
 
 export class LinkedTableProperty extends TablePropertyBase<LinkedTableProperties> {
   public override readonly isValid = computed(
@@ -33,7 +33,7 @@ export class LinkedTableProperty extends TablePropertyBase<LinkedTableProperties
       this.lockToLatestPublished() !== this.properties.lockToLatestPublished,
   );
   public override readonly internalReferences = computed(() => {
-    const references: SpecSheetExternalReference[] = [];
+    const references: SheetExternalReference[] = [];
 
     const type = this.specSheetType();
     const phase = this.specSheetPhase();
@@ -45,7 +45,7 @@ export class LinkedTableProperty extends TablePropertyBase<LinkedTableProperties
 
     references.push({
       id: -1,
-      specSheetId: linkedSpecSheet.id,
+      sheetId: this._sheetService.specSheet()?.id!,
       externalId: this._sheetService.specSheet()?.id!,
       referenceId: table.referenceId(),
       type: 'table',
