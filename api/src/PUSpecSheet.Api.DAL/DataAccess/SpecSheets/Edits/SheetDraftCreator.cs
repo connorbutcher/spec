@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Abstractions.Domain.Access;
-using PUSpecSheet.Abstractions.Domain.SpecSheets;
-using PUSpecSheet.Abstractions.Domain.SpecSheets.Properties;
+using PUSpecSheet.Abstractions.Domain.Legacy.SpecSheets;
+using PUSpecSheet.Abstractions.Domain.Legacy.SpecSheets.Properties;
 using PUSpecSheet.Abstractions.Requests.SpecSheets;
 using PUSpecSheet.Abstractions.Types;
 using PUSpecSheet.Api.DAL.DataAccess.SpecSheets.Reads;
@@ -9,7 +9,7 @@ using PUSpecSheet.Api.DAL.DataAccess.SpecSheets.Reads.Revisions;
 using PUSpecSheet.Api.DAL.DataAccess.Types;
 using PUSpecSheet.Api.Database;
 using PUSpecSheet.Api.Database.Schema.Spec;
-using PUSpecSheet.Api.Database.Schema.SpecSheets;
+using PUSpecSheet.Api.Database.Schema.Legacy.SpecSheets;
 
 namespace PUSpecSheet.Api.DAL.DataAccess.SpecSheets.Edits;
 

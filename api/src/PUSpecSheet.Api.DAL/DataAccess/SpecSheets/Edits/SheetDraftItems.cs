@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using PUSpecSheet.Abstractions.Domain.SpecSheets;
+using PUSpecSheet.Abstractions.Domain.Legacy.SpecSheets;
 using PUSpecSheet.Api.DAL.Processors.Drafts.Base;
 using PUSpecSheet.Api.Database;
 using PUSpecSheet.Api.Database.Schema.Spec;

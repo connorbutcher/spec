@@ -2,7 +2,7 @@
 using PUSpecSheet.Abstractions.Domain.Sheets;
 using PUSpecSheet.Abstractions.Domain.Values.WidgetValues;
 using PUSpecSheet.Api.Database;
-using PUSpecSheet.Api.Database.Schema.SpecSheets;
+using PUSpecSheet.Api.Database.Schema.Legacy.SpecSheets;
 
 namespace PUSpecSheet.Migrator.Legacy;
 

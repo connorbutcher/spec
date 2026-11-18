@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Text.Json;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Configuration;
-using PUSpecSheet.Abstractions.Domain.SpecSheets;
+using PUSpecSheet.Abstractions.Domain.Legacy.SpecSheets;
 using PUSpecSheet.Api.Common.Configuration;
 using PUSpecSheet.Api.Common.Redis;
 using StackExchange.Redis;

@@ -1,5 +1,5 @@
 ﻿using PUSpecSheet.Abstractions.Domain.Properties.Cell;
-using PUSpecSheet.Abstractions.Domain.Values;
+using PUSpecSheet.Abstractions.Domain.Legacy.Values;
 using PUSpecSheet.Api.Database;
 using PUSpecSheet.Api.Database.Schema.Cell;
 using PUSpecSheet.Api.Database.Schema.Spec;

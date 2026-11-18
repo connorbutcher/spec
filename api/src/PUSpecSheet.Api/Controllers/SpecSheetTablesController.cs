@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using PUSpecSheet.Abstractions.Domain.SpecSheets;
+using PUSpecSheet.Abstractions.Domain.Legacy.SpecSheets;
 using PUSpecSheet.Api.DAL.DataAccess.SpecSheets;
 
 namespace PUSpecSheet.Api.Controllers;

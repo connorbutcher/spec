@@ -1,8 +1,8 @@
 ﻿using PUSpecSheet.Abstractions.Domain.Properties.Cell;
 using PUSpecSheet.Api.Database.Schema.Cell;
 using PUSpecSheet.Api.Database.Schema.Spec;
-using PUSpecSheet.Api.Database.Schema.SpecSheets;
-using PUSpecSheet.Api.Database.Schema.Values;
+using PUSpecSheet.Api.Database.Schema.Legacy.SpecSheets;
+using PUSpecSheet.Api.Database.Schema.Legacy.Values;
 
 namespace PUSpecSheet.Api.DAL.DataAccess.SpecSheets.Reads;
 

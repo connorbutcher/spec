@@ -1,6 +1,6 @@
 using PUSpecSheet.Abstractions.Domain.Properties.Table;
-using PUSpecSheet.Abstractions.Domain.SpecSheets;
-using PUSpecSheet.Abstractions.Domain.Values;
+using PUSpecSheet.Abstractions.Domain.Legacy.SpecSheets;
+using PUSpecSheet.Abstractions.Domain.Legacy.Values;
 using PUSpecSheet.Api.DAL.Caching;
 using PUSpecSheet.Api.DAL.DataAccess.SpecSheets;
 using PUSpecSheet.Api.DAL.Query.Mappers;

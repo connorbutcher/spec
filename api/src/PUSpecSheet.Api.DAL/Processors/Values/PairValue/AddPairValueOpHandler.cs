@@ -2,7 +2,7 @@
 using PUSpecSheet.Abstractions.Operations.Values.Pair;
 using PUSpecSheet.Api.DAL.Processors.Base;
 using PUSpecSheet.Api.Database;
-using PUSpecSheet.Api.Database.Schema.Values;
+using PUSpecSheet.Api.Database.Schema.Legacy.Values;
 
 namespace PUSpecSheet.Api.DAL.Processors.Values.PairValue;
 

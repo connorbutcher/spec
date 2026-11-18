@@ -1,6 +1,6 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Nodes;
-using PUSpecSheet.Abstractions.Domain.SpecSheets;
+using PUSpecSheet.Abstractions.Domain.Legacy.SpecSheets;
 
 namespace PUSpecSheet.Api.DAL.DataAccess.SpecSheets.Reads;
 

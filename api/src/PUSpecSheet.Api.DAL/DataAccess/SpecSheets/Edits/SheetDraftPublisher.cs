@@ -2,7 +2,7 @@
 using PUSpecSheet.Abstractions.Types;
 using PUSpecSheet.Api.Database;
 using PUSpecSheet.Api.Database.Schema.Spec;
-using PUSpecSheet.Api.Database.Schema.SpecSheets;
+using PUSpecSheet.Api.Database.Schema.Legacy.SpecSheets;
 
 namespace PUSpecSheet.Api.DAL.DataAccess.SpecSheets.Edits;
 

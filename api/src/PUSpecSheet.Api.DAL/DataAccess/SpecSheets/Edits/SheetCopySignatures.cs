@@ -1,5 +1,5 @@
 ﻿using System.Text.Json;
-using PUSpecSheet.Abstractions.Domain.SpecSheets;
+using PUSpecSheet.Abstractions.Domain.Legacy.SpecSheets;
 
 namespace PUSpecSheet.Api.DAL.DataAccess.SpecSheets.Edits;
 

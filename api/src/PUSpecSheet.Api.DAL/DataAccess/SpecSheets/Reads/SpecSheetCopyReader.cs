@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using PUSpecSheet.Abstractions.Domain.SpecSheets;
+using PUSpecSheet.Abstractions.Domain.Legacy.SpecSheets;
 using PUSpecSheet.Api.Database;
-using PUSpecSheet.Api.Database.Mappers.SpecSheets;
+using PUSpecSheet.Api.Database.Mappers.Legacy.SpecSheets;
 
 namespace PUSpecSheet.Api.DAL.DataAccess.SpecSheets.Reads;
 

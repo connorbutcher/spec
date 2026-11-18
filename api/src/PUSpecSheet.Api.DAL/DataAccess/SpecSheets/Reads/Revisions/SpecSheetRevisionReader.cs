@@ -1,12 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using PUSpecSheet.Abstractions.Domain.SpecSheets;
+using PUSpecSheet.Abstractions.Domain.Legacy.SpecSheets;
 using PUSpecSheet.Abstractions.Types;
 using PUSpecSheet.Api.Database;
-using PUSpecSheet.Api.Database.Mappers.SpecSheets;
+using PUSpecSheet.Api.Database.Mappers.Legacy.SpecSheets;
 using PUSpecSheet.Api.Database.Schema.Access;
 using PUSpecSheet.Api.Database.Schema.Approval;
 using PUSpecSheet.Api.Database.Schema.Spec;
-using PUSpecSheet.Api.Database.Schema.SpecSheets;
+using PUSpecSheet.Api.Database.Schema.Legacy.SpecSheets;
 
 namespace PUSpecSheet.Api.DAL.DataAccess.SpecSheets.Reads.Revisions;
 

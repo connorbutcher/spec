@@ -2,8 +2,8 @@
 using PUSpecSheet.Abstractions.Operations.Tables.Widgets;
 using PUSpecSheet.Api.DAL.Processors.Base;
 using PUSpecSheet.Api.Database;
-using PUSpecSheet.Api.Database.Schema.SpecSheets;
-using PUSpecSheet.Api.Database.Schema.Values;
+using PUSpecSheet.Api.Database.Schema.Legacy.SpecSheets;
+using PUSpecSheet.Api.Database.Schema.Legacy.Values;
 
 namespace PUSpecSheet.Api.DAL.Processors.Tables.Widgets;
 

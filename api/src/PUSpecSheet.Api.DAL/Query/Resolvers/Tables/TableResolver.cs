@@ -1,5 +1,5 @@
 ﻿using PUSpecSheet.Abstractions.Domain.Properties.Table;
-using PUSpecSheet.Abstractions.Domain.SpecSheets;
+using PUSpecSheet.Abstractions.Domain.Legacy.SpecSheets;
 using PUSpecSheet.Api.DAL.Caching;
 
 namespace PUSpecSheet.Api.DAL.Query.Resolvers.Tables;

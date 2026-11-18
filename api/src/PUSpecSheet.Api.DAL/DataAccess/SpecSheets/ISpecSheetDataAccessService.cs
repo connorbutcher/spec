@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore.Storage;
-using PUSpecSheet.Abstractions.Domain.SpecSheets;
+using PUSpecSheet.Abstractions.Domain.Legacy.SpecSheets;
 using PUSpecSheet.Abstractions.Operations;
 using PUSpecSheet.Abstractions.Requests.SpecSheets;
 using PUSpecSheet.Abstractions.Requests.Workflow;

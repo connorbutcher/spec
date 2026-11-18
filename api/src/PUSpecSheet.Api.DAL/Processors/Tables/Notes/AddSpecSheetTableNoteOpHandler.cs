@@ -2,7 +2,7 @@
 using PUSpecSheet.Abstractions.Operations.Tables.Notes;
 using PUSpecSheet.Api.DAL.Processors.Base;
 using PUSpecSheet.Api.Database;
-using PUSpecSheet.Api.Database.Schema.SpecSheets;
+using PUSpecSheet.Api.Database.Schema.Legacy.SpecSheets;
 
 namespace PUSpecSheet.Api.DAL.Processors.Tables.Notes;
 

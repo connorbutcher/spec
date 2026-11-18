@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Logging;
 using PUSpecSheet.Abstractions.Domain.Properties.Table;
-using PUSpecSheet.Abstractions.Domain.SpecSheets;
-using PUSpecSheet.Abstractions.Domain.SpecSheets.Properties;
+using PUSpecSheet.Abstractions.Domain.Legacy.SpecSheets;
+using PUSpecSheet.Abstractions.Domain.Legacy.SpecSheets.Properties;
 using PUSpecSheet.Abstractions.Domain.Template;
 using PUSpecSheet.Abstractions.Domain.Types;
 using PUSpecSheet.Abstractions.Types;

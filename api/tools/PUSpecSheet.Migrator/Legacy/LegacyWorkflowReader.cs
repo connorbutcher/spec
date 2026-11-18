@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PUSpecSheet.Api.Database;
-using PUSpecSheet.Api.Database.Schema.SpecSheets;
+using PUSpecSheet.Api.Database.Schema.Legacy.SpecSheets;
 
 namespace PUSpecSheet.Migrator.Legacy;
 

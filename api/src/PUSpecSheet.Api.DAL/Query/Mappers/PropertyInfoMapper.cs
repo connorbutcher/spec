@@ -1,4 +1,4 @@
-using PUSpecSheet.Abstractions.Domain.SpecSheets.Properties;
+using PUSpecSheet.Abstractions.Domain.Legacy.SpecSheets.Properties;
 using PUSpecSheet.Query.Models.Properties;
 
 namespace PUSpecSheet.Api.DAL.Query.Mappers;

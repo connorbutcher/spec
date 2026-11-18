@@ -1,11 +1,11 @@
 ﻿using PUSpecSheet.Abstractions.Types;
 using PUSpecSheet.Api.Database.Schema.Access;
 using PUSpecSheet.Api.Database.Schema.Approval;
-using PUSpecSheet.Api.Database.Schema.References;
+using PUSpecSheet.Api.Database.Schema.Legacy.References;
 using PUSpecSheet.Api.Database.Schema.Spec;
-using PUSpecSheet.Api.Database.Schema.SpecSheets;
-using PUSpecSheet.Api.Database.Schema.Values;
-using PUSpecSheet.Api.Database.Schema.Workflow;
+using PUSpecSheet.Api.Database.Schema.Legacy.SpecSheets;
+using PUSpecSheet.Api.Database.Schema.Legacy.Values;
+using PUSpecSheet.Api.Database.Schema.Legacy.Workflow;
 
 namespace PUSpecSheet.Api.DAL.DataAccess.SpecSheets.Reads.Revisions;
 
