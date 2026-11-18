@@ -17,11 +17,9 @@ import { ValidatorLevel } from '../../../core/types/configuration/validator-leve
 import { SpecSheetTableHelpers } from '../helpers/spec-sheet-table-helpers';
 import { SpecSheetAdvisory } from './spec-sheet-advisory';
 import { PUSpecSheetTableBase } from './tables/pu-spec-sheet-table-base';
-import {
-  Sheet,
-  SheetSubmission,
-  SheetTable,
-} from '../../../core/models/domain/sheets/sheet';
+import { Sheet } from '../../../core/models/domain/sheets/sheet';
+import { SheetSubmission } from '../../../core/models/domain/sheets/sheet-submission';
+import { SheetTable } from '../../../core/models/domain/sheets/sheet-table';
 import { SubmissionStatus } from '../../../core/types/sheets/submission-status.enum';
 
 export class PUSpecSheet {

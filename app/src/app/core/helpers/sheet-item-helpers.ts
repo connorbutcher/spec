@@ -1,4 +1,4 @@
-import { SheetItemRevision } from '../models/domain/sheets/sheet';
+import { SheetItemRevision } from '../models/domain/sheets/sheet-item-revision';
 
 export class SheetItemHelpers {
   /** The revision of an item made in the editor, which has not been saved yet. */

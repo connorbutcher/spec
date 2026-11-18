@@ -6,7 +6,7 @@ import { SheetContext } from '../../services/sheet-context';
 import { PUSpecSheetTableGroup } from '../pu-spec-sheet-table-group';
 import { SpecSheetAdvisory } from '../spec-sheet-advisory';
 import { PUSpecSheetTableBase } from '../tables/pu-spec-sheet-table-base';
-import { SheetWidget } from '../../../../core/models/domain/sheets/sheet';
+import { SheetWidget } from '../../../../core/models/domain/sheets/sheet-widget';
 
 export abstract class WidgetPropertyBase<
   T extends SheetWidget,

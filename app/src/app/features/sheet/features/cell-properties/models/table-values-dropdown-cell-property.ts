@@ -14,7 +14,7 @@ import { UserService } from '../../../../../core/services/user.service';
 import { PUSpecSheetTableRow } from '../../../models/pu-spec-sheet-table-row';
 import { PUSpecSheetTableBase } from '../../../models/tables/pu-spec-sheet-table-base';
 import { CellPropertyBase } from './cell-property-base';
-import { SheetExternalReference } from '../../../../../core/models/domain/sheets/sheet';
+import { SheetExternalReference } from '../../../../../core/models/domain/sheets/sheet-external-reference';
 
 export class TableValuesDropdownCellProperty extends CellPropertyBase<LinkedSpecSheetDropdownCellProperties> {
   public override readonly isValid = computed(

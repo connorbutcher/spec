@@ -4,7 +4,7 @@ import { PUSpecSheetTableCellBase } from '../cells/pu-spec-sheet-table-cell-base
 import { PUSpecSheetTableGroup } from '../pu-spec-sheet-table-group';
 import { PUSpecSheetTableRow } from '../pu-spec-sheet-table-row';
 import { PUSpecSheetTableBase } from '../tables/pu-spec-sheet-table-base';
-import { SheetExternalReference } from '../../../../core/models/domain/sheets/sheet';
+import { SheetExternalReference } from '../../../../core/models/domain/sheets/sheet-external-reference';
 
 export abstract class ConfigurablePropertyBase {
   public abstract readonly isValid: Signal<boolean>;

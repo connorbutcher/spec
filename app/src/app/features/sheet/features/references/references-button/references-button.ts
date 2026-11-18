@@ -3,7 +3,7 @@ import { Badge } from 'primeng/badge';
 import { ButtonDirective } from 'primeng/button';
 import { ActiveSheetService } from '../../../services/active-sheet.service';
 import { ReferencesSidePanelService } from '../references-side-panel/references-side-panel.service';
-import { SheetExternalReference } from '../../../../../core/models/domain/sheets/sheet';
+import { SheetExternalReference } from '../../../../../core/models/domain/sheets/sheet-external-reference';
 
 @Component({
   selector: 'app-references-button',

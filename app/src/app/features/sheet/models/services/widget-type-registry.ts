@@ -4,7 +4,7 @@ import { PUSpecSheetTableBase } from '../tables/pu-spec-sheet-table-base';
 import { PartPairWidget } from '../widgets/part-pair-widget';
 import { PFKNomWidget } from '../widgets/pfk-nominal-widget';
 import { WidgetPropertyBase } from '../widgets/widget-base';
-import { SheetWidget } from '../../../../core/models/domain/sheets/sheet';
+import { SheetWidget } from '../../../../core/models/domain/sheets/sheet-widget';
 
 export type TableWidgetFactory = (
   widget: SheetWidget,

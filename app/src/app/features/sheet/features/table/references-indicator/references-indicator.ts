@@ -1,7 +1,7 @@
 import { Component, inject, input } from '@angular/core';
 import { Tooltip } from 'primeng/tooltip';
 import { ReferencesSidePanelService } from '../../references/references-side-panel/references-side-panel.service';
-import { SheetExternalReference } from '../../../../../core/models/domain/sheets/sheet';
+import { SheetExternalReference } from '../../../../../core/models/domain/sheets/sheet-external-reference';
 
 @Component({
   selector: 'app-references-indicator',

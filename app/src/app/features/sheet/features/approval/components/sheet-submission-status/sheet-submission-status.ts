@@ -10,7 +10,7 @@ import { ReassignApproversDialog } from '../../../../dialogs/reassign-approvers-
 import { ActiveSheetService } from '../../../../services/active-sheet.service';
 import { SheetSubmissionApproverStatus } from '../sheet-submission-approver-status/sheet-submission-approver-status';
 import { ApprovalStatusTag } from '../approval-status-tag/approval-status-tag';
-import { SheetSubmission } from '../../../../../../core/models/domain/sheets/sheet';
+import { SheetSubmission } from '../../../../../../core/models/domain/sheets/sheet-submission';
 
 @Component({
   selector: 'app-sheet-submission-status',

@@ -4,7 +4,7 @@ import { TableGroupTemplateWidget } from '../../../core/models/domain/template/t
 import { TableRowTemplate } from '../../../core/models/domain/template/table-row-template';
 import { TableTemplateWidget } from '../../../core/models/domain/template/table-template-widget';
 import { PUSpecSheet } from '../models/pu-spec-sheet';
-import { SheetExternalReference } from '../../../core/models/domain/sheets/sheet';
+import { SheetExternalReference } from '../../../core/models/domain/sheets/sheet-external-reference';
 
 export abstract class SheetContext {
   public abstract readonly specSheet: Signal<PUSpecSheet>;

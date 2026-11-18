@@ -2,7 +2,7 @@ import { Component, input } from '@angular/core';
 import { SpecSheetType } from '../../../../../core/models/domain/types/spec-sheet-type';
 import { PUSpecSheetAvatar } from '../../../../common/pu-spec-sheet-avatar/pu-spec-sheet-avatar';
 import { SheetSummaryPropertiesDisplay } from '../../../../properties/components/display/sheet-summary-properties-display/sheet-summary-properties-display';
-import { SheetListItem } from '../../../../../core/models/domain/sheets/sheet';
+import { SheetListItem } from '../../../../../core/models/domain/sheets/sheet-list-item';
 @Component({
   selector: 'app-spec-sheet-version',
   imports: [PUSpecSheetAvatar, SheetSummaryPropertiesDisplay],

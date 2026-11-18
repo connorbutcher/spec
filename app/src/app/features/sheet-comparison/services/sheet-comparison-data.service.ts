@@ -1,8 +1,6 @@
 import { inject, Injectable } from '@angular/core';
-import {
-  SheetDetail,
-  SheetListItem,
-} from '../../../core/models/domain/sheets/sheet';
+import { SheetDetail } from '../../../core/models/domain/sheets/sheet-detail';
+import { SheetListItem } from '../../../core/models/domain/sheets/sheet-list-item';
 import { SheetListingService } from '../../../core/services/sheet-listing.service';
 import { SheetDataService } from '../../sheet/services/sheet-data.service';
 

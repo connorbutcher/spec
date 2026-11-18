@@ -23,12 +23,10 @@ import { WidgetTypeRegistry } from './services/widget-type-registry';
 import { SpecSheetAdvisory } from './spec-sheet-advisory';
 import { PUSpecSheetTableBase } from './tables/pu-spec-sheet-table-base';
 import { WidgetPropertyBase } from './widgets/widget-base';
-import {
-  SheetExternalReference,
-  SheetTableGroup,
-  SheetTableRow,
-  SheetWidget,
-} from '../../../core/models/domain/sheets/sheet';
+import { SheetExternalReference } from '../../../core/models/domain/sheets/sheet-external-reference';
+import { SheetTableGroup } from '../../../core/models/domain/sheets/sheet-table-group';
+import { SheetTableRow } from '../../../core/models/domain/sheets/sheet-table-row';
+import { SheetWidget } from '../../../core/models/domain/sheets/sheet-widget';
 
 export type ColumnDefinitions = {
   count: number;

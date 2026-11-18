@@ -3,7 +3,7 @@ import { Component, Inject } from '@angular/core';
 import { ButtonDirective } from 'primeng/button';
 import { ReferencesSidePanelService } from '../../features/references/references-side-panel/references-side-panel.service';
 import { SystemReferencesConfirmationDialogData } from './models/system-references-confirmation-dialog-data.interface';
-import { SheetExternalReference } from '../../../../core/models/domain/sheets/sheet';
+import { SheetExternalReference } from '../../../../core/models/domain/sheets/sheet-external-reference';
 
 @Component({
   selector: 'app-system-references-confirmation-dialog',

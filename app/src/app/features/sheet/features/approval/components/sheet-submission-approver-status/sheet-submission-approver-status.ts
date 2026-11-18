@@ -2,7 +2,7 @@ import { DatePipe } from '@angular/common';
 import { Component, computed, inject, input } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { ApprovalStatusTag } from '../approval-status-tag/approval-status-tag';
-import { SheetSubmissionApprover } from '../../../../../../core/models/domain/sheets/sheet';
+import { SheetSubmissionApprover } from '../../../../../../core/models/domain/sheets/sheet-submission-approver';
 
 @Component({
   selector: 'app-sheet-submission-approver-status',

@@ -8,7 +8,7 @@ import {
 } from '@angular/core';
 import { PropertyControlType } from '../../../../../core/types/properties/property-control-type.enum';
 import { PropertyControlTypeHelpers } from '../../../helpers/property-control-type-helpers';
-import { SheetProperty } from '../../../../../core/models/domain/sheets/sheet';
+import { SheetProperty } from '../../../../../core/models/domain/sheets/sheet-property';
 
 @Component({
   selector: 'app-property-summary-value-display',

@@ -26,11 +26,9 @@ import { ValidatorRuleRegistry } from '../services/validator-rule-registry';
 import { SpecSheetAdvisory } from '../spec-sheet-advisory';
 import { ValidatorBase } from '../validators/validator-base';
 import { StylingConfiguration } from './styling-configuration';
-import {
-  SheetCellValue,
-  SheetExternalReference,
-  SheetTableCell,
-} from '../../../../core/models/domain/sheets/sheet';
+import { SheetCellValue } from '../../../../core/models/domain/sheets/sheet-cell-value';
+import { SheetExternalReference } from '../../../../core/models/domain/sheets/sheet-external-reference';
+import { SheetTableCell } from '../../../../core/models/domain/sheets/sheet-table-cell';
 
 export abstract class PUSpecSheetTableCellBase<
   CV extends CellValue = CellValue,

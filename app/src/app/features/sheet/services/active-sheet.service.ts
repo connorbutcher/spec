@@ -14,7 +14,7 @@ import { PUCardAnalyticsService } from '../../analytics/services/pu-card-analyti
 import { SheetsService } from '../../sheets/services/sheets.service';
 import { PUSpecSheet } from '../models/pu-spec-sheet';
 import { SheetContext } from './sheet-context';
-import { SheetDetail } from '../../../core/models/domain/sheets/sheet';
+import { SheetDetail } from '../../../core/models/domain/sheets/sheet-detail';
 
 @Injectable()
 export class ActiveSheetService implements SheetContext {

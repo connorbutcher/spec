@@ -14,7 +14,7 @@ import { ConfirmationDialog } from '../../../../../common/confirmation-dialog/co
 import { ConfirmationDialogData } from '../../../../../common/confirmation-dialog/models/confirmation-dialog-data.interface';
 import { PropertySummaryValueDisplay } from '../../../../../properties/components/display/property-summary-value-display/property-summary-value-display';
 import { SheetsAuditService } from '../../sheets-audit.service';
-import { SheetListItem } from '../../../../../../core/models/domain/sheets/sheet';
+import { SheetListItem } from '../../../../../../core/models/domain/sheets/sheet-list-item';
 
 @Component({
   selector: 'app-sheet-for-phase-row',

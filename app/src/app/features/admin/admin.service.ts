@@ -4,7 +4,7 @@ import { lastValueFrom } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { Permission } from '../../core/models/domain/access/permission';
 import { User } from '../../core/models/domain/access/user';
-import { SheetTable } from '../../core/models/domain/sheets/sheet';
+import { SheetTable } from '../../core/models/domain/sheets/sheet-table';
 
 @Injectable()
 export class AdminService {

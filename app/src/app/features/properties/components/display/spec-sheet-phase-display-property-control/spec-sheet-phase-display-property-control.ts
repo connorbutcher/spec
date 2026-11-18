@@ -1,6 +1,6 @@
 import { Component, computed, input } from '@angular/core';
 import { Tooltip } from 'primeng/tooltip';
-import { SheetListItem } from '../../../../../core/models/domain/sheets/sheet';
+import { SheetListItem } from '../../../../../core/models/domain/sheets/sheet-list-item';
 
 @Component({
   selector: 'app-spec-sheet-phase-display-property-control',

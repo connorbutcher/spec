@@ -16,7 +16,7 @@ import { PUSpecSheetTableBase } from '../../../models/tables/pu-spec-sheet-table
 import { LinkedSheetService } from '../../../services/linked-sheet.service';
 import { SheetContext } from '../../../services/sheet-context';
 import { CellPropertyBase } from './cell-property-base';
-import { SheetExternalReference } from '../../../../../core/models/domain/sheets/sheet';
+import { SheetExternalReference } from '../../../../../core/models/domain/sheets/sheet-external-reference';
 
 export class LinkedSpecSheetValueDropdownPhaseTypeCellProperty extends CellPropertyBase<LinkedSpecSheetDropdownCellProperties> {
   public override readonly isValid = computed(

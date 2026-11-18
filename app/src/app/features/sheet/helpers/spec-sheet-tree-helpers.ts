@@ -5,10 +5,8 @@ import { StructureLevelType } from '../../../core/types/configuration/structure-
 import { SpecSheetTreeNodeData } from '../models/spec-sheet-tree-node-data';
 import { SpecSheetTreeRowData } from '../models/spec-sheet-tree-row-data';
 import { SheetPropertyHelpers } from '../../../core/helpers/sheet-property-helpers';
-import {
-  SheetListItem,
-  SheetProperty,
-} from '../../../core/models/domain/sheets/sheet';
+import { SheetListItem } from '../../../core/models/domain/sheets/sheet-list-item';
+import { SheetProperty } from '../../../core/models/domain/sheets/sheet-property';
 
 export class SpecSheetTreeHelpers {
   public static build(

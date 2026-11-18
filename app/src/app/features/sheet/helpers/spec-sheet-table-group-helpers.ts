@@ -1,5 +1,5 @@
 import { GroupHierarchyManager } from '../models/services/group-hierarchy-manager';
-import { SheetTableGroup } from '../../../core/models/domain/sheets/sheet';
+import { SheetTableGroup } from '../../../core/models/domain/sheets/sheet-table-group';
 
 export class SpecSheetTableGroupHelpers {
   /**

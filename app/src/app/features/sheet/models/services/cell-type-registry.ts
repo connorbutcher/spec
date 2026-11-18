@@ -5,7 +5,7 @@ import { PUSpecSheetTableCellGroupLookup } from '../cells/pu-spec-sheet-table-ce
 import { PUSpecSheetTableCellLinked } from '../cells/pu-spec-sheet-table-cell-linked';
 import { PUSpecSheetTableCellPair } from '../cells/pu-spec-sheet-table-cell-pair';
 import { PUSpecSheetTableRow } from '../pu-spec-sheet-table-row';
-import { SheetTableCell } from '../../../../core/models/domain/sheets/sheet';
+import { SheetTableCell } from '../../../../core/models/domain/sheets/sheet-table-cell';
 
 export type CellFactory = (
   cell: SheetTableCell,

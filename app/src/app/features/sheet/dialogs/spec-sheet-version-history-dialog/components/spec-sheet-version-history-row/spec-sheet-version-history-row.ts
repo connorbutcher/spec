@@ -7,7 +7,7 @@ import { Tooltip } from 'primeng/tooltip';
 import { SpecSheetType } from '../../../../../../core/models/domain/types/spec-sheet-type';
 import { SheetSummaryPropertiesDisplay } from '../../../../../properties/components/display/sheet-summary-properties-display/sheet-summary-properties-display';
 import { SheetsService } from '../../../../../sheets/services/sheets.service';
-import { SheetListItem } from '../../../../../../core/models/domain/sheets/sheet';
+import { SheetListItem } from '../../../../../../core/models/domain/sheets/sheet-list-item';
 
 @Component({
   selector: 'app-spec-sheet-version-history-row',

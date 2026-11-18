@@ -19,7 +19,7 @@ import { SheetPropertyHelpers } from '../../../../../core/helpers/sheet-property
 import { PropertiesInfoService } from '../../../services/properties-info.service';
 import { PropertyControlBase } from '../property-control-base';
 import { VersionPropertyDataService } from './version-property-data.service';
-import { SheetListItem } from '../../../../../core/models/domain/sheets/sheet';
+import { SheetListItem } from '../../../../../core/models/domain/sheets/sheet-list-item';
 
 @Component({
   selector: 'app-version-property-control',

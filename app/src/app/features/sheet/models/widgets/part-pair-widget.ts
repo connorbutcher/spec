@@ -7,7 +7,7 @@ import { ValidatorLevel } from '../../../../core/types/configuration/validator-l
 import { SpecSheetAdvisory } from '../spec-sheet-advisory';
 import { PUSpecSheetTableBase } from '../tables/pu-spec-sheet-table-base';
 import { WidgetPropertyBase } from './widget-base';
-import { SheetWidget } from '../../../../core/models/domain/sheets/sheet';
+import { SheetWidget } from '../../../../core/models/domain/sheets/sheet-widget';
 
 export class PartPairWidget extends WidgetPropertyBase<
   SheetWidget,

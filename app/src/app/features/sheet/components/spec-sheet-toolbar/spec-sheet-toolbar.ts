@@ -28,13 +28,11 @@ import { SheetDataService } from '../../services/sheet-data.service';
 import { SheetApprovalStatus } from '../sheet-approval-alert/sheet-approval-status';
 import { SpecSheetSearch } from '../spec-sheet-search/spec-sheet-search';
 import { SheetItemHelpers } from '../../../../core/helpers/sheet-item-helpers';
-import {
-  SheetTable,
-  SheetTableCell,
-  SheetTableGroup,
-  SheetTableRow,
-  SheetWidget,
-} from '../../../../core/models/domain/sheets/sheet';
+import { SheetTable } from '../../../../core/models/domain/sheets/sheet-table';
+import { SheetTableCell } from '../../../../core/models/domain/sheets/sheet-table-cell';
+import { SheetTableGroup } from '../../../../core/models/domain/sheets/sheet-table-group';
+import { SheetTableRow } from '../../../../core/models/domain/sheets/sheet-table-row';
+import { SheetWidget } from '../../../../core/models/domain/sheets/sheet-widget';
 
 @Component({
   selector: 'app-spec-sheet-toolbar',

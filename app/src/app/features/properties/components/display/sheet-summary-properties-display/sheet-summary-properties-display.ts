@@ -10,7 +10,7 @@ import {
 import { SpecSheetHelpers } from '../../../../../core/helpers/spec-sheet-helpers';
 import { SpecSheetType } from '../../../../../core/models/domain/types/spec-sheet-type';
 import { PropertyControlTypeHelpers } from '../../../helpers/property-control-type-helpers';
-import { SheetListItem } from '../../../../../core/models/domain/sheets/sheet';
+import { SheetListItem } from '../../../../../core/models/domain/sheets/sheet-list-item';
 
 @Component({
   selector: 'app-sheet-summary-properties-display',

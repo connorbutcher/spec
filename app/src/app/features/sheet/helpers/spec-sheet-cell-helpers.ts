@@ -2,7 +2,7 @@ import { PUSpecSheetTableCell } from '../models/cells/pu-spec-sheet-table-cell';
 import { PUSpecSheetTableCellBase } from '../models/cells/pu-spec-sheet-table-cell-base';
 import { PUSpecSheetTableRow } from '../models/pu-spec-sheet-table-row';
 import { CellTypeRegistry } from '../models/services/cell-type-registry';
-import { SheetTableCell } from '../../../core/models/domain/sheets/sheet';
+import { SheetTableCell } from '../../../core/models/domain/sheets/sheet-table-cell';
 
 export class SpecSheetCellHelpers {
   public static toCell(

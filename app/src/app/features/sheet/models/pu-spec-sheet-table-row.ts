@@ -23,10 +23,8 @@ import { ChangeTracker } from './services/change-tracker';
 import { ValidatorRuleRegistry } from './services/validator-rule-registry';
 import { SpecSheetAdvisory } from './spec-sheet-advisory';
 import { ValidatorBase } from './validators/validator-base';
-import {
-  SheetExternalReference,
-  SheetTableRow,
-} from '../../../core/models/domain/sheets/sheet';
+import { SheetExternalReference } from '../../../core/models/domain/sheets/sheet-external-reference';
+import { SheetTableRow } from '../../../core/models/domain/sheets/sheet-table-row';
 
 export class PUSpecSheetTableRow {
   public readonly id: number;

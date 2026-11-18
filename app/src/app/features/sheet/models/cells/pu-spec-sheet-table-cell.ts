@@ -1,6 +1,6 @@
 import { PUSpecSheetTableRow } from '../pu-spec-sheet-table-row';
 import { PUSpecSheetTableCellBase } from './pu-spec-sheet-table-cell-base';
-import { SheetTableCell } from '../../../../core/models/domain/sheets/sheet';
+import { SheetTableCell } from '../../../../core/models/domain/sheets/sheet-table-cell';
 
 export class PUSpecSheetTableCell extends PUSpecSheetTableCellBase {
   constructor(cell: SheetTableCell, parent: PUSpecSheetTableRow) {

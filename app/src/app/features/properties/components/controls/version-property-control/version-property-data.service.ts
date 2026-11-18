@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { SheetListingService } from '../../../../../core/services/sheet-listing.service';
-import { SheetListItem } from '../../../../../core/models/domain/sheets/sheet';
+import { SheetListItem } from '../../../../../core/models/domain/sheets/sheet-list-item';
 
 @Injectable()
 export class VersionPropertyDataService {

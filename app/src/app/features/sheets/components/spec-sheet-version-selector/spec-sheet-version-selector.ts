@@ -6,7 +6,7 @@ import { SpecSheetType } from '../../../../core/models/domain/types/spec-sheet-t
 import { StructureLevelType } from '../../../../core/types/configuration/structure-level-type.enum';
 import { SheetsService } from '../../services/sheets.service';
 import { SpecSheetVersion } from './spec-sheet-version/spec-sheet-version';
-import { SheetListItem } from '../../../../core/models/domain/sheets/sheet';
+import { SheetListItem } from '../../../../core/models/domain/sheets/sheet-list-item';
 
 @Component({
   selector: 'app-spec-sheet-version-selector',

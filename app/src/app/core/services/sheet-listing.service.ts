@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { lastValueFrom } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { SheetListItem } from '../models/domain/sheets/sheet';
+import { SheetListItem } from '../models/domain/sheets/sheet-list-item';
 
 /**
  * Lists of sheets: the published versions of a sheet, then its draft when it has one.

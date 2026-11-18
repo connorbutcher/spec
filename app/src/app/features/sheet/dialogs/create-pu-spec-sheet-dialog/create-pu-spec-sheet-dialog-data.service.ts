@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { lastValueFrom } from 'rxjs';
 import { environment } from '../../../../../../environments/environment';
-import { SheetLocation } from '../../../../core/models/domain/sheets/sheet';
+import { SheetLocation } from '../../../../core/models/domain/sheets/sheet-location';
 import { CreateSheetRequest } from '../../../../core/models/requests/sheets/create-sheet-request';
 
 @Injectable()

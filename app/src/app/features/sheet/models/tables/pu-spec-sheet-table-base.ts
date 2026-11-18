@@ -29,13 +29,11 @@ import { ChangeTracker } from '../services/change-tracker';
 import { WidgetTypeRegistry } from '../services/widget-type-registry';
 import { SpecSheetAdvisory } from '../spec-sheet-advisory';
 import { WidgetPropertyBase } from '../widgets/widget-base';
-import {
-  SheetExternalReference,
-  SheetTable,
-  SheetTableGroup,
-  SheetTableNote,
-  SheetWidget,
-} from '../../../../core/models/domain/sheets/sheet';
+import { SheetExternalReference } from '../../../../core/models/domain/sheets/sheet-external-reference';
+import { SheetTable } from '../../../../core/models/domain/sheets/sheet-table';
+import { SheetTableGroup } from '../../../../core/models/domain/sheets/sheet-table-group';
+import { SheetTableNote } from '../../../../core/models/domain/sheets/sheet-table-note';
+import { SheetWidget } from '../../../../core/models/domain/sheets/sheet-widget';
 
 export abstract class PUSpecSheetTableBase<
   P extends TablePropertyBase<TableProperties> =

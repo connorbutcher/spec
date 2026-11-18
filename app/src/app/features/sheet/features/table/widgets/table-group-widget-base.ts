@@ -11,7 +11,7 @@ import { PUSpecSheetTableGroup } from '../../../models/pu-spec-sheet-table-group
 import { PUSpecSheetTableBase } from '../../../models/tables/pu-spec-sheet-table-base';
 import { WidgetPropertyBase } from '../../../models/widgets/widget-base';
 import { ActiveSheetService } from '../../../services/active-sheet.service';
-import { SheetWidget } from '../../../../../core/models/domain/sheets/sheet';
+import { SheetWidget } from '../../../../../core/models/domain/sheets/sheet-widget';
 
 @Component({
   selector: 'app-table-group-widget-base',

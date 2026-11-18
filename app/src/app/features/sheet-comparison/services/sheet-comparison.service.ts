@@ -14,10 +14,8 @@ import { SpecSheetType } from '../../../core/models/domain/types/spec-sheet-type
 import { CellLookupService } from '../../../core/services/cell-lookup.service';
 import { PUSpecSheet } from '../../sheet/models/pu-spec-sheet';
 import { SheetComparison } from '../models/sheet-comparison';
-import {
-  SheetDetail,
-  SheetListItem,
-} from '../../../core/models/domain/sheets/sheet';
+import { SheetDetail } from '../../../core/models/domain/sheets/sheet-detail';
+import { SheetListItem } from '../../../core/models/domain/sheets/sheet-list-item';
 
 @Injectable()
 export class SheetComparisonService {

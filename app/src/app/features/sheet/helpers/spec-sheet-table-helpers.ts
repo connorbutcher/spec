@@ -1,7 +1,7 @@
 import { PUSpecSheet } from '../models/pu-spec-sheet';
 import { LinkedPUSpecSheetTable } from '../models/tables/linked-pu-spec-sheet-table';
 import { PUSpecSheetTable } from '../models/tables/pu-spec-sheet-table';
-import { SheetTable } from '../../../core/models/domain/sheets/sheet';
+import { SheetTable } from '../../../core/models/domain/sheets/sheet-table';
 
 export class SpecSheetTableHelpers {
   public static toTable(

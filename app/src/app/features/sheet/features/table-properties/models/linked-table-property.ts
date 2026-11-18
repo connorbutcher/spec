@@ -14,7 +14,7 @@ import { PUSpecSheet } from '../../../models/pu-spec-sheet';
 import { PUSpecSheetTableBase } from '../../../models/tables/pu-spec-sheet-table-base';
 import { LinkedSheetService } from '../../../services/linked-sheet.service';
 import { TablePropertyBase } from './table-property-base';
-import { SheetExternalReference } from '../../../../../core/models/domain/sheets/sheet';
+import { SheetExternalReference } from '../../../../../core/models/domain/sheets/sheet-external-reference';
 
 export class LinkedTableProperty extends TablePropertyBase<LinkedTableProperties> {
   public override readonly isValid = computed(

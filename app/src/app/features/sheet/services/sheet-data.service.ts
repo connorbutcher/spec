@@ -7,10 +7,8 @@ import { PublishSheetRequest } from '../../../core/models/requests/sheets/publis
 import { DecideSubmissionRequest } from '../../../core/models/requests/sheets/decide-submission-request';
 import { ReassignSubmissionApproversRequest } from '../../../core/models/requests/sheets/reassign-submission-approvers-request';
 import { SheetListingService } from '../../../core/services/sheet-listing.service';
-import {
-  SheetDetail,
-  SheetListItem,
-} from '../../../core/models/domain/sheets/sheet';
+import { SheetDetail } from '../../../core/models/domain/sheets/sheet-detail';
+import { SheetListItem } from '../../../core/models/domain/sheets/sheet-list-item';
 
 @Injectable()
 export class SheetDataService {

@@ -1,5 +1,5 @@
 import { Component, input } from '@angular/core';
-import { SheetExternalReference } from '../../../../../core/models/domain/sheets/sheet';
+import { SheetExternalReference } from '../../../../../core/models/domain/sheets/sheet-external-reference';
 
 @Component({
   selector: 'app-reference-row',

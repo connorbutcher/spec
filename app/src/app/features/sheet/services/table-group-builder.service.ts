@@ -14,13 +14,11 @@ import { ConfigureCellPropertiesDialog } from '../dialogs/configure-cell-propert
 import { PUSpecSheetTableGroup } from '../models/pu-spec-sheet-table-group';
 import { PUSpecSheetTableBase } from '../models/tables/pu-spec-sheet-table-base';
 import { ActiveSheetService } from './active-sheet.service';
-import {
-  SheetCellValue,
-  SheetTableCell,
-  SheetTableGroup,
-  SheetTableRow,
-  SheetWidget,
-} from '../../../core/models/domain/sheets/sheet';
+import { SheetCellValue } from '../../../core/models/domain/sheets/sheet-cell-value';
+import { SheetTableCell } from '../../../core/models/domain/sheets/sheet-table-cell';
+import { SheetTableGroup } from '../../../core/models/domain/sheets/sheet-table-group';
+import { SheetTableRow } from '../../../core/models/domain/sheets/sheet-table-row';
+import { SheetWidget } from '../../../core/models/domain/sheets/sheet-widget';
 import { SheetItemHelpers } from '../../../core/helpers/sheet-item-helpers';
 
 @Injectable()

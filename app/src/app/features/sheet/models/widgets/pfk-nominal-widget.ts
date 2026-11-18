@@ -7,7 +7,7 @@ import { ValidatorLevel } from '../../../../core/types/configuration/validator-l
 import { PUSpecSheetTableGroup } from '../pu-spec-sheet-table-group';
 import { SpecSheetAdvisory } from '../spec-sheet-advisory';
 import { WidgetPropertyBase } from './widget-base';
-import { SheetWidget } from '../../../../core/models/domain/sheets/sheet';
+import { SheetWidget } from '../../../../core/models/domain/sheets/sheet-widget';
 
 export class PFKNomWidget extends WidgetPropertyBase<
   SheetWidget,

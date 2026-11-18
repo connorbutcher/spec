@@ -1,7 +1,7 @@
 import { Component, computed, input } from '@angular/core';
 import { Tooltip } from 'primeng/tooltip';
 import { SheetPropertyHelpers } from '../../../../../core/helpers/sheet-property-helpers';
-import { SheetProperty } from '../../../../../core/models/domain/sheets/sheet';
+import { SheetProperty } from '../../../../../core/models/domain/sheets/sheet-property';
 
 @Component({
   selector: 'app-text-display-property-control',

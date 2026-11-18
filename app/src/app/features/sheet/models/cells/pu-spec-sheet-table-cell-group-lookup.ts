@@ -7,10 +7,8 @@ import { TableValuesDropdownCellProperty } from '../../features/cell-properties/
 import { ResetOption } from '../../types/cell-reset-options';
 import { PUSpecSheetTableRow } from '../pu-spec-sheet-table-row';
 import { PUSpecSheetTableCellBase } from './pu-spec-sheet-table-cell-base';
-import {
-  SheetCellValue,
-  SheetTableCell,
-} from '../../../../core/models/domain/sheets/sheet';
+import { SheetCellValue } from '../../../../core/models/domain/sheets/sheet-cell-value';
+import { SheetTableCell } from '../../../../core/models/domain/sheets/sheet-table-cell';
 
 export class PUSpecSheetTableCellGroupLookup extends PUSpecSheetTableCellBase<
   LinkedSpecSheetValue,

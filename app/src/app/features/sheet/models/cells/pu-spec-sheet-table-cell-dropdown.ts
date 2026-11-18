@@ -7,7 +7,7 @@ import { NumberDropdownCellProperty } from '../../features/cell-properties/model
 import { TextDropdownCellProperty } from '../../features/cell-properties/models/text-dropdown-cell-property';
 import { PUSpecSheetTableRow } from '../pu-spec-sheet-table-row';
 import { PUSpecSheetTableCellBase } from './pu-spec-sheet-table-cell-base';
-import { SheetTableCell } from '../../../../core/models/domain/sheets/sheet';
+import { SheetTableCell } from '../../../../core/models/domain/sheets/sheet-table-cell';
 
 export class PUSpecSheetTableCellDropdown extends PUSpecSheetTableCellBase<
   TextValue | NumericValue,

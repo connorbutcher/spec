@@ -1,7 +1,7 @@
 import { Component, inject, Injector, input, model } from '@angular/core';
 import { Destroyable } from '../../../../common/destructable/destructable';
 import { WidgetPropertyBase } from '../../../models/widgets/widget-base';
-import { SheetWidget } from '../../../../../core/models/domain/sheets/sheet';
+import { SheetWidget } from '../../../../../core/models/domain/sheets/sheet-widget';
 
 @Component({
   selector: 'app-table-widget-base',

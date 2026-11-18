@@ -1,4 +1,4 @@
-import { SheetProperty } from '../models/domain/sheets/sheet';
+import { SheetProperty } from '../models/domain/sheets/sheet-property';
 import { SpecSheetTypeProperty } from '../models/domain/types/spec-sheet-type-property';
 import { PropertyValueType } from '../types/properties/property-value-type.enum';
 

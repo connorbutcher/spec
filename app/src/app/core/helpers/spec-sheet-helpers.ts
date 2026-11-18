@@ -1,11 +1,9 @@
 import { SpecSheetType } from '../models/domain/types/spec-sheet-type';
 import { SheetPropertyHelpers } from './sheet-property-helpers';
 import { StructureLevelType } from '../types/configuration/structure-level-type.enum';
-import {
-  Sheet,
-  SheetListItem,
-  SheetProperty,
-} from '../models/domain/sheets/sheet';
+import { Sheet } from '../models/domain/sheets/sheet';
+import { SheetListItem } from '../models/domain/sheets/sheet-list-item';
+import { SheetProperty } from '../models/domain/sheets/sheet-property';
 
 export class SpecSheetHelpers {
   public static getPropertiesForSpecSheetSummary(

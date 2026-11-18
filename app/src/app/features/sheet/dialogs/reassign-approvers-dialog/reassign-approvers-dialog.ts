@@ -14,7 +14,7 @@ import { DialogHeader } from '../../../common/dialog-header/dialog-header';
 import { ElementLabel } from '../../../common/element-label/element-label';
 import { ActiveSheetService } from '../../services/active-sheet.service';
 import { SheetDataService } from '../../services/sheet-data.service';
-import { SheetSubmission } from '../../../../core/models/domain/sheets/sheet';
+import { SheetSubmission } from '../../../../core/models/domain/sheets/sheet-submission';
 
 @Component({
   selector: 'app-reassign-approvers-dialog',

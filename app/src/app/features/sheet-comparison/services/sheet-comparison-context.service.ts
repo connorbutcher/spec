@@ -10,7 +10,7 @@ import { CellLookupService } from '../../../core/services/cell-lookup.service';
 import { PUSpecSheet } from '../../sheet/models/pu-spec-sheet';
 import { SheetContext } from '../../sheet/services/sheet-context';
 import { SheetComparisonService } from './sheet-comparison.service';
-import { SheetDetail } from '../../../core/models/domain/sheets/sheet';
+import { SheetDetail } from '../../../core/models/domain/sheets/sheet-detail';
 
 @Injectable()
 export class SheetComparisonContextService implements SheetContext {
