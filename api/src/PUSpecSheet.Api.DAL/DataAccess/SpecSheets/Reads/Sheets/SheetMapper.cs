@@ -194,6 +194,29 @@ internal class SheetMapper
         };
     }
 
+    /// <summary>
+    /// The table as it is shown, without its groups, widgets and notes.
+    /// </summary>
+    public SheetTable MapTableHeader(DbSheetTable table)
+    {
+        var revision = table.Revisions.Shown();
+        return new SheetTable
+        {
+            Id = table.Id,
+            SheetId = table.SheetId,
+            TableTemplateId = table.TableTemplateId,
+            ReferenceId = table.ReferenceId,
+            CreatedDateTime = table.CreatedDateTime,
+            Revision = MapRevision(revision),
+            Title = revision.Title,
+            DisplayOrder = revision.DisplayOrder,
+            ConfigurationOverride = revision.ConfigurationOverride,
+            Groups = [],
+            Widgets = [],
+            Notes = []
+        };
+    }
+
     private SheetTable MapTable(DbSheetTable table)
     {
         var revision = table.Revisions.Shown();

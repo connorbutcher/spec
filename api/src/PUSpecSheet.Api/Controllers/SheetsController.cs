@@ -73,6 +73,27 @@ public class SheetsController : ControllerBase
         return sheet is null ? NotFound() : Ok(sheet);
     }
 
+    [HttpGet("phase/{phaseId:int}/type/{sheetTypeId:int}/cells")]
+    public async Task<ActionResult<SheetCells>> GetLatestPublishedCellsByPhaseAndTypeAsync(int phaseId, int sheetTypeId, [FromQuery] Guid[] referenceIds, [FromQuery] DateTime? publishedBy = null)
+    {
+        var cells = await _sheetDataAccessService.GetLatestPublishedCellsByPhaseAndTypeAsync(phaseId, sheetTypeId, referenceIds, publishedBy, HttpContext.RequestAborted);
+        return cells is null ? NotFound() : Ok(cells);
+    }
+
+    [HttpGet("{id:int}/cells")]
+    public async Task<ActionResult<SheetCells>> GetPublishedCellsAsync(int id, [FromQuery] Guid[] referenceIds, [FromQuery] int? version = null)
+    {
+        var cells = await _sheetDataAccessService.GetPublishedCellsAsync(id, version, referenceIds, HttpContext.RequestAborted);
+        return cells is null ? NotFound() : Ok(cells);
+    }
+
+    [HttpGet("tables/unique")]
+    public async Task<ActionResult<IReadOnlyList<SheetTable>>> GetUniqueTablesAsync()
+    {
+        var tables = await _sheetDataAccessService.GetUniqueTablesAsync(HttpContext.RequestAborted);
+        return Ok(tables);
+    }
+
     [HttpGet("spec-sheet/{specSheetId:int}")]
     public async Task<ActionResult<SheetLocation>> FindSheetAsync(int specSheetId)
     {

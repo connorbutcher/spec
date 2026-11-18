@@ -70,6 +70,63 @@ internal class SheetReader
     }
 
     /// <summary>
+    /// The cells with the reference ids, of the sheet as it stood at its latest version published at or before the
+    /// moment (its latest version when no moment is given). Null when it has no such version.
+    /// </summary>
+    public async Task<SheetCells?> ReadCellsAsync(int sheetId, IReadOnlyCollection<Guid> referenceIds, DateTime? publishedBy, CancellationToken cancellationToken)
+    {
+        var sheet = await ReadPublishedByAsync(sheetId, publishedBy, cancellationToken);
+        if (sheet is null)
+        {
+            return null;
+        }
+
+        var header = await _dbContext.Sheets
+            .AsNoTracking()
+            .Where(s => s.Id == sheetId)
+            .Select(s => new { s.SpecSheetTypeId, s.SpecSheetPhaseId })
+            .FirstAsync(cancellationToken);
+
+        return new SheetCells
+        {
+            Version = sheet.Version,
+            SheetId = sheetId,
+            SpecSheetTypeId = header.SpecSheetTypeId,
+            SpecSheetPhaseId = header.SpecSheetPhaseId,
+            Cells = [.. sheet.Tables
+                .SelectMany(table => table.Groups)
+                .SelectMany(group => group.Rows)
+                .SelectMany(row => row.Cells)
+                .Where(cell => referenceIds.Contains(cell.ReferenceId))]
+        };
+    }
+
+    /// <summary>
+    /// Each table that has been published, by its reference id (the one it has in every sheet), as its most recently
+    /// created table is now: without its groups, widgets and notes. Tables that are deleted now are left out.
+    /// </summary>
+    public async Task<List<SheetTable>> ReadUniqueTablesAsync(CancellationToken cancellationToken)
+    {
+        var tables = await _dbContext.SheetTables
+            .AsNoTracking()
+            .Where(table => table.Revisions.Any(r => r.Status == RevisionStatus.Published && r.SupersededDateTime == null && !r.IsDeleted))
+            .Include(table => table.Revisions.Where(r => r.Status == RevisionStatus.Published && r.SupersededDateTime == null))
+            .ToListAsync(cancellationToken);
+
+        var unique = tables
+            .GroupBy(table => table.ReferenceId)
+            .Select(group => group.OrderByDescending(table => table.CreatedDateTime).First())
+            .ToList();
+
+        var users = await _revisionReader.ReadUsersAsync(unique.SelectMany(table => table.Revisions).Select(r => r.CreatedByUserId), cancellationToken);
+        var versionIds = unique.SelectMany(table => table.Revisions).Select(r => r.SheetVersionId).OfType<int>().Distinct().ToList();
+        var versions = await _dbContext.SheetVersions.AsNoTracking().Where(version => versionIds.Contains(version.Id)).ToListAsync(cancellationToken);
+
+        var mapper = new SheetMapper(users.Values, versions);
+        return [.. unique.Select(mapper.MapTableHeader).OrderBy(table => table.Title).ThenBy(table => table.Id)];
+    }
+
+    /// <summary>
     /// The sheet's submissions, oldest first; only those that published the version when one is given. Null when the
     /// sheet has no such version.
     /// </summary>

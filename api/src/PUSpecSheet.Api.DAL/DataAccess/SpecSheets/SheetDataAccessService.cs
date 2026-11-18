@@ -91,6 +91,43 @@ internal class SheetDataAccessService : ISheetDataAccessService
         return sheet is null ? null : await TrimTablesAsync(sheet, cancellationToken);
     }
 
+    public async Task<SheetCells?> GetLatestPublishedCellsByPhaseAndTypeAsync(int phaseId, int sheetTypeId, IReadOnlyCollection<Guid> referenceIds, DateTime? publishedBy, CancellationToken cancellationToken)
+    {
+        if (referenceIds.Count == 0)
+        {
+            return null;
+        }
+
+        var sheetId = await _sheetReader.FindSheetIdAsync(phaseId, sheetTypeId, cancellationToken);
+        return sheetId is null ? null : await _sheetReader.ReadCellsAsync(sheetId.Value, referenceIds, publishedBy, cancellationToken);
+    }
+
+    public async Task<SheetCells?> GetPublishedCellsAsync(int sheetId, int? versionNumber, IReadOnlyCollection<Guid> referenceIds, CancellationToken cancellationToken)
+    {
+        if (referenceIds.Count == 0)
+        {
+            return null;
+        }
+
+        var versions = await _sheetReader.ReadVersionsAsync(sheetId, cancellationToken);
+        var version = versionNumber is null ? versions.LastOrDefault() : versions.FirstOrDefault(v => v.VersionNumber == versionNumber);
+        return version is null ? null : await _sheetReader.ReadCellsAsync(sheetId, referenceIds, version.PublishedDateTime, cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<SheetTable>> GetUniqueTablesAsync(CancellationToken cancellationToken)
+    {
+        var currentUser = await GetCurrentUserAsync(cancellationToken);
+        var tables = await _sheetReader.ReadUniqueTablesAsync(cancellationToken);
+
+        var permitted = await _dbContext.SpecSheetTablePermissions
+            .AsNoTracking()
+            .Where(permission => permission.UserId == currentUser.Id)
+            .Select(permission => permission.TableReferenceId)
+            .ToListAsync(cancellationToken);
+
+        return [.. tables.Where(table => permitted.Contains(table.ReferenceId))];
+    }
+
     public async Task<IReadOnlyList<SheetSummary>> GetSheetSummariesByPhaseAsync(int phaseId, bool includeChildren, CancellationToken cancellationToken)
     {
         var phaseIds = new List<int> { phaseId };

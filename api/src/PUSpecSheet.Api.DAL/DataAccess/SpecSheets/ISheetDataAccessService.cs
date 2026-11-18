@@ -38,6 +38,22 @@ public interface ISheetDataAccessService
     /// <summary>
     /// The sheets of the phase, and of its child phases when asked, without their tables.
     /// </summary>
+    /// <summary>
+    /// The cells with the reference ids, of the sheet of the phase and type as it stood at its latest version published at
+    /// or before the moment (its latest version when none is given). Null when there is no such version.
+    /// </summary>
+    Task<SheetCells?> GetLatestPublishedCellsByPhaseAndTypeAsync(int phaseId, int sheetTypeId, IReadOnlyCollection<Guid> referenceIds, DateTime? publishedBy, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// The cells with the reference ids, of the sheet as it stood at the version (its latest when none is given).
+    /// </summary>
+    Task<SheetCells?> GetPublishedCellsAsync(int sheetId, int? versionNumber, IReadOnlyCollection<Guid> referenceIds, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// The tables that have been published, one for each reference id, that the current user has permission to.
+    /// </summary>
+    Task<IReadOnlyList<SheetTable>> GetUniqueTablesAsync(CancellationToken cancellationToken);
+
     Task<IReadOnlyList<SheetSummary>> GetSheetSummariesByPhaseAsync(int phaseId, bool includeChildren, CancellationToken cancellationToken);
 
     Task<IReadOnlyList<SheetSummary>> GetSheetSummariesByTypeAsync(int sheetTypeId, CancellationToken cancellationToken);
